@@ -1,7 +1,4 @@
-from __future__ import division, print_function, absolute_import
-
 from os.path import join, dirname
-import platform
 
 import numpy as np
 from numpy.testing import (
@@ -115,7 +112,7 @@ def fftw_dst_ref(type, size, dt):
 
 
 def ref_2d(func, x, **kwargs):
-    """Calculate 2d reference data from a 1d transform"""
+    """Calculate 2-D reference data from a 1d transform"""
     x = np.array(x, copy=True)
     for row in range(x.shape[0]):
         x[row, :] = func(x[row, :], **kwargs)
@@ -146,7 +143,7 @@ def naive_dct1(x, norm=None):
 
 
 def naive_dst1(x, norm=None):
-    """Calculate textbook definition version  of DST-I."""
+    """Calculate textbook definition version of DST-I."""
     x = np.array(x, copy=True)
     N = len(x)
     M = N+1
@@ -160,7 +157,7 @@ def naive_dst1(x, norm=None):
 
 
 def naive_dct4(x, norm=None):
-    """Calculate textbook definition version  of DCT-IV."""
+    """Calculate textbook definition version of DCT-IV."""
     x = np.array(x, copy=True)
     N = len(x)
     y = np.zeros(N)
@@ -175,7 +172,7 @@ def naive_dct4(x, norm=None):
 
 
 def naive_dst4(x, norm=None):
-    """Calculate textbook definition version  of DST-IV."""
+    """Calculate textbook definition version of DST-IV."""
     x = np.array(x, copy=True)
     N = len(x)
     y = np.zeros(N)
@@ -479,3 +476,12 @@ class Test_DCTN_IDCTN(object):
         tmp = fforward(self.data, s=None, axes=axes, norm='ortho')
         tmp = finverse(tmp, s=None, axes=axes, norm='ortho')
         assert_array_almost_equal(self.data, tmp, decimal=self.dec)
+
+
+@pytest.mark.parametrize('func', [dct, dctn, idct, idctn,
+                                  dst, dstn, idst, idstn])
+def test_swapped_byte_order(func):
+    rng = np.random.RandomState(1234)
+    x = rng.rand(10)
+    swapped_dt = x.dtype.newbyteorder('S')
+    assert_allclose(func(x.astype(swapped_dt)), func(x))

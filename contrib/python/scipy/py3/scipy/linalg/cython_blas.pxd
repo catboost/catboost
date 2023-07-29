@@ -8,7 +8,7 @@
 # cimport scipy.linalg.cython_blas as cython_blas
 # cimport ..linalg.cython_blas as cython_blas
 
-# Within scipy, if BLAS functions are needed in C/C++/Fortran,
+# Within SciPy, if BLAS functions are needed in C/C++/Fortran,
 # these wrappers should not be used.
 # The original libraries should be linked directly.
 

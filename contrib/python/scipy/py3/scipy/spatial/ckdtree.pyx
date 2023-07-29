@@ -6,8 +6,6 @@
 
 # distutils: language = c++
 
-from __future__ import absolute_import
-
 import numpy as np
 import scipy.sparse
 
@@ -67,7 +65,7 @@ cdef extern from "ckdtree_decl.h":
         np.intp_t size
 
     # External build and query methods in C++.
-    
+
     int build_ckdtree(ckdtree *self,
                          np.intp_t start_idx,
                          np.intp_t end_idx,
@@ -286,16 +284,10 @@ cdef class ordered_pairs:
         results = set()
         pair = self.buf.data()
         n = <np.intp_t> self.buf.size()
-        if sizeof(long) < sizeof(np.intp_t):
-            # Needed for Python 2.x on Win64
-            for i in range(n):
-                results.add((int(pair.i), int(pair.j)))
-                pair += 1
-        else:
-            # other platforms
-            for i in range(n):
-                results.add((pair.i, pair.j))
-                pair += 1
+        # other platforms
+        for i in range(n):
+            results.add((pair.i, pair.j))
+            pair += 1
         return results
 
 
@@ -343,15 +335,36 @@ cdef class cKDTreeNode:
         readonly np.intp_t    level
         readonly np.intp_t    split_dim
         readonly np.intp_t    children
+        readonly np.intp_t    start_idx
+        readonly np.intp_t    end_idx
         readonly np.float64_t split
-        ckdtreenode           *_node
         np.ndarray            _data
         np.ndarray            _indices
+        readonly object       lesser
+        readonly object       greater
 
-    cdef void _setup(cKDTreeNode self):
-        self.split_dim = self._node.split_dim
-        self.children = self._node.children
-        self.split = self._node.split
+    cdef void _setup(cKDTreeNode self, cKDTree parent, ckdtreenode *node, np.intp_t level):
+        cdef cKDTreeNode n1, n2
+        self.level = level
+        self.split_dim = node.split_dim
+        self.children = node.children
+        self.split = node.split
+        self.start_idx = node.start_idx
+        self.end_idx = node.end_idx
+        self._data = parent.data
+        self._indices = parent.indices
+        if self.split_dim == -1:
+            self.lesser = None
+            self.greater = None
+        else:
+            # setup lesser branch
+            n1 = cKDTreeNode()
+            n1._setup(parent, node=node.less, level=level + 1)
+            self.lesser = n1
+            # setup greater branch
+            n2 = cKDTreeNode()
+            n2._setup(parent, node=node.greater, level=level + 1)
+            self.greater = n2
 
     property data_points:
         def __get__(cKDTreeNode self):
@@ -359,40 +372,10 @@ cdef class cKDTreeNode:
 
     property indices:
         def __get__(cKDTreeNode self):
-            cdef np.intp_t i, start, stop
-            if self.split_dim == -1:
-                start = self._node.start_idx
-                stop = self._node.end_idx
-                return self._indices[start:stop]
-            else:
-                return np.hstack([self.lesser.indices,
-                           self.greater.indices])
-
-    property lesser:
-        def __get__(cKDTreeNode self):
-            if self.split_dim == -1:
-                return None
-            else:
-                n = cKDTreeNode()
-                n._node = self._node.less
-                n._data = self._data
-                n._indices = self._indices
-                n.level = self.level + 1
-                n._setup()
-                return n
-
-    property greater:
-        def __get__(cKDTreeNode self):
-            if self.split_dim == -1:
-                return None
-            else:
-                n = cKDTreeNode()
-                n._node = self._node.greater
-                n._data = self._data
-                n._indices = self._indices
-                n.level = self.level + 1
-                n._setup()
-                return n
+            cdef np.intp_t start, stop
+            start = self.start_idx
+            stop = self.end_idx
+            return self._indices[start:stop]
 
 
 # Main cKDTree class
@@ -477,7 +460,10 @@ cdef class cKDTree:
     mins : ndarray, shape (m,)
         The minimum value in each dimension of the n data points.
     tree : object, class cKDTreeNode
-        This class exposes a Python view of the root node in the cKDTree object.
+        This attribute exposes a Python view of the root node in the cKDTree 
+        object. A full Python view of the kd-tree is created dynamically 
+        on the first access. This attribute allows you to create your own 
+        query functions in Python.
     size : int
         The number of nodes in the tree.
 
@@ -488,7 +474,7 @@ cdef class cKDTree:
     """
     cdef:
         ckdtree * cself
-        readonly cKDTreeNode     tree
+        object                   _python_tree
         readonly np.ndarray      data
         readonly np.ndarray      maxes
         readonly np.ndarray      mins
@@ -498,12 +484,28 @@ cdef class cKDTree:
 
     property n:
         def __get__(self): return self.cself.n
+    
     property m:
         def __get__(self): return self.cself.m
+    
     property leafsize:
         def __get__(self): return self.cself.leafsize
+    
     property size:
         def __get__(self): return self.cself.size
+
+    property tree:
+        # make the tree viewable from Python
+        def __get__(cKDTree self):
+            cdef cKDTreeNode n
+            cdef ckdtree *cself = self.cself
+            if self._python_tree is not None:
+                return self._python_tree
+            else:
+                n = cKDTreeNode()
+                n._setup(self, node=cself.ctree, level=0)
+                self._python_tree = n
+                return self._python_tree
 
     def __cinit__(cKDTree self):
         self.cself = <ckdtree * > PyMem_Malloc(sizeof(ckdtree))
@@ -511,13 +513,15 @@ cdef class cKDTree:
 
     def __init__(cKDTree self, data, np.intp_t leafsize=16, compact_nodes=True,
             copy_data=False, balanced_tree=True, boxsize=None):
-        
-        cdef: 
+
+        cdef:
             np.float64_t [::1] tmpmaxes, tmpmins
             np.float64_t *ptmpmaxes
             np.float64_t *ptmpmins
             ckdtree *cself = self.cself
             int compact, median
+
+        self._python_tree = None
 
         data = np.array(data, order='C', copy=copy_data, dtype=np.float64)
 
@@ -565,10 +569,10 @@ cdef class cKDTree:
 
         tmpmaxes = np.copy(self.maxes)
         tmpmins = np.copy(self.mins)
-        
+
         ptmpmaxes = &tmpmaxes[0]
         ptmpmins = &tmpmins[0]
-        with nogil: 
+        with nogil:
             build_ckdtree(cself, 0, cself.n, ptmpmaxes, ptmpmins, median, compact)
 
         # set up the tree structure pointers
@@ -599,14 +603,6 @@ cdef class cKDTree:
         cself.size = cself.tree_buffer.size()
 
         self._post_init_traverse(cself.ctree)
-
-        # make the tree viewable from Python
-        self.tree = cKDTreeNode()
-        self.tree._node = cself.ctree
-        self.tree._data = self.data
-        self.tree._indices = self.indices
-        self.tree.level = 0
-        self.tree._setup()
 
     cdef _post_init_traverse(cKDTree self, ckdtreenode *node):
         cself = self.cself
@@ -749,7 +745,7 @@ cdef class cKDTree:
             raise ValueError("x must consist of vectors of length %d but "
                              "has shape %s" % (int(self.m), xshape))
 
-        n = <np.intp_t> np.prod(xshape[:-1])
+        n = <np.intp_t> np.prod(xshape[:-1], dtype=np.intp)
         xx = np.ascontiguousarray(x, dtype=np.float64).reshape(n, self.m)
 
         if p < 1:
@@ -770,7 +766,7 @@ cdef class cKDTree:
         # The C++ function touches all dd and ii entries,
         # setting the missing values.
 
-        cdef: 
+        cdef:
             np.float64_t [:, ::1] dd = np.empty((n,len(k)),dtype=np.float64)
             np.intp_t [:, ::1] ii = np.empty((n,len(k)),dtype=np.intp)
             np.intp_t [::1] kk = np.array(k, dtype=np.intp)
@@ -918,7 +914,7 @@ cdef class cKDTree:
         xndim = len(xshape)
 
         # allocate an array of std::vector<npy_intp>
-        n = np.prod(retshape)
+        n = np.prod(retshape, dtype=np.intp)
 
         if return_length:
             result = np.empty(retshape, dtype=np.intp)
@@ -951,7 +947,7 @@ cdef class cKDTree:
 
                 pvxx = &vxx[start, 0]
                 pvrr = &vrr[start + 0]
-                
+
                 with nogil:
                     query_ball_point(self.cself, pvxx,
                         pvrr, p, eps, stop - start, vvres, rlen)
@@ -1124,7 +1120,7 @@ cdef class cKDTree:
         cdef ordered_pairs results
 
         results = ordered_pairs()
-        
+
         with nogil:
             query_pairs(self.cself, r, p, eps, results.buf)
 
@@ -1155,7 +1151,7 @@ cdef class cKDTree:
             total weight for each KD-Tree node.
 
         """
-        cdef: 
+        cdef:
             np.intp_t num_of_nodes
             np.float64_t [::1] node_weights
             np.float64_t [::1] proper_weights
@@ -1366,10 +1362,10 @@ cdef class cKDTree:
             results = np.zeros(n_queries + 1, dtype=np.intp)
 
             iresults = results
-            
+
             prr = &real_r[0]
             pir = &iresults[0]
-            
+
             with nogil:
                 count_neighbors_unweighted(self.cself, other.cself, n_queries,
                             prr, pir, p, cum)
@@ -1391,10 +1387,10 @@ cdef class cKDTree:
 
             results = np.zeros(n_queries + 1, dtype=np.float64)
             fresults = results
-            
+
             prr = &real_r[0]
             pfr = &fresults[0]
-            
+
             with nogil:
                 count_neighbors_weighted(self.cself, other.cself,
                                     w1p, w2p, w1np, w2np,
@@ -1466,7 +1462,7 @@ cdef class cKDTree:
                              "different dimensionality")
         # do the query
         res = coo_entries()
-        
+
         with nogil:
             sparse_distance_matrix(
                 self.cself, other.cself, p, max_distance, res.buf)
@@ -1515,6 +1511,7 @@ cdef class cKDTree:
         mytree = np.asarray(<char[:tree.size]> <char*> cself.tree_buffer.data())
 
         # set raw pointers
+        self._python_tree = None
         self._pre_init()
 
         # copy the tree data

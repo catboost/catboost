@@ -1,0 +1,50 @@
+{
+    "test_minpack.TestFSolve.test_concurrent_no_gradient": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    ],
+    "test_minpack.TestFSolve.test_concurrent_with_gradient": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    ],
+    "test_minpack.TestLeastSq.test_concurrent_no_gradient": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    ],
+    "test_minpack.TestLeastSq.test_concurrent_with_gradient": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    ]
+}

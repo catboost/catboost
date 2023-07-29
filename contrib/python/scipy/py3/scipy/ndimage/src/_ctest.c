@@ -5,32 +5,20 @@
 #ifdef OLDAPI
 #define MOD _ctest_oldapi
 #define MODSTR "_ctest_oldapi"
-#define PY3K_INIT PyInit__ctest_oldapi
-#define PY2K_INIT init_ctest_oldapi
+#define PYINIT PyInit__ctest_oldapi
 #else
 #define MOD _ctest
 #define MODSTR "_ctest"
-#define PY3K_INIT PyInit__ctest
-#define PY2K_INIT init_ctest
+#define PYINIT PyInit__ctest
 #endif
 
 
-#if defined(OLDAPI) && PY_VERSION_HEX < 0x03000000
-static void
-_destructor(void *cobject, void *callback_data)
-{
-    PyMem_Free(callback_data);
-}    
-
-
-#else
 static void
 _destructor(PyObject *obj)
 {
     void *callback_data = PyCapsule_GetContext(obj);
     PyMem_Free(callback_data);
 }
-#endif
 
 
 static int
@@ -56,7 +44,7 @@ py_filter1d(PyObject *obj, PyObject *args)
 {
     npy_intp *callback_data = NULL;
     PyObject *capsule = NULL;
-    
+
     callback_data = PyMem_Malloc(sizeof(npy_intp));
     if (!callback_data) {
 	PyErr_NoMemory();
@@ -105,7 +93,7 @@ py_filter2d(PyObject *obj, PyObject *args)
     PyObject *seq = NULL, *item = NULL, *capsule = NULL;
 
     if (!PyArg_ParseTuple(args, "O", &seq)) goto error;
-    
+
     size = PySequence_Length(seq);
     if (size == -1) goto error;
     callback_data = PyMem_Malloc(size*sizeof(double));
@@ -192,10 +180,9 @@ static PyMethodDef _CTestMethods[] = {
     {"filter2d", (PyCFunction)py_filter2d, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}
 };
-				      
-				      
+
+
 /* Initialize the module */
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef MOD = {
     PyModuleDef_HEAD_INIT,
     MODSTR,
@@ -210,16 +197,7 @@ static struct PyModuleDef MOD = {
 
 
 PyMODINIT_FUNC
-PY3K_INIT(void)
+PYINIT(void)
 {
     return PyModule_Create(&MOD);
 }
-
-
-#else
-PyMODINIT_FUNC
-PY2K_INIT(void)
-{
-    Py_InitModule(MODSTR, _CTestMethods);
-}
-#endif

@@ -38,3 +38,12 @@ C     It contains Fortran 77 wrappers to fortran functions.
      &b, ye, wrk)
       end
 
+
+      subroutine dfitpackf2pyinittypes(setupfunc)
+      external setupfunc
+      integer intvar
+      common /types/ intvar
+      call setupfunc(intvar)
+      end
+
+

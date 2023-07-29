@@ -1,6 +1,7 @@
 #ifndef UFUNCS_PROTO_H
 #define UFUNCS_PROTO_H 1
 #include "cephes.h"
+npy_double cospi(npy_double);
 npy_double igam_fac(npy_double, npy_double);
 npy_double kolmogc(npy_double);
 npy_double kolmogci(npy_double);
@@ -9,6 +10,7 @@ npy_double lanczos_sum_expg_scaled(npy_double);
 npy_double lgam1p(npy_double);
 npy_double log1pmx(npy_double);
 npy_double riemann_zeta(npy_double);
+npy_double sinpi(npy_double);
 npy_double smirnovc(npy_int, npy_double);
 npy_double smirnovci(npy_int, npy_double);
 npy_double smirnovp(npy_int, npy_double);
@@ -21,9 +23,9 @@ npy_int airy_wrap(npy_double, npy_double *, npy_double *, npy_double *, npy_doub
 npy_int cairy_wrap(npy_cdouble, npy_cdouble *, npy_cdouble *, npy_cdouble *, npy_cdouble *);
 npy_int cairy_wrap_e(npy_cdouble, npy_cdouble *, npy_cdouble *, npy_cdouble *, npy_cdouble *);
 npy_int cairy_wrap_e_real(npy_double, npy_double *, npy_double *, npy_double *, npy_double *);
-npy_double bdtr(npy_int, npy_int, npy_double);
-npy_double bdtrc(npy_int, npy_int, npy_double);
-npy_double bdtri(npy_int, npy_int, npy_double);
+npy_double bdtr(npy_double, npy_int, npy_double);
+npy_double bdtrc(npy_double, npy_int, npy_double);
+npy_double bdtri(npy_double, npy_int, npy_double);
 #include "cdf_wrappers.h"
 npy_double cdfbin2_wrap(npy_double, npy_double, npy_double);
 npy_double cdfbin3_wrap(npy_double, npy_double, npy_double);
@@ -59,6 +61,8 @@ npy_double ellik(npy_double, npy_double);
 npy_double ellpk(npy_double);
 npy_double erf(npy_double);
 npy_double erfc(npy_double);
+npy_double erfcinv(npy_double);
+npy_double erfinv(npy_double);
 npy_cdouble cexp1_wrap(npy_cdouble);
 npy_double exp1_wrap(npy_double);
 npy_double exp10(npy_double);

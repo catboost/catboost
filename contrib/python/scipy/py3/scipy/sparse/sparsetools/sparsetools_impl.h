@@ -7,7 +7,7 @@ NPY_VISIBILITY_HIDDEN PyObject *bsr_scale_rows_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_scale_columns_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_sort_indices_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_transpose_method(PyObject *, PyObject *);
-NPY_VISIBILITY_HIDDEN PyObject *bsr_matmat_pass2_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *bsr_matmat_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_matvec_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_matvecs_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_elmul_bsr_method(PyObject *, PyObject *);
@@ -21,8 +21,8 @@ NPY_VISIBILITY_HIDDEN PyObject *bsr_lt_bsr_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_gt_bsr_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_le_bsr_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_ge_bsr_method(PyObject *, PyObject *);
-NPY_VISIBILITY_HIDDEN PyObject *csr_matmat_pass1_method(PyObject *, PyObject *);
-NPY_VISIBILITY_HIDDEN PyObject *csr_matmat_pass2_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *csr_matmat_maxnnz_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *csr_matmat_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_diagonal_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_tocsc_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_tobsr_method(PyObject *, PyObject *);
@@ -59,8 +59,8 @@ NPY_VISIBILITY_HIDDEN PyObject *csr_has_sorted_indices_method(PyObject *, PyObje
 NPY_VISIBILITY_HIDDEN PyObject *csr_has_canonical_format_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csc_diagonal_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csc_tocsr_method(PyObject *, PyObject *);
-NPY_VISIBILITY_HIDDEN PyObject *csc_matmat_pass1_method(PyObject *, PyObject *);
-NPY_VISIBILITY_HIDDEN PyObject *csc_matmat_pass2_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *csc_matmat_maxnnz_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *csc_matmat_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csc_matvec_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csc_matvecs_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csc_elmul_csc_method(PyObject *, PyObject *);
@@ -87,7 +87,7 @@ static struct PyMethodDef sparsetools_methods[] = {
         {"bsr_scale_columns", (PyCFunction)bsr_scale_columns_method, METH_VARARGS, NULL},
         {"bsr_sort_indices", (PyCFunction)bsr_sort_indices_method, METH_VARARGS, NULL},
         {"bsr_transpose", (PyCFunction)bsr_transpose_method, METH_VARARGS, NULL},
-        {"bsr_matmat_pass2", (PyCFunction)bsr_matmat_pass2_method, METH_VARARGS, NULL},
+        {"bsr_matmat", (PyCFunction)bsr_matmat_method, METH_VARARGS, NULL},
         {"bsr_matvec", (PyCFunction)bsr_matvec_method, METH_VARARGS, NULL},
         {"bsr_matvecs", (PyCFunction)bsr_matvecs_method, METH_VARARGS, NULL},
         {"bsr_elmul_bsr", (PyCFunction)bsr_elmul_bsr_method, METH_VARARGS, NULL},
@@ -101,8 +101,8 @@ static struct PyMethodDef sparsetools_methods[] = {
         {"bsr_gt_bsr", (PyCFunction)bsr_gt_bsr_method, METH_VARARGS, NULL},
         {"bsr_le_bsr", (PyCFunction)bsr_le_bsr_method, METH_VARARGS, NULL},
         {"bsr_ge_bsr", (PyCFunction)bsr_ge_bsr_method, METH_VARARGS, NULL},
-        {"csr_matmat_pass1", (PyCFunction)csr_matmat_pass1_method, METH_VARARGS, NULL},
-        {"csr_matmat_pass2", (PyCFunction)csr_matmat_pass2_method, METH_VARARGS, NULL},
+        {"csr_matmat_maxnnz", (PyCFunction)csr_matmat_maxnnz_method, METH_VARARGS, NULL},
+        {"csr_matmat", (PyCFunction)csr_matmat_method, METH_VARARGS, NULL},
         {"csr_diagonal", (PyCFunction)csr_diagonal_method, METH_VARARGS, NULL},
         {"csr_tocsc", (PyCFunction)csr_tocsc_method, METH_VARARGS, NULL},
         {"csr_tobsr", (PyCFunction)csr_tobsr_method, METH_VARARGS, NULL},
@@ -139,8 +139,8 @@ static struct PyMethodDef sparsetools_methods[] = {
         {"csr_has_canonical_format", (PyCFunction)csr_has_canonical_format_method, METH_VARARGS, NULL},
         {"csc_diagonal", (PyCFunction)csc_diagonal_method, METH_VARARGS, NULL},
         {"csc_tocsr", (PyCFunction)csc_tocsr_method, METH_VARARGS, NULL},
-        {"csc_matmat_pass1", (PyCFunction)csc_matmat_pass1_method, METH_VARARGS, NULL},
-        {"csc_matmat_pass2", (PyCFunction)csc_matmat_pass2_method, METH_VARARGS, NULL},
+        {"csc_matmat_maxnnz", (PyCFunction)csc_matmat_maxnnz_method, METH_VARARGS, NULL},
+        {"csc_matmat", (PyCFunction)csc_matmat_method, METH_VARARGS, NULL},
         {"csc_matvec", (PyCFunction)csc_matvec_method, METH_VARARGS, NULL},
         {"csc_matvecs", (PyCFunction)csc_matvecs_method, METH_VARARGS, NULL},
         {"csc_elmul_csc", (PyCFunction)csc_elmul_csc_method, METH_VARARGS, NULL},

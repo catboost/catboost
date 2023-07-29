@@ -3,31 +3,31 @@
 """
 .. highlight:: cython
 
-Cython API for Special Functions
+Cython API for special functions
 ================================
 
 Scalar, typed versions of many of the functions in ``scipy.special``
 can be accessed directly from Cython; the complete list is given
 below. Functions are overloaded using Cython fused types so their
-names match their ufunc counterpart. The module follows the following
+names match their Python counterpart. The module follows the following
 conventions:
 
-- If a function's ufunc counterpart returns multiple values, then the
-  function returns its outputs via pointers in the final arguments
-- If a function's ufunc counterpart returns a single value, then the
+- If a function's Python counterpart returns multiple values, then the
+  function returns its outputs via pointers in the final arguments.
+- If a function's Python counterpart returns a single value, then the
   function's output is returned directly.
 
 The module is usable from Cython via::
 
     cimport scipy.special.cython_special
 
-Error Handling
+Error handling
 --------------
 
 Functions can indicate an error by returning ``nan``; however they
 cannot emit warnings like their counterparts in ``scipy.special``.
 
-Available Functions
+Available functions
 -------------------
 
 - :py:func:`~scipy.special.voigt_profile`::
@@ -51,17 +51,17 @@ Available Functions
 - :py:func:`~scipy.special.bdtr`::
 
         double bdtr(double, double, double)
-        double bdtr(long, long, double)
+        double bdtr(double, long, double)
 
 - :py:func:`~scipy.special.bdtrc`::
 
         double bdtrc(double, double, double)
-        double bdtrc(long, long, double)
+        double bdtrc(double, long, double)
 
 - :py:func:`~scipy.special.bdtri`::
 
         double bdtri(double, double, double)
-        double bdtri(long, long, double)
+        double bdtri(double, long, double)
 
 - :py:func:`~scipy.special.bdtrik`::
 
@@ -235,6 +235,14 @@ Available Functions
 
         double erfi(double)
         double complex erfi(double complex)
+
+- :py:func:`~scipy.special.erfinv`::
+
+        double erfinv(double)
+
+- :py:func:`~scipy.special.erfcinv`::
+
+        double erfcinv(double)
 
 - :py:func:`~scipy.special.eval_chebyc`::
 
@@ -984,10 +992,51 @@ Available Functions
 
         double zetac(double)
 
+
+Custom functions
+----------------
+
+Some functions in ``scipy.special`` which are not ufuncs have custom
+Cython wrappers.
+
+Spherical Bessel functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The optional ``derivative`` boolean argument is replaced with an
+optional Cython ``bint``, leading to the following signatures.
+
+- :py:func:`~scipy.special.spherical_jn`::
+
+        double complex spherical_jn(long, double complex)
+        double complex spherical_jn(long, double complex, bint)
+        double spherical_jn(long, double)
+        double spherical_jn(long, double, bint)
+
+- :py:func:`~scipy.special.spherical_yn`::
+
+        double complex spherical_yn(long, double complex)
+        double complex spherical_yn(long, double complex, bint)
+        double spherical_yn(long, double)
+        double spherical_yn(long, double, bint)
+
+- :py:func:`~scipy.special.spherical_in`::
+
+        double complex spherical_in(long, double complex)
+        double complex spherical_in(long, double complex, bint)
+        double spherical_in(long, double)
+        double spherical_in(long, double, bint)
+
+- :py:func:`~scipy.special.spherical_kn`::
+
+        double complex spherical_kn(long, double complex)
+        double complex spherical_kn(long, double complex, bint)
+        double spherical_kn(long, double)
+        double spherical_kn(long, double, bint)
+
 """
 
-from __future__ import absolute_import
 include "_cython_special.pxi"
+include "_cython_special_custom.pxi"
 
 from ._agm cimport agm as _func_agm
 ctypedef double _proto_agm_t(double, double) nogil
@@ -1004,17 +1053,17 @@ from ._legacy cimport bdtr_unsafe as _func_bdtr_unsafe
 ctypedef double _proto_bdtr_unsafe_t(double, double, double) nogil
 cdef _proto_bdtr_unsafe_t *_proto_bdtr_unsafe_t_var = &_func_bdtr_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_bdtr "bdtr"(npy_int, npy_int, npy_double)nogil
+    cdef npy_double _func_bdtr "bdtr"(npy_double, npy_int, npy_double)nogil
 from ._legacy cimport bdtrc_unsafe as _func_bdtrc_unsafe
 ctypedef double _proto_bdtrc_unsafe_t(double, double, double) nogil
 cdef _proto_bdtrc_unsafe_t *_proto_bdtrc_unsafe_t_var = &_func_bdtrc_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_bdtrc "bdtrc"(npy_int, npy_int, npy_double)nogil
+    cdef npy_double _func_bdtrc "bdtrc"(npy_double, npy_int, npy_double)nogil
 from ._legacy cimport bdtri_unsafe as _func_bdtri_unsafe
 ctypedef double _proto_bdtri_unsafe_t(double, double, double) nogil
 cdef _proto_bdtri_unsafe_t *_proto_bdtri_unsafe_t_var = &_func_bdtri_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_bdtri "bdtri"(npy_int, npy_int, npy_double)nogil
+    cdef npy_double _func_bdtri "bdtri"(npy_double, npy_int, npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_cdfbin2_wrap "cdfbin2_wrap"(npy_double, npy_double, npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1098,6 +1147,10 @@ cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_erf "erf"(npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_erfc "erfc"(npy_double)nogil
+cdef extern from "_ufuncs_defs.h":
+    cdef npy_double _func_erfinv "erfinv"(npy_double)nogil
+cdef extern from "_ufuncs_defs.h":
+    cdef npy_double _func_erfcinv "erfcinv"(npy_double)nogil
 from .orthogonal_eval cimport eval_chebyc as _func_eval_chebyc
 ctypedef double complex _proto_eval_chebyc_double_complex__t(double, double complex) nogil
 cdef _proto_eval_chebyc_double_complex__t *_proto_eval_chebyc_double_complex__t_var = &_func_eval_chebyc[double_complex]
@@ -1719,7 +1772,7 @@ def _airye_pywrap(Dd_number_t x0):
     airye(x0, &y0, &y1, &y2, &y3)
     return y0, y1, y2, y3
 
-cpdef double bdtr(dl_number_t x0, dl_number_t x1, double x2) nogil:
+cpdef double bdtr(double x0, dl_number_t x1, double x2) nogil:
     """See the documentation for scipy.special.bdtr"""
     if dl_number_t is double:
         return _func_bdtr_unsafe(x0, x1, x2)
@@ -1728,7 +1781,7 @@ cpdef double bdtr(dl_number_t x0, dl_number_t x1, double x2) nogil:
     else:
         return NPY_NAN
 
-cpdef double bdtrc(dl_number_t x0, dl_number_t x1, double x2) nogil:
+cpdef double bdtrc(double x0, dl_number_t x1, double x2) nogil:
     """See the documentation for scipy.special.bdtrc"""
     if dl_number_t is double:
         return _func_bdtrc_unsafe(x0, x1, x2)
@@ -1737,7 +1790,7 @@ cpdef double bdtrc(dl_number_t x0, dl_number_t x1, double x2) nogil:
     else:
         return NPY_NAN
 
-cpdef double bdtri(dl_number_t x0, dl_number_t x1, double x2) nogil:
+cpdef double bdtri(double x0, dl_number_t x1, double x2) nogil:
     """See the documentation for scipy.special.bdtri"""
     if dl_number_t is double:
         return _func_bdtri_unsafe(x0, x1, x2)
@@ -1961,6 +2014,14 @@ cpdef Dd_number_t erfi(Dd_number_t x0) nogil:
             return NPY_NAN
         else:
             return NPY_NAN
+
+cpdef double erfinv(double x0) nogil:
+    """See the documentation for scipy.special.erfinv"""
+    return _func_erfinv(x0)
+
+cpdef double erfcinv(double x0) nogil:
+    """See the documentation for scipy.special.erfcinv"""
+    return _func_erfcinv(x0)
 
 cpdef Dd_number_t eval_chebyc(dl_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.eval_chebyc"""

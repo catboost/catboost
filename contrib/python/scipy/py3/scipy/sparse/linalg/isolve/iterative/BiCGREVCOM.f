@@ -226,12 +226,12 @@
 *
       CALL sCOPY( N, B, 1, WORK(1,R), 1 )
       IF ( sNRM2( N, X, 1 ).NE.ZERO ) THEN
-*********CALL MATVEC( -ONE, X, ZERO, WORK(1,R) )
+*********CALL MATVEC( -ONE, X, ONE, WORK(1,R) )
 *        using WORK[RTLD] as temp
 *********CALL sCOPY( N, X, 1, WORK(1,RTLD), 1 )
          SCLR1 = -ONE
-         SCLR2 = ZERO
-         NDX1 = ((RTLD - 1) * LDW) + 1
+         SCLR2 = ONE
+         NDX1 = -1
          NDX2 = ((R    - 1) * LDW) + 1
          RLBL = 2
          IJOB = 5
@@ -628,12 +628,12 @@
 *
       CALL dCOPY( N, B, 1, WORK(1,R), 1 )
       IF ( dNRM2( N, X, 1 ).NE.ZERO ) THEN
-*********CALL MATVEC( -ONE, X, ZERO, WORK(1,R) )
+*********CALL MATVEC( -ONE, X, ONE, WORK(1,R) )
 *        using WORK[RTLD] as temp
 *********CALL dCOPY( N, X, 1, WORK(1,RTLD), 1 )
          SCLR1 = -ONE
-         SCLR2 = ZERO
-         NDX1 = ((RTLD - 1) * LDW) + 1
+         SCLR2 = ONE
+         NDX1 = -1
          NDX2 = ((R    - 1) * LDW) + 1
          RLBL = 2
          IJOB = 5
@@ -1030,12 +1030,12 @@
 *
       CALL cCOPY( N, B, 1, WORK(1,R), 1 )
       IF ( scNRM2( N, X, 1 ).NE.ZERO ) THEN
-*********CALL MATVEC( -ONE, X, ZERO, WORK(1,R) )
+*********CALL MATVEC( -ONE, X, ONE, WORK(1,R) )
 *        using WORK[RTLD] as temp
 *********CALL cCOPY( N, X, 1, WORK(1,RTLD), 1 )
          SCLR1 = -ONE
-         SCLR2 = ZERO
-         NDX1 = ((RTLD - 1) * LDW) + 1
+         SCLR2 = ONE
+         NDX1 = -1
          NDX2 = ((R    - 1) * LDW) + 1
          RLBL = 2
          IJOB = 5
@@ -1432,12 +1432,12 @@
 *
       CALL zCOPY( N, B, 1, WORK(1,R), 1 )
       IF ( dzNRM2( N, X, 1 ).NE.ZERO ) THEN
-*********CALL MATVEC( -ONE, X, ZERO, WORK(1,R) )
+*********CALL MATVEC( -ONE, X, ONE, WORK(1,R) )
 *        using WORK[RTLD] as temp
 *********CALL zCOPY( N, X, 1, WORK(1,RTLD), 1 )
          SCLR1 = -ONE
-         SCLR2 = ZERO
-         NDX1 = ((RTLD - 1) * LDW) + 1
+         SCLR2 = ONE
+         NDX1 = -1
          NDX2 = ((R    - 1) * LDW) + 1
          RLBL = 2
          IJOB = 5

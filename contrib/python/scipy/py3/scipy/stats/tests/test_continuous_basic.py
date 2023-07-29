@@ -1,10 +1,7 @@
-from __future__ import division, print_function, absolute_import
-
 import numpy as np
 import numpy.testing as npt
 import pytest
 from pytest import raises as assert_raises
-from scipy._lib._numpy_compat import suppress_warnings
 from scipy.integrate import IntegrationWarning
 
 from scipy import stats
@@ -47,24 +44,24 @@ distcont_extra = [
 ]
 
 
-distslow = ['kappa4', 'gausshyper', 'recipinvgauss', 'genexpon',
-            'vonmises', 'vonmises_line', 'cosine', 'invweibull',
+distslow = ['kstwo', 'ksone', 'kappa4', 'gausshyper', 'recipinvgauss',
+            'genexpon', 'vonmises', 'vonmises_line', 'cosine', 'invweibull',
             'powerlognorm', 'johnsonsu', 'kstwobign']
 # distslow are sorted by speed (very slow to slow)
 
 # skip check_fit_args (test is slow)
-skip_fit_test = ['argus', 'exponpow', 'exponweib', 'gausshyper', 'genexpon',
+skip_fit_test = ['exponpow', 'exponweib', 'gausshyper', 'genexpon',
                  'halfgennorm', 'gompertz', 'johnsonsb', 'johnsonsu',
-                 'kappa4', 'ksone', 'kstwobign', 'mielke', 'ncf', 'nct',
+                 'kappa4', 'ksone', 'kstwo', 'kstwobign', 'mielke', 'ncf', 'nct',
                  'powerlognorm', 'powernorm', 'recipinvgauss', 'trapz',
                  'vonmises', 'vonmises_line',
                  'levy_stable', 'rv_histogram_instance']
 
 # skip check_fit_args_fix (test is slow)
-skip_fit_fix_test = ['argus', 'burr', 'exponpow', 'exponweib',
+skip_fit_fix_test = ['burr', 'exponpow', 'exponweib',
                      'gausshyper', 'genexpon', 'halfgennorm',
                      'gompertz', 'johnsonsb', 'johnsonsu', 'kappa4',
-                     'ksone', 'kstwobign', 'levy_stable', 'mielke', 'ncf',
+                     'ksone', 'kstwo', 'kstwobign', 'levy_stable', 'mielke', 'ncf',
                      'ncx2', 'powerlognorm', 'powernorm', 'rdist',
                      'recipinvgauss', 'trapz', 'vonmises', 'vonmises_line']
 
@@ -76,7 +73,7 @@ fails_cmplx = set(['beta', 'betaprime', 'chi', 'chi2', 'dgamma', 'dweibull',
                    'erlang', 'f', 'gamma', 'gausshyper', 'gengamma',
                    'geninvgauss', 'gennorm', 'genpareto',
                    'halfgennorm', 'invgamma',
-                   'ksone', 'kstwobign', 'levy_l', 'loggamma', 'logistic',
+                   'ksone', 'kstwo', 'kstwobign', 'levy_l', 'loggamma', 'logistic',
                    'loguniform', 'maxwell', 'nakagami',
                    'ncf', 'nct', 'ncx2', 'norminvgauss', 'pearson3', 'rdist',
                    'reciprocal', 'rice', 'skewnorm', 't', 'tukeylambda',
@@ -111,7 +108,7 @@ def test_cont_basic(distname, arg):
         distname = 'rv_histogram_instance'
     np.random.seed(765456)
     sn = 500
-    with suppress_warnings() as sup:
+    with npt.suppress_warnings() as sup:
         # frechet_l and frechet_r are deprecated, so all their
         # methods generate DeprecationWarnings.
         sup.filter(category=DeprecationWarning, message=".*frechet_")
@@ -156,7 +153,7 @@ def test_cont_basic(distname, arg):
         check_freezing(distfn, arg)
 
         # Entropy
-        if distname not in ['kstwobign']:
+        if distname not in ['kstwobign', 'kstwo']:
             check_entropy(distfn, arg, distname)
 
         if distfn.numargs == 0:
@@ -166,7 +163,7 @@ def test_cont_basic(distname, arg):
                 and distname != 'vonmises'):
             check_private_entropy(distfn, arg, stats.rv_continuous)
 
-        with suppress_warnings() as sup:
+        with npt.suppress_warnings() as sup:
             sup.filter(IntegrationWarning, "The occurrence of roundoff error")
             sup.filter(IntegrationWarning, "Extremely bad integrand")
             sup.filter(RuntimeWarning, "invalid value")
@@ -189,6 +186,23 @@ def test_cont_basic(distname, arg):
 
         if distname not in skip_fit_fix_test:
             check_fit_args_fix(distfn, arg, rvs[0:200])
+
+
+@pytest.mark.parametrize('distname,arg', cases_test_cont_basic())
+def test_rvs_scalar(distname, arg):
+    # rvs should return a scalar when given scalar arguments (gh-12428)
+    try:
+        distfn = getattr(stats, distname)
+    except TypeError:
+        distfn = distname
+        distname = 'rv_histogram_instance'
+
+    with npt.suppress_warnings() as sup:
+        sup.filter(category=DeprecationWarning, message=".*frechet_")
+        rvs = distfn.rvs(*arg)
+        assert np.isscalar(distfn.rvs(*arg))
+        assert np.isscalar(distfn.rvs(*arg, size=()))
+        assert np.isscalar(distfn.rvs(*arg, size=None))
 
 
 def test_levy_stable_random_state_property():
@@ -228,7 +242,7 @@ def test_moments(distname, arg, normalization_ok, higher_ok, is_xfailing):
         distfn = distname
         distname = 'rv_histogram_instance'
 
-    with suppress_warnings() as sup:
+    with npt.suppress_warnings() as sup:
         sup.filter(IntegrationWarning,
                    "The integral is probably divergent, or slowly convergent.")
         sup.filter(category=DeprecationWarning, message=".*frechet_")
@@ -265,9 +279,9 @@ def test_rvs_broadcast(dist, shape_args):
     # implementation detail of the distribution, not a requirement.  If
     # the implementation the rvs() method of a distribution changes, this
     # test might also have to be changed.
-    shape_only = dist in ['betaprime', 'dgamma', 'dweibull', 'exponnorm',
-                          'geninvgauss', 'levy_stable', 'nct', 'norminvgauss',
-                          'rice', 'skewnorm', 'semicircular']
+    shape_only = dist in ['argus', 'betaprime', 'dgamma', 'dweibull',
+                          'exponnorm', 'geninvgauss', 'levy_stable', 'nct',
+                          'norminvgauss', 'rice', 'skewnorm', 'semicircular']
 
     distfunc = getattr(stats, dist)
     loc = np.zeros(2)
@@ -479,7 +493,7 @@ def check_pdf_logpdf_at_endpoints(distfn, args, msg):
     points = np.array([0, 1])
     vals = distfn.ppf(points, *args)
     vals = vals[np.isfinite(vals)]
-    with suppress_warnings() as sup:
+    with npt.suppress_warnings() as sup:
         # Several distributions incur divide by zero or encounter invalid values when computing
         # the pdf or logpdf at the endpoints.
         suppress_messsages = [
@@ -541,11 +555,20 @@ def check_ppf_broadcast(distfn, arg, msg):
 
 
 def check_distribution_rvs(dist, args, alpha, rvs):
+    # dist is either a cdf function or name of a distribution in scipy.stats.
+    # args are the args for scipy.stats.dist(*args)
+    # alpha is a significance level, ~0.01
+    # rvs is array_like of random variables
     # test from scipy.stats.tests
     # this version reuses existing random variables
     D, pval = stats.kstest(rvs, dist, args=args, N=1000)
     if (pval < alpha):
-        D, pval = stats.kstest(dist, '', args=args, N=1000)
+        # The rvs passed in failed the K-S test, which _could_ happen
+        # but is unlikely if alpha is small enough.
+        # Repeat the the test with a new sample of rvs.
+        # Generate 1000 rvs, perform a K-S test that the new sample of rvs
+        # are distributed according to the distribution.
+        D, pval = stats.kstest(dist, dist, args=args, N=1000)
         npt.assert_(pval > alpha, "D = " + str(D) + "; pval = " + str(pval) +
                     "; alpha = " + str(alpha) + "\nargs = " + str(args))
 
@@ -576,7 +599,7 @@ def check_retrieving_support(distfn, args):
 
 
 def check_fit_args(distfn, arg, rvs):
-    with np.errstate(all='ignore'), suppress_warnings() as sup:
+    with np.errstate(all='ignore'), npt.suppress_warnings() as sup:
         sup.filter(category=DeprecationWarning, message=".*frechet_")
         sup.filter(category=RuntimeWarning,
                    message="The shape parameter of the erlang")
@@ -592,7 +615,7 @@ def check_fit_args(distfn, arg, rvs):
 
 
 def check_fit_args_fix(distfn, arg, rvs):
-    with np.errstate(all='ignore'), suppress_warnings() as sup:
+    with np.errstate(all='ignore'), npt.suppress_warnings() as sup:
         sup.filter(category=DeprecationWarning, message=".*frechet_")
         sup.filter(category=RuntimeWarning,
                    message="The shape parameter of the erlang")
@@ -615,3 +638,26 @@ def check_fit_args_fix(distfn, arg, rvs):
             vals5 = distfn.fit(rvs, f2=arg[2])
             npt.assert_(len(vals5) == 2+len(arg))
             npt.assert_(vals5[2] == arg[2])
+
+
+@pytest.mark.parametrize('method', ['pdf', 'logpdf', 'cdf', 'logcdf',
+                                    'sf', 'logsf', 'ppf', 'isf'])
+@pytest.mark.parametrize('distname, args', distcont)
+def test_methods_with_lists(method, distname, args):
+    # Test that the continuous distributions can accept Python lists
+    # as arguments.
+    with npt.suppress_warnings() as sup:
+        sup.filter(category=DeprecationWarning, message=".*frechet_")
+        dist = getattr(stats, distname)
+        f = getattr(dist, method)
+        if distname == 'invweibull' and method.startswith('log'):
+            x = [1.5, 2]
+        else:
+            x = [0.1, 0.2]
+        shape2 = [[a]*2 for a in args]
+        loc = [0, 0.1]
+        scale = [1, 1.01]
+        result = f(x, *shape2, loc=loc, scale=scale)
+        npt.assert_allclose(result,
+                            [f(*v) for v in zip(x, *shape2, loc, scale)],
+                            rtol=1e-14, atol=5e-14)

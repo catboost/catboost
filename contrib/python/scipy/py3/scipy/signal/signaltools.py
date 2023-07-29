@@ -1,30 +1,23 @@
 # Author: Travis Oliphant
 # 1999 -- 2002
 
-from __future__ import division, print_function, absolute_import
-
 import operator
-import sys
+import math
 import timeit
 from scipy.spatial import cKDTree
 from . import sigtools, dlti
 from ._upfirdn import upfirdn, _output_len, _upfirdn_modes
-from scipy._lib.six import callable
 from scipy import linalg, fft as sp_fft
 from scipy.fft._helper import _init_nd_shape_and_axes
+from scipy._lib._util import prod as _prod
 import numpy as np
-import math
-from scipy.special import factorial, lambertw
+from scipy.special import lambertw
 from .windows import get_window
 from ._arraytools import axis_slice, axis_reverse, odd_ext, even_ext, const_ext
 from .filter_design import cheby1, _validate_sos
 from .fir_filter_design import firwin
 from ._sosfilt import _sosfilt
-
-if sys.version_info >= (3, 5):
-    from math import gcd
-else:
-    from fractions import gcd
+import warnings
 
 
 __all__ = ['correlate', 'correlate2d',
@@ -166,6 +159,9 @@ def correlate(in1, in2, mode='full', method='auto'):
     ``method='fft'`` only works for numerical arrays as it relies on
     `fftconvolve`. In certain cases (i.e., arrays of objects or when
     rounding integers can lose precision), ``method='direct'`` is always used.
+
+    When using "same" mode with even-length inputs, the outputs of `correlate`
+    and `correlate2d` differ: There is a 1-index offset between them.
 
     Examples
     --------
@@ -748,11 +744,12 @@ def oaconvolve(in1, in2, mode="full", axes=None):
     in1, in2, axes = _init_freq_conv_axes(in1, in2, mode, axes,
                                           sorted_axes=True)
 
-    if not axes:
-        return in1*in2
-
     s1 = in1.shape
     s2 = in2.shape
+
+    if not axes:
+        ret = in1 * in2
+        return _apply_conv_mode(ret, s1, s2, mode, axes)
 
     # Calculate this now since in1 is changed later
     shape_final = [None if i not in axes else
@@ -881,17 +878,6 @@ def _numeric_arrays(arrays, kinds='buifc'):
     return True
 
 
-def _prod(iterable):
-    """
-    Product of a list of numbers.
-    Faster than np.prod for short lists like array shapes.
-    """
-    product = 1
-    for x in iterable:
-        product *= x
-    return product
-
-
 def _conv_ops(x_shape, h_shape, mode):
     """
     Find the number of operations required for direct/fft methods of
@@ -901,7 +887,6 @@ def _conv_ops(x_shape, h_shape, mode):
     FFT (and the implementation of ``_freq_domain_conv``).
 
     """
-    x_size, h_size = _prod(x_shape), _prod(h_shape)
     if mode == "full":
         out_shape = [n + k - 1 for n, k in zip(x_shape, h_shape)]
     elif mode == "valid":
@@ -920,7 +905,8 @@ def _conv_ops(x_shape, h_shape, mode):
         elif mode == "valid":
             direct_ops = (s2 - s1 + 1) * s1 if s2 >= s1 else (s1 - s2 + 1) * s2
         elif mode == "same":
-            direct_ops = s1 * s2 if s1 < s2 else s1 * s2 - (s2 // 2) * ((s2 + 1) // 2)
+            direct_ops = (s1 * s2 if s1 < s2 else
+                          s1 * s2 - (s2 // 2) * ((s2 + 1) // 2))
     else:
         if mode == "full":
             direct_ops = min(_prod(s1), _prod(s2)) * _prod(out_shape)
@@ -1299,12 +1285,12 @@ def convolve(in1, in2, mode='full', method='auto'):
 
 def order_filter(a, domain, rank):
     """
-    Perform an order filter on an N-dimensional array.
+    Perform an order filter on an N-D array.
 
-    Perform an order filter on the array in.  The domain argument acts as a
-    mask centered over each pixel.  The non-zero elements of domain are
+    Perform an order filter on the array in. The domain argument acts as a
+    mask centered over each pixel. The non-zero elements of domain are
     used to select elements surrounding each input pixel which are placed
-    in a list.   The list is sorted, and the output for that pixel is the
+    in a list. The list is sorted, and the output for that pixel is the
     element corresponding to rank in the sorted list.
 
     Parameters
@@ -1382,7 +1368,12 @@ def medfilt(volume, kernel_size=None):
         An array the same size as input containing the median filtered
         result.
 
-    See also
+    Warns
+    -----
+    UserWarning
+        If array size is smaller than kernel size along any dimension
+
+    See Also
     --------
     scipy.ndimage.median_filter
 
@@ -1401,6 +1392,9 @@ def medfilt(volume, kernel_size=None):
     for k in range(volume.ndim):
         if (kernel_size[k] % 2) != 1:
             raise ValueError("Each element of kernel_size should be odd.")
+    if any(k > s for k, s in zip(kernel_size, volume.shape)):
+        warnings.warn('kernel_size exceeds volume extent: the volume will be '
+                      'zero-padded.')
 
     domain = np.ones(kernel_size)
 
@@ -1432,6 +1426,31 @@ def wiener(im, mysize=None, noise=None):
     -------
     out : ndarray
         Wiener filtered result with the same shape as `im`.
+
+    Examples
+    --------
+
+    >>> from scipy.misc import face
+    >>> from scipy.signal.signaltools import wiener
+    >>> import matplotlib.pyplot as plt
+    >>> import numpy as np
+    >>> img = np.random.random((40, 40))    #Create a random image
+    >>> filtered_img = wiener(img, (5, 5))  #Filter the image
+    >>> f, (plot1, plot2) = plt.subplots(1, 2)
+    >>> plot1.imshow(img)
+    >>> plot2.imshow(filtered_img)
+    >>> plt.show()
+
+    Notes
+    -----
+    This implementation is similar to wiener2 in Matlab/Octave.
+    For more details see [1]_
+
+    References
+    ----------
+    .. [1] Lim, Jae S., Two-Dimensional Signal and Image Processing,
+           Englewood Cliffs, NJ, Prentice Hall, 1990, p. 548.
+
 
     """
     im = np.asarray(im)
@@ -1538,7 +1557,7 @@ def convolve2d(in1, in2, mode='full', boundary='fill', fillvalue=0):
     in2 = np.asarray(in2)
 
     if not in1.ndim == in2.ndim == 2:
-        raise ValueError('convolve2d inputs must both be 2D arrays')
+        raise ValueError('convolve2d inputs must both be 2-D arrays')
 
     if _inputs_swap_needed(mode, in1.shape, in2.shape):
         in1, in2 = in2, in1
@@ -1594,6 +1613,11 @@ def correlate2d(in1, in2, mode='full', boundary='fill', fillvalue=0):
         A 2-dimensional array containing a subset of the discrete linear
         cross-correlation of `in1` with `in2`.
 
+    Notes
+    -----
+    When using "same" mode with even-length inputs, the outputs of `correlate`
+    and `correlate2d` differ: There is a 1-index offset between them.
+
     Examples
     --------
     Use 2D cross-correlation to find the location of a template in a noisy
@@ -1628,7 +1652,7 @@ def correlate2d(in1, in2, mode='full', boundary='fill', fillvalue=0):
     in2 = np.asarray(in2)
 
     if not in1.ndim == in2.ndim == 2:
-        raise ValueError('correlate2d inputs must both be 2D arrays')
+        raise ValueError('correlate2d inputs must both be 2-D arrays')
 
     swapped_inputs = _inputs_swap_needed(mode, in1.shape, in2.shape)
     if swapped_inputs:
@@ -2749,7 +2773,7 @@ def invresz(r, p, k, tol=1e-3, rtype='avg'):
     return numerator[::-1], denominator
 
 
-def resample(x, num, t=None, axis=0, window=None):
+def resample(x, num, t=None, axis=0, window=None, domain='time'):
     """
     Resample `x` to `num` samples using Fourier method along the given axis.
 
@@ -2771,6 +2795,10 @@ def resample(x, num, t=None, axis=0, window=None):
     window : array_like, callable, string, float, or tuple, optional
         Specifies the window applied to the signal in the Fourier
         domain.  See below for details.
+    domain : string, optional
+        A string indicating the domain of the input `x`:
+        ``time`` Consider the input `x` as time-domain (Default),
+        ``freq`` Consider the input `x` as frequency-domain.
 
     Returns
     -------
@@ -2829,17 +2857,25 @@ def resample(x, num, t=None, axis=0, window=None):
     >>> plt.legend(['data', 'resampled'], loc='best')
     >>> plt.show()
     """
+
+    if domain not in ('time', 'freq'):
+        raise ValueError("Acceptable domain flags are 'time' or"
+                         " 'freq', not domain={}".format(domain))
+
     x = np.asarray(x)
     Nx = x.shape[axis]
 
     # Check if we can use faster real FFT
     real_input = np.isrealobj(x)
 
-    # Forward transform
-    if real_input:
-        X = sp_fft.rfft(x, axis=axis)
-    else:  # Full complex FFT
-        X = sp_fft.fft(x, axis=axis)
+    if domain == 'time':
+        # Forward transform
+        if real_input:
+            X = sp_fft.rfft(x, axis=axis)
+        else:  # Full complex FFT
+            X = sp_fft.fft(x, axis=axis)
+    else:  # domain == 'freq'
+        X = x
 
     # Apply window to spectrum
     if window is not None:
@@ -3066,7 +3102,7 @@ def resample_poly(x, up, down, axis=0, window=('kaiser', 5.0),
     # Determine our up and down factors
     # Use a rational approximation to save computation time on really long
     # signals
-    g_ = gcd(up, down)
+    g_ = math.gcd(up, down)
     up //= g_
     down //= g_
     if up == down == 1:
@@ -3231,7 +3267,8 @@ def detrend(data, axis=-1, type='linear', bp=0, overwrite_data=False):
     bp : array_like of ints, optional
         A sequence of break points. If given, an individual linear fit is
         performed for each part of `data` between two break points.
-        Break points are specified as indices into `data`.
+        Break points are specified as indices into `data`. This parameter
+        only has an effect when ``type == 'linear'``.
     overwrite_data : bool, optional
         If True, perform in place detrending and avoid a copy. Default is False
 
@@ -3903,8 +3940,8 @@ def _validate_pad(padtype, padlen, x, axis, ntaps):
 
     # x's 'axis' dimension must be bigger than edge.
     if x.shape[axis] <= edge:
-        raise ValueError("The length of the input vector x must be greater than "
-                         "padlen, which is %d." % edge)
+        raise ValueError("The length of the input vector x must be greater "
+                         "than padlen, which is %d." % edge)
 
     if padtype is not None and edge > 0:
         # Make an extension of length `edge` at each
@@ -3923,7 +3960,7 @@ def _validate_pad(padtype, padlen, x, axis, ntaps):
 def _validate_x(x):
     x = np.asarray(x)
     if x.ndim == 0:
-        raise ValueError('x must be at least 1D')
+        raise ValueError('x must be at least 1-D')
     return x
 
 

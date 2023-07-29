@@ -1,5 +1,3 @@
-from __future__ import division, print_function, absolute_import
-
 import re
 import warnings
 import numpy as np
@@ -564,6 +562,12 @@ class Rotation(object):
                 [ 0.,  0.,  1.]]])
         >>> r.as_matrix().shape
         (1, 3, 3)
+
+        Notes
+        -----
+        This function was called from_dcm before.
+
+        .. versionadded:: 1.4.0
         """
         is_single = False
         matrix = np.asarray(matrix, dtype=float)
@@ -857,7 +861,11 @@ class Rotation(object):
                              "num_axes), got {}.".format(angles.shape))
 
         quat = _elementary_quat_compose(seq, angles, intrinsic)
-        return cls(quat[0] if is_single else quat, normalize=False, copy=False)
+
+        if is_single:
+            return cls(quat[0], normalize=False, copy=False)
+        else:
+            return cls(quat, normalize=False, copy=False)
 
     def as_quat(self):
         """Represent as quaternions.
@@ -960,6 +968,12 @@ class Rotation(object):
                 [ 0.00000000e+00,  0.00000000e+00,  1.00000000e+00]]])
         >>> r.as_matrix().shape
         (2, 3, 3)
+
+        Notes
+        -----
+        This function was called as_dcm before.
+
+        .. versionadded:: 1.4.0
         """
         x = self._quat[:, 0]
         y = self._quat[:, 1]
@@ -1403,7 +1417,7 @@ class Rotation(object):
         result = _compose_quat(self._quat, other._quat)
         if self._single and other._single:
             result = result[0]
-        return self.__class__(result, normalize=False, copy=False)
+        return self.__class__(result, normalize=True, copy=False)
 
     def inv(self):
         """Invert this rotation.

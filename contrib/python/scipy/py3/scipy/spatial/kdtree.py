@@ -1,8 +1,5 @@
 # Copyright Anne M. Archibald 2008
 # Released under the scipy license
-from __future__ import division, print_function, absolute_import
-
-import sys
 import numpy as np
 from heapq import heappush, heappop
 import scipy.sparse
@@ -14,7 +11,7 @@ __all__ = ['minkowski_distance_p', 'minkowski_distance',
 
 def minkowski_distance_p(x, y, p=2):
     """
-    Compute the p-th power of the L**p distance between two arrays.
+    Compute the pth power of the L**p distance between two arrays.
 
     For efficiency, this function computes the L**p distance but does
     not extract the pth root. If `p` is 1 or infinity, this is equal to
@@ -43,7 +40,7 @@ def minkowski_distance_p(x, y, p=2):
     # Don't just cast to float64 for complex input case.
     common_datatype = np.promote_types(np.promote_types(x.dtype, y.dtype), 'float64')
 
-    # Make sure x and y are numpy arrays of correct datatype.
+    # Make sure x and y are NumPy arrays of correct datatype.
     x = x.astype(common_datatype)
     y = y.astype(common_datatype)
 
@@ -186,7 +183,7 @@ class KDTree(object):
     """
     kd-tree for quick nearest-neighbor lookup
 
-    This class provides an index into a set of k-dimensional points which
+    This class provides an index into a set of k-D points which
     can be used to rapidly look up the nearest neighbors of any point.
 
     Parameters
@@ -241,6 +238,9 @@ class KDTree(object):
     """
     def __init__(self, data, leafsize=10):
         self.data = np.asarray(data)
+        if self.data.dtype.kind == 'c':
+            raise TypeError("KDTree does not work with complex data")
+
         self.n, self.m = np.shape(self.data)
         self.leafsize = int(leafsize)
         if self.leafsize < 1:
@@ -251,21 +251,20 @@ class KDTree(object):
         self.tree = self.__build(np.arange(self.n), self.maxes, self.mins)
 
     class node(object):
-        if sys.version_info[0] >= 3:
-            def __lt__(self, other):
-                return id(self) < id(other)
+        def __lt__(self, other):
+            return id(self) < id(other)
 
-            def __gt__(self, other):
-                return id(self) > id(other)
+        def __gt__(self, other):
+            return id(self) > id(other)
 
-            def __le__(self, other):
-                return id(self) <= id(other)
+        def __le__(self, other):
+            return id(self) <= id(other)
 
-            def __ge__(self, other):
-                return id(self) >= id(other)
+        def __ge__(self, other):
+            return id(self) >= id(other)
 
-            def __eq__(self, other):
-                return id(self) == id(other)
+        def __eq__(self, other):
+            return id(self) == id(other)
 
     class leafnode(node):
         def __init__(self, idx):
@@ -490,6 +489,8 @@ class KDTree(object):
 
         """
         x = np.asarray(x)
+        if x.dtype.kind == 'c':
+            raise TypeError("KDTree does not work with complex data")
         if np.shape(x)[-1] != self.m:
             raise ValueError("x must consist of vectors of length %d but has shape %s" % (self.m, np.shape(x)))
         if p < 1:
@@ -623,6 +624,8 @@ class KDTree(object):
 
         """
         x = np.asarray(x)
+        if x.dtype.kind == 'c':
+            raise TypeError("KDTree does not work with complex data")
         if x.shape[-1] != self.m:
             raise ValueError("Searching for a %d-dimensional point in a "
                              "%d-dimensional KDTree" % (x.shape[-1], self.m))

@@ -1,10 +1,8 @@
-from __future__ import division, print_function, absolute_import
 from itertools import product
 from numpy.testing import (assert_, assert_allclose,
-                           assert_equal, assert_no_warnings)
+                           assert_equal, assert_no_warnings, suppress_warnings)
 import pytest
 from pytest import raises as assert_raises
-from scipy._lib._numpy_compat import suppress_warnings
 import numpy as np
 from scipy.optimize._numdiff import group_columns
 from scipy.integrate import solve_ivp, RK23, RK45, DOP853, Radau, BDF, LSODA
@@ -135,7 +133,7 @@ def sol_complex(t):
 
 def compute_error(y, y_true, rtol, atol):
     e = (y - y_true) / (atol + rtol * np.abs(y_true))
-    return np.sqrt(np.sum(np.real(e * e.conj()), axis=0) / e.shape[0])
+    return np.linalg.norm(e, axis=0) / np.sqrt(e.shape[0])
 
 
 def test_integration():
@@ -228,26 +226,26 @@ def test_integration_complex():
         assert_equal(res.status, 0)
 
         if method == 'DOP853':
-            assert_(res.nfev < 35)
+            assert res.nfev < 35
         else:
-            assert_(res.nfev < 25)
+            assert res.nfev < 25
 
         if method == 'BDF':
             assert_equal(res.njev, 1)
-            assert_(res.nlu < 6)
+            assert res.nlu < 6
         else:
-            assert_equal(res.njev, 0)
-            assert_equal(res.nlu, 0)
+            assert res.njev == 0
+            assert res.nlu == 0
 
         y_true = sol_complex(res.t)
         e = compute_error(res.y, y_true, rtol, atol)
-        assert_(np.all(e < 5))
+        assert np.all(e < 5)
 
         yc_true = sol_complex(tc)
         yc = res.sol(tc)
         e = compute_error(yc, yc_true, rtol, atol)
 
-        assert_(np.all(e < 5))
+        assert np.all(e < 5)
 
 
 def test_integration_sparse_difference():
@@ -492,7 +490,7 @@ def test_events():
 
         assert_equal(res.y_events[0].shape, (0,))
         assert_equal(res.y_events[1].shape, (1, 2))
-        assert_equal(res.y_events[2].shape, (1, 2))        
+        assert_equal(res.y_events[2].shape, (1, 2))
         assert np.isclose(
             event_rational_2(res.t_events[1][0], res.y_events[1][0]), 0)
         assert np.isclose(
@@ -590,7 +588,7 @@ def test_first_step():
                           t_span[1], first_step=-1)
             assert_raises(ValueError, method, fun_rational, t_span[0], y0,
                           t_span[1], first_step=5)
-    
+
 
 def test_t_eval():
     rtol = 1e-3
@@ -893,7 +891,7 @@ def test_args():
 
     # sys3 is actually two decoupled systems. (x, y) form a
     # linear oscillator, while z is a nonlinear first order
-    # system with equilibria at z=0 and z=1.  If k > 0, z=1
+    # system with equilibria at z=0 and z=1. If k > 0, z=1
     # is stable and z=0 is unstable.
 
     def sys3(t, w, omega, k, zfinal):

@@ -6,8 +6,6 @@
 Fast snippets for LIL matrices.
 """
 
-from __future__ import absolute_import
-
 cimport cython
 cimport numpy as cnp
 import numpy as np
@@ -107,6 +105,204 @@ cpdef int lil_insert(cnp.npy_intp M, cnp.npy_intp N, object[:] rows,
             data.insert(pos, x)
         else:
             data[pos] = x
+
+def lil_get_lengths(object[:] input,
+                    cnp.ndarray output):
+    return _LIL_GET_LENGTHS_DISPATCH[output.dtype](input, output)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_get_lengths_int32(object[:] input,
+                    cnp.ndarray[cnp.npy_int32] output):
+    for i in range(len(input)):
+        output[i] = len(input[i])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_get_lengths_int64(object[:] input,
+                    cnp.ndarray[cnp.npy_int64] output):
+    for i in range(len(input)):
+        output[i] = len(input[i])
+
+cdef dict _LIL_GET_LENGTHS_DISPATCH = {
+
+np.dtype(np.int32): _lil_get_lengths_int32,
+np.dtype(np.int64): _lil_get_lengths_int64,
+}
+
+
+
+def lil_flatten_to_array(object[:] input,
+                         cnp.ndarray output):
+    return _LIL_FLATTEN_TO_ARRAY_DISPATCH[output.dtype](input, output)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_bool_(object[:] input not None, cnp.ndarray[cnp.npy_bool] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_int8(object[:] input not None, cnp.ndarray[cnp.npy_int8] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_uint8(object[:] input not None, cnp.ndarray[cnp.npy_uint8] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_int16(object[:] input not None, cnp.ndarray[cnp.npy_int16] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_uint16(object[:] input not None, cnp.ndarray[cnp.npy_uint16] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_int32(object[:] input not None, cnp.ndarray[cnp.npy_int32] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_uint32(object[:] input not None, cnp.ndarray[cnp.npy_uint32] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_int64(object[:] input not None, cnp.ndarray[cnp.npy_int64] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_uint64(object[:] input not None, cnp.ndarray[cnp.npy_uint64] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_float32(object[:] input not None, cnp.ndarray[cnp.npy_float32] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_float64(object[:] input not None, cnp.ndarray[cnp.npy_float64] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_longdouble(object[:] input not None, cnp.ndarray[long double] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_complex64(object[:] input not None, cnp.ndarray[float complex] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_complex128(object[:] input not None, cnp.ndarray[double complex] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_flatten_to_array_clongdouble(object[:] input not None, cnp.ndarray[long double complex] output not None):
+    cdef list row
+    cdef size_t pos = 0
+    for i in range(len(input)):
+        row = input[i]
+        for j in range(len(row)):
+            output[pos] = row[j]
+            pos += 1
+
+cdef dict _LIL_FLATTEN_TO_ARRAY_DISPATCH = {
+
+np.dtype(np.bool_): _lil_flatten_to_array_bool_,
+np.dtype(np.int8): _lil_flatten_to_array_int8,
+np.dtype(np.uint8): _lil_flatten_to_array_uint8,
+np.dtype(np.int16): _lil_flatten_to_array_int16,
+np.dtype(np.uint16): _lil_flatten_to_array_uint16,
+np.dtype(np.int32): _lil_flatten_to_array_int32,
+np.dtype(np.uint32): _lil_flatten_to_array_uint32,
+np.dtype(np.int64): _lil_flatten_to_array_int64,
+np.dtype(np.uint64): _lil_flatten_to_array_uint64,
+np.dtype(np.float32): _lil_flatten_to_array_float32,
+np.dtype(np.float64): _lil_flatten_to_array_float64,
+np.dtype(np.longdouble): _lil_flatten_to_array_longdouble,
+np.dtype(np.complex64): _lil_flatten_to_array_complex64,
+np.dtype(np.complex128): _lil_flatten_to_array_complex128,
+np.dtype(np.clongdouble): _lil_flatten_to_array_clongdouble,
+}
+
 
 
 def lil_fancy_get(cnp.npy_intp M, cnp.npy_intp N,
