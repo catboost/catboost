@@ -30,7 +30,7 @@ std::vector<double> ApplyCatboostModelMulti(
         }
 
         treeSplitsPtr += currentTreeDepth;
-        leafValuesForCurrentTreePtr += (1 << currentTreeDepth) * model.Dimension;
+        leafValuesForCurrentTreePtr += 1 << currentTreeDepth;
     }
 
     std::vector<double> finalResults(model.Dimension);
