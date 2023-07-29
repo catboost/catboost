@@ -15,7 +15,7 @@ std::vector<double> ApplyCatboostModelMulti(
     }
 
     /* Extract and sum values from trees */
-    std::vector<double> results(model.Dimension);
+    std::vector<double> results(model.Dimension, 0.0);
     const unsigned int* treeSplitsPtr = model.TreeSplits;
     const auto* leafValuesForCurrentTreePtr = model.LeafValues;
     for (unsigned int treeId = 0; treeId < model.TreeCount; ++treeId) {

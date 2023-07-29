@@ -5,8 +5,61 @@
 static const struct CatboostModel {
     CatboostModel() = default;
     unsigned int FloatFeatureCount = 50;
+    unsigned int CatFeatureCount = 0;
     unsigned int BinaryFeatureCount = 12;
     unsigned int TreeCount = 2;
+    std::vector<std::vector<float>> FloatFeatureBorders = {
+        {},
+        {0.156479999},
+        {0.937812984},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {0.398038983},
+        {0.748417497},
+        {0.0504557006, 0.564610481},
+        {},
+        {},
+        {},
+        {0.398038983},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {0.134183004},
+        {},
+        {0.185759991},
+        {},
+        {0.318073004, 0.423586994},
+        {},
+        {},
+        {},
+        {0.005463365},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    };
     unsigned int TreeDepth[2] = {6, 6};
     unsigned int TreeSplits[12] = {7, 0, 11, 3, 5, 10, 1, 2, 6, 9, 4, 8};
     unsigned int BorderCounts[50] = {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -39,7 +92,7 @@ std::vector<double> ApplyCatboostModelMulti(
     }
 
     /* Extract and sum values from trees */
-    std::vector<double> results(model.Dimension);
+    std::vector<double> results(model.Dimension, 0.0);
     const unsigned int* treeSplitsPtr = model.TreeSplits;
     const auto* leafValuesForCurrentTreePtr = model.LeafValues;
     for (unsigned int treeId = 0; treeId < model.TreeCount; ++treeId) {
@@ -54,7 +107,7 @@ std::vector<double> ApplyCatboostModelMulti(
         }
 
         treeSplitsPtr += currentTreeDepth;
-        leafValuesForCurrentTreePtr += (1 << currentTreeDepth) * model.Dimension;
+        leafValuesForCurrentTreePtr += 1 << currentTreeDepth;
     }
 
     std::vector<double> finalResults(model.Dimension);
@@ -65,22 +118,22 @@ std::vector<double> ApplyCatboostModelMulti(
 }
 
 double ApplyCatboostModel(
-        const std::vector<float>& floatFeatures
+    const std::vector<float>& floatFeatures
 ) {
     return ApplyCatboostModelMulti(floatFeatures)[0];
 }
 
 // Also emit the API with catFeatures, for uniformity
 std::vector<double> ApplyCatboostModelMulti(
-        const std::vector<float>& floatFeatures,
-        const std::vector<std::string>&
+    const std::vector<float>& floatFeatures,
+    const std::vector<std::string>&
 ) {
     return ApplyCatboostModelMulti(floatFeatures);
 }
 
 double ApplyCatboostModel(
-        const std::vector<float>& floatFeatures,
-        const std::vector<std::string>&
+    const std::vector<float>& floatFeatures,
+    const std::vector<std::string>&
 ) {
     return ApplyCatboostModelMulti(floatFeatures)[0];
 }

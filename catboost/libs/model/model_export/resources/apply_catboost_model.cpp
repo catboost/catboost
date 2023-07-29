@@ -10,7 +10,8 @@ static int GetHash(const std::string& catFeature, const std::unordered_map<std::
 /* Model applicator */
 std::vector<double> ApplyCatboostModelMulti(
     const std::vector<float>& floatFeatures,
-    const std::vector<std::string>& catFeatures) {
+    const std::vector<std::string>& catFeatures
+) {
     const struct CatboostModel& model = CatboostModelStatic;
 
     assert(floatFeatures.size() == model.FloatFeatureCount);
@@ -69,7 +70,7 @@ std::vector<double> ApplyCatboostModelMulti(
     }
 
     /* Extract and sum values from trees */
-    std::vector<double> results(model.Dimension, 0);
+    std::vector<double> results(model.Dimension, 0.0);
     const unsigned int* treeSplitsPtr = model.TreeSplits;
     const auto* leafValuesPtr = model.LeafValues;
     size_t treePtr = 0;
@@ -102,6 +103,7 @@ std::vector<double> ApplyCatboostModelMulti(
 
 double ApplyCatboostModel(
     const std::vector<float>& floatFeatures,
-    const std::vector<std::string>& catFeatures) {
+    const std::vector<std::string>& catFeatures
+) {
     return ApplyCatboostModelMulti(floatFeatures, catFeatures)[0];
 }
