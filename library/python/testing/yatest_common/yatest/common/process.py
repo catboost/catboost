@@ -106,7 +106,6 @@ class _Execution(object):
         user_stderr=False,
         core_pattern=None,
     ):
-
         self._command = command
         self._process = process
         self._out_file = out_file
@@ -355,7 +354,6 @@ class _Execution(object):
                             if hasattr(rusage, field):
                                 self._metrics[field.replace("ru_", "")] = getattr(rusage, field)
                     except OSError as exc:
-
                         if exc.errno == errno.ECHILD:
                             yatest_logger.debug(
                                 "Process resource usage is not available as process finished before wait4 was called"
