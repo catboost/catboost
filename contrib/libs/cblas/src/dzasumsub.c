@@ -1,4 +1,4 @@
-/* ./scnrm2sub.f -- translated by f2c (version 20100827).
+/* dzasumsub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,15 +12,15 @@
 
 #include "f2c.h"
 
-/*     scnrm2sub.f */
+/*     dzasumsub.f */
 
-/*     The program is a fortran wrapper for scnrm2. */
+/*     The program is a fortran wrapper for dzasum. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int scnrm2sub_(integer *n, complex *x, integer *incx, real *
-	nrm2)
+/* Subroutine */ int dzasumsub_(integer *n, doublecomplex *x, integer *incx, 
+	doublereal *asum)
 {
-    extern doublereal scnrm2_(integer *, complex *, integer *);
+    extern doublereal dzasum_(integer *, doublecomplex *, integer *);
 
 
 
@@ -28,7 +28,7 @@
     --x;
 
     /* Function Body */
-    *nrm2 = scnrm2_(n, &x[1], incx);
+    *asum = dzasum_(n, &x[1], incx);
     return 0;
-} /* scnrm2sub_ */
+} /* dzasumsub_ */
 

@@ -1,4 +1,4 @@
-/* ./dzasumsub.f -- translated by f2c (version 20100827).
+/* icamaxsub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,15 +12,15 @@
 
 #include "f2c.h"
 
-/*     dzasumsub.f */
+/*     icamaxsub.f */
 
-/*     The program is a fortran wrapper for dzasum. */
+/*     The program is a fortran wrapper for icamax. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int dzasumsub_(integer *n, doublecomplex *x, integer *incx, 
-	doublereal *asum)
+/* Subroutine */ int icamaxsub_(integer *n, complex *x, integer *incx, 
+	integer *iamax)
 {
-    extern doublereal dzasum_(integer *, doublecomplex *, integer *);
+    extern integer icamax_(integer *, complex *, integer *);
 
 
 
@@ -28,7 +28,7 @@
     --x;
 
     /* Function Body */
-    *asum = dzasum_(n, &x[1], incx);
+    *iamax = icamax_(n, &x[1], incx);
     return 0;
-} /* dzasumsub_ */
+} /* icamaxsub_ */
 

@@ -1,4 +1,4 @@
-/* ./cdotcsub.f -- translated by f2c (version 20100827).
+/* sasumsub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,30 +12,22 @@
 
 #include "f2c.h"
 
-/*     cdotcsub.f */
+/*     sasumsub.f */
 
-/*     The program is a fortran wrapper for cdotc. */
+/*     The program is a fortran wrapper for sasum. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int cdotcsub_(integer *n, complex *x, integer *incx, complex 
-	*y, integer *incy, complex *dotc)
+/* Subroutine */ int sasumsub_(integer *n, real *x, integer *incx, real *asum)
 {
-    /* System generated locals */
-    complex q__1;
-
-    /* Local variables */
-    extern /* Complex */ VOID cdotc_(complex *, integer *, complex *, integer 
-	    *, complex *, integer *);
+    extern doublereal sasum_(integer *, real *, integer *);
 
 
 
     /* Parameter adjustments */
-    --y;
     --x;
 
     /* Function Body */
-    cdotc_(&q__1, n, &x[1], incx, &y[1], incy);
-    dotc->r = q__1.r, dotc->i = q__1.i;
+    *asum = sasum_(n, &x[1], incx);
     return 0;
-} /* cdotcsub_ */
+} /* sasumsub_ */
 

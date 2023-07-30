@@ -1,4 +1,4 @@
-/* ./idamaxsub.f -- translated by f2c (version 20100827).
+/* scnrm2sub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,15 +12,15 @@
 
 #include "f2c.h"
 
-/*     icamaxsub.f */
+/*     scnrm2sub.f */
 
-/*     The program is a fortran wrapper for idamax. */
-/*     Witten by Keita Teranishi.  2/22/1998 */
+/*     The program is a fortran wrapper for scnrm2. */
+/*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int idamaxsub_(integer *n, doublereal *x, integer *incx, 
-	integer *iamax)
+/* Subroutine */ int scnrm2sub_(integer *n, complex *x, integer *incx, real *
+	nrm2)
 {
-    extern integer idamax_(integer *, doublereal *, integer *);
+    extern doublereal scnrm2_(integer *, complex *, integer *);
 
 
 
@@ -28,7 +28,7 @@
     --x;
 
     /* Function Body */
-    *iamax = idamax_(n, &x[1], incx);
+    *nrm2 = scnrm2_(n, &x[1], incx);
     return 0;
-} /* idamaxsub_ */
+} /* scnrm2sub_ */
 

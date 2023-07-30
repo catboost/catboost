@@ -1,4 +1,4 @@
-/* ./sasumsub.f -- translated by f2c (version 20100827).
+/* dnrm2sub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,14 +12,15 @@
 
 #include "f2c.h"
 
-/*     sasumsub.f */
+/*     dnrm2sub.f */
 
-/*     The program is a fortran wrapper for sasum. */
+/*     The program is a fortran wrapper for dnrm2. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int sasumsub_(integer *n, real *x, integer *incx, real *asum)
+/* Subroutine */ int dnrm2sub_(integer *n, doublereal *x, integer *incx, 
+	doublereal *nrm2)
 {
-    extern doublereal sasum_(integer *, real *, integer *);
+    extern doublereal dnrm2_(integer *, doublereal *, integer *);
 
 
 
@@ -27,7 +28,7 @@
     --x;
 
     /* Function Body */
-    *asum = sasum_(n, &x[1], incx);
+    *nrm2 = dnrm2_(n, &x[1], incx);
     return 0;
-} /* sasumsub_ */
+} /* dnrm2sub_ */
 

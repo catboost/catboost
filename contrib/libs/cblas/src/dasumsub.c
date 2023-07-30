@@ -1,4 +1,4 @@
-/* ./cdotusub.f -- translated by f2c (version 20100827).
+/* dasumsub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,30 +12,23 @@
 
 #include "f2c.h"
 
-/*     cdotusub.f */
+/*     dasumsun.f */
 
-/*     The program is a fortran wrapper for cdotu. */
+/*     The program is a fortran wrapper for dasum.. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int cdotusub_(integer *n, complex *x, integer *incx, complex 
-	*y, integer *incy, complex *dotu)
+/* Subroutine */ int dasumsub_(integer *n, doublereal *x, integer *incx, 
+	doublereal *asum)
 {
-    /* System generated locals */
-    complex q__1;
-
-    /* Local variables */
-    extern /* Complex */ VOID cdotu_(complex *, integer *, complex *, integer 
-	    *, complex *, integer *);
+    extern doublereal dasum_(integer *, doublereal *, integer *);
 
 
 
     /* Parameter adjustments */
-    --y;
     --x;
 
     /* Function Body */
-    cdotu_(&q__1, n, &x[1], incx, &y[1], incy);
-    dotu->r = q__1.r, dotu->i = q__1.i;
+    *asum = dasum_(n, &x[1], incx);
     return 0;
-} /* cdotusub_ */
+} /* dasumsub_ */
 

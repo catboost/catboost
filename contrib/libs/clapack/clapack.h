@@ -4,7 +4,7 @@
 #define __CLAPACK_H
 
 #include <contrib/libs/libf2c/f2c.h>
-#include <contrib/libs/cblas/cblas.h>
+#include <contrib/libs/cblas/include/cblas.h>
 
 #ifdef __cplusplus 	
 extern "C" {	

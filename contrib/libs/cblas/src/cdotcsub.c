@@ -1,4 +1,4 @@
-/* ./ddotsub.f -- translated by f2c (version 20100827).
+/* cdotcsub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,16 +12,20 @@
 
 #include "f2c.h"
 
-/*     ddotsub.f */
+/*     cdotcsub.f */
 
-/*     The program is a fortran wrapper for ddot. */
+/*     The program is a fortran wrapper for cdotc. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int ddotsub_(integer *n, doublereal *x, integer *incx, 
-	doublereal *y, integer *incy, doublereal *dot)
+/* Subroutine */ int cdotcsub_(integer *n, complex *x, integer *incx, complex 
+	*y, integer *incy, complex *dotc)
 {
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
-	    integer *);
+    /* System generated locals */
+    complex q__1;
+
+    /* Local variables */
+    extern /* Complex */ VOID cdotc_(complex *, integer *, complex *, integer 
+	    *, complex *, integer *);
 
 
 
@@ -30,7 +34,8 @@
     --x;
 
     /* Function Body */
-    *dot = ddot_(n, &x[1], incx, &y[1], incy);
+    cdotc_(&q__1, n, &x[1], incx, &y[1], incy);
+    dotc->r = q__1.r, dotc->i = q__1.i;
     return 0;
-} /* ddotsub_ */
+} /* cdotcsub_ */
 

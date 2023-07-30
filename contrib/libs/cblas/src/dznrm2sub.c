@@ -1,4 +1,4 @@
-/* ./scasumsub.f -- translated by f2c (version 20100827).
+/* dznrm2sub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,15 +12,15 @@
 
 #include "f2c.h"
 
-/*     scasumsub.f */
+/*     dznrm2sub.f */
 
-/*     The program is a fortran wrapper for scasum. */
+/*     The program is a fortran wrapper for dznrm2. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int scasumsub_(integer *n, complex *x, integer *incx, real *
-	asum)
+/* Subroutine */ int dznrm2sub_(integer *n, doublecomplex *x, integer *incx, 
+	doublereal *nrm2)
 {
-    extern doublereal scasum_(integer *, complex *, integer *);
+    extern doublereal dznrm2_(integer *, doublecomplex *, integer *);
 
 
 
@@ -28,7 +28,7 @@
     --x;
 
     /* Function Body */
-    *asum = scasum_(n, &x[1], incx);
+    *nrm2 = dznrm2_(n, &x[1], incx);
     return 0;
-} /* scasumsub_ */
+} /* dznrm2sub_ */
 

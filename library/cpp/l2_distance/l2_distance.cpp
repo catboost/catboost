@@ -2,7 +2,7 @@
 
 #include <library/cpp/sse/sse.h>
 
-#include <contrib/libs/cblas/cblas.h>
+#include <contrib/libs/cblas/include/cblas.h>
 
 #include <util/system/platform.h>
 

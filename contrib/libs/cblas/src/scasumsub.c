@@ -1,4 +1,4 @@
-/* ./dasumsub.f -- translated by f2c (version 20100827).
+/* scasumsub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,15 +12,15 @@
 
 #include "f2c.h"
 
-/*     dasumsun.f */
+/*     scasumsub.f */
 
-/*     The program is a fortran wrapper for dasum.. */
+/*     The program is a fortran wrapper for scasum. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int dasumsub_(integer *n, doublereal *x, integer *incx, 
-	doublereal *asum)
+/* Subroutine */ int scasumsub_(integer *n, complex *x, integer *incx, real *
+	asum)
 {
-    extern doublereal dasum_(integer *, doublereal *, integer *);
+    extern doublereal scasum_(integer *, complex *, integer *);
 
 
 
@@ -28,7 +28,7 @@
     --x;
 
     /* Function Body */
-    *asum = dasum_(n, &x[1], incx);
+    *asum = scasum_(n, &x[1], incx);
     return 0;
-} /* dasumsub_ */
+} /* scasumsub_ */
 

@@ -1,4 +1,4 @@
-/* ./sdotsub.f -- translated by f2c (version 20100827).
+/* idamaxsub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,24 +12,23 @@
 
 #include "f2c.h"
 
-/*     sdotsub.f */
+/*     icamaxsub.f */
 
-/*     The program is a fortran wrapper for sdot. */
-/*     Witten by Keita Teranishi.  2/11/1998 */
+/*     The program is a fortran wrapper for idamax. */
+/*     Witten by Keita Teranishi.  2/22/1998 */
 
-/* Subroutine */ int sdotsub_(integer *n, real *x, integer *incx, real *y, 
-	integer *incy, real *dot)
+/* Subroutine */ int idamaxsub_(integer *n, doublereal *x, integer *incx, 
+	integer *iamax)
 {
-    extern doublereal sdot_(integer *, real *, integer *, real *, integer *);
+    extern integer idamax_(integer *, doublereal *, integer *);
 
 
 
     /* Parameter adjustments */
-    --y;
     --x;
 
     /* Function Body */
-    *dot = sdot_(n, &x[1], incx, &y[1], incy);
+    *iamax = idamax_(n, &x[1], incx);
     return 0;
-} /* sdotsub_ */
+} /* idamaxsub_ */
 

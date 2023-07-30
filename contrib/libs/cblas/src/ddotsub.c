@@ -1,4 +1,4 @@
-/* ./icamaxsub.f -- translated by f2c (version 20100827).
+/* ddotsub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,23 +12,25 @@
 
 #include "f2c.h"
 
-/*     icamaxsub.f */
+/*     ddotsub.f */
 
-/*     The program is a fortran wrapper for icamax. */
+/*     The program is a fortran wrapper for ddot. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int icamaxsub_(integer *n, complex *x, integer *incx, 
-	integer *iamax)
+/* Subroutine */ int ddotsub_(integer *n, doublereal *x, integer *incx, 
+	doublereal *y, integer *incy, doublereal *dot)
 {
-    extern integer icamax_(integer *, complex *, integer *);
+    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+	    integer *);
 
 
 
     /* Parameter adjustments */
+    --y;
     --x;
 
     /* Function Body */
-    *iamax = icamax_(n, &x[1], incx);
+    *dot = ddot_(n, &x[1], incx, &y[1], incy);
     return 0;
-} /* icamaxsub_ */
+} /* ddotsub_ */
 

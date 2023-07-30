@@ -1,4 +1,4 @@
-/* ./sdsdotsub.f -- translated by f2c (version 20100827).
+/* snrm2sub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,25 +12,22 @@
 
 #include "f2c.h"
 
-/*     sdsdotsub.f */
+/*     snrm2sub.f */
 
-/*     The program is a fortran wrapper for sdsdot. */
+/*     The program is a fortran wrapper for snrm2. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int sdsdotsub_(integer *n, real *x, integer *incx, real *y, 
-	integer *incy, real *dot)
+/* Subroutine */ int snrm2sub_(integer *n, real *x, integer *incx, real *nrm2)
 {
-    extern doublereal sdsdot_(integer *, real *, integer *, real *, integer *)
-	    ;
+    extern doublereal snrm2_(integer *, real *, integer *);
 
 
 
     /* Parameter adjustments */
-    --y;
     --x;
 
     /* Function Body */
-    *dot = sdsdot_(n, &x[1], incx, &y[1], incy);
+    *nrm2 = snrm2_(n, &x[1], incx);
     return 0;
-} /* sdsdotsub_ */
+} /* snrm2sub_ */
 

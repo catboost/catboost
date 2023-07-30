@@ -1,4 +1,4 @@
-/* ./izamaxsub.f -- translated by f2c (version 20100827).
+/* sdotsub.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -12,23 +12,24 @@
 
 #include "f2c.h"
 
-/*     izamaxsub.f */
+/*     sdotsub.f */
 
-/*     The program is a fortran wrapper for izamax. */
+/*     The program is a fortran wrapper for sdot. */
 /*     Witten by Keita Teranishi.  2/11/1998 */
 
-/* Subroutine */ int izamaxsub_(integer *n, doublecomplex *x, integer *incx, 
-	integer *iamax)
+/* Subroutine */ int sdotsub_(integer *n, real *x, integer *incx, real *y, 
+	integer *incy, real *dot)
 {
-    extern integer izamax_(integer *, doublecomplex *, integer *);
+    extern doublereal sdot_(integer *, real *, integer *, real *, integer *);
 
 
 
     /* Parameter adjustments */
+    --y;
     --x;
 
     /* Function Body */
-    *iamax = izamax_(n, &x[1], incx);
+    *dot = sdot_(n, &x[1], incx, &y[1], incy);
     return 0;
-} /* izamaxsub_ */
+} /* sdotsub_ */
 
