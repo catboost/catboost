@@ -89,7 +89,6 @@ def lru_cache(maxsize=100, typed=False):  # noqa: C901
     # to allow the implementation to change (including a possible C version).
 
     def decorating_function(user_function):
-
         cache = dict()
         stats = [0, 0]  # make statistics updateable non-locally
         HITS, MISSES = 0, 1  # names for the stats fields
