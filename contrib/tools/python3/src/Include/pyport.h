@@ -341,10 +341,6 @@ extern "C" {
 #define Py_DEPRECATED(VERSION_UNUSED)
 #endif
 
-// XXX
-#undef Py_DEPRECATED
-#define Py_DEPRECATED(VERSION_UNUSED)
-
 #if defined(__clang__)
 #define _Py_COMP_DIAG_PUSH _Pragma("clang diagnostic push")
 #define _Py_COMP_DIAG_IGNORE_DEPR_DECLS \
