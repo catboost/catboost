@@ -125,6 +125,8 @@ def recover_core_dump_file(binary_path, cwd, pid, core_pattern=None):
 
 
 def get_gdb_full_backtrace(binary, core, gdb_path):
+    # XXX ya tool gdb uses shell script as wrapper so we need directory with shell binary in PATH
+    os.environ["PATH"] = os.pathsep.join(filter(None, [os.environ.get("PATH"), "/bin"]))
     cmd = [
         gdb_path, binary, core,
         "--eval-command", "set print thread-events off",
