@@ -12,12 +12,6 @@ get_built_tool_path(
   tools/enum_parser/enum_parser
   enum_parser
 )
-get_built_tool_path(
-  TOOL_enum_parser_bin
-  TOOL_enum_parser_dependency
-  tools/enum_parser/enum_parser
-  enum_parser
-)
 
 add_library(private-libs-options)
 target_link_libraries(private-libs-options PUBLIC
@@ -77,9 +71,4 @@ generate_enum_serilization(private-libs-options
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/options/enums.h
   INCLUDE_HEADERS
   catboost/private/libs/options/enums.h
-)
-generate_enum_serilization(private-libs-options
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/options/json_helper.h
-  INCLUDE_HEADERS
-  catboost/private/libs/options/json_helper.h
 )
