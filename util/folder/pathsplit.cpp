@@ -106,7 +106,7 @@ TString TPathSplitStore::DoReconstruct(const TStringBuf slash) const {
 
 void TPathSplitStore::AppendComponent(const TStringBuf comp) {
     if (!comp || comp == TStringBuf(".")) {
-        ; // ignore
+        // ignore
     } else if (comp == TStringBuf("..") && !empty() && back() != TStringBuf("..")) {
         pop_back();
     } else {

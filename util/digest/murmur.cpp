@@ -50,7 +50,7 @@ namespace NMurmurPrivate {
                 h ^= data[0];
                 h *= m;
                 break;
-        };
+        }
 
         h ^= h >> 13;
         h *= m;

@@ -79,7 +79,6 @@ struct segpool_alloc {
             free(__p);
         } else {
             Y_IF_DEBUG(pool_free_count++);
-            ;
         }
     }
     ~segpool_alloc() {

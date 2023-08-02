@@ -28,7 +28,6 @@ namespace NLastGetopt {
     }
 
     char TOpt::GetChar() const {
-        ;
         if (Chars_.empty())
             ythrow TConfException() << "no char for option " << this->ToShortString();
         return Chars_.at(0);
@@ -41,7 +40,6 @@ namespace NLastGetopt {
     }
 
     TString TOpt::GetName() const {
-        ;
         if (LongNames_.empty())
             ythrow TConfException() << "no name for option " << this->ToShortString();
         return LongNames_.at(0);
@@ -52,7 +50,6 @@ namespace NLastGetopt {
     }
 
     TOpt& TOpt::AddShortName(unsigned char c) {
-        ;
         if (!IsAllowedShortName(c))
             throw TUsageException() << "option char '" << c << "' is not allowed";
         Chars_.push_back(c);
@@ -72,7 +69,6 @@ namespace NLastGetopt {
     }
 
     TOpt& TOpt::AddLongName(const TString& name) {
-        ;
         unsigned char c = 0;
         if (!IsAllowedLongName(name, &c))
             throw TUsageException() << "option char '" << c
@@ -88,7 +84,6 @@ namespace NLastGetopt {
     }
 
     TString TOpt::ToShortString() const {
-        ;
         if (!LongNames_.empty())
             return NPrivate::OptToString(LongNames_.front());
         if (!Chars_.empty())
