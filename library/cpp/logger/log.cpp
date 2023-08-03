@@ -47,6 +47,8 @@ public:
     {
     }
 
+    virtual inline ~TImpl() = default;
+
     inline void ReopenLog() {
         if (!IsOpen()) {
             return;
