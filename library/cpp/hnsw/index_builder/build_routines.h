@@ -141,9 +141,10 @@ namespace NHnsw {
                 }
             }
 
-            void Reserve(const size_t capacityVerteces) {
-                Distances.reserve(capacityVerteces * NeighborsCount);
-                Ids.reserve(capacityVerteces * NeighborsCount);
+            void Reserve(const size_t maxSize) {
+                MaxSize = Max(MaxSize, maxSize);
+                Distances.reserve(MaxSize * NeighborsCount);
+                Ids.reserve(MaxSize * NeighborsCount);
             }
 
             void Save(IOutputStream* out) const {
