@@ -22,6 +22,7 @@
 #include <util/generic/ylimits.h>
 #include <util/stream/file.h>
 #include <util/stream/format.h>
+#include <util/stream/labeled.h>
 #include <util/system/fs.h>
 #include <util/system/hp_timer.h>
 #include <util/system/yassert.h>
@@ -138,6 +139,11 @@ namespace NHnsw {
                     Distances[i + offset] = neighbors[i].Dist;
                     Ids[i + offset] = neighbors[i].Id;
                 }
+            }
+
+            void Reserve(const size_t capacityVerteces) {
+                Distances.reserve(capacityVerteces * NeighborsCount);
+                Ids.reserve(capacityVerteces * NeighborsCount);
             }
 
             void Save(IOutputStream* out) const {
@@ -304,7 +310,12 @@ namespace NHnsw {
             TString tempName = Opts.SnapshotFile + "_" + CreateGuidAsString() + ".tmp";
             try {
                 TOFStream out(tempName);
-                ::SaveMany(&out, ItemStorage.GetNumItems(), Opts.MaxNeighbors, Opts.LevelSizeDecay, buildEnd, Levels);
+
+                size_t numItems = ItemStorage.GetNumItems();
+                size_t maxNeighbors = Opts.MaxNeighbors;
+                size_t levelSizeDecay = Opts.LevelSizeDecay;
+
+                ::SaveMany(&out, numItems, maxNeighbors, levelSizeDecay, buildEnd, Levels);
                 out.Finish();
 
                 NFs::Rename(tempName, Opts.SnapshotFile);
@@ -317,7 +328,7 @@ namespace NHnsw {
             }
         }
 
-        void TryRestoreFromSnapshot(size_t* builtSize) {
+        void TryRestoreFromSnapshot(size_t* builtSize, const bool isModifiable = false) {
             if (Opts.SnapshotFile == "" || !NFs::Exists(Opts.SnapshotFile)) {
                 return;
             }
@@ -331,7 +342,11 @@ namespace NHnsw {
 
                 ::LoadMany(&in, restoredNumItems, restoredMaxNeighbors, restoredLevelSizeDecay, *builtSize, Levels);
 
-                Y_ENSURE(restoredNumItems == ItemStorage.GetNumItems(), "Different NumItems in snapshot");
+                if (isModifiable) {
+                    Y_ENSURE(restoredNumItems <= ItemStorage.GetNumItems(), LabeledOutput(restoredNumItems, ItemStorage.GetNumItems()));
+                } else {
+                    Y_ENSURE(restoredNumItems == ItemStorage.GetNumItems(), LabeledOutput(restoredNumItems, ItemStorage.GetNumItems()));
+                }
                 Y_ENSURE(restoredMaxNeighbors == Opts.MaxNeighbors, "Different MaxNeighbors in snapshot");
                 Y_ENSURE(restoredLevelSizeDecay == Opts.LevelSizeDecay, "Different LevelSizeDecay in snapshot");
 
@@ -342,34 +357,15 @@ namespace NHnsw {
             }
         }
 
+        THnswIndexData BuildForUpdates() {
+            Y_ENSURE(Opts.MaxNeighbors < Opts.BatchSize, LabeledOutput(Opts.MaxNeighbors, Opts.BatchSize));
+            Y_ENSURE(Opts.LevelSizeDecay > ItemStorage.GetNumItems(), LabeledOutput(Opts.LevelSizeDecay, ItemStorage.GetNumItems()));
+            Y_ENSURE(Opts.SnapshotFile != "");
+            return BuildImpl(true);
+        }
+
         THnswIndexData Build() {
-            LocalExecutor.RunAdditionalThreads(Opts.NumThreads - 1);
-
-            const size_t numItems = ItemStorage.GetNumItems();
-            auto levelSizes = GetLevelSizes(numItems, Opts.LevelSizeDecay);
-
-            size_t alreadyBuilt = 0;
-            TryRestoreFromSnapshot(&alreadyBuilt);
-            for (size_t level = levelSizes.size(); level-- > 0;) {
-                if (alreadyBuilt >= levelSizes[level]) {
-                    continue;
-                }
-                if (Opts.ReportProgress) {
-                    HNSW_LOG << Endl << "Building level " << level << " size " << levelSizes[level] << Endl;
-                }
-                size_t batchSize = level == 0 ? Opts.BatchSize : Opts.UpperLevelBatchSize;
-                size_t buildStart = alreadyBuilt;
-                if (Levels.size() < levelSizes.size() - level) {
-                    Levels.emplace_front(Min(Opts.MaxNeighbors, levelSizes[level] - 1),levelSizes[level]);
-                    buildStart = 0;
-                }
-                BuildLevel(levelSizes[level], buildStart, batchSize);
-            }
-
-            if (Opts.ReportProgress) {
-                HNSW_LOG << Endl << "Done in " << HumanReadable(TDuration::Seconds(GlobalWatch.Passed())) << Endl;
-            }
-            return ConstructIndexData(Opts, Levels);
+            return BuildImpl(false);
         }
 
         /* apply heuristic: draw edge from q to candidate vertex v iff there is no candidate vertex u: v is closer to u then to q;
@@ -511,6 +507,8 @@ namespace NHnsw {
         }
 
         void ProcessBatch(size_t batchBegin, size_t batchEnd, TDenseGraph* level) {
+            Y_ENSURE(level != nullptr);
+
             THPTimer watch;
             TVector<TNeighbors> batchNeighbors(batchEnd - batchBegin);
             if (batchBegin > 0) {
@@ -578,6 +576,43 @@ namespace NHnsw {
         }
 
     private:
+        THnswIndexData BuildImpl(const bool isModifiable = false) {
+            LocalExecutor.RunAdditionalThreads(Opts.NumThreads - 1);
+
+            const size_t numItems = ItemStorage.GetNumItems();
+            auto levelSizes = GetLevelSizes(numItems, Opts.LevelSizeDecay);
+
+            if (isModifiable) {
+                Y_ENSURE(levelSizes.size() <= 1);
+            }
+
+            size_t alreadyBuilt = 0;
+            TryRestoreFromSnapshot(&alreadyBuilt, isModifiable);
+            for (size_t level = levelSizes.size(); level-- > 0;) {
+                if (alreadyBuilt >= levelSizes[level]) {
+                    continue;
+                }
+                if (Opts.ReportProgress) {
+                    HNSW_LOG << Endl << "Building level " << level << " size " << levelSizes[level] << Endl;
+                }
+                size_t batchSize = level == 0 ? Opts.BatchSize : Opts.UpperLevelBatchSize;
+                size_t buildStart = alreadyBuilt;
+                if (Levels.size() < levelSizes.size() - level) {
+                    Levels.emplace_front(Min(Opts.MaxNeighbors, levelSizes[level] - 1),levelSizes[level]);
+                    buildStart = 0;
+                }
+                if (isModifiable) {
+                    Levels.front().Reserve(numItems);
+                }
+                BuildLevel(levelSizes[level], buildStart, batchSize);
+            }
+
+            if (Opts.ReportProgress) {
+                HNSW_LOG << Endl << "Done in " << HumanReadable(TDuration::Seconds(GlobalWatch.Passed())) << Endl;
+            }
+            return ConstructIndexData(Opts, Levels);
+        }
+
         const THnswInternalBuildOptions& Opts;
         const TDistanceTraits& DistanceTraits;
         const TItemStorage& ItemStorage;
@@ -613,5 +648,12 @@ namespace NHnsw {
                                         const TDistanceTraits& distanceTraits,
                                         const TItemStorage& itemStorage) {
         return TIndexBuilder<TDistanceTraits, TItemStorage>(opts, distanceTraits, itemStorage).Build();
+    }
+
+    template <class TDistanceTraits, class TItemStorage>
+    THnswIndexData BuildForUpdatesIndexWithTraits(const THnswInternalBuildOptions& opts,
+                                                  const TDistanceTraits& distanceTraits,
+                                                  const TItemStorage& itemStorage) {
+        return TIndexBuilder<TDistanceTraits, TItemStorage>(opts, distanceTraits, itemStorage).BuildForUpdates();
     }
 }

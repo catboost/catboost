@@ -3,6 +3,7 @@
 #include "index_reader.h"
 
 #include <library/cpp/containers/dense_hash/dense_hash.h>
+#include <library/cpp/hnsw/helpers/is_item_marked_deleted.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/queue.h>
@@ -129,7 +130,9 @@ namespace NHnsw {
                     auto distToQuery = distance(query, itemStorage.GetItem(id));
                     distanceCalcLimitReached = --distanceCalcLimit == 0;
                     if (nearest.size() < searchNeighborhoodSize || distanceLess(distToQuery, nearest.top().Dist)) {
-                        nearest.push({distToQuery, id});
+                        if (!NPrivate::IsItemMarkedDeleted(itemStorage, id)) {
+                            nearest.push({distToQuery, id});
+                        }
                         candidates.push({distToQuery, id});
                         visited.Insert(id);
                         if (nearest.size() > searchNeighborhoodSize) {
