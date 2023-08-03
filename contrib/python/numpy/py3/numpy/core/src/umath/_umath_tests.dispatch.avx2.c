@@ -14,4 +14,4 @@
 #define NPY__CPU_TARGET_AVX
 #define NPY__CPU_TARGET_F16C
 #define NPY__CPU_TARGET_AVX2
-#include "_umath_tests.dispatch.c"
+#include "numpy/core/src/umath/_umath_tests.dispatch.c"

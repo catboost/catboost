@@ -516,7 +516,8 @@ def average(a, axis=None, weights=None, returned=False, *,
 
     if weights is None:
         avg = a.mean(axis, **keepdims_kw)
-        scl = avg.dtype.type(a.size/avg.size)
+        avg_as_array = np.asanyarray(avg)
+        scl = avg_as_array.dtype.type(a.size/avg_as_array.size)
     else:
         wgt = np.asanyarray(weights)
 
@@ -547,12 +548,12 @@ def average(a, axis=None, weights=None, returned=False, *,
             raise ZeroDivisionError(
                 "Weights sum to zero, can't be normalized")
 
-        avg = np.multiply(a, wgt,
+        avg = avg_as_array = np.multiply(a, wgt,
                           dtype=result_dtype).sum(axis, **keepdims_kw) / scl
 
     if returned:
-        if scl.shape != avg.shape:
-            scl = np.broadcast_to(scl, avg.shape).copy()
+        if scl.shape != avg_as_array.shape:
+            scl = np.broadcast_to(scl, avg_as_array.shape).copy()
         return avg, scl
     else:
         return avg
@@ -3647,6 +3648,10 @@ def msort(a):
     """
     Return a copy of an array sorted along the first axis.
 
+    .. deprecated:: 1.24
+
+       msort is deprecated, use ``np.sort(a, axis=0)`` instead.
+
     Parameters
     ----------
     a : array_like
@@ -3665,13 +3670,26 @@ def msort(a):
     -----
     ``np.msort(a)`` is equivalent to  ``np.sort(a, axis=0)``.
 
+    Examples
+    --------
+    >>> a = np.array([[1, 4], [3, 1]])
+    >>> np.msort(a)  # sort along the first axis
+    array([[1, 1],
+           [3, 4]])
+
     """
+    # 2022-10-20 1.24
+    warnings.warn(
+        "msort is deprecated, use np.sort(a, axis=0) instead",
+        DeprecationWarning,
+        stacklevel=3,
+    )
     b = array(a, subok=True, copy=True)
     b.sort(0)
     return b
 
 
-def _ureduce(a, func, **kwargs):
+def _ureduce(a, func, keepdims=False, **kwargs):
     """
     Internal Function.
     Call `func` with `a` as first argument swapping the axes to use extended
@@ -3699,13 +3717,20 @@ def _ureduce(a, func, **kwargs):
     """
     a = np.asanyarray(a)
     axis = kwargs.get('axis', None)
+    out = kwargs.get('out', None)
+
+    if keepdims is np._NoValue:
+        keepdims = False
+
+    nd = a.ndim
     if axis is not None:
-        keepdim = list(a.shape)
-        nd = a.ndim
         axis = _nx.normalize_axis_tuple(axis, nd)
 
-        for ax in axis:
-            keepdim[ax] = 1
+        if keepdims:
+            if out is not None:
+                index_out = tuple(
+                    0 if i in axis else slice(None) for i in range(nd))
+                kwargs['out'] = out[(Ellipsis, ) + index_out]
 
         if len(axis) == 1:
             kwargs['axis'] = axis[0]
@@ -3718,12 +3743,27 @@ def _ureduce(a, func, **kwargs):
             # merge reduced axis
             a = a.reshape(a.shape[:nkeep] + (-1,))
             kwargs['axis'] = -1
-        keepdim = tuple(keepdim)
     else:
-        keepdim = (1,) * a.ndim
+        if keepdims:
+            if out is not None:
+                index_out = (0, ) * nd
+                kwargs['out'] = out[(Ellipsis, ) + index_out]
 
     r = func(a, **kwargs)
-    return r, keepdim
+
+    if out is not None:
+        return out
+
+    if keepdims:
+        if axis is None:
+            index_r = (np.newaxis, ) * nd
+        else:
+            index_r = tuple(
+                np.newaxis if i in axis else slice(None)
+                for i in range(nd))
+        r = r[(Ellipsis, ) + index_r]
+
+    return r
 
 
 def _median_dispatcher(
@@ -3813,12 +3853,8 @@ def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
     >>> assert not np.all(a==b)
 
     """
-    r, k = _ureduce(a, func=_median, axis=axis, out=out,
+    return _ureduce(a, func=_median, keepdims=keepdims, axis=axis, out=out,
                     overwrite_input=overwrite_input)
-    if keepdims:
-        return r.reshape(k)
-    else:
-        return r
 
 
 def _median(a, axis=None, out=None, overwrite_input=False):
@@ -3934,7 +3970,7 @@ def percentile(a,
         8. 'median_unbiased'
         9. 'normal_unbiased'
 
-        The first three methods are discontiuous.  NumPy further defines the
+        The first three methods are discontinuous.  NumPy further defines the
         following discontinuous variations of the default 'linear' (7.) option:
 
         * 'lower'
@@ -3979,7 +4015,7 @@ def percentile(a,
 
     Notes
     -----
-    Given a vector ``V`` of length ``N``, the q-th percentile of ``V`` is
+    Given a vector ``V`` of length ``n``, the q-th percentile of ``V`` is
     the value ``q/100`` of the way from the minimum to the maximum in a
     sorted copy of ``V``. The values and distances of the two nearest
     neighbors as well as the `method` parameter will determine the
@@ -3988,19 +4024,22 @@ def percentile(a,
     same as the minimum if ``q=0`` and the same as the maximum if
     ``q=100``.
 
-    This optional `method` parameter specifies the method to use when the
-    desired quantile lies between two data points ``i < j``.
-    If ``g`` is the fractional part of the index surrounded by ``i`` and
-    alpha and beta are correction constants modifying i and j.
+    The optional `method` parameter specifies the method to use when the
+    desired percentile lies between two indexes ``i`` and ``j = i + 1``.
+    In that case, we first determine ``i + g``, a virtual index that lies
+    between ``i`` and ``j``, where  ``i`` is the floor and ``g`` is the
+    fractional part of the index. The final result is, then, an interpolation
+    of ``a[i]`` and ``a[j]`` based on ``g``. During the computation of ``g``,
+    ``i`` and ``j`` are modified using correction constants ``alpha`` and
+    ``beta`` whose choices depend on the ``method`` used. Finally, note that
+    since Python uses 0-based indexing, the code subtracts another 1 from the
+    index internally.
 
-    Below, 'q' is the quantile value, 'n' is the sample size and
-    alpha and beta are constants.
-    The following formula gives an interpolation "i + g" of where the quantile
-    would be in the sorted sample.
-    With 'i' being the floor and 'g' the fractional part of the result.
+    The following formula determines the virtual index ``i + g``, the location 
+    of the percentile in the sorted sample:
 
     .. math::
-        i + g = (q - alpha) / ( n - alpha - beta + 1 )
+        i + g = (q / 100) * ( n - alpha - beta + 1 ) + alpha
 
     The different methods then work as follows
 
@@ -4265,21 +4304,31 @@ def quantile(a,
 
     Notes
     -----
-    Given a vector ``V`` of length ``N``, the q-th quantile of ``V`` is the
-    value ``q`` of the way from the minimum to the maximum in a sorted copy of
-    ``V``. The values and distances of the two nearest neighbors as well as the
-    `method` parameter will determine the quantile if the normalized
-    ranking does not match the location of ``q`` exactly. This function is the
-    same as the median if ``q=0.5``, the same as the minimum if ``q=0.0`` and
-    the same as the maximum if ``q=1.0``.
+    Given a vector ``V`` of length ``n``, the q-th quantile of ``V`` is
+    the value ``q`` of the way from the minimum to the maximum in a
+    sorted copy of ``V``. The values and distances of the two nearest
+    neighbors as well as the `method` parameter will determine the
+    quantile if the normalized ranking does not match the location of
+    ``q`` exactly. This function is the same as the median if ``q=0.5``, the
+    same as the minimum if ``q=0.0`` and the same as the maximum if
+    ``q=1.0``.
 
     The optional `method` parameter specifies the method to use when the
-    desired quantile lies between two data points ``i < j``.
-    If ``g`` is the fractional part of the index surrounded by ``i`` and ``j``,
-    and alpha and beta are correction constants modifying i and j:
+    desired quantile lies between two indexes ``i`` and ``j = i + 1``.
+    In that case, we first determine ``i + g``, a virtual index that lies
+    between ``i`` and ``j``, where  ``i`` is the floor and ``g`` is the
+    fractional part of the index. The final result is, then, an interpolation
+    of ``a[i]`` and ``a[j]`` based on ``g``. During the computation of ``g``,
+    ``i`` and ``j`` are modified using correction constants ``alpha`` and
+    ``beta`` whose choices depend on the ``method`` used. Finally, note that
+    since Python uses 0-based indexing, the code subtracts another 1 from the
+    index internally.
+
+    The following formula determines the virtual index ``i + g``, the location 
+    of the quantile in the sorted sample:
 
     .. math::
-        i + g = (q - alpha) / ( n - alpha - beta + 1 )
+        i + g = q * ( n - alpha - beta + 1 ) + alpha
 
     The different methods then work as follows
 
@@ -4421,17 +4470,14 @@ def _quantile_unchecked(a,
                         method="linear",
                         keepdims=False):
     """Assumes that q is in [0, 1], and is an ndarray"""
-    r, k = _ureduce(a,
+    return _ureduce(a,
                     func=_quantile_ureduce_func,
                     q=q,
+                    keepdims=keepdims,
                     axis=axis,
                     out=out,
                     overwrite_input=overwrite_input,
                     method=method)
-    if keepdims:
-        return r.reshape(q.shape + k)
-    else:
-        return r
 
 
 def _quantile_is_valid(q):
@@ -4922,6 +4968,7 @@ def meshgrid(*xi, copy=True, sparse=False, indexing='xy'):
     mgrid : Construct a multi-dimensional "meshgrid" using indexing notation.
     ogrid : Construct an open multi-dimensional "meshgrid" using indexing
             notation.
+    how-to-index
 
     Examples
     --------
@@ -4935,16 +4982,25 @@ def meshgrid(*xi, copy=True, sparse=False, indexing='xy'):
     >>> yv
     array([[0.,  0.,  0.],
            [1.,  1.,  1.]])
-    >>> xv, yv = np.meshgrid(x, y, sparse=True)  # make sparse output arrays
+
+    The result of `meshgrid` is a coordinate grid:
+
+    >>> import matplotlib.pyplot as plt
+    >>> plt.plot(xv, yv, marker='o', color='k', linestyle='none')
+    >>> plt.show()
+
+    You can create sparse output arrays to save memory and computation time.
+
+    >>> xv, yv = np.meshgrid(x, y, sparse=True)
     >>> xv
     array([[0. ,  0.5,  1. ]])
     >>> yv
     array([[0.],
            [1.]])
 
-    `meshgrid` is very useful to evaluate functions on a grid.  If the
-    function depends on all coordinates, you can use the parameter
-    ``sparse=True`` to save memory and computation time.
+    `meshgrid` is very useful to evaluate functions on a grid. If the
+    function depends on all coordinates, both dense and sparse outputs can be
+    used.
 
     >>> x = np.linspace(-5, 5, 101)
     >>> y = np.linspace(-5, 5, 101)
@@ -4961,7 +5017,6 @@ def meshgrid(*xi, copy=True, sparse=False, indexing='xy'):
     >>> np.array_equal(zz, zs)
     True
 
-    >>> import matplotlib.pyplot as plt
     >>> h = plt.contourf(x, y, zs)
     >>> plt.axis('scaled')
     >>> plt.colorbar()

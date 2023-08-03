@@ -20,7 +20,7 @@ import numpy
 
 from pathlib import Path
 from numpy.compat import asbytes, asstr
-from numpy.testing import temppath
+from numpy.testing import temppath, IS_WASM
 from importlib import import_module
 
 #
@@ -58,7 +58,7 @@ def get_module_dir():
 def get_temp_module_name():
     # Assume single-threaded, and the module dir usable only by this thread
     global _module_num
-    d = get_module_dir()
+    get_module_dir()
     name = "_test_ext_module_%d" % _module_num
     _module_num += 1
     if name in sys.modules:
@@ -116,6 +116,8 @@ def build_module(source_files, options=[], skip=[], only=[], module_name=None):
         base, ext = os.path.splitext(dst)
         if ext in (".f90", ".f", ".c", ".pyf"):
             f2py_sources.append(dst)
+
+    assert f2py_sources
 
     # Prepare options
     if module_name is None:
@@ -185,6 +187,9 @@ def _get_compiler_status():
         return _compiler_status
 
     _compiler_status = (False, False, False)
+    if IS_WASM:
+        # Can't run compiler from inside WASM.
+        return _compiler_status
 
     # XXX: this is really ugly. But I don't know how to invoke Distutils
     #      in a safer way...
@@ -332,7 +337,11 @@ class F2PyTest:
     only = []
     suffix = ".f"
     module = None
-    module_name = None
+
+    @property
+    def module_name(self):
+        cls = type(self)
+        return f'_{cls.__module__.rsplit(".",1)[-1]}_{cls.__name__}_ext_module'
 
     def setup_method(self):
         if sys.platform == "win32":

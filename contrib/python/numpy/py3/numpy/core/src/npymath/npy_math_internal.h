@@ -93,49 +93,50 @@ static const npy_uint64 MAGIC64[] = {0x5555555555555555ull, 0x3333333333333333ul
 
 /*
  *****************************************************************************
- **                     BASIC MATH FUNCTIONS                                **
+ **                    BLOCKLIST-ABLE BASIC MATH FUNCTIONS                  **
  *****************************************************************************
  */
 
+/* The following functions can be blocked, even for doubles */
+
 /* Original code by Konrad Hinsen.  */
-#ifndef HAVE_EXPM1
-NPY_INPLACE double npy_expm1(double x)
+/* Taken from FreeBSD mlib, adapted for numpy
+ *
+ * XXX: we could be a bit faster by reusing high/low words for inf/nan
+ * classification instead of calling npy_isinf/npy_isnan: we should have some
+ * macros for this, though, instead of doing it manually
+ */
+NPY_INPLACE double npy_log2(double x)
 {
-    if (npy_isinf(x) && x > 0) {
-        return x;
+#ifndef NPY_BLOCK_LOG2
+    return log2(x);
+#else
+    if (!npy_isfinite(x) || x <= 0.) {
+        /* special value result */
+        return npy_log(x);
     }
     else {
-        const double u = npy_exp(x);
-
-        if (u == 1.0) {
-            return x;
-        } else if (u - 1.0 == -1.0) {
-            return -1;
-        } else {
-            return (u - 1.0) * x/npy_log(u);
+        /*
+         * fallback implementation copied from python3.4 math.log2
+         * provides int(log(2**i)) == i for i 1-64 in default rounding mode.
+         *
+         * We want log2(m * 2**e) == log(m) / log(2) + e.  Care is needed when
+         * x is just greater than 1.0: in that case e is 1, log(m) is negative,
+         * and we get significant cancellation error from the addition of
+         * log(m) / log(2) to e.  The slight rewrite of the expression below
+         * avoids this problem.
+         */
+        int e;
+        double m = frexp(x, &e);
+        if (x >= 1.0) {
+            return log(2.0 * m) / log(2.0) + (e - 1);
+        }
+        else {
+            return log(m) / log(2.0) + e;
         }
     }
-}
 #endif
-
-#ifndef HAVE_LOG1P
-NPY_INPLACE double npy_log1p(double x)
-{
-    if (npy_isinf(x) && x > 0) {
-        return x;
-    }
-    else {
-        const double u = 1. + x;
-        const double d = u - 1.;
-
-        if (d == 0) {
-            return x;
-        } else {
-            return npy_log(u) * x / d;
-        }
-    }
 }
-#endif
 
 /* Taken from FreeBSD mlib, adapted for numpy
  *
@@ -143,11 +144,13 @@ NPY_INPLACE double npy_log1p(double x)
  * classification instead of calling npy_isinf/npy_isnan: we should have some
  * macros for this, though, instead of doing it manually
  */
-#ifndef HAVE_ATAN2
 /* XXX: we should have this in npy_math.h */
 #define NPY_DBL_EPSILON 1.2246467991473531772E-16
 NPY_INPLACE double npy_atan2(double y, double x)
 {
+#ifndef NPY_BLOCK_ATAN2
+    return atan2(y, x);
+#else
     npy_int32 k, m, iy, ix, hx, hy;
     npy_uint32 lx,ly;
     double z;
@@ -220,13 +223,18 @@ NPY_INPLACE double npy_atan2(double y, double x)
         default: /* case 3 */
             return  (z - NPY_DBL_EPSILON) - NPY_PI;/* atan(-,-) */
     }
+#endif
 }
 
-#endif
 
-#ifndef HAVE_HYPOT
+
+
+
 NPY_INPLACE double npy_hypot(double x, double y)
 {
+#ifndef NPY_BLOCK_HYPOT
+    return hypot(x, y);
+#else
     double yx;
 
     if (npy_isinf(x) || npy_isinf(y)) {
@@ -251,144 +259,10 @@ NPY_INPLACE double npy_hypot(double x, double y)
         yx = y/x;
         return x*npy_sqrt(1.+yx*yx);
     }
-}
-#endif
-
-#ifndef HAVE_ACOSH
-NPY_INPLACE double npy_acosh(double x)
-{
-    if (x < 1.0) {
-        return NPY_NAN;
-    }
-
-    if (npy_isfinite(x)) {
-        if (x > 1e8) {
-             return npy_log(x) + NPY_LOGE2;
-        }
-        else {
-            double u = x - 1.0;
-            return npy_log1p(u + npy_sqrt(2*u + u*u));
-        }
-    }
-    return x;
-}
-#endif
-
-#ifndef HAVE_ASINH
-NPY_INPLACE double npy_asinh(double xx)
-{
-    double x, d;
-    int sign;
-    if (xx < 0.0) {
-        sign = -1;
-        x = -xx;
-    }
-    else {
-        sign = 1;
-        x = xx;
-    }
-    if (x > 1e8) {
-        d = x;
-    } else {
-        d = npy_sqrt(x*x + 1);
-    }
-    return sign*npy_log1p(x*(1.0 + x/(d+1)));
-}
-#endif
-
-#ifndef HAVE_ATANH
-NPY_INPLACE double npy_atanh(double x)
-{
-    if (x > 0) {
-        return -0.5*npy_log1p(-2.0*x/(1.0 + x));
-    }
-    else {
-        return 0.5*npy_log1p(2.0*x/(1.0 - x));
-    }
-}
-#endif
-
-#ifndef HAVE_RINT
-#if defined(_MSC_VER) && (_MSC_VER == 1500) && !defined(_WIN64)
-#pragma optimize("", off)
-#endif
-NPY_INPLACE double npy_rint(double x)
-{
-    double y, r;
-
-    y = npy_floor(x);
-    r = x - y;
-
-    if (r > 0.5) {
-        y += 1.0;
-    }
-
-    /* Round to nearest even */
-    if (r == 0.5) {
-        r = y - 2.0*npy_floor(0.5*y);
-        if (r == 1.0) {
-            y += 1.0;
-        }
-    }
-    return y;
-}
-#if defined(_MSC_VER) && (_MSC_VER == 1500) && !defined(_WIN64)
-#pragma optimize("", on)
-#endif
-#endif
-
-#ifndef HAVE_TRUNC
-NPY_INPLACE double npy_trunc(double x)
-{
-    return x < 0 ? npy_ceil(x) : npy_floor(x);
-}
-#endif
-
-#ifndef HAVE_EXP2
-NPY_INPLACE double npy_exp2(double x)
-{
-    return npy_exp(NPY_LOGE2*x);
-}
-#endif
-
-#ifndef HAVE_LOG2
-NPY_INPLACE double npy_log2(double x)
-{
-#ifdef HAVE_FREXP
-    if (!npy_isfinite(x) || x <= 0.) {
-        /* special value result */
-        return npy_log(x);
-    }
-    else {
-        /*
-         * fallback implementation copied from python3.4 math.log2
-         * provides int(log(2**i)) == i for i 1-64 in default rounding mode.
-         *
-         * We want log2(m * 2**e) == log(m) / log(2) + e.  Care is needed when
-         * x is just greater than 1.0: in that case e is 1, log(m) is negative,
-         * and we get significant cancellation error from the addition of
-         * log(m) / log(2) to e.  The slight rewrite of the expression below
-         * avoids this problem.
-         */
-        int e;
-        double m = frexp(x, &e);
-        if (x >= 1.0) {
-            return log(2.0 * m) / log(2.0) + (e - 1);
-        }
-        else {
-            return log(m) / log(2.0) + e;
-        }
-    }
-#else
-    /* does not provide int(log(2**i)) == i */
-    return NPY_LOG2E * npy_log(x);
 #endif
 }
-#endif
 
 /*
- * if C99 extensions not available then define dummy functions that use the
- * double versions for
  *
  * sin, cos, tan
  * sinh, cosh, tanh,
@@ -398,7 +272,7 @@ NPY_INPLACE double npy_log2(double x)
  * asinh, acosh, atanh
  *
  * hypot, atan2, pow, fmod, modf
- * ldexp, frexp
+ * ldexp, frexp, cbrt
  *
  * We assume the above are always available in their double versions.
  *
@@ -407,849 +281,12 @@ NPY_INPLACE double npy_log2(double x)
  * instead test for the macro, but I am lazy to do that for now.
  */
 
-#line 406
-
-#line 413
-
-#ifdef sinl
-#undef sinl
-#endif
-#ifndef HAVE_SINL
-NPY_INPLACE npy_longdouble npy_sinl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_sin((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef cosl
-#undef cosl
-#endif
-#ifndef HAVE_COSL
-NPY_INPLACE npy_longdouble npy_cosl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_cos((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef tanl
-#undef tanl
-#endif
-#ifndef HAVE_TANL
-NPY_INPLACE npy_longdouble npy_tanl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_tan((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef sinhl
-#undef sinhl
-#endif
-#ifndef HAVE_SINHL
-NPY_INPLACE npy_longdouble npy_sinhl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_sinh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef coshl
-#undef coshl
-#endif
-#ifndef HAVE_COSHL
-NPY_INPLACE npy_longdouble npy_coshl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_cosh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef tanhl
-#undef tanhl
-#endif
-#ifndef HAVE_TANHL
-NPY_INPLACE npy_longdouble npy_tanhl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_tanh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef fabsl
-#undef fabsl
-#endif
-#ifndef HAVE_FABSL
-NPY_INPLACE npy_longdouble npy_fabsl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_fabs((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef floorl
-#undef floorl
-#endif
-#ifndef HAVE_FLOORL
-NPY_INPLACE npy_longdouble npy_floorl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_floor((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef ceill
-#undef ceill
-#endif
-#ifndef HAVE_CEILL
-NPY_INPLACE npy_longdouble npy_ceill(npy_longdouble x)
-{
-    return (npy_longdouble) npy_ceil((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef rintl
-#undef rintl
-#endif
-#ifndef HAVE_RINTL
-NPY_INPLACE npy_longdouble npy_rintl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_rint((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef truncl
-#undef truncl
-#endif
-#ifndef HAVE_TRUNCL
-NPY_INPLACE npy_longdouble npy_truncl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_trunc((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef sqrtl
-#undef sqrtl
-#endif
-#ifndef HAVE_SQRTL
-NPY_INPLACE npy_longdouble npy_sqrtl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_sqrt((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef log10l
-#undef log10l
-#endif
-#ifndef HAVE_LOG10L
-NPY_INPLACE npy_longdouble npy_log10l(npy_longdouble x)
-{
-    return (npy_longdouble) npy_log10((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef logl
-#undef logl
-#endif
-#ifndef HAVE_LOGL
-NPY_INPLACE npy_longdouble npy_logl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_log((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef expl
-#undef expl
-#endif
-#ifndef HAVE_EXPL
-NPY_INPLACE npy_longdouble npy_expl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_exp((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef expm1l
-#undef expm1l
-#endif
-#ifndef HAVE_EXPM1L
-NPY_INPLACE npy_longdouble npy_expm1l(npy_longdouble x)
-{
-    return (npy_longdouble) npy_expm1((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef asinl
-#undef asinl
-#endif
-#ifndef HAVE_ASINL
-NPY_INPLACE npy_longdouble npy_asinl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_asin((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef acosl
-#undef acosl
-#endif
-#ifndef HAVE_ACOSL
-NPY_INPLACE npy_longdouble npy_acosl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_acos((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef atanl
-#undef atanl
-#endif
-#ifndef HAVE_ATANL
-NPY_INPLACE npy_longdouble npy_atanl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_atan((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef asinhl
-#undef asinhl
-#endif
-#ifndef HAVE_ASINHL
-NPY_INPLACE npy_longdouble npy_asinhl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_asinh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef acoshl
-#undef acoshl
-#endif
-#ifndef HAVE_ACOSHL
-NPY_INPLACE npy_longdouble npy_acoshl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_acosh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef atanhl
-#undef atanhl
-#endif
-#ifndef HAVE_ATANHL
-NPY_INPLACE npy_longdouble npy_atanhl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_atanh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef log1pl
-#undef log1pl
-#endif
-#ifndef HAVE_LOG1PL
-NPY_INPLACE npy_longdouble npy_log1pl(npy_longdouble x)
-{
-    return (npy_longdouble) npy_log1p((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef exp2l
-#undef exp2l
-#endif
-#ifndef HAVE_EXP2L
-NPY_INPLACE npy_longdouble npy_exp2l(npy_longdouble x)
-{
-    return (npy_longdouble) npy_exp2((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef log2l
-#undef log2l
-#endif
-#ifndef HAVE_LOG2L
-NPY_INPLACE npy_longdouble npy_log2l(npy_longdouble x)
-{
-    return (npy_longdouble) npy_log2((double)x);
-}
-#endif
-
-
-
-#line 430
-#ifdef atan2l
-#undef atan2l
-#endif
-#ifndef HAVE_ATAN2L
-NPY_INPLACE npy_longdouble npy_atan2l(npy_longdouble x, npy_longdouble y)
-{
-    return (npy_longdouble) npy_atan2((double)x, (double) y);
-}
-#endif
-
-#line 430
-#ifdef hypotl
-#undef hypotl
-#endif
-#ifndef HAVE_HYPOTL
-NPY_INPLACE npy_longdouble npy_hypotl(npy_longdouble x, npy_longdouble y)
-{
-    return (npy_longdouble) npy_hypot((double)x, (double) y);
-}
-#endif
-
-#line 430
-#ifdef powl
-#undef powl
-#endif
-#ifndef HAVE_POWL
-NPY_INPLACE npy_longdouble npy_powl(npy_longdouble x, npy_longdouble y)
-{
-    return (npy_longdouble) npy_pow((double)x, (double) y);
-}
-#endif
-
-#line 430
-#ifdef fmodl
-#undef fmodl
-#endif
-#ifndef HAVE_FMODL
-NPY_INPLACE npy_longdouble npy_fmodl(npy_longdouble x, npy_longdouble y)
-{
-    return (npy_longdouble) npy_fmod((double)x, (double) y);
-}
-#endif
-
-#line 430
-#ifdef copysignl
-#undef copysignl
-#endif
-#ifndef HAVE_COPYSIGNL
-NPY_INPLACE npy_longdouble npy_copysignl(npy_longdouble x, npy_longdouble y)
-{
-    return (npy_longdouble) npy_copysign((double)x, (double) y);
-}
-#endif
-
-
-#ifdef modfl
-#undef modfl
-#endif
-#ifndef HAVE_MODFL
-NPY_INPLACE npy_longdouble npy_modfl(npy_longdouble x, npy_longdouble *iptr)
-{
-    double niptr;
-    double y = npy_modf((double)x, &niptr);
-    *iptr = (npy_longdouble) niptr;
-    return (npy_longdouble) y;
-}
-#endif
-
-#ifdef ldexpl
-#undef ldexpl
-#endif
-#ifndef HAVE_LDEXPL
-NPY_INPLACE npy_longdouble npy_ldexpl(npy_longdouble x, int exp)
-{
-    return (npy_longdouble) npy_ldexp((double)x, exp);
-}
-#endif
-
-#ifdef frexpl
-#undef frexpl
-#endif
-#ifndef HAVE_FREXPL
-NPY_INPLACE npy_longdouble npy_frexpl(npy_longdouble x, int* exp)
-{
-    return (npy_longdouble) npy_frexp(x, exp);
-}
-#endif
-
-
-#line 406
-
-#line 413
-
-#ifdef sinf
-#undef sinf
-#endif
-#ifndef HAVE_SINF
-NPY_INPLACE npy_float npy_sinf(npy_float x)
-{
-    return (npy_float) npy_sin((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef cosf
-#undef cosf
-#endif
-#ifndef HAVE_COSF
-NPY_INPLACE npy_float npy_cosf(npy_float x)
-{
-    return (npy_float) npy_cos((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef tanf
-#undef tanf
-#endif
-#ifndef HAVE_TANF
-NPY_INPLACE npy_float npy_tanf(npy_float x)
-{
-    return (npy_float) npy_tan((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef sinhf
-#undef sinhf
-#endif
-#ifndef HAVE_SINHF
-NPY_INPLACE npy_float npy_sinhf(npy_float x)
-{
-    return (npy_float) npy_sinh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef coshf
-#undef coshf
-#endif
-#ifndef HAVE_COSHF
-NPY_INPLACE npy_float npy_coshf(npy_float x)
-{
-    return (npy_float) npy_cosh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef tanhf
-#undef tanhf
-#endif
-#ifndef HAVE_TANHF
-NPY_INPLACE npy_float npy_tanhf(npy_float x)
-{
-    return (npy_float) npy_tanh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef fabsf
-#undef fabsf
-#endif
-#ifndef HAVE_FABSF
-NPY_INPLACE npy_float npy_fabsf(npy_float x)
-{
-    return (npy_float) npy_fabs((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef floorf
-#undef floorf
-#endif
-#ifndef HAVE_FLOORF
-NPY_INPLACE npy_float npy_floorf(npy_float x)
-{
-    return (npy_float) npy_floor((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef ceilf
-#undef ceilf
-#endif
-#ifndef HAVE_CEILF
-NPY_INPLACE npy_float npy_ceilf(npy_float x)
-{
-    return (npy_float) npy_ceil((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef rintf
-#undef rintf
-#endif
-#ifndef HAVE_RINTF
-NPY_INPLACE npy_float npy_rintf(npy_float x)
-{
-    return (npy_float) npy_rint((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef truncf
-#undef truncf
-#endif
-#ifndef HAVE_TRUNCF
-NPY_INPLACE npy_float npy_truncf(npy_float x)
-{
-    return (npy_float) npy_trunc((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef sqrtf
-#undef sqrtf
-#endif
-#ifndef HAVE_SQRTF
-NPY_INPLACE npy_float npy_sqrtf(npy_float x)
-{
-    return (npy_float) npy_sqrt((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef log10f
-#undef log10f
-#endif
-#ifndef HAVE_LOG10F
-NPY_INPLACE npy_float npy_log10f(npy_float x)
-{
-    return (npy_float) npy_log10((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef logf
-#undef logf
-#endif
-#ifndef HAVE_LOGF
-NPY_INPLACE npy_float npy_logf(npy_float x)
-{
-    return (npy_float) npy_log((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef expf
-#undef expf
-#endif
-#ifndef HAVE_EXPF
-NPY_INPLACE npy_float npy_expf(npy_float x)
-{
-    return (npy_float) npy_exp((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef expm1f
-#undef expm1f
-#endif
-#ifndef HAVE_EXPM1F
-NPY_INPLACE npy_float npy_expm1f(npy_float x)
-{
-    return (npy_float) npy_expm1((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef asinf
-#undef asinf
-#endif
-#ifndef HAVE_ASINF
-NPY_INPLACE npy_float npy_asinf(npy_float x)
-{
-    return (npy_float) npy_asin((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef acosf
-#undef acosf
-#endif
-#ifndef HAVE_ACOSF
-NPY_INPLACE npy_float npy_acosf(npy_float x)
-{
-    return (npy_float) npy_acos((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef atanf
-#undef atanf
-#endif
-#ifndef HAVE_ATANF
-NPY_INPLACE npy_float npy_atanf(npy_float x)
-{
-    return (npy_float) npy_atan((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef asinhf
-#undef asinhf
-#endif
-#ifndef HAVE_ASINHF
-NPY_INPLACE npy_float npy_asinhf(npy_float x)
-{
-    return (npy_float) npy_asinh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef acoshf
-#undef acoshf
-#endif
-#ifndef HAVE_ACOSHF
-NPY_INPLACE npy_float npy_acoshf(npy_float x)
-{
-    return (npy_float) npy_acosh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef atanhf
-#undef atanhf
-#endif
-#ifndef HAVE_ATANHF
-NPY_INPLACE npy_float npy_atanhf(npy_float x)
-{
-    return (npy_float) npy_atanh((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef log1pf
-#undef log1pf
-#endif
-#ifndef HAVE_LOG1PF
-NPY_INPLACE npy_float npy_log1pf(npy_float x)
-{
-    return (npy_float) npy_log1p((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef exp2f
-#undef exp2f
-#endif
-#ifndef HAVE_EXP2F
-NPY_INPLACE npy_float npy_exp2f(npy_float x)
-{
-    return (npy_float) npy_exp2((double)x);
-}
-#endif
-
-
-#line 413
-
-#ifdef log2f
-#undef log2f
-#endif
-#ifndef HAVE_LOG2F
-NPY_INPLACE npy_float npy_log2f(npy_float x)
-{
-    return (npy_float) npy_log2((double)x);
-}
-#endif
-
-
-
-#line 430
-#ifdef atan2f
-#undef atan2f
-#endif
-#ifndef HAVE_ATAN2F
-NPY_INPLACE npy_float npy_atan2f(npy_float x, npy_float y)
-{
-    return (npy_float) npy_atan2((double)x, (double) y);
-}
-#endif
-
-#line 430
-#ifdef hypotf
-#undef hypotf
-#endif
-#ifndef HAVE_HYPOTF
-NPY_INPLACE npy_float npy_hypotf(npy_float x, npy_float y)
-{
-    return (npy_float) npy_hypot((double)x, (double) y);
-}
-#endif
-
-#line 430
-#ifdef powf
-#undef powf
-#endif
-#ifndef HAVE_POWF
-NPY_INPLACE npy_float npy_powf(npy_float x, npy_float y)
-{
-    return (npy_float) npy_pow((double)x, (double) y);
-}
-#endif
-
-#line 430
-#ifdef fmodf
-#undef fmodf
-#endif
-#ifndef HAVE_FMODF
-NPY_INPLACE npy_float npy_fmodf(npy_float x, npy_float y)
-{
-    return (npy_float) npy_fmod((double)x, (double) y);
-}
-#endif
-
-#line 430
-#ifdef copysignf
-#undef copysignf
-#endif
-#ifndef HAVE_COPYSIGNF
-NPY_INPLACE npy_float npy_copysignf(npy_float x, npy_float y)
-{
-    return (npy_float) npy_copysign((double)x, (double) y);
-}
-#endif
-
-
-#ifdef modff
-#undef modff
-#endif
-#ifndef HAVE_MODFF
-NPY_INPLACE npy_float npy_modff(npy_float x, npy_float *iptr)
-{
-    double niptr;
-    double y = npy_modf((double)x, &niptr);
-    *iptr = (npy_float) niptr;
-    return (npy_float) y;
-}
-#endif
-
-#ifdef ldexpf
-#undef ldexpf
-#endif
-#ifndef HAVE_LDEXPF
-NPY_INPLACE npy_float npy_ldexpf(npy_float x, int exp)
-{
-    return (npy_float) npy_ldexp((double)x, exp);
-}
-#endif
-
-#ifdef frexpf
-#undef frexpf
-#endif
-#ifndef HAVE_FREXPF
-NPY_INPLACE npy_float npy_frexpf(npy_float x, int* exp)
-{
-    return (npy_float) npy_frexp(x, exp);
-}
-#endif
-
-
-
 
 /*
  * Decorate all the math functions which are available on the current platform
  */
 
-#line 487
+#line 285
 #undef NPY__FP_SFX
 #if NPY_SIZEOF_LONGDOUBLE == NPY_SIZEOF_DOUBLE
     #define NPY__FP_SFX(X) X
@@ -1266,8 +303,7 @@ NPY_INPLACE npy_float npy_frexpf(npy_float x, int* exp)
 #define WORKAROUND_APPLE_TRIG_BUG 0
 #endif
 
-#line 510
-#ifdef HAVE_SINL
+#line 305
 NPY_INPLACE npy_longdouble npy_sinl(npy_longdouble x)
 {
 #if WORKAROUND_APPLE_TRIG_BUG
@@ -1277,11 +313,9 @@ NPY_INPLACE npy_longdouble npy_sinl(npy_longdouble x)
 #endif
     return NPY__FP_SFX(sin)(x);
 }
-#endif
 
 
-#line 510
-#ifdef HAVE_COSL
+#line 305
 NPY_INPLACE npy_longdouble npy_cosl(npy_longdouble x)
 {
 #if WORKAROUND_APPLE_TRIG_BUG
@@ -1291,11 +325,9 @@ NPY_INPLACE npy_longdouble npy_cosl(npy_longdouble x)
 #endif
     return NPY__FP_SFX(cos)(x);
 }
-#endif
 
 
-#line 510
-#ifdef HAVE_TANL
+#line 305
 NPY_INPLACE npy_longdouble npy_tanl(npy_longdouble x)
 {
 #if WORKAROUND_APPLE_TRIG_BUG
@@ -1305,407 +337,13 @@ NPY_INPLACE npy_longdouble npy_tanl(npy_longdouble x)
 #endif
     return NPY__FP_SFX(tan)(x);
 }
-#endif
-
-
-#line 510
-#ifdef HAVE_SINHL
-NPY_INPLACE npy_longdouble npy_sinhl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(sinh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_COSHL
-NPY_INPLACE npy_longdouble npy_coshl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(cosh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_TANHL
-NPY_INPLACE npy_longdouble npy_tanhl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(tanh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_FABSL
-NPY_INPLACE npy_longdouble npy_fabsl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(fabs)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_FLOORL
-NPY_INPLACE npy_longdouble npy_floorl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(floor)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_CEILL
-NPY_INPLACE npy_longdouble npy_ceill(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(ceil)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_RINTL
-NPY_INPLACE npy_longdouble npy_rintl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(rint)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_TRUNCL
-NPY_INPLACE npy_longdouble npy_truncl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(trunc)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_SQRTL
-NPY_INPLACE npy_longdouble npy_sqrtl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(sqrt)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOG10L
-NPY_INPLACE npy_longdouble npy_log10l(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log10)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOGL
-NPY_INPLACE npy_longdouble npy_logl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_EXPL
-NPY_INPLACE npy_longdouble npy_expl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(exp)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_EXPM1L
-NPY_INPLACE npy_longdouble npy_expm1l(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(expm1)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ASINL
-NPY_INPLACE npy_longdouble npy_asinl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(asin)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ACOSL
-NPY_INPLACE npy_longdouble npy_acosl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(acos)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ATANL
-NPY_INPLACE npy_longdouble npy_atanl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(atan)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ASINHL
-NPY_INPLACE npy_longdouble npy_asinhl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(asinh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ACOSHL
-NPY_INPLACE npy_longdouble npy_acoshl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(acosh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ATANHL
-NPY_INPLACE npy_longdouble npy_atanhl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(atanh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOG1PL
-NPY_INPLACE npy_longdouble npy_log1pl(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log1p)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_EXP2L
-NPY_INPLACE npy_longdouble npy_exp2l(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(exp2)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOG2L
-NPY_INPLACE npy_longdouble npy_log2l(npy_longdouble x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log2)(x);
-}
-#endif
 
 
 
 #undef WORKAROUND_APPLE_TRIG_BUG
 
-#line 530
-#ifdef HAVE_ATAN2L
-NPY_INPLACE npy_longdouble npy_atan2l(npy_longdouble x, npy_longdouble y)
-{
-    return NPY__FP_SFX(atan2)(x, y);
-}
-#endif
 
-#line 530
-#ifdef HAVE_HYPOTL
-NPY_INPLACE npy_longdouble npy_hypotl(npy_longdouble x, npy_longdouble y)
-{
-    return NPY__FP_SFX(hypot)(x, y);
-}
-#endif
-
-#line 530
-#ifdef HAVE_POWL
-NPY_INPLACE npy_longdouble npy_powl(npy_longdouble x, npy_longdouble y)
-{
-    return NPY__FP_SFX(pow)(x, y);
-}
-#endif
-
-#line 530
-#ifdef HAVE_FMODL
-NPY_INPLACE npy_longdouble npy_fmodl(npy_longdouble x, npy_longdouble y)
-{
-    return NPY__FP_SFX(fmod)(x, y);
-}
-#endif
-
-#line 530
-#ifdef HAVE_COPYSIGNL
-NPY_INPLACE npy_longdouble npy_copysignl(npy_longdouble x, npy_longdouble y)
-{
-    return NPY__FP_SFX(copysign)(x, y);
-}
-#endif
-
-
-#ifdef HAVE_MODFL
-NPY_INPLACE npy_longdouble npy_modfl(npy_longdouble x, npy_longdouble *iptr)
-{
-    return NPY__FP_SFX(modf)(x, iptr);
-}
-#endif
-
-#ifdef HAVE_LDEXPL
-NPY_INPLACE npy_longdouble npy_ldexpl(npy_longdouble x, int exp)
-{
-    return NPY__FP_SFX(ldexp)(x, exp);
-}
-#endif
-
-#ifdef HAVE_FREXPL
-NPY_INPLACE npy_longdouble npy_frexpl(npy_longdouble x, int* exp)
-{
-    return NPY__FP_SFX(frexp)(x, exp);
-}
-#endif
-
-/* C99 but not mandatory */
-
-#ifndef HAVE_CBRTL
-NPY_INPLACE npy_longdouble npy_cbrtl(npy_longdouble x)
-{
-    /* don't set invalid flag */
-    if (npy_isnan(x)) {
-        return NPY_NAN;
-    }
-    else if (x < 0) {
-        return -npy_powl(-x, 1. / 3.);
-    }
-    else {
-        return npy_powl(x, 1. / 3.);
-    }
-}
-#else
-NPY_INPLACE npy_longdouble npy_cbrtl(npy_longdouble x)
-{
-    return NPY__FP_SFX(cbrt)(x);
-}
-#endif
-#undef NPY__FP_SFX
-
-#line 487
+#line 285
 #undef NPY__FP_SFX
 #if NPY_SIZEOF_DOUBLE == NPY_SIZEOF_DOUBLE
     #define NPY__FP_SFX(X) X
@@ -1722,8 +360,7 @@ NPY_INPLACE npy_longdouble npy_cbrtl(npy_longdouble x)
 #define WORKAROUND_APPLE_TRIG_BUG 0
 #endif
 
-#line 510
-#ifdef HAVE_SIN
+#line 305
 NPY_INPLACE npy_double npy_sin(npy_double x)
 {
 #if WORKAROUND_APPLE_TRIG_BUG
@@ -1733,11 +370,9 @@ NPY_INPLACE npy_double npy_sin(npy_double x)
 #endif
     return NPY__FP_SFX(sin)(x);
 }
-#endif
 
 
-#line 510
-#ifdef HAVE_COS
+#line 305
 NPY_INPLACE npy_double npy_cos(npy_double x)
 {
 #if WORKAROUND_APPLE_TRIG_BUG
@@ -1747,11 +382,9 @@ NPY_INPLACE npy_double npy_cos(npy_double x)
 #endif
     return NPY__FP_SFX(cos)(x);
 }
-#endif
 
 
-#line 510
-#ifdef HAVE_TAN
+#line 305
 NPY_INPLACE npy_double npy_tan(npy_double x)
 {
 #if WORKAROUND_APPLE_TRIG_BUG
@@ -1761,407 +394,13 @@ NPY_INPLACE npy_double npy_tan(npy_double x)
 #endif
     return NPY__FP_SFX(tan)(x);
 }
-#endif
-
-
-#line 510
-#ifdef HAVE_SINH
-NPY_INPLACE npy_double npy_sinh(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(sinh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_COSH
-NPY_INPLACE npy_double npy_cosh(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(cosh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_TANH
-NPY_INPLACE npy_double npy_tanh(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(tanh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_FABS
-NPY_INPLACE npy_double npy_fabs(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(fabs)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_FLOOR
-NPY_INPLACE npy_double npy_floor(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(floor)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_CEIL
-NPY_INPLACE npy_double npy_ceil(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(ceil)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_RINT
-NPY_INPLACE npy_double npy_rint(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(rint)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_TRUNC
-NPY_INPLACE npy_double npy_trunc(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(trunc)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_SQRT
-NPY_INPLACE npy_double npy_sqrt(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(sqrt)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOG10
-NPY_INPLACE npy_double npy_log10(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log10)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOG
-NPY_INPLACE npy_double npy_log(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_EXP
-NPY_INPLACE npy_double npy_exp(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(exp)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_EXPM1
-NPY_INPLACE npy_double npy_expm1(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(expm1)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ASIN
-NPY_INPLACE npy_double npy_asin(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(asin)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ACOS
-NPY_INPLACE npy_double npy_acos(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(acos)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ATAN
-NPY_INPLACE npy_double npy_atan(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(atan)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ASINH
-NPY_INPLACE npy_double npy_asinh(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(asinh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ACOSH
-NPY_INPLACE npy_double npy_acosh(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(acosh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ATANH
-NPY_INPLACE npy_double npy_atanh(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(atanh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOG1P
-NPY_INPLACE npy_double npy_log1p(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log1p)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_EXP2
-NPY_INPLACE npy_double npy_exp2(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(exp2)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOG2
-NPY_INPLACE npy_double npy_log2(npy_double x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log2)(x);
-}
-#endif
 
 
 
 #undef WORKAROUND_APPLE_TRIG_BUG
 
-#line 530
-#ifdef HAVE_ATAN2
-NPY_INPLACE npy_double npy_atan2(npy_double x, npy_double y)
-{
-    return NPY__FP_SFX(atan2)(x, y);
-}
-#endif
 
-#line 530
-#ifdef HAVE_HYPOT
-NPY_INPLACE npy_double npy_hypot(npy_double x, npy_double y)
-{
-    return NPY__FP_SFX(hypot)(x, y);
-}
-#endif
-
-#line 530
-#ifdef HAVE_POW
-NPY_INPLACE npy_double npy_pow(npy_double x, npy_double y)
-{
-    return NPY__FP_SFX(pow)(x, y);
-}
-#endif
-
-#line 530
-#ifdef HAVE_FMOD
-NPY_INPLACE npy_double npy_fmod(npy_double x, npy_double y)
-{
-    return NPY__FP_SFX(fmod)(x, y);
-}
-#endif
-
-#line 530
-#ifdef HAVE_COPYSIGN
-NPY_INPLACE npy_double npy_copysign(npy_double x, npy_double y)
-{
-    return NPY__FP_SFX(copysign)(x, y);
-}
-#endif
-
-
-#ifdef HAVE_MODF
-NPY_INPLACE npy_double npy_modf(npy_double x, npy_double *iptr)
-{
-    return NPY__FP_SFX(modf)(x, iptr);
-}
-#endif
-
-#ifdef HAVE_LDEXP
-NPY_INPLACE npy_double npy_ldexp(npy_double x, int exp)
-{
-    return NPY__FP_SFX(ldexp)(x, exp);
-}
-#endif
-
-#ifdef HAVE_FREXP
-NPY_INPLACE npy_double npy_frexp(npy_double x, int* exp)
-{
-    return NPY__FP_SFX(frexp)(x, exp);
-}
-#endif
-
-/* C99 but not mandatory */
-
-#ifndef HAVE_CBRT
-NPY_INPLACE npy_double npy_cbrt(npy_double x)
-{
-    /* don't set invalid flag */
-    if (npy_isnan(x)) {
-        return NPY_NAN;
-    }
-    else if (x < 0) {
-        return -npy_pow(-x, 1. / 3.);
-    }
-    else {
-        return npy_pow(x, 1. / 3.);
-    }
-}
-#else
-NPY_INPLACE npy_double npy_cbrt(npy_double x)
-{
-    return NPY__FP_SFX(cbrt)(x);
-}
-#endif
-#undef NPY__FP_SFX
-
-#line 487
+#line 285
 #undef NPY__FP_SFX
 #if NPY_SIZEOF_FLOAT == NPY_SIZEOF_DOUBLE
     #define NPY__FP_SFX(X) X
@@ -2178,8 +417,7 @@ NPY_INPLACE npy_double npy_cbrt(npy_double x)
 #define WORKAROUND_APPLE_TRIG_BUG 0
 #endif
 
-#line 510
-#ifdef HAVE_SINF
+#line 305
 NPY_INPLACE npy_float npy_sinf(npy_float x)
 {
 #if WORKAROUND_APPLE_TRIG_BUG
@@ -2189,11 +427,9 @@ NPY_INPLACE npy_float npy_sinf(npy_float x)
 #endif
     return NPY__FP_SFX(sin)(x);
 }
-#endif
 
 
-#line 510
-#ifdef HAVE_COSF
+#line 305
 NPY_INPLACE npy_float npy_cosf(npy_float x)
 {
 #if WORKAROUND_APPLE_TRIG_BUG
@@ -2203,11 +439,9 @@ NPY_INPLACE npy_float npy_cosf(npy_float x)
 #endif
     return NPY__FP_SFX(cos)(x);
 }
-#endif
 
 
-#line 510
-#ifdef HAVE_TANF
+#line 305
 NPY_INPLACE npy_float npy_tanf(npy_float x)
 {
 #if WORKAROUND_APPLE_TRIG_BUG
@@ -2217,413 +451,319 @@ NPY_INPLACE npy_float npy_tanf(npy_float x)
 #endif
     return NPY__FP_SFX(tan)(x);
 }
-#endif
-
-
-#line 510
-#ifdef HAVE_SINHF
-NPY_INPLACE npy_float npy_sinhf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(sinh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_COSHF
-NPY_INPLACE npy_float npy_coshf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(cosh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_TANHF
-NPY_INPLACE npy_float npy_tanhf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(tanh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_FABSF
-NPY_INPLACE npy_float npy_fabsf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(fabs)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_FLOORF
-NPY_INPLACE npy_float npy_floorf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(floor)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_CEILF
-NPY_INPLACE npy_float npy_ceilf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(ceil)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_RINTF
-NPY_INPLACE npy_float npy_rintf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(rint)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_TRUNCF
-NPY_INPLACE npy_float npy_truncf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(trunc)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_SQRTF
-NPY_INPLACE npy_float npy_sqrtf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(sqrt)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOG10F
-NPY_INPLACE npy_float npy_log10f(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log10)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOGF
-NPY_INPLACE npy_float npy_logf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_EXPF
-NPY_INPLACE npy_float npy_expf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(exp)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_EXPM1F
-NPY_INPLACE npy_float npy_expm1f(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(expm1)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ASINF
-NPY_INPLACE npy_float npy_asinf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(asin)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ACOSF
-NPY_INPLACE npy_float npy_acosf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(acos)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ATANF
-NPY_INPLACE npy_float npy_atanf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(atan)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ASINHF
-NPY_INPLACE npy_float npy_asinhf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(asinh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ACOSHF
-NPY_INPLACE npy_float npy_acoshf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(acosh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_ATANHF
-NPY_INPLACE npy_float npy_atanhf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(atanh)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOG1PF
-NPY_INPLACE npy_float npy_log1pf(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log1p)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_EXP2F
-NPY_INPLACE npy_float npy_exp2f(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(exp2)(x);
-}
-#endif
-
-
-#line 510
-#ifdef HAVE_LOG2F
-NPY_INPLACE npy_float npy_log2f(npy_float x)
-{
-#if 0
-    if (!npy_isfinite(x)) {
-        return (x - x);
-    }
-#endif
-    return NPY__FP_SFX(log2)(x);
-}
-#endif
 
 
 
 #undef WORKAROUND_APPLE_TRIG_BUG
 
-#line 530
-#ifdef HAVE_ATAN2F
+
+
+/* Blocklist-able C99 functions */
+
+#line 329
+#undef NPY__FP_SFX
+#if NPY_SIZEOF_FLOAT == NPY_SIZEOF_DOUBLE
+    #define NPY__FP_SFX(X) X
+#else
+    #define NPY__FP_SFX(X) NPY_CAT(X, f)
+#endif
+
+#line 340
+
+#ifdef expf
+#undef expf
+#endif
+#ifdef NPY_BLOCK_EXPF
+NPY_INPLACE npy_float npy_expf(npy_float x)
+{
+    return (npy_float) npy_exp((double)x);
+}
+#endif
+
+#ifndef NPY_BLOCK_EXPF
+NPY_INPLACE npy_float npy_expf(npy_float x)
+{
+    return NPY__FP_SFX(exp)(x);
+}
+#endif
+
+
+#line 340
+
+#ifdef log2f
+#undef log2f
+#endif
+#ifdef NPY_BLOCK_LOG2F
+NPY_INPLACE npy_float npy_log2f(npy_float x)
+{
+    return (npy_float) npy_log2((double)x);
+}
+#endif
+
+#ifndef NPY_BLOCK_LOG2F
+NPY_INPLACE npy_float npy_log2f(npy_float x)
+{
+    return NPY__FP_SFX(log2)(x);
+}
+#endif
+
+
+#line 340
+
+#ifdef sqrtf
+#undef sqrtf
+#endif
+#ifdef NPY_BLOCK_SQRTF
+NPY_INPLACE npy_float npy_sqrtf(npy_float x)
+{
+    return (npy_float) npy_sqrt((double)x);
+}
+#endif
+
+#ifndef NPY_BLOCK_SQRTF
+NPY_INPLACE npy_float npy_sqrtf(npy_float x)
+{
+    return NPY__FP_SFX(sqrt)(x);
+}
+#endif
+
+
+
+
+#line 365
+#ifdef atan2f
+#undef atan2f
+#endif
+#ifdef NPY_BLOCK_ATAN2F
+NPY_INPLACE npy_float npy_atan2f(npy_float x, npy_float y)
+{
+    return (npy_float) npy_atan2((double)x, (double) y);
+}
+#endif
+
+#ifndef NPY_BLOCK_ATAN2F
 NPY_INPLACE npy_float npy_atan2f(npy_float x, npy_float y)
 {
     return NPY__FP_SFX(atan2)(x, y);
 }
 #endif
 
-#line 530
-#ifdef HAVE_HYPOTF
+#line 365
+#ifdef hypotf
+#undef hypotf
+#endif
+#ifdef NPY_BLOCK_HYPOTF
+NPY_INPLACE npy_float npy_hypotf(npy_float x, npy_float y)
+{
+    return (npy_float) npy_hypot((double)x, (double) y);
+}
+#endif
+
+#ifndef NPY_BLOCK_HYPOTF
 NPY_INPLACE npy_float npy_hypotf(npy_float x, npy_float y)
 {
     return NPY__FP_SFX(hypot)(x, y);
 }
 #endif
 
-#line 530
-#ifdef HAVE_POWF
+#line 365
+#ifdef powf
+#undef powf
+#endif
+#ifdef NPY_BLOCK_POWF
+NPY_INPLACE npy_float npy_powf(npy_float x, npy_float y)
+{
+    return (npy_float) npy_pow((double)x, (double) y);
+}
+#endif
+
+#ifndef NPY_BLOCK_POWF
 NPY_INPLACE npy_float npy_powf(npy_float x, npy_float y)
 {
     return NPY__FP_SFX(pow)(x, y);
 }
 #endif
 
-#line 530
-#ifdef HAVE_FMODF
-NPY_INPLACE npy_float npy_fmodf(npy_float x, npy_float y)
+
+#ifdef modff
+#undef modff
+#endif
+#ifdef NPY_BLOCK_MODFF
+NPY_INPLACE npy_float npy_modff(npy_float x, npy_float *iptr)
 {
-    return NPY__FP_SFX(fmod)(x, y);
+    double niptr;
+    double y = npy_modf((double)x, &niptr);
+    *iptr = (npy_float) niptr;
+    return (npy_float) y;
 }
 #endif
 
-#line 530
-#ifdef HAVE_COPYSIGNF
-NPY_INPLACE npy_float npy_copysignf(npy_float x, npy_float y)
-{
-    return NPY__FP_SFX(copysign)(x, y);
-}
-#endif
-
-
-#ifdef HAVE_MODFF
+#ifndef NPY_BLOCK_MODFF
 NPY_INPLACE npy_float npy_modff(npy_float x, npy_float *iptr)
 {
     return NPY__FP_SFX(modf)(x, iptr);
 }
 #endif
 
-#ifdef HAVE_LDEXPF
-NPY_INPLACE npy_float npy_ldexpf(npy_float x, int exp)
-{
-    return NPY__FP_SFX(ldexp)(x, exp);
-}
-#endif
 
-#ifdef HAVE_FREXPF
-NPY_INPLACE npy_float npy_frexpf(npy_float x, int* exp)
-{
-    return NPY__FP_SFX(frexp)(x, exp);
-}
-#endif
 
-/* C99 but not mandatory */
-
-#ifndef HAVE_CBRTF
-NPY_INPLACE npy_float npy_cbrtf(npy_float x)
-{
-    /* don't set invalid flag */
-    if (npy_isnan(x)) {
-        return NPY_NAN;
-    }
-    else if (x < 0) {
-        return -npy_powf(-x, 1. / 3.);
-    }
-    else {
-        return npy_powf(x, 1. / 3.);
-    }
-}
-#else
-NPY_INPLACE npy_float npy_cbrtf(npy_float x)
-{
-    return NPY__FP_SFX(cbrt)(x);
-}
-#endif
+#line 329
 #undef NPY__FP_SFX
+#if NPY_SIZEOF_LONGDOUBLE == NPY_SIZEOF_DOUBLE
+    #define NPY__FP_SFX(X) X
+#else
+    #define NPY__FP_SFX(X) NPY_CAT(X, l)
+#endif
 
+#line 340
+
+#ifdef expl
+#undef expl
+#endif
+#ifdef NPY_BLOCK_EXPL
+NPY_INPLACE npy_longdouble npy_expl(npy_longdouble x)
+{
+    return (npy_longdouble) npy_exp((double)x);
+}
+#endif
+
+#ifndef NPY_BLOCK_EXPL
+NPY_INPLACE npy_longdouble npy_expl(npy_longdouble x)
+{
+    return NPY__FP_SFX(exp)(x);
+}
+#endif
+
+
+#line 340
+
+#ifdef log2l
+#undef log2l
+#endif
+#ifdef NPY_BLOCK_LOG2L
+NPY_INPLACE npy_longdouble npy_log2l(npy_longdouble x)
+{
+    return (npy_longdouble) npy_log2((double)x);
+}
+#endif
+
+#ifndef NPY_BLOCK_LOG2L
+NPY_INPLACE npy_longdouble npy_log2l(npy_longdouble x)
+{
+    return NPY__FP_SFX(log2)(x);
+}
+#endif
+
+
+#line 340
+
+#ifdef sqrtl
+#undef sqrtl
+#endif
+#ifdef NPY_BLOCK_SQRTL
+NPY_INPLACE npy_longdouble npy_sqrtl(npy_longdouble x)
+{
+    return (npy_longdouble) npy_sqrt((double)x);
+}
+#endif
+
+#ifndef NPY_BLOCK_SQRTL
+NPY_INPLACE npy_longdouble npy_sqrtl(npy_longdouble x)
+{
+    return NPY__FP_SFX(sqrt)(x);
+}
+#endif
+
+
+
+
+#line 365
+#ifdef atan2l
+#undef atan2l
+#endif
+#ifdef NPY_BLOCK_ATAN2L
+NPY_INPLACE npy_longdouble npy_atan2l(npy_longdouble x, npy_longdouble y)
+{
+    return (npy_longdouble) npy_atan2((double)x, (double) y);
+}
+#endif
+
+#ifndef NPY_BLOCK_ATAN2L
+NPY_INPLACE npy_longdouble npy_atan2l(npy_longdouble x, npy_longdouble y)
+{
+    return NPY__FP_SFX(atan2)(x, y);
+}
+#endif
+
+#line 365
+#ifdef hypotl
+#undef hypotl
+#endif
+#ifdef NPY_BLOCK_HYPOTL
+NPY_INPLACE npy_longdouble npy_hypotl(npy_longdouble x, npy_longdouble y)
+{
+    return (npy_longdouble) npy_hypot((double)x, (double) y);
+}
+#endif
+
+#ifndef NPY_BLOCK_HYPOTL
+NPY_INPLACE npy_longdouble npy_hypotl(npy_longdouble x, npy_longdouble y)
+{
+    return NPY__FP_SFX(hypot)(x, y);
+}
+#endif
+
+#line 365
+#ifdef powl
+#undef powl
+#endif
+#ifdef NPY_BLOCK_POWL
+NPY_INPLACE npy_longdouble npy_powl(npy_longdouble x, npy_longdouble y)
+{
+    return (npy_longdouble) npy_pow((double)x, (double) y);
+}
+#endif
+
+#ifndef NPY_BLOCK_POWL
+NPY_INPLACE npy_longdouble npy_powl(npy_longdouble x, npy_longdouble y)
+{
+    return NPY__FP_SFX(pow)(x, y);
+}
+#endif
+
+
+#ifdef modfl
+#undef modfl
+#endif
+#ifdef NPY_BLOCK_MODFL
+NPY_INPLACE npy_longdouble npy_modfl(npy_longdouble x, npy_longdouble *iptr)
+{
+    double niptr;
+    double y = npy_modf((double)x, &niptr);
+    *iptr = (npy_longdouble) niptr;
+    return (npy_longdouble) y;
+}
+#endif
+
+#ifndef NPY_BLOCK_MODFL
+NPY_INPLACE npy_longdouble npy_modfl(npy_longdouble x, npy_longdouble *iptr)
+{
+    return NPY__FP_SFX(modf)(x, iptr);
+}
+#endif
+
+
+
+
+
+#undef NPY__FP_SFX
 
 
 /*
  * Non standard functions
  */
 
-#line 595
+#line 420
 #undef NPY__FP_SFX
 #if NPY_SIZEOF_FLOAT == NPY_SIZEOF_DOUBLE
     #define NPY__FP_SFX(X) X
@@ -2774,7 +914,7 @@ npy_divmodf(npy_float a, npy_float b, npy_float *modulus)
 
     /* adjust fmod result to conform to Python convention of remainder */
     if (mod) {
-        if (isless(b, 0) != isless(mod, 0)) {
+        if (isless(b, (npy_float)0) != isless(mod, (npy_float)0)) {
             mod += b;
             div -= 1.0f;
         }
@@ -2805,7 +945,7 @@ npy_divmodf(npy_float a, npy_float b, npy_float *modulus)
 #undef DEG2RAD
 #undef NPY__FP_SFX
 
-#line 595
+#line 420
 #undef NPY__FP_SFX
 #if NPY_SIZEOF_DOUBLE == NPY_SIZEOF_DOUBLE
     #define NPY__FP_SFX(X) X
@@ -2956,7 +1096,7 @@ npy_divmod(npy_double a, npy_double b, npy_double *modulus)
 
     /* adjust fmod result to conform to Python convention of remainder */
     if (mod) {
-        if (isless(b, 0) != isless(mod, 0)) {
+        if (isless(b, (npy_double)0) != isless(mod, (npy_double)0)) {
             mod += b;
             div -= 1.0;
         }
@@ -2987,7 +1127,7 @@ npy_divmod(npy_double a, npy_double b, npy_double *modulus)
 #undef DEG2RAD
 #undef NPY__FP_SFX
 
-#line 595
+#line 420
 #undef NPY__FP_SFX
 #if NPY_SIZEOF_LONGDOUBLE == NPY_SIZEOF_DOUBLE
     #define NPY__FP_SFX(X) X
@@ -3138,7 +1278,7 @@ npy_divmodl(npy_longdouble a, npy_longdouble b, npy_longdouble *modulus)
 
     /* adjust fmod result to conform to Python convention of remainder */
     if (mod) {
-        if (isless(b, 0) != isless(mod, 0)) {
+        if (isless(b, (npy_longdouble)0) != isless(mod, (npy_longdouble)0)) {
             mod += b;
             div -= 1.0l;
         }
@@ -3170,7 +1310,7 @@ npy_divmodl(npy_longdouble a, npy_longdouble b, npy_longdouble *modulus)
 #undef NPY__FP_SFX
 
 
-#line 782
+#line 607
 NPY_INPLACE npy_uint
 npy_gcdu(npy_uint a, npy_uint b)
 {
@@ -3190,7 +1330,7 @@ npy_lcmu(npy_uint a, npy_uint b)
     return gcd == 0 ? 0 : a / gcd * b;
 }
 
-#line 782
+#line 607
 NPY_INPLACE npy_ulong
 npy_gcdul(npy_ulong a, npy_ulong b)
 {
@@ -3210,7 +1350,7 @@ npy_lcmul(npy_ulong a, npy_ulong b)
     return gcd == 0 ? 0 : a / gcd * b;
 }
 
-#line 782
+#line 607
 NPY_INPLACE npy_ulonglong
 npy_gcdull(npy_ulonglong a, npy_ulonglong b)
 {
@@ -3231,42 +1371,42 @@ npy_lcmull(npy_ulonglong a, npy_ulonglong b)
 }
 
 
-#line 808
+#line 633
 NPY_INPLACE npy_int
 npy_gcd(npy_int a, npy_int b)
 {
     return npy_gcdu(a < 0 ? -a : a, b < 0 ? -b : b);
 }
 
-#line 808
+#line 633
 NPY_INPLACE npy_long
 npy_gcdl(npy_long a, npy_long b)
 {
     return npy_gcdul(a < 0 ? -a : a, b < 0 ? -b : b);
 }
 
-#line 808
+#line 633
 NPY_INPLACE npy_longlong
 npy_gcdll(npy_longlong a, npy_longlong b)
 {
     return npy_gcdull(a < 0 ? -a : a, b < 0 ? -b : b);
 }
 
-#line 808
+#line 633
 NPY_INPLACE npy_int
 npy_lcm(npy_int a, npy_int b)
 {
     return npy_lcmu(a < 0 ? -a : a, b < 0 ? -b : b);
 }
 
-#line 808
+#line 633
 NPY_INPLACE npy_long
 npy_lcml(npy_long a, npy_long b)
 {
     return npy_lcmul(a < 0 ? -a : a, b < 0 ? -b : b);
 }
 
-#line 808
+#line 633
 NPY_INPLACE npy_longlong
 npy_lcmll(npy_longlong a, npy_longlong b)
 {
@@ -3277,8 +1417,8 @@ npy_lcmll(npy_longlong a, npy_longlong b)
 /* Unlike LCM and GCD, we need byte and short variants for the shift operators,
  * since the result is dependent on the width of the type
  */
-#line 823
-#line 828
+#line 648
+#line 653
 NPY_INPLACE npy_ubyte
 npy_lshiftuhh(npy_ubyte a, npy_ubyte b)
 {
@@ -3305,7 +1445,7 @@ npy_rshiftuhh(npy_ubyte a, npy_ubyte b)
     }
 }
 
-#line 828
+#line 653
 NPY_INPLACE npy_byte
 npy_lshifthh(npy_byte a, npy_byte b)
 {
@@ -3333,8 +1473,8 @@ npy_rshifthh(npy_byte a, npy_byte b)
 }
 
 
-#line 823
-#line 828
+#line 648
+#line 653
 NPY_INPLACE npy_ushort
 npy_lshiftuh(npy_ushort a, npy_ushort b)
 {
@@ -3361,7 +1501,7 @@ npy_rshiftuh(npy_ushort a, npy_ushort b)
     }
 }
 
-#line 828
+#line 653
 NPY_INPLACE npy_short
 npy_lshifth(npy_short a, npy_short b)
 {
@@ -3389,8 +1529,8 @@ npy_rshifth(npy_short a, npy_short b)
 }
 
 
-#line 823
-#line 828
+#line 648
+#line 653
 NPY_INPLACE npy_uint
 npy_lshiftu(npy_uint a, npy_uint b)
 {
@@ -3417,7 +1557,7 @@ npy_rshiftu(npy_uint a, npy_uint b)
     }
 }
 
-#line 828
+#line 653
 NPY_INPLACE npy_int
 npy_lshift(npy_int a, npy_int b)
 {
@@ -3445,8 +1585,8 @@ npy_rshift(npy_int a, npy_int b)
 }
 
 
-#line 823
-#line 828
+#line 648
+#line 653
 NPY_INPLACE npy_ulong
 npy_lshiftul(npy_ulong a, npy_ulong b)
 {
@@ -3473,7 +1613,7 @@ npy_rshiftul(npy_ulong a, npy_ulong b)
     }
 }
 
-#line 828
+#line 653
 NPY_INPLACE npy_long
 npy_lshiftl(npy_long a, npy_long b)
 {
@@ -3501,8 +1641,8 @@ npy_rshiftl(npy_long a, npy_long b)
 }
 
 
-#line 823
-#line 828
+#line 648
+#line 653
 NPY_INPLACE npy_ulonglong
 npy_lshiftull(npy_ulonglong a, npy_ulonglong b)
 {
@@ -3529,7 +1669,7 @@ npy_rshiftull(npy_ulonglong a, npy_ulonglong b)
     }
 }
 
-#line 828
+#line 653
 NPY_INPLACE npy_longlong
 npy_lshiftll(npy_longlong a, npy_longlong b)
 {
@@ -3560,22 +1700,22 @@ npy_rshiftll(npy_longlong a, npy_longlong b)
 
 
 #define __popcnt32 __popcnt
-#line 864
+#line 689
 #undef TO_BITS_LEN
 #if 0
-#line 869
+#line 694
 #elif NPY_BITSOF_BYTE == 8
     #define TO_BITS_LEN(X) X##8
 
-#line 869
+#line 694
 #elif NPY_BITSOF_BYTE == 16
     #define TO_BITS_LEN(X) X##16
 
-#line 869
+#line 694
 #elif NPY_BITSOF_BYTE == 32
     #define TO_BITS_LEN(X) X##32
 
-#line 869
+#line 694
 #elif NPY_BITSOF_BYTE == 64
     #define TO_BITS_LEN(X) X##64
 
@@ -3612,22 +1752,22 @@ npy_popcountuhh(npy_ubyte a)
 #endif
 }
 
-#line 864
+#line 689
 #undef TO_BITS_LEN
 #if 0
-#line 869
+#line 694
 #elif NPY_BITSOF_SHORT == 8
     #define TO_BITS_LEN(X) X##8
 
-#line 869
+#line 694
 #elif NPY_BITSOF_SHORT == 16
     #define TO_BITS_LEN(X) X##16
 
-#line 869
+#line 694
 #elif NPY_BITSOF_SHORT == 32
     #define TO_BITS_LEN(X) X##32
 
-#line 869
+#line 694
 #elif NPY_BITSOF_SHORT == 64
     #define TO_BITS_LEN(X) X##64
 
@@ -3664,22 +1804,22 @@ npy_popcountuh(npy_ushort a)
 #endif
 }
 
-#line 864
+#line 689
 #undef TO_BITS_LEN
 #if 0
-#line 869
+#line 694
 #elif NPY_BITSOF_INT == 8
     #define TO_BITS_LEN(X) X##8
 
-#line 869
+#line 694
 #elif NPY_BITSOF_INT == 16
     #define TO_BITS_LEN(X) X##16
 
-#line 869
+#line 694
 #elif NPY_BITSOF_INT == 32
     #define TO_BITS_LEN(X) X##32
 
-#line 869
+#line 694
 #elif NPY_BITSOF_INT == 64
     #define TO_BITS_LEN(X) X##64
 
@@ -3716,22 +1856,22 @@ npy_popcountu(npy_uint a)
 #endif
 }
 
-#line 864
+#line 689
 #undef TO_BITS_LEN
 #if 0
-#line 869
+#line 694
 #elif NPY_BITSOF_LONG == 8
     #define TO_BITS_LEN(X) X##8
 
-#line 869
+#line 694
 #elif NPY_BITSOF_LONG == 16
     #define TO_BITS_LEN(X) X##16
 
-#line 869
+#line 694
 #elif NPY_BITSOF_LONG == 32
     #define TO_BITS_LEN(X) X##32
 
-#line 869
+#line 694
 #elif NPY_BITSOF_LONG == 64
     #define TO_BITS_LEN(X) X##64
 
@@ -3768,22 +1908,22 @@ npy_popcountul(npy_ulong a)
 #endif
 }
 
-#line 864
+#line 689
 #undef TO_BITS_LEN
 #if 0
-#line 869
+#line 694
 #elif NPY_BITSOF_LONGLONG == 8
     #define TO_BITS_LEN(X) X##8
 
-#line 869
+#line 694
 #elif NPY_BITSOF_LONGLONG == 16
     #define TO_BITS_LEN(X) X##16
 
-#line 869
+#line 694
 #elif NPY_BITSOF_LONGLONG == 32
     #define TO_BITS_LEN(X) X##32
 
-#line 869
+#line 694
 #elif NPY_BITSOF_LONGLONG == 64
     #define TO_BITS_LEN(X) X##64
 
@@ -3821,7 +1961,7 @@ npy_popcountull(npy_ulonglong a)
 }
 
 
-#line 911
+#line 736
 NPY_INPLACE uint8_t
 npy_popcounthh(npy_byte a)
 {
@@ -3829,7 +1969,7 @@ npy_popcounthh(npy_byte a)
     return npy_popcountuhh(a < 0 ? -a : a);
 }
 
-#line 911
+#line 736
 NPY_INPLACE uint8_t
 npy_popcounth(npy_short a)
 {
@@ -3837,7 +1977,7 @@ npy_popcounth(npy_short a)
     return npy_popcountuh(a < 0 ? -a : a);
 }
 
-#line 911
+#line 736
 NPY_INPLACE uint8_t
 npy_popcount(npy_int a)
 {
@@ -3845,7 +1985,7 @@ npy_popcount(npy_int a)
     return npy_popcountu(a < 0 ? -a : a);
 }
 
-#line 911
+#line 736
 NPY_INPLACE uint8_t
 npy_popcountl(npy_long a)
 {
@@ -3853,12 +1993,13 @@ npy_popcountl(npy_long a)
     return npy_popcountul(a < 0 ? -a : a);
 }
 
-#line 911
+#line 736
 NPY_INPLACE uint8_t
 npy_popcountll(npy_longlong a)
 {
     /* Return popcount of abs(a) */
     return npy_popcountull(a < 0 ? -a : a);
 }
+
 
 

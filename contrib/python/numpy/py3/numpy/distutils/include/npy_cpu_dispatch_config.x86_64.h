@@ -53,7 +53,11 @@
 #ifdef NPY__CPU_TARGET_POPCNT
 	/** POPCNT **/
 	#define NPY_HAVE_POPCNT 1
+#ifdef _MSC_VER
+	#include <nmmintrin.h>
+#else
 	#include <popcntintrin.h>
+#endif
 #endif /*NPY__CPU_TARGET_POPCNT*/
 #ifdef NPY__CPU_TARGET_SSE42
 	/** SSE42 **/

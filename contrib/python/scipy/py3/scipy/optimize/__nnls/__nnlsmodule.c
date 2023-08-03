@@ -1,5 +1,5 @@
 /* File: __nnlsmodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
 
@@ -69,17 +68,14 @@ static PyObject *__nnls_module;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 #define CHECKSCALAR(check,tcheck,name,show,var)\
     if (!(check)) {\
@@ -113,30 +109,6 @@ static PyObject *__nnls_module;
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int
 int_from_pyobj(int* v, PyObject *obj, const char *errmess)
 {
@@ -235,7 +207,7 @@ static PyObject *f2py_rout___nnls_nnls(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -248,32 +220,32 @@ static PyObject *f2py_rout___nnls_nnls(const PyObject *capi_self,
     double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     int capi_overwrite_b = 0;
     PyObject *b_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     double rnorm = 0;
     double *w = NULL;
     npy_intp w_Dims[1] = {-1};
     const int w_Rank = 1;
-    PyArrayObject *capi_w_tmp = NULL;
+    PyArrayObject *capi_w_as_array = NULL;
     int capi_w_intent = 0;
     PyObject *w_capi = Py_None;
     double *zz = NULL;
     npy_intp zz_Dims[1] = {-1};
     const int zz_Rank = 1;
-    PyArrayObject *capi_zz_tmp = NULL;
+    PyArrayObject *capi_zz_as_array = NULL;
     int capi_zz_intent = 0;
     PyObject *zz_capi = Py_None;
     int *index_bn = NULL;
     npy_intp index_bn_Dims[1] = {-1};
     const int index_bn_Rank = 1;
-    PyArrayObject *capi_index_bn_tmp = NULL;
+    PyArrayObject *capi_index_bn_as_array = NULL;
     int capi_index_bn_intent = 0;
     PyObject *index_bn_capi = Py_None;
     int mode = 0;
@@ -294,14 +266,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : __nnls_error,"failed in converting 1st argument `a' of __nnls.nnls to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "__nnls.__nnls.nnls: failed to create array from the 1st argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = __nnls_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable m */
         f2py_success = int_from_pyobj(&m,m_capi,"__nnls.nnls() 2nd argument (m) can't be converted to int");
@@ -313,51 +287,59 @@ f2py_start_clock();
     capi_b_intent |= (capi_overwrite_b?0:F2PY_INTENT_COPY);
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : __nnls_error,"failed in converting 4th argument `b' of __nnls.nnls to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "__nnls.__nnls.nnls: failed to create array from the 4th argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = __nnls_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable rnorm */
     /* Processing variable w */
     ;
     capi_w_intent |= F2PY_INTENT_IN;
-    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-    if (capi_w_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : __nnls_error,"failed in converting 5th argument `w' of __nnls.nnls to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "__nnls.__nnls.nnls: failed to create array from the 5th argument `w`";
+    capi_w_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,w_Dims,w_Rank,  capi_w_intent,w_capi,capi_errmess);
+    if (capi_w_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = __nnls_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        w = (double *)(PyArray_DATA(capi_w_tmp));
+        w = (double *)(PyArray_DATA(capi_w_as_array));
 
     /* Processing variable zz */
     ;
     capi_zz_intent |= F2PY_INTENT_IN;
-    capi_zz_tmp = array_from_pyobj(NPY_DOUBLE,zz_Dims,zz_Rank,capi_zz_intent,zz_capi);
-    if (capi_zz_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : __nnls_error,"failed in converting 6th argument `zz' of __nnls.nnls to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "__nnls.__nnls.nnls: failed to create array from the 6th argument `zz`";
+    capi_zz_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,zz_Dims,zz_Rank,  capi_zz_intent,zz_capi,capi_errmess);
+    if (capi_zz_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = __nnls_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        zz = (double *)(PyArray_DATA(capi_zz_tmp));
+        zz = (double *)(PyArray_DATA(capi_zz_as_array));
 
     /* Processing variable index_bn */
     ;
     capi_index_bn_intent |= F2PY_INTENT_IN;
-    capi_index_bn_tmp = array_from_pyobj(NPY_INT,index_bn_Dims,index_bn_Rank,capi_index_bn_intent,index_bn_capi);
-    if (capi_index_bn_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : __nnls_error,"failed in converting 7th argument `index_bn' of __nnls.nnls to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "__nnls.__nnls.nnls: failed to create array from the 7th argument `index_bn`";
+    capi_index_bn_as_array = ndarray_from_pyobj(  NPY_INT,1,index_bn_Dims,index_bn_Rank,  capi_index_bn_intent,index_bn_capi,capi_errmess);
+    if (capi_index_bn_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = __nnls_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        index_bn = (int *)(PyArray_DATA(capi_index_bn_tmp));
+        index_bn = (int *)(PyArray_DATA(capi_index_bn_as_array));
 
     /* Processing variable mode */
     /* Processing variable maxiter */
@@ -371,14 +353,16 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,Py_None);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : __nnls_error,"failed in converting hidden `x' of __nnls.nnls to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "__nnls.__nnls.nnls: failed to create array from the hidden `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,Py_None,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = __nnls_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -396,12 +380,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Ndi",capi_x_tmp,rnorm,mode);
+        capi_buildvalue = Py_BuildValue("Ndi",capi_x_as_array,rnorm,mode);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(shape(a,0)==mda)*/
     } /*if (f2py_success) of mda*/
@@ -409,30 +393,30 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of maxiter*/
     /* End of cleaning variable maxiter */
     /* End of cleaning variable mode */
-    if((PyObject *)capi_index_bn_tmp!=index_bn_capi) {
-        Py_XDECREF(capi_index_bn_tmp); }
-    }  /*if (capi_index_bn_tmp == NULL) ... else of index_bn*/
+    if((PyObject *)capi_index_bn_as_array!=index_bn_capi) {
+        Py_XDECREF(capi_index_bn_as_array); }
+    }  /* if (capi_index_bn_as_array == NULL) ... else of index_bn */
     /* End of cleaning variable index_bn */
-    if((PyObject *)capi_zz_tmp!=zz_capi) {
-        Py_XDECREF(capi_zz_tmp); }
-    }  /*if (capi_zz_tmp == NULL) ... else of zz*/
+    if((PyObject *)capi_zz_as_array!=zz_capi) {
+        Py_XDECREF(capi_zz_as_array); }
+    }  /* if (capi_zz_as_array == NULL) ... else of zz */
     /* End of cleaning variable zz */
-    if((PyObject *)capi_w_tmp!=w_capi) {
-        Py_XDECREF(capi_w_tmp); }
-    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    if((PyObject *)capi_w_as_array!=w_capi) {
+        Py_XDECREF(capi_w_as_array); }
+    }  /* if (capi_w_as_array == NULL) ... else of w */
     /* End of cleaning variable w */
     /* End of cleaning variable rnorm */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*if (f2py_success) of m*/
     /* End of cleaning variable m */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -462,7 +446,7 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"nnls",-1,{{-1}},0,(char *)F_FUNC(nnls,NNLS),(f2py_init_func)f2py_rout___nnls_nnls,doc_f2py_rout___nnls_nnls},
+    {"nnls",-1,{{-1}},0,0,(char *)  F_FUNC(nnls,NNLS),  (f2py_init_func)f2py_rout___nnls_nnls,doc_f2py_rout___nnls_nnls},
 
 /*eof routine_defs*/
     {NULL}
@@ -494,16 +478,16 @@ PyMODINIT_FUNC PyInit___nnls(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module __nnls (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '__nnls' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module '__nnls' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    x,rnorm,mode = nnls(a,m,n,b,w,zz,index_bn,maxiter,mda=shape(a,0),overwrite_a=0,overwrite_b=0)\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     __nnls_error = PyErr_NewException ("__nnls.error", NULL, NULL);

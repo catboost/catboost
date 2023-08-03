@@ -1,5 +1,5 @@
 /* File: _slsqpmodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
 
@@ -76,17 +75,14 @@ typedef signed char signed_char;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 #define CHECKSCALAR(check,tcheck,name,show,var)\
     if (!(check)) {\
@@ -154,30 +150,6 @@ typedef signed char signed_char;
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int try_pyarr_from_double(PyObject* obj,double* v) {
     TRYPYARRAYTEMPLATE(double,'d');
 }
@@ -353,19 +325,19 @@ static PyObject *f2py_rout__slsqp_slsqp(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double *xl = NULL;
     npy_intp xl_Dims[1] = {-1};
     const int xl_Rank = 1;
-    PyArrayObject *capi_xl_tmp = NULL;
+    PyArrayObject *capi_xl_as_array = NULL;
     int capi_xl_intent = 0;
     PyObject *xl_capi = Py_None;
     double *xu = NULL;
     npy_intp xu_Dims[1] = {-1};
     const int xu_Rank = 1;
-    PyArrayObject *capi_xu_tmp = NULL;
+    PyArrayObject *capi_xu_as_array = NULL;
     int capi_xu_intent = 0;
     PyObject *xu_capi = Py_None;
     double f = 0;
@@ -373,19 +345,19 @@ static PyObject *f2py_rout__slsqp_slsqp(const PyObject *capi_self,
     double *c = NULL;
     npy_intp c_Dims[1] = {-1};
     const int c_Rank = 1;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     PyObject *c_capi = Py_None;
     double *g = NULL;
     npy_intp g_Dims[1] = {-1};
     const int g_Rank = 1;
-    PyArrayObject *capi_g_tmp = NULL;
+    PyArrayObject *capi_g_as_array = NULL;
     int capi_g_intent = 0;
     PyObject *g_capi = Py_None;
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     double acc = 0;
@@ -397,7 +369,7 @@ static PyObject *f2py_rout__slsqp_slsqp(const PyObject *capi_self,
     double *w = NULL;
     npy_intp w_Dims[1] = {-1};
     const int w_Rank = 1;
-    PyArrayObject *capi_w_tmp = NULL;
+    PyArrayObject *capi_w_as_array = NULL;
     int capi_w_intent = 0;
     PyObject *w_capi = Py_None;
     int l_w = 0;
@@ -405,7 +377,7 @@ static PyObject *f2py_rout__slsqp_slsqp(const PyObject *capi_self,
     int *jw = NULL;
     npy_intp jw_Dims[1] = {-1};
     const int jw_Rank = 1;
-    PyArrayObject *capi_jw_tmp = NULL;
+    PyArrayObject *capi_jw_as_array = NULL;
     int capi_jw_intent = 0;
     PyObject *jw_capi = Py_None;
     int l_jw = 0;
@@ -466,14 +438,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_INOUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _slsqp_error,"failed in converting 3rd argument `x' of _slsqp.slsqp to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_slsqp._slsqp.slsqp: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _slsqp_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable f */
         f2py_success = double_from_pyobj(&f,f_capi,"_slsqp.slsqp() 6th argument (f) can't be converted to double");
@@ -481,14 +455,16 @@ f2py_start_clock();
     /* Processing variable c */
     ;
     capi_c_intent |= F2PY_INTENT_IN;
-    capi_c_tmp = array_from_pyobj(NPY_DOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _slsqp_error,"failed in converting 7th argument `c' of _slsqp.slsqp to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_slsqp._slsqp.slsqp: failed to create array from the 7th argument `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _slsqp_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (double *)(PyArray_DATA(capi_c_tmp));
+        c = (double *)(PyArray_DATA(capi_c_as_array));
 
     /* Processing variable acc */
         f2py_success = double_from_pyobj(&acc,acc_capi,"_slsqp.slsqp() 10th argument (acc) can't be converted to double");
@@ -502,26 +478,30 @@ f2py_start_clock();
     /* Processing variable w */
     ;
     capi_w_intent |= F2PY_INTENT_IN;
-    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-    if (capi_w_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _slsqp_error,"failed in converting 13rd argument `w' of _slsqp.slsqp to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_slsqp._slsqp.slsqp: failed to create array from the 13rd argument `w`";
+    capi_w_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,w_Dims,w_Rank,  capi_w_intent,w_capi,capi_errmess);
+    if (capi_w_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _slsqp_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        w = (double *)(PyArray_DATA(capi_w_tmp));
+        w = (double *)(PyArray_DATA(capi_w_as_array));
 
     /* Processing variable jw */
     ;
     capi_jw_intent |= F2PY_INTENT_IN;
-    capi_jw_tmp = array_from_pyobj(NPY_INT,jw_Dims,jw_Rank,capi_jw_intent,jw_capi);
-    if (capi_jw_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _slsqp_error,"failed in converting 14th argument `jw' of _slsqp.slsqp to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_slsqp._slsqp.slsqp: failed to create array from the 14th argument `jw`";
+    capi_jw_as_array = ndarray_from_pyobj(  NPY_INT,1,jw_Dims,jw_Rank,  capi_jw_intent,jw_capi,capi_errmess);
+    if (capi_jw_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _slsqp_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        jw = (int *)(PyArray_DATA(capi_jw_tmp));
+        jw = (int *)(PyArray_DATA(capi_jw_as_array));
 
     /* Processing variable alpha */
         f2py_success = double_from_pyobj(&alpha,alpha_capi,"_slsqp.slsqp() 15th argument (alpha) can't be converted to double");
@@ -590,50 +570,58 @@ f2py_start_clock();
     /* Processing variable xl */
     xl_Dims[0]=n;
     capi_xl_intent |= F2PY_INTENT_IN;
-    capi_xl_tmp = array_from_pyobj(NPY_DOUBLE,xl_Dims,xl_Rank,capi_xl_intent,xl_capi);
-    if (capi_xl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _slsqp_error,"failed in converting 4th argument `xl' of _slsqp.slsqp to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_slsqp._slsqp.slsqp: failed to create array from the 4th argument `xl`";
+    capi_xl_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,xl_Dims,xl_Rank,  capi_xl_intent,xl_capi,capi_errmess);
+    if (capi_xl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _slsqp_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        xl = (double *)(PyArray_DATA(capi_xl_tmp));
+        xl = (double *)(PyArray_DATA(capi_xl_as_array));
 
     /* Processing variable xu */
     xu_Dims[0]=n;
     capi_xu_intent |= F2PY_INTENT_IN;
-    capi_xu_tmp = array_from_pyobj(NPY_DOUBLE,xu_Dims,xu_Rank,capi_xu_intent,xu_capi);
-    if (capi_xu_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _slsqp_error,"failed in converting 5th argument `xu' of _slsqp.slsqp to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_slsqp._slsqp.slsqp: failed to create array from the 5th argument `xu`";
+    capi_xu_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,xu_Dims,xu_Rank,  capi_xu_intent,xu_capi,capi_errmess);
+    if (capi_xu_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _slsqp_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        xu = (double *)(PyArray_DATA(capi_xu_tmp));
+        xu = (double *)(PyArray_DATA(capi_xu_as_array));
 
     /* Processing variable g */
     g_Dims[0]=1 + n;
     capi_g_intent |= F2PY_INTENT_IN;
-    capi_g_tmp = array_from_pyobj(NPY_DOUBLE,g_Dims,g_Rank,capi_g_intent,g_capi);
-    if (capi_g_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _slsqp_error,"failed in converting 8th argument `g' of _slsqp.slsqp to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_slsqp._slsqp.slsqp: failed to create array from the 8th argument `g`";
+    capi_g_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,g_Dims,g_Rank,  capi_g_intent,g_capi,capi_errmess);
+    if (capi_g_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _slsqp_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        g = (double *)(PyArray_DATA(capi_g_tmp));
+        g = (double *)(PyArray_DATA(capi_g_as_array));
 
     /* Processing variable a */
     a_Dims[0]=la,a_Dims[1]=1 + n;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _slsqp_error,"failed in converting 9th argument `a' of _slsqp.slsqp to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_slsqp._slsqp.slsqp: failed to create array from the 9th argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _slsqp_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable l_w */
     if (l_w_capi == Py_None) l_w = len(w); else
@@ -735,21 +723,21 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(w)>=l_w)*/
     } /*if (f2py_success) of l_w*/
     /* End of cleaning variable l_w */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
-    if((PyObject *)capi_g_tmp!=g_capi) {
-        Py_XDECREF(capi_g_tmp); }
-    }  /*if (capi_g_tmp == NULL) ... else of g*/
+    if((PyObject *)capi_g_as_array!=g_capi) {
+        Py_XDECREF(capi_g_as_array); }
+    }  /* if (capi_g_as_array == NULL) ... else of g */
     /* End of cleaning variable g */
-    if((PyObject *)capi_xu_tmp!=xu_capi) {
-        Py_XDECREF(capi_xu_tmp); }
-    }  /*if (capi_xu_tmp == NULL) ... else of xu*/
+    if((PyObject *)capi_xu_as_array!=xu_capi) {
+        Py_XDECREF(capi_xu_as_array); }
+    }  /* if (capi_xu_as_array == NULL) ... else of xu */
     /* End of cleaning variable xu */
-    if((PyObject *)capi_xl_tmp!=xl_capi) {
-        Py_XDECREF(capi_xl_tmp); }
-    }  /*if (capi_xl_tmp == NULL) ... else of xl*/
+    if((PyObject *)capi_xl_as_array!=xl_capi) {
+        Py_XDECREF(capi_xl_as_array); }
+    }  /* if (capi_xl_as_array == NULL) ... else of xl */
     /* End of cleaning variable xl */
     } /*CHECKSCALAR(len(x)>=n)*/
     } /*if (f2py_success) of n*/
@@ -793,13 +781,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable f0 */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
-    if((PyObject *)capi_jw_tmp!=jw_capi) {
-        Py_XDECREF(capi_jw_tmp); }
-    }  /*if (capi_jw_tmp == NULL) ... else of jw*/
+    if((PyObject *)capi_jw_as_array!=jw_capi) {
+        Py_XDECREF(capi_jw_as_array); }
+    }  /* if (capi_jw_as_array == NULL) ... else of jw */
     /* End of cleaning variable jw */
-    if((PyObject *)capi_w_tmp!=w_capi) {
-        Py_XDECREF(capi_w_tmp); }
-    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    if((PyObject *)capi_w_as_array!=w_capi) {
+        Py_XDECREF(capi_w_as_array); }
+    }  /* if (capi_w_as_array == NULL) ... else of w */
     /* End of cleaning variable w */
     } /*if (f2py_success) of mode*/
     /* End of cleaning variable mode */
@@ -807,15 +795,15 @@ f2py_stop_call_clock();
     /* End of cleaning variable iter */
     } /*if (f2py_success) of acc*/
     /* End of cleaning variable acc */
-    if((PyObject *)capi_c_tmp!=c_capi) {
-        Py_XDECREF(capi_c_tmp); }
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    if((PyObject *)capi_c_as_array!=c_capi) {
+        Py_XDECREF(capi_c_as_array); }
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*if (f2py_success) of f*/
     /* End of cleaning variable f */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of meq*/
     /* End of cleaning variable meq */
@@ -849,7 +837,7 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"slsqp",-1,{{-1}},0,(char *)F_FUNC(slsqp,SLSQP),(f2py_init_func)f2py_rout__slsqp_slsqp,doc_f2py_rout__slsqp_slsqp},
+    {"slsqp",-1,{{-1}},0,0,(char *)  F_FUNC(slsqp,SLSQP),  (f2py_init_func)f2py_rout__slsqp_slsqp,doc_f2py_rout__slsqp_slsqp},
 
 /*eof routine_defs*/
     {NULL}
@@ -881,16 +869,16 @@ PyMODINIT_FUNC PyInit__slsqp(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _slsqp (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_slsqp' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module '_slsqp' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    slsqp(m,meq,x,xl,xu,f,c,g,a,acc,iter,mode,w,jw,alpha,f0,gs,h1,h2,h3,h4,t,t0,tol,iexact,incons,ireset,itermx,line,n1,n2,n3,la=len(c),n=len(x),l_w=len(w),l_jw=len(jw))\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _slsqp_error = PyErr_NewException ("_slsqp.error", NULL, NULL);

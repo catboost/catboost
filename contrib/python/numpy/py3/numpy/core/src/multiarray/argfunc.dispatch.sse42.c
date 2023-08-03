@@ -11,4 +11,4 @@
 #define NPY__CPU_TARGET_SSE41
 #define NPY__CPU_TARGET_POPCNT
 #define NPY__CPU_TARGET_SSE42
-#include "argfunc.dispatch.c"
+#include "numpy/core/src/multiarray/argfunc.dispatch.c"

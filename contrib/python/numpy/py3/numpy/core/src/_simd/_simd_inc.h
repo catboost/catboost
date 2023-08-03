@@ -111,9 +111,6 @@ typedef union
     npyv_s64 vs64;
     
 #line 32
-    npyv_f32 vf32;
-    
-#line 32
     npyv_b8 vb8;
     
 #line 32
@@ -150,9 +147,6 @@ typedef union
 #line 38
     npyv_s64x2 vs64x2;
     
-#line 38
-    npyv_f32x2 vf32x2;
-    
     // multi-vectors x3
     #line 44
     npyv_u8x3 vu8x3;
@@ -178,9 +172,11 @@ typedef union
 #line 44
     npyv_s64x3 vs64x3;
     
-#line 44
-    npyv_f32x3 vf32x3;
-    
+#if NPY_SIMD_F32
+    npyv_f32    vf32;
+    npyv_f32x2  vf32x2;
+    npyv_f32x3  vf32x3;
+#endif
 #if NPY_SIMD_F64
     npyv_f64    vf64;
     npyv_f64x2  vf64x2;
@@ -196,170 +192,170 @@ typedef enum
 {
     simd_data_none = 0,
     // scalars
-    #line 64
+    #line 69
     simd_data_u8,
     
-#line 64
+#line 69
     simd_data_u16,
     
-#line 64
+#line 69
     simd_data_u32,
     
-#line 64
+#line 69
     simd_data_u64,
     
-#line 64
+#line 69
     simd_data_s8,
     
-#line 64
+#line 69
     simd_data_s16,
     
-#line 64
+#line 69
     simd_data_s32,
     
-#line 64
+#line 69
     simd_data_s64,
     
-#line 64
+#line 69
     simd_data_f32,
     
-#line 64
+#line 69
     simd_data_f64,
     
     // sequences
-    #line 70
+    #line 75
     simd_data_qu8,
     
-#line 70
+#line 75
     simd_data_qu16,
     
-#line 70
+#line 75
     simd_data_qu32,
     
-#line 70
+#line 75
     simd_data_qu64,
     
-#line 70
+#line 75
     simd_data_qs8,
     
-#line 70
+#line 75
     simd_data_qs16,
     
-#line 70
+#line 75
     simd_data_qs32,
     
-#line 70
+#line 75
     simd_data_qs64,
     
-#line 70
+#line 75
     simd_data_qf32,
     
-#line 70
+#line 75
     simd_data_qf64,
     
     // vectors
-    #line 76
+    #line 81
     simd_data_vu8,
     
-#line 76
+#line 81
     simd_data_vu16,
     
-#line 76
+#line 81
     simd_data_vu32,
     
-#line 76
+#line 81
     simd_data_vu64,
     
-#line 76
+#line 81
     simd_data_vs8,
     
-#line 76
+#line 81
     simd_data_vs16,
     
-#line 76
+#line 81
     simd_data_vs32,
     
-#line 76
+#line 81
     simd_data_vs64,
     
-#line 76
+#line 81
     simd_data_vf32,
     
-#line 76
+#line 81
     simd_data_vf64,
     
-#line 76
+#line 81
     simd_data_vb8,
     
-#line 76
+#line 81
     simd_data_vb16,
     
-#line 76
+#line 81
     simd_data_vb32,
     
-#line 76
+#line 81
     simd_data_vb64,
     
     // multi-vectors x2
-    #line 82
+    #line 87
     simd_data_vu8x2,
     
-#line 82
+#line 87
     simd_data_vu16x2,
     
-#line 82
+#line 87
     simd_data_vu32x2,
     
-#line 82
+#line 87
     simd_data_vu64x2,
     
-#line 82
+#line 87
     simd_data_vs8x2,
     
-#line 82
+#line 87
     simd_data_vs16x2,
     
-#line 82
+#line 87
     simd_data_vs32x2,
     
-#line 82
+#line 87
     simd_data_vs64x2,
     
-#line 82
+#line 87
     simd_data_vf32x2,
     
-#line 82
+#line 87
     simd_data_vf64x2,
     
     // multi-vectors x3
-    #line 88
+    #line 93
     simd_data_vu8x3,
     
-#line 88
+#line 93
     simd_data_vu16x3,
     
-#line 88
+#line 93
     simd_data_vu32x3,
     
-#line 88
+#line 93
     simd_data_vu64x3,
     
-#line 88
+#line 93
     simd_data_vs8x3,
     
-#line 88
+#line 93
     simd_data_vs16x3,
     
-#line 88
+#line 93
     simd_data_vs32x3,
     
-#line 88
+#line 93
     simd_data_vs64x3,
     
-#line 88
+#line 93
     simd_data_vf32x3,
     
-#line 88
+#line 93
     simd_data_vf64x3,
     
     simd_data_end,

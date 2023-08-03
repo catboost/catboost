@@ -15,4 +15,4 @@
 #define NPY__CPU_TARGET_F16C
 #define NPY__CPU_TARGET_FMA3
 #define NPY__CPU_TARGET_AVX2
-#include "_simd.dispatch.c"
+#include "numpy/core/src/_simd/_simd.dispatch.c"

@@ -1,5 +1,5 @@
 /* File: specfunmodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
 
@@ -70,17 +69,14 @@ typedef struct {double r,i;} complex_double;
 #endif
 
 #define pyobj_from_complex_double1(v) (PyComplex_FromDoubles(v.r,v.i))
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 #define CHECKSCALAR(check,tcheck,name,show,var)\
     if (!(check)) {\
@@ -114,30 +110,6 @@ typedef struct {double r,i;} complex_double;
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int
 int_from_pyobj(int* v, PyObject *obj, const char *errmess)
 {
@@ -369,12 +341,12 @@ static PyObject *f2py_rout_specfun_clqmn(const PyObject *capi_self,
     complex_double *cqm = NULL;
     npy_intp cqm_Dims[2] = {-1, -1};
     const int cqm_Rank = 2;
-    PyArrayObject *capi_cqm_tmp = NULL;
+    PyArrayObject *capi_cqm_as_array = NULL;
     int capi_cqm_intent = 0;
     complex_double *cqd = NULL;
     npy_intp cqd_Dims[2] = {-1, -1};
     const int cqd_Rank = 2;
-    PyArrayObject *capi_cqd_tmp = NULL;
+    PyArrayObject *capi_cqd_as_array = NULL;
     int capi_cqd_intent = 0;
     static char *capi_kwlist[] = {"m","n","z",NULL};
 
@@ -403,26 +375,30 @@ f2py_start_clock();
     /* Processing variable cqm */
     cqm_Dims[0]=1 + mm,cqm_Dims[1]=1 + n;
     capi_cqm_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_cqm_tmp = array_from_pyobj(NPY_CDOUBLE,cqm_Dims,cqm_Rank,capi_cqm_intent,Py_None);
-    if (capi_cqm_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `cqm' of specfun.clqmn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.clqmn: failed to create array from the hidden `cqm`";
+    capi_cqm_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,cqm_Dims,cqm_Rank,  capi_cqm_intent,Py_None,capi_errmess);
+    if (capi_cqm_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        cqm = (complex_double *)(PyArray_DATA(capi_cqm_tmp));
+        cqm = (complex_double *)(PyArray_DATA(capi_cqm_as_array));
 
     /* Processing variable cqd */
     cqd_Dims[0]=1 + mm,cqd_Dims[1]=1 + n;
     capi_cqd_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_cqd_tmp = array_from_pyobj(NPY_CDOUBLE,cqd_Dims,cqd_Rank,capi_cqd_intent,Py_None);
-    if (capi_cqd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `cqd' of specfun.clqmn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.clqmn: failed to create array from the hidden `cqd`";
+    capi_cqd_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,cqd_Dims,cqd_Rank,  capi_cqd_intent,Py_None,capi_errmess);
+    if (capi_cqd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        cqd = (complex_double *)(PyArray_DATA(capi_cqd_tmp));
+        cqd = (complex_double *)(PyArray_DATA(capi_cqd_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -441,14 +417,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_cqm_tmp,capi_cqd_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_cqm_as_array,capi_cqd_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_cqd_tmp == NULL) ... else of cqd*/
+    }  /* if (capi_cqd_as_array == NULL) ... else of cqd */
     /* End of cleaning variable cqd */
-    }  /*if (capi_cqm_tmp == NULL) ... else of cqm*/
+    }  /* if (capi_cqm_as_array == NULL) ... else of cqm */
     /* End of cleaning variable cqm */
     /* End of cleaning variable mm */
     }  /*if (f2py_success) of z frompyobj*/
@@ -503,12 +479,12 @@ static PyObject *f2py_rout_specfun_lqmn(const PyObject *capi_self,
     double *qm = NULL;
     npy_intp qm_Dims[2] = {-1, -1};
     const int qm_Rank = 2;
-    PyArrayObject *capi_qm_tmp = NULL;
+    PyArrayObject *capi_qm_as_array = NULL;
     int capi_qm_intent = 0;
     double *qd = NULL;
     npy_intp qd_Dims[2] = {-1, -1};
     const int qd_Rank = 2;
-    PyArrayObject *capi_qd_tmp = NULL;
+    PyArrayObject *capi_qd_as_array = NULL;
     int capi_qd_intent = 0;
     static char *capi_kwlist[] = {"m","n","x",NULL};
 
@@ -537,26 +513,30 @@ f2py_start_clock();
     /* Processing variable qm */
     qm_Dims[0]=1 + mm,qm_Dims[1]=1 + n;
     capi_qm_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_qm_tmp = array_from_pyobj(NPY_DOUBLE,qm_Dims,qm_Rank,capi_qm_intent,Py_None);
-    if (capi_qm_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `qm' of specfun.lqmn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lqmn: failed to create array from the hidden `qm`";
+    capi_qm_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,qm_Dims,qm_Rank,  capi_qm_intent,Py_None,capi_errmess);
+    if (capi_qm_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        qm = (double *)(PyArray_DATA(capi_qm_tmp));
+        qm = (double *)(PyArray_DATA(capi_qm_as_array));
 
     /* Processing variable qd */
     qd_Dims[0]=1 + mm,qd_Dims[1]=1 + n;
     capi_qd_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_qd_tmp = array_from_pyobj(NPY_DOUBLE,qd_Dims,qd_Rank,capi_qd_intent,Py_None);
-    if (capi_qd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `qd' of specfun.lqmn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lqmn: failed to create array from the hidden `qd`";
+    capi_qd_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,qd_Dims,qd_Rank,  capi_qd_intent,Py_None,capi_errmess);
+    if (capi_qd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        qd = (double *)(PyArray_DATA(capi_qd_tmp));
+        qd = (double *)(PyArray_DATA(capi_qd_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -574,14 +554,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_qm_tmp,capi_qd_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_qm_as_array,capi_qd_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_qd_tmp == NULL) ... else of qd*/
+    }  /* if (capi_qd_as_array == NULL) ... else of qd */
     /* End of cleaning variable qd */
-    }  /*if (capi_qm_tmp == NULL) ... else of qm*/
+    }  /* if (capi_qm_as_array == NULL) ... else of qm */
     /* End of cleaning variable qm */
     /* End of cleaning variable mm */
     } /*if (f2py_success) of x*/
@@ -642,12 +622,12 @@ static PyObject *f2py_rout_specfun_clpmn(const PyObject *capi_self,
     complex_double *cpm = NULL;
     npy_intp cpm_Dims[2] = {-1, -1};
     const int cpm_Rank = 2;
-    PyArrayObject *capi_cpm_tmp = NULL;
+    PyArrayObject *capi_cpm_as_array = NULL;
     int capi_cpm_intent = 0;
     complex_double *cpd = NULL;
     npy_intp cpd_Dims[2] = {-1, -1};
     const int cpd_Rank = 2;
-    PyArrayObject *capi_cpd_tmp = NULL;
+    PyArrayObject *capi_cpd_as_array = NULL;
     int capi_cpd_intent = 0;
     static char *capi_kwlist[] = {"m","n","x","y","ntype",NULL};
 
@@ -683,26 +663,30 @@ f2py_start_clock();
     /* Processing variable cpm */
     cpm_Dims[0]=1 + m,cpm_Dims[1]=1 + n;
     capi_cpm_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_cpm_tmp = array_from_pyobj(NPY_CDOUBLE,cpm_Dims,cpm_Rank,capi_cpm_intent,Py_None);
-    if (capi_cpm_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `cpm' of specfun.clpmn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.clpmn: failed to create array from the hidden `cpm`";
+    capi_cpm_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,cpm_Dims,cpm_Rank,  capi_cpm_intent,Py_None,capi_errmess);
+    if (capi_cpm_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        cpm = (complex_double *)(PyArray_DATA(capi_cpm_tmp));
+        cpm = (complex_double *)(PyArray_DATA(capi_cpm_as_array));
 
     /* Processing variable cpd */
     cpd_Dims[0]=1 + m,cpd_Dims[1]=1 + n;
     capi_cpd_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_cpd_tmp = array_from_pyobj(NPY_CDOUBLE,cpd_Dims,cpd_Rank,capi_cpd_intent,Py_None);
-    if (capi_cpd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `cpd' of specfun.clpmn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.clpmn: failed to create array from the hidden `cpd`";
+    capi_cpd_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,cpd_Dims,cpd_Rank,  capi_cpd_intent,Py_None,capi_errmess);
+    if (capi_cpd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        cpd = (complex_double *)(PyArray_DATA(capi_cpd_tmp));
+        cpd = (complex_double *)(PyArray_DATA(capi_cpd_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -720,14 +704,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_cpm_tmp,capi_cpd_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_cpm_as_array,capi_cpd_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_cpd_tmp == NULL) ... else of cpd*/
+    }  /* if (capi_cpd_as_array == NULL) ... else of cpd */
     /* End of cleaning variable cpd */
-    }  /*if (capi_cpm_tmp == NULL) ... else of cpm*/
+    }  /* if (capi_cpm_as_array == NULL) ... else of cpm */
     /* End of cleaning variable cpm */
     /* End of cleaning variable mm */
     } /*CHECKSCALAR(ntype==2||ntype==3)*/
@@ -782,22 +766,22 @@ static PyObject *f2py_rout_specfun_jdzo(const PyObject *capi_self,
     int *n = NULL;
     npy_intp n_Dims[1] = {-1};
     const int n_Rank = 1;
-    PyArrayObject *capi_n_tmp = NULL;
+    PyArrayObject *capi_n_as_array = NULL;
     int capi_n_intent = 0;
     int *m = NULL;
     npy_intp m_Dims[1] = {-1};
     const int m_Rank = 1;
-    PyArrayObject *capi_m_tmp = NULL;
+    PyArrayObject *capi_m_as_array = NULL;
     int capi_m_intent = 0;
     int *pcode = NULL;
     npy_intp pcode_Dims[1] = {-1};
     const int pcode_Rank = 1;
-    PyArrayObject *capi_pcode_tmp = NULL;
+    PyArrayObject *capi_pcode_as_array = NULL;
     int capi_pcode_intent = 0;
     double *zo = NULL;
     npy_intp zo_Dims[1] = {-1};
     const int zo_Rank = 1;
-    PyArrayObject *capi_zo_tmp = NULL;
+    PyArrayObject *capi_zo_as_array = NULL;
     int capi_zo_intent = 0;
     static char *capi_kwlist[] = {"nt",NULL};
 
@@ -817,50 +801,58 @@ f2py_start_clock();
     /* Processing variable n */
     n_Dims[0]=1400;
     capi_n_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_n_tmp = array_from_pyobj(NPY_INT,n_Dims,n_Rank,capi_n_intent,Py_None);
-    if (capi_n_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `n' of specfun.jdzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.jdzo: failed to create array from the hidden `n`";
+    capi_n_as_array = ndarray_from_pyobj(  NPY_INT,1,n_Dims,n_Rank,  capi_n_intent,Py_None,capi_errmess);
+    if (capi_n_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        n = (int *)(PyArray_DATA(capi_n_tmp));
+        n = (int *)(PyArray_DATA(capi_n_as_array));
 
     /* Processing variable m */
     m_Dims[0]=1400;
     capi_m_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_m_tmp = array_from_pyobj(NPY_INT,m_Dims,m_Rank,capi_m_intent,Py_None);
-    if (capi_m_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `m' of specfun.jdzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.jdzo: failed to create array from the hidden `m`";
+    capi_m_as_array = ndarray_from_pyobj(  NPY_INT,1,m_Dims,m_Rank,  capi_m_intent,Py_None,capi_errmess);
+    if (capi_m_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        m = (int *)(PyArray_DATA(capi_m_tmp));
+        m = (int *)(PyArray_DATA(capi_m_as_array));
 
     /* Processing variable pcode */
     pcode_Dims[0]=1400;
     capi_pcode_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_pcode_tmp = array_from_pyobj(NPY_INT,pcode_Dims,pcode_Rank,capi_pcode_intent,Py_None);
-    if (capi_pcode_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `pcode' of specfun.jdzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.jdzo: failed to create array from the hidden `pcode`";
+    capi_pcode_as_array = ndarray_from_pyobj(  NPY_INT,1,pcode_Dims,pcode_Rank,  capi_pcode_intent,Py_None,capi_errmess);
+    if (capi_pcode_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        pcode = (int *)(PyArray_DATA(capi_pcode_tmp));
+        pcode = (int *)(PyArray_DATA(capi_pcode_as_array));
 
     /* Processing variable zo */
     zo_Dims[0]=1401;
     capi_zo_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_zo_tmp = array_from_pyobj(NPY_DOUBLE,zo_Dims,zo_Rank,capi_zo_intent,Py_None);
-    if (capi_zo_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `zo' of specfun.jdzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.jdzo: failed to create array from the hidden `zo`";
+    capi_zo_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,zo_Dims,zo_Rank,  capi_zo_intent,Py_None,capi_errmess);
+    if (capi_zo_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        zo = (double *)(PyArray_DATA(capi_zo_tmp));
+        zo = (double *)(PyArray_DATA(capi_zo_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -878,18 +870,18 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NNNN",capi_n_tmp,capi_m_tmp,capi_pcode_tmp,capi_zo_tmp);
+        capi_buildvalue = Py_BuildValue("NNNN",capi_n_as_array,capi_m_as_array,capi_pcode_as_array,capi_zo_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_zo_tmp == NULL) ... else of zo*/
+    }  /* if (capi_zo_as_array == NULL) ... else of zo */
     /* End of cleaning variable zo */
-    }  /*if (capi_pcode_tmp == NULL) ... else of pcode*/
+    }  /* if (capi_pcode_as_array == NULL) ... else of pcode */
     /* End of cleaning variable pcode */
-    }  /*if (capi_m_tmp == NULL) ... else of m*/
+    }  /* if (capi_m_as_array == NULL) ... else of m */
     /* End of cleaning variable m */
-    }  /*if (capi_n_tmp == NULL) ... else of n*/
+    }  /* if (capi_n_as_array == NULL) ... else of n */
     /* End of cleaning variable n */
     } /*CHECKSCALAR((nt>0)&&(nt<=1200))*/
     } /*if (f2py_success) of nt*/
@@ -930,7 +922,7 @@ static PyObject *f2py_rout_specfun_bernob(const PyObject *capi_self,
     double *bn = NULL;
     npy_intp bn_Dims[1] = {-1};
     const int bn_Rank = 1;
-    PyArrayObject *capi_bn_tmp = NULL;
+    PyArrayObject *capi_bn_as_array = NULL;
     int capi_bn_intent = 0;
     static char *capi_kwlist[] = {"n",NULL};
 
@@ -950,14 +942,16 @@ f2py_start_clock();
     /* Processing variable bn */
     bn_Dims[0]=1 + n;
     capi_bn_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_bn_tmp = array_from_pyobj(NPY_DOUBLE,bn_Dims,bn_Rank,capi_bn_intent,Py_None);
-    if (capi_bn_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `bn' of specfun.bernob to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.bernob: failed to create array from the hidden `bn`";
+    capi_bn_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,bn_Dims,bn_Rank,  capi_bn_intent,Py_None,capi_errmess);
+    if (capi_bn_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        bn = (double *)(PyArray_DATA(capi_bn_tmp));
+        bn = (double *)(PyArray_DATA(capi_bn_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -975,12 +969,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_bn_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_bn_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_bn_tmp == NULL) ... else of bn*/
+    }  /* if (capi_bn_as_array == NULL) ... else of bn */
     /* End of cleaning variable bn */
     } /*CHECKSCALAR(n>=2)*/
     } /*if (f2py_success) of n*/
@@ -1025,12 +1019,12 @@ static PyObject *f2py_rout_specfun_clqn(const PyObject *capi_self,
     complex_double *cqn = NULL;
     npy_intp cqn_Dims[1] = {-1};
     const int cqn_Rank = 1;
-    PyArrayObject *capi_cqn_tmp = NULL;
+    PyArrayObject *capi_cqn_as_array = NULL;
     int capi_cqn_intent = 0;
     complex_double *cqd = NULL;
     npy_intp cqd_Dims[1] = {-1};
     const int cqd_Rank = 1;
-    PyArrayObject *capi_cqd_tmp = NULL;
+    PyArrayObject *capi_cqd_as_array = NULL;
     int capi_cqd_intent = 0;
     static char *capi_kwlist[] = {"n","z",NULL};
 
@@ -1053,26 +1047,30 @@ f2py_start_clock();
     /* Processing variable cqn */
     cqn_Dims[0]=1 + n;
     capi_cqn_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_cqn_tmp = array_from_pyobj(NPY_CDOUBLE,cqn_Dims,cqn_Rank,capi_cqn_intent,Py_None);
-    if (capi_cqn_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `cqn' of specfun.clqn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.clqn: failed to create array from the hidden `cqn`";
+    capi_cqn_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,cqn_Dims,cqn_Rank,  capi_cqn_intent,Py_None,capi_errmess);
+    if (capi_cqn_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        cqn = (complex_double *)(PyArray_DATA(capi_cqn_tmp));
+        cqn = (complex_double *)(PyArray_DATA(capi_cqn_as_array));
 
     /* Processing variable cqd */
     cqd_Dims[0]=1 + n;
     capi_cqd_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_cqd_tmp = array_from_pyobj(NPY_CDOUBLE,cqd_Dims,cqd_Rank,capi_cqd_intent,Py_None);
-    if (capi_cqd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `cqd' of specfun.clqn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.clqn: failed to create array from the hidden `cqd`";
+    capi_cqd_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,cqd_Dims,cqd_Rank,  capi_cqd_intent,Py_None,capi_errmess);
+    if (capi_cqd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        cqd = (complex_double *)(PyArray_DATA(capi_cqd_tmp));
+        cqd = (complex_double *)(PyArray_DATA(capi_cqd_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1091,14 +1089,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_cqn_tmp,capi_cqd_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_cqn_as_array,capi_cqd_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_cqd_tmp == NULL) ... else of cqd*/
+    }  /* if (capi_cqd_as_array == NULL) ... else of cqd */
     /* End of cleaning variable cqd */
-    }  /*if (capi_cqn_tmp == NULL) ... else of cqn*/
+    }  /* if (capi_cqn_as_array == NULL) ... else of cqn */
     /* End of cleaning variable cqn */
     }  /*if (f2py_success) of z frompyobj*/
     /* End of cleaning variable z */
@@ -1148,22 +1146,22 @@ static PyObject *f2py_rout_specfun_airyzo(const PyObject *capi_self,
     double *xa = NULL;
     npy_intp xa_Dims[1] = {-1};
     const int xa_Rank = 1;
-    PyArrayObject *capi_xa_tmp = NULL;
+    PyArrayObject *capi_xa_as_array = NULL;
     int capi_xa_intent = 0;
     double *xb = NULL;
     npy_intp xb_Dims[1] = {-1};
     const int xb_Rank = 1;
-    PyArrayObject *capi_xb_tmp = NULL;
+    PyArrayObject *capi_xb_as_array = NULL;
     int capi_xb_intent = 0;
     double *xc = NULL;
     npy_intp xc_Dims[1] = {-1};
     const int xc_Rank = 1;
-    PyArrayObject *capi_xc_tmp = NULL;
+    PyArrayObject *capi_xc_as_array = NULL;
     int capi_xc_intent = 0;
     double *xd = NULL;
     npy_intp xd_Dims[1] = {-1};
     const int xd_Rank = 1;
-    PyArrayObject *capi_xd_tmp = NULL;
+    PyArrayObject *capi_xd_as_array = NULL;
     int capi_xd_intent = 0;
     static char *capi_kwlist[] = {"nt","kf",NULL};
 
@@ -1187,50 +1185,58 @@ f2py_start_clock();
     /* Processing variable xa */
     xa_Dims[0]=nt;
     capi_xa_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_xa_tmp = array_from_pyobj(NPY_DOUBLE,xa_Dims,xa_Rank,capi_xa_intent,Py_None);
-    if (capi_xa_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `xa' of specfun.airyzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.airyzo: failed to create array from the hidden `xa`";
+    capi_xa_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,xa_Dims,xa_Rank,  capi_xa_intent,Py_None,capi_errmess);
+    if (capi_xa_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        xa = (double *)(PyArray_DATA(capi_xa_tmp));
+        xa = (double *)(PyArray_DATA(capi_xa_as_array));
 
     /* Processing variable xb */
     xb_Dims[0]=nt;
     capi_xb_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_xb_tmp = array_from_pyobj(NPY_DOUBLE,xb_Dims,xb_Rank,capi_xb_intent,Py_None);
-    if (capi_xb_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `xb' of specfun.airyzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.airyzo: failed to create array from the hidden `xb`";
+    capi_xb_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,xb_Dims,xb_Rank,  capi_xb_intent,Py_None,capi_errmess);
+    if (capi_xb_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        xb = (double *)(PyArray_DATA(capi_xb_tmp));
+        xb = (double *)(PyArray_DATA(capi_xb_as_array));
 
     /* Processing variable xc */
     xc_Dims[0]=nt;
     capi_xc_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_xc_tmp = array_from_pyobj(NPY_DOUBLE,xc_Dims,xc_Rank,capi_xc_intent,Py_None);
-    if (capi_xc_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `xc' of specfun.airyzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.airyzo: failed to create array from the hidden `xc`";
+    capi_xc_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,xc_Dims,xc_Rank,  capi_xc_intent,Py_None,capi_errmess);
+    if (capi_xc_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        xc = (double *)(PyArray_DATA(capi_xc_tmp));
+        xc = (double *)(PyArray_DATA(capi_xc_as_array));
 
     /* Processing variable xd */
     xd_Dims[0]=nt;
     capi_xd_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_xd_tmp = array_from_pyobj(NPY_DOUBLE,xd_Dims,xd_Rank,capi_xd_intent,Py_None);
-    if (capi_xd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `xd' of specfun.airyzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.airyzo: failed to create array from the hidden `xd`";
+    capi_xd_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,xd_Dims,xd_Rank,  capi_xd_intent,Py_None,capi_errmess);
+    if (capi_xd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        xd = (double *)(PyArray_DATA(capi_xd_tmp));
+        xd = (double *)(PyArray_DATA(capi_xd_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1248,18 +1254,18 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NNNN",capi_xa_tmp,capi_xb_tmp,capi_xc_tmp,capi_xd_tmp);
+        capi_buildvalue = Py_BuildValue("NNNN",capi_xa_as_array,capi_xb_as_array,capi_xc_as_array,capi_xd_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_xd_tmp == NULL) ... else of xd*/
+    }  /* if (capi_xd_as_array == NULL) ... else of xd */
     /* End of cleaning variable xd */
-    }  /*if (capi_xc_tmp == NULL) ... else of xc*/
+    }  /* if (capi_xc_as_array == NULL) ... else of xc */
     /* End of cleaning variable xc */
-    }  /*if (capi_xb_tmp == NULL) ... else of xb*/
+    }  /* if (capi_xb_as_array == NULL) ... else of xb */
     /* End of cleaning variable xb */
-    }  /*if (capi_xa_tmp == NULL) ... else of xa*/
+    }  /* if (capi_xa_as_array == NULL) ... else of xa */
     /* End of cleaning variable xa */
     } /*if (f2py_success) of kf*/
     /* End of cleaning variable kf */
@@ -1302,7 +1308,7 @@ static PyObject *f2py_rout_specfun_eulerb(const PyObject *capi_self,
     double *en = NULL;
     npy_intp en_Dims[1] = {-1};
     const int en_Rank = 1;
-    PyArrayObject *capi_en_tmp = NULL;
+    PyArrayObject *capi_en_as_array = NULL;
     int capi_en_intent = 0;
     static char *capi_kwlist[] = {"n",NULL};
 
@@ -1322,14 +1328,16 @@ f2py_start_clock();
     /* Processing variable en */
     en_Dims[0]=1 + n;
     capi_en_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_en_tmp = array_from_pyobj(NPY_DOUBLE,en_Dims,en_Rank,capi_en_intent,Py_None);
-    if (capi_en_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `en' of specfun.eulerb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.eulerb: failed to create array from the hidden `en`";
+    capi_en_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,en_Dims,en_Rank,  capi_en_intent,Py_None,capi_errmess);
+    if (capi_en_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        en = (double *)(PyArray_DATA(capi_en_tmp));
+        en = (double *)(PyArray_DATA(capi_en_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1347,12 +1355,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_en_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_en_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_en_tmp == NULL) ... else of en*/
+    }  /* if (capi_en_as_array == NULL) ... else of en */
     /* End of cleaning variable en */
     } /*CHECKSCALAR(n>=2)*/
     } /*if (f2py_success) of n*/
@@ -1397,12 +1405,12 @@ static PyObject *f2py_rout_specfun_lqnb(const PyObject *capi_self,
     double *qn = NULL;
     npy_intp qn_Dims[1] = {-1};
     const int qn_Rank = 1;
-    PyArrayObject *capi_qn_tmp = NULL;
+    PyArrayObject *capi_qn_as_array = NULL;
     int capi_qn_intent = 0;
     double *qd = NULL;
     npy_intp qd_Dims[1] = {-1};
     const int qd_Rank = 1;
-    PyArrayObject *capi_qd_tmp = NULL;
+    PyArrayObject *capi_qd_as_array = NULL;
     int capi_qd_intent = 0;
     static char *capi_kwlist[] = {"n","x",NULL};
 
@@ -1425,26 +1433,30 @@ f2py_start_clock();
     /* Processing variable qn */
     qn_Dims[0]=1 + n;
     capi_qn_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_qn_tmp = array_from_pyobj(NPY_DOUBLE,qn_Dims,qn_Rank,capi_qn_intent,Py_None);
-    if (capi_qn_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `qn' of specfun.lqnb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lqnb: failed to create array from the hidden `qn`";
+    capi_qn_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,qn_Dims,qn_Rank,  capi_qn_intent,Py_None,capi_errmess);
+    if (capi_qn_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        qn = (double *)(PyArray_DATA(capi_qn_tmp));
+        qn = (double *)(PyArray_DATA(capi_qn_as_array));
 
     /* Processing variable qd */
     qd_Dims[0]=1 + n;
     capi_qd_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_qd_tmp = array_from_pyobj(NPY_DOUBLE,qd_Dims,qd_Rank,capi_qd_intent,Py_None);
-    if (capi_qd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `qd' of specfun.lqnb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lqnb: failed to create array from the hidden `qd`";
+    capi_qd_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,qd_Dims,qd_Rank,  capi_qd_intent,Py_None,capi_errmess);
+    if (capi_qd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        qd = (double *)(PyArray_DATA(capi_qd_tmp));
+        qd = (double *)(PyArray_DATA(capi_qd_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1462,14 +1474,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_qn_tmp,capi_qd_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_qn_as_array,capi_qd_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_qd_tmp == NULL) ... else of qd*/
+    }  /* if (capi_qd_as_array == NULL) ... else of qd */
     /* End of cleaning variable qd */
-    }  /*if (capi_qn_tmp == NULL) ... else of qn*/
+    }  /* if (capi_qn_as_array == NULL) ... else of qn */
     /* End of cleaning variable qn */
     } /*if (f2py_success) of x*/
     /* End of cleaning variable x */
@@ -1518,12 +1530,12 @@ static PyObject *f2py_rout_specfun_lamv(const PyObject *capi_self,
     double *vl = NULL;
     npy_intp vl_Dims[1] = {-1};
     const int vl_Rank = 1;
-    PyArrayObject *capi_vl_tmp = NULL;
+    PyArrayObject *capi_vl_as_array = NULL;
     int capi_vl_intent = 0;
     double *dl = NULL;
     npy_intp dl_Dims[1] = {-1};
     const int dl_Rank = 1;
-    PyArrayObject *capi_dl_tmp = NULL;
+    PyArrayObject *capi_dl_as_array = NULL;
     int capi_dl_intent = 0;
     static char *capi_kwlist[] = {"v","x",NULL};
 
@@ -1547,26 +1559,30 @@ f2py_start_clock();
     /* Processing variable vl */
     vl_Dims[0]=1 + (int)v;
     capi_vl_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_vl_tmp = array_from_pyobj(NPY_DOUBLE,vl_Dims,vl_Rank,capi_vl_intent,Py_None);
-    if (capi_vl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `vl' of specfun.lamv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lamv: failed to create array from the hidden `vl`";
+    capi_vl_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,vl_Dims,vl_Rank,  capi_vl_intent,Py_None,capi_errmess);
+    if (capi_vl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        vl = (double *)(PyArray_DATA(capi_vl_tmp));
+        vl = (double *)(PyArray_DATA(capi_vl_as_array));
 
     /* Processing variable dl */
     dl_Dims[0]=1 + (int)v;
     capi_dl_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_dl_tmp = array_from_pyobj(NPY_DOUBLE,dl_Dims,dl_Rank,capi_dl_intent,Py_None);
-    if (capi_dl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `dl' of specfun.lamv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lamv: failed to create array from the hidden `dl`";
+    capi_dl_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,dl_Dims,dl_Rank,  capi_dl_intent,Py_None,capi_errmess);
+    if (capi_dl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dl = (double *)(PyArray_DATA(capi_dl_tmp));
+        dl = (double *)(PyArray_DATA(capi_dl_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1584,14 +1600,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("dNN",vm,capi_vl_tmp,capi_dl_tmp);
+        capi_buildvalue = Py_BuildValue("dNN",vm,capi_vl_as_array,capi_dl_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_dl_tmp == NULL) ... else of dl*/
+    }  /* if (capi_dl_as_array == NULL) ... else of dl */
     /* End of cleaning variable dl */
-    }  /*if (capi_vl_tmp == NULL) ... else of vl*/
+    }  /* if (capi_vl_as_array == NULL) ... else of vl */
     /* End of cleaning variable vl */
     /* End of cleaning variable vm */
     } /*if (f2py_success) of x*/
@@ -1641,12 +1657,12 @@ static PyObject *f2py_rout_specfun_pbdv(const PyObject *capi_self,
     double *dv = NULL;
     npy_intp dv_Dims[1] = {-1};
     const int dv_Rank = 1;
-    PyArrayObject *capi_dv_tmp = NULL;
+    PyArrayObject *capi_dv_as_array = NULL;
     int capi_dv_intent = 0;
     double *dp = NULL;
     npy_intp dp_Dims[1] = {-1};
     const int dp_Rank = 1;
-    PyArrayObject *capi_dp_tmp = NULL;
+    PyArrayObject *capi_dp_as_array = NULL;
     int capi_dp_intent = 0;
     double pdf = 0;
     double pdd = 0;
@@ -1673,26 +1689,30 @@ f2py_start_clock();
     /* Processing variable dv */
     dv_Dims[0]=2 + abs((int)v);
     capi_dv_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_dv_tmp = array_from_pyobj(NPY_DOUBLE,dv_Dims,dv_Rank,capi_dv_intent,Py_None);
-    if (capi_dv_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `dv' of specfun.pbdv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.pbdv: failed to create array from the hidden `dv`";
+    capi_dv_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,dv_Dims,dv_Rank,  capi_dv_intent,Py_None,capi_errmess);
+    if (capi_dv_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dv = (double *)(PyArray_DATA(capi_dv_tmp));
+        dv = (double *)(PyArray_DATA(capi_dv_as_array));
 
     /* Processing variable dp */
     dp_Dims[0]=2 + abs((int)v);
     capi_dp_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_dp_tmp = array_from_pyobj(NPY_DOUBLE,dp_Dims,dp_Rank,capi_dp_intent,Py_None);
-    if (capi_dp_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `dp' of specfun.pbdv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.pbdv: failed to create array from the hidden `dp`";
+    capi_dp_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,dp_Dims,dp_Rank,  capi_dp_intent,Py_None,capi_errmess);
+    if (capi_dp_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dp = (double *)(PyArray_DATA(capi_dp_tmp));
+        dp = (double *)(PyArray_DATA(capi_dp_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1710,14 +1730,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NNdd",capi_dv_tmp,capi_dp_tmp,pdf,pdd);
+        capi_buildvalue = Py_BuildValue("NNdd",capi_dv_as_array,capi_dp_as_array,pdf,pdd);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_dp_tmp == NULL) ... else of dp*/
+    }  /* if (capi_dp_as_array == NULL) ... else of dp */
     /* End of cleaning variable dp */
-    }  /*if (capi_dv_tmp == NULL) ... else of dv*/
+    }  /* if (capi_dv_as_array == NULL) ... else of dv */
     /* End of cleaning variable dv */
     /* End of cleaning variable pdd */
     /* End of cleaning variable pdf */
@@ -1762,7 +1782,7 @@ static PyObject *f2py_rout_specfun_cerzo(const PyObject *capi_self,
     complex_double *zo = NULL;
     npy_intp zo_Dims[1] = {-1};
     const int zo_Rank = 1;
-    PyArrayObject *capi_zo_tmp = NULL;
+    PyArrayObject *capi_zo_as_array = NULL;
     int capi_zo_intent = 0;
     static char *capi_kwlist[] = {"nt",NULL};
 
@@ -1782,14 +1802,16 @@ f2py_start_clock();
     /* Processing variable zo */
     zo_Dims[0]=nt;
     capi_zo_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_zo_tmp = array_from_pyobj(NPY_CDOUBLE,zo_Dims,zo_Rank,capi_zo_intent,Py_None);
-    if (capi_zo_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `zo' of specfun.cerzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.cerzo: failed to create array from the hidden `zo`";
+    capi_zo_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,zo_Dims,zo_Rank,  capi_zo_intent,Py_None,capi_errmess);
+    if (capi_zo_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        zo = (complex_double *)(PyArray_DATA(capi_zo_tmp));
+        zo = (complex_double *)(PyArray_DATA(capi_zo_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1807,12 +1829,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_zo_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_zo_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_zo_tmp == NULL) ... else of zo*/
+    }  /* if (capi_zo_as_array == NULL) ... else of zo */
     /* End of cleaning variable zo */
     } /*CHECKSCALAR(nt>0)*/
     } /*if (f2py_success) of nt*/
@@ -1859,12 +1881,12 @@ static PyObject *f2py_rout_specfun_lamn(const PyObject *capi_self,
     double *bl = NULL;
     npy_intp bl_Dims[1] = {-1};
     const int bl_Rank = 1;
-    PyArrayObject *capi_bl_tmp = NULL;
+    PyArrayObject *capi_bl_as_array = NULL;
     int capi_bl_intent = 0;
     double *dl = NULL;
     npy_intp dl_Dims[1] = {-1};
     const int dl_Rank = 1;
-    PyArrayObject *capi_dl_tmp = NULL;
+    PyArrayObject *capi_dl_as_array = NULL;
     int capi_dl_intent = 0;
     static char *capi_kwlist[] = {"n","x",NULL};
 
@@ -1888,26 +1910,30 @@ f2py_start_clock();
     /* Processing variable bl */
     bl_Dims[0]=1 + n;
     capi_bl_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_bl_tmp = array_from_pyobj(NPY_DOUBLE,bl_Dims,bl_Rank,capi_bl_intent,Py_None);
-    if (capi_bl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `bl' of specfun.lamn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lamn: failed to create array from the hidden `bl`";
+    capi_bl_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,bl_Dims,bl_Rank,  capi_bl_intent,Py_None,capi_errmess);
+    if (capi_bl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        bl = (double *)(PyArray_DATA(capi_bl_tmp));
+        bl = (double *)(PyArray_DATA(capi_bl_as_array));
 
     /* Processing variable dl */
     dl_Dims[0]=1 + n;
     capi_dl_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_dl_tmp = array_from_pyobj(NPY_DOUBLE,dl_Dims,dl_Rank,capi_dl_intent,Py_None);
-    if (capi_dl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `dl' of specfun.lamn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lamn: failed to create array from the hidden `dl`";
+    capi_dl_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,dl_Dims,dl_Rank,  capi_dl_intent,Py_None,capi_errmess);
+    if (capi_dl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dl = (double *)(PyArray_DATA(capi_dl_tmp));
+        dl = (double *)(PyArray_DATA(capi_dl_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1925,14 +1951,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("iNN",nm,capi_bl_tmp,capi_dl_tmp);
+        capi_buildvalue = Py_BuildValue("iNN",nm,capi_bl_as_array,capi_dl_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_dl_tmp == NULL) ... else of dl*/
+    }  /* if (capi_dl_as_array == NULL) ... else of dl */
     /* End of cleaning variable dl */
-    }  /*if (capi_bl_tmp == NULL) ... else of bl*/
+    }  /* if (capi_bl_as_array == NULL) ... else of bl */
     /* End of cleaning variable bl */
     /* End of cleaning variable nm */
     } /*if (f2py_success) of x*/
@@ -1980,12 +2006,12 @@ static PyObject *f2py_rout_specfun_clpn(const PyObject *capi_self,
     complex_double *cpn = NULL;
     npy_intp cpn_Dims[1] = {-1};
     const int cpn_Rank = 1;
-    PyArrayObject *capi_cpn_tmp = NULL;
+    PyArrayObject *capi_cpn_as_array = NULL;
     int capi_cpn_intent = 0;
     complex_double *cpd = NULL;
     npy_intp cpd_Dims[1] = {-1};
     const int cpd_Rank = 1;
-    PyArrayObject *capi_cpd_tmp = NULL;
+    PyArrayObject *capi_cpd_as_array = NULL;
     int capi_cpd_intent = 0;
     static char *capi_kwlist[] = {"n","z",NULL};
 
@@ -2008,26 +2034,30 @@ f2py_start_clock();
     /* Processing variable cpn */
     cpn_Dims[0]=1 + n;
     capi_cpn_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_cpn_tmp = array_from_pyobj(NPY_CDOUBLE,cpn_Dims,cpn_Rank,capi_cpn_intent,Py_None);
-    if (capi_cpn_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `cpn' of specfun.clpn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.clpn: failed to create array from the hidden `cpn`";
+    capi_cpn_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,cpn_Dims,cpn_Rank,  capi_cpn_intent,Py_None,capi_errmess);
+    if (capi_cpn_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        cpn = (complex_double *)(PyArray_DATA(capi_cpn_tmp));
+        cpn = (complex_double *)(PyArray_DATA(capi_cpn_as_array));
 
     /* Processing variable cpd */
     cpd_Dims[0]=1 + n;
     capi_cpd_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_cpd_tmp = array_from_pyobj(NPY_CDOUBLE,cpd_Dims,cpd_Rank,capi_cpd_intent,Py_None);
-    if (capi_cpd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `cpd' of specfun.clpn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.clpn: failed to create array from the hidden `cpd`";
+    capi_cpd_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,cpd_Dims,cpd_Rank,  capi_cpd_intent,Py_None,capi_errmess);
+    if (capi_cpd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        cpd = (complex_double *)(PyArray_DATA(capi_cpd_tmp));
+        cpd = (complex_double *)(PyArray_DATA(capi_cpd_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2046,14 +2076,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_cpn_tmp,capi_cpd_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_cpn_as_array,capi_cpd_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_cpd_tmp == NULL) ... else of cpd*/
+    }  /* if (capi_cpd_as_array == NULL) ... else of cpd */
     /* End of cleaning variable cpd */
-    }  /*if (capi_cpn_tmp == NULL) ... else of cpn*/
+    }  /* if (capi_cpn_as_array == NULL) ... else of cpn */
     /* End of cleaning variable cpn */
     }  /*if (f2py_success) of z frompyobj*/
     /* End of cleaning variable z */
@@ -2104,12 +2134,12 @@ static PyObject *f2py_rout_specfun_lpmn(const PyObject *capi_self,
     double *pm = NULL;
     npy_intp pm_Dims[2] = {-1, -1};
     const int pm_Rank = 2;
-    PyArrayObject *capi_pm_tmp = NULL;
+    PyArrayObject *capi_pm_as_array = NULL;
     int capi_pm_intent = 0;
     double *pd = NULL;
     npy_intp pd_Dims[2] = {-1, -1};
     const int pd_Rank = 2;
-    PyArrayObject *capi_pd_tmp = NULL;
+    PyArrayObject *capi_pd_as_array = NULL;
     int capi_pd_intent = 0;
     static char *capi_kwlist[] = {"m","n","x",NULL};
 
@@ -2136,26 +2166,30 @@ f2py_start_clock();
     /* Processing variable pm */
     pm_Dims[0]=1 + m,pm_Dims[1]=1 + n;
     capi_pm_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_pm_tmp = array_from_pyobj(NPY_DOUBLE,pm_Dims,pm_Rank,capi_pm_intent,Py_None);
-    if (capi_pm_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `pm' of specfun.lpmn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lpmn: failed to create array from the hidden `pm`";
+    capi_pm_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,pm_Dims,pm_Rank,  capi_pm_intent,Py_None,capi_errmess);
+    if (capi_pm_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        pm = (double *)(PyArray_DATA(capi_pm_tmp));
+        pm = (double *)(PyArray_DATA(capi_pm_as_array));
 
     /* Processing variable pd */
     pd_Dims[0]=1 + m,pd_Dims[1]=1 + n;
     capi_pd_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_pd_tmp = array_from_pyobj(NPY_DOUBLE,pd_Dims,pd_Rank,capi_pd_intent,Py_None);
-    if (capi_pd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `pd' of specfun.lpmn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lpmn: failed to create array from the hidden `pd`";
+    capi_pd_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,pd_Dims,pd_Rank,  capi_pd_intent,Py_None,capi_errmess);
+    if (capi_pd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        pd = (double *)(PyArray_DATA(capi_pd_tmp));
+        pd = (double *)(PyArray_DATA(capi_pd_as_array));
 
     /* Processing variable mm */
     mm = m;
@@ -2175,15 +2209,15 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_pm_tmp,capi_pd_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_pm_as_array,capi_pd_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     /* End of cleaning variable mm */
-    }  /*if (capi_pd_tmp == NULL) ... else of pd*/
+    }  /* if (capi_pd_as_array == NULL) ... else of pd */
     /* End of cleaning variable pd */
-    }  /*if (capi_pm_tmp == NULL) ... else of pm*/
+    }  /* if (capi_pm_as_array == NULL) ... else of pm */
     /* End of cleaning variable pm */
     } /*CHECKSCALAR((m>=0) && (m<=n))*/
     } /*if (f2py_success) of m*/
@@ -2232,7 +2266,7 @@ static PyObject *f2py_rout_specfun_fcszo(const PyObject *capi_self,
     complex_double *zo = NULL;
     npy_intp zo_Dims[1] = {-1};
     const int zo_Rank = 1;
-    PyArrayObject *capi_zo_tmp = NULL;
+    PyArrayObject *capi_zo_as_array = NULL;
     int capi_zo_intent = 0;
     static char *capi_kwlist[] = {"kf","nt",NULL};
 
@@ -2256,14 +2290,16 @@ f2py_start_clock();
     /* Processing variable zo */
     zo_Dims[0]=nt;
     capi_zo_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_zo_tmp = array_from_pyobj(NPY_CDOUBLE,zo_Dims,zo_Rank,capi_zo_intent,Py_None);
-    if (capi_zo_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `zo' of specfun.fcszo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.fcszo: failed to create array from the hidden `zo`";
+    capi_zo_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,zo_Dims,zo_Rank,  capi_zo_intent,Py_None,capi_errmess);
+    if (capi_zo_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        zo = (complex_double *)(PyArray_DATA(capi_zo_tmp));
+        zo = (complex_double *)(PyArray_DATA(capi_zo_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2281,12 +2317,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_zo_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_zo_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_zo_tmp == NULL) ... else of zo*/
+    }  /* if (capi_zo_as_array == NULL) ... else of zo */
     /* End of cleaning variable zo */
     } /*CHECKSCALAR(nt>0)*/
     } /*if (f2py_success) of nt*/
@@ -2334,12 +2370,12 @@ static PyObject *f2py_rout_specfun_cpbdn(const PyObject *capi_self,
     complex_double *cpb = NULL;
     npy_intp cpb_Dims[1] = {-1};
     const int cpb_Rank = 1;
-    PyArrayObject *capi_cpb_tmp = NULL;
+    PyArrayObject *capi_cpb_as_array = NULL;
     int capi_cpb_intent = 0;
     complex_double *cpd = NULL;
     npy_intp cpd_Dims[1] = {-1};
     const int cpd_Rank = 1;
-    PyArrayObject *capi_cpd_tmp = NULL;
+    PyArrayObject *capi_cpd_as_array = NULL;
     int capi_cpd_intent = 0;
     static char *capi_kwlist[] = {"n","z",NULL};
 
@@ -2362,26 +2398,30 @@ f2py_start_clock();
     /* Processing variable cpb */
     cpb_Dims[0]=2 + abs(n);
     capi_cpb_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_cpb_tmp = array_from_pyobj(NPY_CDOUBLE,cpb_Dims,cpb_Rank,capi_cpb_intent,Py_None);
-    if (capi_cpb_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `cpb' of specfun.cpbdn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.cpbdn: failed to create array from the hidden `cpb`";
+    capi_cpb_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,cpb_Dims,cpb_Rank,  capi_cpb_intent,Py_None,capi_errmess);
+    if (capi_cpb_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        cpb = (complex_double *)(PyArray_DATA(capi_cpb_tmp));
+        cpb = (complex_double *)(PyArray_DATA(capi_cpb_as_array));
 
     /* Processing variable cpd */
     cpd_Dims[0]=2 + abs(n);
     capi_cpd_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_cpd_tmp = array_from_pyobj(NPY_CDOUBLE,cpd_Dims,cpd_Rank,capi_cpd_intent,Py_None);
-    if (capi_cpd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `cpd' of specfun.cpbdn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.cpbdn: failed to create array from the hidden `cpd`";
+    capi_cpd_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,cpd_Dims,cpd_Rank,  capi_cpd_intent,Py_None,capi_errmess);
+    if (capi_cpd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        cpd = (complex_double *)(PyArray_DATA(capi_cpd_tmp));
+        cpd = (complex_double *)(PyArray_DATA(capi_cpd_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2399,14 +2439,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_cpb_tmp,capi_cpd_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_cpb_as_array,capi_cpd_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_cpd_tmp == NULL) ... else of cpd*/
+    }  /* if (capi_cpd_as_array == NULL) ... else of cpd */
     /* End of cleaning variable cpd */
-    }  /*if (capi_cpb_tmp == NULL) ... else of cpb*/
+    }  /* if (capi_cpb_as_array == NULL) ... else of cpb */
     /* End of cleaning variable cpb */
     }  /*if (f2py_success) of z frompyobj*/
     /* End of cleaning variable z */
@@ -2453,12 +2493,12 @@ static PyObject *f2py_rout_specfun_lpn(const PyObject *capi_self,
     double *pn = NULL;
     npy_intp pn_Dims[1] = {-1};
     const int pn_Rank = 1;
-    PyArrayObject *capi_pn_tmp = NULL;
+    PyArrayObject *capi_pn_as_array = NULL;
     int capi_pn_intent = 0;
     double *pd = NULL;
     npy_intp pd_Dims[1] = {-1};
     const int pd_Rank = 1;
-    PyArrayObject *capi_pd_tmp = NULL;
+    PyArrayObject *capi_pd_as_array = NULL;
     int capi_pd_intent = 0;
     static char *capi_kwlist[] = {"n","x",NULL};
 
@@ -2481,26 +2521,30 @@ f2py_start_clock();
     /* Processing variable pn */
     pn_Dims[0]=1 + n;
     capi_pn_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_pn_tmp = array_from_pyobj(NPY_DOUBLE,pn_Dims,pn_Rank,capi_pn_intent,Py_None);
-    if (capi_pn_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `pn' of specfun.lpn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lpn: failed to create array from the hidden `pn`";
+    capi_pn_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,pn_Dims,pn_Rank,  capi_pn_intent,Py_None,capi_errmess);
+    if (capi_pn_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        pn = (double *)(PyArray_DATA(capi_pn_tmp));
+        pn = (double *)(PyArray_DATA(capi_pn_as_array));
 
     /* Processing variable pd */
     pd_Dims[0]=1 + n;
     capi_pd_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_pd_tmp = array_from_pyobj(NPY_DOUBLE,pd_Dims,pd_Rank,capi_pd_intent,Py_None);
-    if (capi_pd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `pd' of specfun.lpn to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.lpn: failed to create array from the hidden `pd`";
+    capi_pd_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,pd_Dims,pd_Rank,  capi_pd_intent,Py_None,capi_errmess);
+    if (capi_pd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        pd = (double *)(PyArray_DATA(capi_pd_tmp));
+        pd = (double *)(PyArray_DATA(capi_pd_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2518,14 +2562,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_pn_tmp,capi_pd_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_pn_as_array,capi_pd_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_pd_tmp == NULL) ... else of pd*/
+    }  /* if (capi_pd_as_array == NULL) ... else of pd */
     /* End of cleaning variable pd */
-    }  /*if (capi_pn_tmp == NULL) ... else of pn*/
+    }  /* if (capi_pn_as_array == NULL) ... else of pn */
     /* End of cleaning variable pn */
     } /*if (f2py_success) of x*/
     /* End of cleaning variable x */
@@ -2577,7 +2621,7 @@ static PyObject *f2py_rout_specfun_fcoef(const PyObject *capi_self,
     double *fc = NULL;
     npy_intp fc_Dims[1] = {-1};
     const int fc_Rank = 1;
-    PyArrayObject *capi_fc_tmp = NULL;
+    PyArrayObject *capi_fc_as_array = NULL;
     int capi_fc_intent = 0;
     static char *capi_kwlist[] = {"kd","m","q","a",NULL};
 
@@ -2607,14 +2651,16 @@ f2py_start_clock();
     /* Processing variable fc */
     fc_Dims[0]=251;
     capi_fc_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_fc_tmp = array_from_pyobj(NPY_DOUBLE,fc_Dims,fc_Rank,capi_fc_intent,Py_None);
-    if (capi_fc_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `fc' of specfun.fcoef to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.fcoef: failed to create array from the hidden `fc`";
+    capi_fc_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,fc_Dims,fc_Rank,  capi_fc_intent,Py_None,capi_errmess);
+    if (capi_fc_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        fc = (double *)(PyArray_DATA(capi_fc_tmp));
+        fc = (double *)(PyArray_DATA(capi_fc_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2632,12 +2678,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_fc_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_fc_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_fc_tmp == NULL) ... else of fc*/
+    }  /* if (capi_fc_as_array == NULL) ... else of fc */
     /* End of cleaning variable fc */
     } /*if (f2py_success) of a*/
     /* End of cleaning variable a */
@@ -2691,12 +2737,12 @@ static PyObject *f2py_rout_specfun_rcty(const PyObject *capi_self,
     double *ry = NULL;
     npy_intp ry_Dims[1] = {-1};
     const int ry_Rank = 1;
-    PyArrayObject *capi_ry_tmp = NULL;
+    PyArrayObject *capi_ry_as_array = NULL;
     int capi_ry_intent = 0;
     double *dy = NULL;
     npy_intp dy_Dims[1] = {-1};
     const int dy_Rank = 1;
-    PyArrayObject *capi_dy_tmp = NULL;
+    PyArrayObject *capi_dy_as_array = NULL;
     int capi_dy_intent = 0;
     static char *capi_kwlist[] = {"n","x",NULL};
 
@@ -2720,26 +2766,30 @@ f2py_start_clock();
     /* Processing variable ry */
     ry_Dims[0]=1 + n;
     capi_ry_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_ry_tmp = array_from_pyobj(NPY_DOUBLE,ry_Dims,ry_Rank,capi_ry_intent,Py_None);
-    if (capi_ry_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `ry' of specfun.rcty to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.rcty: failed to create array from the hidden `ry`";
+    capi_ry_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,ry_Dims,ry_Rank,  capi_ry_intent,Py_None,capi_errmess);
+    if (capi_ry_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ry = (double *)(PyArray_DATA(capi_ry_tmp));
+        ry = (double *)(PyArray_DATA(capi_ry_as_array));
 
     /* Processing variable dy */
     dy_Dims[0]=1 + n;
     capi_dy_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_dy_tmp = array_from_pyobj(NPY_DOUBLE,dy_Dims,dy_Rank,capi_dy_intent,Py_None);
-    if (capi_dy_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `dy' of specfun.rcty to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.rcty: failed to create array from the hidden `dy`";
+    capi_dy_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,dy_Dims,dy_Rank,  capi_dy_intent,Py_None,capi_errmess);
+    if (capi_dy_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dy = (double *)(PyArray_DATA(capi_dy_tmp));
+        dy = (double *)(PyArray_DATA(capi_dy_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2757,14 +2807,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("iNN",nm,capi_ry_tmp,capi_dy_tmp);
+        capi_buildvalue = Py_BuildValue("iNN",nm,capi_ry_as_array,capi_dy_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_dy_tmp == NULL) ... else of dy*/
+    }  /* if (capi_dy_as_array == NULL) ... else of dy */
     /* End of cleaning variable dy */
-    }  /*if (capi_ry_tmp == NULL) ... else of ry*/
+    }  /* if (capi_ry_as_array == NULL) ... else of ry */
     /* End of cleaning variable ry */
     /* End of cleaning variable nm */
     } /*if (f2py_success) of x*/
@@ -2815,12 +2865,12 @@ static PyObject *f2py_rout_specfun_cyzo(const PyObject *capi_self,
     complex_double *zo = NULL;
     npy_intp zo_Dims[1] = {-1};
     const int zo_Rank = 1;
-    PyArrayObject *capi_zo_tmp = NULL;
+    PyArrayObject *capi_zo_as_array = NULL;
     int capi_zo_intent = 0;
     complex_double *zv = NULL;
     npy_intp zv_Dims[1] = {-1};
     const int zv_Rank = 1;
-    PyArrayObject *capi_zv_tmp = NULL;
+    PyArrayObject *capi_zv_as_array = NULL;
     int capi_zv_intent = 0;
     static char *capi_kwlist[] = {"nt","kf","kc",NULL};
 
@@ -2848,26 +2898,30 @@ f2py_start_clock();
     /* Processing variable zo */
     zo_Dims[0]=nt;
     capi_zo_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_zo_tmp = array_from_pyobj(NPY_CDOUBLE,zo_Dims,zo_Rank,capi_zo_intent,Py_None);
-    if (capi_zo_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `zo' of specfun.cyzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.cyzo: failed to create array from the hidden `zo`";
+    capi_zo_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,zo_Dims,zo_Rank,  capi_zo_intent,Py_None,capi_errmess);
+    if (capi_zo_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        zo = (complex_double *)(PyArray_DATA(capi_zo_tmp));
+        zo = (complex_double *)(PyArray_DATA(capi_zo_as_array));
 
     /* Processing variable zv */
     zv_Dims[0]=nt;
     capi_zv_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_zv_tmp = array_from_pyobj(NPY_CDOUBLE,zv_Dims,zv_Rank,capi_zv_intent,Py_None);
-    if (capi_zv_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `zv' of specfun.cyzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.cyzo: failed to create array from the hidden `zv`";
+    capi_zv_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,zv_Dims,zv_Rank,  capi_zv_intent,Py_None,capi_errmess);
+    if (capi_zv_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        zv = (complex_double *)(PyArray_DATA(capi_zv_tmp));
+        zv = (complex_double *)(PyArray_DATA(capi_zv_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2885,14 +2939,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_zo_tmp,capi_zv_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_zo_as_array,capi_zv_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_zv_tmp == NULL) ... else of zv*/
+    }  /* if (capi_zv_as_array == NULL) ... else of zv */
     /* End of cleaning variable zv */
-    }  /*if (capi_zo_tmp == NULL) ... else of zo*/
+    }  /* if (capi_zo_as_array == NULL) ... else of zo */
     /* End of cleaning variable zo */
     } /*CHECKSCALAR((kc==0)||(kc==1))*/
     } /*if (f2py_success) of kc*/
@@ -2942,7 +2996,7 @@ static PyObject *f2py_rout_specfun_klvnzo(const PyObject *capi_self,
     double *zo = NULL;
     npy_intp zo_Dims[1] = {-1};
     const int zo_Rank = 1;
-    PyArrayObject *capi_zo_tmp = NULL;
+    PyArrayObject *capi_zo_as_array = NULL;
     int capi_zo_intent = 0;
     static char *capi_kwlist[] = {"nt","kd",NULL};
 
@@ -2966,14 +3020,16 @@ f2py_start_clock();
     /* Processing variable zo */
     zo_Dims[0]=nt;
     capi_zo_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_zo_tmp = array_from_pyobj(NPY_DOUBLE,zo_Dims,zo_Rank,capi_zo_intent,Py_None);
-    if (capi_zo_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `zo' of specfun.klvnzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.klvnzo: failed to create array from the hidden `zo`";
+    capi_zo_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,zo_Dims,zo_Rank,  capi_zo_intent,Py_None,capi_errmess);
+    if (capi_zo_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        zo = (double *)(PyArray_DATA(capi_zo_tmp));
+        zo = (double *)(PyArray_DATA(capi_zo_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2991,12 +3047,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_zo_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_zo_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_zo_tmp == NULL) ... else of zo*/
+    }  /* if (capi_zo_as_array == NULL) ... else of zo */
     /* End of cleaning variable zo */
     } /*CHECKSCALAR((kd>=1)&&(kd<=8))*/
     } /*if (f2py_success) of kd*/
@@ -3046,22 +3102,22 @@ static PyObject *f2py_rout_specfun_jyzo(const PyObject *capi_self,
     double *rj0 = NULL;
     npy_intp rj0_Dims[1] = {-1};
     const int rj0_Rank = 1;
-    PyArrayObject *capi_rj0_tmp = NULL;
+    PyArrayObject *capi_rj0_as_array = NULL;
     int capi_rj0_intent = 0;
     double *rj1 = NULL;
     npy_intp rj1_Dims[1] = {-1};
     const int rj1_Rank = 1;
-    PyArrayObject *capi_rj1_tmp = NULL;
+    PyArrayObject *capi_rj1_as_array = NULL;
     int capi_rj1_intent = 0;
     double *ry0 = NULL;
     npy_intp ry0_Dims[1] = {-1};
     const int ry0_Rank = 1;
-    PyArrayObject *capi_ry0_tmp = NULL;
+    PyArrayObject *capi_ry0_as_array = NULL;
     int capi_ry0_intent = 0;
     double *ry1 = NULL;
     npy_intp ry1_Dims[1] = {-1};
     const int ry1_Rank = 1;
-    PyArrayObject *capi_ry1_tmp = NULL;
+    PyArrayObject *capi_ry1_as_array = NULL;
     int capi_ry1_intent = 0;
     static char *capi_kwlist[] = {"n","nt",NULL};
 
@@ -3085,50 +3141,58 @@ f2py_start_clock();
     /* Processing variable rj0 */
     rj0_Dims[0]=nt;
     capi_rj0_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_rj0_tmp = array_from_pyobj(NPY_DOUBLE,rj0_Dims,rj0_Rank,capi_rj0_intent,Py_None);
-    if (capi_rj0_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `rj0' of specfun.jyzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.jyzo: failed to create array from the hidden `rj0`";
+    capi_rj0_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,rj0_Dims,rj0_Rank,  capi_rj0_intent,Py_None,capi_errmess);
+    if (capi_rj0_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        rj0 = (double *)(PyArray_DATA(capi_rj0_tmp));
+        rj0 = (double *)(PyArray_DATA(capi_rj0_as_array));
 
     /* Processing variable rj1 */
     rj1_Dims[0]=nt;
     capi_rj1_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_rj1_tmp = array_from_pyobj(NPY_DOUBLE,rj1_Dims,rj1_Rank,capi_rj1_intent,Py_None);
-    if (capi_rj1_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `rj1' of specfun.jyzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.jyzo: failed to create array from the hidden `rj1`";
+    capi_rj1_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,rj1_Dims,rj1_Rank,  capi_rj1_intent,Py_None,capi_errmess);
+    if (capi_rj1_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        rj1 = (double *)(PyArray_DATA(capi_rj1_tmp));
+        rj1 = (double *)(PyArray_DATA(capi_rj1_as_array));
 
     /* Processing variable ry0 */
     ry0_Dims[0]=nt;
     capi_ry0_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_ry0_tmp = array_from_pyobj(NPY_DOUBLE,ry0_Dims,ry0_Rank,capi_ry0_intent,Py_None);
-    if (capi_ry0_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `ry0' of specfun.jyzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.jyzo: failed to create array from the hidden `ry0`";
+    capi_ry0_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,ry0_Dims,ry0_Rank,  capi_ry0_intent,Py_None,capi_errmess);
+    if (capi_ry0_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ry0 = (double *)(PyArray_DATA(capi_ry0_tmp));
+        ry0 = (double *)(PyArray_DATA(capi_ry0_as_array));
 
     /* Processing variable ry1 */
     ry1_Dims[0]=nt;
     capi_ry1_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_ry1_tmp = array_from_pyobj(NPY_DOUBLE,ry1_Dims,ry1_Rank,capi_ry1_intent,Py_None);
-    if (capi_ry1_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `ry1' of specfun.jyzo to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.jyzo: failed to create array from the hidden `ry1`";
+    capi_ry1_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,ry1_Dims,ry1_Rank,  capi_ry1_intent,Py_None,capi_errmess);
+    if (capi_ry1_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ry1 = (double *)(PyArray_DATA(capi_ry1_tmp));
+        ry1 = (double *)(PyArray_DATA(capi_ry1_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3146,18 +3210,18 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NNNN",capi_rj0_tmp,capi_rj1_tmp,capi_ry0_tmp,capi_ry1_tmp);
+        capi_buildvalue = Py_BuildValue("NNNN",capi_rj0_as_array,capi_rj1_as_array,capi_ry0_as_array,capi_ry1_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_ry1_tmp == NULL) ... else of ry1*/
+    }  /* if (capi_ry1_as_array == NULL) ... else of ry1 */
     /* End of cleaning variable ry1 */
-    }  /*if (capi_ry0_tmp == NULL) ... else of ry0*/
+    }  /* if (capi_ry0_as_array == NULL) ... else of ry0 */
     /* End of cleaning variable ry0 */
-    }  /*if (capi_rj1_tmp == NULL) ... else of rj1*/
+    }  /* if (capi_rj1_as_array == NULL) ... else of rj1 */
     /* End of cleaning variable rj1 */
-    }  /*if (capi_rj0_tmp == NULL) ... else of rj0*/
+    }  /* if (capi_rj0_as_array == NULL) ... else of rj0 */
     /* End of cleaning variable rj0 */
     } /*CHECKSCALAR(nt>0)*/
     } /*if (f2py_success) of nt*/
@@ -3207,12 +3271,12 @@ static PyObject *f2py_rout_specfun_rctj(const PyObject *capi_self,
     double *rj = NULL;
     npy_intp rj_Dims[1] = {-1};
     const int rj_Rank = 1;
-    PyArrayObject *capi_rj_tmp = NULL;
+    PyArrayObject *capi_rj_as_array = NULL;
     int capi_rj_intent = 0;
     double *dj = NULL;
     npy_intp dj_Dims[1] = {-1};
     const int dj_Rank = 1;
-    PyArrayObject *capi_dj_tmp = NULL;
+    PyArrayObject *capi_dj_as_array = NULL;
     int capi_dj_intent = 0;
     static char *capi_kwlist[] = {"n","x",NULL};
 
@@ -3236,26 +3300,30 @@ f2py_start_clock();
     /* Processing variable rj */
     rj_Dims[0]=1 + n;
     capi_rj_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_rj_tmp = array_from_pyobj(NPY_DOUBLE,rj_Dims,rj_Rank,capi_rj_intent,Py_None);
-    if (capi_rj_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `rj' of specfun.rctj to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.rctj: failed to create array from the hidden `rj`";
+    capi_rj_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,rj_Dims,rj_Rank,  capi_rj_intent,Py_None,capi_errmess);
+    if (capi_rj_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        rj = (double *)(PyArray_DATA(capi_rj_tmp));
+        rj = (double *)(PyArray_DATA(capi_rj_as_array));
 
     /* Processing variable dj */
     dj_Dims[0]=1 + n;
     capi_dj_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_dj_tmp = array_from_pyobj(NPY_DOUBLE,dj_Dims,dj_Rank,capi_dj_intent,Py_None);
-    if (capi_dj_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `dj' of specfun.rctj to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.rctj: failed to create array from the hidden `dj`";
+    capi_dj_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,dj_Dims,dj_Rank,  capi_dj_intent,Py_None,capi_errmess);
+    if (capi_dj_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dj = (double *)(PyArray_DATA(capi_dj_tmp));
+        dj = (double *)(PyArray_DATA(capi_dj_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3273,14 +3341,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("iNN",nm,capi_rj_tmp,capi_dj_tmp);
+        capi_buildvalue = Py_BuildValue("iNN",nm,capi_rj_as_array,capi_dj_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_dj_tmp == NULL) ... else of dj*/
+    }  /* if (capi_dj_as_array == NULL) ... else of dj */
     /* End of cleaning variable dj */
-    }  /*if (capi_rj_tmp == NULL) ... else of rj*/
+    }  /* if (capi_rj_as_array == NULL) ... else of rj */
     /* End of cleaning variable rj */
     /* End of cleaning variable nm */
     } /*if (f2py_success) of x*/
@@ -3335,7 +3403,7 @@ static PyObject *f2py_rout_specfun_segv(const PyObject *capi_self,
     double *eg = NULL;
     npy_intp eg_Dims[1] = {-1};
     const int eg_Rank = 1;
-    PyArrayObject *capi_eg_tmp = NULL;
+    PyArrayObject *capi_eg_as_array = NULL;
     int capi_eg_intent = 0;
     static char *capi_kwlist[] = {"m","n","c","kd",NULL};
 
@@ -3366,14 +3434,16 @@ f2py_start_clock();
     /* Processing variable eg */
     eg_Dims[0]=2 - m + n;
     capi_eg_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_eg_tmp = array_from_pyobj(NPY_DOUBLE,eg_Dims,eg_Rank,capi_eg_intent,Py_None);
-    if (capi_eg_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : specfun_error,"failed in converting hidden `eg' of specfun.segv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "specfun.specfun.segv: failed to create array from the hidden `eg`";
+    capi_eg_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,eg_Dims,eg_Rank,  capi_eg_intent,Py_None,capi_errmess);
+    if (capi_eg_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = specfun_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        eg = (double *)(PyArray_DATA(capi_eg_tmp));
+        eg = (double *)(PyArray_DATA(capi_eg_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3391,12 +3461,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("dN",cv,capi_eg_tmp);
+        capi_buildvalue = Py_BuildValue("dN",cv,capi_eg_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_eg_tmp == NULL) ... else of eg*/
+    }  /* if (capi_eg_as_array == NULL) ... else of eg */
     /* End of cleaning variable eg */
     } /*CHECKSCALAR((n>=m) && ((n-m)<199))*/
     } /*if (f2py_success) of n*/
@@ -3437,31 +3507,31 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"clqmn",-1,{{-1}},0,(char *)F_FUNC(clqmn,CLQMN),(f2py_init_func)f2py_rout_specfun_clqmn,doc_f2py_rout_specfun_clqmn},
-    {"lqmn",-1,{{-1}},0,(char *)F_FUNC(lqmn,LQMN),(f2py_init_func)f2py_rout_specfun_lqmn,doc_f2py_rout_specfun_lqmn},
-    {"clpmn",-1,{{-1}},0,(char *)F_FUNC(clpmn,CLPMN),(f2py_init_func)f2py_rout_specfun_clpmn,doc_f2py_rout_specfun_clpmn},
-    {"jdzo",-1,{{-1}},0,(char *)F_FUNC(jdzo,JDZO),(f2py_init_func)f2py_rout_specfun_jdzo,doc_f2py_rout_specfun_jdzo},
-    {"bernob",-1,{{-1}},0,(char *)F_FUNC(bernob,BERNOB),(f2py_init_func)f2py_rout_specfun_bernob,doc_f2py_rout_specfun_bernob},
-    {"clqn",-1,{{-1}},0,(char *)F_FUNC(clqn,CLQN),(f2py_init_func)f2py_rout_specfun_clqn,doc_f2py_rout_specfun_clqn},
-    {"airyzo",-1,{{-1}},0,(char *)F_FUNC(airyzo,AIRYZO),(f2py_init_func)f2py_rout_specfun_airyzo,doc_f2py_rout_specfun_airyzo},
-    {"eulerb",-1,{{-1}},0,(char *)F_FUNC(eulerb,EULERB),(f2py_init_func)f2py_rout_specfun_eulerb,doc_f2py_rout_specfun_eulerb},
-    {"lqnb",-1,{{-1}},0,(char *)F_FUNC(lqnb,LQNB),(f2py_init_func)f2py_rout_specfun_lqnb,doc_f2py_rout_specfun_lqnb},
-    {"lamv",-1,{{-1}},0,(char *)F_FUNC(lamv,LAMV),(f2py_init_func)f2py_rout_specfun_lamv,doc_f2py_rout_specfun_lamv},
-    {"pbdv",-1,{{-1}},0,(char *)F_FUNC(pbdv,PBDV),(f2py_init_func)f2py_rout_specfun_pbdv,doc_f2py_rout_specfun_pbdv},
-    {"cerzo",-1,{{-1}},0,(char *)F_FUNC(cerzo,CERZO),(f2py_init_func)f2py_rout_specfun_cerzo,doc_f2py_rout_specfun_cerzo},
-    {"lamn",-1,{{-1}},0,(char *)F_FUNC(lamn,LAMN),(f2py_init_func)f2py_rout_specfun_lamn,doc_f2py_rout_specfun_lamn},
-    {"clpn",-1,{{-1}},0,(char *)F_FUNC(clpn,CLPN),(f2py_init_func)f2py_rout_specfun_clpn,doc_f2py_rout_specfun_clpn},
-    {"lpmn",-1,{{-1}},0,(char *)F_FUNC(lpmn,LPMN),(f2py_init_func)f2py_rout_specfun_lpmn,doc_f2py_rout_specfun_lpmn},
-    {"fcszo",-1,{{-1}},0,(char *)F_FUNC(fcszo,FCSZO),(f2py_init_func)f2py_rout_specfun_fcszo,doc_f2py_rout_specfun_fcszo},
-    {"cpbdn",-1,{{-1}},0,(char *)F_FUNC(cpbdn,CPBDN),(f2py_init_func)f2py_rout_specfun_cpbdn,doc_f2py_rout_specfun_cpbdn},
-    {"lpn",-1,{{-1}},0,(char *)F_FUNC(lpn,LPN),(f2py_init_func)f2py_rout_specfun_lpn,doc_f2py_rout_specfun_lpn},
-    {"fcoef",-1,{{-1}},0,(char *)F_FUNC(fcoef,FCOEF),(f2py_init_func)f2py_rout_specfun_fcoef,doc_f2py_rout_specfun_fcoef},
-    {"rcty",-1,{{-1}},0,(char *)F_FUNC(rcty,RCTY),(f2py_init_func)f2py_rout_specfun_rcty,doc_f2py_rout_specfun_rcty},
-    {"cyzo",-1,{{-1}},0,(char *)F_FUNC(cyzo,CYZO),(f2py_init_func)f2py_rout_specfun_cyzo,doc_f2py_rout_specfun_cyzo},
-    {"klvnzo",-1,{{-1}},0,(char *)F_FUNC(klvnzo,KLVNZO),(f2py_init_func)f2py_rout_specfun_klvnzo,doc_f2py_rout_specfun_klvnzo},
-    {"jyzo",-1,{{-1}},0,(char *)F_FUNC(jyzo,JYZO),(f2py_init_func)f2py_rout_specfun_jyzo,doc_f2py_rout_specfun_jyzo},
-    {"rctj",-1,{{-1}},0,(char *)F_FUNC(rctj,RCTJ),(f2py_init_func)f2py_rout_specfun_rctj,doc_f2py_rout_specfun_rctj},
-    {"segv",-1,{{-1}},0,(char *)F_FUNC(segv,SEGV),(f2py_init_func)f2py_rout_specfun_segv,doc_f2py_rout_specfun_segv},
+    {"clqmn",-1,{{-1}},0,0,(char *)  F_FUNC(clqmn,CLQMN),  (f2py_init_func)f2py_rout_specfun_clqmn,doc_f2py_rout_specfun_clqmn},
+    {"lqmn",-1,{{-1}},0,0,(char *)  F_FUNC(lqmn,LQMN),  (f2py_init_func)f2py_rout_specfun_lqmn,doc_f2py_rout_specfun_lqmn},
+    {"clpmn",-1,{{-1}},0,0,(char *)  F_FUNC(clpmn,CLPMN),  (f2py_init_func)f2py_rout_specfun_clpmn,doc_f2py_rout_specfun_clpmn},
+    {"jdzo",-1,{{-1}},0,0,(char *)  F_FUNC(jdzo,JDZO),  (f2py_init_func)f2py_rout_specfun_jdzo,doc_f2py_rout_specfun_jdzo},
+    {"bernob",-1,{{-1}},0,0,(char *)  F_FUNC(bernob,BERNOB),  (f2py_init_func)f2py_rout_specfun_bernob,doc_f2py_rout_specfun_bernob},
+    {"clqn",-1,{{-1}},0,0,(char *)  F_FUNC(clqn,CLQN),  (f2py_init_func)f2py_rout_specfun_clqn,doc_f2py_rout_specfun_clqn},
+    {"airyzo",-1,{{-1}},0,0,(char *)  F_FUNC(airyzo,AIRYZO),  (f2py_init_func)f2py_rout_specfun_airyzo,doc_f2py_rout_specfun_airyzo},
+    {"eulerb",-1,{{-1}},0,0,(char *)  F_FUNC(eulerb,EULERB),  (f2py_init_func)f2py_rout_specfun_eulerb,doc_f2py_rout_specfun_eulerb},
+    {"lqnb",-1,{{-1}},0,0,(char *)  F_FUNC(lqnb,LQNB),  (f2py_init_func)f2py_rout_specfun_lqnb,doc_f2py_rout_specfun_lqnb},
+    {"lamv",-1,{{-1}},0,0,(char *)  F_FUNC(lamv,LAMV),  (f2py_init_func)f2py_rout_specfun_lamv,doc_f2py_rout_specfun_lamv},
+    {"pbdv",-1,{{-1}},0,0,(char *)  F_FUNC(pbdv,PBDV),  (f2py_init_func)f2py_rout_specfun_pbdv,doc_f2py_rout_specfun_pbdv},
+    {"cerzo",-1,{{-1}},0,0,(char *)  F_FUNC(cerzo,CERZO),  (f2py_init_func)f2py_rout_specfun_cerzo,doc_f2py_rout_specfun_cerzo},
+    {"lamn",-1,{{-1}},0,0,(char *)  F_FUNC(lamn,LAMN),  (f2py_init_func)f2py_rout_specfun_lamn,doc_f2py_rout_specfun_lamn},
+    {"clpn",-1,{{-1}},0,0,(char *)  F_FUNC(clpn,CLPN),  (f2py_init_func)f2py_rout_specfun_clpn,doc_f2py_rout_specfun_clpn},
+    {"lpmn",-1,{{-1}},0,0,(char *)  F_FUNC(lpmn,LPMN),  (f2py_init_func)f2py_rout_specfun_lpmn,doc_f2py_rout_specfun_lpmn},
+    {"fcszo",-1,{{-1}},0,0,(char *)  F_FUNC(fcszo,FCSZO),  (f2py_init_func)f2py_rout_specfun_fcszo,doc_f2py_rout_specfun_fcszo},
+    {"cpbdn",-1,{{-1}},0,0,(char *)  F_FUNC(cpbdn,CPBDN),  (f2py_init_func)f2py_rout_specfun_cpbdn,doc_f2py_rout_specfun_cpbdn},
+    {"lpn",-1,{{-1}},0,0,(char *)  F_FUNC(lpn,LPN),  (f2py_init_func)f2py_rout_specfun_lpn,doc_f2py_rout_specfun_lpn},
+    {"fcoef",-1,{{-1}},0,0,(char *)  F_FUNC(fcoef,FCOEF),  (f2py_init_func)f2py_rout_specfun_fcoef,doc_f2py_rout_specfun_fcoef},
+    {"rcty",-1,{{-1}},0,0,(char *)  F_FUNC(rcty,RCTY),  (f2py_init_func)f2py_rout_specfun_rcty,doc_f2py_rout_specfun_rcty},
+    {"cyzo",-1,{{-1}},0,0,(char *)  F_FUNC(cyzo,CYZO),  (f2py_init_func)f2py_rout_specfun_cyzo,doc_f2py_rout_specfun_cyzo},
+    {"klvnzo",-1,{{-1}},0,0,(char *)  F_FUNC(klvnzo,KLVNZO),  (f2py_init_func)f2py_rout_specfun_klvnzo,doc_f2py_rout_specfun_klvnzo},
+    {"jyzo",-1,{{-1}},0,0,(char *)  F_FUNC(jyzo,JYZO),  (f2py_init_func)f2py_rout_specfun_jyzo,doc_f2py_rout_specfun_jyzo},
+    {"rctj",-1,{{-1}},0,0,(char *)  F_FUNC(rctj,RCTJ),  (f2py_init_func)f2py_rout_specfun_rctj,doc_f2py_rout_specfun_rctj},
+    {"segv",-1,{{-1}},0,0,(char *)  F_FUNC(segv,SEGV),  (f2py_init_func)f2py_rout_specfun_segv,doc_f2py_rout_specfun_segv},
 
 /*eof routine_defs*/
     {NULL}
@@ -3493,11 +3563,11 @@ PyMODINIT_FUNC PyInit_specfun(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module specfun (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module 'specfun' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module 'specfun' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    cqm,cqd = clqmn(m,n,z)\n"
 "    qm,qd = lqmn(m,n,x)\n"
 "    cpm,cpd = clpmn(m,n,x,y,ntype)\n"
@@ -3526,7 +3596,7 @@ PyMODINIT_FUNC PyInit_specfun(void) {
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     specfun_error = PyErr_NewException ("specfun.error", NULL, NULL);

@@ -406,6 +406,8 @@ PyUFunc_O_O(char **args, npy_intp const *dimensions, npy_intp const *steps, void
     UNARY_LOOP {
         PyObject *in1 = *(PyObject **)ip1;
         PyObject **out = (PyObject **)op1;
+        /* We allow NULL, but try to guarantee non-NULL to downstream */
+        assert(in1 != NULL);
         PyObject *ret = f(in1 ? in1 : Py_None);
         if (ret == NULL) {
             return;
@@ -423,6 +425,8 @@ PyUFunc_O_O_method(char **args, npy_intp const *dimensions, npy_intp const *step
     UNARY_LOOP {
         PyObject *in1 = *(PyObject **)ip1;
         PyObject **out = (PyObject **)op1;
+        /* We allow NULL, but try to guarantee non-NULL to downstream */
+        assert(in1 != NULL);
         PyObject *ret, *func;
         func = PyObject_GetAttrString(in1 ? in1 : Py_None, meth);
         if (func != NULL && !PyCallable_Check(func)) {
@@ -460,6 +464,9 @@ PyUFunc_OO_O(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
         PyObject *in1 = *(PyObject **)ip1;
         PyObject *in2 = *(PyObject **)ip2;
         PyObject **out = (PyObject **)op1;
+        /* We allow NULL, but try to guarantee non-NULL to downstream */
+        assert(in1 != NULL);
+        assert(in2 != NULL);
         PyObject *ret = f(in1 ? in1 : Py_None, in2 ? in2 : Py_None);
         if (ret == NULL) {
             return;
@@ -478,6 +485,10 @@ PyUFunc_OOO_O(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
         PyObject *in2 = *(PyObject **)ip2;
         PyObject *in3 = *(PyObject **)ip3;
         PyObject **out = (PyObject **)op1;
+        /* We allow NULL, but try to guarantee non-NULL to downstream */
+        assert(in1 != NULL);
+        assert(in2 != NULL);
+        assert(in3 != NULL);
         PyObject *ret = f(
             in1 ? in1 : Py_None,
             in2 ? in2 : Py_None,
@@ -500,6 +511,9 @@ PyUFunc_OO_O_method(char **args, npy_intp const *dimensions, npy_intp const *ste
         PyObject *in1 = *(PyObject **)ip1;
         PyObject *in2 = *(PyObject **)ip2;
         PyObject **out = (PyObject **)op1;
+        /* We allow NULL, but try to guarantee non-NULL to downstream */
+        assert(in1 != NULL);
+        assert(in2 != NULL);
         PyObject *ret = PyObject_CallMethod(in1 ? in1 : Py_None,
                                             meth, "(O)", in2);
         if (ret == NULL) {
@@ -541,6 +555,8 @@ PyUFunc_On_Om(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
         }
         for(j = 0; j < nin; j++) {
             in = *((PyObject **)ptrs[j]);
+            /* We allow NULL, but try to guarantee non-NULL to downstream */
+            assert(in != NULL);
             if (in == NULL) {
                 in = Py_None;
             }
@@ -592,81 +608,7 @@ PyUFunc_On_Om(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
  *****************************************************************************
  */
 
-#line 407
-
-NPY_NO_EXPORT void
-BOOL_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    BINARY_LOOP {
-        npy_bool in1 = *((npy_bool *)ip1) != 0;
-        npy_bool in2 = *((npy_bool *)ip2) != 0;
-        *((npy_bool *)op1)= in1 == in2;
-    }
-}
-
-#line 407
-
-NPY_NO_EXPORT void
-BOOL_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    BINARY_LOOP {
-        npy_bool in1 = *((npy_bool *)ip1) != 0;
-        npy_bool in2 = *((npy_bool *)ip2) != 0;
-        *((npy_bool *)op1)= in1 != in2;
-    }
-}
-
-#line 407
-
-NPY_NO_EXPORT void
-BOOL_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    BINARY_LOOP {
-        npy_bool in1 = *((npy_bool *)ip1) != 0;
-        npy_bool in2 = *((npy_bool *)ip2) != 0;
-        *((npy_bool *)op1)= in1 > in2;
-    }
-}
-
-#line 407
-
-NPY_NO_EXPORT void
-BOOL_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    BINARY_LOOP {
-        npy_bool in1 = *((npy_bool *)ip1) != 0;
-        npy_bool in2 = *((npy_bool *)ip2) != 0;
-        *((npy_bool *)op1)= in1 >= in2;
-    }
-}
-
-#line 407
-
-NPY_NO_EXPORT void
-BOOL_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    BINARY_LOOP {
-        npy_bool in1 = *((npy_bool *)ip1) != 0;
-        npy_bool in2 = *((npy_bool *)ip2) != 0;
-        *((npy_bool *)op1)= in1 < in2;
-    }
-}
-
-#line 407
-
-NPY_NO_EXPORT void
-BOOL_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    BINARY_LOOP {
-        npy_bool in1 = *((npy_bool *)ip1) != 0;
-        npy_bool in2 = *((npy_bool *)ip2) != 0;
-        *((npy_bool *)op1)= in1 <= in2;
-    }
-}
-
-
-
-#line 426
+#line 425
 
 NPY_NO_EXPORT void
 BOOL_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
@@ -733,7 +675,7 @@ BOOL_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps,
     }
 }
 
-#line 426
+#line 425
 
 NPY_NO_EXPORT void
 BOOL_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
@@ -801,7 +743,7 @@ BOOL_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 }
 
 
-#line 497
+#line 496
 NPY_NO_EXPORT void
 BOOL_absolute(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -816,7 +758,7 @@ BOOL_absolute(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     }
 }
 
-#line 497
+#line 496
 NPY_NO_EXPORT void
 BOOL_logical_not(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -841,7 +783,7 @@ BOOL__ones_like(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 }
 
 
-#line 526
+#line 525
 NPY_NO_EXPORT void
 BOOL_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -853,7 +795,7 @@ BOOL_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void 
 }
 
 
-#line 526
+#line 525
 NPY_NO_EXPORT void
 BOOL_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -865,7 +807,7 @@ BOOL_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void 
 }
 
 
-#line 526
+#line 525
 NPY_NO_EXPORT void
 BOOL_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -884,7 +826,7 @@ BOOL_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
  *****************************************************************************
  */
 
-#line 554
+#line 553
 
 #define BYTE_floor_divide BYTE_divide
 #define BYTE_fmax BYTE_maximum
@@ -904,7 +846,7 @@ BYTE_positive(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     UNARY_LOOP_FAST(npy_byte, npy_byte, *out = +in);
 }
 
-#line 579
+#line 577
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -954,7 +896,7 @@ BYTE_invert(char **args, npy_intp const *dimensions, npy_intp const *steps, void
 }
 #endif
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -970,7 +912,7 @@ BYTE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *N
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -986,7 +928,7 @@ BYTE_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1002,7 +944,7 @@ BYTE_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1018,7 +960,7 @@ BYTE_bitwise_and(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1034,7 +976,7 @@ BYTE_bitwise_or(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1064,6 +1006,7 @@ BYTE_bitwise_xor(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 BYTE_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -1076,10 +1019,12 @@ BYTE_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_BYTE_right_shift
 NPY_GCC_OPT_3
@@ -1090,97 +1035,7 @@ BYTE_right_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
 {
     BINARY_LOOP_FAST(npy_byte, npy_byte, *out = npy_rshifthh(in1, in2));
 }
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-BYTE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-BYTE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-BYTE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-BYTE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-BYTE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-BYTE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -1226,7 +1081,7 @@ BYTE_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #endif
 
 
-#line 579
+#line 577
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -1276,7 +1131,7 @@ BYTE_invert_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 #endif
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -1292,7 +1147,7 @@ BYTE_add_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -1308,7 +1163,7 @@ BYTE_subtract_avx2(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -1324,7 +1179,7 @@ BYTE_multiply_avx2(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -1340,7 +1195,7 @@ BYTE_bitwise_and_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -1356,7 +1211,7 @@ BYTE_bitwise_or_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -1386,6 +1241,7 @@ BYTE_bitwise_xor_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 BYTE_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -1398,10 +1254,12 @@ BYTE_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_BYTE_right_shift
 NPY_GCC_OPT_3
@@ -1412,97 +1270,7 @@ BYTE_right_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 {
     BINARY_LOOP_FAST(npy_byte, npy_byte, *out = npy_rshifthh(in1, in2));
 }
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-BYTE_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-BYTE_not_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-BYTE_greater_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-BYTE_greater_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-BYTE_less_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-BYTE_less_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_byte, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -1624,7 +1392,7 @@ BYTE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 
 
 
-#line 554
+#line 553
 
 #define UBYTE_floor_divide UBYTE_divide
 #define UBYTE_fmax UBYTE_maximum
@@ -1644,7 +1412,7 @@ UBYTE_positive(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     UNARY_LOOP_FAST(npy_ubyte, npy_ubyte, *out = +in);
 }
 
-#line 579
+#line 577
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1694,7 +1462,7 @@ UBYTE_invert(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 #endif
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1710,7 +1478,7 @@ UBYTE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1726,7 +1494,7 @@ UBYTE_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1742,7 +1510,7 @@ UBYTE_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1758,7 +1526,7 @@ UBYTE_bitwise_and(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1774,7 +1542,7 @@ UBYTE_bitwise_or(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -1804,6 +1572,7 @@ UBYTE_bitwise_xor(char **args, npy_intp const *dimensions, npy_intp const *steps
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 UBYTE_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -1816,10 +1585,12 @@ UBYTE_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_UBYTE_right_shift
 NPY_GCC_OPT_3
@@ -1830,97 +1601,7 @@ UBYTE_right_shift(char **args, npy_intp const *dimensions, npy_intp const *steps
 {
     BINARY_LOOP_FAST(npy_ubyte, npy_ubyte, *out = npy_rshiftuhh(in1, in2));
 }
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UBYTE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UBYTE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UBYTE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UBYTE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UBYTE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UBYTE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -1966,7 +1647,7 @@ UBYTE_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 579
+#line 577
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2016,7 +1697,7 @@ UBYTE_invert_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps
 }
 #endif
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2032,7 +1713,7 @@ UBYTE_add_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2048,7 +1729,7 @@ UBYTE_subtract_avx2(char **args, npy_intp const *dimensions, npy_intp const *ste
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2064,7 +1745,7 @@ UBYTE_multiply_avx2(char **args, npy_intp const *dimensions, npy_intp const *ste
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2080,7 +1761,7 @@ UBYTE_bitwise_and_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2096,7 +1777,7 @@ UBYTE_bitwise_or_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2126,6 +1807,7 @@ UBYTE_bitwise_xor_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 UBYTE_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -2138,10 +1820,12 @@ UBYTE_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_UBYTE_right_shift
 NPY_GCC_OPT_3
@@ -2152,97 +1836,7 @@ UBYTE_right_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 {
     BINARY_LOOP_FAST(npy_ubyte, npy_ubyte, *out = npy_rshiftuhh(in1, in2));
 }
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UBYTE_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UBYTE_not_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UBYTE_greater_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UBYTE_greater_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UBYTE_less_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UBYTE_less_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ubyte, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -2364,7 +1958,7 @@ UBYTE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 
 
 
-#line 554
+#line 553
 
 #define SHORT_floor_divide SHORT_divide
 #define SHORT_fmax SHORT_maximum
@@ -2384,7 +1978,7 @@ SHORT_positive(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     UNARY_LOOP_FAST(npy_short, npy_short, *out = +in);
 }
 
-#line 579
+#line 577
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -2434,7 +2028,7 @@ SHORT_invert(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 #endif
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -2450,7 +2044,7 @@ SHORT_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -2466,7 +2060,7 @@ SHORT_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -2482,7 +2076,7 @@ SHORT_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -2498,7 +2092,7 @@ SHORT_bitwise_and(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -2514,7 +2108,7 @@ SHORT_bitwise_or(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -2544,6 +2138,7 @@ SHORT_bitwise_xor(char **args, npy_intp const *dimensions, npy_intp const *steps
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 SHORT_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -2556,10 +2151,12 @@ SHORT_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_SHORT_right_shift
 NPY_GCC_OPT_3
@@ -2570,97 +2167,7 @@ SHORT_right_shift(char **args, npy_intp const *dimensions, npy_intp const *steps
 {
     BINARY_LOOP_FAST(npy_short, npy_short, *out = npy_rshifth(in1, in2));
 }
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-SHORT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-SHORT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-SHORT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-SHORT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-SHORT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-SHORT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -2706,7 +2213,7 @@ SHORT_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 579
+#line 577
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2756,7 +2263,7 @@ SHORT_invert_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps
 }
 #endif
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2772,7 +2279,7 @@ SHORT_add_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2788,7 +2295,7 @@ SHORT_subtract_avx2(char **args, npy_intp const *dimensions, npy_intp const *ste
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2804,7 +2311,7 @@ SHORT_multiply_avx2(char **args, npy_intp const *dimensions, npy_intp const *ste
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2820,7 +2327,7 @@ SHORT_bitwise_and_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2836,7 +2343,7 @@ SHORT_bitwise_or_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -2866,6 +2373,7 @@ SHORT_bitwise_xor_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 SHORT_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -2878,10 +2386,12 @@ SHORT_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_SHORT_right_shift
 NPY_GCC_OPT_3
@@ -2892,97 +2402,7 @@ SHORT_right_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 {
     BINARY_LOOP_FAST(npy_short, npy_short, *out = npy_rshifth(in1, in2));
 }
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-SHORT_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-SHORT_not_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-SHORT_greater_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-SHORT_greater_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-SHORT_less_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-SHORT_less_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_short, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -3104,7 +2524,7 @@ SHORT_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 
 
 
-#line 554
+#line 553
 
 #define USHORT_floor_divide USHORT_divide
 #define USHORT_fmax USHORT_maximum
@@ -3124,7 +2544,7 @@ USHORT_positive(char **args, npy_intp const *dimensions, npy_intp const *steps, 
     UNARY_LOOP_FAST(npy_ushort, npy_ushort, *out = +in);
 }
 
-#line 579
+#line 577
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3174,7 +2594,7 @@ USHORT_invert(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 }
 #endif
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3190,7 +2610,7 @@ USHORT_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void 
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3206,7 +2626,7 @@ USHORT_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3222,7 +2642,7 @@ USHORT_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3238,7 +2658,7 @@ USHORT_bitwise_and(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3254,7 +2674,7 @@ USHORT_bitwise_or(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3284,6 +2704,7 @@ USHORT_bitwise_xor(char **args, npy_intp const *dimensions, npy_intp const *step
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 USHORT_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -3296,10 +2717,12 @@ USHORT_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_USHORT_right_shift
 NPY_GCC_OPT_3
@@ -3310,97 +2733,7 @@ USHORT_right_shift(char **args, npy_intp const *dimensions, npy_intp const *step
 {
     BINARY_LOOP_FAST(npy_ushort, npy_ushort, *out = npy_rshiftuh(in1, in2));
 }
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-USHORT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-USHORT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-USHORT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-USHORT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-USHORT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-USHORT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -3446,7 +2779,7 @@ USHORT_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 579
+#line 577
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -3496,7 +2829,7 @@ USHORT_invert_avx2(char **args, npy_intp const *dimensions, npy_intp const *step
 }
 #endif
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -3512,7 +2845,7 @@ USHORT_add_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -3528,7 +2861,7 @@ USHORT_subtract_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -3544,7 +2877,7 @@ USHORT_multiply_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -3560,7 +2893,7 @@ USHORT_bitwise_and_avx2(char **args, npy_intp const *dimensions, npy_intp const 
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -3576,7 +2909,7 @@ USHORT_bitwise_or_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -3606,6 +2939,7 @@ USHORT_bitwise_xor_avx2(char **args, npy_intp const *dimensions, npy_intp const 
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 USHORT_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -3618,10 +2952,12 @@ USHORT_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_USHORT_right_shift
 NPY_GCC_OPT_3
@@ -3632,97 +2968,7 @@ USHORT_right_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const 
 {
     BINARY_LOOP_FAST(npy_ushort, npy_ushort, *out = npy_rshiftuh(in1, in2));
 }
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-USHORT_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-USHORT_not_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-USHORT_greater_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-USHORT_greater_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-USHORT_less_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-USHORT_less_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ushort, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -3844,7 +3090,7 @@ USHORT_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 
 
 
-#line 554
+#line 553
 
 #define INT_floor_divide INT_divide
 #define INT_fmax INT_maximum
@@ -3864,7 +3110,7 @@ INT_positive(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     UNARY_LOOP_FAST(npy_int, npy_int, *out = +in);
 }
 
-#line 579
+#line 577
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3914,7 +3160,7 @@ INT_invert(char **args, npy_intp const *dimensions, npy_intp const *steps, void 
 }
 #endif
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3930,7 +3176,7 @@ INT_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NP
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3946,7 +3192,7 @@ INT_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3962,7 +3208,7 @@ INT_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3978,7 +3224,7 @@ INT_bitwise_and(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -3994,7 +3240,7 @@ INT_bitwise_or(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -4024,6 +3270,7 @@ INT_bitwise_xor(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 INT_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -4036,10 +3283,12 @@ INT_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_INT_right_shift
 NPY_GCC_OPT_3
@@ -4050,97 +3299,7 @@ INT_right_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
 {
     BINARY_LOOP_FAST(npy_int, npy_int, *out = npy_rshift(in1, in2));
 }
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-INT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-INT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-INT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-INT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-INT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-INT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -4186,7 +3345,7 @@ INT_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 #endif
 
 
-#line 579
+#line 577
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -4236,7 +3395,7 @@ INT_invert_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 }
 #endif
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -4252,7 +3411,7 @@ INT_add_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -4268,7 +3427,7 @@ INT_subtract_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -4284,7 +3443,7 @@ INT_multiply_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -4300,7 +3459,7 @@ INT_bitwise_and_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -4316,7 +3475,7 @@ INT_bitwise_or_avx2(char **args, npy_intp const *dimensions, npy_intp const *ste
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -4346,6 +3505,7 @@ INT_bitwise_xor_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 INT_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -4358,10 +3518,12 @@ INT_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *ste
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_INT_right_shift
 NPY_GCC_OPT_3
@@ -4372,97 +3534,7 @@ INT_right_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
 {
     BINARY_LOOP_FAST(npy_int, npy_int, *out = npy_rshift(in1, in2));
 }
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-INT_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-INT_not_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-INT_greater_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-INT_greater_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-INT_less_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-INT_less_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_int, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -4584,7 +3656,7 @@ INT_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 
 
 
-#line 554
+#line 553
 
 #define UINT_floor_divide UINT_divide
 #define UINT_fmax UINT_maximum
@@ -4604,7 +3676,7 @@ UINT_positive(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     UNARY_LOOP_FAST(npy_uint, npy_uint, *out = +in);
 }
 
-#line 579
+#line 577
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -4654,7 +3726,7 @@ UINT_invert(char **args, npy_intp const *dimensions, npy_intp const *steps, void
 }
 #endif
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -4670,7 +3742,7 @@ UINT_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *N
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -4686,7 +3758,7 @@ UINT_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -4702,7 +3774,7 @@ UINT_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -4718,7 +3790,7 @@ UINT_bitwise_and(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -4734,7 +3806,7 @@ UINT_bitwise_or(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -4764,6 +3836,7 @@ UINT_bitwise_xor(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 UINT_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -4776,10 +3849,12 @@ UINT_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_UINT_right_shift
 NPY_GCC_OPT_3
@@ -4790,97 +3865,7 @@ UINT_right_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
 {
     BINARY_LOOP_FAST(npy_uint, npy_uint, *out = npy_rshiftu(in1, in2));
 }
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UINT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UINT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UINT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UINT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UINT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-UINT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -4926,7 +3911,7 @@ UINT_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #endif
 
 
-#line 579
+#line 577
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -4976,7 +3961,7 @@ UINT_invert_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 #endif
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -4992,7 +3977,7 @@ UINT_add_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5008,7 +3993,7 @@ UINT_subtract_avx2(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5024,7 +4009,7 @@ UINT_multiply_avx2(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5040,7 +4025,7 @@ UINT_bitwise_and_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5056,7 +4041,7 @@ UINT_bitwise_or_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5086,6 +4071,7 @@ UINT_bitwise_xor_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 UINT_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -5098,10 +4084,12 @@ UINT_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_UINT_right_shift
 NPY_GCC_OPT_3
@@ -5112,97 +4100,7 @@ UINT_right_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 {
     BINARY_LOOP_FAST(npy_uint, npy_uint, *out = npy_rshiftu(in1, in2));
 }
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UINT_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UINT_not_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UINT_greater_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UINT_greater_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UINT_less_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-UINT_less_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_uint, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -5324,7 +4222,7 @@ UINT_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 
 
 
-#line 554
+#line 553
 
 #define LONG_floor_divide LONG_divide
 #define LONG_fmax LONG_maximum
@@ -5344,7 +4242,7 @@ LONG_positive(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     UNARY_LOOP_FAST(npy_long, npy_long, *out = +in);
 }
 
-#line 579
+#line 577
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -5394,7 +4292,7 @@ LONG_invert(char **args, npy_intp const *dimensions, npy_intp const *steps, void
 }
 #endif
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -5410,7 +4308,7 @@ LONG_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *N
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -5426,7 +4324,7 @@ LONG_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -5442,7 +4340,7 @@ LONG_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -5458,7 +4356,7 @@ LONG_bitwise_and(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -5474,7 +4372,7 @@ LONG_bitwise_or(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -5504,6 +4402,7 @@ LONG_bitwise_xor(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 LONG_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -5516,10 +4415,12 @@ LONG_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_LONG_right_shift
 NPY_GCC_OPT_3
@@ -5530,97 +4431,7 @@ LONG_right_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
 {
     BINARY_LOOP_FAST(npy_long, npy_long, *out = npy_rshiftl(in1, in2));
 }
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONG_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONG_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONG_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONG_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONG_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONG_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -5666,7 +4477,7 @@ LONG_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #endif
 
 
-#line 579
+#line 577
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5716,7 +4527,7 @@ LONG_invert_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 #endif
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5732,7 +4543,7 @@ LONG_add_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5748,7 +4559,7 @@ LONG_subtract_avx2(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5764,7 +4575,7 @@ LONG_multiply_avx2(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5780,7 +4591,7 @@ LONG_bitwise_and_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5796,7 +4607,7 @@ LONG_bitwise_or_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -5826,6 +4637,7 @@ LONG_bitwise_xor_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 LONG_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -5838,10 +4650,12 @@ LONG_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_LONG_right_shift
 NPY_GCC_OPT_3
@@ -5852,97 +4666,7 @@ LONG_right_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 {
     BINARY_LOOP_FAST(npy_long, npy_long, *out = npy_rshiftl(in1, in2));
 }
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONG_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONG_not_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONG_greater_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONG_greater_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONG_less_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONG_less_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_long, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -6064,7 +4788,7 @@ LONG_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 
 
 
-#line 554
+#line 553
 
 #define ULONG_floor_divide ULONG_divide
 #define ULONG_fmax ULONG_maximum
@@ -6084,7 +4808,7 @@ ULONG_positive(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     UNARY_LOOP_FAST(npy_ulong, npy_ulong, *out = +in);
 }
 
-#line 579
+#line 577
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6134,7 +4858,7 @@ ULONG_invert(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 #endif
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6150,7 +4874,7 @@ ULONG_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6166,7 +4890,7 @@ ULONG_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6182,7 +4906,7 @@ ULONG_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6198,7 +4922,7 @@ ULONG_bitwise_and(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6214,7 +4938,7 @@ ULONG_bitwise_or(char **args, npy_intp const *dimensions, npy_intp const *steps,
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6244,6 +4968,7 @@ ULONG_bitwise_xor(char **args, npy_intp const *dimensions, npy_intp const *steps
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 ULONG_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -6256,10 +4981,12 @@ ULONG_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_ULONG_right_shift
 NPY_GCC_OPT_3
@@ -6270,97 +4997,7 @@ ULONG_right_shift(char **args, npy_intp const *dimensions, npy_intp const *steps
 {
     BINARY_LOOP_FAST(npy_ulong, npy_ulong, *out = npy_rshiftul(in1, in2));
 }
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONG_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONG_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONG_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONG_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONG_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONG_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -6406,7 +5043,7 @@ ULONG_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 579
+#line 577
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -6456,7 +5093,7 @@ ULONG_invert_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps
 }
 #endif
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -6472,7 +5109,7 @@ ULONG_add_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -6488,7 +5125,7 @@ ULONG_subtract_avx2(char **args, npy_intp const *dimensions, npy_intp const *ste
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -6504,7 +5141,7 @@ ULONG_multiply_avx2(char **args, npy_intp const *dimensions, npy_intp const *ste
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -6520,7 +5157,7 @@ ULONG_bitwise_and_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -6536,7 +5173,7 @@ ULONG_bitwise_or_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -6566,6 +5203,7 @@ ULONG_bitwise_xor_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 ULONG_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -6578,10 +5216,12 @@ ULONG_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_ULONG_right_shift
 NPY_GCC_OPT_3
@@ -6592,97 +5232,7 @@ ULONG_right_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 {
     BINARY_LOOP_FAST(npy_ulong, npy_ulong, *out = npy_rshiftul(in1, in2));
 }
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONG_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONG_not_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONG_greater_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONG_greater_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONG_less_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONG_less_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulong, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -6804,7 +5354,7 @@ ULONG_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 
 
 
-#line 554
+#line 553
 
 #define LONGLONG_floor_divide LONGLONG_divide
 #define LONGLONG_fmax LONGLONG_maximum
@@ -6824,7 +5374,7 @@ LONGLONG_positive(char **args, npy_intp const *dimensions, npy_intp const *steps
     UNARY_LOOP_FAST(npy_longlong, npy_longlong, *out = +in);
 }
 
-#line 579
+#line 577
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6874,7 +5424,7 @@ LONGLONG_invert(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 }
 #endif
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6890,7 +5440,7 @@ LONGLONG_add(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6906,7 +5456,7 @@ LONGLONG_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6922,7 +5472,7 @@ LONGLONG_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6938,7 +5488,7 @@ LONGLONG_bitwise_and(char **args, npy_intp const *dimensions, npy_intp const *st
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6954,7 +5504,7 @@ LONGLONG_bitwise_or(char **args, npy_intp const *dimensions, npy_intp const *ste
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -6984,6 +5534,7 @@ LONGLONG_bitwise_xor(char **args, npy_intp const *dimensions, npy_intp const *st
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 LONGLONG_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -6996,10 +5547,12 @@ LONGLONG_left_shift(char **args, npy_intp const *dimensions, npy_intp const *ste
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_LONGLONG_right_shift
 NPY_GCC_OPT_3
@@ -7010,97 +5563,7 @@ LONGLONG_right_shift(char **args, npy_intp const *dimensions, npy_intp const *st
 {
     BINARY_LOOP_FAST(npy_longlong, npy_longlong, *out = npy_rshiftll(in1, in2));
 }
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONGLONG_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONGLONG_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONGLONG_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONGLONG_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONGLONG_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-LONGLONG_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -7146,7 +5609,7 @@ LONGLONG_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *st
 #endif
 
 
-#line 579
+#line 577
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7196,7 +5659,7 @@ LONGLONG_invert_avx2(char **args, npy_intp const *dimensions, npy_intp const *st
 }
 #endif
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7212,7 +5675,7 @@ LONGLONG_add_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7228,7 +5691,7 @@ LONGLONG_subtract_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7244,7 +5707,7 @@ LONGLONG_multiply_avx2(char **args, npy_intp const *dimensions, npy_intp const *
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7260,7 +5723,7 @@ LONGLONG_bitwise_and_avx2(char **args, npy_intp const *dimensions, npy_intp cons
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7276,7 +5739,7 @@ LONGLONG_bitwise_or_avx2(char **args, npy_intp const *dimensions, npy_intp const
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7306,6 +5769,7 @@ LONGLONG_bitwise_xor_avx2(char **args, npy_intp const *dimensions, npy_intp cons
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 LONGLONG_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -7318,10 +5782,12 @@ LONGLONG_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_LONGLONG_right_shift
 NPY_GCC_OPT_3
@@ -7332,97 +5798,7 @@ LONGLONG_right_shift_avx2(char **args, npy_intp const *dimensions, npy_intp cons
 {
     BINARY_LOOP_FAST(npy_longlong, npy_longlong, *out = npy_rshiftll(in1, in2));
 }
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONGLONG_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONGLONG_not_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONGLONG_greater_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONGLONG_greater_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONGLONG_less_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-LONGLONG_less_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_longlong, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -7544,7 +5920,7 @@ LONGLONG_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps
 
 
 
-#line 554
+#line 553
 
 #define ULONGLONG_floor_divide ULONGLONG_divide
 #define ULONGLONG_fmax ULONGLONG_maximum
@@ -7564,7 +5940,7 @@ ULONGLONG_positive(char **args, npy_intp const *dimensions, npy_intp const *step
     UNARY_LOOP_FAST(npy_ulonglong, npy_ulonglong, *out = +in);
 }
 
-#line 579
+#line 577
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -7614,7 +5990,7 @@ ULONGLONG_invert(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 #endif
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -7630,7 +6006,7 @@ ULONGLONG_add(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -7646,7 +6022,7 @@ ULONGLONG_subtract(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -7662,7 +6038,7 @@ ULONGLONG_multiply(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -7678,7 +6054,7 @@ ULONGLONG_bitwise_and(char **args, npy_intp const *dimensions, npy_intp const *s
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -7694,7 +6070,7 @@ ULONGLONG_bitwise_or(char **args, npy_intp const *dimensions, npy_intp const *st
 #endif
 
 
-#line 633
+#line 631
 
 #if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3  void
@@ -7724,6 +6100,7 @@ ULONGLONG_bitwise_xor(char **args, npy_intp const *dimensions, npy_intp const *s
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 ULONGLONG_left_shift(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -7736,10 +6113,12 @@ ULONGLONG_left_shift(char **args, npy_intp const *dimensions, npy_intp const *st
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if 1
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_ULONGLONG_right_shift
 NPY_GCC_OPT_3
@@ -7750,97 +6129,7 @@ ULONGLONG_right_shift(char **args, npy_intp const *dimensions, npy_intp const *s
 {
     BINARY_LOOP_FAST(npy_ulonglong, npy_ulonglong, *out = npy_rshiftull(in1, in2));
 }
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONGLONG_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONGLONG_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONGLONG_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONGLONG_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONGLONG_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if 1
-NPY_NO_EXPORT NPY_GCC_OPT_3  void
-ULONGLONG_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -7886,7 +6175,7 @@ ULONGLONG_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *s
 #endif
 
 
-#line 579
+#line 577
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7936,7 +6225,7 @@ ULONGLONG_invert_avx2(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 #endif
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7952,7 +6241,7 @@ ULONGLONG_add_avx2(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7968,7 +6257,7 @@ ULONGLONG_subtract_avx2(char **args, npy_intp const *dimensions, npy_intp const 
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -7984,7 +6273,7 @@ ULONGLONG_multiply_avx2(char **args, npy_intp const *dimensions, npy_intp const 
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -8000,7 +6289,7 @@ ULONGLONG_bitwise_and_avx2(char **args, npy_intp const *dimensions, npy_intp con
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -8016,7 +6305,7 @@ ULONGLONG_bitwise_or_avx2(char **args, npy_intp const *dimensions, npy_intp cons
 #endif
 
 
-#line 633
+#line 631
 
 #if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
@@ -8046,6 +6335,7 @@ ULONGLONG_bitwise_xor_avx2(char **args, npy_intp const *dimensions, npy_intp con
 #define INT_left_shift_needs_clear_floatstatus
 #define UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 ULONGLONG_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps,
                   void *NPY_UNUSED(func))
@@ -8058,10 +6348,12 @@ ULONGLONG_left_shift_avx2(char **args, npy_intp const *dimensions, npy_intp cons
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
 }
+#endif
 
 #undef INT_left_shift_needs_clear_floatstatus
 #undef UINT_left_shift_needs_clear_floatstatus
 
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
 NPY_NO_EXPORT
 #ifndef NPY_DO_NOT_OPTIMIZE_ULONGLONG_right_shift
 NPY_GCC_OPT_3
@@ -8072,97 +6364,7 @@ ULONGLONG_right_shift_avx2(char **args, npy_intp const *dimensions, npy_intp con
 {
     BINARY_LOOP_FAST(npy_ulonglong, npy_ulonglong, *out = npy_rshiftull(in1, in2));
 }
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONGLONG_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 == in2);
-}
 #endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONGLONG_not_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 != in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONGLONG_greater_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 > in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONGLONG_greater_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 >= in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONGLONG_less_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 < in2);
-}
-#endif
-
-
-#line 695
-
-#if defined(HAVE_ATTRIBUTE_TARGET_AVX2)
-NPY_NO_EXPORT NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX2 void
-ULONGLONG_less_equal_avx2(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    /*
-     * gcc vectorization of this is not good (PR60575) but manual integer
-     * vectorization is too tedious to be worthwhile
-     */
-    BINARY_LOOP_FAST(npy_ulonglong, npy_bool, *out = in1 <= in2);
-}
-#endif
-
 
 #line 695
 
@@ -9491,114 +7693,26 @@ TIMEDELTA_mm_qm_divmod(char **args, npy_intp const *dimensions, npy_intp const *
  */
 
 #line 1410
-#line 1415
-NPY_NO_EXPORT void
-FLOAT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_equal_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_bool *)op1) = in1 == in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-FLOAT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_not_equal_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_bool *)op1) = in1 != in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-FLOAT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_less_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_bool *)op1) = in1 < in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-FLOAT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_less_equal_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_bool *)op1) = in1 <= in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-FLOAT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_greater_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_bool *)op1) = in1 > in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-FLOAT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_greater_equal_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_bool *)op1) = in1 >= in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
+#line 1414
 NPY_NO_EXPORT void
 FLOAT_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (!run_binary_simd_logical_and_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_bool *)op1) = in1 && in2;
-        }
+    BINARY_LOOP {
+        const npy_float in1 = *(npy_float *)ip1;
+        const npy_float in2 = *(npy_float *)ip2;
+        *((npy_bool *)op1) = in1 && in2;
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 1415
+#line 1414
 NPY_NO_EXPORT void
 FLOAT_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (!run_binary_simd_logical_or_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_bool *)op1) = in1 || in2;
-        }
+    BINARY_LOOP {
+        const npy_float in1 = *(npy_float *)ip1;
+        const npy_float in2 = *(npy_float *)ip2;
+        *((npy_bool *)op1) = in1 || in2;
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
@@ -9623,9 +7737,11 @@ FLOAT_logical_not(char **args, npy_intp const *dimensions, npy_intp const *steps
     }
 }
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 FLOAT_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9637,8 +7753,11 @@ FLOAT_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 FLOAT_isnan_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9650,11 +7769,14 @@ FLOAT_isnan_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 FLOAT_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9666,8 +7788,11 @@ FLOAT_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 FLOAT_isinf_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9679,11 +7804,14 @@ FLOAT_isinf_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 FLOAT_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9695,8 +7823,11 @@ FLOAT_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 FLOAT_isfinite_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9708,11 +7839,14 @@ FLOAT_isfinite_avx512_skx(char **args, npy_intp const *dimensions, npy_intp cons
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 FLOAT_signbit(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9724,8 +7858,11 @@ FLOAT_signbit(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 FLOAT_signbit_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9737,6 +7874,7 @@ FLOAT_signbit_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
 
@@ -9888,114 +8026,26 @@ FLOAT_ldexp_long(char **args, npy_intp const *dimensions, npy_intp const *steps,
 
 
 #line 1410
-#line 1415
-NPY_NO_EXPORT void
-DOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_equal_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_bool *)op1) = in1 == in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-DOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_not_equal_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_bool *)op1) = in1 != in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-DOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_less_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_bool *)op1) = in1 < in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-DOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_less_equal_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_bool *)op1) = in1 <= in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-DOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_greater_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_bool *)op1) = in1 > in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-DOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_greater_equal_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_bool *)op1) = in1 >= in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
+#line 1414
 NPY_NO_EXPORT void
 DOUBLE_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (!run_binary_simd_logical_and_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_bool *)op1) = in1 && in2;
-        }
+    BINARY_LOOP {
+        const npy_double in1 = *(npy_double *)ip1;
+        const npy_double in2 = *(npy_double *)ip2;
+        *((npy_bool *)op1) = in1 && in2;
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 1415
+#line 1414
 NPY_NO_EXPORT void
 DOUBLE_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (!run_binary_simd_logical_or_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_bool *)op1) = in1 || in2;
-        }
+    BINARY_LOOP {
+        const npy_double in1 = *(npy_double *)ip1;
+        const npy_double in2 = *(npy_double *)ip2;
+        *((npy_bool *)op1) = in1 || in2;
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
@@ -10020,9 +8070,11 @@ DOUBLE_logical_not(char **args, npy_intp const *dimensions, npy_intp const *step
     }
 }
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 DOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10034,8 +8086,11 @@ DOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 DOUBLE_isnan_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10047,11 +8102,14 @@ DOUBLE_isnan_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const 
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 DOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10063,8 +8121,11 @@ DOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 DOUBLE_isinf_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10076,11 +8137,14 @@ DOUBLE_isinf_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const 
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 DOUBLE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10092,8 +8156,11 @@ DOUBLE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, 
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 DOUBLE_isfinite_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10105,11 +8172,14 @@ DOUBLE_isfinite_avx512_skx(char **args, npy_intp const *dimensions, npy_intp con
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 DOUBLE_signbit(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10121,8 +8191,11 @@ DOUBLE_signbit(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 DOUBLE_signbit_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10134,6 +8207,7 @@ DOUBLE_signbit_avx512_skx(char **args, npy_intp const *dimensions, npy_intp cons
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
 
@@ -10285,114 +8359,26 @@ DOUBLE_ldexp_long(char **args, npy_intp const *dimensions, npy_intp const *steps
 
 
 #line 1410
-#line 1415
-NPY_NO_EXPORT void
-LONGDOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_equal_LONGDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_longdouble in1 = *(npy_longdouble *)ip1;
-            const npy_longdouble in2 = *(npy_longdouble *)ip2;
-            *((npy_bool *)op1) = in1 == in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-LONGDOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_not_equal_LONGDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_longdouble in1 = *(npy_longdouble *)ip1;
-            const npy_longdouble in2 = *(npy_longdouble *)ip2;
-            *((npy_bool *)op1) = in1 != in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-LONGDOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_less_LONGDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_longdouble in1 = *(npy_longdouble *)ip1;
-            const npy_longdouble in2 = *(npy_longdouble *)ip2;
-            *((npy_bool *)op1) = in1 < in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-LONGDOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_less_equal_LONGDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_longdouble in1 = *(npy_longdouble *)ip1;
-            const npy_longdouble in2 = *(npy_longdouble *)ip2;
-            *((npy_bool *)op1) = in1 <= in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-LONGDOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_greater_LONGDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_longdouble in1 = *(npy_longdouble *)ip1;
-            const npy_longdouble in2 = *(npy_longdouble *)ip2;
-            *((npy_bool *)op1) = in1 > in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
-NPY_NO_EXPORT void
-LONGDOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    if (!run_binary_simd_greater_equal_LONGDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_longdouble in1 = *(npy_longdouble *)ip1;
-            const npy_longdouble in2 = *(npy_longdouble *)ip2;
-            *((npy_bool *)op1) = in1 >= in2;
-        }
-    }
-    npy_clear_floatstatus_barrier((char*)dimensions);
-}
-
-#line 1415
+#line 1414
 NPY_NO_EXPORT void
 LONGDOUBLE_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (!run_binary_simd_logical_and_LONGDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_longdouble in1 = *(npy_longdouble *)ip1;
-            const npy_longdouble in2 = *(npy_longdouble *)ip2;
-            *((npy_bool *)op1) = in1 && in2;
-        }
+    BINARY_LOOP {
+        const npy_longdouble in1 = *(npy_longdouble *)ip1;
+        const npy_longdouble in2 = *(npy_longdouble *)ip2;
+        *((npy_bool *)op1) = in1 && in2;
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 1415
+#line 1414
 NPY_NO_EXPORT void
 LONGDOUBLE_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (!run_binary_simd_logical_or_LONGDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_longdouble in1 = *(npy_longdouble *)ip1;
-            const npy_longdouble in2 = *(npy_longdouble *)ip2;
-            *((npy_bool *)op1) = in1 || in2;
-        }
+    BINARY_LOOP {
+        const npy_longdouble in1 = *(npy_longdouble *)ip1;
+        const npy_longdouble in2 = *(npy_longdouble *)ip2;
+        *((npy_bool *)op1) = in1 || in2;
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
@@ -10417,9 +8403,11 @@ LONGDOUBLE_logical_not(char **args, npy_intp const *dimensions, npy_intp const *
     }
 }
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 LONGDOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10431,8 +8419,11 @@ LONGDOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps,
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 LONGDOUBLE_isnan_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10444,11 +8435,14 @@ LONGDOUBLE_isnan_avx512_skx(char **args, npy_intp const *dimensions, npy_intp co
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 LONGDOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10460,8 +8454,11 @@ LONGDOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps,
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 LONGDOUBLE_isinf_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10473,11 +8470,14 @@ LONGDOUBLE_isinf_avx512_skx(char **args, npy_intp const *dimensions, npy_intp co
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 LONGDOUBLE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10489,8 +8489,11 @@ LONGDOUBLE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *ste
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 LONGDOUBLE_isfinite_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10502,11 +8505,14 @@ LONGDOUBLE_isfinite_avx512_skx(char **args, npy_intp const *dimensions, npy_intp
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
-#line 1452
+#line 1449
 
-#line 1457
+#line 1455
+
+#if 1
 NPY_NO_EXPORT void
 LONGDOUBLE_signbit(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10518,8 +8524,11 @@ LONGDOUBLE_signbit(char **args, npy_intp const *dimensions, npy_intp const *step
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
-#line 1457
+#line 1455
+
+#if defined(HAVE_ATTRIBUTE_TARGET_AVX512_SKX)
 NPY_NO_EXPORT void
 LONGDOUBLE_signbit_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10531,6 +8540,7 @@ LONGDOUBLE_signbit_avx512_skx(char **args, npy_intp const *dimensions, npy_intp 
     }
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
+#endif
 
 
 
@@ -10688,7 +8698,7 @@ LONGDOUBLE_ldexp_long(char **args, npy_intp const *dimensions, npy_intp const *s
  *****************************************************************************
  */
 
-#line 1631
+#line 1632
 NPY_NO_EXPORT void
 LONGDOUBLE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10714,7 +8724,7 @@ LONGDOUBLE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     }
 }
 
-#line 1631
+#line 1632
 NPY_NO_EXPORT void
 LONGDOUBLE_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10740,7 +8750,7 @@ LONGDOUBLE_subtract(char **args, npy_intp const *dimensions, npy_intp const *ste
     }
 }
 
-#line 1631
+#line 1632
 NPY_NO_EXPORT void
 LONGDOUBLE_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10766,7 +8776,7 @@ LONGDOUBLE_multiply(char **args, npy_intp const *dimensions, npy_intp const *ste
     }
 }
 
-#line 1631
+#line 1632
 NPY_NO_EXPORT void
 LONGDOUBLE_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10790,6 +8800,79 @@ LONGDOUBLE_divide(char **args, npy_intp const *dimensions, npy_intp const *steps
             *((npy_longdouble *)op1) = in1 / in2;
         }
     }
+}
+
+
+#line 1662
+NPY_NO_EXPORT void
+LONGDOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
+{
+    BINARY_LOOP {
+        const npy_longdouble in1 = *(npy_longdouble *)ip1;
+        const npy_longdouble in2 = *(npy_longdouble *)ip2;
+        *((npy_bool *)op1) = in1 == in2;
+    }
+    npy_clear_floatstatus_barrier((char*)dimensions);
+}
+
+#line 1662
+NPY_NO_EXPORT void
+LONGDOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
+{
+    BINARY_LOOP {
+        const npy_longdouble in1 = *(npy_longdouble *)ip1;
+        const npy_longdouble in2 = *(npy_longdouble *)ip2;
+        *((npy_bool *)op1) = in1 != in2;
+    }
+    npy_clear_floatstatus_barrier((char*)dimensions);
+}
+
+#line 1662
+NPY_NO_EXPORT void
+LONGDOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
+{
+    BINARY_LOOP {
+        const npy_longdouble in1 = *(npy_longdouble *)ip1;
+        const npy_longdouble in2 = *(npy_longdouble *)ip2;
+        *((npy_bool *)op1) = in1 < in2;
+    }
+    npy_clear_floatstatus_barrier((char*)dimensions);
+}
+
+#line 1662
+NPY_NO_EXPORT void
+LONGDOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
+{
+    BINARY_LOOP {
+        const npy_longdouble in1 = *(npy_longdouble *)ip1;
+        const npy_longdouble in2 = *(npy_longdouble *)ip2;
+        *((npy_bool *)op1) = in1 <= in2;
+    }
+    npy_clear_floatstatus_barrier((char*)dimensions);
+}
+
+#line 1662
+NPY_NO_EXPORT void
+LONGDOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
+{
+    BINARY_LOOP {
+        const npy_longdouble in1 = *(npy_longdouble *)ip1;
+        const npy_longdouble in2 = *(npy_longdouble *)ip2;
+        *((npy_bool *)op1) = in1 > in2;
+    }
+    npy_clear_floatstatus_barrier((char*)dimensions);
+}
+
+#line 1662
+NPY_NO_EXPORT void
+LONGDOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
+{
+    BINARY_LOOP {
+        const npy_longdouble in1 = *(npy_longdouble *)ip1;
+        const npy_longdouble in2 = *(npy_longdouble *)ip2;
+        *((npy_bool *)op1) = in1 >= in2;
+    }
+    npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
 
@@ -10849,7 +8932,7 @@ LONGDOUBLE_ldexp(char **args, npy_intp const *dimensions, npy_intp const *steps,
  */
 
 
-#line 1719
+#line 1736
 NPY_NO_EXPORT void
 HALF_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10876,7 +8959,7 @@ HALF_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *N
     }
 }
 
-#line 1719
+#line 1736
 NPY_NO_EXPORT void
 HALF_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10903,7 +8986,7 @@ HALF_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     }
 }
 
-#line 1719
+#line 1736
 NPY_NO_EXPORT void
 HALF_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10930,7 +9013,7 @@ HALF_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     }
 }
 
-#line 1719
+#line 1736
 NPY_NO_EXPORT void
 HALF_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10960,7 +9043,7 @@ HALF_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void
 
 #define _HALF_LOGICAL_AND(a,b) (!npy_half_iszero(a) && !npy_half_iszero(b))
 #define _HALF_LOGICAL_OR(a,b) (!npy_half_iszero(a) || !npy_half_iszero(b))
-#line 1754
+#line 1771
 NPY_NO_EXPORT void
 HALF_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10971,7 +9054,7 @@ HALF_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void 
     }
 }
 
-#line 1754
+#line 1771
 NPY_NO_EXPORT void
 HALF_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10982,7 +9065,7 @@ HALF_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     }
 }
 
-#line 1754
+#line 1771
 NPY_NO_EXPORT void
 HALF_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -10993,7 +9076,7 @@ HALF_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *
     }
 }
 
-#line 1754
+#line 1771
 NPY_NO_EXPORT void
 HALF_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11004,7 +9087,7 @@ HALF_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, 
     }
 }
 
-#line 1754
+#line 1771
 NPY_NO_EXPORT void
 HALF_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11015,7 +9098,7 @@ HALF_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     }
 }
 
-#line 1754
+#line 1771
 NPY_NO_EXPORT void
 HALF_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11026,7 +9109,7 @@ HALF_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *step
     }
 }
 
-#line 1754
+#line 1771
 NPY_NO_EXPORT void
 HALF_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11037,7 +9120,7 @@ HALF_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps,
     }
 }
 
-#line 1754
+#line 1771
 NPY_NO_EXPORT void
 HALF_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11070,7 +9153,7 @@ HALF_logical_not(char **args, npy_intp const *dimensions, npy_intp const *steps,
     }
 }
 
-#line 1790
+#line 1807
 NPY_NO_EXPORT void
 HALF_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11081,7 +9164,7 @@ HALF_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void 
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 1790
+#line 1807
 NPY_NO_EXPORT void
 HALF_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11092,7 +9175,7 @@ HALF_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void 
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 1790
+#line 1807
 NPY_NO_EXPORT void
 HALF_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11103,7 +9186,7 @@ HALF_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 1790
+#line 1807
 NPY_NO_EXPORT void
 HALF_signbit(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11144,7 +9227,7 @@ HALF_nextafter(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     }
 }
 
-#line 1834
+#line 1851
 NPY_NO_EXPORT void
 HALF_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11157,7 +9240,7 @@ HALF_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     /* npy_half_isnan will never set floatstatus_invalid, so do not clear */
 }
 
-#line 1834
+#line 1851
 NPY_NO_EXPORT void
 HALF_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11171,7 +9254,7 @@ HALF_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 
 
-#line 1851
+#line 1868
 NPY_NO_EXPORT void
 HALF_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11184,7 +9267,7 @@ HALF_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *
     /* npy_half_isnan will never set floatstatus_invalid, so do not clear */
 }
 
-#line 1851
+#line 1868
 NPY_NO_EXPORT void
 HALF_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11387,11 +9470,11 @@ HALF_ldexp_long(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 #define CEQ(xr,xi,yr,yi) (xr == yr && xi == yi)
 #define CNE(xr,xi,yr,yi) (xr != yr || xi != yi)
 
-#line 2061
+#line 2078
 
 #if !1
 // CFLOAT & CDOUBLE defined by 'loops_arithm_fp.dispatch.c.src'
-#line 2070
+#line 2087
 NPY_NO_EXPORT void
 CFLOAT_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11419,7 +9502,7 @@ CFLOAT_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void 
     }
 }
 
-#line 2070
+#line 2087
 NPY_NO_EXPORT void
 CFLOAT_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11495,7 +9578,7 @@ CFLOAT_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
 }
 
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CFLOAT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11508,7 +9591,7 @@ CFLOAT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CFLOAT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11521,7 +9604,7 @@ CFLOAT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *st
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CFLOAT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11534,7 +9617,7 @@ CFLOAT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CFLOAT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11547,7 +9630,7 @@ CFLOAT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CFLOAT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11560,7 +9643,7 @@ CFLOAT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CFLOAT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11574,7 +9657,7 @@ CFLOAT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 
 
-#line 2167
+#line 2184
 NPY_NO_EXPORT void
 CFLOAT_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11587,7 +9670,7 @@ CFLOAT_logical_and(char **args, npy_intp const *dimensions, npy_intp const *step
     }
 }
 
-#line 2167
+#line 2184
 NPY_NO_EXPORT void
 CFLOAT_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11625,7 +9708,7 @@ CFLOAT_logical_not(char **args, npy_intp const *dimensions, npy_intp const *step
     }
 }
 
-#line 2209
+#line 2226
 NPY_NO_EXPORT void
 CFLOAT_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11637,7 +9720,7 @@ CFLOAT_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2209
+#line 2226
 NPY_NO_EXPORT void
 CFLOAT_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11649,7 +9732,7 @@ CFLOAT_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2209
+#line 2226
 NPY_NO_EXPORT void
 CFLOAT_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11722,8 +9805,8 @@ CFLOAT_absolute(char **args, npy_intp const *dimensions, npy_intp const *steps, 
     }
 }
 
-#if 1
-#line 2286
+#if 1 && defined(HAVE_ATTRIBUTE_TARGET_AVX512F)
+#line 2303
 NPY_NO_EXPORT void
 CFLOAT_conjugate_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *func)
 {
@@ -11732,7 +9815,7 @@ CFLOAT_conjugate_avx512f(char **args, const npy_intp *dimensions, const npy_intp
     }
 }
 
-#line 2286
+#line 2303
 NPY_NO_EXPORT void
 CFLOAT_square_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *func)
 {
@@ -11741,7 +9824,7 @@ CFLOAT_square_avx512f(char **args, const npy_intp *dimensions, const npy_intp *s
     }
 }
 
-#line 2286
+#line 2303
 NPY_NO_EXPORT void
 CFLOAT_absolute_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *func)
 {
@@ -11776,7 +9859,7 @@ CFLOAT_sign(char **args, npy_intp const *dimensions, npy_intp const *steps, void
     }
 }
 
-#line 2324
+#line 2341
 NPY_NO_EXPORT void
 CFLOAT_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11795,7 +9878,7 @@ CFLOAT_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2324
+#line 2341
 NPY_NO_EXPORT void
 CFLOAT_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11815,7 +9898,7 @@ CFLOAT_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 }
 
 
-#line 2347
+#line 2364
 NPY_NO_EXPORT void
 CFLOAT_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11836,7 +9919,7 @@ CFLOAT_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2347
+#line 2364
 NPY_NO_EXPORT void
 CFLOAT_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11859,11 +9942,11 @@ CFLOAT_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void
 
 
 
-#line 2061
+#line 2078
 
 #if !1
 // CFLOAT & CDOUBLE defined by 'loops_arithm_fp.dispatch.c.src'
-#line 2070
+#line 2087
 NPY_NO_EXPORT void
 CDOUBLE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11891,7 +9974,7 @@ CDOUBLE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void
     }
 }
 
-#line 2070
+#line 2087
 NPY_NO_EXPORT void
 CDOUBLE_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11967,7 +10050,7 @@ CDOUBLE_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 }
 
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CDOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11980,7 +10063,7 @@ CDOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, 
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CDOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -11993,7 +10076,7 @@ CDOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *s
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CDOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12006,7 +10089,7 @@ CDOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CDOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12019,7 +10102,7 @@ CDOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *step
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CDOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12032,7 +10115,7 @@ CDOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CDOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12046,7 +10129,7 @@ CDOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps
 }
 
 
-#line 2167
+#line 2184
 NPY_NO_EXPORT void
 CDOUBLE_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12059,7 +10142,7 @@ CDOUBLE_logical_and(char **args, npy_intp const *dimensions, npy_intp const *ste
     }
 }
 
-#line 2167
+#line 2184
 NPY_NO_EXPORT void
 CDOUBLE_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12097,7 +10180,7 @@ CDOUBLE_logical_not(char **args, npy_intp const *dimensions, npy_intp const *ste
     }
 }
 
-#line 2209
+#line 2226
 NPY_NO_EXPORT void
 CDOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12109,7 +10192,7 @@ CDOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2209
+#line 2226
 NPY_NO_EXPORT void
 CDOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12121,7 +10204,7 @@ CDOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2209
+#line 2226
 NPY_NO_EXPORT void
 CDOUBLE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12194,8 +10277,8 @@ CDOUBLE_absolute(char **args, npy_intp const *dimensions, npy_intp const *steps,
     }
 }
 
-#if 1
-#line 2286
+#if 1 && defined(HAVE_ATTRIBUTE_TARGET_AVX512F)
+#line 2303
 NPY_NO_EXPORT void
 CDOUBLE_conjugate_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *func)
 {
@@ -12204,7 +10287,7 @@ CDOUBLE_conjugate_avx512f(char **args, const npy_intp *dimensions, const npy_int
     }
 }
 
-#line 2286
+#line 2303
 NPY_NO_EXPORT void
 CDOUBLE_square_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *func)
 {
@@ -12213,7 +10296,7 @@ CDOUBLE_square_avx512f(char **args, const npy_intp *dimensions, const npy_intp *
     }
 }
 
-#line 2286
+#line 2303
 NPY_NO_EXPORT void
 CDOUBLE_absolute_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *func)
 {
@@ -12248,7 +10331,7 @@ CDOUBLE_sign(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     }
 }
 
-#line 2324
+#line 2341
 NPY_NO_EXPORT void
 CDOUBLE_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12267,7 +10350,7 @@ CDOUBLE_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, 
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2324
+#line 2341
 NPY_NO_EXPORT void
 CDOUBLE_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12287,7 +10370,7 @@ CDOUBLE_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 }
 
 
-#line 2347
+#line 2364
 NPY_NO_EXPORT void
 CDOUBLE_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12308,7 +10391,7 @@ CDOUBLE_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2347
+#line 2364
 NPY_NO_EXPORT void
 CDOUBLE_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12331,11 +10414,11 @@ CDOUBLE_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 
 
 
-#line 2061
+#line 2078
 
 #if !0
 // CFLOAT & CDOUBLE defined by 'loops_arithm_fp.dispatch.c.src'
-#line 2070
+#line 2087
 NPY_NO_EXPORT void
 CLONGDOUBLE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12363,7 +10446,7 @@ CLONGDOUBLE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, 
     }
 }
 
-#line 2070
+#line 2087
 NPY_NO_EXPORT void
 CLONGDOUBLE_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12439,7 +10522,7 @@ CLONGDOUBLE_divide(char **args, npy_intp const *dimensions, npy_intp const *step
 }
 
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CLONGDOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12452,7 +10535,7 @@ CLONGDOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *ste
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CLONGDOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12465,7 +10548,7 @@ CLONGDOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp cons
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CLONGDOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12478,7 +10561,7 @@ CLONGDOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps,
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CLONGDOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12491,7 +10574,7 @@ CLONGDOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CLONGDOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12504,7 +10587,7 @@ CLONGDOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps
     }
 }
 
-#line 2149
+#line 2166
 NPY_NO_EXPORT void
 CLONGDOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12518,7 +10601,7 @@ CLONGDOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 2167
+#line 2184
 NPY_NO_EXPORT void
 CLONGDOUBLE_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12531,7 +10614,7 @@ CLONGDOUBLE_logical_and(char **args, npy_intp const *dimensions, npy_intp const 
     }
 }
 
-#line 2167
+#line 2184
 NPY_NO_EXPORT void
 CLONGDOUBLE_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12569,7 +10652,7 @@ CLONGDOUBLE_logical_not(char **args, npy_intp const *dimensions, npy_intp const 
     }
 }
 
-#line 2209
+#line 2226
 NPY_NO_EXPORT void
 CLONGDOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12581,7 +10664,7 @@ CLONGDOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2209
+#line 2226
 NPY_NO_EXPORT void
 CLONGDOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12593,7 +10676,7 @@ CLONGDOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2209
+#line 2226
 NPY_NO_EXPORT void
 CLONGDOUBLE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12666,8 +10749,8 @@ CLONGDOUBLE_absolute(char **args, npy_intp const *dimensions, npy_intp const *st
     }
 }
 
-#if 0
-#line 2286
+#if 0 && defined(HAVE_ATTRIBUTE_TARGET_AVX512F)
+#line 2303
 NPY_NO_EXPORT void
 CLONGDOUBLE_conjugate_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *func)
 {
@@ -12676,7 +10759,7 @@ CLONGDOUBLE_conjugate_avx512f(char **args, const npy_intp *dimensions, const npy
     }
 }
 
-#line 2286
+#line 2303
 NPY_NO_EXPORT void
 CLONGDOUBLE_square_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *func)
 {
@@ -12685,7 +10768,7 @@ CLONGDOUBLE_square_avx512f(char **args, const npy_intp *dimensions, const npy_in
     }
 }
 
-#line 2286
+#line 2303
 NPY_NO_EXPORT void
 CLONGDOUBLE_absolute_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *func)
 {
@@ -12720,7 +10803,7 @@ CLONGDOUBLE_sign(char **args, npy_intp const *dimensions, npy_intp const *steps,
     }
 }
 
-#line 2324
+#line 2341
 NPY_NO_EXPORT void
 CLONGDOUBLE_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12739,7 +10822,7 @@ CLONGDOUBLE_maximum(char **args, npy_intp const *dimensions, npy_intp const *ste
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2324
+#line 2341
 NPY_NO_EXPORT void
 CLONGDOUBLE_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12759,7 +10842,7 @@ CLONGDOUBLE_minimum(char **args, npy_intp const *dimensions, npy_intp const *ste
 }
 
 
-#line 2347
+#line 2364
 NPY_NO_EXPORT void
 CLONGDOUBLE_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12780,7 +10863,7 @@ CLONGDOUBLE_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps,
     npy_clear_floatstatus_barrier((char*)dimensions);
 }
 
-#line 2347
+#line 2364
 NPY_NO_EXPORT void
 CLONGDOUBLE_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -12817,9 +10900,9 @@ CLONGDOUBLE_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps,
  *****************************************************************************
  */
 
-#line 2388
+#line 2405
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -12854,7 +10937,7 @@ OBJECT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
     }
 }
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_OO_O_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -12890,9 +10973,9 @@ OBJECT_OO_O_equal(char **args, npy_intp const *dimensions, npy_intp const *steps
 }
 
 
-#line 2388
+#line 2405
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -12927,7 +11010,7 @@ OBJECT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps,
     }
 }
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_OO_O_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -12963,9 +11046,9 @@ OBJECT_OO_O_not_equal(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 2388
+#line 2405
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -13000,7 +11083,7 @@ OBJECT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, v
     }
 }
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_OO_O_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -13036,9 +11119,9 @@ OBJECT_OO_O_greater(char **args, npy_intp const *dimensions, npy_intp const *ste
 }
 
 
-#line 2388
+#line 2405
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -13073,7 +11156,7 @@ OBJECT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *st
     }
 }
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_OO_O_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -13109,9 +11192,9 @@ OBJECT_OO_O_greater_equal(char **args, npy_intp const *dimensions, npy_intp cons
 }
 
 
-#line 2388
+#line 2405
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -13146,7 +11229,7 @@ OBJECT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void
     }
 }
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_OO_O_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -13182,9 +11265,9 @@ OBJECT_OO_O_less(char **args, npy_intp const *dimensions, npy_intp const *steps,
 }
 
 
-#line 2388
+#line 2405
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {
@@ -13219,7 +11302,7 @@ OBJECT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps
     }
 }
 
-#line 2393
+#line 2410
 NPY_NO_EXPORT void
 OBJECT_OO_O_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)) {
     BINARY_LOOP {

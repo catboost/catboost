@@ -38,135 +38,307 @@ small_correlate(const char * d_, npy_intp dstride,
                 npy_intp nk, enum NPY_TYPES ktype,
                 char * out_, npy_intp ostride);
 
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+BYTE_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+UBYTE_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+SHORT_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+USHORT_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+INT_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+UINT_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+LONG_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+ULONG_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+LONGLONG_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+ULONGLONG_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+HALF_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+FLOAT_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+DOUBLE_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+LONGDOUBLE_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+CFLOAT_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+CDOUBLE_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+#line 37
+/*
+ * The setitem functions are currently directly used in certain branches
+ * of the scalar-math code. (Yes, this would be nice to refactor...)
+ */
+
+NPY_NO_EXPORT int
+CLONGDOUBLE_setitem(PyObject *obj, void *data_ptr, void *arr);
+
+
+
+
 #ifndef NPY_DISABLE_OPTIMIZATION
     #include "argfunc.dispatch.h"
 #endif
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int BYTE_argmax,
     (npy_byte *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int BYTE_argmin,
     (npy_byte *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int UBYTE_argmax,
     (npy_ubyte *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int UBYTE_argmin,
     (npy_ubyte *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int SHORT_argmax,
     (npy_short *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int SHORT_argmin,
     (npy_short *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int USHORT_argmax,
     (npy_ushort *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int USHORT_argmin,
     (npy_ushort *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int INT_argmax,
     (npy_int *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int INT_argmin,
     (npy_int *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int UINT_argmax,
     (npy_uint *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int UINT_argmin,
     (npy_uint *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int LONG_argmax,
     (npy_long *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int LONG_argmin,
     (npy_long *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int ULONG_argmax,
     (npy_ulong *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int ULONG_argmin,
     (npy_ulong *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int LONGLONG_argmax,
     (npy_longlong *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int LONGLONG_argmin,
     (npy_longlong *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int ULONGLONG_argmax,
     (npy_ulonglong *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int ULONGLONG_argmin,
     (npy_ulonglong *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int FLOAT_argmax,
     (npy_float *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int FLOAT_argmin,
     (npy_float *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int DOUBLE_argmax,
     (npy_double *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int DOUBLE_argmin,
     (npy_double *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
 
-#line 42
-#line 45
+#line 59
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int LONGDOUBLE_argmax,
     (npy_longdouble *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
-#line 45
+#line 62
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int LONGDOUBLE_argmin,
     (npy_longdouble *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 

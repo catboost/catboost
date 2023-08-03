@@ -18,4 +18,4 @@
 #define NPY__CPU_TARGET_AVX512F
 #define NPY__CPU_TARGET_AVX512CD
 #define NPY__CPU_TARGET_AVX512_SKX
-#include "loops_umath_fp.dispatch.c"
+#include "numpy/core/src/umath/loops_umath_fp.dispatch.c"

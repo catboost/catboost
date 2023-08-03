@@ -26,6 +26,9 @@
 #include "npy_pycompat.h"
 
 #include "npy_config.h"
+#include "npy_cpu_features.h"
+#include "npy_cpu_dispatch.h"
+#include "numpy/npy_cpu.h"
 
 /*
  *****************************************************************************
@@ -83,7 +86,7 @@ always_error_loop(
 
 char *inner1d_signature = "(i),(i)->()";
 
-#line 81
+#line 84
 
 /*
  *  This implements the function
@@ -110,7 +113,7 @@ LONG_inner1d(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 
 
-#line 81
+#line 84
 
 /*
  *  This implements the function
@@ -140,7 +143,7 @@ DOUBLE_inner1d(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 
 char *innerwt_signature = "(i),(i),(i)->()";
 
-#line 115
+#line 118
 
 
 /*
@@ -169,7 +172,7 @@ LONG_innerwt(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 
 
-#line 115
+#line 118
 
 
 /*
@@ -203,7 +206,7 @@ char *matrix_multiply_signature = "(m,n),(n,p)->(m,p)";
 /* for use with matrix_multiply code, but different signature */
 char *matmul_signature = "(m?,n),(n,p?)->(m?,p?)";
 
-#line 153
+#line 156
 
 /*
  *  This implements the function
@@ -264,7 +267,7 @@ FLOAT_matrix_multiply(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 153
+#line 156
 
 /*
  *  This implements the function
@@ -325,7 +328,7 @@ DOUBLE_matrix_multiply(char **args, npy_intp const *dimensions, npy_intp const *
 }
 
 
-#line 153
+#line 156
 
 /*
  *  This implements the function
@@ -389,7 +392,7 @@ LONG_matrix_multiply(char **args, npy_intp const *dimensions, npy_intp const *st
 
 char *cross1d_signature = "(3),(3)->(3)";
 
-#line 221
+#line 224
 
 /*
  *  This implements the cross product:
@@ -421,7 +424,7 @@ LONG_cross1d(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 
 
-#line 221
+#line 224
 
 /*
  *  This implements the cross product:
@@ -456,7 +459,7 @@ DOUBLE_cross1d(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 
 char *euclidean_pdist_signature = "(n,d)->(p)";
 
-#line 261
+#line 264
 
 /*
  *  This implements the function
@@ -506,7 +509,7 @@ FLOAT_euclidean_pdist(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 261
+#line 264
 
 /*
  *  This implements the function
@@ -564,7 +567,7 @@ char *cumsum_signature = "(i)->(i)";
  *        out[n] = sum_i^n in[i]
  */
 
-#line 323
+#line 326
 
 static void
 LONG_cumsum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
@@ -584,7 +587,7 @@ LONG_cumsum(char **args, npy_intp const *dimensions, npy_intp const *steps, void
 }
 
 
-#line 323
+#line 326
 
 static void
 DOUBLE_cumsum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
@@ -908,28 +911,28 @@ UMath_Tests_test_dispatch(PyObject *NPY_UNUSED(dummy), PyObject *NPY_UNUSED(dumm
     if (dict == NULL) {
         return NULL;
     }
-    #line 649
+    #line 652
     item = PyUnicode_FromString(highest_func);
     if (item == NULL || PyDict_SetItemString(dict, "func", item) < 0) {
         goto err;
     }
     Py_DECREF(item);
     
-#line 649
+#line 652
     item = PyUnicode_FromString(highest_var);
     if (item == NULL || PyDict_SetItemString(dict, "var", item) < 0) {
         goto err;
     }
     Py_DECREF(item);
     
-#line 649
+#line 652
     item = PyUnicode_FromString(highest_func_xb);
     if (item == NULL || PyDict_SetItemString(dict, "func_xb", item) < 0) {
         goto err;
     }
     Py_DECREF(item);
     
-#line 649
+#line 652
     item = PyUnicode_FromString(highest_var_xb);
     if (item == NULL || PyDict_SetItemString(dict, "var_xb", item) < 0) {
         goto err;

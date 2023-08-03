@@ -25,7 +25,7 @@ from numpy.testing import (
     assert_warns, assert_, assert_raises_regex, assert_raises,
     assert_allclose, assert_array_equal, temppath, tempdir, IS_PYPY,
     HAS_REFCOUNT, suppress_warnings, assert_no_gc_cycles, assert_no_warnings,
-    break_cycles
+    break_cycles, IS_WASM
     )
 from numpy.testing._private.utils import requires_memory
 
@@ -232,6 +232,16 @@ class TestSavezLoad(RoundtripTest):
         assert_equal(a, l['file_a'])
         assert_equal(b, l['file_b'])
 
+    def test_named_arrays_with_like(self):
+        a = np.array([[1, 2], [3, 4]], float)
+        b = np.array([[1 + 2j, 2 + 7j], [3 - 6j, 4 + 12j]], complex)
+        c = BytesIO()
+        np.savez(c, file_a=a, like=b)
+        c.seek(0)
+        l = np.load(c)
+        assert_equal(a, l['file_a'])
+        assert_equal(b, l['like'])
+
     def test_BagObj(self):
         a = np.array([[1, 2], [3, 4]], float)
         b = np.array([[1 + 2j, 2 + 7j], [3 - 6j, 4 + 12j]], complex)
@@ -243,6 +253,7 @@ class TestSavezLoad(RoundtripTest):
         assert_equal(a, l.f.file_a)
         assert_equal(b, l.f.file_b)
 
+    @pytest.mark.skipif(IS_WASM, reason="Cannot start thread")
     def test_savez_filename_clashes(self):
         # Test that issue #852 is fixed
         # and savez functions in multithreaded environment
@@ -560,7 +571,7 @@ class TestSaveTxt:
         s.seek(0)
         assert_equal(s.read(), utf8 + '\n')
 
-    @pytest.mark.parametrize("fmt", [u"%f", b"%f"])
+    @pytest.mark.parametrize("fmt", ["%f", b"%f"])
     @pytest.mark.parametrize("iotype", [StringIO, BytesIO])
     def test_unicode_and_bytes_fmt(self, fmt, iotype):
         # string type of fmt should not matter, see also gh-4053
@@ -569,7 +580,7 @@ class TestSaveTxt:
         np.savetxt(s, a, fmt=fmt)
         s.seek(0)
         if iotype is StringIO:
-            assert_equal(s.read(), u"%f\n" % 1.)
+            assert_equal(s.read(), "%f\n" % 1.)
         else:
             assert_equal(s.read(), b"%f\n" % 1.)
 
@@ -764,7 +775,7 @@ class TestLoadTxt(LoadTxtBase):
         c.write('# comment\n1,2,3,5\n')
         c.seek(0)
         x = np.loadtxt(c, dtype=int, delimiter=',',
-                       comments=u'#')
+                       comments='#')
         a = np.array([1, 2, 3, 5], int)
         assert_array_equal(x, a)
 
@@ -1515,7 +1526,7 @@ M   33  21.99
         with tempdir() as tmpdir:
             fpath = os.path.join(tmpdir, "test.csv")
             with open(fpath, "wb") as f:
-                f.write(u'\N{GREEK PI SYMBOL}'.encode('utf8'))
+                f.write('\N{GREEK PI SYMBOL}'.encode())
 
             # ResourceWarnings are emitted from a destructor, so won't be
             # detected by regular propagation to errors.
@@ -2175,9 +2186,9 @@ M   33  21.99
         test = np.genfromtxt(TextIO(s),
                              dtype=None, comments=None, delimiter=',',
                              encoding='latin1')
-        assert_equal(test[1, 0], u"test1")
-        assert_equal(test[1, 1], u"testNonethe" + latin1.decode('latin1'))
-        assert_equal(test[1, 2], u"test3")
+        assert_equal(test[1, 0], "test1")
+        assert_equal(test[1, 1], "testNonethe" + latin1.decode('latin1'))
+        assert_equal(test[1, 2], "test3")
 
         with warnings.catch_warnings(record=True) as w:
             warnings.filterwarnings('always', '', np.VisibleDeprecationWarning)
@@ -2231,8 +2242,8 @@ M   33  21.99
 
     def test_utf8_file_nodtype_unicode(self):
         # bytes encoding with non-latin1 -> unicode upcast
-        utf8 = u'\u03d6'
-        latin1 = u'\xf6\xfc\xf6'
+        utf8 = '\u03d6'
+        latin1 = '\xf6\xfc\xf6'
 
         # skip test if cannot encode utf8 test string with preferred
         # encoding. The preferred encoding is assumed to be the default
@@ -2247,9 +2258,9 @@ M   33  21.99
 
         with temppath() as path:
             with io.open(path, "wt") as f:
-                f.write(u"norm1,norm2,norm3\n")
-                f.write(u"norm1," + latin1 + u",norm3\n")
-                f.write(u"test1,testNonethe" + utf8 + u",test3\n")
+                f.write("norm1,norm2,norm3\n")
+                f.write("norm1," + latin1 + ",norm3\n")
+                f.write("test1,testNonethe" + utf8 + ",test3\n")
             with warnings.catch_warnings(record=True) as w:
                 warnings.filterwarnings('always', '',
                                         np.VisibleDeprecationWarning)
@@ -2496,7 +2507,7 @@ M   33  21.99
 
     @pytest.mark.parametrize("ndim", [0, 1, 2])
     def test_ndmin_keyword(self, ndim: int):
-        # lets have the same behaivour of ndmin as loadtxt
+        # lets have the same behaviour of ndmin as loadtxt
         # as they should be the same for non-missing values
         txt = "42"
 
@@ -2539,6 +2550,7 @@ class TestPathUsage:
                 break_cycles()
                 break_cycles()
 
+    @pytest.mark.xfail(IS_WASM, reason="memmap doesn't work correctly")
     def test_save_load_memmap_readwrite(self):
         # Test that pathlib.Path instances can be written mem-mapped.
         with temppath(suffix='.npy') as path:
@@ -2584,7 +2596,7 @@ class TestPathUsage:
         with temppath(suffix='.txt') as path:
             path = Path(path)
             with path.open('w') as f:
-                f.write(u'A,B\n0,1\n2,3')
+                f.write('A,B\n0,1\n2,3')
 
             kwargs = dict(delimiter=",", missing_values="N/A", names=True)
             test = np.recfromtxt(path, **kwargs)
@@ -2597,7 +2609,7 @@ class TestPathUsage:
         with temppath(suffix='.txt') as path:
             path = Path(path)
             with path.open('w') as f:
-                f.write(u'A,B\n0,1\n2,3')
+                f.write('A,B\n0,1\n2,3')
 
             kwargs = dict(missing_values="N/A", names=True, case_sensitive=True)
             test = np.recfromcsv(path, dtype=None, **kwargs)

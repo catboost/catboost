@@ -8,7 +8,7 @@ import numbers
 import numpy as np
 from . import multiarray
 from .multiarray import (
-    _fastCopyAndTranspose as fastCopyAndTranspose, ALLOW_THREADS,
+    fastCopyAndTranspose, ALLOW_THREADS,
     BUFSIZE, CLIP, MAXDIMS, MAY_SHARE_BOUNDS, MAY_SHARE_EXACT, RAISE,
     WRAP, arange, array, asarray, asanyarray, ascontiguousarray,
     asfortranarray, broadcast, can_cast, compare_chararrays,
@@ -17,7 +17,7 @@ from .multiarray import (
     fromstring, inner, lexsort, matmul, may_share_memory,
     min_scalar_type, ndarray, nditer, nested_iters, promote_types,
     putmask, result_type, set_numeric_ops, shares_memory, vdot, where,
-    zeros, normalize_axis_index)
+    zeros, normalize_axis_index, _get_promotion_state, _set_promotion_state)
 
 from . import overrides
 from . import umath
@@ -27,7 +27,7 @@ from .umath import (multiply, invert, sin, PINF, NAN)
 from . import numerictypes
 from .numerictypes import longlong, intc, int_, float_, complex_, bool_
 from ._exceptions import TooHardError, AxisError
-from ._ufunc_config import errstate
+from ._ufunc_config import errstate, _no_nep50_warning
 
 bitwise_not = invert
 ufunc = type(sin)
@@ -54,7 +54,8 @@ __all__ = [
     'False_', 'True_', 'bitwise_not', 'CLIP', 'RAISE', 'WRAP', 'MAXDIMS',
     'BUFSIZE', 'ALLOW_THREADS', 'ComplexWarning', 'full', 'full_like',
     'matmul', 'shares_memory', 'may_share_memory', 'MAY_SHARE_BOUNDS',
-    'MAY_SHARE_EXACT', 'TooHardError', 'AxisError']
+    'MAY_SHARE_EXACT', 'TooHardError', 'AxisError',
+    '_get_promotion_state', '_set_promotion_state']
 
 
 @set_module('numpy')
@@ -207,7 +208,7 @@ def ones(shape, dtype=None, order='C', *, like=None):
 
 
 _ones_with_like = array_function_dispatch(
-    _ones_dispatcher
+    _ones_dispatcher, use_like=True
 )(ones)
 
 
@@ -346,7 +347,7 @@ def full(shape, fill_value, dtype=None, order='C', *, like=None):
 
 
 _full_with_like = array_function_dispatch(
-    _full_dispatcher
+    _full_dispatcher, use_like=True
 )(full)
 
 
@@ -681,7 +682,7 @@ def correlate(a, v, mode='valid'):
     This function computes the correlation as generally defined in signal
     processing texts:
 
-    .. math:: c_k = \sum_n a_{n+k} \cdot \overline{v_n}
+    .. math:: c_k = \sum_n a_{n+k} \cdot \overline{v}_n
 
     with a and v sequences being zero-padded where necessary and
     :math:`\overline x` denoting complex conjugation.
@@ -1621,6 +1622,10 @@ def cross(a, b, axisa=-1, axisb=-1, axisc=-1, axis=None):
     dtype = promote_types(a.dtype, b.dtype)
     cp = empty(shape, dtype)
 
+    # recast arrays as dtype
+    a = a.astype(dtype)
+    b = b.astype(dtype)
+
     # create local aliases for readability
     a0 = a[..., 0]
     a1 = a[..., 1]
@@ -1831,7 +1836,7 @@ def fromfunction(function, shape, *, dtype=float, like=None, **kwargs):
 
     Notes
     -----
-    Keywords other than `dtype` are passed to `function`.
+    Keywords other than `dtype` and `like` are passed to `function`.
 
     Examples
     --------
@@ -1862,7 +1867,7 @@ def fromfunction(function, shape, *, dtype=float, like=None, **kwargs):
 
 
 _fromfunction_with_like = array_function_dispatch(
-    _fromfunction_dispatcher
+    _fromfunction_dispatcher, use_like=True
 )(fromfunction)
 
 
@@ -2183,7 +2188,7 @@ def identity(n, dtype=None, *, like=None):
 
 
 _identity_with_like = array_function_dispatch(
-    _identity_dispatcher
+    _identity_dispatcher, use_like=True
 )(identity)
 
 
@@ -2352,7 +2357,7 @@ def isclose(a, b, rtol=1.e-5, atol=1.e-8, equal_nan=False):
     array([False,  True])
     """
     def within_tol(x, y, atol, rtol):
-        with errstate(invalid='ignore'):
+        with errstate(invalid='ignore'), _no_nep50_warning():
             return less_equal(abs(x-y), atol + rtol * abs(y))
 
     x = asanyarray(a)

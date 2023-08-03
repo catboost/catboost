@@ -1087,8 +1087,6 @@ def loadtxt(fname, dtype=float, comments='#', delimiter=None,
     r"""
     Load data from a text file.
 
-    Each row in the text file must have the same number of values.
-
     Parameters
     ----------
     fname : file, str, pathlib.Path, list of str, generator
@@ -1115,12 +1113,10 @@ def loadtxt(fname, dtype=float, comments='#', delimiter=None,
            cannot be used as the delimiter.
 
     converters : dict or callable, optional
-        A function to parse all columns strings into the desired value, or
-        a dictionary mapping column number to a parser function.
-        E.g. if column 0 is a date string: ``converters = {0: datestr2num}``.
-        Converters can also be used to provide a default value for missing
-        data, e.g. ``converters = lambda s: float(s.strip() or 0)`` will
-        convert empty fields to 0.
+        Converter functions to customize value parsing. If `converters` is
+        callable, the function is applied to all columns, else it must be a
+        dict that maps column number to a parser function.
+        See examples for further details.
         Default: None.
 
         .. versionchanged:: 1.23.0
@@ -1200,6 +1196,11 @@ def loadtxt(fname, dtype=float, comments='#', delimiter=None,
     This function aims to be a fast reader for simply formatted files.  The
     `genfromtxt` function provides more sophisticated handling of, e.g.,
     lines with missing values.
+
+    Each row in the input text file must have the same number of values to be
+    able to read all values. If all rows do not have same number of values, a
+    subset of up to n columns (where n is the least number of values present
+    in all rows) can be read by specifying the columns via `usecols`.
 
     .. versionadded:: 1.10.0
 
@@ -1302,12 +1303,29 @@ def loadtxt(fname, dtype=float, comments='#', delimiter=None,
     array([('alpha, #42', 10.), ('beta, #64',  2.)],
           dtype=[('label', '<U12'), ('value', '<f8')])
 
+    Quoted fields can be separated by multiple whitespace characters:
+
+    >>> s = StringIO('"alpha, #42"       10.0\n"beta, #64" 2.0\n')
+    >>> dtype = np.dtype([("label", "U12"), ("value", float)])
+    >>> np.loadtxt(s, dtype=dtype, delimiter=None, quotechar='"')
+    array([('alpha, #42', 10.), ('beta, #64',  2.)],
+          dtype=[('label', '<U12'), ('value', '<f8')])
+
     Two consecutive quote characters within a quoted field are treated as a
     single escaped character:
 
     >>> s = StringIO('"Hello, my name is ""Monty""!"')
     >>> np.loadtxt(s, dtype="U", delimiter=",", quotechar='"')
     array('Hello, my name is "Monty"!', dtype='<U26')
+
+    Read subset of columns when all rows do not contain equal number of values:
+
+    >>> d = StringIO("1 2\n2 4\n3 9 12\n4 16 20")
+    >>> np.loadtxt(d, usecols=(0, 1))
+    array([[ 1.,  2.],
+           [ 2.,  4.],
+           [ 3.,  9.],
+           [ 4., 16.]])
 
     """
 
@@ -1344,7 +1362,7 @@ def loadtxt(fname, dtype=float, comments='#', delimiter=None,
 
 
 _loadtxt_with_like = array_function_dispatch(
-    _loadtxt_dispatcher
+    _loadtxt_dispatcher, use_like=True
 )(loadtxt)
 
 
@@ -2454,7 +2472,7 @@ def genfromtxt(fname, dtype=float, comments='#', delimiter=None,
 
 
 _genfromtxt_with_like = array_function_dispatch(
-    _genfromtxt_dispatcher
+    _genfromtxt_dispatcher, use_like=True
 )(genfromtxt)
 
 

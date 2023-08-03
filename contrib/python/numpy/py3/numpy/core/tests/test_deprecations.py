@@ -166,7 +166,7 @@ class TestComparisonDeprecations(_DeprecationTestCase):
         # For two string arrays, strings always raised the broadcasting error:
         a = np.array(['a', 'b'])
         b = np.array(['a', 'b', 'c'])
-        assert_raises(ValueError, lambda x, y: x == y, a, b)
+        assert_warns(FutureWarning, lambda x, y: x == y, a, b)
 
         # The empty list is not cast to string, and this used to pass due
         # to dtype mismatch; now (2018-06-21) it correctly leads to a
@@ -475,34 +475,6 @@ class TestNonZero(_DeprecationTestCase):
         self.assert_deprecated(lambda: np.nonzero(np.array(1)))
 
 
-def test_deprecate_ragged_arrays():
-    # 2019-11-29 1.19.0
-    #
-    # NEP 34 deprecated automatic object dtype when creating ragged
-    # arrays. Also see the "ragged" tests in `test_multiarray`
-    #
-    # emits a VisibleDeprecationWarning
-    arg = [1, [2, 3]]
-    with assert_warns(np.VisibleDeprecationWarning):
-        np.array(arg)
-
-
-class TestTooDeepDeprecation(_VisibleDeprecationTestCase):
-    # NumPy 1.20, 2020-05-08
-    # This is a bit similar to the above ragged array deprecation case.
-    message = re.escape("Creating an ndarray from nested sequences exceeding")
-
-    def test_deprecation(self):
-        nested = [1]
-        for i in range(np.MAXDIMS - 1):
-            nested = [nested]
-        self.assert_not_deprecated(np.array, args=(nested,))
-        self.assert_not_deprecated(np.array,
-                args=(nested,), kwargs=dict(dtype=object))
-
-        self.assert_deprecated(np.array, args=([nested],))
-
-
 class TestToString(_DeprecationTestCase):
     # 2020-03-06 1.19.0
     message = re.escape("tostring() is deprecated. Use tobytes() instead.")
@@ -611,25 +583,6 @@ class TestNonExactMatchDeprecation(_DeprecationTestCase):
         self.assert_deprecated(lambda: np.searchsorted(arr[0], 4, side='Random'))
 
 
-class TestDeprecatedGlobals(_DeprecationTestCase):
-    # 2020-06-06
-    def test_type_aliases(self):
-        # from builtins
-        self.assert_deprecated(lambda: np.bool(True))
-        self.assert_deprecated(lambda: np.int(1))
-        self.assert_deprecated(lambda: np.float(1))
-        self.assert_deprecated(lambda: np.complex(1))
-        self.assert_deprecated(lambda: np.object())
-        self.assert_deprecated(lambda: np.str('abc'))
-
-        # from np.compat
-        self.assert_deprecated(lambda: np.long(1))
-        self.assert_deprecated(lambda: np.unicode('abc'))
-
-        # from np.core.numerictypes
-        self.assert_deprecated(lambda: np.typeDict)
-
-
 class TestMatrixInOuter(_DeprecationTestCase):
     # 2020-05-13 NumPy 1.20.0
     message = (r"add.outer\(\) was passed a numpy matrix as "
@@ -642,20 +595,6 @@ class TestMatrixInOuter(_DeprecationTestCase):
         self.assert_deprecated(np.add.outer, args=(arr, m))
         self.assert_deprecated(np.add.outer, args=(m, arr))
         self.assert_not_deprecated(np.add.outer, args=(arr, arr))
-
-
-class TestRaggedArray(_DeprecationTestCase):
-    # 2020-07-24, NumPy 1.20.0
-    message = "setting an array element with a sequence"
-
-    def test_deprecated(self):
-        arr = np.ones((1, 1))
-        # Deprecated if the array is a leave node:
-        self.assert_deprecated(lambda: np.array([arr, 0], dtype=np.float64))
-        self.assert_deprecated(lambda: np.array([0, arr], dtype=np.float64))
-        # And when it is an assignment into a lower dimensional subarray:
-        self.assert_deprecated(lambda: np.array([arr, [0]], dtype=np.float64))
-        self.assert_deprecated(lambda: np.array([[0], arr], dtype=np.float64))
 
 
 class FlatteningConcatenateUnsafeCast(_DeprecationTestCase):
@@ -1042,31 +981,6 @@ class TestSingleElementSignature(_DeprecationTestCase):
         self.assert_deprecated(lambda: np.add(1, 2, sig=(np.dtype("l"),)))
 
 
-class TestComparisonBadDType(_DeprecationTestCase):
-    # Deprecated 2021-04-01, NumPy 1.21
-    message = r"using `dtype=` in comparisons is only useful for"
-
-    def test_deprecated(self):
-        self.assert_deprecated(lambda: np.equal(1, 1, dtype=np.int64))
-        # Not an error only for the transition
-        self.assert_deprecated(lambda: np.equal(1, 1, sig=(None, None, "l")))
-
-    def test_not_deprecated(self):
-        np.equal(True, False, dtype=bool)
-        np.equal(3, 5, dtype=bool, casting="unsafe")
-        np.equal([None], [4], dtype=object)
-
-class TestComparisonBadObjectDType(_DeprecationTestCase):
-    # Deprecated 2021-04-01, NumPy 1.21  (different branch of the above one)
-    message = r"using `dtype=object` \(or equivalent signature\) will"
-    warning_cls = FutureWarning
-
-    def test_deprecated(self):
-        self.assert_deprecated(lambda: np.equal(1, 1, dtype=object))
-        self.assert_deprecated(
-                lambda: np.equal(1, 1, sig=(None, None, object)))
-
-
 class TestCtypesGetter(_DeprecationTestCase):
     # Deprecated 2021-05-18, Numpy 1.21.0
     warning_cls = DeprecationWarning
@@ -1084,39 +998,6 @@ class TestCtypesGetter(_DeprecationTestCase):
     )
     def test_not_deprecated(self, name: str) -> None:
         self.assert_not_deprecated(lambda: getattr(self.ctypes, name))
-
-
-class TestUFuncForcedDTypeWarning(_DeprecationTestCase):
-    message = "The `dtype` and `signature` arguments to ufuncs only select the"
-
-    def test_not_deprecated(self):
-        import pickle
-        # does not warn (test relies on bad pickling behaviour, simply remove
-        # it if the `assert int64 is not int64_2` should start failing.
-        int64 = np.dtype("int64")
-        int64_2 = pickle.loads(pickle.dumps(int64))
-        assert int64 is not int64_2
-        self.assert_not_deprecated(lambda: np.add(3, 4, dtype=int64_2))
-
-    def test_deprecation(self):
-        int64 = np.dtype("int64")
-        self.assert_deprecated(lambda: np.add(3, 5, dtype=int64.newbyteorder()))
-        self.assert_deprecated(lambda: np.add(3, 5, dtype="m8[ns]"))
-
-    def test_behaviour(self):
-        int64 = np.dtype("int64")
-        arr = np.arange(10, dtype="m8[s]")
-
-        with pytest.warns(DeprecationWarning, match=self.message):
-            np.add(3, 5, dtype=int64.newbyteorder())
-        with pytest.warns(DeprecationWarning, match=self.message):
-            np.add(3, 5, dtype="m8[ns]")  # previously used the "ns"
-        with pytest.warns(DeprecationWarning, match=self.message):
-            np.add(arr, arr, dtype="m8[ns]")  # never preserved the "ns"
-        with pytest.warns(DeprecationWarning, match=self.message):
-            np.maximum(arr, arr, dtype="m8[ns]")  # previously used the "ns"
-        with pytest.warns(DeprecationWarning, match=self.message):
-            np.maximum.reduce(arr, dtype="m8[ns]")  # never preserved the "ns"
 
 
 PARTITION_DICT = {
@@ -1145,9 +1026,6 @@ class TestPartitionBoolIndex(_DeprecationTestCase):
 class TestMachAr(_DeprecationTestCase):
     # Deprecated 2021-10-19, NumPy 1.22
     warning_cls = DeprecationWarning
-
-    def test_deprecated(self):
-        self.assert_deprecated(lambda: np.MachAr)
 
     def test_deprecated_module(self):
         self.assert_deprecated(lambda: getattr(np.core, "machar"))
@@ -1238,3 +1116,78 @@ class TestLoadtxtParseIntsViaFloat(_DeprecationTestCase):
                 np.loadtxt(["10.5"], dtype=dtype)
             except ValueError as e:
                 assert isinstance(e.__cause__, DeprecationWarning)
+
+
+class TestPyIntConversion(_DeprecationTestCase):
+    message = r".*stop allowing conversion of out-of-bound.*"
+
+    @pytest.mark.parametrize("dtype", np.typecodes["AllInteger"])
+    def test_deprecated_scalar(self, dtype):
+        dtype = np.dtype(dtype)
+        info = np.iinfo(dtype)
+
+        # Cover the most common creation paths (all end up in the
+        # same place):
+        def scalar(value, dtype):
+            dtype.type(value)
+
+        def assign(value, dtype):
+            arr = np.array([0, 0, 0], dtype=dtype)
+            arr[2] = value
+
+        def create(value, dtype):
+            np.array([value], dtype=dtype)
+
+        for creation_func in [scalar, assign, create]:
+            try:
+                self.assert_deprecated(
+                        lambda: creation_func(info.min - 1, dtype))
+            except OverflowError:
+                pass  # OverflowErrors always happened also before and are OK.
+
+            try:
+                self.assert_deprecated(
+                        lambda: creation_func(info.max + 1, dtype))
+            except OverflowError:
+                pass  # OverflowErrors always happened also before and are OK.
+
+
+class TestDeprecatedGlobals(_DeprecationTestCase):
+    # Deprecated 2022-11-17, NumPy 1.24
+    def test_type_aliases(self):
+        # from builtins
+        self.assert_deprecated(lambda: np.bool8)
+        self.assert_deprecated(lambda: np.int0)
+        self.assert_deprecated(lambda: np.uint0)
+        self.assert_deprecated(lambda: np.bytes0)
+        self.assert_deprecated(lambda: np.str0)
+        self.assert_deprecated(lambda: np.object0)
+
+
+@pytest.mark.parametrize("name",
+        ["bool", "long", "ulong", "str", "bytes", "object"])
+def test_future_scalar_attributes(name):
+    # FutureWarning added 2022-11-17, NumPy 1.24,
+    assert name not in dir(np)  # we may want to not add them
+    with pytest.warns(FutureWarning,
+            match=f"In the future .*{name}"):
+        assert not hasattr(np, name)
+
+    # Unfortunately, they are currently still valid via `np.dtype()`
+    np.dtype(name)
+    name in np.sctypeDict
+
+
+# Ignore the above future attribute warning for this test.
+@pytest.mark.filterwarnings("ignore:In the future:FutureWarning")
+class TestRemovedGlobals:
+    # Removed 2023-01-12, NumPy 1.24.0
+    # Not a deprecation, but the large error was added to aid those who missed
+    # the previous deprecation, and should be removed similarly to one
+    # (or faster).
+    @pytest.mark.parametrize("name",
+            ["object", "bool", "float", "complex", "str", "int"])
+    def test_attributeerror_includes_info(self, name):
+        msg = f".*\n`np.{name}` was a deprecated alias for the builtin"
+        with pytest.raises(AttributeError, match=msg):
+            getattr(np, name)

@@ -60,8 +60,10 @@ NbufferT = [
     # x     Info                                                color info        y                  z
     #       value y2 Info2                            name z2         Name Value
     #                name   value    y3       z3
-    ([3, 2], (6j, 6., (b'nn', [6j, 4j], [6., 4.], [1, 2]), b'NN', True), b'cc', (u'NN', 6j), [[6., 4.], [6., 4.]], 8),
-    ([4, 3], (7j, 7., (b'oo', [7j, 5j], [7., 5.], [2, 1]), b'OO', False), b'dd', (u'OO', 7j), [[7., 5.], [7., 5.]], 9),
+    ([3, 2], (6j, 6., (b'nn', [6j, 4j], [6., 4.], [1, 2]), b'NN', True),
+     b'cc', ('NN', 6j), [[6., 4.], [6., 4.]], 8),
+    ([4, 3], (7j, 7., (b'oo', [7j, 5j], [7., 5.], [2, 1]), b'OO', False),
+     b'dd', ('OO', 7j), [[7., 5.], [7., 5.]], 9),
     ]
 
 
@@ -441,8 +443,9 @@ class TestSctypeDict:
         # alias for np.int_, but np.long is not supported for historical
         # reasons (gh-21063)
         assert_(np.sctypeDict['ulong'] is np.uint)
-        assert_(not hasattr(np, 'ulong'))
-
+        with pytest.warns(FutureWarning):
+            # We will probably allow this in the future:
+            assert not hasattr(np, 'ulong')
 
 class TestBitName:
     def test_abstract(self):

@@ -16,4 +16,4 @@
 #define NPY__CPU_TARGET_FMA3
 #define NPY__CPU_TARGET_AVX2
 #define NPY__CPU_TARGET_AVX512F
-#include "loops_trigonometric.dispatch.c"
+#include "numpy/core/src/umath/loops_trigonometric.dispatch.c"

@@ -9,6 +9,7 @@ import glob
 from os.path import join
 
 from numpy.distutils import log
+from numpy.distutils.msvccompiler import lib_opts_if_msvc
 from distutils.dep_util import newer
 from sysconfig import get_config_var
 from numpy.compat import npy_load_module
@@ -133,7 +134,7 @@ def check_math_capabilities(config, ext, moredefs, mathlibs):
     def check_func(
         func_name,
         decl=False,
-        headers=["feature_detection_math.h"],
+        headers=["feature_detection_math.h", "feature_detection_cmath.h"],
     ):
         return config.check_func(
             func_name,
@@ -144,7 +145,10 @@ def check_math_capabilities(config, ext, moredefs, mathlibs):
             headers=headers,
         )
 
-    def check_funcs_once(funcs_name, headers=["feature_detection_math.h"]):
+    def check_funcs_once(
+            funcs_name,
+            headers=["feature_detection_math.h", "feature_detection_cmath.h"],
+            add_to_moredefs=True):
         call = dict([(f, True) for f in funcs_name])
         call_args = dict([(f, FUNC_CALL_ARGS[f]) for f in funcs_name])
         st = config.check_funcs_once(
@@ -155,11 +159,13 @@ def check_math_capabilities(config, ext, moredefs, mathlibs):
             call_args=call_args,
             headers=headers,
         )
-        if st:
+        if st and add_to_moredefs:
             moredefs.extend([(fname2def(f), 1) for f in funcs_name])
         return st
 
-    def check_funcs(funcs_name, headers=["feature_detection_math.h"]):
+    def check_funcs(
+            funcs_name,
+            headers=["feature_detection_math.h", "feature_detection_cmath.h"]):
         # Use check_funcs_once first, and if it does not work, test func per
         # func. Return success only if all the functions are available
         if not check_funcs_once(funcs_name, headers=headers):
@@ -171,8 +177,18 @@ def check_math_capabilities(config, ext, moredefs, mathlibs):
         else:
             return 1
 
+    # GH-14787: Work around GCC<8.4 bug when compiling with AVX512
+    # support on Windows-based platforms
+    def check_gh14787(fn):
+        if fn == 'attribute_target_avx512f':
+            if (sys.platform in ('win32', 'cygwin') and
+                    config.check_compiler_gcc() and
+                    not config.check_gcc_version_at_least(8, 4)):
+                ext.extra_compile_args.extend(
+                        ['-ffixed-xmm%s' % n for n in range(16, 32)])
+
     #use_msvc = config.check_decl("_MSC_VER")
-    if not check_funcs_once(MANDATORY_FUNCS):
+    if not check_funcs_once(MANDATORY_FUNCS, add_to_moredefs=False):
         raise SystemError("One of the required function to build numpy is not"
                 " available (the list is %s)." % str(MANDATORY_FUNCS))
 
@@ -183,20 +199,12 @@ def check_math_capabilities(config, ext, moredefs, mathlibs):
     # config.h in the public namespace, so we have a clash for the common
     # functions we test. We remove every function tested by python's
     # autoconf, hoping their own test are correct
-    for f in OPTIONAL_STDFUNCS_MAYBE:
-        if config.check_decl(fname2def(f),
-                    headers=["Python.h", "math.h"]):
-            if f in OPTIONAL_STDFUNCS:
-                OPTIONAL_STDFUNCS.remove(f)
-            else:
-                OPTIONAL_FILE_FUNCS.remove(f)
+    for f in OPTIONAL_FUNCS_MAYBE:
+        if config.check_decl(fname2def(f), headers=["Python.h"]):
+            OPTIONAL_FILE_FUNCS.remove(f)
 
-
-    check_funcs(OPTIONAL_STDFUNCS)
     check_funcs(OPTIONAL_FILE_FUNCS, headers=["feature_detection_stdio.h"])
     check_funcs(OPTIONAL_MISC_FUNCS, headers=["feature_detection_misc.h"])
-    
-
 
     for h in OPTIONAL_HEADERS:
         if config.check_func("", decl=False, call=False, headers=[h]):
@@ -229,40 +237,28 @@ def check_math_capabilities(config, ext, moredefs, mathlibs):
     for dec, fn in OPTIONAL_FUNCTION_ATTRIBUTES:
         if config.check_gcc_function_attribute(dec, fn):
             moredefs.append((fname2def(fn), 1))
-            if fn == 'attribute_target_avx512f':
-                # GH-14787: Work around GCC<8.4 bug when compiling with AVX512
-                # support on Windows-based platforms
-                if (sys.platform in ('win32', 'cygwin') and
-                        config.check_compiler_gcc() and
-                        not config.check_gcc_version_at_least(8, 4)):
-                    ext.extra_compile_args.extend(
-                            ['-ffixed-xmm%s' % n for n in range(16, 32)])
+            check_gh14787(fn)
 
-    for dec, fn, code, header in OPTIONAL_FUNCTION_ATTRIBUTES_WITH_INTRINSICS:
-        if config.check_gcc_function_attribute_with_intrinsics(dec, fn, code,
-                                                               header):
-            moredefs.append((fname2def(fn), 1))
+    platform = sysconfig.get_platform()
+    if ("x86_64" in platform):
+        for dec, fn in OPTIONAL_FUNCTION_ATTRIBUTES_AVX:
+            if config.check_gcc_function_attribute(dec, fn):
+                moredefs.append((fname2def(fn), 1))
+                check_gh14787(fn)
+        for dec, fn, code, header in (
+        OPTIONAL_FUNCTION_ATTRIBUTES_WITH_INTRINSICS_AVX):
+            if config.check_gcc_function_attribute_with_intrinsics(
+                    dec, fn, code, header):
+                moredefs.append((fname2def(fn), 1))
 
     for fn in OPTIONAL_VARIABLE_ATTRIBUTES:
         if config.check_gcc_variable_attribute(fn):
             m = fn.replace("(", "_").replace(")", "_")
             moredefs.append((fname2def(m), 1))
 
-    # C99 functions: float and long double versions
-    check_funcs(C99_FUNCS_SINGLE)
-    check_funcs(C99_FUNCS_EXTENDED)
-
 def check_complex(config, mathlibs):
     priv = []
     pub = []
-
-    try:
-        if os.uname()[0] == "Interix":
-            warnings.warn("Disabling broken complex support. See #1365", stacklevel=2)
-            return priv, pub
-    except Exception:
-        # os.uname not available on all platforms. blanket except ugly but safe
-        pass
 
     # Check for complex support
     st = config.check_header('complex.h')
@@ -477,11 +473,8 @@ def configuration(parent_package='',top_path=None):
     local_dir = config.local_path
     codegen_dir = join(local_dir, 'code_generators')
 
-    if is_released:
-        warnings.simplefilter('error', MismatchCAPIWarning)
-
     # Check whether we have a mismatch between the set C API VERSION and the
-    # actual C API VERSION
+    # actual C API VERSION. Will raise a MismatchCAPIError if so.
     check_api_version(C_API_VERSION, codegen_dir)
 
     generate_umath_py = join(codegen_dir, 'generate_umath.py')
@@ -551,6 +544,10 @@ def configuration(parent_package='',top_path=None):
 
             # Generate the config.h file from moredefs
             with open(target, 'w') as target_f:
+                if sys.platform == 'darwin':
+                    target_f.write(
+                        "/* may be overridden by numpyconfig.h on darwin */\n"
+                    )
                 for d in moredefs:
                     if isinstance(d, str):
                         target_f.write('#define %s\n' % (d))
@@ -773,32 +770,15 @@ def configuration(parent_package='',top_path=None):
                        # join('src', 'npymath', 'ieee754.cpp'),
                        join('src', 'npymath', 'ieee754.c.src'),
                        join('src', 'npymath', 'npy_math_complex.c.src'),
-                       join('src', 'npymath', 'halffloat.c')
+                       join('src', 'npymath', 'halffloat.c'),
                        ]
-
-    def opts_if_msvc(build_cmd):
-        """ Add flags if we are using MSVC compiler
-
-        We can't see `build_cmd` in our scope, because we have not initialized
-        the distutils build command, so use this deferred calculation to run
-        when we are building the library.
-        """
-        if build_cmd.compiler.compiler_type != 'msvc':
-            return []
-        # Explicitly disable whole-program optimization.
-        flags = ['/GL-']
-        # Disable voltbl section for vc142 to allow link using mingw-w64; see:
-        # https://github.com/matthew-brett/dll_investigation/issues/1#issuecomment-1100468171
-        if build_cmd.compiler_opt.cc_test_flags(['-d2VolatileMetadata-']):
-            flags.append('-d2VolatileMetadata-')
-        return flags
 
     config.add_installed_library('npymath',
             sources=npymath_sources + [get_mathlib_info],
             install_dir='lib',
             build_info={
                 'include_dirs' : [],  # empty list required for creating npy_math_internal.h
-                'extra_compiler_args': [opts_if_msvc],
+                'extra_compiler_args': [lib_opts_if_msvc],
             })
     config.add_npy_pkg_config("npymath.ini.in", "lib/npy-pkg-config",
             subst_dict)
@@ -1022,6 +1002,10 @@ def configuration(parent_package='',top_path=None):
             join('src', 'multiarray', 'textreading', 'stream_pyobject.c'),
             join('src', 'multiarray', 'textreading', 'str_to_int.c'),
             join('src', 'multiarray', 'textreading', 'tokenize.cpp'),
+            # Remove this once scipy macos arm64 build correctly
+            # links to the arm64 npymath library,
+            # see gh-22673
+            join('src', 'npymath', 'arm64_exports.c'),
             ]
 
     #######################################################################
@@ -1072,6 +1056,7 @@ def configuration(parent_package='',top_path=None):
             join('src', 'umath', 'loops_exponent_log.dispatch.c.src'),
             join('src', 'umath', 'loops_hyperbolic.dispatch.c.src'),
             join('src', 'umath', 'loops_modulo.dispatch.c.src'),
+            join('src', 'umath', 'loops_comparison.dispatch.c.src'),
             join('src', 'umath', 'matmul.h.src'),
             join('src', 'umath', 'matmul.c.src'),
             join('src', 'umath', 'clip.h'),
@@ -1084,6 +1069,7 @@ def configuration(parent_package='',top_path=None):
             join('src', 'umath', 'scalarmath.c.src'),
             join('src', 'umath', 'ufunc_type_resolution.c'),
             join('src', 'umath', 'override.c'),
+            join('src', 'umath', 'string_ufuncs.cpp'),
             # For testing. Eventually, should use public API and be separate:
             join('src', 'umath', '_scaled_float_dtype.c'),
             ]
@@ -1109,7 +1095,6 @@ def configuration(parent_package='',top_path=None):
     # actually the other way around, better performance and
     # after all maintainable code.
     svml_filter = (
-        'svml_z0_tanh_d_la.s', 'svml_z0_tanh_s_la.s'
     )
     if can_link_svml() and check_svml_submodule(svml_path):
         svml_objs = glob.glob(svml_path + '/**/*.s', recursive=True)
@@ -1177,23 +1162,26 @@ def configuration(parent_package='',top_path=None):
     #                        SIMD module                                  #
     #######################################################################
 
-    config.add_extension('_simd', sources=[
-        join('src', 'common', 'npy_cpu_features.c'),
-        join('src', '_simd', '_simd.c'),
-        join('src', '_simd', '_simd_inc.h.src'),
-        join('src', '_simd', '_simd_data.inc.src'),
-        join('src', '_simd', '_simd.dispatch.c.src'),
-    ], depends=[
-        join('src', 'common', 'npy_cpu_dispatch.h'),
-        join('src', 'common', 'simd', 'simd.h'),
-        join('src', '_simd', '_simd.h'),
-        join('src', '_simd', '_simd_inc.h.src'),
-        join('src', '_simd', '_simd_data.inc.src'),
-        join('src', '_simd', '_simd_arg.inc'),
-        join('src', '_simd', '_simd_convert.inc'),
-        join('src', '_simd', '_simd_easyintrin.inc'),
-        join('src', '_simd', '_simd_vector.inc'),
-    ])
+    config.add_extension('_simd',
+        sources=[
+            join('src', 'common', 'npy_cpu_features.c'),
+            join('src', '_simd', '_simd.c'),
+            join('src', '_simd', '_simd_inc.h.src'),
+            join('src', '_simd', '_simd_data.inc.src'),
+            join('src', '_simd', '_simd.dispatch.c.src'),
+        ], depends=[
+            join('src', 'common', 'npy_cpu_dispatch.h'),
+            join('src', 'common', 'simd', 'simd.h'),
+            join('src', '_simd', '_simd.h'),
+            join('src', '_simd', '_simd_inc.h.src'),
+            join('src', '_simd', '_simd_data.inc.src'),
+            join('src', '_simd', '_simd_arg.inc'),
+            join('src', '_simd', '_simd_convert.inc'),
+            join('src', '_simd', '_simd_easyintrin.inc'),
+            join('src', '_simd', '_simd_vector.inc'),
+        ],
+        libraries=['npymath']
+    )
 
     config.add_subpackage('tests')
     config.add_data_dir('tests/data')

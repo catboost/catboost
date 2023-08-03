@@ -177,8 +177,14 @@ test_neighborhood_iterator(PyObject* NPY_UNUSED(self), PyObject* args)
         return NULL;
     }
 
-    typenum = PyArray_ObjectType(x, 0);
+    typenum = PyArray_ObjectType(x, NPY_NOTYPE);
+    if (typenum == NPY_NOTYPE) {
+        return NULL;
+    }
     typenum = PyArray_ObjectType(fill, typenum);
+    if (typenum == NPY_NOTYPE) {
+        return NULL;
+    }
 
     ax = (PyArrayObject*)PyArray_FromObject(x, typenum, 1, 10);
     if (ax == NULL) {
@@ -343,7 +349,10 @@ test_neighborhood_iterator_oob(PyObject* NPY_UNUSED(self), PyObject* args)
         return NULL;
     }
 
-    typenum = PyArray_ObjectType(x, 0);
+    typenum = PyArray_ObjectType(x, NPY_NOTYPE);
+    if (typenum == NPY_NOTYPE) {
+        return NULL;
+    }
 
     ax = (PyArrayObject*)PyArray_FromObject(x, typenum, 1, 10);
     if (ax == NULL) {
@@ -1035,7 +1044,7 @@ get_all_cast_information(PyObject *NPY_UNUSED(mod), PyObject *NPY_UNUSED(args))
     PyObject *classes = PyObject_CallMethod(
             (PyObject *)&PyArrayDescr_Type, "__subclasses__", "");
     if (classes == NULL) {
-        return NULL;
+        goto fail;
     }
     Py_SETREF(classes, PySequence_Fast(classes, NULL));
     if (classes == NULL) {
@@ -2010,6 +2019,10 @@ get_struct_alignments(PyObject *NPY_UNUSED(self), PyObject *args) {
     PyObject *ret = PyTuple_New(3);
     PyObject *alignment, *size, *val;
 
+    if (ret == NULL) {
+        return NULL;
+    }
+
 /**begin repeat
  * #N = 1,2,3#
  */
@@ -2019,6 +2032,7 @@ get_struct_alignments(PyObject *NPY_UNUSED(self), PyObject *args) {
     Py_DECREF(alignment);
     Py_DECREF(size);
     if (val == NULL) {
+        Py_DECREF(ret);
         return NULL;
     }
     PyTuple_SET_ITEM(ret, @N@-1, val);

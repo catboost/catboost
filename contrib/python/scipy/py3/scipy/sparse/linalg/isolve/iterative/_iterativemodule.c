@@ -1,5 +1,5 @@
 /* File: _iterativemodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
 
@@ -70,17 +69,14 @@ typedef struct {float r,i;} complex_float;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 #ifdef DEBUGCFUNCS
 #define CFUNCSMESS(mess) fprintf(stderr,"debug-capi:"mess);
@@ -154,30 +150,6 @@ double_from_pyobj(double* v, PyObject *obj, const char *errmess)
         PyErr_SetString(err,errmess);
     }
     return 0;
-}
-
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
 }
 
 static int
@@ -316,19 +288,19 @@ static PyObject *f2py_rout__iterative_sbicgrevcom(const PyObject *capi_self,
     float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -360,14 +332,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.sbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sbicgrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sbicgrevcom() 4th argument (iter) can't be converted to int");
@@ -394,28 +368,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.sbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sbicgrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=6 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.sbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sbicgrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (float *)(PyArray_DATA(capi_work_tmp));
+        work = (float *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -433,17 +411,17 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -460,9 +438,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -515,19 +493,19 @@ static PyObject *f2py_rout__iterative_dbicgrevcom(const PyObject *capi_self,
     double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -559,14 +537,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dbicgrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dbicgrevcom() 4th argument (iter) can't be converted to int");
@@ -593,28 +573,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dbicgrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=6 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.dbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dbicgrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (double *)(PyArray_DATA(capi_work_tmp));
+        work = (double *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -632,17 +616,17 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -659,9 +643,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -714,19 +698,19 @@ static PyObject *f2py_rout__iterative_cbicgrevcom(const PyObject *capi_self,
     complex_float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -760,14 +744,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.cbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cbicgrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cbicgrevcom() 4th argument (iter) can't be converted to int");
@@ -794,28 +780,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.cbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cbicgrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=6 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.cbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cbicgrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_float *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -835,17 +825,17 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -862,9 +852,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -917,19 +907,19 @@ static PyObject *f2py_rout__iterative_zbicgrevcom(const PyObject *capi_self,
     complex_double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -963,14 +953,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zbicgrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zbicgrevcom() 4th argument (iter) can't be converted to int");
@@ -997,28 +989,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zbicgrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=6 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.zbicgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zbicgrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_double *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1038,17 +1034,17 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -1065,9 +1061,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -1120,19 +1116,19 @@ static PyObject *f2py_rout__iterative_sbicgstabrevcom(const PyObject *capi_self,
     float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -1164,14 +1160,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.sbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sbicgstabrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sbicgstabrevcom() 4th argument (iter) can't be converted to int");
@@ -1198,28 +1196,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.sbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sbicgstabrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=7 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.sbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sbicgstabrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (float *)(PyArray_DATA(capi_work_tmp));
+        work = (float *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1237,17 +1239,17 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -1264,9 +1266,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -1319,19 +1321,19 @@ static PyObject *f2py_rout__iterative_dbicgstabrevcom(const PyObject *capi_self,
     double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -1363,14 +1365,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dbicgstabrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dbicgstabrevcom() 4th argument (iter) can't be converted to int");
@@ -1397,28 +1401,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dbicgstabrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=7 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.dbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dbicgstabrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (double *)(PyArray_DATA(capi_work_tmp));
+        work = (double *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1436,17 +1444,17 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -1463,9 +1471,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -1518,19 +1526,19 @@ static PyObject *f2py_rout__iterative_cbicgstabrevcom(const PyObject *capi_self,
     complex_float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -1564,14 +1572,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.cbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cbicgstabrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cbicgstabrevcom() 4th argument (iter) can't be converted to int");
@@ -1598,28 +1608,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.cbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cbicgstabrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=7 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.cbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cbicgstabrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_float *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1639,17 +1653,17 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -1666,9 +1680,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -1721,19 +1735,19 @@ static PyObject *f2py_rout__iterative_zbicgstabrevcom(const PyObject *capi_self,
     complex_double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -1767,14 +1781,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zbicgstabrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zbicgstabrevcom() 4th argument (iter) can't be converted to int");
@@ -1801,28 +1817,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zbicgstabrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=7 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.zbicgstabrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zbicgstabrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_double *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1842,17 +1862,17 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -1869,9 +1889,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -1924,19 +1944,19 @@ static PyObject *f2py_rout__iterative_scgrevcom(const PyObject *capi_self,
     float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -1968,14 +1988,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.scgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.scgrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.scgrevcom() 4th argument (iter) can't be converted to int");
@@ -2002,28 +2024,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.scgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.scgrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=4 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.scgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.scgrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (float *)(PyArray_DATA(capi_work_tmp));
+        work = (float *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2041,17 +2067,17 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -2068,9 +2094,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2123,19 +2149,19 @@ static PyObject *f2py_rout__iterative_dcgrevcom(const PyObject *capi_self,
     double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -2167,14 +2193,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dcgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dcgrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dcgrevcom() 4th argument (iter) can't be converted to int");
@@ -2201,28 +2229,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dcgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dcgrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=4 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.dcgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dcgrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (double *)(PyArray_DATA(capi_work_tmp));
+        work = (double *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2240,17 +2272,17 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -2267,9 +2299,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2322,19 +2354,19 @@ static PyObject *f2py_rout__iterative_ccgrevcom(const PyObject *capi_self,
     complex_float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -2368,14 +2400,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.ccgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.ccgrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.ccgrevcom() 4th argument (iter) can't be converted to int");
@@ -2402,28 +2436,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.ccgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.ccgrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=4 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.ccgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.ccgrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_float *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2443,17 +2481,17 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -2470,9 +2508,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2525,19 +2563,19 @@ static PyObject *f2py_rout__iterative_zcgrevcom(const PyObject *capi_self,
     complex_double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -2571,14 +2609,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zcgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zcgrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zcgrevcom() 4th argument (iter) can't be converted to int");
@@ -2605,28 +2645,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zcgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zcgrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=4 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.zcgrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zcgrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_double *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2646,17 +2690,17 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -2673,9 +2717,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2728,19 +2772,19 @@ static PyObject *f2py_rout__iterative_scgsrevcom(const PyObject *capi_self,
     float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -2772,14 +2816,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.scgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.scgsrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.scgsrevcom() 4th argument (iter) can't be converted to int");
@@ -2806,28 +2852,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.scgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.scgsrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=7 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.scgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.scgsrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (float *)(PyArray_DATA(capi_work_tmp));
+        work = (float *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2845,17 +2895,17 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -2872,9 +2922,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2927,19 +2977,19 @@ static PyObject *f2py_rout__iterative_dcgsrevcom(const PyObject *capi_self,
     double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -2971,14 +3021,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dcgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dcgsrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dcgsrevcom() 4th argument (iter) can't be converted to int");
@@ -3005,28 +3057,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dcgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dcgsrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=7 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.dcgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dcgsrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (double *)(PyArray_DATA(capi_work_tmp));
+        work = (double *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3044,17 +3100,17 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -3071,9 +3127,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -3126,19 +3182,19 @@ static PyObject *f2py_rout__iterative_ccgsrevcom(const PyObject *capi_self,
     complex_float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -3172,14 +3228,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.ccgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.ccgsrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.ccgsrevcom() 4th argument (iter) can't be converted to int");
@@ -3206,28 +3264,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.ccgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.ccgsrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=7 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.ccgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.ccgsrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_float *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3247,17 +3309,17 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -3274,9 +3336,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -3329,19 +3391,19 @@ static PyObject *f2py_rout__iterative_zcgsrevcom(const PyObject *capi_self,
     complex_double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -3375,14 +3437,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zcgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zcgsrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zcgsrevcom() 4th argument (iter) can't be converted to int");
@@ -3409,28 +3473,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zcgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zcgsrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=7 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.zcgsrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zcgsrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_double *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3450,17 +3518,17 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -3477,9 +3545,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -3532,19 +3600,19 @@ static PyObject *f2py_rout__iterative_sqmrrevcom(const PyObject *capi_self,
     float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -3576,14 +3644,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.sqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sqmrrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sqmrrevcom() 4th argument (iter) can't be converted to int");
@@ -3610,28 +3680,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.sqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sqmrrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=11 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.sqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sqmrrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (float *)(PyArray_DATA(capi_work_tmp));
+        work = (float *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3649,17 +3723,17 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -3676,9 +3750,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -3731,19 +3805,19 @@ static PyObject *f2py_rout__iterative_dqmrrevcom(const PyObject *capi_self,
     double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -3775,14 +3849,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dqmrrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dqmrrevcom() 4th argument (iter) can't be converted to int");
@@ -3809,28 +3885,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dqmrrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=11 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.dqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dqmrrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (double *)(PyArray_DATA(capi_work_tmp));
+        work = (double *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3848,17 +3928,17 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -3875,9 +3955,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -3930,19 +4010,19 @@ static PyObject *f2py_rout__iterative_cqmrrevcom(const PyObject *capi_self,
     complex_float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -3976,14 +4056,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.cqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cqmrrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cqmrrevcom() 4th argument (iter) can't be converted to int");
@@ -4010,28 +4092,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.cqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cqmrrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=11 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.cqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cqmrrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_float *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -4051,17 +4137,17 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -4078,9 +4164,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -4133,19 +4219,19 @@ static PyObject *f2py_rout__iterative_zqmrrevcom(const PyObject *capi_self,
     complex_double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
@@ -4179,14 +4265,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zqmrrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zqmrrevcom() 4th argument (iter) can't be converted to int");
@@ -4213,28 +4301,32 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zqmrrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable ldw */
     ldw = MAX(1,n);
     /* Processing variable work */
     work_Dims[0]=11 * ldw;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.zqmrrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zqmrrevcom: failed to create array from the 3rd argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_double *)(PyArray_DATA(capi_work_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -4254,17 +4346,17 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of ijob*/
@@ -4281,9 +4373,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -4339,13 +4431,13 @@ static PyObject *f2py_rout__iterative_sgmresrevcom(const PyObject *capi_self,
     float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int restrt = 0;
@@ -4353,14 +4445,14 @@ static PyObject *f2py_rout__iterative_sgmresrevcom(const PyObject *capi_self,
     float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
     float *work2 = NULL;
     npy_intp work2_Dims[1] = {-1};
     const int work2_Rank = 1;
-    PyArrayObject *capi_work2_tmp = NULL;
+    PyArrayObject *capi_work2_as_array = NULL;
     int capi_work2_intent = 0;
     PyObject *work2_capi = Py_None;
     int ldw2 = 0;
@@ -4394,14 +4486,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.sgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sgmresrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sgmresrevcom() 6th argument (iter) can't be converted to int");
@@ -4431,14 +4525,16 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.sgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sgmresrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable restrt */
         f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.sgmresrevcom() 3rd argument (restrt) can't be converted to int");
@@ -4451,26 +4547,30 @@ f2py_start_clock();
     /* Processing variable work */
     work_Dims[0]=6 * ldw + ldw * restrt;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 4th argument `work' of _iterative.sgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sgmresrevcom: failed to create array from the 4th argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (float *)(PyArray_DATA(capi_work_tmp));
+        work = (float *)(PyArray_DATA(capi_work_as_array));
 
     /* Processing variable work2 */
     work2_Dims[0]=2 * ldw2 + 2 * ldw2 * restrt;
     capi_work2_intent |= F2PY_INTENT_INOUT;
-    capi_work2_tmp = array_from_pyobj(NPY_FLOAT,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
-    if (capi_work2_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 5th argument `work2' of _iterative.sgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.sgmresrevcom: failed to create array from the 5th argument `work2`";
+    capi_work2_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,work2_Dims,work2_Rank,  capi_work2_intent,work2_capi,capi_errmess);
+    if (capi_work2_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work2 = (float *)(PyArray_DATA(capi_work2_tmp));
+        work2 = (float *)(PyArray_DATA(capi_work2_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -4488,25 +4588,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work2_tmp!=work2_capi) {
-        Py_XDECREF(capi_work2_tmp); }
-    }  /*if (capi_work2_tmp == NULL) ... else of work2*/
+    if((PyObject *)capi_work2_as_array!=work2_capi) {
+        Py_XDECREF(capi_work2_as_array); }
+    }  /* if (capi_work2_as_array == NULL) ... else of work2 */
     /* End of cleaning variable work2 */
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw2 */
     /* End of cleaning variable ldw */
     } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
     } /*if (f2py_success) of restrt*/
     /* End of cleaning variable restrt */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of tol*/
@@ -4525,9 +4625,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -4583,13 +4683,13 @@ static PyObject *f2py_rout__iterative_dgmresrevcom(const PyObject *capi_self,
     double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int restrt = 0;
@@ -4597,14 +4697,14 @@ static PyObject *f2py_rout__iterative_dgmresrevcom(const PyObject *capi_self,
     double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
     double *work2 = NULL;
     npy_intp work2_Dims[1] = {-1};
     const int work2_Rank = 1;
-    PyArrayObject *capi_work2_tmp = NULL;
+    PyArrayObject *capi_work2_as_array = NULL;
     int capi_work2_intent = 0;
     PyObject *work2_capi = Py_None;
     int ldw2 = 0;
@@ -4638,14 +4738,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dgmresrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dgmresrevcom() 6th argument (iter) can't be converted to int");
@@ -4675,14 +4777,16 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dgmresrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable restrt */
         f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.dgmresrevcom() 3rd argument (restrt) can't be converted to int");
@@ -4695,26 +4799,30 @@ f2py_start_clock();
     /* Processing variable work */
     work_Dims[0]=6 * ldw + ldw * restrt;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 4th argument `work' of _iterative.dgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dgmresrevcom: failed to create array from the 4th argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (double *)(PyArray_DATA(capi_work_tmp));
+        work = (double *)(PyArray_DATA(capi_work_as_array));
 
     /* Processing variable work2 */
     work2_Dims[0]=2 * ldw2 + 2 * ldw2 * restrt;
     capi_work2_intent |= F2PY_INTENT_INOUT;
-    capi_work2_tmp = array_from_pyobj(NPY_DOUBLE,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
-    if (capi_work2_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 5th argument `work2' of _iterative.dgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.dgmresrevcom: failed to create array from the 5th argument `work2`";
+    capi_work2_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,work2_Dims,work2_Rank,  capi_work2_intent,work2_capi,capi_errmess);
+    if (capi_work2_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work2 = (double *)(PyArray_DATA(capi_work2_tmp));
+        work2 = (double *)(PyArray_DATA(capi_work2_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -4732,25 +4840,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work2_tmp!=work2_capi) {
-        Py_XDECREF(capi_work2_tmp); }
-    }  /*if (capi_work2_tmp == NULL) ... else of work2*/
+    if((PyObject *)capi_work2_as_array!=work2_capi) {
+        Py_XDECREF(capi_work2_as_array); }
+    }  /* if (capi_work2_as_array == NULL) ... else of work2 */
     /* End of cleaning variable work2 */
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw2 */
     /* End of cleaning variable ldw */
     } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
     } /*if (f2py_success) of restrt*/
     /* End of cleaning variable restrt */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of tol*/
@@ -4769,9 +4877,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -4827,13 +4935,13 @@ static PyObject *f2py_rout__iterative_cgmresrevcom(const PyObject *capi_self,
     complex_float *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int restrt = 0;
@@ -4841,14 +4949,14 @@ static PyObject *f2py_rout__iterative_cgmresrevcom(const PyObject *capi_self,
     complex_float *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
     complex_float *work2 = NULL;
     npy_intp work2_Dims[1] = {-1};
     const int work2_Rank = 1;
-    PyArrayObject *capi_work2_tmp = NULL;
+    PyArrayObject *capi_work2_as_array = NULL;
     int capi_work2_intent = 0;
     PyObject *work2_capi = Py_None;
     int ldw2 = 0;
@@ -4884,14 +4992,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.cgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cgmresrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cgmresrevcom() 6th argument (iter) can't be converted to int");
@@ -4921,14 +5031,16 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.cgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cgmresrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable restrt */
         f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.cgmresrevcom() 3rd argument (restrt) can't be converted to int");
@@ -4941,26 +5053,30 @@ f2py_start_clock();
     /* Processing variable work */
     work_Dims[0]=6 * ldw + ldw * restrt;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 4th argument `work' of _iterative.cgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cgmresrevcom: failed to create array from the 4th argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_float *)(PyArray_DATA(capi_work_as_array));
 
     /* Processing variable work2 */
     work2_Dims[0]=2 * ldw2 + 2 * ldw2 * restrt;
     capi_work2_intent |= F2PY_INTENT_INOUT;
-    capi_work2_tmp = array_from_pyobj(NPY_CFLOAT,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
-    if (capi_work2_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 5th argument `work2' of _iterative.cgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.cgmresrevcom: failed to create array from the 5th argument `work2`";
+    capi_work2_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,work2_Dims,work2_Rank,  capi_work2_intent,work2_capi,capi_errmess);
+    if (capi_work2_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work2 = (complex_float *)(PyArray_DATA(capi_work2_tmp));
+        work2 = (complex_float *)(PyArray_DATA(capi_work2_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -4980,25 +5096,25 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work2_tmp!=work2_capi) {
-        Py_XDECREF(capi_work2_tmp); }
-    }  /*if (capi_work2_tmp == NULL) ... else of work2*/
+    if((PyObject *)capi_work2_as_array!=work2_capi) {
+        Py_XDECREF(capi_work2_as_array); }
+    }  /* if (capi_work2_as_array == NULL) ... else of work2 */
     /* End of cleaning variable work2 */
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw2 */
     /* End of cleaning variable ldw */
     } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
     } /*if (f2py_success) of restrt*/
     /* End of cleaning variable restrt */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of tol*/
@@ -5017,9 +5133,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -5075,13 +5191,13 @@ static PyObject *f2py_rout__iterative_zgmresrevcom(const PyObject *capi_self,
     complex_double *b = NULL;
     npy_intp b_Dims[1] = {-1};
     const int b_Rank = 1;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int restrt = 0;
@@ -5089,14 +5205,14 @@ static PyObject *f2py_rout__iterative_zgmresrevcom(const PyObject *capi_self,
     complex_double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int ldw = 0;
     complex_double *work2 = NULL;
     npy_intp work2_Dims[1] = {-1};
     const int work2_Rank = 1;
-    PyArrayObject *capi_work2_tmp = NULL;
+    PyArrayObject *capi_work2_as_array = NULL;
     int capi_work2_intent = 0;
     PyObject *work2_capi = Py_None;
     int ldw2 = 0;
@@ -5132,14 +5248,16 @@ f2py_start_clock();
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zgmresrevcom: failed to create array from the 1st argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable iter */
         f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zgmresrevcom() 6th argument (iter) can't be converted to int");
@@ -5169,14 +5287,16 @@ f2py_start_clock();
     /* Processing variable x */
     x_Dims[0]=n;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zgmresrevcom: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable restrt */
         f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.zgmresrevcom() 3rd argument (restrt) can't be converted to int");
@@ -5189,26 +5309,30 @@ f2py_start_clock();
     /* Processing variable work */
     work_Dims[0]=6 * ldw + ldw * restrt;
     capi_work_intent |= F2PY_INTENT_INOUT;
-    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 4th argument `work' of _iterative.zgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zgmresrevcom: failed to create array from the 4th argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+        work = (complex_double *)(PyArray_DATA(capi_work_as_array));
 
     /* Processing variable work2 */
     work2_Dims[0]=2 * ldw2 + 2 * ldw2 * restrt;
     capi_work2_intent |= F2PY_INTENT_INOUT;
-    capi_work2_tmp = array_from_pyobj(NPY_CDOUBLE,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
-    if (capi_work2_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 5th argument `work2' of _iterative.zgmresrevcom to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_iterative._iterative.zgmresrevcom: failed to create array from the 5th argument `work2`";
+    capi_work2_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,work2_Dims,work2_Rank,  capi_work2_intent,work2_capi,capi_errmess);
+    if (capi_work2_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _iterative_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work2 = (complex_double *)(PyArray_DATA(capi_work2_tmp));
+        work2 = (complex_double *)(PyArray_DATA(capi_work2_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -5228,25 +5352,25 @@ f2py_stop_call_clock();
     sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_as_array,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_work2_tmp!=work2_capi) {
-        Py_XDECREF(capi_work2_tmp); }
-    }  /*if (capi_work2_tmp == NULL) ... else of work2*/
+    if((PyObject *)capi_work2_as_array!=work2_capi) {
+        Py_XDECREF(capi_work2_as_array); }
+    }  /* if (capi_work2_as_array == NULL) ... else of work2 */
     /* End of cleaning variable work2 */
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     /* End of cleaning variable ldw2 */
     /* End of cleaning variable ldw */
     } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
     } /*if (f2py_success) of restrt*/
     /* End of cleaning variable restrt */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of tol*/
@@ -5265,9 +5389,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable resid */
     } /*if (f2py_success) of iter*/
     /* End of cleaning variable iter */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -5297,30 +5421,30 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"sbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(sbicgrevcom,SBICGREVCOM),(f2py_init_func)f2py_rout__iterative_sbicgrevcom,doc_f2py_rout__iterative_sbicgrevcom},
-    {"dbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(dbicgrevcom,DBICGREVCOM),(f2py_init_func)f2py_rout__iterative_dbicgrevcom,doc_f2py_rout__iterative_dbicgrevcom},
-    {"cbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(cbicgrevcom,CBICGREVCOM),(f2py_init_func)f2py_rout__iterative_cbicgrevcom,doc_f2py_rout__iterative_cbicgrevcom},
-    {"zbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(zbicgrevcom,ZBICGREVCOM),(f2py_init_func)f2py_rout__iterative_zbicgrevcom,doc_f2py_rout__iterative_zbicgrevcom},
-    {"sbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(sbicgstabrevcom,SBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_sbicgstabrevcom,doc_f2py_rout__iterative_sbicgstabrevcom},
-    {"dbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(dbicgstabrevcom,DBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_dbicgstabrevcom,doc_f2py_rout__iterative_dbicgstabrevcom},
-    {"cbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(cbicgstabrevcom,CBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_cbicgstabrevcom,doc_f2py_rout__iterative_cbicgstabrevcom},
-    {"zbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(zbicgstabrevcom,ZBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_zbicgstabrevcom,doc_f2py_rout__iterative_zbicgstabrevcom},
-    {"scgrevcom",-1,{{-1}},0,(char *)F_FUNC(scgrevcom,SCGREVCOM),(f2py_init_func)f2py_rout__iterative_scgrevcom,doc_f2py_rout__iterative_scgrevcom},
-    {"dcgrevcom",-1,{{-1}},0,(char *)F_FUNC(dcgrevcom,DCGREVCOM),(f2py_init_func)f2py_rout__iterative_dcgrevcom,doc_f2py_rout__iterative_dcgrevcom},
-    {"ccgrevcom",-1,{{-1}},0,(char *)F_FUNC(ccgrevcom,CCGREVCOM),(f2py_init_func)f2py_rout__iterative_ccgrevcom,doc_f2py_rout__iterative_ccgrevcom},
-    {"zcgrevcom",-1,{{-1}},0,(char *)F_FUNC(zcgrevcom,ZCGREVCOM),(f2py_init_func)f2py_rout__iterative_zcgrevcom,doc_f2py_rout__iterative_zcgrevcom},
-    {"scgsrevcom",-1,{{-1}},0,(char *)F_FUNC(scgsrevcom,SCGSREVCOM),(f2py_init_func)f2py_rout__iterative_scgsrevcom,doc_f2py_rout__iterative_scgsrevcom},
-    {"dcgsrevcom",-1,{{-1}},0,(char *)F_FUNC(dcgsrevcom,DCGSREVCOM),(f2py_init_func)f2py_rout__iterative_dcgsrevcom,doc_f2py_rout__iterative_dcgsrevcom},
-    {"ccgsrevcom",-1,{{-1}},0,(char *)F_FUNC(ccgsrevcom,CCGSREVCOM),(f2py_init_func)f2py_rout__iterative_ccgsrevcom,doc_f2py_rout__iterative_ccgsrevcom},
-    {"zcgsrevcom",-1,{{-1}},0,(char *)F_FUNC(zcgsrevcom,ZCGSREVCOM),(f2py_init_func)f2py_rout__iterative_zcgsrevcom,doc_f2py_rout__iterative_zcgsrevcom},
-    {"sqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(sqmrrevcom,SQMRREVCOM),(f2py_init_func)f2py_rout__iterative_sqmrrevcom,doc_f2py_rout__iterative_sqmrrevcom},
-    {"dqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(dqmrrevcom,DQMRREVCOM),(f2py_init_func)f2py_rout__iterative_dqmrrevcom,doc_f2py_rout__iterative_dqmrrevcom},
-    {"cqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(cqmrrevcom,CQMRREVCOM),(f2py_init_func)f2py_rout__iterative_cqmrrevcom,doc_f2py_rout__iterative_cqmrrevcom},
-    {"zqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(zqmrrevcom,ZQMRREVCOM),(f2py_init_func)f2py_rout__iterative_zqmrrevcom,doc_f2py_rout__iterative_zqmrrevcom},
-    {"sgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(sgmresrevcom,SGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_sgmresrevcom,doc_f2py_rout__iterative_sgmresrevcom},
-    {"dgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(dgmresrevcom,DGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_dgmresrevcom,doc_f2py_rout__iterative_dgmresrevcom},
-    {"cgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(cgmresrevcom,CGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_cgmresrevcom,doc_f2py_rout__iterative_cgmresrevcom},
-    {"zgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(zgmresrevcom,ZGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_zgmresrevcom,doc_f2py_rout__iterative_zgmresrevcom},
+    {"sbicgrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(sbicgrevcom,SBICGREVCOM),  (f2py_init_func)f2py_rout__iterative_sbicgrevcom,doc_f2py_rout__iterative_sbicgrevcom},
+    {"dbicgrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(dbicgrevcom,DBICGREVCOM),  (f2py_init_func)f2py_rout__iterative_dbicgrevcom,doc_f2py_rout__iterative_dbicgrevcom},
+    {"cbicgrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(cbicgrevcom,CBICGREVCOM),  (f2py_init_func)f2py_rout__iterative_cbicgrevcom,doc_f2py_rout__iterative_cbicgrevcom},
+    {"zbicgrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(zbicgrevcom,ZBICGREVCOM),  (f2py_init_func)f2py_rout__iterative_zbicgrevcom,doc_f2py_rout__iterative_zbicgrevcom},
+    {"sbicgstabrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(sbicgstabrevcom,SBICGSTABREVCOM),  (f2py_init_func)f2py_rout__iterative_sbicgstabrevcom,doc_f2py_rout__iterative_sbicgstabrevcom},
+    {"dbicgstabrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(dbicgstabrevcom,DBICGSTABREVCOM),  (f2py_init_func)f2py_rout__iterative_dbicgstabrevcom,doc_f2py_rout__iterative_dbicgstabrevcom},
+    {"cbicgstabrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(cbicgstabrevcom,CBICGSTABREVCOM),  (f2py_init_func)f2py_rout__iterative_cbicgstabrevcom,doc_f2py_rout__iterative_cbicgstabrevcom},
+    {"zbicgstabrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(zbicgstabrevcom,ZBICGSTABREVCOM),  (f2py_init_func)f2py_rout__iterative_zbicgstabrevcom,doc_f2py_rout__iterative_zbicgstabrevcom},
+    {"scgrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(scgrevcom,SCGREVCOM),  (f2py_init_func)f2py_rout__iterative_scgrevcom,doc_f2py_rout__iterative_scgrevcom},
+    {"dcgrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(dcgrevcom,DCGREVCOM),  (f2py_init_func)f2py_rout__iterative_dcgrevcom,doc_f2py_rout__iterative_dcgrevcom},
+    {"ccgrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(ccgrevcom,CCGREVCOM),  (f2py_init_func)f2py_rout__iterative_ccgrevcom,doc_f2py_rout__iterative_ccgrevcom},
+    {"zcgrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(zcgrevcom,ZCGREVCOM),  (f2py_init_func)f2py_rout__iterative_zcgrevcom,doc_f2py_rout__iterative_zcgrevcom},
+    {"scgsrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(scgsrevcom,SCGSREVCOM),  (f2py_init_func)f2py_rout__iterative_scgsrevcom,doc_f2py_rout__iterative_scgsrevcom},
+    {"dcgsrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(dcgsrevcom,DCGSREVCOM),  (f2py_init_func)f2py_rout__iterative_dcgsrevcom,doc_f2py_rout__iterative_dcgsrevcom},
+    {"ccgsrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(ccgsrevcom,CCGSREVCOM),  (f2py_init_func)f2py_rout__iterative_ccgsrevcom,doc_f2py_rout__iterative_ccgsrevcom},
+    {"zcgsrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(zcgsrevcom,ZCGSREVCOM),  (f2py_init_func)f2py_rout__iterative_zcgsrevcom,doc_f2py_rout__iterative_zcgsrevcom},
+    {"sqmrrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(sqmrrevcom,SQMRREVCOM),  (f2py_init_func)f2py_rout__iterative_sqmrrevcom,doc_f2py_rout__iterative_sqmrrevcom},
+    {"dqmrrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(dqmrrevcom,DQMRREVCOM),  (f2py_init_func)f2py_rout__iterative_dqmrrevcom,doc_f2py_rout__iterative_dqmrrevcom},
+    {"cqmrrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(cqmrrevcom,CQMRREVCOM),  (f2py_init_func)f2py_rout__iterative_cqmrrevcom,doc_f2py_rout__iterative_cqmrrevcom},
+    {"zqmrrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(zqmrrevcom,ZQMRREVCOM),  (f2py_init_func)f2py_rout__iterative_zqmrrevcom,doc_f2py_rout__iterative_zqmrrevcom},
+    {"sgmresrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(sgmresrevcom,SGMRESREVCOM),  (f2py_init_func)f2py_rout__iterative_sgmresrevcom,doc_f2py_rout__iterative_sgmresrevcom},
+    {"dgmresrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(dgmresrevcom,DGMRESREVCOM),  (f2py_init_func)f2py_rout__iterative_dgmresrevcom,doc_f2py_rout__iterative_dgmresrevcom},
+    {"cgmresrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(cgmresrevcom,CGMRESREVCOM),  (f2py_init_func)f2py_rout__iterative_cgmresrevcom,doc_f2py_rout__iterative_cgmresrevcom},
+    {"zgmresrevcom",-1,{{-1}},0,0,(char *)  F_FUNC(zgmresrevcom,ZGMRESREVCOM),  (f2py_init_func)f2py_rout__iterative_zgmresrevcom,doc_f2py_rout__iterative_zgmresrevcom},
 
 /*eof routine_defs*/
     {NULL}
@@ -5352,11 +5476,11 @@ PyMODINIT_FUNC PyInit__iterative(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _iterative (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_iterative' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module '_iterative' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = sbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
 "    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
 "    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = cbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
@@ -5384,7 +5508,7 @@ PyMODINIT_FUNC PyInit__iterative(void) {
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _iterative_error = PyErr_NewException ("_iterative.error", NULL, NULL);

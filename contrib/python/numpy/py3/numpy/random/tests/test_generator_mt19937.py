@@ -8,7 +8,7 @@ from numpy.linalg import LinAlgError
 from numpy.testing import (
     assert_, assert_raises, assert_equal, assert_allclose,
     assert_warns, assert_no_warnings, assert_array_equal,
-    assert_array_almost_equal, suppress_warnings)
+    assert_array_almost_equal, suppress_warnings, IS_WASM)
 
 from numpy.random import Generator, MT19937, SeedSequence, RandomState
 
@@ -1391,6 +1391,7 @@ class TestRandomDist:
                              [5, 5, 3, 1, 2, 4]]])
         assert_array_equal(actual, desired)
 
+    @pytest.mark.skipif(IS_WASM, reason="fp errors don't work in wasm")
     @pytest.mark.parametrize("method", ["svd", "eigh", "cholesky"])
     def test_multivariate_normal(self, method):
         random = Generator(MT19937(self.seed))
@@ -1464,6 +1465,12 @@ class TestRandomDist:
                       mu, np.empty((3, 2)))
         assert_raises(ValueError, random.multivariate_normal,
                       mu, np.eye(3))
+        
+    @pytest.mark.parametrize('mean, cov', [([0], [[1+1j]]), ([0j], [[1]])])
+    def test_multivariate_normal_disallow_complex(self, mean, cov):
+        random = Generator(MT19937(self.seed))
+        with pytest.raises(TypeError, match="must not be complex"):
+            random.multivariate_normal(mean, cov)
 
     @pytest.mark.parametrize("method", ["svd", "eigh", "cholesky"])
     def test_multivariate_normal_basic_stats(self, method):
@@ -2446,6 +2453,7 @@ class TestBroadcast:
         assert actual.shape == (3, 0, 7, 4)
 
 
+@pytest.mark.skipif(IS_WASM, reason="can't start thread")
 class TestThread:
     # make sure each state produces the same sequence even in threads
     def setup_method(self):
@@ -2701,3 +2709,16 @@ def test_contig_req_out(dist, order, dtype):
     assert variates is out
     variates = dist(out=out, dtype=dtype, size=out.shape)
     assert variates is out
+
+
+def test_generator_ctor_old_style_pickle():
+    rg = np.random.Generator(np.random.PCG64DXSM(0))
+    rg.standard_normal(1)
+    # Directly call reduce which is used in pickling
+    ctor, args, state_a = rg.__reduce__()
+    # Simulate unpickling an old pickle that only has the name
+    assert args[:1] == ("PCG64DXSM",)
+    b = ctor(*args[:1])
+    b.bit_generator.state = state_a
+    state_b = b.bit_generator.state
+    assert state_a == state_b

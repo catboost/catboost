@@ -11,7 +11,7 @@ from numpy.core._rational_tests import rational
 from numpy.core._multiarray_tests import create_custom_field_dtype
 from numpy.testing import (
     assert_, assert_equal, assert_array_equal, assert_raises, HAS_REFCOUNT,
-    IS_PYSTON)
+    IS_PYSTON, _OLD_PROMOTION)
 from numpy.compat import pickle
 from itertools import permutations
 import random
@@ -126,6 +126,15 @@ class TestBuiltin:
         with assert_raises(TypeError):
             np.dtype(dtype)
 
+    def test_remaining_dtypes_with_bad_bytesize(self):
+        # The np.<name> aliases were deprecated, these probably should be too 
+        assert np.dtype("int0") is np.dtype("intp")
+        assert np.dtype("uint0") is np.dtype("uintp")
+        assert np.dtype("bool8") is np.dtype("bool")
+        assert np.dtype("bytes0") is np.dtype("bytes")
+        assert np.dtype("str0") is np.dtype("str")
+        assert np.dtype("object0") is np.dtype("object")
+
     @pytest.mark.parametrize(
         'value',
         ['m8', 'M8', 'datetime64', 'timedelta64',
@@ -223,7 +232,8 @@ class TestRecord:
         assert refcounts == refcounts_new
 
     def test_mutate(self):
-        # Mutating a dtype should reset the cached hash value
+        # Mutating a dtype should reset the cached hash value.
+        # NOTE: Mutating should be deprecated, but new API added to replace it.
         a = np.dtype([('yo', int)])
         b = np.dtype([('yo', int)])
         c = np.dtype([('ye', int)])
@@ -236,6 +246,16 @@ class TestRecord:
         a.__setstate__(state)
         assert_dtype_equal(a, b)
         assert_dtype_not_equal(a, c)
+
+    def test_mutate_error(self):
+        # NOTE: Mutating should be deprecated, but new API added to replace it.
+        a = np.dtype("i,i")
+
+        with pytest.raises(ValueError, match="must replace all names at once"):
+            a.names = ["f0"]
+
+        with pytest.raises(ValueError, match=".*and not string"):
+            a.names = ["f0", b"not a unicode name"]
 
     def test_not_lists(self):
         """Test if an appropriate exception is raised when passing bad values to
@@ -317,8 +337,8 @@ class TestRecord:
         dt2 = np.dtype({'names':['f2', 'f0', 'f1'],
                         'formats':['<u4', '<u2', '<u2'],
                         'offsets':[4, 0, 2]}, align=True)
-        vals = [(0, 1, 2), (3, -1, 4)]
-        vals2 = [(0, 1, 2), (3, -1, 4)]
+        vals = [(0, 1, 2), (3, 2**15-1, 4)]
+        vals2 = [(0, 1, 2), (3, 2**15-1, 4)]
         a = np.array(vals, dt)
         b = np.array(vals2, dt2)
         assert_equal(a.astype(dt2), b)
@@ -1300,25 +1320,34 @@ class TestPromotion:
     """Test cases related to more complex DType promotions.  Further promotion
     tests are defined in `test_numeric.py`
     """
-    @pytest.mark.parametrize(["other", "expected"],
-            [(2**16-1, np.complex64),
-             (2**32-1, np.complex128),
-             (np.float16(2), np.complex64),
-             (np.float32(2), np.complex64),
-             (np.longdouble(2), np.complex64),
+    @np._no_nep50_warning()
+    @pytest.mark.parametrize(["other", "expected", "expected_weak"],
+            [(2**16-1, np.complex64, None),
+             (2**32-1, np.complex128, np.complex64),
+             (np.float16(2), np.complex64, None),
+             (np.float32(2), np.complex64, None),
+             (np.longdouble(2), np.complex64, np.clongdouble),
              # Base of the double value to sidestep any rounding issues:
-             (np.longdouble(np.nextafter(1.7e308, 0.)), np.complex128),
+             (np.longdouble(np.nextafter(1.7e308, 0.)),
+                  np.complex128, np.clongdouble),
              # Additionally use "nextafter" so the cast can't round down:
-             (np.longdouble(np.nextafter(1.7e308, np.inf)), np.clongdouble),
+             (np.longdouble(np.nextafter(1.7e308, np.inf)),
+                  np.clongdouble, None),
              # repeat for complex scalars:
-             (np.complex64(2), np.complex64),
-             (np.clongdouble(2), np.complex64),
+             (np.complex64(2), np.complex64, None),
+             (np.clongdouble(2), np.complex64, np.clongdouble),
              # Base of the double value to sidestep any rounding issues:
-             (np.clongdouble(np.nextafter(1.7e308, 0.) * 1j), np.complex128),
+             (np.clongdouble(np.nextafter(1.7e308, 0.) * 1j),
+                  np.complex128, np.clongdouble),
              # Additionally use "nextafter" so the cast can't round down:
-             (np.clongdouble(np.nextafter(1.7e308, np.inf)), np.clongdouble),
+             (np.clongdouble(np.nextafter(1.7e308, np.inf)),
+                  np.clongdouble, None),
              ])
-    def test_complex_other_value_based(self, other, expected):
+    def test_complex_other_value_based(self,
+            weak_promotion, other, expected, expected_weak):
+        if weak_promotion and expected_weak is not None:
+            expected = expected_weak
+
         # This would change if we modify the value based promotion
         min_complex = np.dtype(np.complex64)
 
@@ -1351,7 +1380,7 @@ class TestPromotion:
 
     def test_complex_pyscalar_promote_rational(self):
         with pytest.raises(TypeError,
-                match=r".* do not have a common DType"):
+                match=r".* no common DType exists for the given inputs"):
             np.result_type(1j, rational)
 
         with pytest.raises(TypeError,
@@ -1370,13 +1399,21 @@ class TestPromotion:
 
     @pytest.mark.parametrize(["other", "expected"],
             [(1, rational), (1., np.float64)])
-    def test_float_int_pyscalar_promote_rational(self, other, expected):
+    @np._no_nep50_warning()
+    def test_float_int_pyscalar_promote_rational(
+            self, weak_promotion, other, expected):
         # Note that rationals are a bit akward as they promote with float64
         # or default ints, but not float16 or uint8/int8 (which looks
-        # inconsistent here)
-        with pytest.raises(TypeError,
-                match=r".* do not have a common DType"):
-            np.result_type(other, rational)
+        # inconsistent here).  The new promotion fixes this (partially?)
+        if not weak_promotion and type(other) == float:
+            # The float version, checks float16 in the legacy path, which fails
+            # the integer version seems to check int8 (also), so it can
+            # pass.
+            with pytest.raises(TypeError,
+                    match=r".* do not have a common DType"):
+                np.result_type(other, rational)
+        else:
+            assert np.result_type(other, rational) == expected
 
         assert np.result_type(other, rational(1, 2)) == expected
 
@@ -1423,7 +1460,7 @@ def test_dtypes_are_true():
 def test_invalid_dtype_string():
     # test for gh-10440
     assert_raises(TypeError, np.dtype, 'f8,i8,[f8,i8]')
-    assert_raises(TypeError, np.dtype, u'Fl\xfcgel')
+    assert_raises(TypeError, np.dtype, 'Fl\xfcgel')
 
 
 def test_keyword_argument():

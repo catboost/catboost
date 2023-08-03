@@ -15,7 +15,7 @@
 
 #include "_datetime.h"
 #include "common.h"
-#include "templ_common.h" /* for npy_mul_with_overflow_intp */
+#include "templ_common.h" /* for npy_mul_sizes_with_overflow */
 #include "descriptor.h"
 #include "alloc.h"
 #include "assert.h"
@@ -2164,6 +2164,7 @@ arraydescr_names_set(
 
     N = PyTuple_GET_SIZE(self->names);
     if (!PySequence_Check(val) || PyObject_Size((PyObject *)val) != N) {
+        /* Should be a TypeError, but this should be deprecated anyway. */
         PyErr_Format(PyExc_ValueError,
                 "must replace all names at once with a sequence of length %d",
                 N);
@@ -2172,16 +2173,17 @@ arraydescr_names_set(
     /* Make sure all entries are strings */
     for (i = 0; i < N; i++) {
         PyObject *item;
-        int valid = 1;
+        int valid;
         item = PySequence_GetItem(val, i);
         valid = PyUnicode_Check(item);
-        Py_DECREF(item);
         if (!valid) {
             PyErr_Format(PyExc_ValueError,
                     "item #%d of names is of type %s and not string",
                     i, Py_TYPE(item)->tp_name);
+            Py_DECREF(item);
             return -1;
         }
+        Py_DECREF(item);
     }
     /* Invalidate cached hash value */
     self->hash = -1;
@@ -3591,8 +3593,8 @@ NPY_NO_EXPORT PyArray_DTypeMeta PyArrayDescr_TypeFull = {
         .tp_getset = arraydescr_getsets,
         .tp_new = arraydescr_new,
     },},
-    .type_num = -1,
-    .flags = NPY_DT_ABSTRACT,
     .singleton = NULL,
+    .type_num = -1,
     .scalar_type = NULL,
+    .flags = NPY_DT_ABSTRACT,
 };

@@ -4,10 +4,10 @@ Note that other such tests exist e.g. in `test_api.py` and many corner-cases
 are tested (sometimes indirectly) elsewhere.
 """
 
+from itertools import permutations, product
+
 import pytest
 from pytest import param
-
-from itertools import product
 
 import numpy as np
 from numpy.core._rational_tests import rational
@@ -135,7 +135,7 @@ def scalar_instances(times=True, extended_precision=True, user_dtype=True):
 
 
 def is_parametric_dtype(dtype):
-    """Returns True if the the dtype is a parametric legacy dtype (itemsize
+    """Returns True if the dtype is a parametric legacy dtype (itemsize
     is 0, or a datetime without units)
     """
     if dtype.itemsize == 0:
@@ -373,28 +373,29 @@ class TestScalarDiscovery:
         assert discovered_dtype.itemsize == dtype.itemsize
 
     @pytest.mark.parametrize("dtype", np.typecodes["Integer"])
-    def test_scalar_to_int_coerce_does_not_cast(self, dtype):
+    @pytest.mark.parametrize(["scalar", "error"],
+            [(np.float64(np.nan), ValueError),
+             (np.array(-1).astype(np.ulonglong)[()], OverflowError)])
+    def test_scalar_to_int_coerce_does_not_cast(self, dtype, scalar, error):
         """
         Signed integers are currently different in that they do not cast other
         NumPy scalar, but instead use scalar.__int__(). The hardcoded
         exception to this rule is `np.array(scalar, dtype=integer)`.
         """
         dtype = np.dtype(dtype)
-        invalid_int = np.ulonglong(-1)
 
-        float_nan = np.float64(np.nan)
-
-        for scalar in [float_nan, invalid_int]:
-            # This is a special case using casting logic and thus not failing:
+        # This is a special case using casting logic.  It warns for the NaN
+        # but allows the cast (giving undefined behaviour).
+        with np.errstate(invalid="ignore"):
             coerced = np.array(scalar, dtype=dtype)
             cast = np.array(scalar).astype(dtype)
-            assert_array_equal(coerced, cast)
+        assert_array_equal(coerced, cast)
 
-            # However these fail:
-            with pytest.raises((ValueError, OverflowError)):
-                np.array([scalar], dtype=dtype)
-            with pytest.raises((ValueError, OverflowError)):
-                cast[()] = scalar
+        # However these fail:
+        with pytest.raises(error):
+            np.array([scalar], dtype=dtype)
+        with pytest.raises(error):
+            cast[()] = scalar
 
 
 class TestTimeScalars:
@@ -489,9 +490,10 @@ class TestNested:
         with pytest.raises(ValueError):
             np.array([nested], dtype="float64")
 
-        # We discover object automatically at this time:
-        with assert_warns(np.VisibleDeprecationWarning):
-            arr = np.array([nested])
+        with pytest.raises(ValueError, match=".*would exceed the maximum"):
+            np.array([nested])  # user must ask for `object` explicitly
+
+        arr = np.array([nested], dtype=object)
         assert arr.dtype == np.dtype("O")
         assert arr.shape == (1,) * np.MAXDIMS
         assert arr.item() is initial
@@ -522,7 +524,7 @@ class TestNested:
         for i in range(np.MAXDIMS - 1):
             nested = [nested]
 
-        with pytest.warns(DeprecationWarning):
+        with pytest.raises(ValueError, match=".*would exceed the maximum"):
             # It will refuse to assign the array into
             np.array(nested, dtype="float64")
 
@@ -614,8 +616,8 @@ class TestBadSequences:
 
         obj.append([2, 3])
         obj.append(mylist([1, 2]))
-        with pytest.raises(RuntimeError):
-            np.array(obj)
+        # Does not crash:
+        np.array(obj)
 
     def test_replace_0d_array(self):
         # List to coerce, `mylist` will mutate the first element
@@ -745,6 +747,72 @@ class TestArrayLikes:
 
         with pytest.raises(error):
             np.array(BadSequence())
+
+
+class TestAsArray:
+    """Test expected behaviors of ``asarray``."""
+
+    def test_dtype_identity(self):
+        """Confirm the intended behavior for *dtype* kwarg.
+
+        The result of ``asarray()`` should have the dtype provided through the
+        keyword argument, when used. This forces unique array handles to be
+        produced for unique np.dtype objects, but (for equivalent dtypes), the
+        underlying data (the base object) is shared with the original array
+        object.
+
+        Ref https://github.com/numpy/numpy/issues/1468
+        """
+        int_array = np.array([1, 2, 3], dtype='i')
+        assert np.asarray(int_array) is int_array
+
+        # The character code resolves to the singleton dtype object provided
+        # by the numpy package.
+        assert np.asarray(int_array, dtype='i') is int_array
+
+        # Derive a dtype from n.dtype('i'), but add a metadata object to force
+        # the dtype to be distinct.
+        unequal_type = np.dtype('i', metadata={'spam': True})
+        annotated_int_array = np.asarray(int_array, dtype=unequal_type)
+        assert annotated_int_array is not int_array
+        assert annotated_int_array.base is int_array
+        # Create an equivalent descriptor with a new and distinct dtype
+        # instance.
+        equivalent_requirement = np.dtype('i', metadata={'spam': True})
+        annotated_int_array_alt = np.asarray(annotated_int_array,
+                                             dtype=equivalent_requirement)
+        assert unequal_type == equivalent_requirement
+        assert unequal_type is not equivalent_requirement
+        assert annotated_int_array_alt is not annotated_int_array
+        assert annotated_int_array_alt.dtype is equivalent_requirement
+
+        # Check the same logic for a pair of C types whose equivalence may vary
+        # between computing environments.
+        # Find an equivalent pair.
+        integer_type_codes = ('i', 'l', 'q')
+        integer_dtypes = [np.dtype(code) for code in integer_type_codes]
+        typeA = None
+        typeB = None
+        for typeA, typeB in permutations(integer_dtypes, r=2):
+            if typeA == typeB:
+                assert typeA is not typeB
+                break
+        assert isinstance(typeA, np.dtype) and isinstance(typeB, np.dtype)
+
+        # These ``asarray()`` calls may produce a new view or a copy,
+        # but never the same object.
+        long_int_array = np.asarray(int_array, dtype='l')
+        long_long_int_array = np.asarray(int_array, dtype='q')
+        assert long_int_array is not int_array
+        assert long_long_int_array is not int_array
+        assert np.asarray(long_int_array, dtype='q') is not long_int_array
+        array_a = np.asarray(int_array, dtype=typeA)
+        assert typeA == typeB
+        assert typeA is not typeB
+        assert array_a.dtype is typeA
+        assert array_a is not np.asarray(array_a, dtype=typeB)
+        assert np.asarray(array_a, dtype=typeB).dtype is typeB
+        assert array_a is np.asarray(array_a, dtype=typeB).base
 
 
 class TestSpecialAttributeLookupFailure:

@@ -36,9 +36,14 @@
 #include "binop_override.h"
 #include "npy_longdouble.h"
 
+#include "arraytypes.h"
 #include "array_coercion.h"
 #include "common.h"
 #include "can_cast_table.h"
+#include "umathmodule.h"
+
+#include "convert_datatype.h"
+
 
 /* TODO: Used for some functions, should possibly move these to npy_math.h */
 #include "loops.h"
@@ -58,7 +63,7 @@
  *
  */
 
-#line 55
+#line 60
 static NPY_INLINE int
 byte_ctype_add(npy_byte a, npy_byte b, npy_byte *out) {
     *out = a + b;
@@ -77,7 +82,7 @@ byte_ctype_subtract(npy_byte a, npy_byte b, npy_byte *out) {
     return NPY_FPE_OVERFLOW;
 }
 
-#line 55
+#line 60
 static NPY_INLINE int
 short_ctype_add(npy_short a, npy_short b, npy_short *out) {
     *out = a + b;
@@ -96,7 +101,7 @@ short_ctype_subtract(npy_short a, npy_short b, npy_short *out) {
     return NPY_FPE_OVERFLOW;
 }
 
-#line 55
+#line 60
 static NPY_INLINE int
 int_ctype_add(npy_int a, npy_int b, npy_int *out) {
     *out = a + b;
@@ -115,7 +120,7 @@ int_ctype_subtract(npy_int a, npy_int b, npy_int *out) {
     return NPY_FPE_OVERFLOW;
 }
 
-#line 55
+#line 60
 static NPY_INLINE int
 long_ctype_add(npy_long a, npy_long b, npy_long *out) {
     *out = a + b;
@@ -134,7 +139,7 @@ long_ctype_subtract(npy_long a, npy_long b, npy_long *out) {
     return NPY_FPE_OVERFLOW;
 }
 
-#line 55
+#line 60
 static NPY_INLINE int
 longlong_ctype_add(npy_longlong a, npy_longlong b, npy_longlong *out) {
     *out = a + b;
@@ -154,7 +159,7 @@ longlong_ctype_subtract(npy_longlong a, npy_longlong b, npy_longlong *out) {
 }
 
 
-#line 78
+#line 83
 static NPY_INLINE int
 ubyte_ctype_add(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     *out = a + b;
@@ -173,7 +178,7 @@ ubyte_ctype_subtract(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     return NPY_FPE_OVERFLOW;
 }
 
-#line 78
+#line 83
 static NPY_INLINE int
 ushort_ctype_add(npy_ushort a, npy_ushort b, npy_ushort *out) {
     *out = a + b;
@@ -192,7 +197,7 @@ ushort_ctype_subtract(npy_ushort a, npy_ushort b, npy_ushort *out) {
     return NPY_FPE_OVERFLOW;
 }
 
-#line 78
+#line 83
 static NPY_INLINE int
 uint_ctype_add(npy_uint a, npy_uint b, npy_uint *out) {
     *out = a + b;
@@ -211,7 +216,7 @@ uint_ctype_subtract(npy_uint a, npy_uint b, npy_uint *out) {
     return NPY_FPE_OVERFLOW;
 }
 
-#line 78
+#line 83
 static NPY_INLINE int
 ulong_ctype_add(npy_ulong a, npy_ulong b, npy_ulong *out) {
     *out = a + b;
@@ -230,7 +235,7 @@ ulong_ctype_subtract(npy_ulong a, npy_ulong b, npy_ulong *out) {
     return NPY_FPE_OVERFLOW;
 }
 
-#line 78
+#line 83
 static NPY_INLINE int
 ulonglong_ctype_add(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
     *out = a + b;
@@ -254,7 +259,7 @@ ulonglong_ctype_subtract(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define NPY_SIZEOF_BYTE 1
 #endif
 
-#line 115
+#line 120
 #if NPY_SIZEOF_INT > NPY_SIZEOF_BYTE
 static NPY_INLINE int
 byte_ctype_multiply(npy_byte a, npy_byte b, npy_byte *out) {
@@ -272,7 +277,7 @@ byte_ctype_multiply(npy_byte a, npy_byte b, npy_byte *out) {
 }
 #endif
 
-#line 115
+#line 120
 #if NPY_SIZEOF_INT > NPY_SIZEOF_BYTE
 static NPY_INLINE int
 ubyte_ctype_multiply(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
@@ -290,7 +295,7 @@ ubyte_ctype_multiply(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
 }
 #endif
 
-#line 115
+#line 120
 #if NPY_SIZEOF_INT > NPY_SIZEOF_SHORT
 static NPY_INLINE int
 short_ctype_multiply(npy_short a, npy_short b, npy_short *out) {
@@ -308,7 +313,7 @@ short_ctype_multiply(npy_short a, npy_short b, npy_short *out) {
 }
 #endif
 
-#line 115
+#line 120
 #if NPY_SIZEOF_INT > NPY_SIZEOF_SHORT
 static NPY_INLINE int
 ushort_ctype_multiply(npy_ushort a, npy_ushort b, npy_ushort *out) {
@@ -326,7 +331,7 @@ ushort_ctype_multiply(npy_ushort a, npy_ushort b, npy_ushort *out) {
 }
 #endif
 
-#line 115
+#line 120
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_INT
 static NPY_INLINE int
 int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
@@ -344,7 +349,7 @@ int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
 }
 #endif
 
-#line 115
+#line 120
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_INT
 static NPY_INLINE int
 uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
@@ -362,7 +367,7 @@ uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
 }
 #endif
 
-#line 115
+#line 120
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_LONG
 static NPY_INLINE int
 long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
@@ -380,7 +385,7 @@ long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
 }
 #endif
 
-#line 115
+#line 120
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_LONG
 static NPY_INLINE int
 ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
@@ -399,7 +404,7 @@ ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
 #endif
 
 
-#line 141
+#line 146
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_INT
 static NPY_INLINE int
 int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
@@ -410,7 +415,7 @@ int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
 }
 #endif
 
-#line 141
+#line 146
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_INT
 static NPY_INLINE int
 uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
@@ -421,7 +426,7 @@ uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
 }
 #endif
 
-#line 141
+#line 146
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONG
 static NPY_INLINE int
 long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
@@ -432,7 +437,7 @@ long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
 }
 #endif
 
-#line 141
+#line 146
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONG
 static NPY_INLINE int
 ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
@@ -443,7 +448,7 @@ ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
 }
 #endif
 
-#line 141
+#line 146
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONGLONG
 static NPY_INLINE int
 longlong_ctype_multiply(npy_longlong a, npy_longlong b, npy_longlong *out) {
@@ -454,7 +459,7 @@ longlong_ctype_multiply(npy_longlong a, npy_longlong b, npy_longlong *out) {
 }
 #endif
 
-#line 141
+#line 146
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONGLONG
 static NPY_INLINE int
 ulonglong_ctype_multiply(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
@@ -466,7 +471,7 @@ ulonglong_ctype_multiply(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #endif
 
 
-#line 162
+#line 167
 
 #if 1
     #define DIVIDEBYZERO_CHECK (b == 0 || (a == NPY_MIN_BYTE && b == -1))
@@ -528,7 +533,7 @@ byte_ctype_remainder(npy_byte a, npy_byte b, npy_byte *out) {
 }
 #undef DIVIDEBYZERO_CHECK
 
-#line 162
+#line 167
 
 #if 0
     #define DIVIDEBYZERO_CHECK (b == 0 || (a == NPY_MIN_UBYTE && b == -1))
@@ -590,7 +595,7 @@ ubyte_ctype_remainder(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
 }
 #undef DIVIDEBYZERO_CHECK
 
-#line 162
+#line 167
 
 #if 1
     #define DIVIDEBYZERO_CHECK (b == 0 || (a == NPY_MIN_SHORT && b == -1))
@@ -652,7 +657,7 @@ short_ctype_remainder(npy_short a, npy_short b, npy_short *out) {
 }
 #undef DIVIDEBYZERO_CHECK
 
-#line 162
+#line 167
 
 #if 0
     #define DIVIDEBYZERO_CHECK (b == 0 || (a == NPY_MIN_USHORT && b == -1))
@@ -714,7 +719,7 @@ ushort_ctype_remainder(npy_ushort a, npy_ushort b, npy_ushort *out) {
 }
 #undef DIVIDEBYZERO_CHECK
 
-#line 162
+#line 167
 
 #if 1
     #define DIVIDEBYZERO_CHECK (b == 0 || (a == NPY_MIN_INT && b == -1))
@@ -776,7 +781,7 @@ int_ctype_remainder(npy_int a, npy_int b, npy_int *out) {
 }
 #undef DIVIDEBYZERO_CHECK
 
-#line 162
+#line 167
 
 #if 0
     #define DIVIDEBYZERO_CHECK (b == 0 || (a == NPY_MIN_UINT && b == -1))
@@ -838,7 +843,7 @@ uint_ctype_remainder(npy_uint a, npy_uint b, npy_uint *out) {
 }
 #undef DIVIDEBYZERO_CHECK
 
-#line 162
+#line 167
 
 #if 1
     #define DIVIDEBYZERO_CHECK (b == 0 || (a == NPY_MIN_LONG && b == -1))
@@ -900,7 +905,7 @@ long_ctype_remainder(npy_long a, npy_long b, npy_long *out) {
 }
 #undef DIVIDEBYZERO_CHECK
 
-#line 162
+#line 167
 
 #if 0
     #define DIVIDEBYZERO_CHECK (b == 0 || (a == NPY_MIN_ULONG && b == -1))
@@ -962,7 +967,7 @@ ulong_ctype_remainder(npy_ulong a, npy_ulong b, npy_ulong *out) {
 }
 #undef DIVIDEBYZERO_CHECK
 
-#line 162
+#line 167
 
 #if 1
     #define DIVIDEBYZERO_CHECK (b == 0 || (a == NPY_MIN_LONGLONG && b == -1))
@@ -1024,7 +1029,7 @@ longlong_ctype_remainder(npy_longlong a, npy_longlong b, npy_longlong *out) {
 }
 #undef DIVIDEBYZERO_CHECK
 
-#line 162
+#line 167
 
 #if 0
     #define DIVIDEBYZERO_CHECK (b == 0 || (a == NPY_MIN_ULONGLONG && b == -1))
@@ -1087,7 +1092,7 @@ ulonglong_ctype_remainder(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) 
 #undef DIVIDEBYZERO_CHECK
 
 
-#line 229
+#line 234
 
 static NPY_INLINE int
 byte_ctype_true_divide(npy_byte a, npy_byte b, npy_double *out)
@@ -1097,7 +1102,7 @@ byte_ctype_true_divide(npy_byte a, npy_byte b, npy_double *out)
 }
 
 
-#line 229
+#line 234
 
 static NPY_INLINE int
 ubyte_ctype_true_divide(npy_ubyte a, npy_ubyte b, npy_double *out)
@@ -1107,7 +1112,7 @@ ubyte_ctype_true_divide(npy_ubyte a, npy_ubyte b, npy_double *out)
 }
 
 
-#line 229
+#line 234
 
 static NPY_INLINE int
 short_ctype_true_divide(npy_short a, npy_short b, npy_double *out)
@@ -1117,7 +1122,7 @@ short_ctype_true_divide(npy_short a, npy_short b, npy_double *out)
 }
 
 
-#line 229
+#line 234
 
 static NPY_INLINE int
 ushort_ctype_true_divide(npy_ushort a, npy_ushort b, npy_double *out)
@@ -1127,7 +1132,7 @@ ushort_ctype_true_divide(npy_ushort a, npy_ushort b, npy_double *out)
 }
 
 
-#line 229
+#line 234
 
 static NPY_INLINE int
 int_ctype_true_divide(npy_int a, npy_int b, npy_double *out)
@@ -1137,7 +1142,7 @@ int_ctype_true_divide(npy_int a, npy_int b, npy_double *out)
 }
 
 
-#line 229
+#line 234
 
 static NPY_INLINE int
 uint_ctype_true_divide(npy_uint a, npy_uint b, npy_double *out)
@@ -1147,7 +1152,7 @@ uint_ctype_true_divide(npy_uint a, npy_uint b, npy_double *out)
 }
 
 
-#line 229
+#line 234
 
 static NPY_INLINE int
 long_ctype_true_divide(npy_long a, npy_long b, npy_double *out)
@@ -1157,7 +1162,7 @@ long_ctype_true_divide(npy_long a, npy_long b, npy_double *out)
 }
 
 
-#line 229
+#line 234
 
 static NPY_INLINE int
 ulong_ctype_true_divide(npy_ulong a, npy_ulong b, npy_double *out)
@@ -1167,7 +1172,7 @@ ulong_ctype_true_divide(npy_ulong a, npy_ulong b, npy_double *out)
 }
 
 
-#line 229
+#line 234
 
 static NPY_INLINE int
 longlong_ctype_true_divide(npy_longlong a, npy_longlong b, npy_double *out)
@@ -1177,7 +1182,7 @@ longlong_ctype_true_divide(npy_longlong a, npy_longlong b, npy_double *out)
 }
 
 
-#line 229
+#line 234
 
 static NPY_INLINE int
 ulonglong_ctype_true_divide(npy_ulonglong a, npy_ulonglong b, npy_double *out)
@@ -1189,7 +1194,7 @@ ulonglong_ctype_true_divide(npy_ulonglong a, npy_ulonglong b, npy_double *out)
 
 
 /* b will always be positive in this call */
-#line 249
+#line 254
 static NPY_INLINE int
 byte_ctype_power(npy_byte a, npy_byte b, npy_byte *out) {
     npy_byte tmp;
@@ -1216,7 +1221,7 @@ byte_ctype_power(npy_byte a, npy_byte b, npy_byte *out) {
     return 0;
 }
 
-#line 249
+#line 254
 static NPY_INLINE int
 ubyte_ctype_power(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     npy_ubyte tmp;
@@ -1243,7 +1248,7 @@ ubyte_ctype_power(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     return 0;
 }
 
-#line 249
+#line 254
 static NPY_INLINE int
 short_ctype_power(npy_short a, npy_short b, npy_short *out) {
     npy_short tmp;
@@ -1270,7 +1275,7 @@ short_ctype_power(npy_short a, npy_short b, npy_short *out) {
     return 0;
 }
 
-#line 249
+#line 254
 static NPY_INLINE int
 ushort_ctype_power(npy_ushort a, npy_ushort b, npy_ushort *out) {
     npy_ushort tmp;
@@ -1297,7 +1302,7 @@ ushort_ctype_power(npy_ushort a, npy_ushort b, npy_ushort *out) {
     return 0;
 }
 
-#line 249
+#line 254
 static NPY_INLINE int
 int_ctype_power(npy_int a, npy_int b, npy_int *out) {
     npy_int tmp;
@@ -1324,7 +1329,7 @@ int_ctype_power(npy_int a, npy_int b, npy_int *out) {
     return 0;
 }
 
-#line 249
+#line 254
 static NPY_INLINE int
 uint_ctype_power(npy_uint a, npy_uint b, npy_uint *out) {
     npy_uint tmp;
@@ -1351,7 +1356,7 @@ uint_ctype_power(npy_uint a, npy_uint b, npy_uint *out) {
     return 0;
 }
 
-#line 249
+#line 254
 static NPY_INLINE int
 long_ctype_power(npy_long a, npy_long b, npy_long *out) {
     npy_long tmp;
@@ -1378,7 +1383,7 @@ long_ctype_power(npy_long a, npy_long b, npy_long *out) {
     return 0;
 }
 
-#line 249
+#line 254
 static NPY_INLINE int
 ulong_ctype_power(npy_ulong a, npy_ulong b, npy_ulong *out) {
     npy_ulong tmp;
@@ -1405,7 +1410,7 @@ ulong_ctype_power(npy_ulong a, npy_ulong b, npy_ulong *out) {
     return 0;
 }
 
-#line 249
+#line 254
 static NPY_INLINE int
 longlong_ctype_power(npy_longlong a, npy_longlong b, npy_longlong *out) {
     npy_longlong tmp;
@@ -1432,7 +1437,7 @@ longlong_ctype_power(npy_longlong a, npy_longlong b, npy_longlong *out) {
     return 0;
 }
 
-#line 249
+#line 254
 static NPY_INLINE int
 ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
     npy_ulonglong tmp;
@@ -1461,9 +1466,9 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 
 
 
-#line 284
-
 #line 289
+
+#line 294
 
 static NPY_INLINE int
 byte_ctype_and(npy_byte arg1, npy_byte arg2, npy_byte *out)
@@ -1473,7 +1478,7 @@ byte_ctype_and(npy_byte arg1, npy_byte arg2, npy_byte *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 byte_ctype_xor(npy_byte arg1, npy_byte arg2, npy_byte *out)
@@ -1483,7 +1488,7 @@ byte_ctype_xor(npy_byte arg1, npy_byte arg2, npy_byte *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 byte_ctype_or(npy_byte arg1, npy_byte arg2, npy_byte *out)
@@ -1509,9 +1514,9 @@ byte_ctype_rshift(npy_byte arg1, npy_byte arg2, npy_byte *out)
 }
 
 
-#line 284
-
 #line 289
+
+#line 294
 
 static NPY_INLINE int
 ubyte_ctype_and(npy_ubyte arg1, npy_ubyte arg2, npy_ubyte *out)
@@ -1521,7 +1526,7 @@ ubyte_ctype_and(npy_ubyte arg1, npy_ubyte arg2, npy_ubyte *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 ubyte_ctype_xor(npy_ubyte arg1, npy_ubyte arg2, npy_ubyte *out)
@@ -1531,7 +1536,7 @@ ubyte_ctype_xor(npy_ubyte arg1, npy_ubyte arg2, npy_ubyte *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 ubyte_ctype_or(npy_ubyte arg1, npy_ubyte arg2, npy_ubyte *out)
@@ -1557,9 +1562,9 @@ ubyte_ctype_rshift(npy_ubyte arg1, npy_ubyte arg2, npy_ubyte *out)
 }
 
 
-#line 284
-
 #line 289
+
+#line 294
 
 static NPY_INLINE int
 short_ctype_and(npy_short arg1, npy_short arg2, npy_short *out)
@@ -1569,7 +1574,7 @@ short_ctype_and(npy_short arg1, npy_short arg2, npy_short *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 short_ctype_xor(npy_short arg1, npy_short arg2, npy_short *out)
@@ -1579,7 +1584,7 @@ short_ctype_xor(npy_short arg1, npy_short arg2, npy_short *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 short_ctype_or(npy_short arg1, npy_short arg2, npy_short *out)
@@ -1605,9 +1610,9 @@ short_ctype_rshift(npy_short arg1, npy_short arg2, npy_short *out)
 }
 
 
-#line 284
-
 #line 289
+
+#line 294
 
 static NPY_INLINE int
 ushort_ctype_and(npy_ushort arg1, npy_ushort arg2, npy_ushort *out)
@@ -1617,7 +1622,7 @@ ushort_ctype_and(npy_ushort arg1, npy_ushort arg2, npy_ushort *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 ushort_ctype_xor(npy_ushort arg1, npy_ushort arg2, npy_ushort *out)
@@ -1627,7 +1632,7 @@ ushort_ctype_xor(npy_ushort arg1, npy_ushort arg2, npy_ushort *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 ushort_ctype_or(npy_ushort arg1, npy_ushort arg2, npy_ushort *out)
@@ -1653,9 +1658,9 @@ ushort_ctype_rshift(npy_ushort arg1, npy_ushort arg2, npy_ushort *out)
 }
 
 
-#line 284
-
 #line 289
+
+#line 294
 
 static NPY_INLINE int
 int_ctype_and(npy_int arg1, npy_int arg2, npy_int *out)
@@ -1665,7 +1670,7 @@ int_ctype_and(npy_int arg1, npy_int arg2, npy_int *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 int_ctype_xor(npy_int arg1, npy_int arg2, npy_int *out)
@@ -1675,7 +1680,7 @@ int_ctype_xor(npy_int arg1, npy_int arg2, npy_int *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 int_ctype_or(npy_int arg1, npy_int arg2, npy_int *out)
@@ -1701,9 +1706,9 @@ int_ctype_rshift(npy_int arg1, npy_int arg2, npy_int *out)
 }
 
 
-#line 284
-
 #line 289
+
+#line 294
 
 static NPY_INLINE int
 uint_ctype_and(npy_uint arg1, npy_uint arg2, npy_uint *out)
@@ -1713,7 +1718,7 @@ uint_ctype_and(npy_uint arg1, npy_uint arg2, npy_uint *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 uint_ctype_xor(npy_uint arg1, npy_uint arg2, npy_uint *out)
@@ -1723,7 +1728,7 @@ uint_ctype_xor(npy_uint arg1, npy_uint arg2, npy_uint *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 uint_ctype_or(npy_uint arg1, npy_uint arg2, npy_uint *out)
@@ -1749,9 +1754,9 @@ uint_ctype_rshift(npy_uint arg1, npy_uint arg2, npy_uint *out)
 }
 
 
-#line 284
-
 #line 289
+
+#line 294
 
 static NPY_INLINE int
 long_ctype_and(npy_long arg1, npy_long arg2, npy_long *out)
@@ -1761,7 +1766,7 @@ long_ctype_and(npy_long arg1, npy_long arg2, npy_long *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 long_ctype_xor(npy_long arg1, npy_long arg2, npy_long *out)
@@ -1771,7 +1776,7 @@ long_ctype_xor(npy_long arg1, npy_long arg2, npy_long *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 long_ctype_or(npy_long arg1, npy_long arg2, npy_long *out)
@@ -1797,9 +1802,9 @@ long_ctype_rshift(npy_long arg1, npy_long arg2, npy_long *out)
 }
 
 
-#line 284
-
 #line 289
+
+#line 294
 
 static NPY_INLINE int
 ulong_ctype_and(npy_ulong arg1, npy_ulong arg2, npy_ulong *out)
@@ -1809,7 +1814,7 @@ ulong_ctype_and(npy_ulong arg1, npy_ulong arg2, npy_ulong *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 ulong_ctype_xor(npy_ulong arg1, npy_ulong arg2, npy_ulong *out)
@@ -1819,7 +1824,7 @@ ulong_ctype_xor(npy_ulong arg1, npy_ulong arg2, npy_ulong *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 ulong_ctype_or(npy_ulong arg1, npy_ulong arg2, npy_ulong *out)
@@ -1845,9 +1850,9 @@ ulong_ctype_rshift(npy_ulong arg1, npy_ulong arg2, npy_ulong *out)
 }
 
 
-#line 284
-
 #line 289
+
+#line 294
 
 static NPY_INLINE int
 longlong_ctype_and(npy_longlong arg1, npy_longlong arg2, npy_longlong *out)
@@ -1857,7 +1862,7 @@ longlong_ctype_and(npy_longlong arg1, npy_longlong arg2, npy_longlong *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 longlong_ctype_xor(npy_longlong arg1, npy_longlong arg2, npy_longlong *out)
@@ -1867,7 +1872,7 @@ longlong_ctype_xor(npy_longlong arg1, npy_longlong arg2, npy_longlong *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 longlong_ctype_or(npy_longlong arg1, npy_longlong arg2, npy_longlong *out)
@@ -1893,9 +1898,9 @@ longlong_ctype_rshift(npy_longlong arg1, npy_longlong arg2, npy_longlong *out)
 }
 
 
-#line 284
-
 #line 289
+
+#line 294
 
 static NPY_INLINE int
 ulonglong_ctype_and(npy_ulonglong arg1, npy_ulonglong arg2, npy_ulonglong *out)
@@ -1905,7 +1910,7 @@ ulonglong_ctype_and(npy_ulonglong arg1, npy_ulonglong arg2, npy_ulonglong *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 ulonglong_ctype_xor(npy_ulonglong arg1, npy_ulonglong arg2, npy_ulonglong *out)
@@ -1915,7 +1920,7 @@ ulonglong_ctype_xor(npy_ulonglong arg1, npy_ulonglong arg2, npy_ulonglong *out)
 }
 
 
-#line 289
+#line 294
 
 static NPY_INLINE int
 ulonglong_ctype_or(npy_ulonglong arg1, npy_ulonglong arg2, npy_ulonglong *out)
@@ -1942,9 +1947,9 @@ ulonglong_ctype_rshift(npy_ulonglong arg1, npy_ulonglong arg2, npy_ulonglong *ou
 
 
 
-#line 320
-
 #line 325
+
+#line 330
 
 static NPY_INLINE int
 float_ctype_add(npy_float a, npy_float b, npy_float *out)
@@ -1954,7 +1959,7 @@ float_ctype_add(npy_float a, npy_float b, npy_float *out)
 }
 
 
-#line 325
+#line 330
 
 static NPY_INLINE int
 float_ctype_subtract(npy_float a, npy_float b, npy_float *out)
@@ -1964,7 +1969,7 @@ float_ctype_subtract(npy_float a, npy_float b, npy_float *out)
 }
 
 
-#line 325
+#line 330
 
 static NPY_INLINE int
 float_ctype_multiply(npy_float a, npy_float b, npy_float *out)
@@ -1974,7 +1979,7 @@ float_ctype_multiply(npy_float a, npy_float b, npy_float *out)
 }
 
 
-#line 325
+#line 330
 
 static NPY_INLINE int
 float_ctype_divide(npy_float a, npy_float b, npy_float *out)
@@ -2010,9 +2015,9 @@ float_ctype_divmod(npy_float a, npy_float b, npy_float *out1, npy_float *out2) {
 
 
 
-#line 320
-
 #line 325
+
+#line 330
 
 static NPY_INLINE int
 double_ctype_add(npy_double a, npy_double b, npy_double *out)
@@ -2022,7 +2027,7 @@ double_ctype_add(npy_double a, npy_double b, npy_double *out)
 }
 
 
-#line 325
+#line 330
 
 static NPY_INLINE int
 double_ctype_subtract(npy_double a, npy_double b, npy_double *out)
@@ -2032,7 +2037,7 @@ double_ctype_subtract(npy_double a, npy_double b, npy_double *out)
 }
 
 
-#line 325
+#line 330
 
 static NPY_INLINE int
 double_ctype_multiply(npy_double a, npy_double b, npy_double *out)
@@ -2042,7 +2047,7 @@ double_ctype_multiply(npy_double a, npy_double b, npy_double *out)
 }
 
 
-#line 325
+#line 330
 
 static NPY_INLINE int
 double_ctype_divide(npy_double a, npy_double b, npy_double *out)
@@ -2078,9 +2083,9 @@ double_ctype_divmod(npy_double a, npy_double b, npy_double *out1, npy_double *ou
 
 
 
-#line 320
-
 #line 325
+
+#line 330
 
 static NPY_INLINE int
 longdouble_ctype_add(npy_longdouble a, npy_longdouble b, npy_longdouble *out)
@@ -2090,7 +2095,7 @@ longdouble_ctype_add(npy_longdouble a, npy_longdouble b, npy_longdouble *out)
 }
 
 
-#line 325
+#line 330
 
 static NPY_INLINE int
 longdouble_ctype_subtract(npy_longdouble a, npy_longdouble b, npy_longdouble *out)
@@ -2100,7 +2105,7 @@ longdouble_ctype_subtract(npy_longdouble a, npy_longdouble b, npy_longdouble *ou
 }
 
 
-#line 325
+#line 330
 
 static NPY_INLINE int
 longdouble_ctype_multiply(npy_longdouble a, npy_longdouble b, npy_longdouble *out)
@@ -2110,7 +2115,7 @@ longdouble_ctype_multiply(npy_longdouble a, npy_longdouble b, npy_longdouble *ou
 }
 
 
-#line 325
+#line 330
 
 static NPY_INLINE int
 longdouble_ctype_divide(npy_longdouble a, npy_longdouble b, npy_longdouble *out)
@@ -2147,7 +2152,7 @@ longdouble_ctype_divmod(npy_longdouble a, npy_longdouble b, npy_longdouble *out1
 
 
 
-#line 365
+#line 370
 
 static NPY_INLINE int
 half_ctype_add(npy_half a, npy_half b, npy_half *out)
@@ -2158,7 +2163,7 @@ half_ctype_add(npy_half a, npy_half b, npy_half *out)
 }
 
 
-#line 365
+#line 370
 
 static NPY_INLINE int
 half_ctype_subtract(npy_half a, npy_half b, npy_half *out)
@@ -2169,7 +2174,7 @@ half_ctype_subtract(npy_half a, npy_half b, npy_half *out)
 }
 
 
-#line 365
+#line 370
 
 static NPY_INLINE int
 half_ctype_multiply(npy_half a, npy_half b, npy_half *out)
@@ -2180,7 +2185,7 @@ half_ctype_multiply(npy_half a, npy_half b, npy_half *out)
 }
 
 
-#line 365
+#line 370
 
 static NPY_INLINE int
 half_ctype_divide(npy_half a, npy_half b, npy_half *out)
@@ -2225,7 +2230,7 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2)
     return 0;
 }
 
-#line 417
+#line 422
 static NPY_INLINE int
 cfloat_ctype_add(npy_cfloat a, npy_cfloat b, npy_cfloat *out)
 {
@@ -2269,7 +2274,7 @@ cfloat_ctype_divide(npy_cfloat a, npy_cfloat b, npy_cfloat *out)
 #define cfloat_ctype_true_divide cfloat_ctype_divide
 
 
-#line 417
+#line 422
 static NPY_INLINE int
 cdouble_ctype_add(npy_cdouble a, npy_cdouble b, npy_cdouble *out)
 {
@@ -2313,7 +2318,7 @@ cdouble_ctype_divide(npy_cdouble a, npy_cdouble b, npy_cdouble *out)
 #define cdouble_ctype_true_divide cdouble_ctype_divide
 
 
-#line 417
+#line 422
 static NPY_INLINE int
 clongdouble_ctype_add(npy_clongdouble a, npy_clongdouble b, npy_clongdouble *out)
 {
@@ -2360,7 +2365,7 @@ clongdouble_ctype_divide(npy_clongdouble a, npy_clongdouble b, npy_clongdouble *
 
 
 
-#line 467
+#line 472
 
 static NPY_INLINE int
 byte_ctype_divmod(npy_byte a, npy_byte b, npy_byte *out, npy_byte *out2)
@@ -2371,7 +2376,7 @@ byte_ctype_divmod(npy_byte a, npy_byte b, npy_byte *out, npy_byte *out2)
 }
 
 
-#line 467
+#line 472
 
 static NPY_INLINE int
 ubyte_ctype_divmod(npy_ubyte a, npy_ubyte b, npy_ubyte *out, npy_ubyte *out2)
@@ -2382,7 +2387,7 @@ ubyte_ctype_divmod(npy_ubyte a, npy_ubyte b, npy_ubyte *out, npy_ubyte *out2)
 }
 
 
-#line 467
+#line 472
 
 static NPY_INLINE int
 short_ctype_divmod(npy_short a, npy_short b, npy_short *out, npy_short *out2)
@@ -2393,7 +2398,7 @@ short_ctype_divmod(npy_short a, npy_short b, npy_short *out, npy_short *out2)
 }
 
 
-#line 467
+#line 472
 
 static NPY_INLINE int
 ushort_ctype_divmod(npy_ushort a, npy_ushort b, npy_ushort *out, npy_ushort *out2)
@@ -2404,7 +2409,7 @@ ushort_ctype_divmod(npy_ushort a, npy_ushort b, npy_ushort *out, npy_ushort *out
 }
 
 
-#line 467
+#line 472
 
 static NPY_INLINE int
 int_ctype_divmod(npy_int a, npy_int b, npy_int *out, npy_int *out2)
@@ -2415,7 +2420,7 @@ int_ctype_divmod(npy_int a, npy_int b, npy_int *out, npy_int *out2)
 }
 
 
-#line 467
+#line 472
 
 static NPY_INLINE int
 uint_ctype_divmod(npy_uint a, npy_uint b, npy_uint *out, npy_uint *out2)
@@ -2426,7 +2431,7 @@ uint_ctype_divmod(npy_uint a, npy_uint b, npy_uint *out, npy_uint *out2)
 }
 
 
-#line 467
+#line 472
 
 static NPY_INLINE int
 long_ctype_divmod(npy_long a, npy_long b, npy_long *out, npy_long *out2)
@@ -2437,7 +2442,7 @@ long_ctype_divmod(npy_long a, npy_long b, npy_long *out, npy_long *out2)
 }
 
 
-#line 467
+#line 472
 
 static NPY_INLINE int
 ulong_ctype_divmod(npy_ulong a, npy_ulong b, npy_ulong *out, npy_ulong *out2)
@@ -2448,7 +2453,7 @@ ulong_ctype_divmod(npy_ulong a, npy_ulong b, npy_ulong *out, npy_ulong *out2)
 }
 
 
-#line 467
+#line 472
 
 static NPY_INLINE int
 longlong_ctype_divmod(npy_longlong a, npy_longlong b, npy_longlong *out, npy_longlong *out2)
@@ -2459,7 +2464,7 @@ longlong_ctype_divmod(npy_longlong a, npy_longlong b, npy_longlong *out, npy_lon
 }
 
 
-#line 467
+#line 472
 
 static NPY_INLINE int
 ulonglong_ctype_divmod(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out, npy_ulonglong *out2)
@@ -2472,7 +2477,7 @@ ulonglong_ctype_divmod(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out, npy
 
 
 
-#line 484
+#line 489
 
 static NPY_INLINE int
 float_ctype_power(npy_float a, npy_float b, npy_float *out)
@@ -2482,7 +2487,7 @@ float_ctype_power(npy_float a, npy_float b, npy_float *out)
 }
 
 
-#line 484
+#line 489
 
 static NPY_INLINE int
 double_ctype_power(npy_double a, npy_double b, npy_double *out)
@@ -2492,7 +2497,7 @@ double_ctype_power(npy_double a, npy_double b, npy_double *out)
 }
 
 
-#line 484
+#line 489
 
 static NPY_INLINE int
 longdouble_ctype_power(npy_longdouble a, npy_longdouble b, npy_longdouble *out)
@@ -2512,158 +2517,301 @@ half_ctype_power(npy_half a, npy_half b, npy_half *out)
     return 0;
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 byte_ctype_negative(npy_byte a, npy_byte *out)
 {
-    *out = -a;
 #if 0
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 1
+    if (a == NPY_MIN_BYTE){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 ubyte_ctype_negative(npy_ubyte a, npy_ubyte *out)
 {
-    *out = -a;
 #if 1
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 1
+    if (a == NPY_MIN_UBYTE){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 short_ctype_negative(npy_short a, npy_short *out)
 {
-    *out = -a;
 #if 0
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 1
+    if (a == NPY_MIN_SHORT){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 ushort_ctype_negative(npy_ushort a, npy_ushort *out)
 {
-    *out = -a;
 #if 1
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 1
+    if (a == NPY_MIN_USHORT){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 int_ctype_negative(npy_int a, npy_int *out)
 {
-    *out = -a;
 #if 0
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 1
+    if (a == NPY_MIN_INT){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 uint_ctype_negative(npy_uint a, npy_uint *out)
 {
-    *out = -a;
 #if 1
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 1
+    if (a == NPY_MIN_UINT){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 long_ctype_negative(npy_long a, npy_long *out)
 {
-    *out = -a;
 #if 0
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 1
+    if (a == NPY_MIN_LONG){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 ulong_ctype_negative(npy_ulong a, npy_ulong *out)
 {
-    *out = -a;
 #if 1
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 1
+    if (a == NPY_MIN_ULONG){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 longlong_ctype_negative(npy_longlong a, npy_longlong *out)
 {
-    *out = -a;
 #if 0
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 1
+    if (a == NPY_MIN_LONGLONG){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 ulonglong_ctype_negative(npy_ulonglong a, npy_ulonglong *out)
 {
-    *out = -a;
 #if 1
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 1
+    if (a == NPY_MIN_ULONGLONG){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 float_ctype_negative(npy_float a, npy_float *out)
 {
-    *out = -a;
 #if 0
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 0
+    if (a == NPY_MIN_FLOAT){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 double_ctype_negative(npy_double a, npy_double *out)
 {
-    *out = -a;
 #if 0
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 0
+    if (a == NPY_MIN_DOUBLE){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
 
-#line 512
+#line 521
 static NPY_INLINE int
 longdouble_ctype_negative(npy_longdouble a, npy_longdouble *out)
 {
-    *out = -a;
 #if 0
+    *out = -a;
+    if (a == 0) {
+        return 0;
+    }
     return NPY_FPE_OVERFLOW;
-#else
+#elif 0
+    if (a == NPY_MIN_LONGDOUBLE){
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
+    *out = -a;
+    return 0;
+#else  /* floats */
+    *out = -a;
     return 0;
 #endif
 }
@@ -2677,7 +2825,7 @@ half_ctype_negative(npy_half a, npy_half *out)
 }
 
 
-#line 536
+#line 556
 static NPY_INLINE int
 cfloat_ctype_negative(npy_cfloat a, npy_cfloat *out)
 {
@@ -2686,7 +2834,7 @@ cfloat_ctype_negative(npy_cfloat a, npy_cfloat *out)
     return 0;
 }
 
-#line 536
+#line 556
 static NPY_INLINE int
 cdouble_ctype_negative(npy_cdouble a, npy_cdouble *out)
 {
@@ -2695,7 +2843,7 @@ cdouble_ctype_negative(npy_cdouble a, npy_cdouble *out)
     return 0;
 }
 
-#line 536
+#line 556
 static NPY_INLINE int
 clongdouble_ctype_negative(npy_clongdouble a, npy_clongdouble *out)
 {
@@ -2705,7 +2853,7 @@ clongdouble_ctype_negative(npy_clongdouble a, npy_clongdouble *out)
 }
 
 
-#line 553
+#line 573
 static NPY_INLINE int
 byte_ctype_positive(npy_byte a, npy_byte *out)
 {
@@ -2713,7 +2861,7 @@ byte_ctype_positive(npy_byte a, npy_byte *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 ubyte_ctype_positive(npy_ubyte a, npy_ubyte *out)
 {
@@ -2721,7 +2869,7 @@ ubyte_ctype_positive(npy_ubyte a, npy_ubyte *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 short_ctype_positive(npy_short a, npy_short *out)
 {
@@ -2729,7 +2877,7 @@ short_ctype_positive(npy_short a, npy_short *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 ushort_ctype_positive(npy_ushort a, npy_ushort *out)
 {
@@ -2737,7 +2885,7 @@ ushort_ctype_positive(npy_ushort a, npy_ushort *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 int_ctype_positive(npy_int a, npy_int *out)
 {
@@ -2745,7 +2893,7 @@ int_ctype_positive(npy_int a, npy_int *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 uint_ctype_positive(npy_uint a, npy_uint *out)
 {
@@ -2753,7 +2901,7 @@ uint_ctype_positive(npy_uint a, npy_uint *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 long_ctype_positive(npy_long a, npy_long *out)
 {
@@ -2761,7 +2909,7 @@ long_ctype_positive(npy_long a, npy_long *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 ulong_ctype_positive(npy_ulong a, npy_ulong *out)
 {
@@ -2769,7 +2917,7 @@ ulong_ctype_positive(npy_ulong a, npy_ulong *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 longlong_ctype_positive(npy_longlong a, npy_longlong *out)
 {
@@ -2777,7 +2925,7 @@ longlong_ctype_positive(npy_longlong a, npy_longlong *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 ulonglong_ctype_positive(npy_ulonglong a, npy_ulonglong *out)
 {
@@ -2785,7 +2933,7 @@ ulonglong_ctype_positive(npy_ulonglong a, npy_ulonglong *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 half_ctype_positive(npy_half a, npy_half *out)
 {
@@ -2793,7 +2941,7 @@ half_ctype_positive(npy_half a, npy_half *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 float_ctype_positive(npy_float a, npy_float *out)
 {
@@ -2801,7 +2949,7 @@ float_ctype_positive(npy_float a, npy_float *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 double_ctype_positive(npy_double a, npy_double *out)
 {
@@ -2809,7 +2957,7 @@ double_ctype_positive(npy_double a, npy_double *out)
     return 0;
 }
 
-#line 553
+#line 573
 static NPY_INLINE int
 longdouble_ctype_positive(npy_longdouble a, npy_longdouble *out)
 {
@@ -2818,7 +2966,7 @@ longdouble_ctype_positive(npy_longdouble a, npy_longdouble *out)
 }
 
 
-#line 566
+#line 586
 static NPY_INLINE int
 cfloat_ctype_positive(npy_cfloat a, npy_cfloat *out)
 {
@@ -2834,7 +2982,7 @@ cfloat_ctype_power(npy_cfloat a, npy_cfloat b, npy_cfloat *out)
     return 0;
 }
 
-#line 566
+#line 586
 static NPY_INLINE int
 cdouble_ctype_positive(npy_cdouble a, npy_cdouble *out)
 {
@@ -2850,7 +2998,7 @@ cdouble_ctype_power(npy_cdouble a, npy_cdouble b, npy_cdouble *out)
     return 0;
 }
 
-#line 566
+#line 586
 static NPY_INLINE int
 clongdouble_ctype_positive(npy_clongdouble a, npy_clongdouble *out)
 {
@@ -2868,75 +3016,95 @@ clongdouble_ctype_power(npy_clongdouble a, npy_clongdouble b, npy_clongdouble *o
 
 
 
-#line 586
+#line 606
 
 #define ubyte_ctype_absolute ubyte_ctype_positive
 
 
-#line 586
+#line 606
 
 #define ushort_ctype_absolute ushort_ctype_positive
 
 
-#line 586
+#line 606
 
 #define uint_ctype_absolute uint_ctype_positive
 
 
-#line 586
+#line 606
 
 #define ulong_ctype_absolute ulong_ctype_positive
 
 
-#line 586
+#line 606
 
 #define ulonglong_ctype_absolute ulonglong_ctype_positive
 
 
 
 
-#line 596
+#line 617
 static NPY_INLINE int
 byte_ctype_absolute(npy_byte a, npy_byte *out)
 {
+    if (a == NPY_MIN_BYTE) {
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
     *out = (a < 0 ? -a : a);
     return 0;
 }
 
-#line 596
+#line 617
 static NPY_INLINE int
 short_ctype_absolute(npy_short a, npy_short *out)
 {
+    if (a == NPY_MIN_SHORT) {
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
     *out = (a < 0 ? -a : a);
     return 0;
 }
 
-#line 596
+#line 617
 static NPY_INLINE int
 int_ctype_absolute(npy_int a, npy_int *out)
 {
+    if (a == NPY_MIN_INT) {
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
     *out = (a < 0 ? -a : a);
     return 0;
 }
 
-#line 596
+#line 617
 static NPY_INLINE int
 long_ctype_absolute(npy_long a, npy_long *out)
 {
+    if (a == NPY_MIN_LONG) {
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
     *out = (a < 0 ? -a : a);
     return 0;
 }
 
-#line 596
+#line 617
 static NPY_INLINE int
 longlong_ctype_absolute(npy_longlong a, npy_longlong *out)
 {
+    if (a == NPY_MIN_LONGLONG) {
+        *out = a;
+        return NPY_FPE_OVERFLOW;
+    }
     *out = (a < 0 ? -a : a);
     return 0;
 }
 
 
-#line 609
+#line 634
 static NPY_INLINE int
 float_ctype_absolute(npy_float a, npy_float *out)
 {
@@ -2944,7 +3112,7 @@ float_ctype_absolute(npy_float a, npy_float *out)
     return 0;
 }
 
-#line 609
+#line 634
 static NPY_INLINE int
 double_ctype_absolute(npy_double a, npy_double *out)
 {
@@ -2952,7 +3120,7 @@ double_ctype_absolute(npy_double a, npy_double *out)
     return 0;
 }
 
-#line 609
+#line 634
 static NPY_INLINE int
 longdouble_ctype_absolute(npy_longdouble a, npy_longdouble *out)
 {
@@ -2968,7 +3136,7 @@ half_ctype_absolute(npy_half a, npy_half *out)
     return 0;
 }
 
-#line 630
+#line 655
 static NPY_INLINE int
 cfloat_ctype_absolute(npy_cfloat a, npy_float *out)
 {
@@ -2976,7 +3144,7 @@ cfloat_ctype_absolute(npy_cfloat a, npy_float *out)
     return 0;
 }
 
-#line 630
+#line 655
 static NPY_INLINE int
 cdouble_ctype_absolute(npy_cdouble a, npy_double *out)
 {
@@ -2984,7 +3152,7 @@ cdouble_ctype_absolute(npy_cdouble a, npy_double *out)
     return 0;
 }
 
-#line 630
+#line 655
 static NPY_INLINE int
 clongdouble_ctype_absolute(npy_clongdouble a, npy_longdouble *out)
 {
@@ -2993,7 +3161,7 @@ clongdouble_ctype_absolute(npy_clongdouble a, npy_longdouble *out)
 }
 
 
-#line 642
+#line 667
 
 static NPY_INLINE int
 byte_ctype_invert(npy_byte a, npy_byte *out)
@@ -3003,7 +3171,7 @@ byte_ctype_invert(npy_byte a, npy_byte *out)
 }
 
 
-#line 642
+#line 667
 
 static NPY_INLINE int
 ubyte_ctype_invert(npy_ubyte a, npy_ubyte *out)
@@ -3013,7 +3181,7 @@ ubyte_ctype_invert(npy_ubyte a, npy_ubyte *out)
 }
 
 
-#line 642
+#line 667
 
 static NPY_INLINE int
 short_ctype_invert(npy_short a, npy_short *out)
@@ -3023,7 +3191,7 @@ short_ctype_invert(npy_short a, npy_short *out)
 }
 
 
-#line 642
+#line 667
 
 static NPY_INLINE int
 ushort_ctype_invert(npy_ushort a, npy_ushort *out)
@@ -3033,7 +3201,7 @@ ushort_ctype_invert(npy_ushort a, npy_ushort *out)
 }
 
 
-#line 642
+#line 667
 
 static NPY_INLINE int
 int_ctype_invert(npy_int a, npy_int *out)
@@ -3043,7 +3211,7 @@ int_ctype_invert(npy_int a, npy_int *out)
 }
 
 
-#line 642
+#line 667
 
 static NPY_INLINE int
 uint_ctype_invert(npy_uint a, npy_uint *out)
@@ -3053,7 +3221,7 @@ uint_ctype_invert(npy_uint a, npy_uint *out)
 }
 
 
-#line 642
+#line 667
 
 static NPY_INLINE int
 long_ctype_invert(npy_long a, npy_long *out)
@@ -3063,7 +3231,7 @@ long_ctype_invert(npy_long a, npy_long *out)
 }
 
 
-#line 642
+#line 667
 
 static NPY_INLINE int
 ulong_ctype_invert(npy_ulong a, npy_ulong *out)
@@ -3073,7 +3241,7 @@ ulong_ctype_invert(npy_ulong a, npy_ulong *out)
 }
 
 
-#line 642
+#line 667
 
 static NPY_INLINE int
 longlong_ctype_invert(npy_longlong a, npy_longlong *out)
@@ -3083,7 +3251,7 @@ longlong_ctype_invert(npy_longlong a, npy_longlong *out)
 }
 
 
-#line 642
+#line 667
 
 static NPY_INLINE int
 ulonglong_ctype_invert(npy_ulonglong a, npy_ulonglong *out)
@@ -3221,6 +3389,11 @@ typedef enum {
      */
     CONVERSION_SUCCESS,
     /*
+     * We use the normal conversion (setitem) function when coercing from
+     * Python scalars.
+     */
+    CONVERT_PYSCALAR,
+    /*
      * Other object is an unkown scalar or array-like, we (typically) use
      * the generic path, which normally ends up in the ufunc machinery.
      */
@@ -3231,7 +3404,7 @@ typedef enum {
     PROMOTION_REQUIRED,
 } conversion_result;
 
-#line 807
+#line 837
 
 #define IS_BYTE 1
 
@@ -3368,7 +3541,15 @@ convert_to_byte(PyObject *value, npy_byte *result, npy_bool *may_need_deferring)
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_BYTE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_BYTE) && !PyTypeNum_ISCOMPLEX(NPY_BYTE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -3380,15 +3561,23 @@ convert_to_byte(PyObject *value, npy_byte *result, npy_bool *may_need_deferring)
         }
         if (!IS_SAFE(NPY_LONG, NPY_BYTE)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -3407,7 +3596,15 @@ convert_to_byte(PyObject *value, npy_byte *result, npy_bool *may_need_deferring)
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_BYTE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_BYTE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -3539,7 +3736,7 @@ convert_to_byte(PyObject *value, npy_byte *result, npy_bool *may_need_deferring)
 #undef IS_BYTE
 
 
-#line 807
+#line 837
 
 #define IS_UBYTE 1
 
@@ -3676,7 +3873,15 @@ convert_to_ubyte(PyObject *value, npy_ubyte *result, npy_bool *may_need_deferrin
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_UBYTE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_UBYTE) && !PyTypeNum_ISCOMPLEX(NPY_UBYTE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -3688,15 +3893,23 @@ convert_to_ubyte(PyObject *value, npy_ubyte *result, npy_bool *may_need_deferrin
         }
         if (!IS_SAFE(NPY_LONG, NPY_UBYTE)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -3715,7 +3928,15 @@ convert_to_ubyte(PyObject *value, npy_ubyte *result, npy_bool *may_need_deferrin
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_UBYTE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_UBYTE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -3847,7 +4068,7 @@ convert_to_ubyte(PyObject *value, npy_ubyte *result, npy_bool *may_need_deferrin
 #undef IS_UBYTE
 
 
-#line 807
+#line 837
 
 #define IS_SHORT 1
 
@@ -3984,7 +4205,15 @@ convert_to_short(PyObject *value, npy_short *result, npy_bool *may_need_deferrin
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_SHORT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_SHORT) && !PyTypeNum_ISCOMPLEX(NPY_SHORT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -3996,15 +4225,23 @@ convert_to_short(PyObject *value, npy_short *result, npy_bool *may_need_deferrin
         }
         if (!IS_SAFE(NPY_LONG, NPY_SHORT)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -4023,7 +4260,15 @@ convert_to_short(PyObject *value, npy_short *result, npy_bool *may_need_deferrin
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_SHORT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_SHORT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -4155,7 +4400,7 @@ convert_to_short(PyObject *value, npy_short *result, npy_bool *may_need_deferrin
 #undef IS_SHORT
 
 
-#line 807
+#line 837
 
 #define IS_USHORT 1
 
@@ -4292,7 +4537,15 @@ convert_to_ushort(PyObject *value, npy_ushort *result, npy_bool *may_need_deferr
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_USHORT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_USHORT) && !PyTypeNum_ISCOMPLEX(NPY_USHORT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -4304,15 +4557,23 @@ convert_to_ushort(PyObject *value, npy_ushort *result, npy_bool *may_need_deferr
         }
         if (!IS_SAFE(NPY_LONG, NPY_USHORT)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -4331,7 +4592,15 @@ convert_to_ushort(PyObject *value, npy_ushort *result, npy_bool *may_need_deferr
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_USHORT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_USHORT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -4463,7 +4732,7 @@ convert_to_ushort(PyObject *value, npy_ushort *result, npy_bool *may_need_deferr
 #undef IS_USHORT
 
 
-#line 807
+#line 837
 
 #define IS_INT 1
 
@@ -4600,7 +4869,15 @@ convert_to_int(PyObject *value, npy_int *result, npy_bool *may_need_deferring)
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_INT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_INT) && !PyTypeNum_ISCOMPLEX(NPY_INT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -4612,15 +4889,23 @@ convert_to_int(PyObject *value, npy_int *result, npy_bool *may_need_deferring)
         }
         if (!IS_SAFE(NPY_LONG, NPY_INT)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -4639,7 +4924,15 @@ convert_to_int(PyObject *value, npy_int *result, npy_bool *may_need_deferring)
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_INT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_INT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -4771,7 +5064,7 @@ convert_to_int(PyObject *value, npy_int *result, npy_bool *may_need_deferring)
 #undef IS_INT
 
 
-#line 807
+#line 837
 
 #define IS_UINT 1
 
@@ -4908,7 +5201,15 @@ convert_to_uint(PyObject *value, npy_uint *result, npy_bool *may_need_deferring)
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_UINT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_UINT) && !PyTypeNum_ISCOMPLEX(NPY_UINT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -4920,15 +5221,23 @@ convert_to_uint(PyObject *value, npy_uint *result, npy_bool *may_need_deferring)
         }
         if (!IS_SAFE(NPY_LONG, NPY_UINT)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -4947,7 +5256,15 @@ convert_to_uint(PyObject *value, npy_uint *result, npy_bool *may_need_deferring)
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_UINT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_UINT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -5079,7 +5396,7 @@ convert_to_uint(PyObject *value, npy_uint *result, npy_bool *may_need_deferring)
 #undef IS_UINT
 
 
-#line 807
+#line 837
 
 #define IS_LONG 1
 
@@ -5216,7 +5533,15 @@ convert_to_long(PyObject *value, npy_long *result, npy_bool *may_need_deferring)
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_LONG)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_LONG) && !PyTypeNum_ISCOMPLEX(NPY_LONG)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -5228,15 +5553,23 @@ convert_to_long(PyObject *value, npy_long *result, npy_bool *may_need_deferring)
         }
         if (!IS_SAFE(NPY_LONG, NPY_LONG)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -5255,7 +5588,15 @@ convert_to_long(PyObject *value, npy_long *result, npy_bool *may_need_deferring)
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_LONG)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_LONG)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -5387,7 +5728,7 @@ convert_to_long(PyObject *value, npy_long *result, npy_bool *may_need_deferring)
 #undef IS_LONG
 
 
-#line 807
+#line 837
 
 #define IS_ULONG 1
 
@@ -5524,7 +5865,15 @@ convert_to_ulong(PyObject *value, npy_ulong *result, npy_bool *may_need_deferrin
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_ULONG)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_ULONG) && !PyTypeNum_ISCOMPLEX(NPY_ULONG)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -5536,15 +5885,23 @@ convert_to_ulong(PyObject *value, npy_ulong *result, npy_bool *may_need_deferrin
         }
         if (!IS_SAFE(NPY_LONG, NPY_ULONG)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -5563,7 +5920,15 @@ convert_to_ulong(PyObject *value, npy_ulong *result, npy_bool *may_need_deferrin
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_ULONG)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_ULONG)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -5695,7 +6060,7 @@ convert_to_ulong(PyObject *value, npy_ulong *result, npy_bool *may_need_deferrin
 #undef IS_ULONG
 
 
-#line 807
+#line 837
 
 #define IS_LONGLONG 1
 
@@ -5832,7 +6197,15 @@ convert_to_longlong(PyObject *value, npy_longlong *result, npy_bool *may_need_de
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_LONGLONG)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_LONGLONG) && !PyTypeNum_ISCOMPLEX(NPY_LONGLONG)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -5844,15 +6217,23 @@ convert_to_longlong(PyObject *value, npy_longlong *result, npy_bool *may_need_de
         }
         if (!IS_SAFE(NPY_LONG, NPY_LONGLONG)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -5871,7 +6252,15 @@ convert_to_longlong(PyObject *value, npy_longlong *result, npy_bool *may_need_de
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_LONGLONG)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_LONGLONG)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -6003,7 +6392,7 @@ convert_to_longlong(PyObject *value, npy_longlong *result, npy_bool *may_need_de
 #undef IS_LONGLONG
 
 
-#line 807
+#line 837
 
 #define IS_ULONGLONG 1
 
@@ -6140,7 +6529,15 @@ convert_to_ulonglong(PyObject *value, npy_ulonglong *result, npy_bool *may_need_
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_ULONGLONG)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_ULONGLONG) && !PyTypeNum_ISCOMPLEX(NPY_ULONGLONG)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -6152,15 +6549,23 @@ convert_to_ulonglong(PyObject *value, npy_ulonglong *result, npy_bool *may_need_
         }
         if (!IS_SAFE(NPY_LONG, NPY_ULONGLONG)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -6179,7 +6584,15 @@ convert_to_ulonglong(PyObject *value, npy_ulonglong *result, npy_bool *may_need_
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_ULONGLONG)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_ULONGLONG)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -6311,7 +6724,7 @@ convert_to_ulonglong(PyObject *value, npy_ulonglong *result, npy_bool *may_need_
 #undef IS_ULONGLONG
 
 
-#line 807
+#line 837
 
 #define IS_HALF 1
 
@@ -6448,7 +6861,15 @@ convert_to_half(PyObject *value, npy_half *result, npy_bool *may_need_deferring)
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_HALF)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_HALF) && !PyTypeNum_ISCOMPLEX(NPY_HALF)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -6460,15 +6881,23 @@ convert_to_half(PyObject *value, npy_half *result, npy_bool *may_need_deferring)
         }
         if (!IS_SAFE(NPY_LONG, NPY_HALF)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -6487,7 +6916,15 @@ convert_to_half(PyObject *value, npy_half *result, npy_bool *may_need_deferring)
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_HALF)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_HALF)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -6619,7 +7056,7 @@ convert_to_half(PyObject *value, npy_half *result, npy_bool *may_need_deferring)
 #undef IS_HALF
 
 
-#line 807
+#line 837
 
 #define IS_FLOAT 1
 
@@ -6756,7 +7193,15 @@ convert_to_float(PyObject *value, npy_float *result, npy_bool *may_need_deferrin
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_FLOAT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_FLOAT) && !PyTypeNum_ISCOMPLEX(NPY_FLOAT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -6768,15 +7213,23 @@ convert_to_float(PyObject *value, npy_float *result, npy_bool *may_need_deferrin
         }
         if (!IS_SAFE(NPY_LONG, NPY_FLOAT)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -6795,7 +7248,15 @@ convert_to_float(PyObject *value, npy_float *result, npy_bool *may_need_deferrin
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_FLOAT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_FLOAT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -6927,7 +7388,7 @@ convert_to_float(PyObject *value, npy_float *result, npy_bool *may_need_deferrin
 #undef IS_FLOAT
 
 
-#line 807
+#line 837
 
 #define IS_DOUBLE 1
 
@@ -7064,7 +7525,15 @@ convert_to_double(PyObject *value, npy_double *result, npy_bool *may_need_deferr
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_DOUBLE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_DOUBLE) && !PyTypeNum_ISCOMPLEX(NPY_DOUBLE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -7076,15 +7545,23 @@ convert_to_double(PyObject *value, npy_double *result, npy_bool *may_need_deferr
         }
         if (!IS_SAFE(NPY_LONG, NPY_DOUBLE)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -7103,7 +7580,15 @@ convert_to_double(PyObject *value, npy_double *result, npy_bool *may_need_deferr
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_DOUBLE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_DOUBLE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -7235,7 +7720,7 @@ convert_to_double(PyObject *value, npy_double *result, npy_bool *may_need_deferr
 #undef IS_DOUBLE
 
 
-#line 807
+#line 837
 
 #define IS_LONGDOUBLE 1
 
@@ -7372,7 +7857,15 @@ convert_to_longdouble(PyObject *value, npy_longdouble *result, npy_bool *may_nee
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_LONGDOUBLE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_LONGDOUBLE) && !PyTypeNum_ISCOMPLEX(NPY_LONGDOUBLE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -7384,15 +7877,23 @@ convert_to_longdouble(PyObject *value, npy_longdouble *result, npy_bool *may_nee
         }
         if (!IS_SAFE(NPY_LONG, NPY_LONGDOUBLE)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -7411,7 +7912,15 @@ convert_to_longdouble(PyObject *value, npy_longdouble *result, npy_bool *may_nee
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_LONGDOUBLE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_LONGDOUBLE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -7543,7 +8052,7 @@ convert_to_longdouble(PyObject *value, npy_longdouble *result, npy_bool *may_nee
 #undef IS_LONGDOUBLE
 
 
-#line 807
+#line 837
 
 #define IS_CFLOAT 1
 
@@ -7680,7 +8189,15 @@ convert_to_cfloat(PyObject *value, npy_cfloat *result, npy_bool *may_need_deferr
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_CFLOAT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_CFLOAT) && !PyTypeNum_ISCOMPLEX(NPY_CFLOAT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -7692,15 +8209,23 @@ convert_to_cfloat(PyObject *value, npy_cfloat *result, npy_bool *may_need_deferr
         }
         if (!IS_SAFE(NPY_LONG, NPY_CFLOAT)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -7719,7 +8244,15 @@ convert_to_cfloat(PyObject *value, npy_cfloat *result, npy_bool *may_need_deferr
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_CFLOAT)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_CFLOAT)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -7851,7 +8384,7 @@ convert_to_cfloat(PyObject *value, npy_cfloat *result, npy_bool *may_need_deferr
 #undef IS_CFLOAT
 
 
-#line 807
+#line 837
 
 #define IS_CDOUBLE 1
 
@@ -7988,7 +8521,15 @@ convert_to_cdouble(PyObject *value, npy_cdouble *result, npy_bool *may_need_defe
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_CDOUBLE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_CDOUBLE) && !PyTypeNum_ISCOMPLEX(NPY_CDOUBLE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -8000,15 +8541,23 @@ convert_to_cdouble(PyObject *value, npy_cdouble *result, npy_bool *may_need_defe
         }
         if (!IS_SAFE(NPY_LONG, NPY_CDOUBLE)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -8027,7 +8576,15 @@ convert_to_cdouble(PyObject *value, npy_cdouble *result, npy_bool *may_need_defe
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_CDOUBLE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_CDOUBLE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -8159,7 +8716,7 @@ convert_to_cdouble(PyObject *value, npy_cdouble *result, npy_bool *may_need_defe
 #undef IS_CDOUBLE
 
 
-#line 807
+#line 837
 
 #define IS_CLONGDOUBLE 1
 
@@ -8296,7 +8853,15 @@ convert_to_clongdouble(PyObject *value, npy_clongdouble *result, npy_bool *may_n
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_DOUBLE, NPY_CLONGDOUBLE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISFLOAT(NPY_CLONGDOUBLE) && !PyTypeNum_ISCOMPLEX(NPY_CLONGDOUBLE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         CONVERT_TO_RESULT(PyFloat_AS_DOUBLE(value));
         return CONVERSION_SUCCESS;
@@ -8308,15 +8873,23 @@ convert_to_clongdouble(PyObject *value, npy_clongdouble *result, npy_bool *may_n
         }
         if (!IS_SAFE(NPY_LONG, NPY_CLONGDOUBLE)) {
             /*
-             * long -> (c)longdouble is safe, so `THER_IS_UNKNOWN_OBJECT` will
+             * long -> (c)longdouble is safe, so `OTHER_IS_UNKNOWN_OBJECT` will
              * be returned below for huge integers.
              */
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
         int overflow;
         long val = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow) {
-            return OTHER_IS_UNKNOWN_OBJECT;  /* handle as if arbitrary object */
+            /* handle as if "unsafe" */
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                return OTHER_IS_UNKNOWN_OBJECT;
+            }
+            return CONVERT_PYSCALAR;
         }
         if (error_converting(val)) {
             return CONVERSION_ERROR;  /* should not be possible */
@@ -8335,7 +8908,15 @@ convert_to_clongdouble(PyObject *value, npy_clongdouble *result, npy_bool *may_n
             *may_need_deferring = NPY_TRUE;
         }
         if (!IS_SAFE(NPY_CDOUBLE, NPY_CLONGDOUBLE)) {
-            return PROMOTION_REQUIRED;
+            if (npy_promotion_state != NPY_USE_WEAK_PROMOTION) {
+                /* Legacy promotion and weak-and-warn not handled here */
+                return PROMOTION_REQUIRED;
+            }
+            /* Weak promotion is used when self is float or complex: */
+            if (!PyTypeNum_ISCOMPLEX(NPY_CLONGDOUBLE)) {
+                return PROMOTION_REQUIRED;
+            }
+            return CONVERT_PYSCALAR;
         }
 #if defined(IS_CFLOAT) || defined(IS_CDOUBLE) || defined(IS_CLONGDOUBLE)
         Py_complex val = PyComplex_AsCComplex(value);
@@ -8469,8 +9050,15 @@ convert_to_clongdouble(PyObject *value, npy_clongdouble *result, npy_bool *may_n
 
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 byte_add(PyObject *a, PyObject *b)
@@ -8546,6 +9134,11 @@ byte_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -8590,19 +9183,9 @@ byte_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -8636,11 +9219,20 @@ byte_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 ubyte_add(PyObject *a, PyObject *b)
@@ -8716,6 +9308,11 @@ ubyte_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -8760,19 +9357,9 @@ ubyte_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -8806,11 +9393,20 @@ ubyte_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 short_add(PyObject *a, PyObject *b)
@@ -8886,6 +9482,11 @@ short_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -8930,19 +9531,9 @@ short_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -8976,11 +9567,20 @@ short_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 ushort_add(PyObject *a, PyObject *b)
@@ -9056,6 +9656,11 @@ ushort_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -9100,19 +9705,9 @@ ushort_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -9146,11 +9741,20 @@ ushort_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 int_add(PyObject *a, PyObject *b)
@@ -9226,6 +9830,11 @@ int_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -9270,19 +9879,9 @@ int_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -9316,11 +9915,20 @@ int_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 uint_add(PyObject *a, PyObject *b)
@@ -9396,6 +10004,11 @@ uint_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -9440,19 +10053,9 @@ uint_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -9486,11 +10089,20 @@ uint_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 long_add(PyObject *a, PyObject *b)
@@ -9566,6 +10178,11 @@ long_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -9610,19 +10227,9 @@ long_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -9656,11 +10263,20 @@ long_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 ulong_add(PyObject *a, PyObject *b)
@@ -9736,6 +10352,11 @@ ulong_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -9780,19 +10401,9 @@ ulong_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -9826,11 +10437,20 @@ ulong_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 longlong_add(PyObject *a, PyObject *b)
@@ -9906,6 +10526,11 @@ longlong_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -9950,19 +10575,9 @@ longlong_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -9996,11 +10611,20 @@ longlong_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 ulonglong_add(PyObject *a, PyObject *b)
@@ -10076,6 +10700,11 @@ ulonglong_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -10120,19 +10749,9 @@ ulonglong_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -10166,11 +10785,20 @@ ulonglong_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 byte_subtract(PyObject *a, PyObject *b)
@@ -10246,6 +10874,11 @@ byte_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -10290,19 +10923,9 @@ byte_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -10336,11 +10959,20 @@ byte_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 ubyte_subtract(PyObject *a, PyObject *b)
@@ -10416,6 +11048,11 @@ ubyte_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -10460,19 +11097,9 @@ ubyte_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -10506,11 +11133,20 @@ ubyte_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 short_subtract(PyObject *a, PyObject *b)
@@ -10586,6 +11222,11 @@ short_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -10630,19 +11271,9 @@ short_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -10676,11 +11307,20 @@ short_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 ushort_subtract(PyObject *a, PyObject *b)
@@ -10756,6 +11396,11 @@ ushort_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -10800,19 +11445,9 @@ ushort_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -10846,11 +11481,20 @@ ushort_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 int_subtract(PyObject *a, PyObject *b)
@@ -10926,6 +11570,11 @@ int_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -10970,19 +11619,9 @@ int_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -11016,11 +11655,20 @@ int_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 uint_subtract(PyObject *a, PyObject *b)
@@ -11096,6 +11744,11 @@ uint_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -11140,19 +11793,9 @@ uint_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -11186,11 +11829,20 @@ uint_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 long_subtract(PyObject *a, PyObject *b)
@@ -11266,6 +11918,11 @@ long_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -11310,19 +11967,9 @@ long_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -11356,11 +12003,20 @@ long_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 ulong_subtract(PyObject *a, PyObject *b)
@@ -11436,6 +12092,11 @@ ulong_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -11480,19 +12141,9 @@ ulong_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -11526,11 +12177,20 @@ ulong_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 longlong_subtract(PyObject *a, PyObject *b)
@@ -11606,6 +12266,11 @@ longlong_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -11650,19 +12315,9 @@ longlong_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -11696,11 +12351,20 @@ longlong_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 ulonglong_subtract(PyObject *a, PyObject *b)
@@ -11776,6 +12440,11 @@ ulonglong_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -11820,19 +12489,9 @@ ulonglong_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -11866,11 +12525,20 @@ ulonglong_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 byte_multiply(PyObject *a, PyObject *b)
@@ -11946,6 +12614,11 @@ byte_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -11990,19 +12663,9 @@ byte_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -12036,11 +12699,20 @@ byte_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 ubyte_multiply(PyObject *a, PyObject *b)
@@ -12116,6 +12788,11 @@ ubyte_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -12160,19 +12837,9 @@ ubyte_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -12206,11 +12873,20 @@ ubyte_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 short_multiply(PyObject *a, PyObject *b)
@@ -12286,6 +12962,11 @@ short_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -12330,19 +13011,9 @@ short_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -12376,11 +13047,20 @@ short_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 ushort_multiply(PyObject *a, PyObject *b)
@@ -12456,6 +13136,11 @@ ushort_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -12500,19 +13185,9 @@ ushort_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -12546,11 +13221,20 @@ ushort_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 int_multiply(PyObject *a, PyObject *b)
@@ -12626,6 +13310,11 @@ int_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -12670,19 +13359,9 @@ int_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -12716,11 +13395,20 @@ int_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 uint_multiply(PyObject *a, PyObject *b)
@@ -12796,6 +13484,11 @@ uint_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -12840,19 +13533,9 @@ uint_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -12886,11 +13569,20 @@ uint_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 long_multiply(PyObject *a, PyObject *b)
@@ -12966,6 +13658,11 @@ long_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -13010,19 +13707,9 @@ long_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -13056,11 +13743,20 @@ long_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 ulong_multiply(PyObject *a, PyObject *b)
@@ -13136,6 +13832,11 @@ ulong_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -13180,19 +13881,9 @@ ulong_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -13226,11 +13917,20 @@ ulong_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 longlong_multiply(PyObject *a, PyObject *b)
@@ -13306,6 +14006,11 @@ longlong_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -13350,19 +14055,9 @@ longlong_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -13396,11 +14091,20 @@ longlong_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 ulonglong_multiply(PyObject *a, PyObject *b)
@@ -13476,6 +14180,11 @@ ulonglong_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -13520,19 +14229,9 @@ ulonglong_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -13566,11 +14265,20 @@ ulonglong_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 byte_remainder(PyObject *a, PyObject *b)
@@ -13646,6 +14354,11 @@ byte_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -13690,19 +14403,9 @@ byte_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -13736,11 +14439,20 @@ byte_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 ubyte_remainder(PyObject *a, PyObject *b)
@@ -13816,6 +14528,11 @@ ubyte_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -13860,19 +14577,9 @@ ubyte_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -13906,11 +14613,20 @@ ubyte_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 short_remainder(PyObject *a, PyObject *b)
@@ -13986,6 +14702,11 @@ short_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -14030,19 +14751,9 @@ short_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -14076,11 +14787,20 @@ short_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 ushort_remainder(PyObject *a, PyObject *b)
@@ -14156,6 +14876,11 @@ ushort_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -14200,19 +14925,9 @@ ushort_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -14246,11 +14961,20 @@ ushort_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 int_remainder(PyObject *a, PyObject *b)
@@ -14326,6 +15050,11 @@ int_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -14370,19 +15099,9 @@ int_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -14416,11 +15135,20 @@ int_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 uint_remainder(PyObject *a, PyObject *b)
@@ -14496,6 +15224,11 @@ uint_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -14540,19 +15273,9 @@ uint_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -14586,11 +15309,20 @@ uint_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 long_remainder(PyObject *a, PyObject *b)
@@ -14666,6 +15398,11 @@ long_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -14710,19 +15447,9 @@ long_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -14756,11 +15483,20 @@ long_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 ulong_remainder(PyObject *a, PyObject *b)
@@ -14836,6 +15572,11 @@ ulong_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -14880,19 +15621,9 @@ ulong_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -14926,11 +15657,20 @@ ulong_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 longlong_remainder(PyObject *a, PyObject *b)
@@ -15006,6 +15746,11 @@ longlong_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -15050,19 +15795,9 @@ longlong_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -15096,11 +15831,20 @@ longlong_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 ulonglong_remainder(PyObject *a, PyObject *b)
@@ -15176,6 +15920,11 @@ ulonglong_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -15220,19 +15969,9 @@ ulonglong_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -15266,11 +16005,20 @@ ulonglong_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 byte_divmod(PyObject *a, PyObject *b)
@@ -15346,6 +16094,11 @@ byte_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -15390,19 +16143,9 @@ byte_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -15436,11 +16179,20 @@ byte_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 ubyte_divmod(PyObject *a, PyObject *b)
@@ -15516,6 +16268,11 @@ ubyte_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -15560,19 +16317,9 @@ ubyte_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -15606,11 +16353,20 @@ ubyte_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 short_divmod(PyObject *a, PyObject *b)
@@ -15686,6 +16442,11 @@ short_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -15730,19 +16491,9 @@ short_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -15776,11 +16527,20 @@ short_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 ushort_divmod(PyObject *a, PyObject *b)
@@ -15856,6 +16616,11 @@ ushort_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -15900,19 +16665,9 @@ ushort_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -15946,11 +16701,20 @@ ushort_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 int_divmod(PyObject *a, PyObject *b)
@@ -16026,6 +16790,11 @@ int_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -16070,19 +16839,9 @@ int_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -16116,11 +16875,20 @@ int_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 uint_divmod(PyObject *a, PyObject *b)
@@ -16196,6 +16964,11 @@ uint_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -16240,19 +17013,9 @@ uint_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -16286,11 +17049,20 @@ uint_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 long_divmod(PyObject *a, PyObject *b)
@@ -16366,6 +17138,11 @@ long_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -16410,19 +17187,9 @@ long_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -16456,11 +17223,20 @@ long_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 ulong_divmod(PyObject *a, PyObject *b)
@@ -16536,6 +17312,11 @@ ulong_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -16580,19 +17361,9 @@ ulong_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -16626,11 +17397,20 @@ ulong_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 longlong_divmod(PyObject *a, PyObject *b)
@@ -16706,6 +17486,11 @@ longlong_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -16750,19 +17535,9 @@ longlong_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -16796,11 +17571,20 @@ longlong_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 ulonglong_divmod(PyObject *a, PyObject *b)
@@ -16876,6 +17660,11 @@ ulonglong_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -16920,19 +17709,9 @@ ulonglong_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -16966,11 +17745,20 @@ ulonglong_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 byte_floor_divide(PyObject *a, PyObject *b)
@@ -17046,6 +17834,11 @@ byte_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -17090,19 +17883,9 @@ byte_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -17136,11 +17919,20 @@ byte_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 ubyte_floor_divide(PyObject *a, PyObject *b)
@@ -17216,6 +18008,11 @@ ubyte_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -17260,19 +18057,9 @@ ubyte_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -17306,11 +18093,20 @@ ubyte_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 short_floor_divide(PyObject *a, PyObject *b)
@@ -17386,6 +18182,11 @@ short_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -17430,19 +18231,9 @@ short_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -17476,11 +18267,20 @@ short_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 ushort_floor_divide(PyObject *a, PyObject *b)
@@ -17556,6 +18356,11 @@ ushort_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -17600,19 +18405,9 @@ ushort_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -17646,11 +18441,20 @@ ushort_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 int_floor_divide(PyObject *a, PyObject *b)
@@ -17726,6 +18530,11 @@ int_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -17770,19 +18579,9 @@ int_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -17816,11 +18615,20 @@ int_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 uint_floor_divide(PyObject *a, PyObject *b)
@@ -17896,6 +18704,11 @@ uint_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -17940,19 +18753,9 @@ uint_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -17986,11 +18789,20 @@ uint_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 long_floor_divide(PyObject *a, PyObject *b)
@@ -18066,6 +18878,11 @@ long_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -18110,19 +18927,9 @@ long_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -18156,11 +18963,20 @@ long_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 ulong_floor_divide(PyObject *a, PyObject *b)
@@ -18236,6 +19052,11 @@ ulong_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -18280,19 +19101,9 @@ ulong_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -18326,11 +19137,20 @@ ulong_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 longlong_floor_divide(PyObject *a, PyObject *b)
@@ -18406,6 +19226,11 @@ longlong_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -18450,19 +19275,9 @@ longlong_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -18496,11 +19311,20 @@ longlong_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 ulonglong_floor_divide(PyObject *a, PyObject *b)
@@ -18576,6 +19400,11 @@ ulonglong_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -18620,19 +19449,9 @@ ulonglong_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -18666,11 +19485,20 @@ ulonglong_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_lshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "lshift"
+#endif
 
 static PyObject *
 byte_lshift(PyObject *a, PyObject *b)
@@ -18746,6 +19574,11 @@ byte_lshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_lshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -18790,19 +19623,9 @@ byte_lshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -18836,11 +19659,20 @@ byte_lshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_lshift
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_lshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "lshift"
+#endif
 
 static PyObject *
 ubyte_lshift(PyObject *a, PyObject *b)
@@ -18916,6 +19748,11 @@ ubyte_lshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_lshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -18960,19 +19797,9 @@ ubyte_lshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -19006,11 +19833,20 @@ ubyte_lshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_lshift
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_lshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "lshift"
+#endif
 
 static PyObject *
 short_lshift(PyObject *a, PyObject *b)
@@ -19086,6 +19922,11 @@ short_lshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_lshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -19130,19 +19971,9 @@ short_lshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -19176,11 +20007,20 @@ short_lshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_lshift
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_lshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "lshift"
+#endif
 
 static PyObject *
 ushort_lshift(PyObject *a, PyObject *b)
@@ -19256,6 +20096,11 @@ ushort_lshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_lshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -19300,19 +20145,9 @@ ushort_lshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -19346,11 +20181,20 @@ ushort_lshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_lshift
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_lshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "lshift"
+#endif
 
 static PyObject *
 int_lshift(PyObject *a, PyObject *b)
@@ -19426,6 +20270,11 @@ int_lshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_lshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -19470,19 +20319,9 @@ int_lshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -19516,11 +20355,20 @@ int_lshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_lshift
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_lshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "lshift"
+#endif
 
 static PyObject *
 uint_lshift(PyObject *a, PyObject *b)
@@ -19596,6 +20444,11 @@ uint_lshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_lshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -19640,19 +20493,9 @@ uint_lshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -19686,11 +20529,20 @@ uint_lshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_lshift
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_lshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "lshift"
+#endif
 
 static PyObject *
 long_lshift(PyObject *a, PyObject *b)
@@ -19766,6 +20618,11 @@ long_lshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_lshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -19810,19 +20667,9 @@ long_lshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -19856,11 +20703,20 @@ long_lshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_lshift
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_lshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "lshift"
+#endif
 
 static PyObject *
 ulong_lshift(PyObject *a, PyObject *b)
@@ -19936,6 +20792,11 @@ ulong_lshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_lshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -19980,19 +20841,9 @@ ulong_lshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -20026,11 +20877,20 @@ ulong_lshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_lshift
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_lshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "lshift"
+#endif
 
 static PyObject *
 longlong_lshift(PyObject *a, PyObject *b)
@@ -20106,6 +20966,11 @@ longlong_lshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_lshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -20150,19 +21015,9 @@ longlong_lshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -20196,11 +21051,20 @@ longlong_lshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_lshift
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_lshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "lshift"
+#endif
 
 static PyObject *
 ulonglong_lshift(PyObject *a, PyObject *b)
@@ -20276,6 +21140,11 @@ ulonglong_lshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_lshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -20320,19 +21189,9 @@ ulonglong_lshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -20366,11 +21225,20 @@ ulonglong_lshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_lshift
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_rshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "rshift"
+#endif
 
 static PyObject *
 byte_rshift(PyObject *a, PyObject *b)
@@ -20446,6 +21314,11 @@ byte_rshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_rshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -20490,19 +21363,9 @@ byte_rshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -20536,11 +21399,20 @@ byte_rshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_rshift
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_rshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "rshift"
+#endif
 
 static PyObject *
 ubyte_rshift(PyObject *a, PyObject *b)
@@ -20616,6 +21488,11 @@ ubyte_rshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_rshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -20660,19 +21537,9 @@ ubyte_rshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -20706,11 +21573,20 @@ ubyte_rshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_rshift
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_rshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "rshift"
+#endif
 
 static PyObject *
 short_rshift(PyObject *a, PyObject *b)
@@ -20786,6 +21662,11 @@ short_rshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_rshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -20830,19 +21711,9 @@ short_rshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -20876,11 +21747,20 @@ short_rshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_rshift
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_rshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "rshift"
+#endif
 
 static PyObject *
 ushort_rshift(PyObject *a, PyObject *b)
@@ -20956,6 +21836,11 @@ ushort_rshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_rshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -21000,19 +21885,9 @@ ushort_rshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -21046,11 +21921,20 @@ ushort_rshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_rshift
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_rshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "rshift"
+#endif
 
 static PyObject *
 int_rshift(PyObject *a, PyObject *b)
@@ -21126,6 +22010,11 @@ int_rshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_rshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -21170,19 +22059,9 @@ int_rshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -21216,11 +22095,20 @@ int_rshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_rshift
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_rshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "rshift"
+#endif
 
 static PyObject *
 uint_rshift(PyObject *a, PyObject *b)
@@ -21296,6 +22184,11 @@ uint_rshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_rshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -21340,19 +22233,9 @@ uint_rshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -21386,11 +22269,20 @@ uint_rshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_rshift
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_rshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "rshift"
+#endif
 
 static PyObject *
 long_rshift(PyObject *a, PyObject *b)
@@ -21466,6 +22358,11 @@ long_rshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_rshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -21510,19 +22407,9 @@ long_rshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -21556,11 +22443,20 @@ long_rshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_rshift
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_rshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "rshift"
+#endif
 
 static PyObject *
 ulong_rshift(PyObject *a, PyObject *b)
@@ -21636,6 +22532,11 @@ ulong_rshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_rshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -21680,19 +22581,9 @@ ulong_rshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -21726,11 +22617,20 @@ ulong_rshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_rshift
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_rshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "rshift"
+#endif
 
 static PyObject *
 longlong_rshift(PyObject *a, PyObject *b)
@@ -21806,6 +22706,11 @@ longlong_rshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_rshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -21850,19 +22755,9 @@ longlong_rshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -21896,11 +22791,20 @@ longlong_rshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_rshift
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_rshift
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "rshift"
+#endif
 
 static PyObject *
 ulonglong_rshift(PyObject *a, PyObject *b)
@@ -21976,6 +22880,11 @@ ulonglong_rshift(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_rshift(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -22020,19 +22929,9 @@ ulonglong_rshift(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -22066,11 +22965,20 @@ ulonglong_rshift(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_rshift
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_and
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "and"
+#endif
 
 static PyObject *
 byte_and(PyObject *a, PyObject *b)
@@ -22146,6 +23054,11 @@ byte_and(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_and(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -22190,19 +23103,9 @@ byte_and(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -22236,11 +23139,20 @@ byte_and(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_and
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_and
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "and"
+#endif
 
 static PyObject *
 ubyte_and(PyObject *a, PyObject *b)
@@ -22316,6 +23228,11 @@ ubyte_and(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_and(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -22360,19 +23277,9 @@ ubyte_and(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -22406,11 +23313,20 @@ ubyte_and(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_and
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_and
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "and"
+#endif
 
 static PyObject *
 short_and(PyObject *a, PyObject *b)
@@ -22486,6 +23402,11 @@ short_and(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_and(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -22530,19 +23451,9 @@ short_and(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -22576,11 +23487,20 @@ short_and(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_and
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_and
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "and"
+#endif
 
 static PyObject *
 ushort_and(PyObject *a, PyObject *b)
@@ -22656,6 +23576,11 @@ ushort_and(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_and(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -22700,19 +23625,9 @@ ushort_and(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -22746,11 +23661,20 @@ ushort_and(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_and
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_and
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "and"
+#endif
 
 static PyObject *
 int_and(PyObject *a, PyObject *b)
@@ -22826,6 +23750,11 @@ int_and(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_and(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -22870,19 +23799,9 @@ int_and(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -22916,11 +23835,20 @@ int_and(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_and
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_and
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "and"
+#endif
 
 static PyObject *
 uint_and(PyObject *a, PyObject *b)
@@ -22996,6 +23924,11 @@ uint_and(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_and(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -23040,19 +23973,9 @@ uint_and(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -23086,11 +24009,20 @@ uint_and(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_and
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_and
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "and"
+#endif
 
 static PyObject *
 long_and(PyObject *a, PyObject *b)
@@ -23166,6 +24098,11 @@ long_and(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_and(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -23210,19 +24147,9 @@ long_and(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -23256,11 +24183,20 @@ long_and(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_and
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_and
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "and"
+#endif
 
 static PyObject *
 ulong_and(PyObject *a, PyObject *b)
@@ -23336,6 +24272,11 @@ ulong_and(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_and(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -23380,19 +24321,9 @@ ulong_and(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -23426,11 +24357,20 @@ ulong_and(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_and
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_and
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "and"
+#endif
 
 static PyObject *
 longlong_and(PyObject *a, PyObject *b)
@@ -23506,6 +24446,11 @@ longlong_and(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_and(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -23550,19 +24495,9 @@ longlong_and(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -23596,11 +24531,20 @@ longlong_and(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_and
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_and
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "and"
+#endif
 
 static PyObject *
 ulonglong_and(PyObject *a, PyObject *b)
@@ -23676,6 +24620,11 @@ ulonglong_and(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_and(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -23720,19 +24669,9 @@ ulonglong_and(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -23766,11 +24705,20 @@ ulonglong_and(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_and
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_or
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "or"
+#endif
 
 static PyObject *
 byte_or(PyObject *a, PyObject *b)
@@ -23846,6 +24794,11 @@ byte_or(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_or(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -23890,19 +24843,9 @@ byte_or(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -23936,11 +24879,20 @@ byte_or(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_or
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_or
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "or"
+#endif
 
 static PyObject *
 ubyte_or(PyObject *a, PyObject *b)
@@ -24016,6 +24968,11 @@ ubyte_or(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_or(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -24060,19 +25017,9 @@ ubyte_or(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -24106,11 +25053,20 @@ ubyte_or(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_or
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_or
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "or"
+#endif
 
 static PyObject *
 short_or(PyObject *a, PyObject *b)
@@ -24186,6 +25142,11 @@ short_or(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_or(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -24230,19 +25191,9 @@ short_or(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -24276,11 +25227,20 @@ short_or(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_or
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_or
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "or"
+#endif
 
 static PyObject *
 ushort_or(PyObject *a, PyObject *b)
@@ -24356,6 +25316,11 @@ ushort_or(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_or(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -24400,19 +25365,9 @@ ushort_or(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -24446,11 +25401,20 @@ ushort_or(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_or
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_or
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "or"
+#endif
 
 static PyObject *
 int_or(PyObject *a, PyObject *b)
@@ -24526,6 +25490,11 @@ int_or(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_or(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -24570,19 +25539,9 @@ int_or(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -24616,11 +25575,20 @@ int_or(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_or
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_or
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "or"
+#endif
 
 static PyObject *
 uint_or(PyObject *a, PyObject *b)
@@ -24696,6 +25664,11 @@ uint_or(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_or(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -24740,19 +25713,9 @@ uint_or(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -24786,11 +25749,20 @@ uint_or(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_or
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_or
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "or"
+#endif
 
 static PyObject *
 long_or(PyObject *a, PyObject *b)
@@ -24866,6 +25838,11 @@ long_or(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_or(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -24910,19 +25887,9 @@ long_or(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -24956,11 +25923,20 @@ long_or(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_or
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_or
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "or"
+#endif
 
 static PyObject *
 ulong_or(PyObject *a, PyObject *b)
@@ -25036,6 +26012,11 @@ ulong_or(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_or(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -25080,19 +26061,9 @@ ulong_or(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -25126,11 +26097,20 @@ ulong_or(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_or
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_or
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "or"
+#endif
 
 static PyObject *
 longlong_or(PyObject *a, PyObject *b)
@@ -25206,6 +26186,11 @@ longlong_or(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_or(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -25250,19 +26235,9 @@ longlong_or(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -25296,11 +26271,20 @@ longlong_or(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_or
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_or
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "or"
+#endif
 
 static PyObject *
 ulonglong_or(PyObject *a, PyObject *b)
@@ -25376,6 +26360,11 @@ ulonglong_or(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_or(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -25420,19 +26409,9 @@ ulonglong_or(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -25466,11 +26445,20 @@ ulonglong_or(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_or
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_xor
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "xor"
+#endif
 
 static PyObject *
 byte_xor(PyObject *a, PyObject *b)
@@ -25546,6 +26534,11 @@ byte_xor(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_xor(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -25590,19 +26583,9 @@ byte_xor(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -25636,11 +26619,20 @@ byte_xor(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_xor
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_xor
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "xor"
+#endif
 
 static PyObject *
 ubyte_xor(PyObject *a, PyObject *b)
@@ -25716,6 +26708,11 @@ ubyte_xor(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_xor(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -25760,19 +26757,9 @@ ubyte_xor(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -25806,11 +26793,20 @@ ubyte_xor(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_xor
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_xor
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "xor"
+#endif
 
 static PyObject *
 short_xor(PyObject *a, PyObject *b)
@@ -25886,6 +26882,11 @@ short_xor(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_xor(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -25930,19 +26931,9 @@ short_xor(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -25976,11 +26967,20 @@ short_xor(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_xor
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_xor
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "xor"
+#endif
 
 static PyObject *
 ushort_xor(PyObject *a, PyObject *b)
@@ -26056,6 +27056,11 @@ ushort_xor(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_xor(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -26100,19 +27105,9 @@ ushort_xor(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -26146,11 +27141,20 @@ ushort_xor(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_xor
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_xor
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "xor"
+#endif
 
 static PyObject *
 int_xor(PyObject *a, PyObject *b)
@@ -26226,6 +27230,11 @@ int_xor(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_xor(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -26270,19 +27279,9 @@ int_xor(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -26316,11 +27315,20 @@ int_xor(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_xor
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_xor
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "xor"
+#endif
 
 static PyObject *
 uint_xor(PyObject *a, PyObject *b)
@@ -26396,6 +27404,11 @@ uint_xor(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_xor(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -26440,19 +27453,9 @@ uint_xor(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -26486,11 +27489,20 @@ uint_xor(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_xor
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_xor
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "xor"
+#endif
 
 static PyObject *
 long_xor(PyObject *a, PyObject *b)
@@ -26566,6 +27578,11 @@ long_xor(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_xor(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -26610,19 +27627,9 @@ long_xor(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -26656,11 +27663,20 @@ long_xor(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_xor
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_xor
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "xor"
+#endif
 
 static PyObject *
 ulong_xor(PyObject *a, PyObject *b)
@@ -26736,6 +27752,11 @@ ulong_xor(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_xor(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -26780,19 +27801,9 @@ ulong_xor(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -26826,11 +27837,20 @@ ulong_xor(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_xor
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_xor
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "xor"
+#endif
 
 static PyObject *
 longlong_xor(PyObject *a, PyObject *b)
@@ -26906,6 +27926,11 @@ longlong_xor(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_xor(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -26950,19 +27975,9 @@ longlong_xor(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -26996,11 +28011,20 @@ longlong_xor(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_xor
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_xor
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "xor"
+#endif
 
 static PyObject *
 ulonglong_xor(PyObject *a, PyObject *b)
@@ -27076,6 +28100,11 @@ ulonglong_xor(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_xor(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -27120,19 +28149,9 @@ ulonglong_xor(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -27166,11 +28185,20 @@ ulonglong_xor(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_xor
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_byte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 byte_true_divide(PyObject *a, PyObject *b)
@@ -27246,6 +28274,11 @@ byte_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -27290,19 +28323,9 @@ byte_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -27336,11 +28359,20 @@ byte_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_byte
 
 
-#line 1158
+#line 1217
 #define IS_ubyte
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 ubyte_true_divide(PyObject *a, PyObject *b)
@@ -27416,6 +28448,11 @@ ubyte_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -27460,19 +28497,9 @@ ubyte_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -27506,11 +28533,20 @@ ubyte_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_ubyte
 
 
-#line 1158
+#line 1217
 #define IS_short
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 short_true_divide(PyObject *a, PyObject *b)
@@ -27586,6 +28622,11 @@ short_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -27630,19 +28671,9 @@ short_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -27676,11 +28707,20 @@ short_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_short
 
 
-#line 1158
+#line 1217
 #define IS_ushort
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 ushort_true_divide(PyObject *a, PyObject *b)
@@ -27756,6 +28796,11 @@ ushort_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -27800,19 +28845,9 @@ ushort_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -27846,11 +28881,20 @@ ushort_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_ushort
 
 
-#line 1158
+#line 1217
 #define IS_int
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 int_true_divide(PyObject *a, PyObject *b)
@@ -27926,6 +28970,11 @@ int_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -27970,19 +29019,9 @@ int_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -28016,11 +29055,20 @@ int_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_int
 
 
-#line 1158
+#line 1217
 #define IS_uint
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 uint_true_divide(PyObject *a, PyObject *b)
@@ -28096,6 +29144,11 @@ uint_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -28140,19 +29193,9 @@ uint_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -28186,11 +29229,20 @@ uint_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_uint
 
 
-#line 1158
+#line 1217
 #define IS_long
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 long_true_divide(PyObject *a, PyObject *b)
@@ -28266,6 +29318,11 @@ long_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -28310,19 +29367,9 @@ long_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -28356,11 +29403,20 @@ long_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_long
 
 
-#line 1158
+#line 1217
 #define IS_ulong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 ulong_true_divide(PyObject *a, PyObject *b)
@@ -28436,6 +29492,11 @@ ulong_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -28480,19 +29541,9 @@ ulong_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -28526,11 +29577,20 @@ ulong_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_ulong
 
 
-#line 1158
+#line 1217
 #define IS_longlong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 longlong_true_divide(PyObject *a, PyObject *b)
@@ -28606,6 +29666,11 @@ longlong_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -28650,19 +29715,9 @@ longlong_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -28696,11 +29751,20 @@ longlong_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_longlong
 
 
-#line 1158
+#line 1217
 #define IS_ulonglong
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 ulonglong_true_divide(PyObject *a, PyObject *b)
@@ -28776,6 +29840,11 @@ ulonglong_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -28820,19 +29889,9 @@ ulonglong_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -28866,11 +29925,20 @@ ulonglong_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_ulonglong
 
 
-#line 1158
+#line 1217
 #define IS_half
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 half_add(PyObject *a, PyObject *b)
@@ -28946,6 +30014,11 @@ half_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (HALF_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -28990,19 +30063,9 @@ half_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("half_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -29036,11 +30099,20 @@ half_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_half
 
 
-#line 1158
+#line 1217
 #define IS_float
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 float_add(PyObject *a, PyObject *b)
@@ -29116,6 +30188,11 @@ float_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (FLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -29160,19 +30237,9 @@ float_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("float_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -29206,11 +30273,20 @@ float_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_float
 
 
-#line 1158
+#line 1217
 #define IS_double
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 double_add(PyObject *a, PyObject *b)
@@ -29286,6 +30362,11 @@ double_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (DOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -29330,19 +30411,9 @@ double_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("double_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -29376,11 +30447,20 @@ double_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_double
 
 
-#line 1158
+#line 1217
 #define IS_longdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 longdouble_add(PyObject *a, PyObject *b)
@@ -29456,6 +30536,11 @@ longdouble_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -29500,19 +30585,9 @@ longdouble_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -29546,11 +30621,20 @@ longdouble_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_longdouble
 
 
-#line 1158
+#line 1217
 #define IS_cfloat
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 cfloat_add(PyObject *a, PyObject *b)
@@ -29626,6 +30710,11 @@ cfloat_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (CFLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -29670,19 +30759,9 @@ cfloat_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cfloat_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -29716,11 +30795,20 @@ cfloat_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_cfloat
 
 
-#line 1158
+#line 1217
 #define IS_cdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 cdouble_add(PyObject *a, PyObject *b)
@@ -29796,6 +30884,11 @@ cdouble_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (CDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -29840,19 +30933,9 @@ cdouble_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -29886,11 +30969,20 @@ cdouble_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_cdouble
 
 
-#line 1158
+#line 1217
 #define IS_clongdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_add
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "add"
+#endif
 
 static PyObject *
 clongdouble_add(PyObject *a, PyObject *b)
@@ -29966,6 +31058,11 @@ clongdouble_add(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_add(a,b);
+        case CONVERT_PYSCALAR:
+            if (CLONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -30010,19 +31107,9 @@ clongdouble_add(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("clongdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -30056,11 +31143,20 @@ clongdouble_add(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_add
 #undef IS_clongdouble
 
 
-#line 1158
+#line 1217
 #define IS_half
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 half_subtract(PyObject *a, PyObject *b)
@@ -30136,6 +31232,11 @@ half_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (HALF_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -30180,19 +31281,9 @@ half_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("half_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -30226,11 +31317,20 @@ half_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_half
 
 
-#line 1158
+#line 1217
 #define IS_float
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 float_subtract(PyObject *a, PyObject *b)
@@ -30306,6 +31406,11 @@ float_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (FLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -30350,19 +31455,9 @@ float_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("float_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -30396,11 +31491,20 @@ float_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_float
 
 
-#line 1158
+#line 1217
 #define IS_double
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 double_subtract(PyObject *a, PyObject *b)
@@ -30476,6 +31580,11 @@ double_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (DOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -30520,19 +31629,9 @@ double_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("double_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -30566,11 +31665,20 @@ double_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_double
 
 
-#line 1158
+#line 1217
 #define IS_longdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 longdouble_subtract(PyObject *a, PyObject *b)
@@ -30646,6 +31754,11 @@ longdouble_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -30690,19 +31803,9 @@ longdouble_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -30736,11 +31839,20 @@ longdouble_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_longdouble
 
 
-#line 1158
+#line 1217
 #define IS_cfloat
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 cfloat_subtract(PyObject *a, PyObject *b)
@@ -30816,6 +31928,11 @@ cfloat_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (CFLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -30860,19 +31977,9 @@ cfloat_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cfloat_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -30906,11 +32013,20 @@ cfloat_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_cfloat
 
 
-#line 1158
+#line 1217
 #define IS_cdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 cdouble_subtract(PyObject *a, PyObject *b)
@@ -30986,6 +32102,11 @@ cdouble_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (CDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -31030,19 +32151,9 @@ cdouble_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -31076,11 +32187,20 @@ cdouble_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_cdouble
 
 
-#line 1158
+#line 1217
 #define IS_clongdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_subtract
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "subtract"
+#endif
 
 static PyObject *
 clongdouble_subtract(PyObject *a, PyObject *b)
@@ -31156,6 +32276,11 @@ clongdouble_subtract(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_subtract(a,b);
+        case CONVERT_PYSCALAR:
+            if (CLONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -31200,19 +32325,9 @@ clongdouble_subtract(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("clongdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -31246,11 +32361,20 @@ clongdouble_subtract(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_subtract
 #undef IS_clongdouble
 
 
-#line 1158
+#line 1217
 #define IS_half
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 half_multiply(PyObject *a, PyObject *b)
@@ -31326,6 +32450,11 @@ half_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (HALF_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -31370,19 +32499,9 @@ half_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("half_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -31416,11 +32535,20 @@ half_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_half
 
 
-#line 1158
+#line 1217
 #define IS_float
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 float_multiply(PyObject *a, PyObject *b)
@@ -31496,6 +32624,11 @@ float_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (FLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -31540,19 +32673,9 @@ float_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("float_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -31586,11 +32709,20 @@ float_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_float
 
 
-#line 1158
+#line 1217
 #define IS_double
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 double_multiply(PyObject *a, PyObject *b)
@@ -31666,6 +32798,11 @@ double_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (DOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -31710,19 +32847,9 @@ double_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("double_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -31756,11 +32883,20 @@ double_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_double
 
 
-#line 1158
+#line 1217
 #define IS_longdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 longdouble_multiply(PyObject *a, PyObject *b)
@@ -31836,6 +32972,11 @@ longdouble_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -31880,19 +33021,9 @@ longdouble_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -31926,11 +33057,20 @@ longdouble_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_longdouble
 
 
-#line 1158
+#line 1217
 #define IS_cfloat
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 cfloat_multiply(PyObject *a, PyObject *b)
@@ -32006,6 +33146,11 @@ cfloat_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (CFLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -32050,19 +33195,9 @@ cfloat_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cfloat_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -32096,11 +33231,20 @@ cfloat_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_cfloat
 
 
-#line 1158
+#line 1217
 #define IS_cdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 cdouble_multiply(PyObject *a, PyObject *b)
@@ -32176,6 +33320,11 @@ cdouble_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (CDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -32220,19 +33369,9 @@ cdouble_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -32266,11 +33405,20 @@ cdouble_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_cdouble
 
 
-#line 1158
+#line 1217
 #define IS_clongdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_multiply
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "multiply"
+#endif
 
 static PyObject *
 clongdouble_multiply(PyObject *a, PyObject *b)
@@ -32346,6 +33494,11 @@ clongdouble_multiply(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_multiply(a,b);
+        case CONVERT_PYSCALAR:
+            if (CLONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -32390,19 +33543,9 @@ clongdouble_multiply(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("clongdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -32436,11 +33579,20 @@ clongdouble_multiply(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_multiply
 #undef IS_clongdouble
 
 
-#line 1158
+#line 1217
 #define IS_half
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 half_true_divide(PyObject *a, PyObject *b)
@@ -32516,6 +33668,11 @@ half_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (HALF_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -32560,19 +33717,9 @@ half_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("half_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -32606,11 +33753,20 @@ half_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_half
 
 
-#line 1158
+#line 1217
 #define IS_float
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 float_true_divide(PyObject *a, PyObject *b)
@@ -32686,6 +33842,11 @@ float_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (FLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -32730,19 +33891,9 @@ float_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("float_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -32776,11 +33927,20 @@ float_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_float
 
 
-#line 1158
+#line 1217
 #define IS_double
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 double_true_divide(PyObject *a, PyObject *b)
@@ -32856,6 +34016,11 @@ double_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (DOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -32900,19 +34065,9 @@ double_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("double_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -32946,11 +34101,20 @@ double_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_double
 
 
-#line 1158
+#line 1217
 #define IS_longdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 longdouble_true_divide(PyObject *a, PyObject *b)
@@ -33026,6 +34190,11 @@ longdouble_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -33070,19 +34239,9 @@ longdouble_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -33116,11 +34275,20 @@ longdouble_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_longdouble
 
 
-#line 1158
+#line 1217
 #define IS_cfloat
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 cfloat_true_divide(PyObject *a, PyObject *b)
@@ -33196,6 +34364,11 @@ cfloat_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (CFLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -33240,19 +34413,9 @@ cfloat_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cfloat_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -33286,11 +34449,20 @@ cfloat_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_cfloat
 
 
-#line 1158
+#line 1217
 #define IS_cdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 cdouble_true_divide(PyObject *a, PyObject *b)
@@ -33366,6 +34538,11 @@ cdouble_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (CDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -33410,19 +34587,9 @@ cdouble_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -33456,11 +34623,20 @@ cdouble_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_cdouble
 
 
-#line 1158
+#line 1217
 #define IS_clongdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_true_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "true_divide"
+#endif
 
 static PyObject *
 clongdouble_true_divide(PyObject *a, PyObject *b)
@@ -33536,6 +34712,11 @@ clongdouble_true_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_true_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (CLONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -33580,19 +34761,9 @@ clongdouble_true_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("clongdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -33626,11 +34797,20 @@ clongdouble_true_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_true_divide
 #undef IS_clongdouble
 
 
-#line 1158
+#line 1217
 #define IS_half
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 half_floor_divide(PyObject *a, PyObject *b)
@@ -33706,6 +34886,11 @@ half_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (HALF_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -33750,19 +34935,9 @@ half_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("half_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -33796,11 +34971,20 @@ half_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_half
 
 
-#line 1158
+#line 1217
 #define IS_float
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 float_floor_divide(PyObject *a, PyObject *b)
@@ -33876,6 +35060,11 @@ float_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (FLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -33920,19 +35109,9 @@ float_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("float_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -33966,11 +35145,20 @@ float_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_float
 
 
-#line 1158
+#line 1217
 #define IS_double
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 double_floor_divide(PyObject *a, PyObject *b)
@@ -34046,6 +35234,11 @@ double_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (DOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -34090,19 +35283,9 @@ double_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("double_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -34136,11 +35319,20 @@ double_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_double
 
 
-#line 1158
+#line 1217
 #define IS_longdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_floor_divide
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "floor_divide"
+#endif
 
 static PyObject *
 longdouble_floor_divide(PyObject *a, PyObject *b)
@@ -34216,6 +35408,11 @@ longdouble_floor_divide(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_floor_divide(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -34260,19 +35457,9 @@ longdouble_floor_divide(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -34306,11 +35493,20 @@ longdouble_floor_divide(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_floor_divide
 #undef IS_longdouble
 
 
-#line 1158
+#line 1217
 #define IS_half
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 half_divmod(PyObject *a, PyObject *b)
@@ -34386,6 +35582,11 @@ half_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (HALF_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -34430,19 +35631,9 @@ half_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("half_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -34476,11 +35667,20 @@ half_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_half
 
 
-#line 1158
+#line 1217
 #define IS_float
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 float_divmod(PyObject *a, PyObject *b)
@@ -34556,6 +35756,11 @@ float_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (FLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -34600,19 +35805,9 @@ float_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("float_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -34646,11 +35841,20 @@ float_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_float
 
 
-#line 1158
+#line 1217
 #define IS_double
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 double_divmod(PyObject *a, PyObject *b)
@@ -34726,6 +35930,11 @@ double_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (DOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -34770,19 +35979,9 @@ double_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("double_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -34816,11 +36015,20 @@ double_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_double
 
 
-#line 1158
+#line 1217
 #define IS_longdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_divmod
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "divmod"
+#endif
 
 static PyObject *
 longdouble_divmod(PyObject *a, PyObject *b)
@@ -34896,6 +36104,11 @@ longdouble_divmod(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_divmod(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -34940,19 +36153,9 @@ longdouble_divmod(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -34986,11 +36189,20 @@ longdouble_divmod(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_divmod
 #undef IS_longdouble
 
 
-#line 1158
+#line 1217
 #define IS_half
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 half_remainder(PyObject *a, PyObject *b)
@@ -35066,6 +36278,11 @@ half_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (HALF_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -35110,19 +36327,9 @@ half_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("half_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -35156,11 +36363,20 @@ half_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_half
 
 
-#line 1158
+#line 1217
 #define IS_float
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 float_remainder(PyObject *a, PyObject *b)
@@ -35236,6 +36452,11 @@ float_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (FLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -35280,19 +36501,9 @@ float_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("float_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -35326,11 +36537,20 @@ float_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_float
 
 
-#line 1158
+#line 1217
 #define IS_double
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 double_remainder(PyObject *a, PyObject *b)
@@ -35406,6 +36626,11 @@ double_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (DOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -35450,19 +36675,9 @@ double_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("double_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -35496,11 +36711,20 @@ double_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_double
 
 
-#line 1158
+#line 1217
 #define IS_longdouble
+/* drop the "true_" from "true_divide" for floating point warnings: */
+#define IS_remainder
+#ifdef IS_true_divide
+    #define OP_NAME "divide"
+#else
+    #define OP_NAME "remainder"
+#endif
 
 static PyObject *
 longdouble_remainder(PyObject *a, PyObject *b)
@@ -35576,6 +36800,11 @@ longdouble_remainder(PyObject *a, PyObject *b)
              *       correctly.  (e.g. `uint8 * int8` cannot warn).
              */
             return PyGenericArrType_Type.tp_as_number->nb_remainder(a,b);
+        case CONVERT_PYSCALAR:
+            if (LONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -35620,19 +36849,9 @@ longdouble_remainder(PyObject *a, PyObject *b)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar " OP_NAME, retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
 
@@ -35666,13 +36885,15 @@ longdouble_remainder(PyObject *a, PyObject *b)
 }
 
 
+#undef OP_NAME
+#undef IS_remainder
 #undef IS_longdouble
 
 
 
 #define _IS_ZERO(x) (x == 0)
 
-#line 1354
+#line 1421
 #define IS_byte
 
 static PyObject *
@@ -35724,6 +36945,11 @@ byte_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -35765,19 +36991,9 @@ byte_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(Byte);
@@ -35792,7 +37008,7 @@ byte_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_byte
 
-#line 1354
+#line 1421
 #define IS_ubyte
 
 static PyObject *
@@ -35844,6 +37060,11 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -35885,19 +37106,9 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(UByte);
@@ -35912,7 +37123,7 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_ubyte
 
-#line 1354
+#line 1421
 #define IS_short
 
 static PyObject *
@@ -35964,6 +37175,11 @@ short_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -36005,19 +37221,9 @@ short_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(Short);
@@ -36032,7 +37238,7 @@ short_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_short
 
-#line 1354
+#line 1421
 #define IS_ushort
 
 static PyObject *
@@ -36084,6 +37290,11 @@ ushort_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -36125,19 +37336,9 @@ ushort_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(UShort);
@@ -36152,7 +37353,7 @@ ushort_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_ushort
 
-#line 1354
+#line 1421
 #define IS_int
 
 static PyObject *
@@ -36204,6 +37405,11 @@ int_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -36245,19 +37451,9 @@ int_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(Int);
@@ -36272,7 +37468,7 @@ int_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_int
 
-#line 1354
+#line 1421
 #define IS_uint
 
 static PyObject *
@@ -36324,6 +37520,11 @@ uint_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -36365,19 +37566,9 @@ uint_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(UInt);
@@ -36392,7 +37583,7 @@ uint_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_uint
 
-#line 1354
+#line 1421
 #define IS_long
 
 static PyObject *
@@ -36444,6 +37635,11 @@ long_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -36485,19 +37681,9 @@ long_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(Long);
@@ -36512,7 +37698,7 @@ long_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_long
 
-#line 1354
+#line 1421
 #define IS_ulong
 
 static PyObject *
@@ -36564,6 +37750,11 @@ ulong_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -36605,19 +37796,9 @@ ulong_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(ULong);
@@ -36632,7 +37813,7 @@ ulong_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_ulong
 
-#line 1354
+#line 1421
 #define IS_longlong
 
 static PyObject *
@@ -36684,6 +37865,11 @@ longlong_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -36725,19 +37911,9 @@ longlong_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(LongLong);
@@ -36752,7 +37928,7 @@ longlong_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_longlong
 
-#line 1354
+#line 1421
 #define IS_ulonglong
 
 static PyObject *
@@ -36804,6 +37980,11 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -36845,19 +38026,9 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(ULongLong);
@@ -36872,7 +38043,7 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_ulonglong
 
-#line 1354
+#line 1421
 #define IS_half
 
 static PyObject *
@@ -36924,6 +38095,11 @@ half_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (HALF_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -36965,19 +38141,9 @@ half_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("half_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(Half);
@@ -36992,7 +38158,7 @@ half_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_half
 
-#line 1354
+#line 1421
 #define IS_float
 
 static PyObject *
@@ -37044,6 +38210,11 @@ float_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (FLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -37085,19 +38256,9 @@ float_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("float_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(Float);
@@ -37112,7 +38273,7 @@ float_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_float
 
-#line 1354
+#line 1421
 #define IS_double
 
 static PyObject *
@@ -37164,6 +38325,11 @@ double_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (DOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -37205,19 +38371,9 @@ double_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("double_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(Double);
@@ -37232,7 +38388,7 @@ double_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_double
 
-#line 1354
+#line 1421
 #define IS_longdouble
 
 static PyObject *
@@ -37284,6 +38440,11 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (LONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -37325,19 +38486,9 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(LongDouble);
@@ -37352,7 +38503,7 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_longdouble
 
-#line 1354
+#line 1421
 #define IS_cfloat
 
 static PyObject *
@@ -37404,6 +38555,11 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (CFLOAT_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -37445,19 +38601,9 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cfloat_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(CFloat);
@@ -37472,7 +38618,7 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_cfloat
 
-#line 1354
+#line 1421
 #define IS_cdouble
 
 static PyObject *
@@ -37524,6 +38670,11 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (CDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -37565,19 +38716,9 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(CDouble);
@@ -37592,7 +38733,7 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 
 #undef IS_cdouble
 
-#line 1354
+#line 1421
 #define IS_clongdouble
 
 static PyObject *
@@ -37644,6 +38785,11 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_as_number->nb_power(a, b, modulo);
+        case CONVERT_PYSCALAR:
+            if (CLONGDOUBLE_setitem(other, (char *)&other_val, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -37685,19 +38831,9 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
     retstatus |= npy_get_floatstatus_barrier((char*)&out);
 #endif
     if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("clongdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar power", retstatus) < 0) {
             return NULL;
         }
-        int first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
     }
 
     ret = PyArrayScalar_New(CLongDouble);
@@ -37715,7 +38851,7 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 #undef _IS_ZERO
 
 
-#line 1482
+#line 1544
 
 /* 
  * Complex numbers do not support remainder so we manually make sure that the
@@ -37730,7 +38866,7 @@ cfloat_floor_divide(PyObject *NPY_UNUSED(a), PyObject *NPY_UNUSED(b))
 }
 
 
-#line 1482
+#line 1544
 
 /* 
  * Complex numbers do not support remainder so we manually make sure that the
@@ -37745,7 +38881,7 @@ cdouble_floor_divide(PyObject *NPY_UNUSED(a), PyObject *NPY_UNUSED(b))
 }
 
 
-#line 1482
+#line 1544
 
 /* 
  * Complex numbers do not support remainder so we manually make sure that the
@@ -37760,7 +38896,7 @@ clongdouble_floor_divide(PyObject *NPY_UNUSED(a), PyObject *NPY_UNUSED(b))
 }
 
 
-#line 1482
+#line 1544
 
 /* 
  * Complex numbers do not support remainder so we manually make sure that the
@@ -37775,7 +38911,7 @@ cfloat_divmod(PyObject *NPY_UNUSED(a), PyObject *NPY_UNUSED(b))
 }
 
 
-#line 1482
+#line 1544
 
 /* 
  * Complex numbers do not support remainder so we manually make sure that the
@@ -37790,7 +38926,7 @@ cdouble_divmod(PyObject *NPY_UNUSED(a), PyObject *NPY_UNUSED(b))
 }
 
 
-#line 1482
+#line 1544
 
 /* 
  * Complex numbers do not support remainder so we manually make sure that the
@@ -37805,7 +38941,7 @@ clongdouble_divmod(PyObject *NPY_UNUSED(a), PyObject *NPY_UNUSED(b))
 }
 
 
-#line 1482
+#line 1544
 
 /* 
  * Complex numbers do not support remainder so we manually make sure that the
@@ -37820,7 +38956,7 @@ cfloat_remainder(PyObject *NPY_UNUSED(a), PyObject *NPY_UNUSED(b))
 }
 
 
-#line 1482
+#line 1544
 
 /* 
  * Complex numbers do not support remainder so we manually make sure that the
@@ -37835,7 +38971,7 @@ cdouble_remainder(PyObject *NPY_UNUSED(a), PyObject *NPY_UNUSED(b))
 }
 
 
-#line 1482
+#line 1544
 
 /* 
  * Complex numbers do not support remainder so we manually make sure that the
@@ -37851,203 +38987,203 @@ clongdouble_remainder(PyObject *NPY_UNUSED(a), PyObject *NPY_UNUSED(b))
 
 
 
-#line 1502
+#line 1564
 
-#line 1508
+#line 1570
 
 #define half_lshift NULL
 
 
-#line 1508
+#line 1570
 
 #define half_rshift NULL
 
 
-#line 1508
+#line 1570
 
 #define half_and NULL
 
 
-#line 1508
+#line 1570
 
 #define half_or NULL
 
 
-#line 1508
+#line 1570
 
 #define half_xor NULL
 
 
 
 
-#line 1502
+#line 1564
 
-#line 1508
+#line 1570
 
 #define float_lshift NULL
 
 
-#line 1508
+#line 1570
 
 #define float_rshift NULL
 
 
-#line 1508
+#line 1570
 
 #define float_and NULL
 
 
-#line 1508
+#line 1570
 
 #define float_or NULL
 
 
-#line 1508
+#line 1570
 
 #define float_xor NULL
 
 
 
 
-#line 1502
+#line 1564
 
-#line 1508
+#line 1570
 
 #define double_lshift NULL
 
 
-#line 1508
+#line 1570
 
 #define double_rshift NULL
 
 
-#line 1508
+#line 1570
 
 #define double_and NULL
 
 
-#line 1508
+#line 1570
 
 #define double_or NULL
 
 
-#line 1508
+#line 1570
 
 #define double_xor NULL
 
 
 
 
-#line 1502
+#line 1564
 
-#line 1508
+#line 1570
 
 #define longdouble_lshift NULL
 
 
-#line 1508
+#line 1570
 
 #define longdouble_rshift NULL
 
 
-#line 1508
+#line 1570
 
 #define longdouble_and NULL
 
 
-#line 1508
+#line 1570
 
 #define longdouble_or NULL
 
 
-#line 1508
+#line 1570
 
 #define longdouble_xor NULL
 
 
 
 
-#line 1502
+#line 1564
 
-#line 1508
+#line 1570
 
 #define cfloat_lshift NULL
 
 
-#line 1508
+#line 1570
 
 #define cfloat_rshift NULL
 
 
-#line 1508
+#line 1570
 
 #define cfloat_and NULL
 
 
-#line 1508
+#line 1570
 
 #define cfloat_or NULL
 
 
-#line 1508
+#line 1570
 
 #define cfloat_xor NULL
 
 
 
 
-#line 1502
+#line 1564
 
-#line 1508
+#line 1570
 
 #define cdouble_lshift NULL
 
 
-#line 1508
+#line 1570
 
 #define cdouble_rshift NULL
 
 
-#line 1508
+#line 1570
 
 #define cdouble_and NULL
 
 
-#line 1508
+#line 1570
 
 #define cdouble_or NULL
 
 
-#line 1508
+#line 1570
 
 #define cdouble_xor NULL
 
 
 
 
-#line 1502
+#line 1564
 
-#line 1508
+#line 1570
 
 #define clongdouble_lshift NULL
 
 
-#line 1508
+#line 1570
 
 #define clongdouble_rshift NULL
 
 
-#line 1508
+#line 1570
 
 #define clongdouble_and NULL
 
 
-#line 1508
+#line 1570
 
 #define clongdouble_or NULL
 
 
-#line 1508
+#line 1570
 
 #define clongdouble_xor NULL
 
@@ -38055,7 +39191,7 @@ clongdouble_remainder(PyObject *NPY_UNUSED(a), PyObject *NPY_UNUSED(b))
 
 
 
-#line 1566
+#line 1628
 static PyObject *
 byte_negative(PyObject *a)
 {
@@ -38065,8 +39201,13 @@ byte_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Byte);
+    int retstatus = byte_ctype_negative(val, &out);
 
-    byte_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38078,7 +39219,7 @@ byte_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ubyte_negative(PyObject *a)
 {
@@ -38088,8 +39229,13 @@ ubyte_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UByte);
+    int retstatus = ubyte_ctype_negative(val, &out);
 
-    ubyte_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38101,7 +39247,7 @@ ubyte_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 short_negative(PyObject *a)
 {
@@ -38111,8 +39257,13 @@ short_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Short);
+    int retstatus = short_ctype_negative(val, &out);
 
-    short_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38124,7 +39275,7 @@ short_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ushort_negative(PyObject *a)
 {
@@ -38134,8 +39285,13 @@ ushort_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UShort);
+    int retstatus = ushort_ctype_negative(val, &out);
 
-    ushort_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38147,7 +39303,7 @@ ushort_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 int_negative(PyObject *a)
 {
@@ -38157,8 +39313,13 @@ int_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Int);
+    int retstatus = int_ctype_negative(val, &out);
 
-    int_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38170,7 +39331,7 @@ int_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 uint_negative(PyObject *a)
 {
@@ -38180,8 +39341,13 @@ uint_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UInt);
+    int retstatus = uint_ctype_negative(val, &out);
 
-    uint_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38193,7 +39359,7 @@ uint_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 long_negative(PyObject *a)
 {
@@ -38203,8 +39369,13 @@ long_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Long);
+    int retstatus = long_ctype_negative(val, &out);
 
-    long_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38216,7 +39387,7 @@ long_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ulong_negative(PyObject *a)
 {
@@ -38226,8 +39397,13 @@ ulong_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, ULong);
+    int retstatus = ulong_ctype_negative(val, &out);
 
-    ulong_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38239,7 +39415,7 @@ ulong_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 longlong_negative(PyObject *a)
 {
@@ -38249,8 +39425,13 @@ longlong_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, LongLong);
+    int retstatus = longlong_ctype_negative(val, &out);
 
-    longlong_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38262,7 +39443,7 @@ longlong_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ulonglong_negative(PyObject *a)
 {
@@ -38272,8 +39453,13 @@ ulonglong_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, ULongLong);
+    int retstatus = ulonglong_ctype_negative(val, &out);
 
-    ulonglong_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38285,7 +39471,7 @@ ulonglong_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 half_negative(PyObject *a)
 {
@@ -38295,8 +39481,13 @@ half_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Half);
+    int retstatus = half_ctype_negative(val, &out);
 
-    half_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38308,7 +39499,7 @@ half_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 float_negative(PyObject *a)
 {
@@ -38318,8 +39509,13 @@ float_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Float);
+    int retstatus = float_ctype_negative(val, &out);
 
-    float_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38331,7 +39527,7 @@ float_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 double_negative(PyObject *a)
 {
@@ -38341,8 +39537,13 @@ double_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Double);
+    int retstatus = double_ctype_negative(val, &out);
 
-    double_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38354,7 +39555,7 @@ double_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 longdouble_negative(PyObject *a)
 {
@@ -38364,8 +39565,13 @@ longdouble_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, LongDouble);
+    int retstatus = longdouble_ctype_negative(val, &out);
 
-    longdouble_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38377,7 +39583,7 @@ longdouble_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 cfloat_negative(PyObject *a)
 {
@@ -38387,8 +39593,13 @@ cfloat_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, CFloat);
+    int retstatus = cfloat_ctype_negative(val, &out);
 
-    cfloat_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38400,7 +39611,7 @@ cfloat_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 cdouble_negative(PyObject *a)
 {
@@ -38410,8 +39621,13 @@ cdouble_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, CDouble);
+    int retstatus = cdouble_ctype_negative(val, &out);
 
-    cdouble_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38423,7 +39639,7 @@ cdouble_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 clongdouble_negative(PyObject *a)
 {
@@ -38433,8 +39649,13 @@ clongdouble_negative(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, CLongDouble);
+    int retstatus = clongdouble_ctype_negative(val, &out);
 
-    clongdouble_ctype_negative(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar negative", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38446,7 +39667,7 @@ clongdouble_negative(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 byte_positive(PyObject *a)
 {
@@ -38456,8 +39677,13 @@ byte_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Byte);
+    int retstatus = byte_ctype_positive(val, &out);
 
-    byte_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38469,7 +39695,7 @@ byte_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ubyte_positive(PyObject *a)
 {
@@ -38479,8 +39705,13 @@ ubyte_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UByte);
+    int retstatus = ubyte_ctype_positive(val, &out);
 
-    ubyte_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38492,7 +39723,7 @@ ubyte_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 short_positive(PyObject *a)
 {
@@ -38502,8 +39733,13 @@ short_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Short);
+    int retstatus = short_ctype_positive(val, &out);
 
-    short_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38515,7 +39751,7 @@ short_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ushort_positive(PyObject *a)
 {
@@ -38525,8 +39761,13 @@ ushort_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UShort);
+    int retstatus = ushort_ctype_positive(val, &out);
 
-    ushort_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38538,7 +39779,7 @@ ushort_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 int_positive(PyObject *a)
 {
@@ -38548,8 +39789,13 @@ int_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Int);
+    int retstatus = int_ctype_positive(val, &out);
 
-    int_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38561,7 +39807,7 @@ int_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 uint_positive(PyObject *a)
 {
@@ -38571,8 +39817,13 @@ uint_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UInt);
+    int retstatus = uint_ctype_positive(val, &out);
 
-    uint_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38584,7 +39835,7 @@ uint_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 long_positive(PyObject *a)
 {
@@ -38594,8 +39845,13 @@ long_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Long);
+    int retstatus = long_ctype_positive(val, &out);
 
-    long_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38607,7 +39863,7 @@ long_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ulong_positive(PyObject *a)
 {
@@ -38617,8 +39873,13 @@ ulong_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, ULong);
+    int retstatus = ulong_ctype_positive(val, &out);
 
-    ulong_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38630,7 +39891,7 @@ ulong_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 longlong_positive(PyObject *a)
 {
@@ -38640,8 +39901,13 @@ longlong_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, LongLong);
+    int retstatus = longlong_ctype_positive(val, &out);
 
-    longlong_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38653,7 +39919,7 @@ longlong_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ulonglong_positive(PyObject *a)
 {
@@ -38663,8 +39929,13 @@ ulonglong_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, ULongLong);
+    int retstatus = ulonglong_ctype_positive(val, &out);
 
-    ulonglong_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38676,7 +39947,7 @@ ulonglong_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 half_positive(PyObject *a)
 {
@@ -38686,8 +39957,13 @@ half_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Half);
+    int retstatus = half_ctype_positive(val, &out);
 
-    half_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38699,7 +39975,7 @@ half_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 float_positive(PyObject *a)
 {
@@ -38709,8 +39985,13 @@ float_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Float);
+    int retstatus = float_ctype_positive(val, &out);
 
-    float_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38722,7 +40003,7 @@ float_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 double_positive(PyObject *a)
 {
@@ -38732,8 +40013,13 @@ double_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Double);
+    int retstatus = double_ctype_positive(val, &out);
 
-    double_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38745,7 +40031,7 @@ double_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 longdouble_positive(PyObject *a)
 {
@@ -38755,8 +40041,13 @@ longdouble_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, LongDouble);
+    int retstatus = longdouble_ctype_positive(val, &out);
 
-    longdouble_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38768,7 +40059,7 @@ longdouble_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 cfloat_positive(PyObject *a)
 {
@@ -38778,8 +40069,13 @@ cfloat_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, CFloat);
+    int retstatus = cfloat_ctype_positive(val, &out);
 
-    cfloat_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38791,7 +40087,7 @@ cfloat_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 cdouble_positive(PyObject *a)
 {
@@ -38801,8 +40097,13 @@ cdouble_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, CDouble);
+    int retstatus = cdouble_ctype_positive(val, &out);
 
-    cdouble_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38814,7 +40115,7 @@ cdouble_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 clongdouble_positive(PyObject *a)
 {
@@ -38824,8 +40125,13 @@ clongdouble_positive(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, CLongDouble);
+    int retstatus = clongdouble_ctype_positive(val, &out);
 
-    clongdouble_ctype_positive(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar positive", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38837,7 +40143,7 @@ clongdouble_positive(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 byte_absolute(PyObject *a)
 {
@@ -38847,8 +40153,13 @@ byte_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Byte);
+    int retstatus = byte_ctype_absolute(val, &out);
 
-    byte_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38860,7 +40171,7 @@ byte_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ubyte_absolute(PyObject *a)
 {
@@ -38870,8 +40181,13 @@ ubyte_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UByte);
+    int retstatus = ubyte_ctype_absolute(val, &out);
 
-    ubyte_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38883,7 +40199,7 @@ ubyte_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 short_absolute(PyObject *a)
 {
@@ -38893,8 +40209,13 @@ short_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Short);
+    int retstatus = short_ctype_absolute(val, &out);
 
-    short_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38906,7 +40227,7 @@ short_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ushort_absolute(PyObject *a)
 {
@@ -38916,8 +40237,13 @@ ushort_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UShort);
+    int retstatus = ushort_ctype_absolute(val, &out);
 
-    ushort_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38929,7 +40255,7 @@ ushort_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 int_absolute(PyObject *a)
 {
@@ -38939,8 +40265,13 @@ int_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Int);
+    int retstatus = int_ctype_absolute(val, &out);
 
-    int_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38952,7 +40283,7 @@ int_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 uint_absolute(PyObject *a)
 {
@@ -38962,8 +40293,13 @@ uint_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UInt);
+    int retstatus = uint_ctype_absolute(val, &out);
 
-    uint_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38975,7 +40311,7 @@ uint_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 long_absolute(PyObject *a)
 {
@@ -38985,8 +40321,13 @@ long_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Long);
+    int retstatus = long_ctype_absolute(val, &out);
 
-    long_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -38998,7 +40339,7 @@ long_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ulong_absolute(PyObject *a)
 {
@@ -39008,8 +40349,13 @@ ulong_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, ULong);
+    int retstatus = ulong_ctype_absolute(val, &out);
 
-    ulong_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39021,7 +40367,7 @@ ulong_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 longlong_absolute(PyObject *a)
 {
@@ -39031,8 +40377,13 @@ longlong_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, LongLong);
+    int retstatus = longlong_ctype_absolute(val, &out);
 
-    longlong_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39044,7 +40395,7 @@ longlong_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ulonglong_absolute(PyObject *a)
 {
@@ -39054,8 +40405,13 @@ ulonglong_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, ULongLong);
+    int retstatus = ulonglong_ctype_absolute(val, &out);
 
-    ulonglong_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39067,7 +40423,7 @@ ulonglong_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 half_absolute(PyObject *a)
 {
@@ -39077,8 +40433,13 @@ half_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Half);
+    int retstatus = half_ctype_absolute(val, &out);
 
-    half_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39090,7 +40451,7 @@ half_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 float_absolute(PyObject *a)
 {
@@ -39100,8 +40461,13 @@ float_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Float);
+    int retstatus = float_ctype_absolute(val, &out);
 
-    float_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39113,7 +40479,7 @@ float_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 double_absolute(PyObject *a)
 {
@@ -39123,8 +40489,13 @@ double_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Double);
+    int retstatus = double_ctype_absolute(val, &out);
 
-    double_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39136,7 +40507,7 @@ double_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 longdouble_absolute(PyObject *a)
 {
@@ -39146,8 +40517,13 @@ longdouble_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, LongDouble);
+    int retstatus = longdouble_ctype_absolute(val, &out);
 
-    longdouble_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39159,7 +40535,7 @@ longdouble_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 cfloat_absolute(PyObject *a)
 {
@@ -39169,8 +40545,13 @@ cfloat_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, CFloat);
+    int retstatus = cfloat_ctype_absolute(val, &out);
 
-    cfloat_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39182,7 +40563,7 @@ cfloat_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 cdouble_absolute(PyObject *a)
 {
@@ -39192,8 +40573,13 @@ cdouble_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, CDouble);
+    int retstatus = cdouble_ctype_absolute(val, &out);
 
-    cdouble_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39205,7 +40591,7 @@ cdouble_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 clongdouble_absolute(PyObject *a)
 {
@@ -39215,8 +40601,13 @@ clongdouble_absolute(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, CLongDouble);
+    int retstatus = clongdouble_ctype_absolute(val, &out);
 
-    clongdouble_ctype_absolute(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar absolute", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39228,7 +40619,7 @@ clongdouble_absolute(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 byte_invert(PyObject *a)
 {
@@ -39238,8 +40629,13 @@ byte_invert(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Byte);
+    int retstatus = byte_ctype_invert(val, &out);
 
-    byte_ctype_invert(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar invert", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39251,7 +40647,7 @@ byte_invert(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ubyte_invert(PyObject *a)
 {
@@ -39261,8 +40657,13 @@ ubyte_invert(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UByte);
+    int retstatus = ubyte_ctype_invert(val, &out);
 
-    ubyte_ctype_invert(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar invert", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39274,7 +40675,7 @@ ubyte_invert(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 short_invert(PyObject *a)
 {
@@ -39284,8 +40685,13 @@ short_invert(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Short);
+    int retstatus = short_ctype_invert(val, &out);
 
-    short_ctype_invert(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar invert", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39297,7 +40703,7 @@ short_invert(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ushort_invert(PyObject *a)
 {
@@ -39307,8 +40713,13 @@ ushort_invert(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UShort);
+    int retstatus = ushort_ctype_invert(val, &out);
 
-    ushort_ctype_invert(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar invert", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39320,7 +40731,7 @@ ushort_invert(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 int_invert(PyObject *a)
 {
@@ -39330,8 +40741,13 @@ int_invert(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Int);
+    int retstatus = int_ctype_invert(val, &out);
 
-    int_ctype_invert(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar invert", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39343,7 +40759,7 @@ int_invert(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 uint_invert(PyObject *a)
 {
@@ -39353,8 +40769,13 @@ uint_invert(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, UInt);
+    int retstatus = uint_ctype_invert(val, &out);
 
-    uint_ctype_invert(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar invert", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39366,7 +40787,7 @@ uint_invert(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 long_invert(PyObject *a)
 {
@@ -39376,8 +40797,13 @@ long_invert(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, Long);
+    int retstatus = long_ctype_invert(val, &out);
 
-    long_ctype_invert(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar invert", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39389,7 +40815,7 @@ long_invert(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ulong_invert(PyObject *a)
 {
@@ -39399,8 +40825,13 @@ ulong_invert(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, ULong);
+    int retstatus = ulong_ctype_invert(val, &out);
 
-    ulong_ctype_invert(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar invert", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39412,7 +40843,7 @@ ulong_invert(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 longlong_invert(PyObject *a)
 {
@@ -39422,8 +40853,13 @@ longlong_invert(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, LongLong);
+    int retstatus = longlong_ctype_invert(val, &out);
 
-    longlong_ctype_invert(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar invert", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39435,7 +40871,7 @@ longlong_invert(PyObject *a)
     return ret;
 }
 
-#line 1566
+#line 1628
 static PyObject *
 ulonglong_invert(PyObject *a)
 {
@@ -39445,8 +40881,13 @@ ulonglong_invert(PyObject *a)
 
 
     val = PyArrayScalar_VAL(a, ULongLong);
+    int retstatus = ulonglong_ctype_invert(val, &out);
 
-    ulonglong_ctype_invert(val, &out);
+    if (retstatus) {
+        if (PyUFunc_GiveFloatingpointErrors("scalar invert", retstatus) < 0) {
+            return NULL;
+        }
+    }
 
     /*
      * TODO: Complex absolute should check floating point flags.
@@ -39459,44 +40900,44 @@ ulonglong_invert(PyObject *a)
 }
 
 
-#line 1593
+#line 1660
 
 #define half_invert NULL
 
 
-#line 1593
+#line 1660
 
 #define float_invert NULL
 
 
-#line 1593
+#line 1660
 
 #define double_invert NULL
 
 
-#line 1593
+#line 1660
 
 #define longdouble_invert NULL
 
 
-#line 1593
+#line 1660
 
 #define cfloat_invert NULL
 
 
-#line 1593
+#line 1660
 
 #define cdouble_invert NULL
 
 
-#line 1593
+#line 1660
 
 #define clongdouble_invert NULL
 
 
 
 #define _IS_NONZERO(x) (x != 0)
-#line 1616
+#line 1683
 static int
 byte_bool(PyObject *a)
 {
@@ -39514,7 +40955,7 @@ byte_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 ubyte_bool(PyObject *a)
 {
@@ -39532,7 +40973,7 @@ ubyte_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 short_bool(PyObject *a)
 {
@@ -39550,7 +40991,7 @@ short_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 ushort_bool(PyObject *a)
 {
@@ -39568,7 +41009,7 @@ ushort_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 int_bool(PyObject *a)
 {
@@ -39586,7 +41027,7 @@ int_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 uint_bool(PyObject *a)
 {
@@ -39604,7 +41045,7 @@ uint_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 long_bool(PyObject *a)
 {
@@ -39622,7 +41063,7 @@ long_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 ulong_bool(PyObject *a)
 {
@@ -39640,7 +41081,7 @@ ulong_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 longlong_bool(PyObject *a)
 {
@@ -39658,7 +41099,7 @@ longlong_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 ulonglong_bool(PyObject *a)
 {
@@ -39676,7 +41117,7 @@ ulonglong_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 half_bool(PyObject *a)
 {
@@ -39694,7 +41135,7 @@ half_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 float_bool(PyObject *a)
 {
@@ -39712,7 +41153,7 @@ float_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 double_bool(PyObject *a)
 {
@@ -39730,7 +41171,7 @@ double_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 longdouble_bool(PyObject *a)
 {
@@ -39748,7 +41189,7 @@ longdouble_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 cfloat_bool(PyObject *a)
 {
@@ -39766,7 +41207,7 @@ cfloat_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 cdouble_bool(PyObject *a)
 {
@@ -39784,7 +41225,7 @@ cdouble_bool(PyObject *a)
     return ret;
 }
 
-#line 1616
+#line 1683
 static int
 clongdouble_bool(PyObject *a)
 {
@@ -39817,7 +41258,7 @@ emit_complexwarning(void)
             "Casting complex values to real discards the imaginary part", 1);
 }
 
-#line 1670
+#line 1737
 static PyObject *
 byte_int(PyObject *obj)
 {
@@ -39843,7 +41284,7 @@ byte_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 ubyte_int(PyObject *obj)
 {
@@ -39869,7 +41310,7 @@ ubyte_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 short_int(PyObject *obj)
 {
@@ -39895,7 +41336,7 @@ short_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 ushort_int(PyObject *obj)
 {
@@ -39921,7 +41362,7 @@ ushort_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 int_int(PyObject *obj)
 {
@@ -39947,7 +41388,7 @@ int_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 uint_int(PyObject *obj)
 {
@@ -39973,7 +41414,7 @@ uint_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 long_int(PyObject *obj)
 {
@@ -39999,7 +41440,7 @@ long_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 ulong_int(PyObject *obj)
 {
@@ -40025,7 +41466,7 @@ ulong_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 longlong_int(PyObject *obj)
 {
@@ -40051,7 +41492,7 @@ longlong_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 ulonglong_int(PyObject *obj)
 {
@@ -40077,7 +41518,7 @@ ulonglong_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 half_int(PyObject *obj)
 {
@@ -40103,7 +41544,7 @@ half_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 float_int(PyObject *obj)
 {
@@ -40129,7 +41570,7 @@ float_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 double_int(PyObject *obj)
 {
@@ -40155,7 +41596,7 @@ double_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 longdouble_int(PyObject *obj)
 {
@@ -40181,7 +41622,7 @@ longdouble_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 cfloat_int(PyObject *obj)
 {
@@ -40207,7 +41648,7 @@ cfloat_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 cdouble_int(PyObject *obj)
 {
@@ -40233,7 +41674,7 @@ cdouble_int(PyObject *obj)
     return long_result;
 }
 
-#line 1670
+#line 1737
 static PyObject *
 clongdouble_int(PyObject *obj)
 {
@@ -40260,7 +41701,7 @@ clongdouble_int(PyObject *obj)
 }
 
 
-#line 1710
+#line 1777
 static PyObject *
 byte_float(PyObject *obj)
 {
@@ -40274,7 +41715,7 @@ byte_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 ubyte_float(PyObject *obj)
 {
@@ -40288,7 +41729,7 @@ ubyte_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 short_float(PyObject *obj)
 {
@@ -40302,7 +41743,7 @@ short_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 ushort_float(PyObject *obj)
 {
@@ -40316,7 +41757,7 @@ ushort_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 int_float(PyObject *obj)
 {
@@ -40330,7 +41771,7 @@ int_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 uint_float(PyObject *obj)
 {
@@ -40344,7 +41785,7 @@ uint_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 long_float(PyObject *obj)
 {
@@ -40358,7 +41799,7 @@ long_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 ulong_float(PyObject *obj)
 {
@@ -40372,7 +41813,7 @@ ulong_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 longlong_float(PyObject *obj)
 {
@@ -40386,7 +41827,7 @@ longlong_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 ulonglong_float(PyObject *obj)
 {
@@ -40400,7 +41841,7 @@ ulonglong_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 half_float(PyObject *obj)
 {
@@ -40414,7 +41855,7 @@ half_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 float_float(PyObject *obj)
 {
@@ -40428,7 +41869,7 @@ float_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 double_float(PyObject *obj)
 {
@@ -40442,7 +41883,7 @@ double_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 longdouble_float(PyObject *obj)
 {
@@ -40456,7 +41897,7 @@ longdouble_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 cfloat_float(PyObject *obj)
 {
@@ -40470,7 +41911,7 @@ cfloat_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 cdouble_float(PyObject *obj)
 {
@@ -40484,7 +41925,7 @@ cdouble_float(PyObject *obj)
 #endif
 }
 
-#line 1710
+#line 1777
 static PyObject *
 clongdouble_float(PyObject *obj)
 {
@@ -40505,42 +41946,42 @@ clongdouble_float(PyObject *obj)
     #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 
-#line 1736
+#line 1803
 #define def_cmp_le(arg1, arg2) (arg1 <= arg2)
 #define cmplx_cmp_le(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag <= arg2.imag :        \
                                       arg1.real <= arg2.real)
 #define def_half_cmp_le(arg1, arg2) npy_half_le(arg1, arg2)
 
-#line 1736
+#line 1803
 #define def_cmp_ge(arg1, arg2) (arg1 >= arg2)
 #define cmplx_cmp_ge(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag >= arg2.imag :        \
                                       arg1.real >= arg2.real)
 #define def_half_cmp_ge(arg1, arg2) npy_half_ge(arg1, arg2)
 
-#line 1736
+#line 1803
 #define def_cmp_lt(arg1, arg2) (arg1 < arg2)
 #define cmplx_cmp_lt(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag < arg2.imag :        \
                                       arg1.real < arg2.real)
 #define def_half_cmp_lt(arg1, arg2) npy_half_lt(arg1, arg2)
 
-#line 1736
+#line 1803
 #define def_cmp_gt(arg1, arg2) (arg1 > arg2)
 #define cmplx_cmp_gt(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag > arg2.imag :        \
                                       arg1.real > arg2.real)
 #define def_half_cmp_gt(arg1, arg2) npy_half_gt(arg1, arg2)
 
-#line 1736
+#line 1803
 #define def_cmp_eq(arg1, arg2) (arg1 == arg2)
 #define cmplx_cmp_eq(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag == arg2.imag :        \
                                       arg1.real == arg2.real)
 #define def_half_cmp_eq(arg1, arg2) npy_half_eq(arg1, arg2)
 
-#line 1736
+#line 1803
 #define def_cmp_ne(arg1, arg2) (arg1 != arg2)
 #define cmplx_cmp_ne(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag != arg2.imag :        \
@@ -40548,7 +41989,7 @@ clongdouble_float(PyObject *obj)
 #define def_half_cmp_ne(arg1, arg2) npy_half_ne(arg1, arg2)
 
 
-#line 1754
+#line 1825
 #define IS_byte
 
 static PyObject*
@@ -40579,6 +42020,11 @@ byte_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (BYTE_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -40618,7 +42064,7 @@ byte_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_byte
 
-#line 1754
+#line 1825
 #define IS_ubyte
 
 static PyObject*
@@ -40649,6 +42095,11 @@ ubyte_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (UBYTE_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -40688,7 +42139,7 @@ ubyte_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_ubyte
 
-#line 1754
+#line 1825
 #define IS_short
 
 static PyObject*
@@ -40719,6 +42170,11 @@ short_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (SHORT_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -40758,7 +42214,7 @@ short_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_short
 
-#line 1754
+#line 1825
 #define IS_ushort
 
 static PyObject*
@@ -40789,6 +42245,11 @@ ushort_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (USHORT_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -40828,7 +42289,7 @@ ushort_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_ushort
 
-#line 1754
+#line 1825
 #define IS_int
 
 static PyObject*
@@ -40859,6 +42320,11 @@ int_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (INT_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -40898,7 +42364,7 @@ int_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_int
 
-#line 1754
+#line 1825
 #define IS_uint
 
 static PyObject*
@@ -40929,6 +42395,11 @@ uint_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (UINT_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -40968,7 +42439,7 @@ uint_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_uint
 
-#line 1754
+#line 1825
 #define IS_long
 
 static PyObject*
@@ -40999,6 +42470,11 @@ long_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (LONG_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41038,7 +42514,7 @@ long_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_long
 
-#line 1754
+#line 1825
 #define IS_ulong
 
 static PyObject*
@@ -41069,6 +42545,11 @@ ulong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (ULONG_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41108,7 +42589,7 @@ ulong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_ulong
 
-#line 1754
+#line 1825
 #define IS_longlong
 
 static PyObject*
@@ -41139,6 +42620,11 @@ longlong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (LONGLONG_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41178,7 +42664,7 @@ longlong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_longlong
 
-#line 1754
+#line 1825
 #define IS_ulonglong
 
 static PyObject*
@@ -41209,6 +42695,11 @@ ulonglong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (ULONGLONG_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41248,7 +42739,7 @@ ulonglong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_ulonglong
 
-#line 1754
+#line 1825
 #define IS_half
 
 static PyObject*
@@ -41279,6 +42770,11 @@ half_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (HALF_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41318,7 +42814,7 @@ half_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_half
 
-#line 1754
+#line 1825
 #define IS_float
 
 static PyObject*
@@ -41349,6 +42845,11 @@ float_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (FLOAT_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41388,7 +42889,7 @@ float_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_float
 
-#line 1754
+#line 1825
 #define IS_double
 
 static PyObject*
@@ -41419,6 +42920,11 @@ double_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (DOUBLE_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41458,7 +42964,7 @@ double_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_double
 
-#line 1754
+#line 1825
 #define IS_longdouble
 
 static PyObject*
@@ -41489,6 +42995,11 @@ longdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (LONGDOUBLE_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41528,7 +43039,7 @@ longdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_longdouble
 
-#line 1754
+#line 1825
 #define IS_cfloat
 
 static PyObject*
@@ -41559,6 +43070,11 @@ cfloat_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (CFLOAT_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41598,7 +43114,7 @@ cfloat_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_cfloat
 
-#line 1754
+#line 1825
 #define IS_cdouble
 
 static PyObject*
@@ -41629,6 +43145,11 @@ cdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (CDOUBLE_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41668,7 +43189,7 @@ cdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 
 #undef IS_cdouble
 
-#line 1754
+#line 1825
 #define IS_clongdouble
 
 static PyObject*
@@ -41699,6 +43220,11 @@ clongdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
         case PROMOTION_REQUIRED:
             return PyGenericArrType_Type.tp_richcompare(self, other, cmp_op);
+        case CONVERT_PYSCALAR:
+            if (CLONGDOUBLE_setitem(other, (char *)&arg2, NULL) < 0) {
+                return NULL;
+            }
+            break;
         default:
             assert(0);  /* error was checked already, impossible to reach */
             return NULL;
@@ -41744,7 +43270,7 @@ clongdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 #endif
 
 
-#line 1835
+#line 1911
 static PyNumberMethods byte_as_number = {
     .nb_add = (binaryfunc)byte_add,
     .nb_subtract = (binaryfunc)byte_subtract,
@@ -41770,7 +43296,7 @@ static PyNumberMethods byte_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods ubyte_as_number = {
     .nb_add = (binaryfunc)ubyte_add,
     .nb_subtract = (binaryfunc)ubyte_subtract,
@@ -41796,7 +43322,7 @@ static PyNumberMethods ubyte_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods short_as_number = {
     .nb_add = (binaryfunc)short_add,
     .nb_subtract = (binaryfunc)short_subtract,
@@ -41822,7 +43348,7 @@ static PyNumberMethods short_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods ushort_as_number = {
     .nb_add = (binaryfunc)ushort_add,
     .nb_subtract = (binaryfunc)ushort_subtract,
@@ -41848,7 +43374,7 @@ static PyNumberMethods ushort_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods int_as_number = {
     .nb_add = (binaryfunc)int_add,
     .nb_subtract = (binaryfunc)int_subtract,
@@ -41874,7 +43400,7 @@ static PyNumberMethods int_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods uint_as_number = {
     .nb_add = (binaryfunc)uint_add,
     .nb_subtract = (binaryfunc)uint_subtract,
@@ -41900,7 +43426,7 @@ static PyNumberMethods uint_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods long_as_number = {
     .nb_add = (binaryfunc)long_add,
     .nb_subtract = (binaryfunc)long_subtract,
@@ -41926,7 +43452,7 @@ static PyNumberMethods long_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods ulong_as_number = {
     .nb_add = (binaryfunc)ulong_add,
     .nb_subtract = (binaryfunc)ulong_subtract,
@@ -41952,7 +43478,7 @@ static PyNumberMethods ulong_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods longlong_as_number = {
     .nb_add = (binaryfunc)longlong_add,
     .nb_subtract = (binaryfunc)longlong_subtract,
@@ -41978,7 +43504,7 @@ static PyNumberMethods longlong_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods ulonglong_as_number = {
     .nb_add = (binaryfunc)ulonglong_add,
     .nb_subtract = (binaryfunc)ulonglong_subtract,
@@ -42004,7 +43530,7 @@ static PyNumberMethods ulonglong_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods half_as_number = {
     .nb_add = (binaryfunc)half_add,
     .nb_subtract = (binaryfunc)half_subtract,
@@ -42030,7 +43556,7 @@ static PyNumberMethods half_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods float_as_number = {
     .nb_add = (binaryfunc)float_add,
     .nb_subtract = (binaryfunc)float_subtract,
@@ -42056,7 +43582,7 @@ static PyNumberMethods float_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods double_as_number = {
     .nb_add = (binaryfunc)double_add,
     .nb_subtract = (binaryfunc)double_subtract,
@@ -42082,7 +43608,7 @@ static PyNumberMethods double_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods longdouble_as_number = {
     .nb_add = (binaryfunc)longdouble_add,
     .nb_subtract = (binaryfunc)longdouble_subtract,
@@ -42108,7 +43634,7 @@ static PyNumberMethods longdouble_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods cfloat_as_number = {
     .nb_add = (binaryfunc)cfloat_add,
     .nb_subtract = (binaryfunc)cfloat_subtract,
@@ -42134,7 +43660,7 @@ static PyNumberMethods cfloat_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods cdouble_as_number = {
     .nb_add = (binaryfunc)cdouble_add,
     .nb_subtract = (binaryfunc)cdouble_subtract,
@@ -42160,7 +43686,7 @@ static PyNumberMethods cdouble_as_number = {
     .nb_index = (unaryfunc)NULL,  /* set in add_scalarmath below */
 };
 
-#line 1835
+#line 1911
 static PyNumberMethods clongdouble_as_number = {
     .nb_add = (binaryfunc)clongdouble_add,
     .nb_subtract = (binaryfunc)clongdouble_subtract,
@@ -42190,87 +43716,87 @@ static PyNumberMethods clongdouble_as_number = {
 NPY_NO_EXPORT void
 add_scalarmath(void)
 {
-    #line 1874
+    #line 1950
     byte_as_number.nb_index = PyByteArrType_Type.tp_as_number->nb_index;
     PyByteArrType_Type.tp_as_number = &(byte_as_number);
     PyByteArrType_Type.tp_richcompare = byte_richcompare;
     
-#line 1874
+#line 1950
     ubyte_as_number.nb_index = PyUByteArrType_Type.tp_as_number->nb_index;
     PyUByteArrType_Type.tp_as_number = &(ubyte_as_number);
     PyUByteArrType_Type.tp_richcompare = ubyte_richcompare;
     
-#line 1874
+#line 1950
     short_as_number.nb_index = PyShortArrType_Type.tp_as_number->nb_index;
     PyShortArrType_Type.tp_as_number = &(short_as_number);
     PyShortArrType_Type.tp_richcompare = short_richcompare;
     
-#line 1874
+#line 1950
     ushort_as_number.nb_index = PyUShortArrType_Type.tp_as_number->nb_index;
     PyUShortArrType_Type.tp_as_number = &(ushort_as_number);
     PyUShortArrType_Type.tp_richcompare = ushort_richcompare;
     
-#line 1874
+#line 1950
     int_as_number.nb_index = PyIntArrType_Type.tp_as_number->nb_index;
     PyIntArrType_Type.tp_as_number = &(int_as_number);
     PyIntArrType_Type.tp_richcompare = int_richcompare;
     
-#line 1874
+#line 1950
     uint_as_number.nb_index = PyUIntArrType_Type.tp_as_number->nb_index;
     PyUIntArrType_Type.tp_as_number = &(uint_as_number);
     PyUIntArrType_Type.tp_richcompare = uint_richcompare;
     
-#line 1874
+#line 1950
     long_as_number.nb_index = PyLongArrType_Type.tp_as_number->nb_index;
     PyLongArrType_Type.tp_as_number = &(long_as_number);
     PyLongArrType_Type.tp_richcompare = long_richcompare;
     
-#line 1874
+#line 1950
     ulong_as_number.nb_index = PyULongArrType_Type.tp_as_number->nb_index;
     PyULongArrType_Type.tp_as_number = &(ulong_as_number);
     PyULongArrType_Type.tp_richcompare = ulong_richcompare;
     
-#line 1874
+#line 1950
     longlong_as_number.nb_index = PyLongLongArrType_Type.tp_as_number->nb_index;
     PyLongLongArrType_Type.tp_as_number = &(longlong_as_number);
     PyLongLongArrType_Type.tp_richcompare = longlong_richcompare;
     
-#line 1874
+#line 1950
     ulonglong_as_number.nb_index = PyULongLongArrType_Type.tp_as_number->nb_index;
     PyULongLongArrType_Type.tp_as_number = &(ulonglong_as_number);
     PyULongLongArrType_Type.tp_richcompare = ulonglong_richcompare;
     
-#line 1874
+#line 1950
     half_as_number.nb_index = PyHalfArrType_Type.tp_as_number->nb_index;
     PyHalfArrType_Type.tp_as_number = &(half_as_number);
     PyHalfArrType_Type.tp_richcompare = half_richcompare;
     
-#line 1874
+#line 1950
     float_as_number.nb_index = PyFloatArrType_Type.tp_as_number->nb_index;
     PyFloatArrType_Type.tp_as_number = &(float_as_number);
     PyFloatArrType_Type.tp_richcompare = float_richcompare;
     
-#line 1874
+#line 1950
     double_as_number.nb_index = PyDoubleArrType_Type.tp_as_number->nb_index;
     PyDoubleArrType_Type.tp_as_number = &(double_as_number);
     PyDoubleArrType_Type.tp_richcompare = double_richcompare;
     
-#line 1874
+#line 1950
     longdouble_as_number.nb_index = PyLongDoubleArrType_Type.tp_as_number->nb_index;
     PyLongDoubleArrType_Type.tp_as_number = &(longdouble_as_number);
     PyLongDoubleArrType_Type.tp_richcompare = longdouble_richcompare;
     
-#line 1874
+#line 1950
     cfloat_as_number.nb_index = PyCFloatArrType_Type.tp_as_number->nb_index;
     PyCFloatArrType_Type.tp_as_number = &(cfloat_as_number);
     PyCFloatArrType_Type.tp_richcompare = cfloat_richcompare;
     
-#line 1874
+#line 1950
     cdouble_as_number.nb_index = PyCDoubleArrType_Type.tp_as_number->nb_index;
     PyCDoubleArrType_Type.tp_as_number = &(cdouble_as_number);
     PyCDoubleArrType_Type.tp_richcompare = cdouble_richcompare;
     
-#line 1874
+#line 1950
     clongdouble_as_number.nb_index = PyCLongDoubleArrType_Type.tp_as_number->nb_index;
     PyCLongDoubleArrType_Type.tp_as_number = &(clongdouble_as_number);
     PyCLongDoubleArrType_Type.tp_richcompare = clongdouble_richcompare;

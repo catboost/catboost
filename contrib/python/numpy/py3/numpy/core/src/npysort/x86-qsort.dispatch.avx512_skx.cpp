@@ -18,4 +18,4 @@
 #define NPY__CPU_TARGET_AVX512F
 #define NPY__CPU_TARGET_AVX512CD
 #define NPY__CPU_TARGET_AVX512_SKX
-#include "x86-qsort.dispatch.cpp"
+#include "numpy/core/src/npysort/x86-qsort.dispatch.cpp"

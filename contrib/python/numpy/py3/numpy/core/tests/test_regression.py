@@ -12,7 +12,7 @@ from numpy.testing import (
         assert_, assert_equal, IS_PYPY, assert_almost_equal,
         assert_array_equal, assert_array_almost_equal, assert_raises,
         assert_raises_regex, assert_warns, suppress_warnings,
-        _assert_valid_refcount, HAS_REFCOUNT, IS_PYSTON
+        _assert_valid_refcount, HAS_REFCOUNT, IS_PYSTON, IS_WASM
         )
 from numpy.testing._private.utils import _no_tracing, requires_memory
 from numpy.compat import asbytes, asunicode, pickle
@@ -139,7 +139,7 @@ class TestRegression:
     def test_unicode_swapping(self):
         # Ticket #79
         ulen = 1
-        ucs_value = u'\U0010FFFF'
+        ucs_value = '\U0010FFFF'
         ua = np.array([[[ucs_value*ulen]*2]*3]*4, dtype='U%s' % ulen)
         ua.newbyteorder()  # Should succeed.
 
@@ -328,20 +328,21 @@ class TestRegression:
         assert_raises(ValueError, bfa)
         assert_raises(ValueError, bfb)
 
-    def test_nonarray_assignment(self):
+    @pytest.mark.xfail(IS_WASM, reason="not sure why")
+    @pytest.mark.parametrize("index",
+            [np.ones(10, dtype=bool), np.arange(10)],
+            ids=["boolean-arr-index", "integer-arr-index"])
+    def test_nonarray_assignment(self, index):
         # See also Issue gh-2870, test for non-array assignment
         # and equivalent unsafe casted array assignment
         a = np.arange(10)
-        b = np.ones(10, dtype=bool)
-        r = np.arange(10)
 
-        def assign(a, b, c):
-            a[b] = c
+        with pytest.raises(ValueError):
+            a[index] = np.nan
 
-        assert_raises(ValueError, assign, a, b, np.nan)
-        a[b] = np.array(np.nan)  # but not this.
-        assert_raises(ValueError, assign, a, r, np.nan)
-        a[r] = np.array(np.nan)
+        with np.errstate(invalid="warn"):
+            with pytest.warns(RuntimeWarning, match="invalid value"):
+                a[index] = np.array(np.nan)  # Only warns
 
     def test_unpickle_dtype_with_object(self):
         # Implemented in r2840
@@ -1213,7 +1214,7 @@ class TestRegression:
         for i in range(1, 9):
             msg = 'unicode offset: %d chars' % i
             t = np.dtype([('a', 'S%d' % i), ('b', 'U2')])
-            x = np.array([(b'a', u'b')], dtype=t)
+            x = np.array([(b'a', 'b')], dtype=t)
             assert_equal(str(x), "[(b'a', 'b')]", err_msg=msg)
 
     def test_sign_for_complex_nan(self):
@@ -1398,28 +1399,28 @@ class TestRegression:
 
     def test_unicode_to_string_cast(self):
         # Ticket #1240.
-        a = np.array([[u'abc', u'\u03a3'],
-                      [u'asdf', u'erw']],
+        a = np.array([['abc', '\u03a3'],
+                      ['asdf', 'erw']],
                      dtype='U')
         assert_raises(UnicodeEncodeError, np.array, a, 'S4')
 
     def test_unicode_to_string_cast_error(self):
         # gh-15790
-        a = np.array([u'\x80'] * 129, dtype='U3')
+        a = np.array(['\x80'] * 129, dtype='U3')
         assert_raises(UnicodeEncodeError, np.array, a, 'S')
         b = a.reshape(3, 43)[:-1, :-1]
         assert_raises(UnicodeEncodeError, np.array, b, 'S')
 
-    def test_mixed_string_unicode_array_creation(self):
-        a = np.array(['1234', u'123'])
+    def test_mixed_string_byte_array_creation(self):
+        a = np.array(['1234', b'123'])
         assert_(a.itemsize == 16)
-        a = np.array([u'123', '1234'])
+        a = np.array([b'123', '1234'])
         assert_(a.itemsize == 16)
-        a = np.array(['1234', u'123', '12345'])
+        a = np.array(['1234', b'123', '12345'])
         assert_(a.itemsize == 20)
-        a = np.array([u'123', '1234', u'12345'])
+        a = np.array([b'123', '1234', b'12345'])
         assert_(a.itemsize == 20)
-        a = np.array([u'123', '1234', u'1234'])
+        a = np.array([b'123', '1234', b'1234'])
         assert_(a.itemsize == 16)
 
     def test_misaligned_objects_segfault(self):
@@ -1924,7 +1925,7 @@ class TestRegression:
         # Check that loads does not clobber interned strings
         s = re.sub("a(.)", "\x01\\1", "a_")
         assert_equal(s[0], "\x01")
-        data[0] = 0xbb
+        data[0] = 0x6a
         s = re.sub("a(.)", "\x01\\1", "a_")
         assert_equal(s[0], "\x01")
 
@@ -1932,7 +1933,7 @@ class TestRegression:
         for proto in range(2, pickle.HIGHEST_PROTOCOL + 1):
             data = np.array([1], dtype='b')
             data = pickle.loads(pickle.dumps(data, protocol=proto))
-            data[0] = 0xdd
+            data[0] = 0x7d
             bytestring = "\x01  ".encode('ascii')
             assert_equal(bytestring[0:1], '\x01'.encode('ascii'))
 
@@ -1947,7 +1948,7 @@ class TestRegression:
                 b"p13\ntp14\nb.")
         # This should work:
         result = pickle.loads(data, encoding='latin1')
-        assert_array_equal(result, np.array([129], dtype='b'))
+        assert_array_equal(result, np.array([129]).astype('b'))
         # Should not segfault:
         assert_raises(Exception, pickle.loads, data, encoding='koi8-r')
 
@@ -2137,8 +2138,8 @@ class TestRegression:
         import numpy as np
         a = np.array([['Hello', 'Foob']], dtype='U5', order='F')
         arr = np.ndarray(shape=[1, 2, 5], dtype='U1', buffer=a)
-        arr2 = np.array([[[u'H', u'e', u'l', u'l', u'o'],
-                          [u'F', u'o', u'o', u'b', u'']]])
+        arr2 = np.array([[['H', 'e', 'l', 'l', 'o'],
+                          ['F', 'o', 'o', 'b', '']]])
         assert_array_equal(arr, arr2)
 
     def test_assign_from_sequence_error(self):

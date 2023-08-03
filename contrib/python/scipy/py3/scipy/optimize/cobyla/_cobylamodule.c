@@ -1,5 +1,5 @@
 /* File: _cobylamodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <setjmp.h>
 #include <math.h>
@@ -78,7 +77,7 @@ typedef void(*cb_calcfc_in__cobyla__user__routines_typedef)(int *,int *,double *
       && (__STDC_VERSION__ >= 201112L) \
       && !defined(__STDC_NO_THREADS__) \
       && (!defined(__GLIBC__) || __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ > 12)) \
-      && !defined(NPY_OS_OPENBSD)
+      && !defined(NPY_OS_OPENBSD) && !defined(NPY_OS_HAIKU)
 /* __STDC_NO_THREADS__ was first defined in a maintenance release of glibc 2.12,
    see https://lists.gnu.org/archive/html/commit-hurd/2012-07/msg00180.html,
    so `!defined(__STDC_NO_THREADS__)` may give false positive for the existence
@@ -127,17 +126,14 @@ typedef void(*cb_calcfc_in__cobyla__user__routines_typedef)(int *,int *,double *
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 #define SWAP(a,b,t) {\
     t *c;\
@@ -154,30 +150,6 @@ typedef void(*cb_calcfc_in__cobyla__user__routines_typedef)(int *,int *,double *
     } else 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int
 double_from_pyobj(double* v, PyObject *obj, const char *errmess)
 {
@@ -267,7 +239,7 @@ create_cb_arglist(PyObject* fun, PyTupleObject* xa , const int maxnofargs,
             if (xa != NULL)
                 ext = PyTuple_Size((PyObject *)xa);
             if(ext>0) {
-                fprintf(stderr,"extra arguments tuple cannot be used with CObject call-back\n");
+                fprintf(stderr,"extra arguments tuple cannot be used with PyCapsule call-back\n");
                 goto capi_fail;
             }
             tmp_fun = fun;
@@ -518,9 +490,12 @@ f2py_cb_start_clock();
 #endif
 /*pyobjfrom*/
     if (cb->nofargs>capi_i) {
-        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-        /*XXX: Hmm, what will destroy this array??? */
-        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_DOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
+        /* tmp_arr will be inserted to capi_arglist_list that will be
+           destroyed when leaving callback function wrapper together
+           with tmp_arr. */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,
+          1,x_Dims,NPY_DOUBLE,NULL,(char*)x,1,
+          NPY_ARRAY_FARRAY,NULL);
 
 
         if (tmp_arr==NULL)
@@ -529,9 +504,12 @@ f2py_cb_start_clock();
             goto capi_fail;
 }
     if (cb->nofargs>capi_i) {
-        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-        /*XXX: Hmm, what will destroy this array??? */
-        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,con_Dims,NPY_DOUBLE,NULL,(char*)con,itemsize_,NPY_ARRAY_FARRAY,NULL);
+        /* tmp_arr will be inserted to capi_arglist_list that will be
+           destroyed when leaving callback function wrapper together
+           with tmp_arr. */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,
+          1,con_Dims,NPY_DOUBLE,NULL,(char*)con,1,
+          NPY_ARRAY_FARRAY,NULL);
 
 
         if (tmp_arr==NULL)
@@ -641,7 +619,7 @@ static PyObject *f2py_rout__cobyla_minimize(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double rhobeg = 0;
@@ -655,17 +633,17 @@ static PyObject *f2py_rout__cobyla_minimize(const PyObject *capi_self,
     double *w = NULL;
     npy_intp w_Dims[1] = {-1};
     const int w_Rank = 1;
-    PyArrayObject *capi_w_tmp = NULL;
+    PyArrayObject *capi_w_as_array = NULL;
     int capi_w_intent = 0;
     int *iact = NULL;
     npy_intp iact_Dims[1] = {-1};
     const int iact_Rank = 1;
-    PyArrayObject *capi_iact_tmp = NULL;
+    PyArrayObject *capi_iact_as_array = NULL;
     int capi_iact_intent = 0;
     double *dinfo = NULL;
     npy_intp dinfo_Dims[1] = {-1};
     const int dinfo_Rank = 1;
-    PyArrayObject *capi_dinfo_tmp = NULL;
+    PyArrayObject *capi_dinfo_as_array = NULL;
     int capi_dinfo_intent = 0;
     PyObject *dinfo_capi = Py_None;
     static char *capi_kwlist[] = {"calcfc","m","x","rhobeg","rhoend","dinfo","iprint","maxfun","calcfc_extra_args",NULL};
@@ -696,14 +674,16 @@ if(F2PyCapsule_Check(calcfc_cb.capi)) {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _cobyla_error,"failed in converting 3rd argument `x' of _cobyla.minimize to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_cobyla._cobyla.minimize: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _cobyla_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable rhobeg */
         f2py_success = double_from_pyobj(&rhobeg,rhobeg_capi,"_cobyla.minimize() 4th argument (rhobeg) can't be converted to double");
@@ -723,40 +703,46 @@ if(F2PyCapsule_Check(calcfc_cb.capi)) {
     /* Processing variable dinfo */
     dinfo_Dims[0]=4;
     capi_dinfo_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_dinfo_tmp = array_from_pyobj(NPY_DOUBLE,dinfo_Dims,dinfo_Rank,capi_dinfo_intent,dinfo_capi);
-    if (capi_dinfo_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _cobyla_error,"failed in converting 6th argument `dinfo' of _cobyla.minimize to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_cobyla._cobyla.minimize: failed to create array from the 6th argument `dinfo`";
+    capi_dinfo_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,dinfo_Dims,dinfo_Rank,  capi_dinfo_intent,dinfo_capi,capi_errmess);
+    if (capi_dinfo_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _cobyla_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dinfo = (double *)(PyArray_DATA(capi_dinfo_tmp));
+        dinfo = (double *)(PyArray_DATA(capi_dinfo_as_array));
 
     /* Processing variable n */
     n = len(x);
     /* Processing variable w */
     w_Dims[0]=6 + 4 * m + 11 * n + 2 * m * n + 3 * n * n;
     capi_w_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-    if (capi_w_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _cobyla_error,"failed in converting hidden `w' of _cobyla.minimize to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_cobyla._cobyla.minimize: failed to create array from the hidden `w`";
+    capi_w_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,w_Dims,w_Rank,  capi_w_intent,Py_None,capi_errmess);
+    if (capi_w_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _cobyla_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        w = (double *)(PyArray_DATA(capi_w_tmp));
+        w = (double *)(PyArray_DATA(capi_w_as_array));
 
     /* Processing variable iact */
     iact_Dims[0]=1 + m;
     capi_iact_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-    capi_iact_tmp = array_from_pyobj(NPY_INT,iact_Dims,iact_Rank,capi_iact_intent,Py_None);
-    if (capi_iact_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _cobyla_error,"failed in converting hidden `iact' of _cobyla.minimize to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_cobyla._cobyla.minimize: failed to create array from the hidden `iact`";
+    capi_iact_as_array = ndarray_from_pyobj(  NPY_INT,1,iact_Dims,iact_Rank,  capi_iact_intent,Py_None,capi_errmess);
+    if (capi_iact_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _cobyla_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iact = (int *)(PyArray_DATA(capi_iact_tmp));
+        iact = (int *)(PyArray_DATA(capi_iact_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -778,19 +764,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_dinfo_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_dinfo_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-        Py_XDECREF(capi_iact_tmp);
-    }  /*if (capi_iact_tmp == NULL) ... else of iact*/
+        Py_XDECREF(capi_iact_as_array);
+    }  /* if (capi_iact_as_array == NULL) ... else of iact */
     /* End of cleaning variable iact */
-        Py_XDECREF(capi_w_tmp);
-    }  /*if (capi_w_tmp == NULL) ... else of w*/
+        Py_XDECREF(capi_w_as_array);
+    }  /* if (capi_w_as_array == NULL) ... else of w */
     /* End of cleaning variable w */
     /* End of cleaning variable n */
-    }  /*if (capi_dinfo_tmp == NULL) ... else of dinfo*/
+    }  /* if (capi_dinfo_as_array == NULL) ... else of dinfo */
     /* End of cleaning variable dinfo */
     } /*if (f2py_success) of maxfun*/
     /* End of cleaning variable maxfun */
@@ -801,7 +787,7 @@ f2py_stop_call_clock();
     /* End of cleaning variable rhoend */
     } /*if (f2py_success) of rhobeg*/
     /* End of cleaning variable rhobeg */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of m*/
     /* End of cleaning variable m */
@@ -838,7 +824,7 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"minimize",-1,{{-1}},0,(char *)F_FUNC(cobyla ,COBYLA ),(f2py_init_func)f2py_rout__cobyla_minimize,doc_f2py_rout__cobyla_minimize},
+    {"minimize",-1,{{-1}},0,0,(char *)  F_FUNC(cobyla ,COBYLA ),  (f2py_init_func)f2py_rout__cobyla_minimize,doc_f2py_rout__cobyla_minimize},
 
 /*eof routine_defs*/
     {NULL}
@@ -870,16 +856,16 @@ PyMODINIT_FUNC PyInit__cobyla(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _cobyla (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_cobyla' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module '_cobyla' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    x,dinfo = minimize(calcfc,m,x,rhobeg,rhoend,dinfo,iprint=1,maxfun=100,calcfc_extra_args=())\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _cobyla_error = PyErr_NewException ("_cobyla.error", NULL, NULL);

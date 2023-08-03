@@ -1,5 +1,5 @@
 /* File: _fblasmodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
 
@@ -95,17 +94,14 @@ typedef struct {float r,i;} complex_float;
 
 #define pyobj_from_complex_float1(v) (PyComplex_FromDoubles(v.r,v.i))
 #define pyobj_from_complex_double1(v) (PyComplex_FromDoubles(v.r,v.i))
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 #define CHECKSCALAR(check,tcheck,name,show,var)\
     if (!(check)) {\
@@ -156,30 +152,6 @@ typedef struct {float r,i;} complex_float;
     } else 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int
 complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess) {
     Py_complex c;
@@ -947,7 +919,7 @@ static PyObject *f2py_rout__fblas_srotmg(const PyObject *capi_self,
     float *param = NULL;
     npy_intp param_Dims[1] = {-1};
     const int param_Rank = 1;
-    PyArrayObject *capi_param_tmp = NULL;
+    PyArrayObject *capi_param_as_array = NULL;
     int capi_param_intent = 0;
     static char *capi_kwlist[] = {"d1","d2","x1","y1",NULL};
 
@@ -975,14 +947,16 @@ f2py_start_clock();
     /* Processing variable param */
     param_Dims[0]=5;
     capi_param_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_param_tmp = array_from_pyobj(NPY_FLOAT,param_Dims,param_Rank,capi_param_intent,Py_None);
-    if (capi_param_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting hidden `param' of _fblas.srotmg to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.srotmg: failed to create array from the hidden `param`";
+    capi_param_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,param_Dims,param_Rank,  capi_param_intent,Py_None,capi_errmess);
+    if (capi_param_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        param = (float *)(PyArray_DATA(capi_param_tmp));
+        param = (float *)(PyArray_DATA(capi_param_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1001,12 +975,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_param_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_param_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_param_tmp == NULL) ... else of param*/
+    }  /* if (capi_param_as_array == NULL) ... else of param */
     /* End of cleaning variable param */
     } /*if (f2py_success) of y1*/
     /* End of cleaning variable y1 */
@@ -1061,7 +1035,7 @@ static PyObject *f2py_rout__fblas_drotmg(const PyObject *capi_self,
     double *param = NULL;
     npy_intp param_Dims[1] = {-1};
     const int param_Rank = 1;
-    PyArrayObject *capi_param_tmp = NULL;
+    PyArrayObject *capi_param_as_array = NULL;
     int capi_param_intent = 0;
     static char *capi_kwlist[] = {"d1","d2","x1","y1",NULL};
 
@@ -1089,14 +1063,16 @@ f2py_start_clock();
     /* Processing variable param */
     param_Dims[0]=5;
     capi_param_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_param_tmp = array_from_pyobj(NPY_DOUBLE,param_Dims,param_Rank,capi_param_intent,Py_None);
-    if (capi_param_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting hidden `param' of _fblas.drotmg to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.drotmg: failed to create array from the hidden `param`";
+    capi_param_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,param_Dims,param_Rank,  capi_param_intent,Py_None,capi_errmess);
+    if (capi_param_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        param = (double *)(PyArray_DATA(capi_param_tmp));
+        param = (double *)(PyArray_DATA(capi_param_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1115,12 +1091,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_param_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_param_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_param_tmp == NULL) ... else of param*/
+    }  /* if (capi_param_as_array == NULL) ... else of param */
     /* End of cleaning variable param */
     } /*if (f2py_success) of y1*/
     /* End of cleaning variable y1 */
@@ -1178,7 +1154,7 @@ static PyObject *f2py_rout__fblas_srot(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -1189,7 +1165,7 @@ static PyObject *f2py_rout__fblas_srot(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -1216,27 +1192,31 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.srot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.srot: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.srot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.srot: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable c */
         f2py_success = float_from_pyobj(&c,c_capi,"_fblas.srot() 3rd argument (c) can't be converted to float");
@@ -1287,7 +1267,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -1312,9 +1292,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable s */
     } /*if (f2py_success) of c*/
     /* End of cleaning variable c */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -1364,7 +1344,7 @@ static PyObject *f2py_rout__fblas_drot(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -1375,7 +1355,7 @@ static PyObject *f2py_rout__fblas_drot(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -1402,27 +1382,31 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.drot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.drot: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.drot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.drot: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable c */
         f2py_success = double_from_pyobj(&c,c_capi,"_fblas.drot() 3rd argument (c) can't be converted to double");
@@ -1473,7 +1457,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -1498,9 +1482,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable s */
     } /*if (f2py_success) of c*/
     /* End of cleaning variable c */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -1550,7 +1534,7 @@ static PyObject *f2py_rout__fblas_csrot(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -1561,7 +1545,7 @@ static PyObject *f2py_rout__fblas_csrot(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -1588,27 +1572,31 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.csrot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csrot: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.csrot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csrot: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable c */
         f2py_success = float_from_pyobj(&c,c_capi,"_fblas.csrot() 3rd argument (c) can't be converted to float");
@@ -1659,7 +1647,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -1684,9 +1672,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable s */
     } /*if (f2py_success) of c*/
     /* End of cleaning variable c */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -1736,7 +1724,7 @@ static PyObject *f2py_rout__fblas_zdrot(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -1747,7 +1735,7 @@ static PyObject *f2py_rout__fblas_zdrot(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -1774,27 +1762,31 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.zdrot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zdrot: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.zdrot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zdrot: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable c */
         f2py_success = double_from_pyobj(&c,c_capi,"_fblas.zdrot() 3rd argument (c) can't be converted to double");
@@ -1845,7 +1837,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -1870,9 +1862,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable s */
     } /*if (f2py_success) of c*/
     /* End of cleaning variable c */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -1921,7 +1913,7 @@ static PyObject *f2py_rout__fblas_srotm(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -1932,7 +1924,7 @@ static PyObject *f2py_rout__fblas_srotm(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -1943,7 +1935,7 @@ static PyObject *f2py_rout__fblas_srotm(const PyObject *capi_self,
     float *param = NULL;
     npy_intp param_Dims[1] = {-1};
     const int param_Rank = 1;
-    PyArrayObject *capi_param_tmp = NULL;
+    PyArrayObject *capi_param_as_array = NULL;
     int capi_param_intent = 0;
     PyObject *param_capi = Py_None;
     static char *capi_kwlist[] = {"x","y","param","n","offx","incx","offy","incy","overwrite_x","overwrite_y",NULL};
@@ -1961,39 +1953,45 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.srotm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.srotm: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.srotm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.srotm: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable param */
     param_Dims[0]=5;
     capi_param_intent |= F2PY_INTENT_IN;
-    capi_param_tmp = array_from_pyobj(NPY_FLOAT,param_Dims,param_Rank,capi_param_intent,param_capi);
-    if (capi_param_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `param' of _fblas.srotm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.srotm: failed to create array from the 3rd argument `param`";
+    capi_param_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,param_Dims,param_Rank,  capi_param_intent,param_capi,capi_errmess);
+    if (capi_param_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        param = (float *)(PyArray_DATA(capi_param_tmp));
+        param = (float *)(PyArray_DATA(capi_param_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -2038,7 +2036,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -2059,13 +2057,13 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_param_tmp!=param_capi) {
-        Py_XDECREF(capi_param_tmp); }
-    }  /*if (capi_param_tmp == NULL) ... else of param*/
+    if((PyObject *)capi_param_as_array!=param_capi) {
+        Py_XDECREF(capi_param_as_array); }
+    }  /* if (capi_param_as_array == NULL) ... else of param */
     /* End of cleaning variable param */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2114,7 +2112,7 @@ static PyObject *f2py_rout__fblas_drotm(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -2125,7 +2123,7 @@ static PyObject *f2py_rout__fblas_drotm(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -2136,7 +2134,7 @@ static PyObject *f2py_rout__fblas_drotm(const PyObject *capi_self,
     double *param = NULL;
     npy_intp param_Dims[1] = {-1};
     const int param_Rank = 1;
-    PyArrayObject *capi_param_tmp = NULL;
+    PyArrayObject *capi_param_as_array = NULL;
     int capi_param_intent = 0;
     PyObject *param_capi = Py_None;
     static char *capi_kwlist[] = {"x","y","param","n","offx","incx","offy","incy","overwrite_x","overwrite_y",NULL};
@@ -2154,39 +2152,45 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.drotm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.drotm: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.drotm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.drotm: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable param */
     param_Dims[0]=5;
     capi_param_intent |= F2PY_INTENT_IN;
-    capi_param_tmp = array_from_pyobj(NPY_DOUBLE,param_Dims,param_Rank,capi_param_intent,param_capi);
-    if (capi_param_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `param' of _fblas.drotm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.drotm: failed to create array from the 3rd argument `param`";
+    capi_param_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,param_Dims,param_Rank,  capi_param_intent,param_capi,capi_errmess);
+    if (capi_param_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        param = (double *)(PyArray_DATA(capi_param_tmp));
+        param = (double *)(PyArray_DATA(capi_param_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -2231,7 +2235,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -2252,13 +2256,13 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_param_tmp!=param_capi) {
-        Py_XDECREF(capi_param_tmp); }
-    }  /*if (capi_param_tmp == NULL) ... else of param*/
+    if((PyObject *)capi_param_as_array!=param_capi) {
+        Py_XDECREF(capi_param_as_array); }
+    }  /* if (capi_param_as_array == NULL) ... else of param */
     /* End of cleaning variable param */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2304,7 +2308,7 @@ static PyObject *f2py_rout__fblas_sswap(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -2314,7 +2318,7 @@ static PyObject *f2py_rout__fblas_sswap(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -2335,26 +2339,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.sswap to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sswap: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.sswap to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sswap: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -2399,7 +2407,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -2420,9 +2428,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2468,7 +2476,7 @@ static PyObject *f2py_rout__fblas_dswap(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -2478,7 +2486,7 @@ static PyObject *f2py_rout__fblas_dswap(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -2499,26 +2507,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.dswap to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dswap: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.dswap to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dswap: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -2563,7 +2575,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -2584,9 +2596,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2632,7 +2644,7 @@ static PyObject *f2py_rout__fblas_cswap(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -2642,7 +2654,7 @@ static PyObject *f2py_rout__fblas_cswap(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -2663,26 +2675,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.cswap to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cswap: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.cswap to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cswap: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -2727,7 +2743,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -2748,9 +2764,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2796,7 +2812,7 @@ static PyObject *f2py_rout__fblas_zswap(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -2806,7 +2822,7 @@ static PyObject *f2py_rout__fblas_zswap(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -2827,26 +2843,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.zswap to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zswap: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.zswap to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zswap: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -2891,7 +2911,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NN",capi_x_tmp,capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("NN",capi_x_as_array,capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -2912,9 +2932,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -2959,7 +2979,7 @@ static PyObject *f2py_rout__fblas_sscal(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -2983,14 +3003,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.sscal to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sscal: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -3024,7 +3046,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -3038,7 +3060,7 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of a*/
     /* End of cleaning variable a */
@@ -3085,7 +3107,7 @@ static PyObject *f2py_rout__fblas_dscal(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -3109,14 +3131,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.dscal to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dscal: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -3150,7 +3174,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -3164,7 +3188,7 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of a*/
     /* End of cleaning variable a */
@@ -3211,7 +3235,7 @@ static PyObject *f2py_rout__fblas_cscal(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -3235,14 +3259,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.cscal to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cscal: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -3276,7 +3302,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -3290,7 +3316,7 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     }  /*if (f2py_success) of a frompyobj*/
     /* End of cleaning variable a */
@@ -3337,7 +3363,7 @@ static PyObject *f2py_rout__fblas_zscal(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -3361,14 +3387,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.zscal to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zscal: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -3402,7 +3430,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -3416,7 +3444,7 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     }  /*if (f2py_success) of a frompyobj*/
     /* End of cleaning variable a */
@@ -3464,7 +3492,7 @@ static PyObject *f2py_rout__fblas_csscal(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -3490,14 +3518,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.csscal to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csscal: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -3531,7 +3561,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -3545,7 +3575,7 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of a*/
     /* End of cleaning variable a */
@@ -3593,7 +3623,7 @@ static PyObject *f2py_rout__fblas_zdscal(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -3619,14 +3649,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.zdscal to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zdscal: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -3660,7 +3692,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -3674,7 +3706,7 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of a*/
     /* End of cleaning variable a */
@@ -3721,7 +3753,7 @@ static PyObject *f2py_rout__fblas_scopy(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -3731,7 +3763,7 @@ static PyObject *f2py_rout__fblas_scopy(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -3752,26 +3784,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.scopy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.scopy: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.scopy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.scopy: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -3816,7 +3852,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -3837,11 +3873,11 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -3886,7 +3922,7 @@ static PyObject *f2py_rout__fblas_dcopy(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -3896,7 +3932,7 @@ static PyObject *f2py_rout__fblas_dcopy(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -3917,26 +3953,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.dcopy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dcopy: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.dcopy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dcopy: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -3981,7 +4021,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -4002,11 +4042,11 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -4051,7 +4091,7 @@ static PyObject *f2py_rout__fblas_ccopy(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -4061,7 +4101,7 @@ static PyObject *f2py_rout__fblas_ccopy(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -4082,26 +4122,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.ccopy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ccopy: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.ccopy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ccopy: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -4146,7 +4190,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -4167,11 +4211,11 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -4216,7 +4260,7 @@ static PyObject *f2py_rout__fblas_zcopy(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -4226,7 +4270,7 @@ static PyObject *f2py_rout__fblas_zcopy(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -4247,26 +4291,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.zcopy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zcopy: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.zcopy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zcopy: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -4311,7 +4359,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -4332,11 +4380,11 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -4384,7 +4432,7 @@ static PyObject *f2py_rout__fblas_saxpy(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -4394,7 +4442,7 @@ static PyObject *f2py_rout__fblas_saxpy(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -4415,26 +4463,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.saxpy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.saxpy: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.saxpy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.saxpy: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable a */
     if (a_capi == Py_None) a = 1.0; else
@@ -4483,7 +4535,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -4506,11 +4558,11 @@ f2py_stop_call_clock();
     /* End of cleaning variable incx */
     } /*if (f2py_success) of a*/
     /* End of cleaning variable a */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -4558,7 +4610,7 @@ static PyObject *f2py_rout__fblas_daxpy(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -4568,7 +4620,7 @@ static PyObject *f2py_rout__fblas_daxpy(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -4589,26 +4641,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.daxpy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.daxpy: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.daxpy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.daxpy: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable a */
     if (a_capi == Py_None) a = 1.0; else
@@ -4657,7 +4713,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -4680,11 +4736,11 @@ f2py_stop_call_clock();
     /* End of cleaning variable incx */
     } /*if (f2py_success) of a*/
     /* End of cleaning variable a */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -4732,7 +4788,7 @@ static PyObject *f2py_rout__fblas_caxpy(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -4742,7 +4798,7 @@ static PyObject *f2py_rout__fblas_caxpy(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -4763,26 +4819,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.caxpy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.caxpy: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.caxpy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.caxpy: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable a */
     if (a_capi==Py_None) {a.r = 1.0, a.i =  0.0;} else
@@ -4831,7 +4891,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -4854,11 +4914,11 @@ f2py_stop_call_clock();
     /* End of cleaning variable incx */
     }  /*if (f2py_success) of a frompyobj*/
     /* End of cleaning variable a */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -4906,7 +4966,7 @@ static PyObject *f2py_rout__fblas_zaxpy(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -4916,7 +4976,7 @@ static PyObject *f2py_rout__fblas_zaxpy(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -4937,26 +4997,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.zaxpy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zaxpy: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.zaxpy to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zaxpy: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable a */
     if (a_capi==Py_None) {a.r = 1.0, a.i =  0.0;} else
@@ -5005,7 +5069,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -5028,11 +5092,11 @@ f2py_stop_call_clock();
     /* End of cleaning variable incx */
     }  /*if (f2py_success) of a frompyobj*/
     /* End of cleaning variable a */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -5078,7 +5142,7 @@ static PyObject *f2py_rout__fblas_sdot(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -5088,7 +5152,7 @@ static PyObject *f2py_rout__fblas_sdot(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -5109,26 +5173,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.sdot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sdot: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.sdot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sdot: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -5196,13 +5264,13 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -5248,7 +5316,7 @@ static PyObject *f2py_rout__fblas_ddot(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -5258,7 +5326,7 @@ static PyObject *f2py_rout__fblas_ddot(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -5279,26 +5347,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.ddot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ddot: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.ddot to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ddot: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -5366,13 +5438,13 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -5419,7 +5491,7 @@ static PyObject *f2py_rout__fblas_cdotu(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -5429,7 +5501,7 @@ static PyObject *f2py_rout__fblas_cdotu(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -5450,26 +5522,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.cdotu to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cdotu: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.cdotu to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cdotu: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -5538,13 +5614,13 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -5591,7 +5667,7 @@ static PyObject *f2py_rout__fblas_zdotu(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -5601,7 +5677,7 @@ static PyObject *f2py_rout__fblas_zdotu(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -5622,26 +5698,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.zdotu to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zdotu: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.zdotu to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zdotu: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -5710,13 +5790,13 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -5763,7 +5843,7 @@ static PyObject *f2py_rout__fblas_cdotc(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -5773,7 +5853,7 @@ static PyObject *f2py_rout__fblas_cdotc(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -5794,26 +5874,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.cdotc to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cdotc: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.cdotc to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cdotc: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -5882,13 +5966,13 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -5935,7 +6019,7 @@ static PyObject *f2py_rout__fblas_zdotc(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -5945,7 +6029,7 @@ static PyObject *f2py_rout__fblas_zdotc(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int offy = 0;
@@ -5966,26 +6050,30 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.zdotc to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zdotc: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `y' of _fblas.zdotc to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zdotc: failed to create array from the 2nd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -6054,13 +6142,13 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -6103,7 +6191,7 @@ static PyObject *f2py_rout__fblas_snrm2(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -6124,14 +6212,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.snrm2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.snrm2: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -6181,9 +6271,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -6226,7 +6316,7 @@ static PyObject *f2py_rout__fblas_scnrm2(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -6247,14 +6337,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.scnrm2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.scnrm2: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -6304,9 +6396,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -6349,7 +6441,7 @@ static PyObject *f2py_rout__fblas_dnrm2(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -6370,14 +6462,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.dnrm2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dnrm2: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -6427,9 +6521,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -6472,7 +6566,7 @@ static PyObject *f2py_rout__fblas_dznrm2(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -6493,14 +6587,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.dznrm2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dznrm2: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -6550,9 +6646,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -6595,7 +6691,7 @@ static PyObject *f2py_rout__fblas_sasum(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -6616,14 +6712,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.sasum to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sasum: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -6673,9 +6771,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -6718,7 +6816,7 @@ static PyObject *f2py_rout__fblas_scasum(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -6739,14 +6837,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.scasum to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.scasum: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -6796,9 +6896,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -6841,7 +6941,7 @@ static PyObject *f2py_rout__fblas_dasum(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -6862,14 +6962,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.dasum to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dasum: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -6919,9 +7021,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -6964,7 +7066,7 @@ static PyObject *f2py_rout__fblas_dzasum(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -6985,14 +7087,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.dzasum to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dzasum: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -7042,9 +7146,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -7087,7 +7191,7 @@ static PyObject *f2py_rout__fblas_isamax(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -7108,14 +7212,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.isamax to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.isamax: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -7164,9 +7270,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -7209,7 +7315,7 @@ static PyObject *f2py_rout__fblas_idamax(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -7230,14 +7336,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.idamax to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.idamax: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -7286,9 +7394,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -7331,7 +7439,7 @@ static PyObject *f2py_rout__fblas_icamax(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -7352,14 +7460,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.icamax to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.icamax: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -7408,9 +7518,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -7453,7 +7563,7 @@ static PyObject *f2py_rout__fblas_izamax(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int offx = 0;
@@ -7474,14 +7584,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `x' of _fblas.izamax to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.izamax: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -7530,9 +7642,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -7583,13 +7695,13 @@ static PyObject *f2py_rout__fblas_sgemv(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     float beta = 0;
@@ -7597,7 +7709,7 @@ static PyObject *f2py_rout__fblas_sgemv(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -7650,14 +7762,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.sgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sgemv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable offx */
     if (offx_capi == Py_None) offx = 0; else
@@ -7678,14 +7792,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.sgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sgemv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(cols-1)*abs(incx),"len(x)>offx+(cols-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -7695,14 +7811,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `y' of _fblas.sgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sgemv: failed to create array from the 2nd keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(rows-1)*abs(incy),"len(y)>offy+(rows-1)*abs(incy)","2nd keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","2nd keyword y") {
@@ -7723,21 +7841,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(rows-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(cols-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable cols */
     /* End of cleaning variable rows */
@@ -7747,9 +7865,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable offy */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -7813,13 +7931,13 @@ static PyObject *f2py_rout__fblas_dgemv(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double beta = 0;
@@ -7827,7 +7945,7 @@ static PyObject *f2py_rout__fblas_dgemv(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -7880,14 +7998,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.dgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dgemv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable offx */
     if (offx_capi == Py_None) offx = 0; else
@@ -7908,14 +8028,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.dgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dgemv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(cols-1)*abs(incx),"len(x)>offx+(cols-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -7925,14 +8047,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `y' of _fblas.dgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dgemv: failed to create array from the 2nd keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(rows-1)*abs(incy),"len(y)>offy+(rows-1)*abs(incy)","2nd keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","2nd keyword y") {
@@ -7953,21 +8077,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(rows-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(cols-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable cols */
     /* End of cleaning variable rows */
@@ -7977,9 +8101,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable offy */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -8043,13 +8167,13 @@ static PyObject *f2py_rout__fblas_cgemv(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_float beta;
@@ -8057,7 +8181,7 @@ static PyObject *f2py_rout__fblas_cgemv(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -8110,14 +8234,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.cgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgemv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable offx */
     if (offx_capi == Py_None) offx = 0; else
@@ -8138,14 +8264,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.cgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgemv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(cols-1)*abs(incx),"len(x)>offx+(cols-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -8155,14 +8283,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `y' of _fblas.cgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgemv: failed to create array from the 2nd keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(rows-1)*abs(incy),"len(y)>offy+(rows-1)*abs(incy)","2nd keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","2nd keyword y") {
@@ -8183,21 +8313,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(rows-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(cols-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable cols */
     /* End of cleaning variable rows */
@@ -8207,9 +8337,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable offy */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -8273,13 +8403,13 @@ static PyObject *f2py_rout__fblas_zgemv(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_double beta;
@@ -8287,7 +8417,7 @@ static PyObject *f2py_rout__fblas_zgemv(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -8340,14 +8470,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.zgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgemv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable offx */
     if (offx_capi == Py_None) offx = 0; else
@@ -8368,14 +8500,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.zgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgemv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(cols-1)*abs(incx),"len(x)>offx+(cols-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -8385,14 +8519,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `y' of _fblas.zgemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgemv: failed to create array from the 2nd keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(rows-1)*abs(incy),"len(y)>offy+(rows-1)*abs(incy)","2nd keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","2nd keyword y") {
@@ -8413,21 +8549,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(rows-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(cols-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable cols */
     /* End of cleaning variable rows */
@@ -8437,9 +8573,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable offy */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -8513,14 +8649,14 @@ static PyObject *f2py_rout__fblas_sgbmv(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -8532,7 +8668,7 @@ static PyObject *f2py_rout__fblas_sgbmv(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -8595,14 +8731,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 6th argument `a' of _fblas.sgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sgbmv: failed to create array from the 6th argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable m */
         f2py_success = int_from_pyobj(&m,m_capi,"_fblas.sgbmv() 1st argument (m) can't be converted to int");
@@ -8620,28 +8758,32 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.sgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sgbmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(trans==0?m-1:n-1)*abs(incy),"len(y)>offy+(trans==0?m-1:n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 7th argument `x' of _fblas.sgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sgbmv: failed to create array from the 7th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(trans==0?m-1:n-1)*abs(incx),"len(x)>offx+(trans==0?m-1:n-1)*abs(incx)","7th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","7th argument x") {
@@ -8662,20 +8804,20 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(trans==0?m-1:n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(trans==0?m-1:n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     /* End of cleaning variable lda */
@@ -8685,9 +8827,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(m>=ku+kl+1)*/
     } /*if (f2py_success) of m*/
     /* End of cleaning variable m */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -8771,14 +8913,14 @@ static PyObject *f2py_rout__fblas_dgbmv(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -8790,7 +8932,7 @@ static PyObject *f2py_rout__fblas_dgbmv(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -8853,14 +8995,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 6th argument `a' of _fblas.dgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dgbmv: failed to create array from the 6th argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable m */
         f2py_success = int_from_pyobj(&m,m_capi,"_fblas.dgbmv() 1st argument (m) can't be converted to int");
@@ -8878,28 +9022,32 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.dgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dgbmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(trans==0?m-1:n-1)*abs(incy),"len(y)>offy+(trans==0?m-1:n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 7th argument `x' of _fblas.dgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dgbmv: failed to create array from the 7th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(trans==0?m-1:n-1)*abs(incx),"len(x)>offx+(trans==0?m-1:n-1)*abs(incx)","7th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","7th argument x") {
@@ -8920,20 +9068,20 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(trans==0?m-1:n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(trans==0?m-1:n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     /* End of cleaning variable lda */
@@ -8943,9 +9091,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(m>=ku+kl+1)*/
     } /*if (f2py_success) of m*/
     /* End of cleaning variable m */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -9029,14 +9177,14 @@ static PyObject *f2py_rout__fblas_cgbmv(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -9048,7 +9196,7 @@ static PyObject *f2py_rout__fblas_cgbmv(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -9111,14 +9259,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 6th argument `a' of _fblas.cgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgbmv: failed to create array from the 6th argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable m */
         f2py_success = int_from_pyobj(&m,m_capi,"_fblas.cgbmv() 1st argument (m) can't be converted to int");
@@ -9136,28 +9286,32 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.cgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgbmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(trans==0?m-1:n-1)*abs(incy),"len(y)>offy+(trans==0?m-1:n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 7th argument `x' of _fblas.cgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgbmv: failed to create array from the 7th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(trans==0?m-1:n-1)*abs(incx),"len(x)>offx+(trans==0?m-1:n-1)*abs(incx)","7th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","7th argument x") {
@@ -9178,20 +9332,20 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(trans==0?m-1:n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(trans==0?m-1:n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     /* End of cleaning variable lda */
@@ -9201,9 +9355,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(m>=ku+kl+1)*/
     } /*if (f2py_success) of m*/
     /* End of cleaning variable m */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -9287,14 +9441,14 @@ static PyObject *f2py_rout__fblas_zgbmv(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -9306,7 +9460,7 @@ static PyObject *f2py_rout__fblas_zgbmv(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -9369,14 +9523,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 6th argument `a' of _fblas.zgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgbmv: failed to create array from the 6th argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable m */
         f2py_success = int_from_pyobj(&m,m_capi,"_fblas.zgbmv() 1st argument (m) can't be converted to int");
@@ -9394,28 +9550,32 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.zgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgbmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(trans==0?m-1:n-1)*abs(incy),"len(y)>offy+(trans==0?m-1:n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 7th argument `x' of _fblas.zgbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgbmv: failed to create array from the 7th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(trans==0?m-1:n-1)*abs(incx),"len(x)>offx+(trans==0?m-1:n-1)*abs(incx)","7th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","7th argument x") {
@@ -9436,20 +9596,20 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(trans==0?m-1:n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(trans==0?m-1:n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     /* End of cleaning variable lda */
@@ -9459,9 +9619,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(m>=ku+kl+1)*/
     } /*if (f2py_success) of m*/
     /* End of cleaning variable m */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -9537,14 +9697,14 @@ static PyObject *f2py_rout__fblas_ssbmv(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -9556,7 +9716,7 @@ static PyObject *f2py_rout__fblas_ssbmv(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -9611,14 +9771,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `a' of _fblas.ssbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssbmv: failed to create array from the 3rd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -9635,28 +9797,32 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.ssbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssbmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `x' of _fblas.ssbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssbmv: failed to create array from the 4th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","4th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","4th argument x") {
@@ -9677,20 +9843,20 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
@@ -9699,9 +9865,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -9771,14 +9937,14 @@ static PyObject *f2py_rout__fblas_dsbmv(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -9790,7 +9956,7 @@ static PyObject *f2py_rout__fblas_dsbmv(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -9845,14 +10011,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `a' of _fblas.dsbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsbmv: failed to create array from the 3rd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -9869,28 +10037,32 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.dsbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsbmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `x' of _fblas.dsbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsbmv: failed to create array from the 4th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","4th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","4th argument x") {
@@ -9911,20 +10083,20 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
@@ -9933,9 +10105,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -10005,14 +10177,14 @@ static PyObject *f2py_rout__fblas_chbmv(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -10024,7 +10196,7 @@ static PyObject *f2py_rout__fblas_chbmv(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -10079,14 +10251,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `a' of _fblas.chbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chbmv: failed to create array from the 3rd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -10103,28 +10277,32 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.chbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chbmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `x' of _fblas.chbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chbmv: failed to create array from the 4th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","4th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","4th argument x") {
@@ -10145,20 +10323,20 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
@@ -10167,9 +10345,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -10239,14 +10417,14 @@ static PyObject *f2py_rout__fblas_zhbmv(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -10258,7 +10436,7 @@ static PyObject *f2py_rout__fblas_zhbmv(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -10313,14 +10491,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `a' of _fblas.zhbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhbmv: failed to create array from the 3rd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -10337,28 +10517,32 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.zhbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhbmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `x' of _fblas.zhbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhbmv: failed to create array from the 4th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","4th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","4th argument x") {
@@ -10379,20 +10563,20 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
@@ -10401,9 +10585,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -10472,13 +10656,13 @@ static PyObject *f2py_rout__fblas_sspmv(const PyObject *capi_self,
     float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -10490,7 +10674,7 @@ static PyObject *f2py_rout__fblas_sspmv(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -10551,42 +10735,48 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_FLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `ap' of _fblas.sspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sspmv: failed to create array from the 3rd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","3rd argument ap") {
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.sspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sspmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `x' of _fblas.sspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sspmv: failed to create array from the 4th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","4th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","4th argument x") {
@@ -10607,25 +10797,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     /* End of cleaning variable ly */
     } /*if (f2py_success) of beta*/
@@ -10698,13 +10888,13 @@ static PyObject *f2py_rout__fblas_dspmv(const PyObject *capi_self,
     double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -10716,7 +10906,7 @@ static PyObject *f2py_rout__fblas_dspmv(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -10777,42 +10967,48 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_DOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `ap' of _fblas.dspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dspmv: failed to create array from the 3rd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","3rd argument ap") {
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.dspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dspmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `x' of _fblas.dspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dspmv: failed to create array from the 4th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","4th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","4th argument x") {
@@ -10833,25 +11029,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     /* End of cleaning variable ly */
     } /*if (f2py_success) of beta*/
@@ -10924,13 +11120,13 @@ static PyObject *f2py_rout__fblas_cspmv(const PyObject *capi_self,
     complex_float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -10942,7 +11138,7 @@ static PyObject *f2py_rout__fblas_cspmv(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -11003,42 +11199,48 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_CFLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `ap' of _fblas.cspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cspmv: failed to create array from the 3rd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","3rd argument ap") {
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.cspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cspmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `x' of _fblas.cspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cspmv: failed to create array from the 4th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","4th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","4th argument x") {
@@ -11059,25 +11261,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     /* End of cleaning variable ly */
     }  /*if (f2py_success) of beta frompyobj*/
@@ -11150,13 +11352,13 @@ static PyObject *f2py_rout__fblas_zspmv(const PyObject *capi_self,
     complex_double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -11168,7 +11370,7 @@ static PyObject *f2py_rout__fblas_zspmv(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -11229,42 +11431,48 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_CDOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `ap' of _fblas.zspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zspmv: failed to create array from the 3rd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","3rd argument ap") {
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.zspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zspmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `x' of _fblas.zspmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zspmv: failed to create array from the 4th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","4th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","4th argument x") {
@@ -11285,25 +11493,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     /* End of cleaning variable ly */
     }  /*if (f2py_success) of beta frompyobj*/
@@ -11376,13 +11584,13 @@ static PyObject *f2py_rout__fblas_chpmv(const PyObject *capi_self,
     complex_float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -11394,7 +11602,7 @@ static PyObject *f2py_rout__fblas_chpmv(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -11455,42 +11663,48 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_CFLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `ap' of _fblas.chpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chpmv: failed to create array from the 3rd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","3rd argument ap") {
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.chpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chpmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `x' of _fblas.chpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chpmv: failed to create array from the 4th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","4th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","4th argument x") {
@@ -11511,25 +11725,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     /* End of cleaning variable ly */
     }  /*if (f2py_success) of beta frompyobj*/
@@ -11602,13 +11816,13 @@ static PyObject *f2py_rout__fblas_zhpmv(const PyObject *capi_self,
     complex_double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -11620,7 +11834,7 @@ static PyObject *f2py_rout__fblas_zhpmv(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -11681,42 +11895,48 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_CDOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `ap' of _fblas.zhpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhpmv: failed to create array from the 3rd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","3rd argument ap") {
     /* Processing variable y */
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th keyword `y' of _fblas.zhpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhpmv: failed to create array from the 4th keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th keyword y") {
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `x' of _fblas.zhpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhpmv: failed to create array from the 4th argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","4th argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","4th argument x") {
@@ -11737,25 +11957,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     /* End of cleaning variable ly */
     }  /*if (f2py_success) of beta frompyobj*/
@@ -11826,13 +12046,13 @@ static PyObject *f2py_rout__fblas_ssymv(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     float beta = 0;
@@ -11840,7 +12060,7 @@ static PyObject *f2py_rout__fblas_ssymv(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -11891,14 +12111,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ssymv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssymv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","2nd argument a") {
     /* Processing variable offx */
@@ -11914,14 +12136,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.ssymv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssymv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -11931,14 +12155,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `y' of _fblas.ssymv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssymv: failed to create array from the 2nd keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","2nd keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","2nd keyword y") {
@@ -11959,21 +12185,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of offy*/
@@ -11981,9 +12207,9 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -12046,13 +12272,13 @@ static PyObject *f2py_rout__fblas_dsymv(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double beta = 0;
@@ -12060,7 +12286,7 @@ static PyObject *f2py_rout__fblas_dsymv(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -12111,14 +12337,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.dsymv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsymv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","2nd argument a") {
     /* Processing variable offx */
@@ -12134,14 +12362,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.dsymv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsymv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -12151,14 +12381,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `y' of _fblas.dsymv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsymv: failed to create array from the 2nd keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","2nd keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","2nd keyword y") {
@@ -12179,21 +12411,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of offy*/
@@ -12201,9 +12433,9 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -12266,13 +12498,13 @@ static PyObject *f2py_rout__fblas_chemv(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_float beta;
@@ -12280,7 +12512,7 @@ static PyObject *f2py_rout__fblas_chemv(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -12331,14 +12563,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.chemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chemv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","2nd argument a") {
     /* Processing variable offx */
@@ -12354,14 +12588,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.chemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chemv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -12371,14 +12607,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `y' of _fblas.chemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chemv: failed to create array from the 2nd keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","2nd keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","2nd keyword y") {
@@ -12399,21 +12637,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of offy*/
@@ -12421,9 +12659,9 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -12486,13 +12724,13 @@ static PyObject *f2py_rout__fblas_zhemv(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_double beta;
@@ -12500,7 +12738,7 @@ static PyObject *f2py_rout__fblas_zhemv(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -12551,14 +12789,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.zhemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhemv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","2nd argument a") {
     /* Processing variable offx */
@@ -12574,14 +12814,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.zhemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhemv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -12591,14 +12833,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     y_Dims[0]=ly;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `y' of _fblas.zhemv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhemv: failed to create array from the 2nd keyword `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","2nd keyword y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","2nd keyword y") {
@@ -12619,21 +12863,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_y_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     /* End of cleaning variable ly */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable n */
     } /*if (f2py_success) of offy*/
@@ -12641,9 +12885,9 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -12705,7 +12949,7 @@ static PyObject *f2py_rout__fblas_sger(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 1;
     PyObject *x_capi = Py_None;
@@ -12714,7 +12958,7 @@ static PyObject *f2py_rout__fblas_sger(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 1;
     PyObject *y_capi = Py_None;
@@ -12723,7 +12967,7 @@ static PyObject *f2py_rout__fblas_sger(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -12746,14 +12990,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.sger to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sger: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -12764,14 +13010,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `y' of _fblas.sger to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sger: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incy */
     if (incy_capi == Py_None) incy = 1; else
@@ -12786,27 +13034,31 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=m,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd keyword `a' of _fblas.sger to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sger: failed to create array from the 3rd keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     if (a_capi == Py_None) {
 
 
         int *_i,capi_i=0;
         CFUNCSMESS("sger: Initializing a=0.0\n");
-        if (initforcomb(PyArray_DIMS(capi_a_tmp),PyArray_NDIM(capi_a_tmp),1)) {
+        if (initforcomb(PyArray_DIMS(capi_a_as_array),
+                        PyArray_NDIM(capi_a_as_array),1)) {
             while ((_i = nextforcomb()))
                 a[capi_i++] = 0.0; /* fortran way */
         } else {
             PyObject *exc, *val, *tb;
             PyErr_Fetch(&exc, &val, &tb);
-            PyErr_SetString(exc ? exc : _fblas_error,"Initialization of 3rd keyword a failed (initforcomb).");
+            PyErr_SetString(exc ? exc : _fblas_error,
+                "Initialization of 3rd keyword a failed (initforcomb).");
             npy_PyErr_ChainExceptionsCause(exc, val, tb);
             f2py_success = 0;
         }
@@ -12830,30 +13082,30 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     /* End of cleaning variable lda */
     }  /*if (f2py_success) of a init*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable n */
     /* End of cleaning variable m */
     } /*CHECKSCALAR(incy==1||incy==-1)*/
     } /*if (f2py_success) of incy*/
     /* End of cleaning variable incy */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKSCALAR(incx==1||incx==-1)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -12904,7 +13156,7 @@ static PyObject *f2py_rout__fblas_dger(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 1;
     PyObject *x_capi = Py_None;
@@ -12913,7 +13165,7 @@ static PyObject *f2py_rout__fblas_dger(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 1;
     PyObject *y_capi = Py_None;
@@ -12922,7 +13174,7 @@ static PyObject *f2py_rout__fblas_dger(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -12945,14 +13197,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.dger to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dger: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -12963,14 +13217,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `y' of _fblas.dger to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dger: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incy */
     if (incy_capi == Py_None) incy = 1; else
@@ -12985,27 +13241,31 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=m,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd keyword `a' of _fblas.dger to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dger: failed to create array from the 3rd keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     if (a_capi == Py_None) {
 
 
         int *_i,capi_i=0;
         CFUNCSMESS("dger: Initializing a=0.0\n");
-        if (initforcomb(PyArray_DIMS(capi_a_tmp),PyArray_NDIM(capi_a_tmp),1)) {
+        if (initforcomb(PyArray_DIMS(capi_a_as_array),
+                        PyArray_NDIM(capi_a_as_array),1)) {
             while ((_i = nextforcomb()))
                 a[capi_i++] = 0.0; /* fortran way */
         } else {
             PyObject *exc, *val, *tb;
             PyErr_Fetch(&exc, &val, &tb);
-            PyErr_SetString(exc ? exc : _fblas_error,"Initialization of 3rd keyword a failed (initforcomb).");
+            PyErr_SetString(exc ? exc : _fblas_error,
+                "Initialization of 3rd keyword a failed (initforcomb).");
             npy_PyErr_ChainExceptionsCause(exc, val, tb);
             f2py_success = 0;
         }
@@ -13029,30 +13289,30 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     /* End of cleaning variable lda */
     }  /*if (f2py_success) of a init*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable n */
     /* End of cleaning variable m */
     } /*CHECKSCALAR(incy==1||incy==-1)*/
     } /*if (f2py_success) of incy*/
     /* End of cleaning variable incy */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKSCALAR(incx==1||incx==-1)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -13103,7 +13363,7 @@ static PyObject *f2py_rout__fblas_cgeru(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 1;
     PyObject *x_capi = Py_None;
@@ -13112,7 +13372,7 @@ static PyObject *f2py_rout__fblas_cgeru(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 1;
     PyObject *y_capi = Py_None;
@@ -13121,7 +13381,7 @@ static PyObject *f2py_rout__fblas_cgeru(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -13144,14 +13404,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.cgeru to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgeru: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -13162,14 +13424,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `y' of _fblas.cgeru to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgeru: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incy */
     if (incy_capi == Py_None) incy = 1; else
@@ -13184,27 +13448,31 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=m,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd keyword `a' of _fblas.cgeru to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgeru: failed to create array from the 3rd keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     if (a_capi == Py_None) {
 
         complex_float capi_c;
         int *_i,capi_i=0;
         CFUNCSMESS("cgeru: Initializing a=(capi_c.r=0.0,capi_c.i=0.0,capi_c)\n");
-        if (initforcomb(PyArray_DIMS(capi_a_tmp),PyArray_NDIM(capi_a_tmp),1)) {
+        if (initforcomb(PyArray_DIMS(capi_a_as_array),
+                        PyArray_NDIM(capi_a_as_array),1)) {
             while ((_i = nextforcomb()))
                 a[capi_i++] = (capi_c.r=0.0,capi_c.i=0.0,capi_c); /* fortran way */
         } else {
             PyObject *exc, *val, *tb;
             PyErr_Fetch(&exc, &val, &tb);
-            PyErr_SetString(exc ? exc : _fblas_error,"Initialization of 3rd keyword a failed (initforcomb).");
+            PyErr_SetString(exc ? exc : _fblas_error,
+                "Initialization of 3rd keyword a failed (initforcomb).");
             npy_PyErr_ChainExceptionsCause(exc, val, tb);
             f2py_success = 0;
         }
@@ -13228,30 +13496,30 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     /* End of cleaning variable lda */
     }  /*if (f2py_success) of a init*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable n */
     /* End of cleaning variable m */
     } /*CHECKSCALAR(incy==1||incy==-1)*/
     } /*if (f2py_success) of incy*/
     /* End of cleaning variable incy */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKSCALAR(incx==1||incx==-1)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -13302,7 +13570,7 @@ static PyObject *f2py_rout__fblas_zgeru(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 1;
     PyObject *x_capi = Py_None;
@@ -13311,7 +13579,7 @@ static PyObject *f2py_rout__fblas_zgeru(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 1;
     PyObject *y_capi = Py_None;
@@ -13320,7 +13588,7 @@ static PyObject *f2py_rout__fblas_zgeru(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -13343,14 +13611,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.zgeru to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgeru: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -13361,14 +13631,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `y' of _fblas.zgeru to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgeru: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incy */
     if (incy_capi == Py_None) incy = 1; else
@@ -13383,27 +13655,31 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=m,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd keyword `a' of _fblas.zgeru to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgeru: failed to create array from the 3rd keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     if (a_capi == Py_None) {
 
         complex_double capi_c;
         int *_i,capi_i=0;
         CFUNCSMESS("zgeru: Initializing a=(capi_c.r=0.0,capi_c.i=0.0,capi_c)\n");
-        if (initforcomb(PyArray_DIMS(capi_a_tmp),PyArray_NDIM(capi_a_tmp),1)) {
+        if (initforcomb(PyArray_DIMS(capi_a_as_array),
+                        PyArray_NDIM(capi_a_as_array),1)) {
             while ((_i = nextforcomb()))
                 a[capi_i++] = (capi_c.r=0.0,capi_c.i=0.0,capi_c); /* fortran way */
         } else {
             PyObject *exc, *val, *tb;
             PyErr_Fetch(&exc, &val, &tb);
-            PyErr_SetString(exc ? exc : _fblas_error,"Initialization of 3rd keyword a failed (initforcomb).");
+            PyErr_SetString(exc ? exc : _fblas_error,
+                "Initialization of 3rd keyword a failed (initforcomb).");
             npy_PyErr_ChainExceptionsCause(exc, val, tb);
             f2py_success = 0;
         }
@@ -13427,30 +13703,30 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     /* End of cleaning variable lda */
     }  /*if (f2py_success) of a init*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable n */
     /* End of cleaning variable m */
     } /*CHECKSCALAR(incy==1||incy==-1)*/
     } /*if (f2py_success) of incy*/
     /* End of cleaning variable incy */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKSCALAR(incx==1||incx==-1)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -13501,7 +13777,7 @@ static PyObject *f2py_rout__fblas_cgerc(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 1;
     PyObject *x_capi = Py_None;
@@ -13510,7 +13786,7 @@ static PyObject *f2py_rout__fblas_cgerc(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 1;
     PyObject *y_capi = Py_None;
@@ -13519,7 +13795,7 @@ static PyObject *f2py_rout__fblas_cgerc(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -13542,14 +13818,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.cgerc to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgerc: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -13560,14 +13838,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `y' of _fblas.cgerc to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgerc: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incy */
     if (incy_capi == Py_None) incy = 1; else
@@ -13582,27 +13862,31 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=m,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd keyword `a' of _fblas.cgerc to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgerc: failed to create array from the 3rd keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     if (a_capi == Py_None) {
 
         complex_float capi_c;
         int *_i,capi_i=0;
         CFUNCSMESS("cgerc: Initializing a=(capi_c.r=0.0,capi_c.i=0.0,capi_c)\n");
-        if (initforcomb(PyArray_DIMS(capi_a_tmp),PyArray_NDIM(capi_a_tmp),1)) {
+        if (initforcomb(PyArray_DIMS(capi_a_as_array),
+                        PyArray_NDIM(capi_a_as_array),1)) {
             while ((_i = nextforcomb()))
                 a[capi_i++] = (capi_c.r=0.0,capi_c.i=0.0,capi_c); /* fortran way */
         } else {
             PyObject *exc, *val, *tb;
             PyErr_Fetch(&exc, &val, &tb);
-            PyErr_SetString(exc ? exc : _fblas_error,"Initialization of 3rd keyword a failed (initforcomb).");
+            PyErr_SetString(exc ? exc : _fblas_error,
+                "Initialization of 3rd keyword a failed (initforcomb).");
             npy_PyErr_ChainExceptionsCause(exc, val, tb);
             f2py_success = 0;
         }
@@ -13626,30 +13910,30 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     /* End of cleaning variable lda */
     }  /*if (f2py_success) of a init*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable n */
     /* End of cleaning variable m */
     } /*CHECKSCALAR(incy==1||incy==-1)*/
     } /*if (f2py_success) of incy*/
     /* End of cleaning variable incy */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKSCALAR(incx==1||incx==-1)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -13700,7 +13984,7 @@ static PyObject *f2py_rout__fblas_zgerc(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 1;
     PyObject *x_capi = Py_None;
@@ -13709,7 +13993,7 @@ static PyObject *f2py_rout__fblas_zgerc(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 1;
     PyObject *y_capi = Py_None;
@@ -13718,7 +14002,7 @@ static PyObject *f2py_rout__fblas_zgerc(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -13741,14 +14025,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.zgerc to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgerc: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable incx */
     if (incx_capi == Py_None) incx = 1; else
@@ -13759,14 +14045,16 @@ f2py_start_clock();
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `y' of _fblas.zgerc to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgerc: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable incy */
     if (incy_capi == Py_None) incy = 1; else
@@ -13781,27 +14069,31 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=m,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd keyword `a' of _fblas.zgerc to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgerc: failed to create array from the 3rd keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     if (a_capi == Py_None) {
 
         complex_double capi_c;
         int *_i,capi_i=0;
         CFUNCSMESS("zgerc: Initializing a=(capi_c.r=0.0,capi_c.i=0.0,capi_c)\n");
-        if (initforcomb(PyArray_DIMS(capi_a_tmp),PyArray_NDIM(capi_a_tmp),1)) {
+        if (initforcomb(PyArray_DIMS(capi_a_as_array),
+                        PyArray_NDIM(capi_a_as_array),1)) {
             while ((_i = nextforcomb()))
                 a[capi_i++] = (capi_c.r=0.0,capi_c.i=0.0,capi_c); /* fortran way */
         } else {
             PyObject *exc, *val, *tb;
             PyErr_Fetch(&exc, &val, &tb);
-            PyErr_SetString(exc ? exc : _fblas_error,"Initialization of 3rd keyword a failed (initforcomb).");
+            PyErr_SetString(exc ? exc : _fblas_error,
+                "Initialization of 3rd keyword a failed (initforcomb).");
             npy_PyErr_ChainExceptionsCause(exc, val, tb);
             f2py_success = 0;
         }
@@ -13825,30 +14117,30 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     /* End of cleaning variable lda */
     }  /*if (f2py_success) of a init*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable n */
     /* End of cleaning variable m */
     } /*CHECKSCALAR(incy==1||incy==-1)*/
     } /*if (f2py_success) of incy*/
     /* End of cleaning variable incy */
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKSCALAR(incx==1||incx==-1)*/
     } /*if (f2py_success) of incx*/
     /* End of cleaning variable incx */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -13896,7 +14188,7 @@ static PyObject *f2py_rout__fblas_ssyr(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int lower = 0;
@@ -13910,7 +14202,7 @@ static PyObject *f2py_rout__fblas_ssyr(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -13945,14 +14237,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.ssyr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssyr: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(offx >= 0 && offx < len(x),"offx >= 0 && offx < len(x)","2nd argument x") {
     /* Processing variable n */
@@ -13965,14 +14259,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=n,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 5th keyword `a' of _fblas.ssyr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssyr: failed to create array from the 5th keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -13991,21 +14287,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*CHECKSCALAR(n >= 0)*/
     } /*CHECKSCALAR(n <= (len(x)-1-offx)/abs(incx)+1)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(offx >= 0 && offx < len(x))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
@@ -14061,7 +14357,7 @@ static PyObject *f2py_rout__fblas_dsyr(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int lower = 0;
@@ -14075,7 +14371,7 @@ static PyObject *f2py_rout__fblas_dsyr(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -14110,14 +14406,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.dsyr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsyr: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(offx >= 0 && offx < len(x),"offx >= 0 && offx < len(x)","2nd argument x") {
     /* Processing variable n */
@@ -14130,14 +14428,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=n,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 5th keyword `a' of _fblas.dsyr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsyr: failed to create array from the 5th keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -14156,21 +14456,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*CHECKSCALAR(n >= 0)*/
     } /*CHECKSCALAR(n <= (len(x)-1-offx)/abs(incx)+1)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(offx >= 0 && offx < len(x))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
@@ -14226,7 +14526,7 @@ static PyObject *f2py_rout__fblas_csyr(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int lower = 0;
@@ -14240,7 +14540,7 @@ static PyObject *f2py_rout__fblas_csyr(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -14275,14 +14575,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.csyr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csyr: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(offx >= 0 && offx < len(x),"offx >= 0 && offx < len(x)","2nd argument x") {
     /* Processing variable n */
@@ -14295,14 +14597,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=n,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 5th keyword `a' of _fblas.csyr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csyr: failed to create array from the 5th keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -14321,21 +14625,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*CHECKSCALAR(n >= 0)*/
     } /*CHECKSCALAR(n <= (len(x)-1-offx)/abs(incx)+1)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(offx >= 0 && offx < len(x))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
@@ -14391,7 +14695,7 @@ static PyObject *f2py_rout__fblas_zsyr(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int lower = 0;
@@ -14405,7 +14709,7 @@ static PyObject *f2py_rout__fblas_zsyr(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -14440,14 +14744,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.zsyr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zsyr: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(offx >= 0 && offx < len(x),"offx >= 0 && offx < len(x)","2nd argument x") {
     /* Processing variable n */
@@ -14460,14 +14766,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=n,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 5th keyword `a' of _fblas.zsyr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zsyr: failed to create array from the 5th keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -14486,21 +14794,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*CHECKSCALAR(n >= 0)*/
     } /*CHECKSCALAR(n <= (len(x)-1-offx)/abs(incx)+1)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(offx >= 0 && offx < len(x))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
@@ -14556,7 +14864,7 @@ static PyObject *f2py_rout__fblas_cher(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int lower = 0;
@@ -14570,7 +14878,7 @@ static PyObject *f2py_rout__fblas_cher(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -14605,14 +14913,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.cher to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cher: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(offx >= 0 && offx < len(x),"offx >= 0 && offx < len(x)","2nd argument x") {
     /* Processing variable n */
@@ -14625,14 +14935,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=n,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 5th keyword `a' of _fblas.cher to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cher: failed to create array from the 5th keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -14651,21 +14963,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*CHECKSCALAR(n >= 0)*/
     } /*CHECKSCALAR(n <= (len(x)-1-offx)/abs(incx)+1)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(offx >= 0 && offx < len(x))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
@@ -14721,7 +15033,7 @@ static PyObject *f2py_rout__fblas_zher(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int lower = 0;
@@ -14735,7 +15047,7 @@ static PyObject *f2py_rout__fblas_zher(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -14770,14 +15082,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.zher to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zher: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(offx >= 0 && offx < len(x),"offx >= 0 && offx < len(x)","2nd argument x") {
     /* Processing variable n */
@@ -14790,14 +15104,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=n,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 5th keyword `a' of _fblas.zher to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zher: failed to create array from the 5th keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -14816,21 +15132,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*CHECKSCALAR(n >= 0)*/
     } /*CHECKSCALAR(n <= (len(x)-1-offx)/abs(incx)+1)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(offx >= 0 && offx < len(x))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
@@ -14889,13 +15205,13 @@ static PyObject *f2py_rout__fblas_ssyr2(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int lower = 0;
@@ -14913,7 +15229,7 @@ static PyObject *f2py_rout__fblas_ssyr2(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -14957,27 +15273,31 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.ssyr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssyr2: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(offx >= 0 && offx < len(x),"offx >= 0 && offx < len(x)","2nd argument x") {
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `y' of _fblas.ssyr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssyr2: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(offy >= 0 && offy < len(y),"offy >= 0 && offy < len(y)","3rd argument y") {
     /* Processing variable n */
@@ -14991,14 +15311,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=n,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 7th keyword `a' of _fblas.ssyr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssyr2: failed to create array from the 7th keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -15017,12 +15339,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*CHECKSCALAR(n>=0)*/
     } /*CHECKSCALAR(n <= (len(x)-1-offx)/abs(incx)+1)*/
@@ -15030,14 +15352,14 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(offy >= 0 && offy < len(y))*/
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(offx >= 0 && offx < len(x))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of offy*/
     /* End of cleaning variable offy */
@@ -15101,13 +15423,13 @@ static PyObject *f2py_rout__fblas_dsyr2(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int lower = 0;
@@ -15125,7 +15447,7 @@ static PyObject *f2py_rout__fblas_dsyr2(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -15169,27 +15491,31 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.dsyr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsyr2: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(offx >= 0 && offx < len(x),"offx >= 0 && offx < len(x)","2nd argument x") {
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `y' of _fblas.dsyr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsyr2: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(offy >= 0 && offy < len(y),"offy >= 0 && offy < len(y)","3rd argument y") {
     /* Processing variable n */
@@ -15203,14 +15529,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=n,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 7th keyword `a' of _fblas.dsyr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsyr2: failed to create array from the 7th keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -15229,12 +15557,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*CHECKSCALAR(n>=0)*/
     } /*CHECKSCALAR(n <= (len(x)-1-offx)/abs(incx)+1)*/
@@ -15242,14 +15570,14 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(offy >= 0 && offy < len(y))*/
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(offx >= 0 && offx < len(x))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of offy*/
     /* End of cleaning variable offy */
@@ -15313,13 +15641,13 @@ static PyObject *f2py_rout__fblas_cher2(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int lower = 0;
@@ -15337,7 +15665,7 @@ static PyObject *f2py_rout__fblas_cher2(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -15381,27 +15709,31 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.cher2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cher2: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(offx >= 0 && offx < len(x),"offx >= 0 && offx < len(x)","2nd argument x") {
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `y' of _fblas.cher2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cher2: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(offy >= 0 && offy < len(y),"offy >= 0 && offy < len(y)","3rd argument y") {
     /* Processing variable n */
@@ -15415,14 +15747,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=n,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 7th keyword `a' of _fblas.cher2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cher2: failed to create array from the 7th keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -15441,12 +15775,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*CHECKSCALAR(n>=0)*/
     } /*CHECKSCALAR(n <= (len(x)-1-offx)/abs(incx)+1)*/
@@ -15454,14 +15788,14 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(offy >= 0 && offy < len(y))*/
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(offx >= 0 && offx < len(x))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of offy*/
     /* End of cleaning variable offy */
@@ -15525,13 +15859,13 @@ static PyObject *f2py_rout__fblas_zher2(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int lower = 0;
@@ -15549,7 +15883,7 @@ static PyObject *f2py_rout__fblas_zher2(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     int capi_overwrite_a = 0;
     PyObject *a_capi = Py_None;
@@ -15593,27 +15927,31 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.zher2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zher2: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(offx >= 0 && offx < len(x),"offx >= 0 && offx < len(x)","2nd argument x") {
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `y' of _fblas.zher2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zher2: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(offy >= 0 && offy < len(y),"offy >= 0 && offy < len(y)","3rd argument y") {
     /* Processing variable n */
@@ -15627,14 +15965,16 @@ f2py_start_clock();
     capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
     a_Dims[0]=n,a_Dims[1]=n;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 7th keyword `a' of _fblas.zher2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zher2: failed to create array from the 7th keyword `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -15653,12 +15993,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_a_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_a_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*CHECKSCALAR(n>=0)*/
     } /*CHECKSCALAR(n <= (len(x)-1-offx)/abs(incx)+1)*/
@@ -15666,14 +16006,14 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(offy >= 0 && offy < len(y))*/
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(offx >= 0 && offx < len(x))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of offy*/
     /* End of cleaning variable offy */
@@ -15736,7 +16076,7 @@ static PyObject *f2py_rout__fblas_sspr(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -15746,7 +16086,7 @@ static PyObject *f2py_rout__fblas_sspr(const PyObject *capi_self,
     float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     int capi_overwrite_ap = 0;
     PyObject *ap_capi = Py_None;
@@ -15787,14 +16127,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.sspr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sspr: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -15802,14 +16144,16 @@ f2py_start_clock();
     capi_ap_intent |= (capi_overwrite_ap?0:F2PY_INTENT_COPY);
     ;
     capi_ap_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ap_tmp = array_from_pyobj(NPY_FLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `ap' of _fblas.sspr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sspr: failed to create array from the 4th argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","4th argument ap") {
 /*end of frompyobj*/
@@ -15829,19 +16173,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_ap_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_ap_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -15902,7 +16246,7 @@ static PyObject *f2py_rout__fblas_dspr(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -15912,7 +16256,7 @@ static PyObject *f2py_rout__fblas_dspr(const PyObject *capi_self,
     double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     int capi_overwrite_ap = 0;
     PyObject *ap_capi = Py_None;
@@ -15953,14 +16297,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.dspr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dspr: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -15968,14 +16314,16 @@ f2py_start_clock();
     capi_ap_intent |= (capi_overwrite_ap?0:F2PY_INTENT_COPY);
     ;
     capi_ap_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ap_tmp = array_from_pyobj(NPY_DOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `ap' of _fblas.dspr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dspr: failed to create array from the 4th argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","4th argument ap") {
 /*end of frompyobj*/
@@ -15995,19 +16343,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_ap_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_ap_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -16068,7 +16416,7 @@ static PyObject *f2py_rout__fblas_cspr(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -16078,7 +16426,7 @@ static PyObject *f2py_rout__fblas_cspr(const PyObject *capi_self,
     complex_float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     int capi_overwrite_ap = 0;
     PyObject *ap_capi = Py_None;
@@ -16119,14 +16467,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.cspr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cspr: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -16134,14 +16484,16 @@ f2py_start_clock();
     capi_ap_intent |= (capi_overwrite_ap?0:F2PY_INTENT_COPY);
     ;
     capi_ap_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ap_tmp = array_from_pyobj(NPY_CFLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `ap' of _fblas.cspr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cspr: failed to create array from the 4th argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","4th argument ap") {
 /*end of frompyobj*/
@@ -16161,19 +16513,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_ap_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_ap_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -16234,7 +16586,7 @@ static PyObject *f2py_rout__fblas_zspr(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -16244,7 +16596,7 @@ static PyObject *f2py_rout__fblas_zspr(const PyObject *capi_self,
     complex_double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     int capi_overwrite_ap = 0;
     PyObject *ap_capi = Py_None;
@@ -16285,14 +16637,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.zspr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zspr: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -16300,14 +16654,16 @@ f2py_start_clock();
     capi_ap_intent |= (capi_overwrite_ap?0:F2PY_INTENT_COPY);
     ;
     capi_ap_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ap_tmp = array_from_pyobj(NPY_CDOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `ap' of _fblas.zspr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zspr: failed to create array from the 4th argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","4th argument ap") {
 /*end of frompyobj*/
@@ -16327,19 +16683,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_ap_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_ap_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -16400,7 +16756,7 @@ static PyObject *f2py_rout__fblas_chpr(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -16410,7 +16766,7 @@ static PyObject *f2py_rout__fblas_chpr(const PyObject *capi_self,
     complex_float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     int capi_overwrite_ap = 0;
     PyObject *ap_capi = Py_None;
@@ -16451,14 +16807,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.chpr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chpr: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -16466,14 +16824,16 @@ f2py_start_clock();
     capi_ap_intent |= (capi_overwrite_ap?0:F2PY_INTENT_COPY);
     ;
     capi_ap_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ap_tmp = array_from_pyobj(NPY_CFLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `ap' of _fblas.chpr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chpr: failed to create array from the 4th argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","4th argument ap") {
 /*end of frompyobj*/
@@ -16493,19 +16853,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_ap_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_ap_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -16566,7 +16926,7 @@ static PyObject *f2py_rout__fblas_zhpr(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -16576,7 +16936,7 @@ static PyObject *f2py_rout__fblas_zhpr(const PyObject *capi_self,
     complex_double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     int capi_overwrite_ap = 0;
     PyObject *ap_capi = Py_None;
@@ -16617,14 +16977,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.zhpr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhpr: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -16632,14 +16994,16 @@ f2py_start_clock();
     capi_ap_intent |= (capi_overwrite_ap?0:F2PY_INTENT_COPY);
     ;
     capi_ap_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ap_tmp = array_from_pyobj(NPY_CDOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `ap' of _fblas.zhpr to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhpr: failed to create array from the 4th argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","4th argument ap") {
 /*end of frompyobj*/
@@ -16659,19 +17023,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_ap_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_ap_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -16735,7 +17099,7 @@ static PyObject *f2py_rout__fblas_sspr2(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -16745,7 +17109,7 @@ static PyObject *f2py_rout__fblas_sspr2(const PyObject *capi_self,
     float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int incy = 0;
@@ -16755,7 +17119,7 @@ static PyObject *f2py_rout__fblas_sspr2(const PyObject *capi_self,
     float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     int capi_overwrite_ap = 0;
     PyObject *ap_capi = Py_None;
@@ -16805,28 +17169,32 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.sspr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sspr2: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_FLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `y' of _fblas.sspr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sspr2: failed to create array from the 4th argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (float *)(PyArray_DATA(capi_y_tmp));
+        y = (float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th argument y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th argument y") {
@@ -16834,14 +17202,16 @@ f2py_start_clock();
     capi_ap_intent |= (capi_overwrite_ap?0:F2PY_INTENT_COPY);
     ;
     capi_ap_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ap_tmp = array_from_pyobj(NPY_FLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 5th argument `ap' of _fblas.sspr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sspr2: failed to create array from the 5th argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","5th argument ap") {
 /*end of frompyobj*/
@@ -16861,25 +17231,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_ap_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_ap_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -16948,7 +17318,7 @@ static PyObject *f2py_rout__fblas_dspr2(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -16958,7 +17328,7 @@ static PyObject *f2py_rout__fblas_dspr2(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int incy = 0;
@@ -16968,7 +17338,7 @@ static PyObject *f2py_rout__fblas_dspr2(const PyObject *capi_self,
     double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     int capi_overwrite_ap = 0;
     PyObject *ap_capi = Py_None;
@@ -17018,28 +17388,32 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.dspr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dspr2: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `y' of _fblas.dspr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dspr2: failed to create array from the 4th argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th argument y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th argument y") {
@@ -17047,14 +17421,16 @@ f2py_start_clock();
     capi_ap_intent |= (capi_overwrite_ap?0:F2PY_INTENT_COPY);
     ;
     capi_ap_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ap_tmp = array_from_pyobj(NPY_DOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 5th argument `ap' of _fblas.dspr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dspr2: failed to create array from the 5th argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","5th argument ap") {
 /*end of frompyobj*/
@@ -17074,25 +17450,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_ap_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_ap_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -17161,7 +17537,7 @@ static PyObject *f2py_rout__fblas_chpr2(const PyObject *capi_self,
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -17171,7 +17547,7 @@ static PyObject *f2py_rout__fblas_chpr2(const PyObject *capi_self,
     complex_float *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int incy = 0;
@@ -17181,7 +17557,7 @@ static PyObject *f2py_rout__fblas_chpr2(const PyObject *capi_self,
     complex_float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     int capi_overwrite_ap = 0;
     PyObject *ap_capi = Py_None;
@@ -17231,28 +17607,32 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.chpr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chpr2: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CFLOAT,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `y' of _fblas.chpr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chpr2: failed to create array from the 4th argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_float *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_float *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th argument y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th argument y") {
@@ -17260,14 +17640,16 @@ f2py_start_clock();
     capi_ap_intent |= (capi_overwrite_ap?0:F2PY_INTENT_COPY);
     ;
     capi_ap_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ap_tmp = array_from_pyobj(NPY_CFLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 5th argument `ap' of _fblas.chpr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chpr2: failed to create array from the 5th argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","5th argument ap") {
 /*end of frompyobj*/
@@ -17287,25 +17669,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_ap_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_ap_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -17374,7 +17756,7 @@ static PyObject *f2py_rout__fblas_zhpr2(const PyObject *capi_self,
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int incx = 0;
@@ -17384,7 +17766,7 @@ static PyObject *f2py_rout__fblas_zhpr2(const PyObject *capi_self,
     complex_double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     PyObject *y_capi = Py_None;
     int incy = 0;
@@ -17394,7 +17776,7 @@ static PyObject *f2py_rout__fblas_zhpr2(const PyObject *capi_self,
     complex_double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     int capi_overwrite_ap = 0;
     PyObject *ap_capi = Py_None;
@@ -17444,28 +17826,32 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.zhpr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhpr2: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
     /* Processing variable y */
     ;
     capi_y_intent |= F2PY_INTENT_IN;
-    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 4th argument `y' of _fblas.zhpr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhpr2: failed to create array from the 4th argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+        y = (complex_double *)(PyArray_DATA(capi_y_as_array));
 
     CHECKARRAY(len(y)>offy+(n-1)*abs(incy),"len(y)>offy+(n-1)*abs(incy)","4th argument y") {
     CHECKARRAY(offy>=0 && offy<len(y),"offy>=0 && offy<len(y)","4th argument y") {
@@ -17473,14 +17859,16 @@ f2py_start_clock();
     capi_ap_intent |= (capi_overwrite_ap?0:F2PY_INTENT_COPY);
     ;
     capi_ap_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ap_tmp = array_from_pyobj(NPY_CDOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 5th argument `ap' of _fblas.zhpr2 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhpr2: failed to create array from the 5th argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","5th argument ap") {
 /*end of frompyobj*/
@@ -17500,25 +17888,25 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_ap_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_ap_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*CHECKARRAY(offy>=0 && offy<len(y))*/
     } /*CHECKARRAY(len(y)>offy+(n-1)*abs(incy))*/
-    if((PyObject *)capi_y_tmp!=y_capi) {
-        Py_XDECREF(capi_y_tmp); }
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    if((PyObject *)capi_y_as_array!=y_capi) {
+        Py_XDECREF(capi_y_as_array); }
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -17584,14 +17972,14 @@ static PyObject *f2py_rout__fblas_stbsv(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -17643,14 +18031,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.stbsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.stbsv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -17665,14 +18055,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.stbsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.stbsv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -17693,14 +18085,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
     } /*if (f2py_success) of k*/
@@ -17708,9 +18100,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -17772,14 +18164,14 @@ static PyObject *f2py_rout__fblas_dtbsv(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -17831,14 +18223,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.dtbsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtbsv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -17853,14 +18247,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.dtbsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtbsv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -17881,14 +18277,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
     } /*if (f2py_success) of k*/
@@ -17896,9 +18292,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -17960,14 +18356,14 @@ static PyObject *f2py_rout__fblas_ctbsv(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -18019,14 +18415,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ctbsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctbsv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -18041,14 +18439,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.ctbsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctbsv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -18069,14 +18469,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
     } /*if (f2py_success) of k*/
@@ -18084,9 +18484,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -18148,14 +18548,14 @@ static PyObject *f2py_rout__fblas_ztbsv(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -18207,14 +18607,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ztbsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztbsv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -18229,14 +18631,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.ztbsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztbsv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -18257,14 +18661,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
     } /*if (f2py_success) of k*/
@@ -18272,9 +18676,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -18335,13 +18739,13 @@ static PyObject *f2py_rout__fblas_stpsv(const PyObject *capi_self,
     float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -18397,28 +18801,32 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_FLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `ap' of _fblas.stpsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.stpsv: failed to create array from the 2nd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","2nd argument ap") {
     /* Processing variable x */
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.stpsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.stpsv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -18439,19 +18847,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -18515,13 +18923,13 @@ static PyObject *f2py_rout__fblas_dtpsv(const PyObject *capi_self,
     double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -18577,28 +18985,32 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_DOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `ap' of _fblas.dtpsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtpsv: failed to create array from the 2nd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","2nd argument ap") {
     /* Processing variable x */
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.dtpsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtpsv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -18619,19 +19031,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -18695,13 +19107,13 @@ static PyObject *f2py_rout__fblas_ctpsv(const PyObject *capi_self,
     complex_float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -18757,28 +19169,32 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_CFLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `ap' of _fblas.ctpsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctpsv: failed to create array from the 2nd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","2nd argument ap") {
     /* Processing variable x */
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.ctpsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctpsv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -18799,19 +19215,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -18875,13 +19291,13 @@ static PyObject *f2py_rout__fblas_ztpsv(const PyObject *capi_self,
     complex_double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -18937,28 +19353,32 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_CDOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `ap' of _fblas.ztpsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztpsv: failed to create array from the 2nd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","2nd argument ap") {
     /* Processing variable x */
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.ztpsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztpsv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -18979,19 +19399,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -19053,13 +19473,13 @@ static PyObject *f2py_rout__fblas_strmv(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -19108,26 +19528,30 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.strmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.strmv: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `a' of _fblas.strmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.strmv: failed to create array from the 1st argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
     /* Processing variable offx */
@@ -19155,7 +19579,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -19166,11 +19590,11 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
@@ -19227,13 +19651,13 @@ static PyObject *f2py_rout__fblas_dtrmv(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -19282,26 +19706,30 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.dtrmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtrmv: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `a' of _fblas.dtrmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtrmv: failed to create array from the 1st argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
     /* Processing variable offx */
@@ -19329,7 +19757,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -19340,11 +19768,11 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
@@ -19401,13 +19829,13 @@ static PyObject *f2py_rout__fblas_ctrmv(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -19456,26 +19884,30 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.ctrmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctrmv: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `a' of _fblas.ctrmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctrmv: failed to create array from the 1st argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
     /* Processing variable offx */
@@ -19503,7 +19935,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -19514,11 +19946,11 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
@@ -19575,13 +20007,13 @@ static PyObject *f2py_rout__fblas_ztrmv(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -19630,26 +20062,30 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.ztrmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztrmv: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `a' of _fblas.ztrmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztrmv: failed to create array from the 1st argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
     /* Processing variable offx */
@@ -19677,7 +20113,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -19688,11 +20124,11 @@ f2py_stop_call_clock();
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(incx>0||incx<0)*/
     } /*if (f2py_success) of incx*/
@@ -19749,14 +20185,14 @@ static PyObject *f2py_rout__fblas_strsv(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -19808,14 +20244,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `a' of _fblas.strsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.strsv: failed to create array from the 1st argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
     /* Processing variable n */
@@ -19827,14 +20265,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.strsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.strsv: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","2nd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","2nd argument x") {
@@ -19855,22 +20295,22 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -19929,14 +20369,14 @@ static PyObject *f2py_rout__fblas_dtrsv(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -19988,14 +20428,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `a' of _fblas.dtrsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtrsv: failed to create array from the 1st argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
     /* Processing variable n */
@@ -20007,14 +20449,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.dtrsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtrsv: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","2nd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","2nd argument x") {
@@ -20035,22 +20479,22 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -20109,14 +20553,14 @@ static PyObject *f2py_rout__fblas_ctrsv(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -20168,14 +20612,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `a' of _fblas.ctrsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctrsv: failed to create array from the 1st argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
     /* Processing variable n */
@@ -20187,14 +20633,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.ctrsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctrsv: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","2nd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","2nd argument x") {
@@ -20215,22 +20663,22 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -20289,14 +20737,14 @@ static PyObject *f2py_rout__fblas_ztrsv(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -20348,14 +20796,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 1st argument `a' of _fblas.ztrsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztrsv: failed to create array from the 1st argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
     /* Processing variable n */
@@ -20367,14 +20817,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `x' of _fblas.ztrsv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztrsv: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","2nd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","2nd argument x") {
@@ -20395,22 +20847,22 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -20472,14 +20924,14 @@ static PyObject *f2py_rout__fblas_stbmv(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -20531,14 +20983,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.stbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.stbmv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -20553,14 +21007,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.stbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.stbmv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -20581,14 +21037,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
     } /*if (f2py_success) of k*/
@@ -20596,9 +21052,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -20660,14 +21116,14 @@ static PyObject *f2py_rout__fblas_dtbmv(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -20719,14 +21175,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.dtbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtbmv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -20741,14 +21199,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.dtbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtbmv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -20769,14 +21229,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
     } /*if (f2py_success) of k*/
@@ -20784,9 +21244,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -20848,14 +21308,14 @@ static PyObject *f2py_rout__fblas_ctbmv(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -20907,14 +21367,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ctbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctbmv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -20929,14 +21391,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.ctbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctbmv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -20957,14 +21421,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
     } /*if (f2py_success) of k*/
@@ -20972,9 +21436,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -21036,14 +21500,14 @@ static PyObject *f2py_rout__fblas_ztbmv(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     int lda = 0;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -21095,14 +21559,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ztbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztbmv: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable n */
     n = shape(a,1);
@@ -21117,14 +21583,16 @@ f2py_start_clock();
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.ztbmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztbmv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -21145,14 +21613,14 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKSCALAR(k>=0&&k<=lda-1)*/
     } /*if (f2py_success) of k*/
@@ -21160,9 +21628,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKSCALAR(n>=0)*/
     /* End of cleaning variable n */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -21223,13 +21691,13 @@ static PyObject *f2py_rout__fblas_stpmv(const PyObject *capi_self,
     float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -21285,28 +21753,32 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_FLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `ap' of _fblas.stpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.stpmv: failed to create array from the 2nd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","2nd argument ap") {
     /* Processing variable x */
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.stpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.stpmv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -21327,19 +21799,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -21403,13 +21875,13 @@ static PyObject *f2py_rout__fblas_dtpmv(const PyObject *capi_self,
     double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -21465,28 +21937,32 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_DOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `ap' of _fblas.dtpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtpmv: failed to create array from the 2nd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","2nd argument ap") {
     /* Processing variable x */
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.dtpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtpmv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -21507,19 +21983,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -21583,13 +22059,13 @@ static PyObject *f2py_rout__fblas_ctpmv(const PyObject *capi_self,
     complex_float *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     complex_float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -21645,28 +22121,32 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_CFLOAT,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `ap' of _fblas.ctpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctpmv: failed to create array from the 2nd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_float *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_float *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","2nd argument ap") {
     /* Processing variable x */
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.ctpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctpmv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_float *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -21687,19 +22167,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -21763,13 +22243,13 @@ static PyObject *f2py_rout__fblas_ztpmv(const PyObject *capi_self,
     complex_double *ap = NULL;
     npy_intp ap_Dims[1] = {-1};
     const int ap_Rank = 1;
-    PyArrayObject *capi_ap_tmp = NULL;
+    PyArrayObject *capi_ap_as_array = NULL;
     int capi_ap_intent = 0;
     PyObject *ap_capi = Py_None;
     complex_double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     int capi_overwrite_x = 0;
     PyObject *x_capi = Py_None;
@@ -21825,28 +22305,32 @@ f2py_start_clock();
     /* Processing variable ap */
     ;
     capi_ap_intent |= F2PY_INTENT_IN;
-    capi_ap_tmp = array_from_pyobj(NPY_CDOUBLE,ap_Dims,ap_Rank,capi_ap_intent,ap_capi);
-    if (capi_ap_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `ap' of _fblas.ztpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztpmv: failed to create array from the 2nd argument `ap`";
+    capi_ap_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,ap_Dims,ap_Rank,  capi_ap_intent,ap_capi,capi_errmess);
+    if (capi_ap_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ap = (complex_double *)(PyArray_DATA(capi_ap_tmp));
+        ap = (complex_double *)(PyArray_DATA(capi_ap_as_array));
 
     CHECKARRAY(len(ap)>=(n*(n+1)/2),"len(ap)>=(n*(n+1)/2)","2nd argument ap") {
     /* Processing variable x */
     capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
     ;
     capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `x' of _fblas.ztpmv to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztpmv: failed to create array from the 3rd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+        x = (complex_double *)(PyArray_DATA(capi_x_as_array));
 
     CHECKARRAY(len(x)>offx+(n-1)*abs(incx),"len(x)>offx+(n-1)*abs(incx)","3rd argument x") {
     CHECKARRAY(offx>=0 && offx<len(x),"offx>=0 && offx<len(x)","3rd argument x") {
@@ -21867,19 +22351,19 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_x_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(offx>=0 && offx<len(x))*/
     } /*CHECKARRAY(len(x)>offx+(n-1)*abs(incx))*/
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*CHECKARRAY(len(ap)>=(n*(n+1)/2))*/
-    if((PyObject *)capi_ap_tmp!=ap_capi) {
-        Py_XDECREF(capi_ap_tmp); }
-    }  /*if (capi_ap_tmp == NULL) ... else of ap*/
+    if((PyObject *)capi_ap_as_array!=ap_capi) {
+        Py_XDECREF(capi_ap_as_array); }
+    }  /* if (capi_ap_as_array == NULL) ... else of ap */
     /* End of cleaning variable ap */
     } /*if (f2py_success) of offx*/
     /* End of cleaning variable offx */
@@ -21945,13 +22429,13 @@ static PyObject *f2py_rout__fblas_sgemm(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     float beta = 0;
@@ -21959,7 +22443,7 @@ static PyObject *f2py_rout__fblas_sgemm(const PyObject *capi_self,
     float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -22002,26 +22486,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.sgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sgemm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.sgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sgemm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -22042,14 +22530,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=m,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_FLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.sgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.sgemm: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (float *)(PyArray_DATA(capi_c_tmp));
+        c = (float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==m && shape(c,1)==n,"shape(c,0)==m && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -22069,13 +22559,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==m && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(trans_b?kb==k:ldb==k)*/
     /* End of cleaning variable n */
@@ -22085,13 +22575,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -22150,13 +22640,13 @@ static PyObject *f2py_rout__fblas_dgemm(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     double beta = 0;
@@ -22164,7 +22654,7 @@ static PyObject *f2py_rout__fblas_dgemm(const PyObject *capi_self,
     double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -22207,26 +22697,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.dgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dgemm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.dgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dgemm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -22247,14 +22741,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=m,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_DOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.dgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dgemm: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (double *)(PyArray_DATA(capi_c_tmp));
+        c = (double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==m && shape(c,1)==n,"shape(c,0)==m && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -22274,13 +22770,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==m && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(trans_b?kb==k:ldb==k)*/
     /* End of cleaning variable n */
@@ -22290,13 +22786,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -22355,13 +22851,13 @@ static PyObject *f2py_rout__fblas_cgemm(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float beta;
@@ -22369,7 +22865,7 @@ static PyObject *f2py_rout__fblas_cgemm(const PyObject *capi_self,
     complex_float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -22412,26 +22908,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.cgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgemm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.cgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgemm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -22452,14 +22952,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=m,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CFLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.cgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cgemm: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_float *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==m && shape(c,1)==n,"shape(c,0)==m && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -22479,13 +22981,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==m && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(trans_b?kb==k:ldb==k)*/
     /* End of cleaning variable n */
@@ -22495,13 +22997,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -22560,13 +23062,13 @@ static PyObject *f2py_rout__fblas_zgemm(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double beta;
@@ -22574,7 +23076,7 @@ static PyObject *f2py_rout__fblas_zgemm(const PyObject *capi_self,
     complex_double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -22617,26 +23119,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.zgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgemm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.zgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgemm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -22657,14 +23163,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=m,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CDOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.zgemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zgemm: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_double *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==m && shape(c,1)==n,"shape(c,0)==m && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -22684,13 +23192,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==m && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(trans_b?kb==k:ldb==k)*/
     /* End of cleaning variable n */
@@ -22700,13 +23208,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -22764,13 +23272,13 @@ static PyObject *f2py_rout__fblas_ssymm(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     float beta = 0;
@@ -22778,7 +23286,7 @@ static PyObject *f2py_rout__fblas_ssymm(const PyObject *capi_self,
     float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -22821,26 +23329,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ssymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssymm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.ssymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssymm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -22859,14 +23371,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=m,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_FLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.ssymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssymm: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (float *)(PyArray_DATA(capi_c_tmp));
+        c = (float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==m && shape(c,1)==n,"shape(c,0)==m && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -22886,13 +23400,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==m && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(side? kb==lda : ka==ldb)*/
     /* End of cleaning variable n */
@@ -22901,13 +23415,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -22965,13 +23479,13 @@ static PyObject *f2py_rout__fblas_dsymm(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     double beta = 0;
@@ -22979,7 +23493,7 @@ static PyObject *f2py_rout__fblas_dsymm(const PyObject *capi_self,
     double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -23022,26 +23536,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.dsymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsymm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.dsymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsymm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -23060,14 +23578,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=m,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_DOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.dsymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsymm: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (double *)(PyArray_DATA(capi_c_tmp));
+        c = (double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==m && shape(c,1)==n,"shape(c,0)==m && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -23087,13 +23607,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==m && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(side? kb==lda : ka==ldb)*/
     /* End of cleaning variable n */
@@ -23102,13 +23622,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -23166,13 +23686,13 @@ static PyObject *f2py_rout__fblas_csymm(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float beta;
@@ -23180,7 +23700,7 @@ static PyObject *f2py_rout__fblas_csymm(const PyObject *capi_self,
     complex_float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -23223,26 +23743,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.csymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csymm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.csymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csymm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -23261,14 +23785,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=m,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CFLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.csymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csymm: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_float *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==m && shape(c,1)==n,"shape(c,0)==m && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -23288,13 +23814,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==m && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(side? kb==lda : ka==ldb)*/
     /* End of cleaning variable n */
@@ -23303,13 +23829,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -23367,13 +23893,13 @@ static PyObject *f2py_rout__fblas_zsymm(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double beta;
@@ -23381,7 +23907,7 @@ static PyObject *f2py_rout__fblas_zsymm(const PyObject *capi_self,
     complex_double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -23424,26 +23950,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.zsymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zsymm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.zsymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zsymm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -23462,14 +23992,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=m,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CDOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.zsymm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zsymm: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_double *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==m && shape(c,1)==n,"shape(c,0)==m && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -23489,13 +24021,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==m && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(side? kb==lda : ka==ldb)*/
     /* End of cleaning variable n */
@@ -23504,13 +24036,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -23568,13 +24100,13 @@ static PyObject *f2py_rout__fblas_chemm(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float beta;
@@ -23582,7 +24114,7 @@ static PyObject *f2py_rout__fblas_chemm(const PyObject *capi_self,
     complex_float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -23625,26 +24157,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.chemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chemm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.chemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chemm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -23663,14 +24199,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=m,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CFLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.chemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.chemm: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_float *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==m && shape(c,1)==n,"shape(c,0)==m && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -23690,13 +24228,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==m && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(side? kb==lda : ka==ldb)*/
     /* End of cleaning variable n */
@@ -23705,13 +24243,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -23769,13 +24307,13 @@ static PyObject *f2py_rout__fblas_zhemm(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double beta;
@@ -23783,7 +24321,7 @@ static PyObject *f2py_rout__fblas_zhemm(const PyObject *capi_self,
     complex_double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -23826,26 +24364,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.zhemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhemm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.zhemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhemm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -23864,14 +24406,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=m,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CDOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.zhemm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zhemm: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_double *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==m && shape(c,1)==n,"shape(c,0)==m && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -23891,13 +24435,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==m && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(side? kb==lda : ka==ldb)*/
     /* End of cleaning variable n */
@@ -23906,13 +24450,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -23969,7 +24513,7 @@ static PyObject *f2py_rout__fblas_ssyrk(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     float beta = 0;
@@ -23977,7 +24521,7 @@ static PyObject *f2py_rout__fblas_ssyrk(const PyObject *capi_self,
     float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -24018,14 +24562,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ssyrk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssyrk: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -24039,14 +24585,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_FLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.ssyrk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssyrk: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (float *)(PyArray_DATA(capi_c_tmp));
+        c = (float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -24066,21 +24614,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     /* End of cleaning variable k */
     /* End of cleaning variable n */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -24137,7 +24685,7 @@ static PyObject *f2py_rout__fblas_dsyrk(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     double beta = 0;
@@ -24145,7 +24693,7 @@ static PyObject *f2py_rout__fblas_dsyrk(const PyObject *capi_self,
     double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -24186,14 +24734,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.dsyrk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsyrk: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -24207,14 +24757,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_DOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.dsyrk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsyrk: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (double *)(PyArray_DATA(capi_c_tmp));
+        c = (double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -24234,21 +24786,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     /* End of cleaning variable k */
     /* End of cleaning variable n */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -24305,7 +24857,7 @@ static PyObject *f2py_rout__fblas_csyrk(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float beta;
@@ -24313,7 +24865,7 @@ static PyObject *f2py_rout__fblas_csyrk(const PyObject *capi_self,
     complex_float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -24354,14 +24906,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.csyrk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csyrk: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -24375,14 +24929,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CFLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.csyrk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csyrk: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_float *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -24402,21 +24958,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     /* End of cleaning variable k */
     /* End of cleaning variable n */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -24473,7 +25029,7 @@ static PyObject *f2py_rout__fblas_zsyrk(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double beta;
@@ -24481,7 +25037,7 @@ static PyObject *f2py_rout__fblas_zsyrk(const PyObject *capi_self,
     complex_double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -24522,14 +25078,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.zsyrk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zsyrk: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -24543,14 +25101,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CDOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.zsyrk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zsyrk: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_double *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -24570,21 +25130,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     /* End of cleaning variable k */
     /* End of cleaning variable n */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -24641,7 +25201,7 @@ static PyObject *f2py_rout__fblas_cherk(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float beta;
@@ -24649,7 +25209,7 @@ static PyObject *f2py_rout__fblas_cherk(const PyObject *capi_self,
     complex_float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -24690,14 +25250,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.cherk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cherk: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -24711,14 +25273,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CFLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.cherk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cherk: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_float *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -24738,21 +25302,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     /* End of cleaning variable k */
     /* End of cleaning variable n */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -24809,7 +25373,7 @@ static PyObject *f2py_rout__fblas_zherk(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double beta;
@@ -24817,7 +25381,7 @@ static PyObject *f2py_rout__fblas_zherk(const PyObject *capi_self,
     complex_double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -24858,14 +25422,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.zherk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zherk: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -24879,14 +25445,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CDOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.zherk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zherk: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_double *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -24906,21 +25474,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     /* End of cleaning variable k */
     /* End of cleaning variable n */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -24978,13 +25546,13 @@ static PyObject *f2py_rout__fblas_ssyr2k(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     float beta = 0;
@@ -24992,7 +25560,7 @@ static PyObject *f2py_rout__fblas_ssyr2k(const PyObject *capi_self,
     float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -25035,26 +25603,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ssyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssyr2k: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.ssyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssyr2k: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -25073,14 +25645,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_FLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.ssyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ssyr2k: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (float *)(PyArray_DATA(capi_c_tmp));
+        c = (float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -25100,13 +25674,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(trans ? lda==ldb: ka==kb)*/
     /* End of cleaning variable k */
@@ -25115,13 +25689,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -25179,13 +25753,13 @@ static PyObject *f2py_rout__fblas_dsyr2k(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     double beta = 0;
@@ -25193,7 +25767,7 @@ static PyObject *f2py_rout__fblas_dsyr2k(const PyObject *capi_self,
     double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -25236,26 +25810,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.dsyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsyr2k: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.dsyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsyr2k: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -25274,14 +25852,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_DOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.dsyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dsyr2k: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (double *)(PyArray_DATA(capi_c_tmp));
+        c = (double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -25301,13 +25881,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(trans ? lda==ldb: ka==kb)*/
     /* End of cleaning variable k */
@@ -25316,13 +25896,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of beta*/
     /* End of cleaning variable beta */
@@ -25380,13 +25960,13 @@ static PyObject *f2py_rout__fblas_csyr2k(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float beta;
@@ -25394,7 +25974,7 @@ static PyObject *f2py_rout__fblas_csyr2k(const PyObject *capi_self,
     complex_float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -25437,26 +26017,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.csyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csyr2k: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.csyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csyr2k: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -25475,14 +26059,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CFLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.csyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.csyr2k: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_float *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -25502,13 +26088,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(trans ? lda==ldb: ka==kb)*/
     /* End of cleaning variable k */
@@ -25517,13 +26103,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -25581,13 +26167,13 @@ static PyObject *f2py_rout__fblas_zsyr2k(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double beta;
@@ -25595,7 +26181,7 @@ static PyObject *f2py_rout__fblas_zsyr2k(const PyObject *capi_self,
     complex_double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -25638,26 +26224,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.zsyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zsyr2k: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.zsyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zsyr2k: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -25676,14 +26266,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CDOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.zsyr2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zsyr2k: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_double *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -25703,13 +26295,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(trans ? lda==ldb: ka==kb)*/
     /* End of cleaning variable k */
@@ -25718,13 +26310,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -25782,13 +26374,13 @@ static PyObject *f2py_rout__fblas_cher2k(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_float beta;
@@ -25796,7 +26388,7 @@ static PyObject *f2py_rout__fblas_cher2k(const PyObject *capi_self,
     complex_float *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -25839,26 +26431,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.cher2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cher2k: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.cher2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cher2k: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -25877,14 +26473,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CFLOAT,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.cher2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.cher2k: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_float *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_float *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -25904,13 +26502,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(trans ? lda==ldb: ka==kb)*/
     /* End of cleaning variable k */
@@ -25919,13 +26517,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -25983,13 +26581,13 @@ static PyObject *f2py_rout__fblas_zher2k(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     PyObject *b_capi = Py_None;
     complex_double beta;
@@ -25997,7 +26595,7 @@ static PyObject *f2py_rout__fblas_zher2k(const PyObject *capi_self,
     complex_double *c = NULL;
     npy_intp c_Dims[2] = {-1, -1};
     const int c_Rank = 2;
-    PyArrayObject *capi_c_tmp = NULL;
+    PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     int capi_overwrite_c = 0;
     PyObject *c_capi = Py_None;
@@ -26040,26 +26638,30 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.zher2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zher2k: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     ;
     capi_b_intent |= F2PY_INTENT_IN;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.zher2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zher2k: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = shape(a,0);
@@ -26078,14 +26680,16 @@ f2py_start_clock();
     capi_c_intent |= (capi_overwrite_c?0:F2PY_INTENT_COPY);
     c_Dims[0]=n,c_Dims[1]=n;
     capi_c_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_OPTIONAL;
-    capi_c_tmp = array_from_pyobj(NPY_CDOUBLE,c_Dims,c_Rank,capi_c_intent,c_capi);
-    if (capi_c_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd keyword `c' of _fblas.zher2k to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.zher2k: failed to create array from the 2nd keyword `c`";
+    capi_c_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
+    if (capi_c_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        c = (complex_double *)(PyArray_DATA(capi_c_tmp));
+        c = (complex_double *)(PyArray_DATA(capi_c_as_array));
 
     CHECKARRAY(shape(c,0)==n && shape(c,1)==n,"shape(c,0)==n && shape(c,1)==n","2nd keyword c") {
 /*end of frompyobj*/
@@ -26105,13 +26709,13 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_c_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_c_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
     } /*CHECKARRAY(shape(c,0)==n && shape(c,1)==n)*/
-    }  /*if (capi_c_tmp == NULL) ... else of c*/
+    }  /* if (capi_c_as_array == NULL) ... else of c */
     /* End of cleaning variable c */
     } /*CHECKSCALAR(trans ? lda==ldb: ka==kb)*/
     /* End of cleaning variable k */
@@ -26120,13 +26724,13 @@ f2py_stop_call_clock();
     /* End of cleaning variable ldb */
     /* End of cleaning variable ka */
     /* End of cleaning variable lda */
-    if((PyObject *)capi_b_tmp!=b_capi) {
-        Py_XDECREF(capi_b_tmp); }
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    if((PyObject *)capi_b_as_array!=b_capi) {
+        Py_XDECREF(capi_b_as_array); }
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of beta frompyobj*/
     /* End of cleaning variable beta */
@@ -26185,13 +26789,13 @@ static PyObject *f2py_rout__fblas_strmm(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     int capi_overwrite_b = 0;
     PyObject *b_capi = Py_None;
@@ -26242,27 +26846,31 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.strmm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.strmm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     capi_b_intent |= (capi_overwrite_b?0:F2PY_INTENT_COPY);
     ;
     capi_b_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.strmm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.strmm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = MAX(1,shape(a, 0));
@@ -26292,7 +26900,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_b_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_b_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -26303,11 +26911,11 @@ f2py_stop_call_clock();
     /* End of cleaning variable m */
     /* End of cleaning variable ldb */
     /* End of cleaning variable lda */
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -26370,13 +26978,13 @@ static PyObject *f2py_rout__fblas_dtrmm(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     int capi_overwrite_b = 0;
     PyObject *b_capi = Py_None;
@@ -26427,27 +27035,31 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.dtrmm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtrmm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     capi_b_intent |= (capi_overwrite_b?0:F2PY_INTENT_COPY);
     ;
     capi_b_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.dtrmm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtrmm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = MAX(1,shape(a, 0));
@@ -26477,7 +27089,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_b_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_b_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -26488,11 +27100,11 @@ f2py_stop_call_clock();
     /* End of cleaning variable m */
     /* End of cleaning variable ldb */
     /* End of cleaning variable lda */
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -26555,13 +27167,13 @@ static PyObject *f2py_rout__fblas_ctrmm(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     int capi_overwrite_b = 0;
     PyObject *b_capi = Py_None;
@@ -26612,27 +27224,31 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ctrmm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctrmm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     capi_b_intent |= (capi_overwrite_b?0:F2PY_INTENT_COPY);
     ;
     capi_b_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.ctrmm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctrmm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = MAX(1,shape(a, 0));
@@ -26662,7 +27278,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_b_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_b_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -26673,11 +27289,11 @@ f2py_stop_call_clock();
     /* End of cleaning variable m */
     /* End of cleaning variable ldb */
     /* End of cleaning variable lda */
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -26740,13 +27356,13 @@ static PyObject *f2py_rout__fblas_ztrmm(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     int capi_overwrite_b = 0;
     PyObject *b_capi = Py_None;
@@ -26797,27 +27413,31 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ztrmm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztrmm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     /* Processing variable b */
     capi_b_intent |= (capi_overwrite_b?0:F2PY_INTENT_COPY);
     ;
     capi_b_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.ztrmm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztrmm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable lda */
     lda = MAX(1,shape(a, 0));
@@ -26847,7 +27467,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_b_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_b_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -26858,11 +27478,11 @@ f2py_stop_call_clock();
     /* End of cleaning variable m */
     /* End of cleaning variable ldb */
     /* End of cleaning variable lda */
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -26924,13 +27544,13 @@ static PyObject *f2py_rout__fblas_strsm(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     int capi_overwrite_b = 0;
     PyObject *b_capi = Py_None;
@@ -26982,14 +27602,16 @@ f2py_start_clock();
     capi_b_intent |= (capi_overwrite_b?0:F2PY_INTENT_COPY);
     ;
     capi_b_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.strsm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.strsm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (float *)(PyArray_DATA(capi_b_tmp));
+        b = (float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable ldb */
     ldb = MAX(shape(b, 0),1);
@@ -27000,14 +27622,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.strsm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.strsm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==(side?n:m),"shape(a,0)==(side?n:m)","2nd argument a") {
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","2nd argument a") {
@@ -27030,7 +27654,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_b_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_b_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -27038,14 +27662,14 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
     } /*CHECKARRAY(shape(a,0)==(side?n:m))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable m */
     /* End of cleaning variable n */
     /* End of cleaning variable ldb */
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -27107,13 +27731,13 @@ static PyObject *f2py_rout__fblas_dtrsm(const PyObject *capi_self,
     double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     int capi_overwrite_b = 0;
     PyObject *b_capi = Py_None;
@@ -27165,14 +27789,16 @@ f2py_start_clock();
     capi_b_intent |= (capi_overwrite_b?0:F2PY_INTENT_COPY);
     ;
     capi_b_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.dtrsm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtrsm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (double *)(PyArray_DATA(capi_b_tmp));
+        b = (double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable ldb */
     ldb = MAX(shape(b, 0),1);
@@ -27183,14 +27809,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.dtrsm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.dtrsm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (double *)(PyArray_DATA(capi_a_tmp));
+        a = (double *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==(side?n:m),"shape(a,0)==(side?n:m)","2nd argument a") {
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","2nd argument a") {
@@ -27213,7 +27841,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_b_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_b_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -27221,14 +27849,14 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
     } /*CHECKARRAY(shape(a,0)==(side?n:m))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable m */
     /* End of cleaning variable n */
     /* End of cleaning variable ldb */
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
     } /*if (f2py_success) of alpha*/
     /* End of cleaning variable alpha */
@@ -27290,13 +27918,13 @@ static PyObject *f2py_rout__fblas_ctrsm(const PyObject *capi_self,
     complex_float *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_float *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     int capi_overwrite_b = 0;
     PyObject *b_capi = Py_None;
@@ -27348,14 +27976,16 @@ f2py_start_clock();
     capi_b_intent |= (capi_overwrite_b?0:F2PY_INTENT_COPY);
     ;
     capi_b_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.ctrsm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctrsm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_float *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable ldb */
     ldb = MAX(shape(b, 0),1);
@@ -27366,14 +27996,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ctrsm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ctrsm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_float *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==(side?n:m),"shape(a,0)==(side?n:m)","2nd argument a") {
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","2nd argument a") {
@@ -27396,7 +28028,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_b_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_b_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -27404,14 +28036,14 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
     } /*CHECKARRAY(shape(a,0)==(side?n:m))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable m */
     /* End of cleaning variable n */
     /* End of cleaning variable ldb */
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -27473,13 +28105,13 @@ static PyObject *f2py_rout__fblas_ztrsm(const PyObject *capi_self,
     complex_double *a = NULL;
     npy_intp a_Dims[2] = {-1, -1};
     const int a_Rank = 2;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     complex_double *b = NULL;
     npy_intp b_Dims[2] = {-1, -1};
     const int b_Rank = 2;
-    PyArrayObject *capi_b_tmp = NULL;
+    PyArrayObject *capi_b_as_array = NULL;
     int capi_b_intent = 0;
     int capi_overwrite_b = 0;
     PyObject *b_capi = Py_None;
@@ -27531,14 +28163,16 @@ f2py_start_clock();
     capi_b_intent |= (capi_overwrite_b?0:F2PY_INTENT_COPY);
     ;
     capi_b_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-    if (capi_b_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 3rd argument `b' of _fblas.ztrsm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztrsm: failed to create array from the 3rd argument `b`";
+    capi_b_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,b_Dims,b_Rank,  capi_b_intent,b_capi,capi_errmess);
+    if (capi_b_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+        b = (complex_double *)(PyArray_DATA(capi_b_as_array));
 
     /* Processing variable ldb */
     ldb = MAX(shape(b, 0),1);
@@ -27549,14 +28183,16 @@ f2py_start_clock();
     /* Processing variable a */
     ;
     capi_a_intent |= F2PY_INTENT_IN;
-    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _fblas_error,"failed in converting 2nd argument `a' of _fblas.ztrsm to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_fblas._fblas.ztrsm: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _fblas_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+        a = (complex_double *)(PyArray_DATA(capi_a_as_array));
 
     CHECKARRAY(shape(a,0)==(side?n:m),"shape(a,0)==(side?n:m)","2nd argument a") {
     CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","2nd argument a") {
@@ -27579,7 +28215,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("N",capi_b_tmp);
+        capi_buildvalue = Py_BuildValue("N",capi_b_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -27587,14 +28223,14 @@ f2py_stop_call_clock();
     /* End of cleaning variable lda */
     } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
     } /*CHECKARRAY(shape(a,0)==(side?n:m))*/
-    if((PyObject *)capi_a_tmp!=a_capi) {
-        Py_XDECREF(capi_a_tmp); }
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    if((PyObject *)capi_a_as_array!=a_capi) {
+        Py_XDECREF(capi_a_as_array); }
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable m */
     /* End of cleaning variable n */
     /* End of cleaning variable ldb */
-    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    }  /* if (capi_b_as_array == NULL) ... else of b */
     /* End of cleaning variable b */
     }  /*if (f2py_success) of alpha frompyobj*/
     /* End of cleaning variable alpha */
@@ -27638,156 +28274,156 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"srotg",-1,{{-1}},0,(char *)F_FUNC(srotg,SROTG),(f2py_init_func)f2py_rout__fblas_srotg,doc_f2py_rout__fblas_srotg},
-    {"drotg",-1,{{-1}},0,(char *)F_FUNC(drotg,DROTG),(f2py_init_func)f2py_rout__fblas_drotg,doc_f2py_rout__fblas_drotg},
-    {"crotg",-1,{{-1}},0,(char *)F_FUNC(crotg,CROTG),(f2py_init_func)f2py_rout__fblas_crotg,doc_f2py_rout__fblas_crotg},
-    {"zrotg",-1,{{-1}},0,(char *)F_FUNC(zrotg,ZROTG),(f2py_init_func)f2py_rout__fblas_zrotg,doc_f2py_rout__fblas_zrotg},
-    {"srotmg",-1,{{-1}},0,(char *)F_FUNC(srotmg,SROTMG),(f2py_init_func)f2py_rout__fblas_srotmg,doc_f2py_rout__fblas_srotmg},
-    {"drotmg",-1,{{-1}},0,(char *)F_FUNC(drotmg,DROTMG),(f2py_init_func)f2py_rout__fblas_drotmg,doc_f2py_rout__fblas_drotmg},
-    {"srot",-1,{{-1}},0,(char *)F_FUNC(srot,SROT),(f2py_init_func)f2py_rout__fblas_srot,doc_f2py_rout__fblas_srot},
-    {"drot",-1,{{-1}},0,(char *)F_FUNC(drot,DROT),(f2py_init_func)f2py_rout__fblas_drot,doc_f2py_rout__fblas_drot},
-    {"csrot",-1,{{-1}},0,(char *)F_FUNC(csrot,CSROT),(f2py_init_func)f2py_rout__fblas_csrot,doc_f2py_rout__fblas_csrot},
-    {"zdrot",-1,{{-1}},0,(char *)F_FUNC(zdrot,ZDROT),(f2py_init_func)f2py_rout__fblas_zdrot,doc_f2py_rout__fblas_zdrot},
-    {"srotm",-1,{{-1}},0,(char *)F_FUNC(srotm,SROTM),(f2py_init_func)f2py_rout__fblas_srotm,doc_f2py_rout__fblas_srotm},
-    {"drotm",-1,{{-1}},0,(char *)F_FUNC(drotm,DROTM),(f2py_init_func)f2py_rout__fblas_drotm,doc_f2py_rout__fblas_drotm},
-    {"sswap",-1,{{-1}},0,(char *)F_FUNC(sswap,SSWAP),(f2py_init_func)f2py_rout__fblas_sswap,doc_f2py_rout__fblas_sswap},
-    {"dswap",-1,{{-1}},0,(char *)F_FUNC(dswap,DSWAP),(f2py_init_func)f2py_rout__fblas_dswap,doc_f2py_rout__fblas_dswap},
-    {"cswap",-1,{{-1}},0,(char *)F_FUNC(cswap,CSWAP),(f2py_init_func)f2py_rout__fblas_cswap,doc_f2py_rout__fblas_cswap},
-    {"zswap",-1,{{-1}},0,(char *)F_FUNC(zswap,ZSWAP),(f2py_init_func)f2py_rout__fblas_zswap,doc_f2py_rout__fblas_zswap},
-    {"sscal",-1,{{-1}},0,(char *)F_FUNC(sscal,SSCAL),(f2py_init_func)f2py_rout__fblas_sscal,doc_f2py_rout__fblas_sscal},
-    {"dscal",-1,{{-1}},0,(char *)F_FUNC(dscal,DSCAL),(f2py_init_func)f2py_rout__fblas_dscal,doc_f2py_rout__fblas_dscal},
-    {"cscal",-1,{{-1}},0,(char *)F_FUNC(cscal,CSCAL),(f2py_init_func)f2py_rout__fblas_cscal,doc_f2py_rout__fblas_cscal},
-    {"zscal",-1,{{-1}},0,(char *)F_FUNC(zscal,ZSCAL),(f2py_init_func)f2py_rout__fblas_zscal,doc_f2py_rout__fblas_zscal},
-    {"csscal",-1,{{-1}},0,(char *)F_FUNC(csscal,CSSCAL),(f2py_init_func)f2py_rout__fblas_csscal,doc_f2py_rout__fblas_csscal},
-    {"zdscal",-1,{{-1}},0,(char *)F_FUNC(zdscal,ZDSCAL),(f2py_init_func)f2py_rout__fblas_zdscal,doc_f2py_rout__fblas_zdscal},
-    {"scopy",-1,{{-1}},0,(char *)F_FUNC(scopy,SCOPY),(f2py_init_func)f2py_rout__fblas_scopy,doc_f2py_rout__fblas_scopy},
-    {"dcopy",-1,{{-1}},0,(char *)F_FUNC(dcopy,DCOPY),(f2py_init_func)f2py_rout__fblas_dcopy,doc_f2py_rout__fblas_dcopy},
-    {"ccopy",-1,{{-1}},0,(char *)F_FUNC(ccopy,CCOPY),(f2py_init_func)f2py_rout__fblas_ccopy,doc_f2py_rout__fblas_ccopy},
-    {"zcopy",-1,{{-1}},0,(char *)F_FUNC(zcopy,ZCOPY),(f2py_init_func)f2py_rout__fblas_zcopy,doc_f2py_rout__fblas_zcopy},
-    {"saxpy",-1,{{-1}},0,(char *)F_FUNC(saxpy,SAXPY),(f2py_init_func)f2py_rout__fblas_saxpy,doc_f2py_rout__fblas_saxpy},
-    {"daxpy",-1,{{-1}},0,(char *)F_FUNC(daxpy,DAXPY),(f2py_init_func)f2py_rout__fblas_daxpy,doc_f2py_rout__fblas_daxpy},
-    {"caxpy",-1,{{-1}},0,(char *)F_FUNC(caxpy,CAXPY),(f2py_init_func)f2py_rout__fblas_caxpy,doc_f2py_rout__fblas_caxpy},
-    {"zaxpy",-1,{{-1}},0,(char *)F_FUNC(zaxpy,ZAXPY),(f2py_init_func)f2py_rout__fblas_zaxpy,doc_f2py_rout__fblas_zaxpy},
-    {"sdot",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(sdot,SDOT),(f2py_init_func)f2py_rout__fblas_sdot,doc_f2py_rout__fblas_sdot},
-    {"ddot",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(ddot,DDOT),(f2py_init_func)f2py_rout__fblas_ddot,doc_f2py_rout__fblas_ddot},
-    {"cdotu",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(cdotu,CDOTU),(f2py_init_func)f2py_rout__fblas_cdotu,doc_f2py_rout__fblas_cdotu},
-    {"zdotu",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(zdotu,ZDOTU),(f2py_init_func)f2py_rout__fblas_zdotu,doc_f2py_rout__fblas_zdotu},
-    {"cdotc",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(cdotc,CDOTC),(f2py_init_func)f2py_rout__fblas_cdotc,doc_f2py_rout__fblas_cdotc},
-    {"zdotc",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(zdotc,ZDOTC),(f2py_init_func)f2py_rout__fblas_zdotc,doc_f2py_rout__fblas_zdotc},
-    {"snrm2",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(snrm2,SNRM2),(f2py_init_func)f2py_rout__fblas_snrm2,doc_f2py_rout__fblas_snrm2},
-    {"scnrm2",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(scnrm2,SCNRM2),(f2py_init_func)f2py_rout__fblas_scnrm2,doc_f2py_rout__fblas_scnrm2},
-    {"dnrm2",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(dnrm2,DNRM2),(f2py_init_func)f2py_rout__fblas_dnrm2,doc_f2py_rout__fblas_dnrm2},
-    {"dznrm2",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(dznrm2,DZNRM2),(f2py_init_func)f2py_rout__fblas_dznrm2,doc_f2py_rout__fblas_dznrm2},
-    {"sasum",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(sasum,SASUM),(f2py_init_func)f2py_rout__fblas_sasum,doc_f2py_rout__fblas_sasum},
-    {"scasum",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(scasum,SCASUM),(f2py_init_func)f2py_rout__fblas_scasum,doc_f2py_rout__fblas_scasum},
-    {"dasum",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(dasum,DASUM),(f2py_init_func)f2py_rout__fblas_dasum,doc_f2py_rout__fblas_dasum},
-    {"dzasum",-1,{{-1}},0,(char *)F_WRAPPEDFUNC(dzasum,DZASUM),(f2py_init_func)f2py_rout__fblas_dzasum,doc_f2py_rout__fblas_dzasum},
-    {"isamax",-1,{{-1}},0,(char *)F_FUNC(isamax,ISAMAX) ,(f2py_init_func)f2py_rout__fblas_isamax,doc_f2py_rout__fblas_isamax},
-    {"idamax",-1,{{-1}},0,(char *)F_FUNC(idamax,IDAMAX) ,(f2py_init_func)f2py_rout__fblas_idamax,doc_f2py_rout__fblas_idamax},
-    {"icamax",-1,{{-1}},0,(char *)F_FUNC(icamax,ICAMAX) ,(f2py_init_func)f2py_rout__fblas_icamax,doc_f2py_rout__fblas_icamax},
-    {"izamax",-1,{{-1}},0,(char *)F_FUNC(izamax,IZAMAX) ,(f2py_init_func)f2py_rout__fblas_izamax,doc_f2py_rout__fblas_izamax},
-    {"sgemv",-1,{{-1}},0,(char *)F_FUNC(sgemv,SGEMV),(f2py_init_func)f2py_rout__fblas_sgemv,doc_f2py_rout__fblas_sgemv},
-    {"dgemv",-1,{{-1}},0,(char *)F_FUNC(dgemv,DGEMV),(f2py_init_func)f2py_rout__fblas_dgemv,doc_f2py_rout__fblas_dgemv},
-    {"cgemv",-1,{{-1}},0,(char *)F_FUNC(cgemv,CGEMV),(f2py_init_func)f2py_rout__fblas_cgemv,doc_f2py_rout__fblas_cgemv},
-    {"zgemv",-1,{{-1}},0,(char *)F_FUNC(zgemv,ZGEMV),(f2py_init_func)f2py_rout__fblas_zgemv,doc_f2py_rout__fblas_zgemv},
-    {"sgbmv",-1,{{-1}},0,(char *)F_FUNC(sgbmv,SGBMV),(f2py_init_func)f2py_rout__fblas_sgbmv,doc_f2py_rout__fblas_sgbmv},
-    {"dgbmv",-1,{{-1}},0,(char *)F_FUNC(dgbmv,DGBMV),(f2py_init_func)f2py_rout__fblas_dgbmv,doc_f2py_rout__fblas_dgbmv},
-    {"cgbmv",-1,{{-1}},0,(char *)F_FUNC(cgbmv,CGBMV),(f2py_init_func)f2py_rout__fblas_cgbmv,doc_f2py_rout__fblas_cgbmv},
-    {"zgbmv",-1,{{-1}},0,(char *)F_FUNC(zgbmv,ZGBMV),(f2py_init_func)f2py_rout__fblas_zgbmv,doc_f2py_rout__fblas_zgbmv},
-    {"ssbmv",-1,{{-1}},0,(char *)F_FUNC(ssbmv,SSBMV),(f2py_init_func)f2py_rout__fblas_ssbmv,doc_f2py_rout__fblas_ssbmv},
-    {"dsbmv",-1,{{-1}},0,(char *)F_FUNC(dsbmv,DSBMV),(f2py_init_func)f2py_rout__fblas_dsbmv,doc_f2py_rout__fblas_dsbmv},
-    {"chbmv",-1,{{-1}},0,(char *)F_FUNC(chbmv,CHBMV),(f2py_init_func)f2py_rout__fblas_chbmv,doc_f2py_rout__fblas_chbmv},
-    {"zhbmv",-1,{{-1}},0,(char *)F_FUNC(zhbmv,ZHBMV),(f2py_init_func)f2py_rout__fblas_zhbmv,doc_f2py_rout__fblas_zhbmv},
-    {"sspmv",-1,{{-1}},0,(char *)F_FUNC(sspmv,SSPMV),(f2py_init_func)f2py_rout__fblas_sspmv,doc_f2py_rout__fblas_sspmv},
-    {"dspmv",-1,{{-1}},0,(char *)F_FUNC(dspmv,DSPMV),(f2py_init_func)f2py_rout__fblas_dspmv,doc_f2py_rout__fblas_dspmv},
-    {"cspmv",-1,{{-1}},0,(char *)F_FUNC(cspmv,CSPMV),(f2py_init_func)f2py_rout__fblas_cspmv,doc_f2py_rout__fblas_cspmv},
-    {"zspmv",-1,{{-1}},0,(char *)F_FUNC(zspmv,ZSPMV),(f2py_init_func)f2py_rout__fblas_zspmv,doc_f2py_rout__fblas_zspmv},
-    {"chpmv",-1,{{-1}},0,(char *)F_FUNC(chpmv,CHPMV),(f2py_init_func)f2py_rout__fblas_chpmv,doc_f2py_rout__fblas_chpmv},
-    {"zhpmv",-1,{{-1}},0,(char *)F_FUNC(zhpmv,ZHPMV),(f2py_init_func)f2py_rout__fblas_zhpmv,doc_f2py_rout__fblas_zhpmv},
-    {"ssymv",-1,{{-1}},0,(char *)F_FUNC(ssymv,SSYMV),(f2py_init_func)f2py_rout__fblas_ssymv,doc_f2py_rout__fblas_ssymv},
-    {"dsymv",-1,{{-1}},0,(char *)F_FUNC(dsymv,DSYMV),(f2py_init_func)f2py_rout__fblas_dsymv,doc_f2py_rout__fblas_dsymv},
-    {"chemv",-1,{{-1}},0,(char *)F_FUNC(chemv,CHEMV),(f2py_init_func)f2py_rout__fblas_chemv,doc_f2py_rout__fblas_chemv},
-    {"zhemv",-1,{{-1}},0,(char *)F_FUNC(zhemv,ZHEMV),(f2py_init_func)f2py_rout__fblas_zhemv,doc_f2py_rout__fblas_zhemv},
-    {"sger",-1,{{-1}},0,(char *)F_FUNC(sger,SGER),(f2py_init_func)f2py_rout__fblas_sger,doc_f2py_rout__fblas_sger},
-    {"dger",-1,{{-1}},0,(char *)F_FUNC(dger,DGER),(f2py_init_func)f2py_rout__fblas_dger,doc_f2py_rout__fblas_dger},
-    {"cgeru",-1,{{-1}},0,(char *)F_FUNC(cgeru,CGERU),(f2py_init_func)f2py_rout__fblas_cgeru,doc_f2py_rout__fblas_cgeru},
-    {"zgeru",-1,{{-1}},0,(char *)F_FUNC(zgeru,ZGERU),(f2py_init_func)f2py_rout__fblas_zgeru,doc_f2py_rout__fblas_zgeru},
-    {"cgerc",-1,{{-1}},0,(char *)F_FUNC(cgerc,CGERC),(f2py_init_func)f2py_rout__fblas_cgerc,doc_f2py_rout__fblas_cgerc},
-    {"zgerc",-1,{{-1}},0,(char *)F_FUNC(zgerc,ZGERC),(f2py_init_func)f2py_rout__fblas_zgerc,doc_f2py_rout__fblas_zgerc},
-    {"ssyr",-1,{{-1}},0,(char *)F_FUNC(ssyr,SSYR),(f2py_init_func)f2py_rout__fblas_ssyr,doc_f2py_rout__fblas_ssyr},
-    {"dsyr",-1,{{-1}},0,(char *)F_FUNC(dsyr,DSYR),(f2py_init_func)f2py_rout__fblas_dsyr,doc_f2py_rout__fblas_dsyr},
-    {"csyr",-1,{{-1}},0,(char *)F_FUNC(csyr,CSYR),(f2py_init_func)f2py_rout__fblas_csyr,doc_f2py_rout__fblas_csyr},
-    {"zsyr",-1,{{-1}},0,(char *)F_FUNC(zsyr,ZSYR),(f2py_init_func)f2py_rout__fblas_zsyr,doc_f2py_rout__fblas_zsyr},
-    {"cher",-1,{{-1}},0,(char *)F_FUNC(cher,CHER),(f2py_init_func)f2py_rout__fblas_cher,doc_f2py_rout__fblas_cher},
-    {"zher",-1,{{-1}},0,(char *)F_FUNC(zher,ZHER),(f2py_init_func)f2py_rout__fblas_zher,doc_f2py_rout__fblas_zher},
-    {"ssyr2",-1,{{-1}},0,(char *)F_FUNC(ssyr2,SSYR2),(f2py_init_func)f2py_rout__fblas_ssyr2,doc_f2py_rout__fblas_ssyr2},
-    {"dsyr2",-1,{{-1}},0,(char *)F_FUNC(dsyr2,DSYR2),(f2py_init_func)f2py_rout__fblas_dsyr2,doc_f2py_rout__fblas_dsyr2},
-    {"cher2",-1,{{-1}},0,(char *)F_FUNC(cher2,CHER2),(f2py_init_func)f2py_rout__fblas_cher2,doc_f2py_rout__fblas_cher2},
-    {"zher2",-1,{{-1}},0,(char *)F_FUNC(zher2,ZHER2),(f2py_init_func)f2py_rout__fblas_zher2,doc_f2py_rout__fblas_zher2},
-    {"sspr",-1,{{-1}},0,(char *)F_FUNC(sspr,SSPR),(f2py_init_func)f2py_rout__fblas_sspr,doc_f2py_rout__fblas_sspr},
-    {"dspr",-1,{{-1}},0,(char *)F_FUNC(dspr,DSPR),(f2py_init_func)f2py_rout__fblas_dspr,doc_f2py_rout__fblas_dspr},
-    {"cspr",-1,{{-1}},0,(char *)F_FUNC(cspr,CSPR),(f2py_init_func)f2py_rout__fblas_cspr,doc_f2py_rout__fblas_cspr},
-    {"zspr",-1,{{-1}},0,(char *)F_FUNC(zspr,ZSPR),(f2py_init_func)f2py_rout__fblas_zspr,doc_f2py_rout__fblas_zspr},
-    {"chpr",-1,{{-1}},0,(char *)F_FUNC(chpr,CHPR),(f2py_init_func)f2py_rout__fblas_chpr,doc_f2py_rout__fblas_chpr},
-    {"zhpr",-1,{{-1}},0,(char *)F_FUNC(zhpr,ZHPR),(f2py_init_func)f2py_rout__fblas_zhpr,doc_f2py_rout__fblas_zhpr},
-    {"sspr2",-1,{{-1}},0,(char *)F_FUNC(sspr2,SSPR2),(f2py_init_func)f2py_rout__fblas_sspr2,doc_f2py_rout__fblas_sspr2},
-    {"dspr2",-1,{{-1}},0,(char *)F_FUNC(dspr2,DSPR2),(f2py_init_func)f2py_rout__fblas_dspr2,doc_f2py_rout__fblas_dspr2},
-    {"chpr2",-1,{{-1}},0,(char *)F_FUNC(chpr2,CHPR2),(f2py_init_func)f2py_rout__fblas_chpr2,doc_f2py_rout__fblas_chpr2},
-    {"zhpr2",-1,{{-1}},0,(char *)F_FUNC(zhpr2,ZHPR2),(f2py_init_func)f2py_rout__fblas_zhpr2,doc_f2py_rout__fblas_zhpr2},
-    {"stbsv",-1,{{-1}},0,(char *)F_FUNC(stbsv,STBSV),(f2py_init_func)f2py_rout__fblas_stbsv,doc_f2py_rout__fblas_stbsv},
-    {"dtbsv",-1,{{-1}},0,(char *)F_FUNC(dtbsv,DTBSV),(f2py_init_func)f2py_rout__fblas_dtbsv,doc_f2py_rout__fblas_dtbsv},
-    {"ctbsv",-1,{{-1}},0,(char *)F_FUNC(ctbsv,CTBSV),(f2py_init_func)f2py_rout__fblas_ctbsv,doc_f2py_rout__fblas_ctbsv},
-    {"ztbsv",-1,{{-1}},0,(char *)F_FUNC(ztbsv,ZTBSV),(f2py_init_func)f2py_rout__fblas_ztbsv,doc_f2py_rout__fblas_ztbsv},
-    {"stpsv",-1,{{-1}},0,(char *)F_FUNC(stpsv,STPSV),(f2py_init_func)f2py_rout__fblas_stpsv,doc_f2py_rout__fblas_stpsv},
-    {"dtpsv",-1,{{-1}},0,(char *)F_FUNC(dtpsv,DTPSV),(f2py_init_func)f2py_rout__fblas_dtpsv,doc_f2py_rout__fblas_dtpsv},
-    {"ctpsv",-1,{{-1}},0,(char *)F_FUNC(ctpsv,CTPSV),(f2py_init_func)f2py_rout__fblas_ctpsv,doc_f2py_rout__fblas_ctpsv},
-    {"ztpsv",-1,{{-1}},0,(char *)F_FUNC(ztpsv,ZTPSV),(f2py_init_func)f2py_rout__fblas_ztpsv,doc_f2py_rout__fblas_ztpsv},
-    {"strmv",-1,{{-1}},0,(char *)F_FUNC(strmv,STRMV),(f2py_init_func)f2py_rout__fblas_strmv,doc_f2py_rout__fblas_strmv},
-    {"dtrmv",-1,{{-1}},0,(char *)F_FUNC(dtrmv,DTRMV),(f2py_init_func)f2py_rout__fblas_dtrmv,doc_f2py_rout__fblas_dtrmv},
-    {"ctrmv",-1,{{-1}},0,(char *)F_FUNC(ctrmv,CTRMV),(f2py_init_func)f2py_rout__fblas_ctrmv,doc_f2py_rout__fblas_ctrmv},
-    {"ztrmv",-1,{{-1}},0,(char *)F_FUNC(ztrmv,ZTRMV),(f2py_init_func)f2py_rout__fblas_ztrmv,doc_f2py_rout__fblas_ztrmv},
-    {"strsv",-1,{{-1}},0,(char *)F_FUNC(strsv,STRSV),(f2py_init_func)f2py_rout__fblas_strsv,doc_f2py_rout__fblas_strsv},
-    {"dtrsv",-1,{{-1}},0,(char *)F_FUNC(dtrsv,DTRSV),(f2py_init_func)f2py_rout__fblas_dtrsv,doc_f2py_rout__fblas_dtrsv},
-    {"ctrsv",-1,{{-1}},0,(char *)F_FUNC(ctrsv,CTRSV),(f2py_init_func)f2py_rout__fblas_ctrsv,doc_f2py_rout__fblas_ctrsv},
-    {"ztrsv",-1,{{-1}},0,(char *)F_FUNC(ztrsv,ZTRSV),(f2py_init_func)f2py_rout__fblas_ztrsv,doc_f2py_rout__fblas_ztrsv},
-    {"stbmv",-1,{{-1}},0,(char *)F_FUNC(stbmv,STBMV),(f2py_init_func)f2py_rout__fblas_stbmv,doc_f2py_rout__fblas_stbmv},
-    {"dtbmv",-1,{{-1}},0,(char *)F_FUNC(dtbmv,DTBMV),(f2py_init_func)f2py_rout__fblas_dtbmv,doc_f2py_rout__fblas_dtbmv},
-    {"ctbmv",-1,{{-1}},0,(char *)F_FUNC(ctbmv,CTBMV),(f2py_init_func)f2py_rout__fblas_ctbmv,doc_f2py_rout__fblas_ctbmv},
-    {"ztbmv",-1,{{-1}},0,(char *)F_FUNC(ztbmv,ZTBMV),(f2py_init_func)f2py_rout__fblas_ztbmv,doc_f2py_rout__fblas_ztbmv},
-    {"stpmv",-1,{{-1}},0,(char *)F_FUNC(stpmv,STPMV),(f2py_init_func)f2py_rout__fblas_stpmv,doc_f2py_rout__fblas_stpmv},
-    {"dtpmv",-1,{{-1}},0,(char *)F_FUNC(dtpmv,DTPMV),(f2py_init_func)f2py_rout__fblas_dtpmv,doc_f2py_rout__fblas_dtpmv},
-    {"ctpmv",-1,{{-1}},0,(char *)F_FUNC(ctpmv,CTPMV),(f2py_init_func)f2py_rout__fblas_ctpmv,doc_f2py_rout__fblas_ctpmv},
-    {"ztpmv",-1,{{-1}},0,(char *)F_FUNC(ztpmv,ZTPMV),(f2py_init_func)f2py_rout__fblas_ztpmv,doc_f2py_rout__fblas_ztpmv},
-    {"sgemm",-1,{{-1}},0,(char *)F_FUNC(sgemm,SGEMM),(f2py_init_func)f2py_rout__fblas_sgemm,doc_f2py_rout__fblas_sgemm},
-    {"dgemm",-1,{{-1}},0,(char *)F_FUNC(dgemm,DGEMM),(f2py_init_func)f2py_rout__fblas_dgemm,doc_f2py_rout__fblas_dgemm},
-    {"cgemm",-1,{{-1}},0,(char *)F_FUNC(cgemm,CGEMM),(f2py_init_func)f2py_rout__fblas_cgemm,doc_f2py_rout__fblas_cgemm},
-    {"zgemm",-1,{{-1}},0,(char *)F_FUNC(zgemm,ZGEMM),(f2py_init_func)f2py_rout__fblas_zgemm,doc_f2py_rout__fblas_zgemm},
-    {"ssymm",-1,{{-1}},0,(char *)F_FUNC(ssymm,SSYMM),(f2py_init_func)f2py_rout__fblas_ssymm,doc_f2py_rout__fblas_ssymm},
-    {"dsymm",-1,{{-1}},0,(char *)F_FUNC(dsymm,DSYMM),(f2py_init_func)f2py_rout__fblas_dsymm,doc_f2py_rout__fblas_dsymm},
-    {"csymm",-1,{{-1}},0,(char *)F_FUNC(csymm,CSYMM),(f2py_init_func)f2py_rout__fblas_csymm,doc_f2py_rout__fblas_csymm},
-    {"zsymm",-1,{{-1}},0,(char *)F_FUNC(zsymm,ZSYMM),(f2py_init_func)f2py_rout__fblas_zsymm,doc_f2py_rout__fblas_zsymm},
-    {"chemm",-1,{{-1}},0,(char *)F_FUNC(chemm,CHEMM),(f2py_init_func)f2py_rout__fblas_chemm,doc_f2py_rout__fblas_chemm},
-    {"zhemm",-1,{{-1}},0,(char *)F_FUNC(zhemm,ZHEMM),(f2py_init_func)f2py_rout__fblas_zhemm,doc_f2py_rout__fblas_zhemm},
-    {"ssyrk",-1,{{-1}},0,(char *)F_FUNC(ssyrk,SSYRK),(f2py_init_func)f2py_rout__fblas_ssyrk,doc_f2py_rout__fblas_ssyrk},
-    {"dsyrk",-1,{{-1}},0,(char *)F_FUNC(dsyrk,DSYRK),(f2py_init_func)f2py_rout__fblas_dsyrk,doc_f2py_rout__fblas_dsyrk},
-    {"csyrk",-1,{{-1}},0,(char *)F_FUNC(csyrk,CSYRK),(f2py_init_func)f2py_rout__fblas_csyrk,doc_f2py_rout__fblas_csyrk},
-    {"zsyrk",-1,{{-1}},0,(char *)F_FUNC(zsyrk,ZSYRK),(f2py_init_func)f2py_rout__fblas_zsyrk,doc_f2py_rout__fblas_zsyrk},
-    {"cherk",-1,{{-1}},0,(char *)F_FUNC(cherk,CHERK),(f2py_init_func)f2py_rout__fblas_cherk,doc_f2py_rout__fblas_cherk},
-    {"zherk",-1,{{-1}},0,(char *)F_FUNC(zherk,ZHERK),(f2py_init_func)f2py_rout__fblas_zherk,doc_f2py_rout__fblas_zherk},
-    {"ssyr2k",-1,{{-1}},0,(char *)F_FUNC(ssyr2k,SSYR2K),(f2py_init_func)f2py_rout__fblas_ssyr2k,doc_f2py_rout__fblas_ssyr2k},
-    {"dsyr2k",-1,{{-1}},0,(char *)F_FUNC(dsyr2k,DSYR2K),(f2py_init_func)f2py_rout__fblas_dsyr2k,doc_f2py_rout__fblas_dsyr2k},
-    {"csyr2k",-1,{{-1}},0,(char *)F_FUNC(csyr2k,CSYR2K),(f2py_init_func)f2py_rout__fblas_csyr2k,doc_f2py_rout__fblas_csyr2k},
-    {"zsyr2k",-1,{{-1}},0,(char *)F_FUNC(zsyr2k,ZSYR2K),(f2py_init_func)f2py_rout__fblas_zsyr2k,doc_f2py_rout__fblas_zsyr2k},
-    {"cher2k",-1,{{-1}},0,(char *)F_FUNC(cher2k,CHER2K),(f2py_init_func)f2py_rout__fblas_cher2k,doc_f2py_rout__fblas_cher2k},
-    {"zher2k",-1,{{-1}},0,(char *)F_FUNC(zher2k,ZHER2K),(f2py_init_func)f2py_rout__fblas_zher2k,doc_f2py_rout__fblas_zher2k},
-    {"strmm",-1,{{-1}},0,(char *)F_FUNC(strmm,STRMM),(f2py_init_func)f2py_rout__fblas_strmm,doc_f2py_rout__fblas_strmm},
-    {"dtrmm",-1,{{-1}},0,(char *)F_FUNC(dtrmm,DTRMM),(f2py_init_func)f2py_rout__fblas_dtrmm,doc_f2py_rout__fblas_dtrmm},
-    {"ctrmm",-1,{{-1}},0,(char *)F_FUNC(ctrmm,CTRMM),(f2py_init_func)f2py_rout__fblas_ctrmm,doc_f2py_rout__fblas_ctrmm},
-    {"ztrmm",-1,{{-1}},0,(char *)F_FUNC(ztrmm,ZTRMM),(f2py_init_func)f2py_rout__fblas_ztrmm,doc_f2py_rout__fblas_ztrmm},
-    {"strsm",-1,{{-1}},0,(char *)F_FUNC(strsm,STRSM),(f2py_init_func)f2py_rout__fblas_strsm,doc_f2py_rout__fblas_strsm},
-    {"dtrsm",-1,{{-1}},0,(char *)F_FUNC(dtrsm,DTRSM),(f2py_init_func)f2py_rout__fblas_dtrsm,doc_f2py_rout__fblas_dtrsm},
-    {"ctrsm",-1,{{-1}},0,(char *)F_FUNC(ctrsm,CTRSM),(f2py_init_func)f2py_rout__fblas_ctrsm,doc_f2py_rout__fblas_ctrsm},
-    {"ztrsm",-1,{{-1}},0,(char *)F_FUNC(ztrsm,ZTRSM),(f2py_init_func)f2py_rout__fblas_ztrsm,doc_f2py_rout__fblas_ztrsm},
+    {"srotg",-1,{{-1}},0,0,(char *)  F_FUNC(srotg,SROTG),  (f2py_init_func)f2py_rout__fblas_srotg,doc_f2py_rout__fblas_srotg},
+    {"drotg",-1,{{-1}},0,0,(char *)  F_FUNC(drotg,DROTG),  (f2py_init_func)f2py_rout__fblas_drotg,doc_f2py_rout__fblas_drotg},
+    {"crotg",-1,{{-1}},0,0,(char *)  F_FUNC(crotg,CROTG),  (f2py_init_func)f2py_rout__fblas_crotg,doc_f2py_rout__fblas_crotg},
+    {"zrotg",-1,{{-1}},0,0,(char *)  F_FUNC(zrotg,ZROTG),  (f2py_init_func)f2py_rout__fblas_zrotg,doc_f2py_rout__fblas_zrotg},
+    {"srotmg",-1,{{-1}},0,0,(char *)  F_FUNC(srotmg,SROTMG),  (f2py_init_func)f2py_rout__fblas_srotmg,doc_f2py_rout__fblas_srotmg},
+    {"drotmg",-1,{{-1}},0,0,(char *)  F_FUNC(drotmg,DROTMG),  (f2py_init_func)f2py_rout__fblas_drotmg,doc_f2py_rout__fblas_drotmg},
+    {"srot",-1,{{-1}},0,0,(char *)  F_FUNC(srot,SROT),  (f2py_init_func)f2py_rout__fblas_srot,doc_f2py_rout__fblas_srot},
+    {"drot",-1,{{-1}},0,0,(char *)  F_FUNC(drot,DROT),  (f2py_init_func)f2py_rout__fblas_drot,doc_f2py_rout__fblas_drot},
+    {"csrot",-1,{{-1}},0,0,(char *)  F_FUNC(csrot,CSROT),  (f2py_init_func)f2py_rout__fblas_csrot,doc_f2py_rout__fblas_csrot},
+    {"zdrot",-1,{{-1}},0,0,(char *)  F_FUNC(zdrot,ZDROT),  (f2py_init_func)f2py_rout__fblas_zdrot,doc_f2py_rout__fblas_zdrot},
+    {"srotm",-1,{{-1}},0,0,(char *)  F_FUNC(srotm,SROTM),  (f2py_init_func)f2py_rout__fblas_srotm,doc_f2py_rout__fblas_srotm},
+    {"drotm",-1,{{-1}},0,0,(char *)  F_FUNC(drotm,DROTM),  (f2py_init_func)f2py_rout__fblas_drotm,doc_f2py_rout__fblas_drotm},
+    {"sswap",-1,{{-1}},0,0,(char *)  F_FUNC(sswap,SSWAP),  (f2py_init_func)f2py_rout__fblas_sswap,doc_f2py_rout__fblas_sswap},
+    {"dswap",-1,{{-1}},0,0,(char *)  F_FUNC(dswap,DSWAP),  (f2py_init_func)f2py_rout__fblas_dswap,doc_f2py_rout__fblas_dswap},
+    {"cswap",-1,{{-1}},0,0,(char *)  F_FUNC(cswap,CSWAP),  (f2py_init_func)f2py_rout__fblas_cswap,doc_f2py_rout__fblas_cswap},
+    {"zswap",-1,{{-1}},0,0,(char *)  F_FUNC(zswap,ZSWAP),  (f2py_init_func)f2py_rout__fblas_zswap,doc_f2py_rout__fblas_zswap},
+    {"sscal",-1,{{-1}},0,0,(char *)  F_FUNC(sscal,SSCAL),  (f2py_init_func)f2py_rout__fblas_sscal,doc_f2py_rout__fblas_sscal},
+    {"dscal",-1,{{-1}},0,0,(char *)  F_FUNC(dscal,DSCAL),  (f2py_init_func)f2py_rout__fblas_dscal,doc_f2py_rout__fblas_dscal},
+    {"cscal",-1,{{-1}},0,0,(char *)  F_FUNC(cscal,CSCAL),  (f2py_init_func)f2py_rout__fblas_cscal,doc_f2py_rout__fblas_cscal},
+    {"zscal",-1,{{-1}},0,0,(char *)  F_FUNC(zscal,ZSCAL),  (f2py_init_func)f2py_rout__fblas_zscal,doc_f2py_rout__fblas_zscal},
+    {"csscal",-1,{{-1}},0,0,(char *)  F_FUNC(csscal,CSSCAL),  (f2py_init_func)f2py_rout__fblas_csscal,doc_f2py_rout__fblas_csscal},
+    {"zdscal",-1,{{-1}},0,0,(char *)  F_FUNC(zdscal,ZDSCAL),  (f2py_init_func)f2py_rout__fblas_zdscal,doc_f2py_rout__fblas_zdscal},
+    {"scopy",-1,{{-1}},0,0,(char *)  F_FUNC(scopy,SCOPY),  (f2py_init_func)f2py_rout__fblas_scopy,doc_f2py_rout__fblas_scopy},
+    {"dcopy",-1,{{-1}},0,0,(char *)  F_FUNC(dcopy,DCOPY),  (f2py_init_func)f2py_rout__fblas_dcopy,doc_f2py_rout__fblas_dcopy},
+    {"ccopy",-1,{{-1}},0,0,(char *)  F_FUNC(ccopy,CCOPY),  (f2py_init_func)f2py_rout__fblas_ccopy,doc_f2py_rout__fblas_ccopy},
+    {"zcopy",-1,{{-1}},0,0,(char *)  F_FUNC(zcopy,ZCOPY),  (f2py_init_func)f2py_rout__fblas_zcopy,doc_f2py_rout__fblas_zcopy},
+    {"saxpy",-1,{{-1}},0,0,(char *)  F_FUNC(saxpy,SAXPY),  (f2py_init_func)f2py_rout__fblas_saxpy,doc_f2py_rout__fblas_saxpy},
+    {"daxpy",-1,{{-1}},0,0,(char *)  F_FUNC(daxpy,DAXPY),  (f2py_init_func)f2py_rout__fblas_daxpy,doc_f2py_rout__fblas_daxpy},
+    {"caxpy",-1,{{-1}},0,0,(char *)  F_FUNC(caxpy,CAXPY),  (f2py_init_func)f2py_rout__fblas_caxpy,doc_f2py_rout__fblas_caxpy},
+    {"zaxpy",-1,{{-1}},0,0,(char *)  F_FUNC(zaxpy,ZAXPY),  (f2py_init_func)f2py_rout__fblas_zaxpy,doc_f2py_rout__fblas_zaxpy},
+    {"sdot",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(sdot,SDOT),  (f2py_init_func)f2py_rout__fblas_sdot,doc_f2py_rout__fblas_sdot},
+    {"ddot",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(ddot,DDOT),  (f2py_init_func)f2py_rout__fblas_ddot,doc_f2py_rout__fblas_ddot},
+    {"cdotu",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(cdotu,CDOTU),  (f2py_init_func)f2py_rout__fblas_cdotu,doc_f2py_rout__fblas_cdotu},
+    {"zdotu",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(zdotu,ZDOTU),  (f2py_init_func)f2py_rout__fblas_zdotu,doc_f2py_rout__fblas_zdotu},
+    {"cdotc",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(cdotc,CDOTC),  (f2py_init_func)f2py_rout__fblas_cdotc,doc_f2py_rout__fblas_cdotc},
+    {"zdotc",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(zdotc,ZDOTC),  (f2py_init_func)f2py_rout__fblas_zdotc,doc_f2py_rout__fblas_zdotc},
+    {"snrm2",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(snrm2,SNRM2),  (f2py_init_func)f2py_rout__fblas_snrm2,doc_f2py_rout__fblas_snrm2},
+    {"scnrm2",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(scnrm2,SCNRM2),  (f2py_init_func)f2py_rout__fblas_scnrm2,doc_f2py_rout__fblas_scnrm2},
+    {"dnrm2",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(dnrm2,DNRM2),  (f2py_init_func)f2py_rout__fblas_dnrm2,doc_f2py_rout__fblas_dnrm2},
+    {"dznrm2",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(dznrm2,DZNRM2),  (f2py_init_func)f2py_rout__fblas_dznrm2,doc_f2py_rout__fblas_dznrm2},
+    {"sasum",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(sasum,SASUM),  (f2py_init_func)f2py_rout__fblas_sasum,doc_f2py_rout__fblas_sasum},
+    {"scasum",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(scasum,SCASUM),  (f2py_init_func)f2py_rout__fblas_scasum,doc_f2py_rout__fblas_scasum},
+    {"dasum",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(dasum,DASUM),  (f2py_init_func)f2py_rout__fblas_dasum,doc_f2py_rout__fblas_dasum},
+    {"dzasum",-1,{{-1}},0,0,(char *)  F_WRAPPEDFUNC(dzasum,DZASUM),  (f2py_init_func)f2py_rout__fblas_dzasum,doc_f2py_rout__fblas_dzasum},
+    {"isamax",-1,{{-1}},0,0,(char *)F_FUNC(isamax,ISAMAX) ,  (f2py_init_func)f2py_rout__fblas_isamax,doc_f2py_rout__fblas_isamax},
+    {"idamax",-1,{{-1}},0,0,(char *)F_FUNC(idamax,IDAMAX) ,  (f2py_init_func)f2py_rout__fblas_idamax,doc_f2py_rout__fblas_idamax},
+    {"icamax",-1,{{-1}},0,0,(char *)F_FUNC(icamax,ICAMAX) ,  (f2py_init_func)f2py_rout__fblas_icamax,doc_f2py_rout__fblas_icamax},
+    {"izamax",-1,{{-1}},0,0,(char *)F_FUNC(izamax,IZAMAX) ,  (f2py_init_func)f2py_rout__fblas_izamax,doc_f2py_rout__fblas_izamax},
+    {"sgemv",-1,{{-1}},0,0,(char *)  F_FUNC(sgemv,SGEMV),  (f2py_init_func)f2py_rout__fblas_sgemv,doc_f2py_rout__fblas_sgemv},
+    {"dgemv",-1,{{-1}},0,0,(char *)  F_FUNC(dgemv,DGEMV),  (f2py_init_func)f2py_rout__fblas_dgemv,doc_f2py_rout__fblas_dgemv},
+    {"cgemv",-1,{{-1}},0,0,(char *)  F_FUNC(cgemv,CGEMV),  (f2py_init_func)f2py_rout__fblas_cgemv,doc_f2py_rout__fblas_cgemv},
+    {"zgemv",-1,{{-1}},0,0,(char *)  F_FUNC(zgemv,ZGEMV),  (f2py_init_func)f2py_rout__fblas_zgemv,doc_f2py_rout__fblas_zgemv},
+    {"sgbmv",-1,{{-1}},0,0,(char *)  F_FUNC(sgbmv,SGBMV),  (f2py_init_func)f2py_rout__fblas_sgbmv,doc_f2py_rout__fblas_sgbmv},
+    {"dgbmv",-1,{{-1}},0,0,(char *)  F_FUNC(dgbmv,DGBMV),  (f2py_init_func)f2py_rout__fblas_dgbmv,doc_f2py_rout__fblas_dgbmv},
+    {"cgbmv",-1,{{-1}},0,0,(char *)  F_FUNC(cgbmv,CGBMV),  (f2py_init_func)f2py_rout__fblas_cgbmv,doc_f2py_rout__fblas_cgbmv},
+    {"zgbmv",-1,{{-1}},0,0,(char *)  F_FUNC(zgbmv,ZGBMV),  (f2py_init_func)f2py_rout__fblas_zgbmv,doc_f2py_rout__fblas_zgbmv},
+    {"ssbmv",-1,{{-1}},0,0,(char *)  F_FUNC(ssbmv,SSBMV),  (f2py_init_func)f2py_rout__fblas_ssbmv,doc_f2py_rout__fblas_ssbmv},
+    {"dsbmv",-1,{{-1}},0,0,(char *)  F_FUNC(dsbmv,DSBMV),  (f2py_init_func)f2py_rout__fblas_dsbmv,doc_f2py_rout__fblas_dsbmv},
+    {"chbmv",-1,{{-1}},0,0,(char *)  F_FUNC(chbmv,CHBMV),  (f2py_init_func)f2py_rout__fblas_chbmv,doc_f2py_rout__fblas_chbmv},
+    {"zhbmv",-1,{{-1}},0,0,(char *)  F_FUNC(zhbmv,ZHBMV),  (f2py_init_func)f2py_rout__fblas_zhbmv,doc_f2py_rout__fblas_zhbmv},
+    {"sspmv",-1,{{-1}},0,0,(char *)  F_FUNC(sspmv,SSPMV),  (f2py_init_func)f2py_rout__fblas_sspmv,doc_f2py_rout__fblas_sspmv},
+    {"dspmv",-1,{{-1}},0,0,(char *)  F_FUNC(dspmv,DSPMV),  (f2py_init_func)f2py_rout__fblas_dspmv,doc_f2py_rout__fblas_dspmv},
+    {"cspmv",-1,{{-1}},0,0,(char *)  F_FUNC(cspmv,CSPMV),  (f2py_init_func)f2py_rout__fblas_cspmv,doc_f2py_rout__fblas_cspmv},
+    {"zspmv",-1,{{-1}},0,0,(char *)  F_FUNC(zspmv,ZSPMV),  (f2py_init_func)f2py_rout__fblas_zspmv,doc_f2py_rout__fblas_zspmv},
+    {"chpmv",-1,{{-1}},0,0,(char *)  F_FUNC(chpmv,CHPMV),  (f2py_init_func)f2py_rout__fblas_chpmv,doc_f2py_rout__fblas_chpmv},
+    {"zhpmv",-1,{{-1}},0,0,(char *)  F_FUNC(zhpmv,ZHPMV),  (f2py_init_func)f2py_rout__fblas_zhpmv,doc_f2py_rout__fblas_zhpmv},
+    {"ssymv",-1,{{-1}},0,0,(char *)  F_FUNC(ssymv,SSYMV),  (f2py_init_func)f2py_rout__fblas_ssymv,doc_f2py_rout__fblas_ssymv},
+    {"dsymv",-1,{{-1}},0,0,(char *)  F_FUNC(dsymv,DSYMV),  (f2py_init_func)f2py_rout__fblas_dsymv,doc_f2py_rout__fblas_dsymv},
+    {"chemv",-1,{{-1}},0,0,(char *)  F_FUNC(chemv,CHEMV),  (f2py_init_func)f2py_rout__fblas_chemv,doc_f2py_rout__fblas_chemv},
+    {"zhemv",-1,{{-1}},0,0,(char *)  F_FUNC(zhemv,ZHEMV),  (f2py_init_func)f2py_rout__fblas_zhemv,doc_f2py_rout__fblas_zhemv},
+    {"sger",-1,{{-1}},0,0,(char *)  F_FUNC(sger,SGER),  (f2py_init_func)f2py_rout__fblas_sger,doc_f2py_rout__fblas_sger},
+    {"dger",-1,{{-1}},0,0,(char *)  F_FUNC(dger,DGER),  (f2py_init_func)f2py_rout__fblas_dger,doc_f2py_rout__fblas_dger},
+    {"cgeru",-1,{{-1}},0,0,(char *)  F_FUNC(cgeru,CGERU),  (f2py_init_func)f2py_rout__fblas_cgeru,doc_f2py_rout__fblas_cgeru},
+    {"zgeru",-1,{{-1}},0,0,(char *)  F_FUNC(zgeru,ZGERU),  (f2py_init_func)f2py_rout__fblas_zgeru,doc_f2py_rout__fblas_zgeru},
+    {"cgerc",-1,{{-1}},0,0,(char *)  F_FUNC(cgerc,CGERC),  (f2py_init_func)f2py_rout__fblas_cgerc,doc_f2py_rout__fblas_cgerc},
+    {"zgerc",-1,{{-1}},0,0,(char *)  F_FUNC(zgerc,ZGERC),  (f2py_init_func)f2py_rout__fblas_zgerc,doc_f2py_rout__fblas_zgerc},
+    {"ssyr",-1,{{-1}},0,0,(char *)  F_FUNC(ssyr,SSYR),  (f2py_init_func)f2py_rout__fblas_ssyr,doc_f2py_rout__fblas_ssyr},
+    {"dsyr",-1,{{-1}},0,0,(char *)  F_FUNC(dsyr,DSYR),  (f2py_init_func)f2py_rout__fblas_dsyr,doc_f2py_rout__fblas_dsyr},
+    {"csyr",-1,{{-1}},0,0,(char *)  F_FUNC(csyr,CSYR),  (f2py_init_func)f2py_rout__fblas_csyr,doc_f2py_rout__fblas_csyr},
+    {"zsyr",-1,{{-1}},0,0,(char *)  F_FUNC(zsyr,ZSYR),  (f2py_init_func)f2py_rout__fblas_zsyr,doc_f2py_rout__fblas_zsyr},
+    {"cher",-1,{{-1}},0,0,(char *)  F_FUNC(cher,CHER),  (f2py_init_func)f2py_rout__fblas_cher,doc_f2py_rout__fblas_cher},
+    {"zher",-1,{{-1}},0,0,(char *)  F_FUNC(zher,ZHER),  (f2py_init_func)f2py_rout__fblas_zher,doc_f2py_rout__fblas_zher},
+    {"ssyr2",-1,{{-1}},0,0,(char *)  F_FUNC(ssyr2,SSYR2),  (f2py_init_func)f2py_rout__fblas_ssyr2,doc_f2py_rout__fblas_ssyr2},
+    {"dsyr2",-1,{{-1}},0,0,(char *)  F_FUNC(dsyr2,DSYR2),  (f2py_init_func)f2py_rout__fblas_dsyr2,doc_f2py_rout__fblas_dsyr2},
+    {"cher2",-1,{{-1}},0,0,(char *)  F_FUNC(cher2,CHER2),  (f2py_init_func)f2py_rout__fblas_cher2,doc_f2py_rout__fblas_cher2},
+    {"zher2",-1,{{-1}},0,0,(char *)  F_FUNC(zher2,ZHER2),  (f2py_init_func)f2py_rout__fblas_zher2,doc_f2py_rout__fblas_zher2},
+    {"sspr",-1,{{-1}},0,0,(char *)  F_FUNC(sspr,SSPR),  (f2py_init_func)f2py_rout__fblas_sspr,doc_f2py_rout__fblas_sspr},
+    {"dspr",-1,{{-1}},0,0,(char *)  F_FUNC(dspr,DSPR),  (f2py_init_func)f2py_rout__fblas_dspr,doc_f2py_rout__fblas_dspr},
+    {"cspr",-1,{{-1}},0,0,(char *)  F_FUNC(cspr,CSPR),  (f2py_init_func)f2py_rout__fblas_cspr,doc_f2py_rout__fblas_cspr},
+    {"zspr",-1,{{-1}},0,0,(char *)  F_FUNC(zspr,ZSPR),  (f2py_init_func)f2py_rout__fblas_zspr,doc_f2py_rout__fblas_zspr},
+    {"chpr",-1,{{-1}},0,0,(char *)  F_FUNC(chpr,CHPR),  (f2py_init_func)f2py_rout__fblas_chpr,doc_f2py_rout__fblas_chpr},
+    {"zhpr",-1,{{-1}},0,0,(char *)  F_FUNC(zhpr,ZHPR),  (f2py_init_func)f2py_rout__fblas_zhpr,doc_f2py_rout__fblas_zhpr},
+    {"sspr2",-1,{{-1}},0,0,(char *)  F_FUNC(sspr2,SSPR2),  (f2py_init_func)f2py_rout__fblas_sspr2,doc_f2py_rout__fblas_sspr2},
+    {"dspr2",-1,{{-1}},0,0,(char *)  F_FUNC(dspr2,DSPR2),  (f2py_init_func)f2py_rout__fblas_dspr2,doc_f2py_rout__fblas_dspr2},
+    {"chpr2",-1,{{-1}},0,0,(char *)  F_FUNC(chpr2,CHPR2),  (f2py_init_func)f2py_rout__fblas_chpr2,doc_f2py_rout__fblas_chpr2},
+    {"zhpr2",-1,{{-1}},0,0,(char *)  F_FUNC(zhpr2,ZHPR2),  (f2py_init_func)f2py_rout__fblas_zhpr2,doc_f2py_rout__fblas_zhpr2},
+    {"stbsv",-1,{{-1}},0,0,(char *)  F_FUNC(stbsv,STBSV),  (f2py_init_func)f2py_rout__fblas_stbsv,doc_f2py_rout__fblas_stbsv},
+    {"dtbsv",-1,{{-1}},0,0,(char *)  F_FUNC(dtbsv,DTBSV),  (f2py_init_func)f2py_rout__fblas_dtbsv,doc_f2py_rout__fblas_dtbsv},
+    {"ctbsv",-1,{{-1}},0,0,(char *)  F_FUNC(ctbsv,CTBSV),  (f2py_init_func)f2py_rout__fblas_ctbsv,doc_f2py_rout__fblas_ctbsv},
+    {"ztbsv",-1,{{-1}},0,0,(char *)  F_FUNC(ztbsv,ZTBSV),  (f2py_init_func)f2py_rout__fblas_ztbsv,doc_f2py_rout__fblas_ztbsv},
+    {"stpsv",-1,{{-1}},0,0,(char *)  F_FUNC(stpsv,STPSV),  (f2py_init_func)f2py_rout__fblas_stpsv,doc_f2py_rout__fblas_stpsv},
+    {"dtpsv",-1,{{-1}},0,0,(char *)  F_FUNC(dtpsv,DTPSV),  (f2py_init_func)f2py_rout__fblas_dtpsv,doc_f2py_rout__fblas_dtpsv},
+    {"ctpsv",-1,{{-1}},0,0,(char *)  F_FUNC(ctpsv,CTPSV),  (f2py_init_func)f2py_rout__fblas_ctpsv,doc_f2py_rout__fblas_ctpsv},
+    {"ztpsv",-1,{{-1}},0,0,(char *)  F_FUNC(ztpsv,ZTPSV),  (f2py_init_func)f2py_rout__fblas_ztpsv,doc_f2py_rout__fblas_ztpsv},
+    {"strmv",-1,{{-1}},0,0,(char *)  F_FUNC(strmv,STRMV),  (f2py_init_func)f2py_rout__fblas_strmv,doc_f2py_rout__fblas_strmv},
+    {"dtrmv",-1,{{-1}},0,0,(char *)  F_FUNC(dtrmv,DTRMV),  (f2py_init_func)f2py_rout__fblas_dtrmv,doc_f2py_rout__fblas_dtrmv},
+    {"ctrmv",-1,{{-1}},0,0,(char *)  F_FUNC(ctrmv,CTRMV),  (f2py_init_func)f2py_rout__fblas_ctrmv,doc_f2py_rout__fblas_ctrmv},
+    {"ztrmv",-1,{{-1}},0,0,(char *)  F_FUNC(ztrmv,ZTRMV),  (f2py_init_func)f2py_rout__fblas_ztrmv,doc_f2py_rout__fblas_ztrmv},
+    {"strsv",-1,{{-1}},0,0,(char *)  F_FUNC(strsv,STRSV),  (f2py_init_func)f2py_rout__fblas_strsv,doc_f2py_rout__fblas_strsv},
+    {"dtrsv",-1,{{-1}},0,0,(char *)  F_FUNC(dtrsv,DTRSV),  (f2py_init_func)f2py_rout__fblas_dtrsv,doc_f2py_rout__fblas_dtrsv},
+    {"ctrsv",-1,{{-1}},0,0,(char *)  F_FUNC(ctrsv,CTRSV),  (f2py_init_func)f2py_rout__fblas_ctrsv,doc_f2py_rout__fblas_ctrsv},
+    {"ztrsv",-1,{{-1}},0,0,(char *)  F_FUNC(ztrsv,ZTRSV),  (f2py_init_func)f2py_rout__fblas_ztrsv,doc_f2py_rout__fblas_ztrsv},
+    {"stbmv",-1,{{-1}},0,0,(char *)  F_FUNC(stbmv,STBMV),  (f2py_init_func)f2py_rout__fblas_stbmv,doc_f2py_rout__fblas_stbmv},
+    {"dtbmv",-1,{{-1}},0,0,(char *)  F_FUNC(dtbmv,DTBMV),  (f2py_init_func)f2py_rout__fblas_dtbmv,doc_f2py_rout__fblas_dtbmv},
+    {"ctbmv",-1,{{-1}},0,0,(char *)  F_FUNC(ctbmv,CTBMV),  (f2py_init_func)f2py_rout__fblas_ctbmv,doc_f2py_rout__fblas_ctbmv},
+    {"ztbmv",-1,{{-1}},0,0,(char *)  F_FUNC(ztbmv,ZTBMV),  (f2py_init_func)f2py_rout__fblas_ztbmv,doc_f2py_rout__fblas_ztbmv},
+    {"stpmv",-1,{{-1}},0,0,(char *)  F_FUNC(stpmv,STPMV),  (f2py_init_func)f2py_rout__fblas_stpmv,doc_f2py_rout__fblas_stpmv},
+    {"dtpmv",-1,{{-1}},0,0,(char *)  F_FUNC(dtpmv,DTPMV),  (f2py_init_func)f2py_rout__fblas_dtpmv,doc_f2py_rout__fblas_dtpmv},
+    {"ctpmv",-1,{{-1}},0,0,(char *)  F_FUNC(ctpmv,CTPMV),  (f2py_init_func)f2py_rout__fblas_ctpmv,doc_f2py_rout__fblas_ctpmv},
+    {"ztpmv",-1,{{-1}},0,0,(char *)  F_FUNC(ztpmv,ZTPMV),  (f2py_init_func)f2py_rout__fblas_ztpmv,doc_f2py_rout__fblas_ztpmv},
+    {"sgemm",-1,{{-1}},0,0,(char *)  F_FUNC(sgemm,SGEMM),  (f2py_init_func)f2py_rout__fblas_sgemm,doc_f2py_rout__fblas_sgemm},
+    {"dgemm",-1,{{-1}},0,0,(char *)  F_FUNC(dgemm,DGEMM),  (f2py_init_func)f2py_rout__fblas_dgemm,doc_f2py_rout__fblas_dgemm},
+    {"cgemm",-1,{{-1}},0,0,(char *)  F_FUNC(cgemm,CGEMM),  (f2py_init_func)f2py_rout__fblas_cgemm,doc_f2py_rout__fblas_cgemm},
+    {"zgemm",-1,{{-1}},0,0,(char *)  F_FUNC(zgemm,ZGEMM),  (f2py_init_func)f2py_rout__fblas_zgemm,doc_f2py_rout__fblas_zgemm},
+    {"ssymm",-1,{{-1}},0,0,(char *)  F_FUNC(ssymm,SSYMM),  (f2py_init_func)f2py_rout__fblas_ssymm,doc_f2py_rout__fblas_ssymm},
+    {"dsymm",-1,{{-1}},0,0,(char *)  F_FUNC(dsymm,DSYMM),  (f2py_init_func)f2py_rout__fblas_dsymm,doc_f2py_rout__fblas_dsymm},
+    {"csymm",-1,{{-1}},0,0,(char *)  F_FUNC(csymm,CSYMM),  (f2py_init_func)f2py_rout__fblas_csymm,doc_f2py_rout__fblas_csymm},
+    {"zsymm",-1,{{-1}},0,0,(char *)  F_FUNC(zsymm,ZSYMM),  (f2py_init_func)f2py_rout__fblas_zsymm,doc_f2py_rout__fblas_zsymm},
+    {"chemm",-1,{{-1}},0,0,(char *)  F_FUNC(chemm,CHEMM),  (f2py_init_func)f2py_rout__fblas_chemm,doc_f2py_rout__fblas_chemm},
+    {"zhemm",-1,{{-1}},0,0,(char *)  F_FUNC(zhemm,ZHEMM),  (f2py_init_func)f2py_rout__fblas_zhemm,doc_f2py_rout__fblas_zhemm},
+    {"ssyrk",-1,{{-1}},0,0,(char *)  F_FUNC(ssyrk,SSYRK),  (f2py_init_func)f2py_rout__fblas_ssyrk,doc_f2py_rout__fblas_ssyrk},
+    {"dsyrk",-1,{{-1}},0,0,(char *)  F_FUNC(dsyrk,DSYRK),  (f2py_init_func)f2py_rout__fblas_dsyrk,doc_f2py_rout__fblas_dsyrk},
+    {"csyrk",-1,{{-1}},0,0,(char *)  F_FUNC(csyrk,CSYRK),  (f2py_init_func)f2py_rout__fblas_csyrk,doc_f2py_rout__fblas_csyrk},
+    {"zsyrk",-1,{{-1}},0,0,(char *)  F_FUNC(zsyrk,ZSYRK),  (f2py_init_func)f2py_rout__fblas_zsyrk,doc_f2py_rout__fblas_zsyrk},
+    {"cherk",-1,{{-1}},0,0,(char *)  F_FUNC(cherk,CHERK),  (f2py_init_func)f2py_rout__fblas_cherk,doc_f2py_rout__fblas_cherk},
+    {"zherk",-1,{{-1}},0,0,(char *)  F_FUNC(zherk,ZHERK),  (f2py_init_func)f2py_rout__fblas_zherk,doc_f2py_rout__fblas_zherk},
+    {"ssyr2k",-1,{{-1}},0,0,(char *)  F_FUNC(ssyr2k,SSYR2K),  (f2py_init_func)f2py_rout__fblas_ssyr2k,doc_f2py_rout__fblas_ssyr2k},
+    {"dsyr2k",-1,{{-1}},0,0,(char *)  F_FUNC(dsyr2k,DSYR2K),  (f2py_init_func)f2py_rout__fblas_dsyr2k,doc_f2py_rout__fblas_dsyr2k},
+    {"csyr2k",-1,{{-1}},0,0,(char *)  F_FUNC(csyr2k,CSYR2K),  (f2py_init_func)f2py_rout__fblas_csyr2k,doc_f2py_rout__fblas_csyr2k},
+    {"zsyr2k",-1,{{-1}},0,0,(char *)  F_FUNC(zsyr2k,ZSYR2K),  (f2py_init_func)f2py_rout__fblas_zsyr2k,doc_f2py_rout__fblas_zsyr2k},
+    {"cher2k",-1,{{-1}},0,0,(char *)  F_FUNC(cher2k,CHER2K),  (f2py_init_func)f2py_rout__fblas_cher2k,doc_f2py_rout__fblas_cher2k},
+    {"zher2k",-1,{{-1}},0,0,(char *)  F_FUNC(zher2k,ZHER2K),  (f2py_init_func)f2py_rout__fblas_zher2k,doc_f2py_rout__fblas_zher2k},
+    {"strmm",-1,{{-1}},0,0,(char *)  F_FUNC(strmm,STRMM),  (f2py_init_func)f2py_rout__fblas_strmm,doc_f2py_rout__fblas_strmm},
+    {"dtrmm",-1,{{-1}},0,0,(char *)  F_FUNC(dtrmm,DTRMM),  (f2py_init_func)f2py_rout__fblas_dtrmm,doc_f2py_rout__fblas_dtrmm},
+    {"ctrmm",-1,{{-1}},0,0,(char *)  F_FUNC(ctrmm,CTRMM),  (f2py_init_func)f2py_rout__fblas_ctrmm,doc_f2py_rout__fblas_ctrmm},
+    {"ztrmm",-1,{{-1}},0,0,(char *)  F_FUNC(ztrmm,ZTRMM),  (f2py_init_func)f2py_rout__fblas_ztrmm,doc_f2py_rout__fblas_ztrmm},
+    {"strsm",-1,{{-1}},0,0,(char *)  F_FUNC(strsm,STRSM),  (f2py_init_func)f2py_rout__fblas_strsm,doc_f2py_rout__fblas_strsm},
+    {"dtrsm",-1,{{-1}},0,0,(char *)  F_FUNC(dtrsm,DTRSM),  (f2py_init_func)f2py_rout__fblas_dtrsm,doc_f2py_rout__fblas_dtrsm},
+    {"ctrsm",-1,{{-1}},0,0,(char *)  F_FUNC(ctrsm,CTRSM),  (f2py_init_func)f2py_rout__fblas_ctrsm,doc_f2py_rout__fblas_ctrsm},
+    {"ztrsm",-1,{{-1}},0,0,(char *)  F_FUNC(ztrsm,ZTRSM),  (f2py_init_func)f2py_rout__fblas_ztrsm,doc_f2py_rout__fblas_ztrsm},
 
 /*eof routine_defs*/
     {NULL}
@@ -27819,11 +28455,11 @@ PyMODINIT_FUNC PyInit__fblas(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _fblas (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_fblas' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module '_fblas' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    c,s = srotg(a,b)\n"
 "    c,s = drotg(a,b)\n"
 "    c,s = crotg(a,b)\n"
@@ -27977,7 +28613,7 @@ PyMODINIT_FUNC PyInit__fblas(void) {
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _fblas_error = PyErr_NewException ("_fblas.error", NULL, NULL);

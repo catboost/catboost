@@ -15,7 +15,7 @@ from numpy import ma
 from numpy.testing import (
     assert_, assert_equal, assert_array_equal, assert_almost_equal,
     assert_array_almost_equal, assert_raises, assert_allclose, IS_PYPY,
-    assert_warns, assert_raises_regex, suppress_warnings, HAS_REFCOUNT,
+    assert_warns, assert_raises_regex, suppress_warnings, HAS_REFCOUNT, IS_WASM
     )
 import numpy.lib.function_base as nfb
 from numpy.random import rand
@@ -25,6 +25,7 @@ from numpy.lib import (
     i0, insert, interp, kaiser, meshgrid, msort, piecewise, place, rot90,
     select, setxor1d, sinc, trapz, trim_zeros, unwrap, unique, vectorize
     )
+from numpy.core.numeric import normalize_axis_tuple
 
 
 def get_mat(n):
@@ -420,6 +421,11 @@ class TestAverage:
         w = np.array([decimal.Decimal(1) for _ in range(10)])
         w /= w.sum()
         assert_almost_equal(a.mean(0), average(a, weights=w))
+
+    def test_average_class_without_dtype(self):
+        # see gh-21988
+        a = np.array([Fraction(1, 5), Fraction(3, 5)])
+        assert_equal(np.average(a), Fraction(2, 5))
 
 class TestSelect:
     choices = [np.array([1, 2, 3]),
@@ -2422,11 +2428,12 @@ class TestMsort:
         A = np.array([[0.44567325, 0.79115165, 0.54900530],
                       [0.36844147, 0.37325583, 0.96098397],
                       [0.64864341, 0.52929049, 0.39172155]])
-        assert_almost_equal(
-            msort(A),
-            np.array([[0.36844147, 0.37325583, 0.39172155],
-                      [0.44567325, 0.52929049, 0.54900530],
-                      [0.64864341, 0.79115165, 0.96098397]]))
+        with pytest.warns(DeprecationWarning, match="msort is deprecated"):
+            assert_almost_equal(
+                msort(A),
+                np.array([[0.36844147, 0.37325583, 0.39172155],
+                          [0.44567325, 0.52929049, 0.54900530],
+                          [0.64864341, 0.79115165, 0.96098397]]))
 
 
 class TestMeshgrid:
@@ -2987,11 +2994,11 @@ class TestPercentile:
 
     H_F_TYPE_CODES = [(int_type, np.float64)
                       for int_type in np.typecodes["AllInteger"]
-                      ] + [(np.float16, np.float64),
-                           (np.float32, np.float64),
+                      ] + [(np.float16, np.float16),
+                           (np.float32, np.float32),
                            (np.float64, np.float64),
                            (np.longdouble, np.longdouble),
-                           (np.complex64, np.complex128),
+                           (np.complex64, np.complex64),
                            (np.complex128, np.complex128),
                            (np.clongdouble, np.clongdouble),
                            (np.dtype("O"), np.float64)]
@@ -3013,10 +3020,15 @@ class TestPercentile:
                                   expected,
                                   input_dtype,
                                   expected_dtype):
+        expected_dtype = np.dtype(expected_dtype)
+        if np._get_promotion_state() == "legacy":
+            expected_dtype = np.promote_types(expected_dtype, np.float64)
+
         arr = np.asarray([15.0, 20.0, 35.0, 40.0, 50.0], dtype=input_dtype)
         actual = np.percentile(arr, 40.0, method=method)
 
-        np.testing.assert_almost_equal(actual, expected, 14)
+        np.testing.assert_almost_equal(
+            actual, expected_dtype.type(expected), 14)
 
         if method in ["inverted_cdf", "closest_observation"]:
             if input_dtype == "O":
@@ -3319,6 +3331,32 @@ class TestPercentile:
                                    keepdims=True).shape, (2, 1, 1, 7, 1))
         assert_equal(np.percentile(d, [1, 7], axis=(0, 3),
                                    keepdims=True).shape, (2, 1, 5, 7, 1))
+
+    @pytest.mark.parametrize('q', [7, [1, 7]])
+    @pytest.mark.parametrize(
+        argnames='axis',
+        argvalues=[
+            None,
+            1,
+            (1,),
+            (0, 1),
+            (-3, -1),
+        ]
+    )
+    def test_keepdims_out(self, q, axis):
+        d = np.ones((3, 5, 7, 11))
+        if axis is None:
+            shape_out = (1,) * d.ndim
+        else:
+            axis_norm = normalize_axis_tuple(axis, d.ndim)
+            shape_out = tuple(
+                1 if i in axis_norm else d.shape[i] for i in range(d.ndim))
+        shape_out = np.shape(q) + shape_out
+
+        out = np.empty(shape_out)
+        result = np.percentile(d, q, axis=axis, keepdims=True, out=out)
+        assert result is out
+        assert_equal(result.shape, shape_out)
 
     def test_out(self):
         o = np.zeros((4,))
@@ -3744,6 +3782,7 @@ class TestMedian:
         b[2] = np.nan
         assert_equal(np.median(a, (0, 2)), b)
 
+    @pytest.mark.skipif(IS_WASM, reason="fp errors don't work correctly")
     def test_empty(self):
         # mean(empty array) emits two warnings: empty slice and divide by 0
         a = np.array([], dtype=float)
@@ -3831,6 +3870,29 @@ class TestMedian:
                      (1, 1, 1, 1))
         assert_equal(np.median(d, axis=(0, 1, 3), keepdims=True).shape,
                      (1, 1, 7, 1))
+
+    @pytest.mark.parametrize(
+        argnames='axis',
+        argvalues=[
+            None,
+            1,
+            (1, ),
+            (0, 1),
+            (-3, -1),
+        ]
+    )
+    def test_keepdims_out(self, axis):
+        d = np.ones((3, 5, 7, 11))
+        if axis is None:
+            shape_out = (1,) * d.ndim
+        else:
+            axis_norm = normalize_axis_tuple(axis, d.ndim)
+            shape_out = tuple(
+                1 if i in axis_norm else d.shape[i] for i in range(d.ndim))
+        out = np.empty(shape_out)
+        result = np.median(d, axis=axis, keepdims=True, out=out)
+        assert result is out
+        assert_equal(result.shape, shape_out)
 
 
 class TestAdd_newdoc_ufunc:

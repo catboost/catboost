@@ -1,5 +1,5 @@
 /* File: minpack2module.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <string.h>
 
@@ -85,17 +84,14 @@ typedef char * string;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 /*
 STRINGPADN replaces null values with padding values from the right.
@@ -157,30 +153,6 @@ STRINGCOPYN copies N bytes.
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int
 double_from_pyobj(double* v, PyObject *obj, const char *errmess)
 {
@@ -390,13 +362,13 @@ static PyObject *f2py_rout_minpack2_dcsrch(const PyObject *capi_self,
     int *isave = NULL;
     npy_intp isave_Dims[1] = {-1};
     const int isave_Rank = 1;
-    PyArrayObject *capi_isave_tmp = NULL;
+    PyArrayObject *capi_isave_as_array = NULL;
     int capi_isave_intent = 0;
     PyObject *isave_capi = Py_None;
     double *dsave = NULL;
     npy_intp dsave_Dims[1] = {-1};
     const int dsave_Rank = 1;
-    PyArrayObject *capi_dsave_tmp = NULL;
+    PyArrayObject *capi_dsave_as_array = NULL;
     int capi_dsave_intent = 0;
     PyObject *dsave_capi = Py_None;
     static char *capi_kwlist[] = {"stp","f","g","ftol","gtol","xtol","task","stpmin","stpmax","isave","dsave",NULL};
@@ -442,26 +414,30 @@ f2py_start_clock();
     /* Processing variable isave */
     isave_Dims[0]=2;
     capi_isave_intent |= F2PY_INTENT_INOUT;
-    capi_isave_tmp = array_from_pyobj(NPY_INT,isave_Dims,isave_Rank,capi_isave_intent,isave_capi);
-    if (capi_isave_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : minpack2_error,"failed in converting 10th argument `isave' of minpack2.dcsrch to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "minpack2.minpack2.dcsrch: failed to create array from the 10th argument `isave`";
+    capi_isave_as_array = ndarray_from_pyobj(  NPY_INT,1,isave_Dims,isave_Rank,  capi_isave_intent,isave_capi,capi_errmess);
+    if (capi_isave_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = minpack2_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        isave = (int *)(PyArray_DATA(capi_isave_tmp));
+        isave = (int *)(PyArray_DATA(capi_isave_as_array));
 
     /* Processing variable dsave */
     dsave_Dims[0]=13;
     capi_dsave_intent |= F2PY_INTENT_INOUT;
-    capi_dsave_tmp = array_from_pyobj(NPY_DOUBLE,dsave_Dims,dsave_Rank,capi_dsave_intent,dsave_capi);
-    if (capi_dsave_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : minpack2_error,"failed in converting 11st argument `dsave' of minpack2.dcsrch to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "minpack2.minpack2.dcsrch: failed to create array from the 11st argument `dsave`";
+    capi_dsave_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,dsave_Dims,dsave_Rank,  capi_dsave_intent,dsave_capi,capi_errmess);
+    if (capi_dsave_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = minpack2_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dsave = (double *)(PyArray_DATA(capi_dsave_tmp));
+        dsave = (double *)(PyArray_DATA(capi_dsave_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -485,13 +461,13 @@ f2py_stop_call_clock();
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_dsave_tmp!=dsave_capi) {
-        Py_XDECREF(capi_dsave_tmp); }
-    }  /*if (capi_dsave_tmp == NULL) ... else of dsave*/
+    if((PyObject *)capi_dsave_as_array!=dsave_capi) {
+        Py_XDECREF(capi_dsave_as_array); }
+    }  /* if (capi_dsave_as_array == NULL) ... else of dsave */
     /* End of cleaning variable dsave */
-    if((PyObject *)capi_isave_tmp!=isave_capi) {
-        Py_XDECREF(capi_isave_tmp); }
-    }  /*if (capi_isave_tmp == NULL) ... else of isave*/
+    if((PyObject *)capi_isave_as_array!=isave_capi) {
+        Py_XDECREF(capi_isave_as_array); }
+    }  /* if (capi_isave_as_array == NULL) ... else of isave */
     /* End of cleaning variable isave */
     } /*if (f2py_success) of stpmax*/
     /* End of cleaning variable stpmax */
@@ -706,8 +682,8 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"dcsrch",-1,{{-1}},0,(char *)F_FUNC(dcsrch,DCSRCH),(f2py_init_func)f2py_rout_minpack2_dcsrch,doc_f2py_rout_minpack2_dcsrch},
-    {"dcstep",-1,{{-1}},0,(char *)F_FUNC(dcstep,DCSTEP),(f2py_init_func)f2py_rout_minpack2_dcstep,doc_f2py_rout_minpack2_dcstep},
+    {"dcsrch",-1,{{-1}},0,0,(char *)  F_FUNC(dcsrch,DCSRCH),  (f2py_init_func)f2py_rout_minpack2_dcsrch,doc_f2py_rout_minpack2_dcsrch},
+    {"dcstep",-1,{{-1}},0,0,(char *)  F_FUNC(dcstep,DCSTEP),  (f2py_init_func)f2py_rout_minpack2_dcstep,doc_f2py_rout_minpack2_dcstep},
 
 /*eof routine_defs*/
     {NULL}
@@ -739,17 +715,17 @@ PyMODINIT_FUNC PyInit_minpack2(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module minpack2 (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module 'minpack2' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module 'minpack2' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    stp,f,g,task = dcsrch(stp,f,g,ftol,gtol,xtol,task,stpmin,stpmax,isave,dsave)\n"
 "    stx,fx,dx,sty,fy,dy,stp,brackt = dcstep(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,stpmin,stpmax)\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     minpack2_error = PyErr_NewException ("minpack2.error", NULL, NULL);

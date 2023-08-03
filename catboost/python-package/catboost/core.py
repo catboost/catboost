@@ -876,7 +876,10 @@ class Pool(_PoolBase):
             if not data:
                 raise CatBoostError("Features filename is empty.")
         elif isinstance(data, (ARRAY_TYPES, SPARSE_MATRIX_TYPES)):
-            data_shape = np.shape(data)
+            if isinstance(data, list):
+                data_shape = np.shape(np.asarray(data, dtype=object))
+            else:
+                data_shape = np.shape(data)
             if len(data_shape) == 1 and data_shape[0] > 0:
                 if isinstance(data[0], Iterable):
                     data_shape = tuple(data_shape + tuple([len(data[0])]))
@@ -1344,6 +1347,8 @@ class Pool(_PoolBase):
             samples_count = data.get_object_count()
             features_count = data.get_feature_count()
         elif data is not None:
+            if isinstance(data, list):
+                data = np.asarray(data, dtype=object)
             if len(np.shape(data)) == 1:
                 data = np.expand_dims(data, 1)
             samples_count, features_count = np.shape(data)

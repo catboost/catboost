@@ -17,6 +17,7 @@
 
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #define _MULTIARRAYMODULE
+#define _UMATHMODULE
 #define _NPY_NO_DEPRECATIONS /* for NPY_CHAR */
 
 #include "numpy/npy_common.h"
@@ -30,6 +31,7 @@
 #include "npy_sort.h"
 #include "common.h"
 #include "ctors.h"
+#include "convert_datatype.h"
 #include "dtypemeta.h"
 #include "lowlevel_strided_loops.h"
 #include "usertypes.h"
@@ -47,6 +49,9 @@
 #include "npy_buffer.h"
 
 #include "arraytypes.h"
+
+#include "umathmodule.h"
+
 /*
  * Define a stack allocated dummy array with only the minimum information set:
  *   1. The descr, the main field interesting here.
@@ -106,10 +111,32 @@ MyPyFloat_AsDouble(PyObject *obj)
     return ret;
 }
 
+
+static float
+MyPyFloat_AsFloat(PyObject *obj)
+{
+    double d_val = MyPyFloat_AsDouble(obj);
+    float res = (float)d_val;
+    if (NPY_UNLIKELY(npy_isinf(res) && !npy_isinf(d_val))) {
+        if (PyUFunc_GiveFloatingpointErrors("cast", NPY_FPE_OVERFLOW) < 0) {
+            return -1;
+        }
+    }
+    return res;
+}
+
+
 static npy_half
 MyPyFloat_AsHalf(PyObject *obj)
 {
-    return npy_double_to_half(MyPyFloat_AsDouble(obj));
+    double d_val = MyPyFloat_AsDouble(obj);
+    npy_half res = npy_double_to_half(d_val);
+    if (NPY_UNLIKELY(npy_half_isinf(res) && !npy_isinf(d_val))) {
+        if (PyUFunc_GiveFloatingpointErrors("cast", NPY_FPE_OVERFLOW) < 0) {
+            return npy_double_to_half(-1.);
+        }
+    }
+    return res;
 }
 
 static PyObject *
@@ -139,7 +166,7 @@ convert_to_scalar_and_retry(PyObject *op, void *ov, void *vap,
 }
 
 
-#line 137
+#line 164
 static npy_long
 MyPyLong_AsLong (PyObject *obj)
 {
@@ -154,8 +181,15 @@ MyPyLong_AsLong (PyObject *obj)
     return ret;
 }
 
+static npy_long
+MyPyLong_AsLongWithWrap(PyObject *obj, int *wraparound)
+{
+    *wraparound = 0;  /* Never happens within the function */
+    return MyPyLong_AsLong(obj);
+}
 
-#line 137
+
+#line 164
 static npy_longlong
 MyPyLong_AsLongLong (PyObject *obj)
 {
@@ -170,13 +204,21 @@ MyPyLong_AsLongLong (PyObject *obj)
     return ret;
 }
 
+static npy_longlong
+MyPyLong_AsLongLongWithWrap(PyObject *obj, int *wraparound)
+{
+    *wraparound = 0;  /* Never happens within the function */
+    return MyPyLong_AsLongLong(obj);
+}
 
 
-#line 158
+
+#line 192
 static npy_ulong
-MyPyLong_AsUnsignedLong (PyObject *obj)
+MyPyLong_AsUnsignedLongWithWrap(PyObject *obj, int *wraparound)
 {
     npy_ulong ret;
+    *wraparound = 0;
     PyObject *num = PyNumber_Long(obj);
 
     if (num == NULL) {
@@ -185,18 +227,28 @@ MyPyLong_AsUnsignedLong (PyObject *obj)
     ret = PyLong_AsUnsignedLong(num);
     if (PyErr_Occurred()) {
         PyErr_Clear();
+        *wraparound = 1;  /* negative wrapped to positive */
         ret = PyLong_AsLong(num);
     }
     Py_DECREF(num);
     return ret;
 }
 
+static npy_ulong
+MyPyLong_AsUnsignedLong(PyObject *obj)
+{
+    int wraparound;
+    return MyPyLong_AsUnsignedLongWithWrap(obj, &wraparound);
+}
 
-#line 158
+
+
+#line 192
 static npy_ulonglong
-MyPyLong_AsUnsignedLongLong (PyObject *obj)
+MyPyLong_AsUnsignedLongLongWithWrap(PyObject *obj, int *wraparound)
 {
     npy_ulonglong ret;
+    *wraparound = 0;
     PyObject *num = PyNumber_Long(obj);
 
     if (num == NULL) {
@@ -205,11 +257,20 @@ MyPyLong_AsUnsignedLongLong (PyObject *obj)
     ret = PyLong_AsUnsignedLongLong(num);
     if (PyErr_Occurred()) {
         PyErr_Clear();
+        *wraparound = 1;  /* negative wrapped to positive */
         ret = PyLong_AsLongLong(num);
     }
     Py_DECREF(num);
     return ret;
 }
+
+static npy_ulonglong
+MyPyLong_AsUnsignedLongLong(PyObject *obj)
+{
+    int wraparound;
+    return MyPyLong_AsUnsignedLongLongWithWrap(obj, &wraparound);
+}
+
 
 
 
@@ -218,8 +279,6 @@ MyPyLong_AsUnsignedLongLong (PyObject *obj)
  **                         GETITEM AND SETITEM                             **
  *****************************************************************************
  */
-
-#define _ALIGN(type) offsetof(struct {char c; type v;}, v)
 /*
  * Disable harmless compiler warning "4116: unnamed type definition in
  * parentheses" which is caused by the _ALIGN macro.
@@ -229,7 +288,679 @@ MyPyLong_AsUnsignedLongLong (PyObject *obj)
 #endif
 
 
-#line 213
+#line 250
+
+/*
+ * Helper for conversion from Python integers.  This uses the same conversion
+ * function as below for compatibility (which may seem strange).
+ * However, it adds more strict integer overflow checks to prevent mainly
+ * conversion of negative integers.  These are considered deprecated, which is
+ * related to NEP 50 (but somewhat independent).
+ */
+static int
+BYTE_safe_pyint_setitem(PyObject *obj, npy_byte *result)
+{
+    /* Input is guaranteed to be a Python integer */
+    assert(PyLong_Check(obj));
+    int wraparound;
+    npy_long value = MyPyLong_AsLongWithWrap(obj, &wraparound);
+    if (value == (npy_long)-1 && PyErr_Occurred()) {
+        return -1;
+    }
+    *result = (npy_byte)value;
+
+    if (wraparound
+#if NPY_SIZEOF_BYTE < NPY_SIZEOF_LONG
+            || *result != value
+#endif
+            ) {
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_BYTE);
+
+        if (npy_promotion_state == NPY_USE_LEGACY_PROMOTION || (
+                    npy_promotion_state == NPY_USE_WEAK_PROMOTION_AND_WARN
+                        && !npy_give_promotion_warnings())) {
+            /*
+             * This path will be taken both for the "promotion" case such as
+             * `uint8_arr + 123` as well as the assignment case.
+             * The "legacy" path should only ever be taken for assignment
+             * (legacy promotion will prevent overflows by promoting up)
+             * so a normal deprecation makes sense.
+             * When weak promotion is active, we use "future" behavior unless
+             * warnings were explicitly opt-in.
+             */
+            if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
+                    "NumPy will stop allowing conversion of out-of-bound "
+                    "Python integers to integer arrays.  The conversion "
+                    "of %.100R to %S will fail in the future.\n"
+                    "For the old behavior, usually:\n"
+                    "    np.array(value).astype(dtype)`\n"
+                    "will give the desired result (the cast overflows).",
+                    obj, descr) < 0) {
+                Py_DECREF(descr);
+                return -1;
+            }
+            Py_DECREF(descr);
+            return 0;
+        }
+        else {
+            /* Live in the future, outright error: */
+            PyErr_Format(PyExc_OverflowError,
+                    "Python integer %R out of bounds for %S", obj, descr);
+            Py_DECREF(descr);
+            return -1;
+            }
+        assert(0);
+    }
+    return 0;
+}
+
+
+#line 250
+
+/*
+ * Helper for conversion from Python integers.  This uses the same conversion
+ * function as below for compatibility (which may seem strange).
+ * However, it adds more strict integer overflow checks to prevent mainly
+ * conversion of negative integers.  These are considered deprecated, which is
+ * related to NEP 50 (but somewhat independent).
+ */
+static int
+SHORT_safe_pyint_setitem(PyObject *obj, npy_short *result)
+{
+    /* Input is guaranteed to be a Python integer */
+    assert(PyLong_Check(obj));
+    int wraparound;
+    npy_long value = MyPyLong_AsLongWithWrap(obj, &wraparound);
+    if (value == (npy_long)-1 && PyErr_Occurred()) {
+        return -1;
+    }
+    *result = (npy_short)value;
+
+    if (wraparound
+#if NPY_SIZEOF_SHORT < NPY_SIZEOF_LONG
+            || *result != value
+#endif
+            ) {
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_SHORT);
+
+        if (npy_promotion_state == NPY_USE_LEGACY_PROMOTION || (
+                    npy_promotion_state == NPY_USE_WEAK_PROMOTION_AND_WARN
+                        && !npy_give_promotion_warnings())) {
+            /*
+             * This path will be taken both for the "promotion" case such as
+             * `uint8_arr + 123` as well as the assignment case.
+             * The "legacy" path should only ever be taken for assignment
+             * (legacy promotion will prevent overflows by promoting up)
+             * so a normal deprecation makes sense.
+             * When weak promotion is active, we use "future" behavior unless
+             * warnings were explicitly opt-in.
+             */
+            if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
+                    "NumPy will stop allowing conversion of out-of-bound "
+                    "Python integers to integer arrays.  The conversion "
+                    "of %.100R to %S will fail in the future.\n"
+                    "For the old behavior, usually:\n"
+                    "    np.array(value).astype(dtype)`\n"
+                    "will give the desired result (the cast overflows).",
+                    obj, descr) < 0) {
+                Py_DECREF(descr);
+                return -1;
+            }
+            Py_DECREF(descr);
+            return 0;
+        }
+        else {
+            /* Live in the future, outright error: */
+            PyErr_Format(PyExc_OverflowError,
+                    "Python integer %R out of bounds for %S", obj, descr);
+            Py_DECREF(descr);
+            return -1;
+            }
+        assert(0);
+    }
+    return 0;
+}
+
+
+#line 250
+
+/*
+ * Helper for conversion from Python integers.  This uses the same conversion
+ * function as below for compatibility (which may seem strange).
+ * However, it adds more strict integer overflow checks to prevent mainly
+ * conversion of negative integers.  These are considered deprecated, which is
+ * related to NEP 50 (but somewhat independent).
+ */
+static int
+INT_safe_pyint_setitem(PyObject *obj, npy_int *result)
+{
+    /* Input is guaranteed to be a Python integer */
+    assert(PyLong_Check(obj));
+    int wraparound;
+    npy_long value = MyPyLong_AsLongWithWrap(obj, &wraparound);
+    if (value == (npy_long)-1 && PyErr_Occurred()) {
+        return -1;
+    }
+    *result = (npy_int)value;
+
+    if (wraparound
+#if NPY_SIZEOF_INT < NPY_SIZEOF_LONG
+            || *result != value
+#endif
+            ) {
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_INT);
+
+        if (npy_promotion_state == NPY_USE_LEGACY_PROMOTION || (
+                    npy_promotion_state == NPY_USE_WEAK_PROMOTION_AND_WARN
+                        && !npy_give_promotion_warnings())) {
+            /*
+             * This path will be taken both for the "promotion" case such as
+             * `uint8_arr + 123` as well as the assignment case.
+             * The "legacy" path should only ever be taken for assignment
+             * (legacy promotion will prevent overflows by promoting up)
+             * so a normal deprecation makes sense.
+             * When weak promotion is active, we use "future" behavior unless
+             * warnings were explicitly opt-in.
+             */
+            if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
+                    "NumPy will stop allowing conversion of out-of-bound "
+                    "Python integers to integer arrays.  The conversion "
+                    "of %.100R to %S will fail in the future.\n"
+                    "For the old behavior, usually:\n"
+                    "    np.array(value).astype(dtype)`\n"
+                    "will give the desired result (the cast overflows).",
+                    obj, descr) < 0) {
+                Py_DECREF(descr);
+                return -1;
+            }
+            Py_DECREF(descr);
+            return 0;
+        }
+        else {
+            /* Live in the future, outright error: */
+            PyErr_Format(PyExc_OverflowError,
+                    "Python integer %R out of bounds for %S", obj, descr);
+            Py_DECREF(descr);
+            return -1;
+            }
+        assert(0);
+    }
+    return 0;
+}
+
+
+#line 250
+
+/*
+ * Helper for conversion from Python integers.  This uses the same conversion
+ * function as below for compatibility (which may seem strange).
+ * However, it adds more strict integer overflow checks to prevent mainly
+ * conversion of negative integers.  These are considered deprecated, which is
+ * related to NEP 50 (but somewhat independent).
+ */
+static int
+LONG_safe_pyint_setitem(PyObject *obj, npy_long *result)
+{
+    /* Input is guaranteed to be a Python integer */
+    assert(PyLong_Check(obj));
+    int wraparound;
+    npy_long value = MyPyLong_AsLongWithWrap(obj, &wraparound);
+    if (value == (npy_long)-1 && PyErr_Occurred()) {
+        return -1;
+    }
+    *result = (npy_long)value;
+
+    if (wraparound
+#if NPY_SIZEOF_LONG < NPY_SIZEOF_LONG
+            || *result != value
+#endif
+            ) {
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_LONG);
+
+        if (npy_promotion_state == NPY_USE_LEGACY_PROMOTION || (
+                    npy_promotion_state == NPY_USE_WEAK_PROMOTION_AND_WARN
+                        && !npy_give_promotion_warnings())) {
+            /*
+             * This path will be taken both for the "promotion" case such as
+             * `uint8_arr + 123` as well as the assignment case.
+             * The "legacy" path should only ever be taken for assignment
+             * (legacy promotion will prevent overflows by promoting up)
+             * so a normal deprecation makes sense.
+             * When weak promotion is active, we use "future" behavior unless
+             * warnings were explicitly opt-in.
+             */
+            if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
+                    "NumPy will stop allowing conversion of out-of-bound "
+                    "Python integers to integer arrays.  The conversion "
+                    "of %.100R to %S will fail in the future.\n"
+                    "For the old behavior, usually:\n"
+                    "    np.array(value).astype(dtype)`\n"
+                    "will give the desired result (the cast overflows).",
+                    obj, descr) < 0) {
+                Py_DECREF(descr);
+                return -1;
+            }
+            Py_DECREF(descr);
+            return 0;
+        }
+        else {
+            /* Live in the future, outright error: */
+            PyErr_Format(PyExc_OverflowError,
+                    "Python integer %R out of bounds for %S", obj, descr);
+            Py_DECREF(descr);
+            return -1;
+            }
+        assert(0);
+    }
+    return 0;
+}
+
+
+#line 250
+
+/*
+ * Helper for conversion from Python integers.  This uses the same conversion
+ * function as below for compatibility (which may seem strange).
+ * However, it adds more strict integer overflow checks to prevent mainly
+ * conversion of negative integers.  These are considered deprecated, which is
+ * related to NEP 50 (but somewhat independent).
+ */
+static int
+LONGLONG_safe_pyint_setitem(PyObject *obj, npy_longlong *result)
+{
+    /* Input is guaranteed to be a Python integer */
+    assert(PyLong_Check(obj));
+    int wraparound;
+    npy_longlong value = MyPyLong_AsLongLongWithWrap(obj, &wraparound);
+    if (value == (npy_longlong)-1 && PyErr_Occurred()) {
+        return -1;
+    }
+    *result = (npy_longlong)value;
+
+    if (wraparound
+#if NPY_SIZEOF_LONGLONG < NPY_SIZEOF_LONGLONG
+            || *result != value
+#endif
+            ) {
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_LONGLONG);
+
+        if (npy_promotion_state == NPY_USE_LEGACY_PROMOTION || (
+                    npy_promotion_state == NPY_USE_WEAK_PROMOTION_AND_WARN
+                        && !npy_give_promotion_warnings())) {
+            /*
+             * This path will be taken both for the "promotion" case such as
+             * `uint8_arr + 123` as well as the assignment case.
+             * The "legacy" path should only ever be taken for assignment
+             * (legacy promotion will prevent overflows by promoting up)
+             * so a normal deprecation makes sense.
+             * When weak promotion is active, we use "future" behavior unless
+             * warnings were explicitly opt-in.
+             */
+            if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
+                    "NumPy will stop allowing conversion of out-of-bound "
+                    "Python integers to integer arrays.  The conversion "
+                    "of %.100R to %S will fail in the future.\n"
+                    "For the old behavior, usually:\n"
+                    "    np.array(value).astype(dtype)`\n"
+                    "will give the desired result (the cast overflows).",
+                    obj, descr) < 0) {
+                Py_DECREF(descr);
+                return -1;
+            }
+            Py_DECREF(descr);
+            return 0;
+        }
+        else {
+            /* Live in the future, outright error: */
+            PyErr_Format(PyExc_OverflowError,
+                    "Python integer %R out of bounds for %S", obj, descr);
+            Py_DECREF(descr);
+            return -1;
+            }
+        assert(0);
+    }
+    return 0;
+}
+
+
+#line 250
+
+/*
+ * Helper for conversion from Python integers.  This uses the same conversion
+ * function as below for compatibility (which may seem strange).
+ * However, it adds more strict integer overflow checks to prevent mainly
+ * conversion of negative integers.  These are considered deprecated, which is
+ * related to NEP 50 (but somewhat independent).
+ */
+static int
+UBYTE_safe_pyint_setitem(PyObject *obj, npy_ubyte *result)
+{
+    /* Input is guaranteed to be a Python integer */
+    assert(PyLong_Check(obj));
+    int wraparound;
+    npy_ulong value = MyPyLong_AsLongWithWrap(obj, &wraparound);
+    if (value == (npy_ulong)-1 && PyErr_Occurred()) {
+        return -1;
+    }
+    *result = (npy_ubyte)value;
+
+    if (wraparound
+#if NPY_SIZEOF_BYTE < NPY_SIZEOF_LONG
+            || *result != value
+#endif
+            ) {
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_UBYTE);
+
+        if (npy_promotion_state == NPY_USE_LEGACY_PROMOTION || (
+                    npy_promotion_state == NPY_USE_WEAK_PROMOTION_AND_WARN
+                        && !npy_give_promotion_warnings())) {
+            /*
+             * This path will be taken both for the "promotion" case such as
+             * `uint8_arr + 123` as well as the assignment case.
+             * The "legacy" path should only ever be taken for assignment
+             * (legacy promotion will prevent overflows by promoting up)
+             * so a normal deprecation makes sense.
+             * When weak promotion is active, we use "future" behavior unless
+             * warnings were explicitly opt-in.
+             */
+            if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
+                    "NumPy will stop allowing conversion of out-of-bound "
+                    "Python integers to integer arrays.  The conversion "
+                    "of %.100R to %S will fail in the future.\n"
+                    "For the old behavior, usually:\n"
+                    "    np.array(value).astype(dtype)`\n"
+                    "will give the desired result (the cast overflows).",
+                    obj, descr) < 0) {
+                Py_DECREF(descr);
+                return -1;
+            }
+            Py_DECREF(descr);
+            return 0;
+        }
+        else {
+            /* Live in the future, outright error: */
+            PyErr_Format(PyExc_OverflowError,
+                    "Python integer %R out of bounds for %S", obj, descr);
+            Py_DECREF(descr);
+            return -1;
+            }
+        assert(0);
+    }
+    return 0;
+}
+
+
+#line 250
+
+/*
+ * Helper for conversion from Python integers.  This uses the same conversion
+ * function as below for compatibility (which may seem strange).
+ * However, it adds more strict integer overflow checks to prevent mainly
+ * conversion of negative integers.  These are considered deprecated, which is
+ * related to NEP 50 (but somewhat independent).
+ */
+static int
+USHORT_safe_pyint_setitem(PyObject *obj, npy_ushort *result)
+{
+    /* Input is guaranteed to be a Python integer */
+    assert(PyLong_Check(obj));
+    int wraparound;
+    npy_ulong value = MyPyLong_AsLongWithWrap(obj, &wraparound);
+    if (value == (npy_ulong)-1 && PyErr_Occurred()) {
+        return -1;
+    }
+    *result = (npy_ushort)value;
+
+    if (wraparound
+#if NPY_SIZEOF_SHORT < NPY_SIZEOF_LONG
+            || *result != value
+#endif
+            ) {
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_USHORT);
+
+        if (npy_promotion_state == NPY_USE_LEGACY_PROMOTION || (
+                    npy_promotion_state == NPY_USE_WEAK_PROMOTION_AND_WARN
+                        && !npy_give_promotion_warnings())) {
+            /*
+             * This path will be taken both for the "promotion" case such as
+             * `uint8_arr + 123` as well as the assignment case.
+             * The "legacy" path should only ever be taken for assignment
+             * (legacy promotion will prevent overflows by promoting up)
+             * so a normal deprecation makes sense.
+             * When weak promotion is active, we use "future" behavior unless
+             * warnings were explicitly opt-in.
+             */
+            if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
+                    "NumPy will stop allowing conversion of out-of-bound "
+                    "Python integers to integer arrays.  The conversion "
+                    "of %.100R to %S will fail in the future.\n"
+                    "For the old behavior, usually:\n"
+                    "    np.array(value).astype(dtype)`\n"
+                    "will give the desired result (the cast overflows).",
+                    obj, descr) < 0) {
+                Py_DECREF(descr);
+                return -1;
+            }
+            Py_DECREF(descr);
+            return 0;
+        }
+        else {
+            /* Live in the future, outright error: */
+            PyErr_Format(PyExc_OverflowError,
+                    "Python integer %R out of bounds for %S", obj, descr);
+            Py_DECREF(descr);
+            return -1;
+            }
+        assert(0);
+    }
+    return 0;
+}
+
+
+#line 250
+
+/*
+ * Helper for conversion from Python integers.  This uses the same conversion
+ * function as below for compatibility (which may seem strange).
+ * However, it adds more strict integer overflow checks to prevent mainly
+ * conversion of negative integers.  These are considered deprecated, which is
+ * related to NEP 50 (but somewhat independent).
+ */
+static int
+UINT_safe_pyint_setitem(PyObject *obj, npy_uint *result)
+{
+    /* Input is guaranteed to be a Python integer */
+    assert(PyLong_Check(obj));
+    int wraparound;
+    npy_ulong value = MyPyLong_AsUnsignedLongWithWrap(obj, &wraparound);
+    if (value == (npy_ulong)-1 && PyErr_Occurred()) {
+        return -1;
+    }
+    *result = (npy_uint)value;
+
+    if (wraparound
+#if NPY_SIZEOF_INT < NPY_SIZEOF_LONG
+            || *result != value
+#endif
+            ) {
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_UINT);
+
+        if (npy_promotion_state == NPY_USE_LEGACY_PROMOTION || (
+                    npy_promotion_state == NPY_USE_WEAK_PROMOTION_AND_WARN
+                        && !npy_give_promotion_warnings())) {
+            /*
+             * This path will be taken both for the "promotion" case such as
+             * `uint8_arr + 123` as well as the assignment case.
+             * The "legacy" path should only ever be taken for assignment
+             * (legacy promotion will prevent overflows by promoting up)
+             * so a normal deprecation makes sense.
+             * When weak promotion is active, we use "future" behavior unless
+             * warnings were explicitly opt-in.
+             */
+            if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
+                    "NumPy will stop allowing conversion of out-of-bound "
+                    "Python integers to integer arrays.  The conversion "
+                    "of %.100R to %S will fail in the future.\n"
+                    "For the old behavior, usually:\n"
+                    "    np.array(value).astype(dtype)`\n"
+                    "will give the desired result (the cast overflows).",
+                    obj, descr) < 0) {
+                Py_DECREF(descr);
+                return -1;
+            }
+            Py_DECREF(descr);
+            return 0;
+        }
+        else {
+            /* Live in the future, outright error: */
+            PyErr_Format(PyExc_OverflowError,
+                    "Python integer %R out of bounds for %S", obj, descr);
+            Py_DECREF(descr);
+            return -1;
+            }
+        assert(0);
+    }
+    return 0;
+}
+
+
+#line 250
+
+/*
+ * Helper for conversion from Python integers.  This uses the same conversion
+ * function as below for compatibility (which may seem strange).
+ * However, it adds more strict integer overflow checks to prevent mainly
+ * conversion of negative integers.  These are considered deprecated, which is
+ * related to NEP 50 (but somewhat independent).
+ */
+static int
+ULONG_safe_pyint_setitem(PyObject *obj, npy_ulong *result)
+{
+    /* Input is guaranteed to be a Python integer */
+    assert(PyLong_Check(obj));
+    int wraparound;
+    npy_ulong value = MyPyLong_AsUnsignedLongWithWrap(obj, &wraparound);
+    if (value == (npy_ulong)-1 && PyErr_Occurred()) {
+        return -1;
+    }
+    *result = (npy_ulong)value;
+
+    if (wraparound
+#if NPY_SIZEOF_LONG < NPY_SIZEOF_LONG
+            || *result != value
+#endif
+            ) {
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_ULONG);
+
+        if (npy_promotion_state == NPY_USE_LEGACY_PROMOTION || (
+                    npy_promotion_state == NPY_USE_WEAK_PROMOTION_AND_WARN
+                        && !npy_give_promotion_warnings())) {
+            /*
+             * This path will be taken both for the "promotion" case such as
+             * `uint8_arr + 123` as well as the assignment case.
+             * The "legacy" path should only ever be taken for assignment
+             * (legacy promotion will prevent overflows by promoting up)
+             * so a normal deprecation makes sense.
+             * When weak promotion is active, we use "future" behavior unless
+             * warnings were explicitly opt-in.
+             */
+            if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
+                    "NumPy will stop allowing conversion of out-of-bound "
+                    "Python integers to integer arrays.  The conversion "
+                    "of %.100R to %S will fail in the future.\n"
+                    "For the old behavior, usually:\n"
+                    "    np.array(value).astype(dtype)`\n"
+                    "will give the desired result (the cast overflows).",
+                    obj, descr) < 0) {
+                Py_DECREF(descr);
+                return -1;
+            }
+            Py_DECREF(descr);
+            return 0;
+        }
+        else {
+            /* Live in the future, outright error: */
+            PyErr_Format(PyExc_OverflowError,
+                    "Python integer %R out of bounds for %S", obj, descr);
+            Py_DECREF(descr);
+            return -1;
+            }
+        assert(0);
+    }
+    return 0;
+}
+
+
+#line 250
+
+/*
+ * Helper for conversion from Python integers.  This uses the same conversion
+ * function as below for compatibility (which may seem strange).
+ * However, it adds more strict integer overflow checks to prevent mainly
+ * conversion of negative integers.  These are considered deprecated, which is
+ * related to NEP 50 (but somewhat independent).
+ */
+static int
+ULONGLONG_safe_pyint_setitem(PyObject *obj, npy_ulonglong *result)
+{
+    /* Input is guaranteed to be a Python integer */
+    assert(PyLong_Check(obj));
+    int wraparound;
+    npy_ulonglong value = MyPyLong_AsUnsignedLongLongWithWrap(obj, &wraparound);
+    if (value == (npy_ulonglong)-1 && PyErr_Occurred()) {
+        return -1;
+    }
+    *result = (npy_ulonglong)value;
+
+    if (wraparound
+#if NPY_SIZEOF_LONGLONG < NPY_SIZEOF_LONGLONG
+            || *result != value
+#endif
+            ) {
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_ULONGLONG);
+
+        if (npy_promotion_state == NPY_USE_LEGACY_PROMOTION || (
+                    npy_promotion_state == NPY_USE_WEAK_PROMOTION_AND_WARN
+                        && !npy_give_promotion_warnings())) {
+            /*
+             * This path will be taken both for the "promotion" case such as
+             * `uint8_arr + 123` as well as the assignment case.
+             * The "legacy" path should only ever be taken for assignment
+             * (legacy promotion will prevent overflows by promoting up)
+             * so a normal deprecation makes sense.
+             * When weak promotion is active, we use "future" behavior unless
+             * warnings were explicitly opt-in.
+             */
+            if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
+                    "NumPy will stop allowing conversion of out-of-bound "
+                    "Python integers to integer arrays.  The conversion "
+                    "of %.100R to %S will fail in the future.\n"
+                    "For the old behavior, usually:\n"
+                    "    np.array(value).astype(dtype)`\n"
+                    "will give the desired result (the cast overflows).",
+                    obj, descr) < 0) {
+                Py_DECREF(descr);
+                return -1;
+            }
+            Py_DECREF(descr);
+            return 0;
+        }
+        else {
+            /* Live in the future, outright error: */
+            PyErr_Format(PyExc_OverflowError,
+                    "Python integer %R out of bounds for %S", obj, descr);
+            Py_DECREF(descr);
+            return -1;
+            }
+        assert(0);
+    }
+    return 0;
+}
+
+
+
+
+#line 338
 static PyObject *
 BOOL_getitem(void *input, void *vap)
 {
@@ -247,11 +978,25 @@ BOOL_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 BOOL_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_bool temp;  /* ensures alignment */
+
+#if 0
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (BOOL_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, Bool)) {
         temp = PyArrayScalar_VAL(op, Bool);
@@ -284,7 +1029,7 @@ BOOL_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 BYTE_getitem(void *input, void *vap)
 {
@@ -302,11 +1047,25 @@ BYTE_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 BYTE_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_byte temp;  /* ensures alignment */
+
+#if 1
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (BYTE_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, Byte)) {
         temp = PyArrayScalar_VAL(op, Byte);
@@ -339,7 +1098,7 @@ BYTE_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 UBYTE_getitem(void *input, void *vap)
 {
@@ -357,11 +1116,25 @@ UBYTE_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 UBYTE_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_ubyte temp;  /* ensures alignment */
+
+#if 1
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (UBYTE_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, UByte)) {
         temp = PyArrayScalar_VAL(op, UByte);
@@ -394,7 +1167,7 @@ UBYTE_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 SHORT_getitem(void *input, void *vap)
 {
@@ -412,11 +1185,25 @@ SHORT_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 SHORT_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_short temp;  /* ensures alignment */
+
+#if 1
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (SHORT_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, Short)) {
         temp = PyArrayScalar_VAL(op, Short);
@@ -449,7 +1236,7 @@ SHORT_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 USHORT_getitem(void *input, void *vap)
 {
@@ -467,11 +1254,25 @@ USHORT_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 USHORT_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_ushort temp;  /* ensures alignment */
+
+#if 1
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (USHORT_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, UShort)) {
         temp = PyArrayScalar_VAL(op, UShort);
@@ -504,7 +1305,7 @@ USHORT_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 INT_getitem(void *input, void *vap)
 {
@@ -522,11 +1323,25 @@ INT_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 INT_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_int temp;  /* ensures alignment */
+
+#if 1
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (INT_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, Int)) {
         temp = PyArrayScalar_VAL(op, Int);
@@ -559,7 +1374,7 @@ INT_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 LONG_getitem(void *input, void *vap)
 {
@@ -577,11 +1392,25 @@ LONG_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 LONG_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_long temp;  /* ensures alignment */
+
+#if 1
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (LONG_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, Long)) {
         temp = PyArrayScalar_VAL(op, Long);
@@ -614,7 +1443,7 @@ LONG_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 UINT_getitem(void *input, void *vap)
 {
@@ -632,11 +1461,25 @@ UINT_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 UINT_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_uint temp;  /* ensures alignment */
+
+#if 1
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (UINT_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, UInt)) {
         temp = PyArrayScalar_VAL(op, UInt);
@@ -669,7 +1512,7 @@ UINT_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 ULONG_getitem(void *input, void *vap)
 {
@@ -687,11 +1530,25 @@ ULONG_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 ULONG_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_ulong temp;  /* ensures alignment */
+
+#if 1
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (ULONG_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, ULong)) {
         temp = PyArrayScalar_VAL(op, ULong);
@@ -724,7 +1581,7 @@ ULONG_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 LONGLONG_getitem(void *input, void *vap)
 {
@@ -742,11 +1599,25 @@ LONGLONG_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 LONGLONG_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_longlong temp;  /* ensures alignment */
+
+#if 1
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (LONGLONG_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, LongLong)) {
         temp = PyArrayScalar_VAL(op, LongLong);
@@ -779,7 +1650,7 @@ LONGLONG_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 ULONGLONG_getitem(void *input, void *vap)
 {
@@ -797,11 +1668,25 @@ ULONGLONG_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 ULONGLONG_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_ulonglong temp;  /* ensures alignment */
+
+#if 1
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (ULONGLONG_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, ULongLong)) {
         temp = PyArrayScalar_VAL(op, ULongLong);
@@ -834,7 +1719,7 @@ ULONGLONG_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 HALF_getitem(void *input, void *vap)
 {
@@ -852,11 +1737,25 @@ HALF_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 HALF_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_half temp;  /* ensures alignment */
+
+#if 0
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (HALF_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, Half)) {
         temp = PyArrayScalar_VAL(op, Half);
@@ -889,7 +1788,7 @@ HALF_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 FLOAT_getitem(void *input, void *vap)
 {
@@ -907,17 +1806,31 @@ FLOAT_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 FLOAT_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_float temp;  /* ensures alignment */
 
+#if 0
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (FLOAT_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
+
     if (PyArray_IsScalar(op, Float)) {
         temp = PyArrayScalar_VAL(op, Float);
     }
     else {
-        temp = (npy_float)MyPyFloat_AsDouble(op);
+        temp = (npy_float)MyPyFloat_AsFloat(op);
     }
     if (PyErr_Occurred()) {
         PyObject *type, *value, *traceback;
@@ -944,7 +1857,7 @@ FLOAT_setitem(PyObject *op, void *ov, void *vap)
 }
 
 
-#line 213
+#line 338
 static PyObject *
 DOUBLE_getitem(void *input, void *vap)
 {
@@ -962,11 +1875,25 @@ DOUBLE_getitem(void *input, void *vap)
     }
 }
 
-static int
+NPY_NO_EXPORT int
 DOUBLE_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     npy_double temp;  /* ensures alignment */
+
+#if 0
+    if (PyLong_Check(op)) {
+        /*
+         * When weak promotion is enabled (using NEP 50) we also use more
+         * strict parsing of integers:  All out-of-bound Python integer
+         * parsing fails.
+         */
+        if (DOUBLE_safe_pyint_setitem(op, &temp) < 0) {
+            return -1;
+        }
+    }
+    else  /* continue with if below */
+#endif
 
     if (PyArray_IsScalar(op, Double)) {
         temp = PyArrayScalar_VAL(op, Double);
@@ -1000,7 +1927,8 @@ DOUBLE_setitem(PyObject *op, void *ov, void *vap)
 
 
 
-#line 273
+
+#line 413
 static PyObject *
 CFLOAT_getitem(void *input, void *vap)
 {
@@ -1023,7 +1951,7 @@ CFLOAT_getitem(void *input, void *vap)
 }
 
 
-#line 273
+#line 413
 static PyObject *
 CDOUBLE_getitem(void *input, void *vap)
 {
@@ -1049,14 +1977,13 @@ CDOUBLE_getitem(void *input, void *vap)
 
 
 
-#line 305
-static int
+#line 445
+NPY_NO_EXPORT int
 CFLOAT_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     Py_complex oop;
     npy_cfloat temp;
-    int rsize;
 
     if (PyArray_IsZeroDim(op)) {
         return convert_to_scalar_and_retry(op, ov, vap, CFLOAT_setitem);
@@ -1111,26 +2038,33 @@ CFLOAT_setitem(PyObject *op, void *ov, void *vap)
         }
         temp.real = (npy_float) oop.real;
         temp.imag = (npy_float) oop.imag;
+
+#if NPY_SIZEOF_CFLOAT < NPY_SIZEOF_CDOUBLE  /* really just float... */
+        /* Overflow could have occurred converting double to float */
+        if (NPY_UNLIKELY((npy_isinf(temp.real) && !npy_isinf(oop.real)) ||
+                         (npy_isinf(temp.imag) && !npy_isinf(oop.imag)))) {
+            if (PyUFunc_GiveFloatingpointErrors("cast", NPY_FPE_OVERFLOW) < 0) {
+                return -1;
+            }
+        }
+#endif
     }
 
-    memcpy(ov, &temp, PyArray_DESCR(ap)->elsize);
-    if (PyArray_ISBYTESWAPPED(ap)) {
+    memcpy(ov, &temp, NPY_SIZEOF_CFLOAT);
+    if (ap != NULL && PyArray_ISBYTESWAPPED(ap)) {
         byte_swap_vector(ov, 2, sizeof(npy_float));
     }
-    rsize = sizeof(npy_float);
-    copy_and_swap(ov, &temp, rsize, 2, rsize, PyArray_ISBYTESWAPPED(ap));
     return 0;
 }
 
 
-#line 305
-static int
+#line 445
+NPY_NO_EXPORT int
 CDOUBLE_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     Py_complex oop;
     npy_cdouble temp;
-    int rsize;
 
     if (PyArray_IsZeroDim(op)) {
         return convert_to_scalar_and_retry(op, ov, vap, CDOUBLE_setitem);
@@ -1185,26 +2119,33 @@ CDOUBLE_setitem(PyObject *op, void *ov, void *vap)
         }
         temp.real = (npy_double) oop.real;
         temp.imag = (npy_double) oop.imag;
+
+#if NPY_SIZEOF_CDOUBLE < NPY_SIZEOF_CDOUBLE  /* really just float... */
+        /* Overflow could have occurred converting double to float */
+        if (NPY_UNLIKELY((npy_isinf(temp.real) && !npy_isinf(oop.real)) ||
+                         (npy_isinf(temp.imag) && !npy_isinf(oop.imag)))) {
+            if (PyUFunc_GiveFloatingpointErrors("cast", NPY_FPE_OVERFLOW) < 0) {
+                return -1;
+            }
+        }
+#endif
     }
 
-    memcpy(ov, &temp, PyArray_DESCR(ap)->elsize);
-    if (PyArray_ISBYTESWAPPED(ap)) {
+    memcpy(ov, &temp, NPY_SIZEOF_CDOUBLE);
+    if (ap != NULL && PyArray_ISBYTESWAPPED(ap)) {
         byte_swap_vector(ov, 2, sizeof(npy_double));
     }
-    rsize = sizeof(npy_double);
-    copy_and_swap(ov, &temp, rsize, 2, rsize, PyArray_ISBYTESWAPPED(ap));
     return 0;
 }
 
 
-#line 305
-static int
+#line 445
+NPY_NO_EXPORT int
 CLONGDOUBLE_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
     Py_complex oop;
     npy_clongdouble temp;
-    int rsize;
 
     if (PyArray_IsZeroDim(op)) {
         return convert_to_scalar_and_retry(op, ov, vap, CLONGDOUBLE_setitem);
@@ -1259,14 +2200,22 @@ CLONGDOUBLE_setitem(PyObject *op, void *ov, void *vap)
         }
         temp.real = (npy_longdouble) oop.real;
         temp.imag = (npy_longdouble) oop.imag;
+
+#if NPY_SIZEOF_CLONGDOUBLE < NPY_SIZEOF_CDOUBLE  /* really just float... */
+        /* Overflow could have occurred converting double to float */
+        if (NPY_UNLIKELY((npy_isinf(temp.real) && !npy_isinf(oop.real)) ||
+                         (npy_isinf(temp.imag) && !npy_isinf(oop.imag)))) {
+            if (PyUFunc_GiveFloatingpointErrors("cast", NPY_FPE_OVERFLOW) < 0) {
+                return -1;
+            }
+        }
+#endif
     }
 
-    memcpy(ov, &temp, PyArray_DESCR(ap)->elsize);
-    if (PyArray_ISBYTESWAPPED(ap)) {
+    memcpy(ov, &temp, NPY_SIZEOF_CLONGDOUBLE);
+    if (ap != NULL && PyArray_ISBYTESWAPPED(ap)) {
         byte_swap_vector(ov, 2, sizeof(npy_longdouble));
     }
-    rsize = sizeof(npy_longdouble);
-    copy_and_swap(ov, &temp, rsize, 2, rsize, PyArray_ISBYTESWAPPED(ap));
     return 0;
 }
 
@@ -1347,7 +2296,7 @@ LONGDOUBLE_getitem(void *ip, void *ap)
     return PyArray_Scalar(ip, PyArray_DESCR((PyArrayObject *)ap), NULL);
 }
 
-static int
+NPY_NO_EXPORT int
 LONGDOUBLE_setitem(PyObject *op, void *ov, void *vap)
 {
     PyArrayObject *ap = vap;
@@ -1566,6 +2515,7 @@ OBJECT_getitem(void *ip, void *NPY_UNUSED(ap))
     PyObject *obj;
     memcpy(&obj, ip, sizeof(obj));
     if (obj == NULL) {
+        /* We support NULL, but still try to guarantee this never happens! */
         Py_RETURN_NONE;
     }
     else {
@@ -1583,6 +2533,7 @@ OBJECT_setitem(PyObject *op, void *ov, void *NPY_UNUSED(ap))
     memcpy(&obj, ov, sizeof(obj));
 
     Py_INCREF(op);
+    /* A newly created array/buffer may only be NULLed, so XDECREF */
     Py_XDECREF(obj);
 
     memcpy(ov, &op, sizeof(op));
@@ -2025,9 +2976,9 @@ TIMEDELTA_setitem(PyObject *op, void *ov, void *vap)
 /* Assumes contiguous, and aligned, from and to */
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2036,19 +2987,28 @@ BYTE_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2057,19 +3017,28 @@ UBYTE_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2078,19 +3047,28 @@ SHORT_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2099,19 +3077,28 @@ USHORT_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2120,19 +3107,28 @@ INT_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2141,19 +3137,28 @@ UINT_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2162,19 +3167,28 @@ LONG_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2183,19 +3197,28 @@ ULONG_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2204,19 +3227,28 @@ LONGLONG_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2225,19 +3257,28 @@ ULONGLONG_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2246,19 +3287,28 @@ FLOAT_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2267,19 +3317,28 @@ DOUBLE_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2288,19 +3347,28 @@ LONGDOUBLE_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2309,19 +3377,28 @@ DATETIME_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2330,20 +3407,29 @@ TIMEDELTA_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_byte t = (npy_byte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2352,20 +3438,29 @@ CFLOAT_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_byte t = (npy_byte)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2374,20 +3469,29 @@ CDOUBLE_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_byte t = (npy_byte)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2396,13 +3500,22 @@ CLONGDOUBLE_to_BYTE(void *input, void *output, npy_intp n,
     npy_byte *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_byte t = (npy_byte)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_byte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_byte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_byte)f;
+        }
+#else
+        npy_byte t = (npy_byte)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -2411,9 +3524,9 @@ CLONGDOUBLE_to_BYTE(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2422,19 +3535,28 @@ BYTE_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2443,19 +3565,28 @@ UBYTE_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2464,19 +3595,28 @@ SHORT_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2485,19 +3625,28 @@ USHORT_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2506,19 +3655,28 @@ INT_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2527,19 +3685,28 @@ UINT_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2548,19 +3715,28 @@ LONG_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2569,19 +3745,28 @@ ULONG_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2590,19 +3775,28 @@ LONGLONG_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2611,19 +3805,28 @@ ULONGLONG_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2632,19 +3835,28 @@ FLOAT_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2653,19 +3865,28 @@ DOUBLE_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2674,19 +3895,28 @@ LONGDOUBLE_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2695,19 +3925,28 @@ DATETIME_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2716,20 +3955,29 @@ TIMEDELTA_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2738,20 +3986,29 @@ CFLOAT_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2760,20 +4017,29 @@ CDOUBLE_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2782,13 +4048,22 @@ CLONGDOUBLE_to_UBYTE(void *input, void *output, npy_intp n,
     npy_ubyte *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_ubyte t = (npy_ubyte)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_ubyte t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ubyte)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ubyte)f;
+        }
+#else
+        npy_ubyte t = (npy_ubyte)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -2797,9 +4072,9 @@ CLONGDOUBLE_to_UBYTE(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2808,19 +4083,28 @@ BYTE_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2829,19 +4113,28 @@ UBYTE_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2850,19 +4143,28 @@ SHORT_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2871,19 +4173,28 @@ USHORT_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2892,19 +4203,28 @@ INT_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2913,19 +4233,28 @@ UINT_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2934,19 +4263,28 @@ LONG_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2955,19 +4293,28 @@ ULONG_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2976,19 +4323,28 @@ LONGLONG_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -2997,19 +4353,28 @@ ULONGLONG_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3018,19 +4383,28 @@ FLOAT_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3039,19 +4413,28 @@ DOUBLE_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3060,19 +4443,28 @@ LONGDOUBLE_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3081,19 +4473,28 @@ DATETIME_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3102,20 +4503,29 @@ TIMEDELTA_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_short t = (npy_short)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3124,20 +4534,29 @@ CFLOAT_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_short t = (npy_short)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3146,20 +4565,29 @@ CDOUBLE_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_short t = (npy_short)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3168,13 +4596,22 @@ CLONGDOUBLE_to_SHORT(void *input, void *output, npy_intp n,
     npy_short *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_short t = (npy_short)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_short t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_short)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_short)f;
+        }
+#else
+        npy_short t = (npy_short)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -3183,9 +4620,9 @@ CLONGDOUBLE_to_SHORT(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3194,19 +4631,28 @@ BYTE_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3215,19 +4661,28 @@ UBYTE_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3236,19 +4691,28 @@ SHORT_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3257,19 +4721,28 @@ USHORT_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3278,19 +4751,28 @@ INT_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3299,19 +4781,28 @@ UINT_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3320,19 +4811,28 @@ LONG_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3341,19 +4841,28 @@ ULONG_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3362,19 +4871,28 @@ LONGLONG_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3383,19 +4901,28 @@ ULONGLONG_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3404,19 +4931,28 @@ FLOAT_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3425,19 +4961,28 @@ DOUBLE_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3446,19 +4991,28 @@ LONGDOUBLE_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3467,19 +5021,28 @@ DATETIME_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3488,20 +5051,29 @@ TIMEDELTA_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_ushort t = (npy_ushort)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3510,20 +5082,29 @@ CFLOAT_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_ushort t = (npy_ushort)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3532,20 +5113,29 @@ CDOUBLE_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_ushort t = (npy_ushort)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3554,13 +5144,22 @@ CLONGDOUBLE_to_USHORT(void *input, void *output, npy_intp n,
     npy_ushort *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_ushort t = (npy_ushort)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_ushort t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ushort)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ushort)f;
+        }
+#else
+        npy_ushort t = (npy_ushort)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -3569,9 +5168,9 @@ CLONGDOUBLE_to_USHORT(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3580,19 +5179,28 @@ BYTE_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3601,19 +5209,28 @@ UBYTE_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3622,19 +5239,28 @@ SHORT_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3643,19 +5269,28 @@ USHORT_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3664,19 +5299,28 @@ INT_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3685,19 +5329,28 @@ UINT_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3706,19 +5359,28 @@ LONG_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3727,19 +5389,28 @@ ULONG_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3748,19 +5419,28 @@ LONGLONG_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3769,19 +5449,28 @@ ULONGLONG_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3790,19 +5479,28 @@ FLOAT_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3811,19 +5509,28 @@ DOUBLE_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3832,19 +5539,28 @@ LONGDOUBLE_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3853,19 +5569,28 @@ DATETIME_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3874,20 +5599,29 @@ TIMEDELTA_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_int t = (npy_int)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3896,20 +5630,29 @@ CFLOAT_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_int t = (npy_int)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3918,20 +5661,29 @@ CDOUBLE_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_int t = (npy_int)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3940,13 +5692,22 @@ CLONGDOUBLE_to_INT(void *input, void *output, npy_intp n,
     npy_int *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_int t = (npy_int)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_int t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_int)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_int)f;
+        }
+#else
+        npy_int t = (npy_int)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -3955,9 +5716,9 @@ CLONGDOUBLE_to_INT(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3966,19 +5727,28 @@ BYTE_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -3987,19 +5757,28 @@ UBYTE_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4008,19 +5787,28 @@ SHORT_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4029,19 +5817,28 @@ USHORT_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4050,19 +5847,28 @@ INT_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4071,19 +5877,28 @@ UINT_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4092,19 +5907,28 @@ LONG_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4113,19 +5937,28 @@ ULONG_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4134,19 +5967,28 @@ LONGLONG_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4155,19 +5997,28 @@ ULONGLONG_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4176,19 +6027,28 @@ FLOAT_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4197,19 +6057,28 @@ DOUBLE_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4218,19 +6087,28 @@ LONGDOUBLE_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4239,19 +6117,28 @@ DATETIME_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4260,20 +6147,29 @@ TIMEDELTA_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_uint t = (npy_uint)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4282,20 +6178,29 @@ CFLOAT_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_uint t = (npy_uint)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4304,20 +6209,29 @@ CDOUBLE_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_uint t = (npy_uint)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4326,13 +6240,22 @@ CLONGDOUBLE_to_UINT(void *input, void *output, npy_intp n,
     npy_uint *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_uint t = (npy_uint)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_uint t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_uint)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_uint)f;
+        }
+#else
+        npy_uint t = (npy_uint)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -4341,9 +6264,9 @@ CLONGDOUBLE_to_UINT(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4352,19 +6275,28 @@ BYTE_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4373,19 +6305,28 @@ UBYTE_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4394,19 +6335,28 @@ SHORT_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4415,19 +6365,28 @@ USHORT_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4436,19 +6395,28 @@ INT_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4457,19 +6425,28 @@ UINT_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4478,19 +6455,28 @@ LONG_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4499,19 +6485,28 @@ ULONG_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4520,19 +6515,28 @@ LONGLONG_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4541,19 +6545,28 @@ ULONGLONG_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4562,19 +6575,28 @@ FLOAT_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4583,19 +6605,28 @@ DOUBLE_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4604,19 +6635,28 @@ LONGDOUBLE_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4625,19 +6665,28 @@ DATETIME_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4646,20 +6695,29 @@ TIMEDELTA_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_long t = (npy_long)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4668,20 +6726,29 @@ CFLOAT_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_long t = (npy_long)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4690,20 +6757,29 @@ CDOUBLE_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_long t = (npy_long)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4712,13 +6788,22 @@ CLONGDOUBLE_to_LONG(void *input, void *output, npy_intp n,
     npy_long *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_long t = (npy_long)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_long t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_long)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_long)f;
+        }
+#else
+        npy_long t = (npy_long)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -4727,9 +6812,9 @@ CLONGDOUBLE_to_LONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4738,19 +6823,28 @@ BYTE_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4759,19 +6853,28 @@ UBYTE_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4780,19 +6883,28 @@ SHORT_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4801,19 +6913,28 @@ USHORT_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4822,19 +6943,28 @@ INT_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4843,19 +6973,28 @@ UINT_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4864,19 +7003,28 @@ LONG_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4885,19 +7033,28 @@ ULONG_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4906,19 +7063,28 @@ LONGLONG_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4927,19 +7093,28 @@ ULONGLONG_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4948,19 +7123,28 @@ FLOAT_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4969,19 +7153,28 @@ DOUBLE_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -4990,19 +7183,28 @@ LONGDOUBLE_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5011,19 +7213,28 @@ DATETIME_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5032,20 +7243,29 @@ TIMEDELTA_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_ulong t = (npy_ulong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5054,20 +7274,29 @@ CFLOAT_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_ulong t = (npy_ulong)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5076,20 +7305,29 @@ CDOUBLE_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_ulong t = (npy_ulong)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5098,13 +7336,22 @@ CLONGDOUBLE_to_ULONG(void *input, void *output, npy_intp n,
     npy_ulong *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_ulong t = (npy_ulong)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_ulong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulong)f;
+        }
+#else
+        npy_ulong t = (npy_ulong)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -5113,9 +7360,9 @@ CLONGDOUBLE_to_ULONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5124,19 +7371,28 @@ BYTE_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5145,19 +7401,28 @@ UBYTE_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5166,19 +7431,28 @@ SHORT_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5187,19 +7461,28 @@ USHORT_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5208,19 +7491,28 @@ INT_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5229,19 +7521,28 @@ UINT_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5250,19 +7551,28 @@ LONG_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5271,19 +7581,28 @@ ULONG_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5292,19 +7611,28 @@ LONGLONG_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5313,19 +7641,28 @@ ULONGLONG_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5334,19 +7671,28 @@ FLOAT_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5355,19 +7701,28 @@ DOUBLE_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5376,19 +7731,28 @@ LONGDOUBLE_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5397,19 +7761,28 @@ DATETIME_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5418,20 +7791,29 @@ TIMEDELTA_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_longlong t = (npy_longlong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5440,20 +7822,29 @@ CFLOAT_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_longlong t = (npy_longlong)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5462,20 +7853,29 @@ CDOUBLE_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_longlong t = (npy_longlong)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5484,13 +7884,22 @@ CLONGDOUBLE_to_LONGLONG(void *input, void *output, npy_intp n,
     npy_longlong *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_longlong t = (npy_longlong)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_longlong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longlong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longlong)f;
+        }
+#else
+        npy_longlong t = (npy_longlong)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -5499,9 +7908,9 @@ CLONGDOUBLE_to_LONGLONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5510,19 +7919,28 @@ BYTE_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5531,19 +7949,28 @@ UBYTE_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5552,19 +7979,28 @@ SHORT_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5573,19 +8009,28 @@ USHORT_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5594,19 +8039,28 @@ INT_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5615,19 +8069,28 @@ UINT_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5636,19 +8099,28 @@ LONG_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5657,19 +8129,28 @@ ULONG_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5678,19 +8159,28 @@ LONGLONG_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5699,19 +8189,28 @@ ULONGLONG_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5720,19 +8219,28 @@ FLOAT_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5741,19 +8249,28 @@ DOUBLE_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5762,19 +8279,28 @@ LONGDOUBLE_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5783,19 +8309,28 @@ DATETIME_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5804,20 +8339,29 @@ TIMEDELTA_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5826,20 +8370,29 @@ CFLOAT_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5848,20 +8401,29 @@ CDOUBLE_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5870,13 +8432,22 @@ CLONGDOUBLE_to_ULONGLONG(void *input, void *output, npy_intp n,
     npy_ulonglong *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_ulonglong t = (npy_ulonglong)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_ulonglong t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_ulonglong)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_ulonglong)f;
+        }
+#else
+        npy_ulonglong t = (npy_ulonglong)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -5885,9 +8456,9 @@ CLONGDOUBLE_to_ULONGLONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5896,19 +8467,28 @@ BYTE_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5917,19 +8497,28 @@ UBYTE_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5938,19 +8527,28 @@ SHORT_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5959,19 +8557,28 @@ USHORT_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -5980,19 +8587,28 @@ INT_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6001,19 +8617,28 @@ UINT_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6022,19 +8647,28 @@ LONG_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6043,19 +8677,28 @@ ULONG_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6064,19 +8707,28 @@ LONGLONG_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6085,19 +8737,28 @@ ULONGLONG_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6106,19 +8767,28 @@ FLOAT_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6127,19 +8797,28 @@ DOUBLE_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6148,19 +8827,28 @@ LONGDOUBLE_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6169,19 +8857,28 @@ DATETIME_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6190,20 +8887,29 @@ TIMEDELTA_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_float t = (npy_float)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6212,20 +8918,29 @@ CFLOAT_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_float t = (npy_float)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6234,20 +8949,29 @@ CDOUBLE_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_float t = (npy_float)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6256,13 +8980,22 @@ CLONGDOUBLE_to_FLOAT(void *input, void *output, npy_intp n,
     npy_float *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_float t = (npy_float)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_float t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_float)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_float)f;
+        }
+#else
+        npy_float t = (npy_float)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -6271,9 +9004,9 @@ CLONGDOUBLE_to_FLOAT(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6282,19 +9015,28 @@ BYTE_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6303,19 +9045,28 @@ UBYTE_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6324,19 +9075,28 @@ SHORT_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6345,19 +9105,28 @@ USHORT_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6366,19 +9135,28 @@ INT_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6387,19 +9165,28 @@ UINT_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6408,19 +9195,28 @@ LONG_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6429,19 +9225,28 @@ ULONG_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6450,19 +9255,28 @@ LONGLONG_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6471,19 +9285,28 @@ ULONGLONG_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6492,19 +9315,28 @@ FLOAT_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6513,19 +9345,28 @@ DOUBLE_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6534,19 +9375,28 @@ LONGDOUBLE_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6555,19 +9405,28 @@ DATETIME_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6576,20 +9435,29 @@ TIMEDELTA_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_double t = (npy_double)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6598,20 +9466,29 @@ CFLOAT_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_double t = (npy_double)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6620,20 +9497,29 @@ CDOUBLE_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_double t = (npy_double)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6642,13 +9528,22 @@ CLONGDOUBLE_to_DOUBLE(void *input, void *output, npy_intp n,
     npy_double *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_double t = (npy_double)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_double t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_double)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_double)f;
+        }
+#else
+        npy_double t = (npy_double)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -6657,9 +9552,9 @@ CLONGDOUBLE_to_DOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6668,19 +9563,28 @@ BYTE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6689,19 +9593,28 @@ UBYTE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6710,19 +9623,28 @@ SHORT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6731,19 +9653,28 @@ USHORT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6752,19 +9683,28 @@ INT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6773,19 +9713,28 @@ UINT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6794,19 +9743,28 @@ LONG_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6815,19 +9773,28 @@ ULONG_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6836,19 +9803,28 @@ LONGLONG_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6857,19 +9833,28 @@ ULONGLONG_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6878,19 +9863,28 @@ FLOAT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6899,19 +9893,28 @@ DOUBLE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6920,19 +9923,28 @@ LONGDOUBLE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6941,19 +9953,28 @@ DATETIME_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6962,20 +9983,29 @@ TIMEDELTA_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -6984,20 +10014,29 @@ CFLOAT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7006,20 +10045,29 @@ CDOUBLE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7028,13 +10076,22 @@ CLONGDOUBLE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     npy_longdouble *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_longdouble t = (npy_longdouble)f;
 #if 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_longdouble t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_longdouble)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_longdouble)f;
+        }
+#else
+        npy_longdouble t = (npy_longdouble)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -7043,9 +10100,9 @@ CLONGDOUBLE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7054,19 +10111,28 @@ BYTE_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7075,19 +10141,28 @@ UBYTE_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7096,19 +10171,28 @@ SHORT_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7117,19 +10201,28 @@ USHORT_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7138,19 +10231,28 @@ INT_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7159,19 +10261,28 @@ UINT_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7180,19 +10291,28 @@ LONG_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7201,19 +10321,28 @@ ULONG_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7222,19 +10351,28 @@ LONGLONG_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7243,19 +10381,28 @@ ULONGLONG_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7264,19 +10411,28 @@ FLOAT_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7285,19 +10441,28 @@ DOUBLE_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7306,19 +10471,28 @@ LONGDOUBLE_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7327,19 +10501,28 @@ DATETIME_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7348,20 +10531,29 @@ TIMEDELTA_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_datetime t = (npy_datetime)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7370,20 +10562,29 @@ CFLOAT_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_datetime t = (npy_datetime)f;
 #if 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7392,20 +10593,29 @@ CDOUBLE_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_datetime t = (npy_datetime)f;
 #if 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7414,13 +10624,22 @@ CLONGDOUBLE_to_DATETIME(void *input, void *output, npy_intp n,
     npy_datetime *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_datetime t = (npy_datetime)f;
 #if 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_datetime t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_datetime)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_datetime)f;
+        }
+#else
+        npy_datetime t = (npy_datetime)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -7429,9 +10648,9 @@ CLONGDOUBLE_to_DATETIME(void *input, void *output, npy_intp n,
 
 
 
-#line 1143
+#line 1292
 
-#line 1155
+#line 1304
 static void
 BYTE_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7440,19 +10659,28 @@ BYTE_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_byte f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_byte f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UBYTE_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7461,19 +10689,28 @@ UBYTE_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_ubyte f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ubyte f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 SHORT_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7482,19 +10719,28 @@ SHORT_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_short f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_short f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 USHORT_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7503,19 +10749,28 @@ USHORT_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_ushort f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ushort f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 INT_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7524,19 +10779,28 @@ INT_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_int f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_int f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 UINT_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7545,19 +10809,28 @@ UINT_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_uint f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_uint f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONG_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7566,19 +10839,28 @@ LONG_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_long f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_long f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONG_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7587,19 +10869,28 @@ ULONG_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_ulong f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulong f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGLONG_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7608,19 +10899,28 @@ LONGLONG_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_longlong f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longlong f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 ULONGLONG_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7629,19 +10929,28 @@ ULONGLONG_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_ulonglong f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_ulonglong f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 FLOAT_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7650,19 +10959,28 @@ FLOAT_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_float f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DOUBLE_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7671,19 +10989,28 @@ DOUBLE_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_double f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 LONGDOUBLE_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7692,19 +11019,28 @@ LONGDOUBLE_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 DATETIME_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7713,19 +11049,28 @@ DATETIME_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_datetime f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_datetime f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
-#line 1155
+#line 1304
 static void
 TIMEDELTA_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7734,20 +11079,29 @@ TIMEDELTA_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_timedelta f = *ip++;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1 && 0
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_timedelta f = *ip++;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip++;
 #endif
         *op++ = t;
     }
 }
 
 
-#line 1181
+#line 1339
 static void
 CFLOAT_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7756,20 +11110,29 @@ CFLOAT_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_float f = *ip;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_float f = *ip;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CDOUBLE_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7778,20 +11141,29 @@ CDOUBLE_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_double f = *ip;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_double f = *ip;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip;
 #endif
         *op++ = t;
         ip += 2;
     }
 }
 
-#line 1181
+#line 1339
 static void
 CLONGDOUBLE_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -7800,13 +11172,22 @@ CLONGDOUBLE_to_TIMEDELTA(void *input, void *output, npy_intp n,
     npy_timedelta *op = output;
 
     while (n--) {
-        npy_longdouble f = *ip;
-        npy_timedelta t = (npy_timedelta)f;
 #if 1
-        /* Avoid undefined behaviour for NaN -> NaT */
+        /*
+         * volatile works around clang (and gcc sometimes) not branching
+         * correctly, leading to floating point errors in the test suite.
+         */
+        volatile npy_longdouble f = *ip;
+        npy_timedelta t;
+        /* Avoid undefined behaviour and warning for NaN -> NaT */
         if (npy_isnan(f)) {
             t = (npy_timedelta)NPY_DATETIME_NAT;
         }
+        else {
+            t = (npy_timedelta)f;
+        }
+#else
+        npy_timedelta t = (npy_timedelta)*ip;
 #endif
         *op++ = t;
         ip += 2;
@@ -7817,7 +11198,7 @@ CLONGDOUBLE_to_TIMEDELTA(void *input, void *output, npy_intp n,
 
 
 
-#line 1216
+#line 1383
 
 static void
 BYTE_to_HALF(void *input, void *output, npy_intp n,
@@ -7844,7 +11225,7 @@ HALF_to_BYTE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 UBYTE_to_HALF(void *input, void *output, npy_intp n,
@@ -7871,7 +11252,7 @@ HALF_to_UBYTE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 SHORT_to_HALF(void *input, void *output, npy_intp n,
@@ -7898,7 +11279,7 @@ HALF_to_SHORT(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 USHORT_to_HALF(void *input, void *output, npy_intp n,
@@ -7925,7 +11306,7 @@ HALF_to_USHORT(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 INT_to_HALF(void *input, void *output, npy_intp n,
@@ -7952,7 +11333,7 @@ HALF_to_INT(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 UINT_to_HALF(void *input, void *output, npy_intp n,
@@ -7979,7 +11360,7 @@ HALF_to_UINT(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 LONG_to_HALF(void *input, void *output, npy_intp n,
@@ -8006,7 +11387,7 @@ HALF_to_LONG(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 ULONG_to_HALF(void *input, void *output, npy_intp n,
@@ -8033,7 +11414,7 @@ HALF_to_ULONG(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 LONGLONG_to_HALF(void *input, void *output, npy_intp n,
@@ -8060,7 +11441,7 @@ HALF_to_LONGLONG(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 ULONGLONG_to_HALF(void *input, void *output, npy_intp n,
@@ -8087,7 +11468,7 @@ HALF_to_ULONGLONG(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 LONGDOUBLE_to_HALF(void *input, void *output, npy_intp n,
@@ -8114,7 +11495,7 @@ HALF_to_LONGDOUBLE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 DATETIME_to_HALF(void *input, void *output, npy_intp n,
@@ -8141,7 +11522,7 @@ HALF_to_DATETIME(void *input, void *output, npy_intp n,
 }
 
 
-#line 1216
+#line 1383
 
 static void
 TIMEDELTA_to_HALF(void *input, void *output, npy_intp n,
@@ -8174,7 +11555,7 @@ HALF_to_TIMEDELTA(void *input, void *output, npy_intp n,
 #define HALF_to_HALF INT_to_INT
 #endif
 
-#line 1255
+#line 1422
 
 static void
 FLOAT_to_HALF(void *input, void *output, npy_intp n,
@@ -8209,7 +11590,7 @@ HALF_to_FLOAT(void *input, void *output, npy_intp n,
 }
 
 
-#line 1255
+#line 1422
 
 static void
 DOUBLE_to_HALF(void *input, void *output, npy_intp n,
@@ -8244,7 +11625,7 @@ HALF_to_DOUBLE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1255
+#line 1422
 
 static void
 CFLOAT_to_HALF(void *input, void *output, npy_intp n,
@@ -8279,7 +11660,7 @@ HALF_to_CFLOAT(void *input, void *output, npy_intp n,
 }
 
 
-#line 1255
+#line 1422
 
 static void
 CDOUBLE_to_HALF(void *input, void *output, npy_intp n,
@@ -8341,7 +11722,7 @@ HALF_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 BOOL_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8354,7 +11735,7 @@ BOOL_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 BYTE_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8367,7 +11748,7 @@ BYTE_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 UBYTE_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8380,7 +11761,7 @@ UBYTE_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 SHORT_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8393,7 +11774,7 @@ SHORT_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 USHORT_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8406,7 +11787,7 @@ USHORT_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 INT_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8419,7 +11800,7 @@ INT_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 UINT_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8432,7 +11813,7 @@ UINT_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 LONG_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8445,7 +11826,7 @@ LONG_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 ULONG_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8458,7 +11839,7 @@ ULONG_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 LONGLONG_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8471,7 +11852,7 @@ LONGLONG_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 ULONGLONG_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8484,7 +11865,7 @@ ULONGLONG_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 FLOAT_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8497,7 +11878,7 @@ FLOAT_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 DOUBLE_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8510,7 +11891,7 @@ DOUBLE_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 LONGDOUBLE_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8523,7 +11904,7 @@ LONGDOUBLE_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 DATETIME_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8536,7 +11917,7 @@ DATETIME_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1329
+#line 1496
 static void
 TIMEDELTA_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8562,7 +11943,7 @@ HALF_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1359
+#line 1526
 static void
 CFLOAT_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8578,7 +11959,7 @@ CFLOAT_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1359
+#line 1526
 static void
 CDOUBLE_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8594,7 +11975,7 @@ CDOUBLE_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1359
+#line 1526
 static void
 CLONGDOUBLE_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8611,7 +11992,7 @@ CLONGDOUBLE_to_BOOL(void *input, void *output, npy_intp n,
 }
 
 
-#line 1387
+#line 1554
 static void
 BOOL_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8624,7 +12005,7 @@ BOOL_to_BYTE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8637,7 +12018,7 @@ BOOL_to_UBYTE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8650,7 +12031,7 @@ BOOL_to_SHORT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8663,7 +12044,7 @@ BOOL_to_USHORT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8676,7 +12057,7 @@ BOOL_to_INT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8689,7 +12070,7 @@ BOOL_to_UINT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8702,7 +12083,7 @@ BOOL_to_LONG(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8715,7 +12096,7 @@ BOOL_to_ULONG(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8728,7 +12109,7 @@ BOOL_to_LONGLONG(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8741,7 +12122,7 @@ BOOL_to_ULONGLONG(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_HALF(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8754,7 +12135,7 @@ BOOL_to_HALF(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8767,7 +12148,7 @@ BOOL_to_FLOAT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8780,7 +12161,7 @@ BOOL_to_DOUBLE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8793,7 +12174,7 @@ BOOL_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8806,7 +12187,7 @@ BOOL_to_DATETIME(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1387
+#line 1554
 static void
 BOOL_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8820,9 +12201,9 @@ BOOL_to_TIMEDELTA(void *input, void *output, npy_intp n,
 }
 
 
-#line 1405
+#line 1572
 
-#line 1418
+#line 1585
 static void
 BOOL_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8837,7 +12218,7 @@ BOOL_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 BYTE_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8852,7 +12233,7 @@ BYTE_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 UBYTE_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8867,7 +12248,7 @@ UBYTE_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 SHORT_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8882,7 +12263,7 @@ SHORT_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 USHORT_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8897,7 +12278,7 @@ USHORT_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 INT_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8912,7 +12293,7 @@ INT_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 UINT_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8927,7 +12308,7 @@ UINT_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 LONG_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8942,7 +12323,7 @@ LONG_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 ULONG_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8957,7 +12338,7 @@ ULONG_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 LONGLONG_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8972,7 +12353,7 @@ LONGLONG_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 ULONGLONG_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -8987,7 +12368,7 @@ ULONGLONG_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 FLOAT_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9002,7 +12383,7 @@ FLOAT_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 DOUBLE_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9017,7 +12398,7 @@ DOUBLE_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 LONGDOUBLE_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9032,7 +12413,7 @@ LONGDOUBLE_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 DATETIME_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9047,7 +12428,7 @@ DATETIME_to_CFLOAT(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 TIMEDELTA_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9063,9 +12444,9 @@ TIMEDELTA_to_CFLOAT(void *input, void *output, npy_intp n,
 }
 
 
-#line 1405
+#line 1572
 
-#line 1418
+#line 1585
 static void
 BOOL_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9080,7 +12461,7 @@ BOOL_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 BYTE_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9095,7 +12476,7 @@ BYTE_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 UBYTE_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9110,7 +12491,7 @@ UBYTE_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 SHORT_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9125,7 +12506,7 @@ SHORT_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 USHORT_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9140,7 +12521,7 @@ USHORT_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 INT_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9155,7 +12536,7 @@ INT_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 UINT_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9170,7 +12551,7 @@ UINT_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 LONG_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9185,7 +12566,7 @@ LONG_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 ULONG_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9200,7 +12581,7 @@ ULONG_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 LONGLONG_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9215,7 +12596,7 @@ LONGLONG_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 ULONGLONG_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9230,7 +12611,7 @@ ULONGLONG_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 FLOAT_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9245,7 +12626,7 @@ FLOAT_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 DOUBLE_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9260,7 +12641,7 @@ DOUBLE_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 LONGDOUBLE_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9275,7 +12656,7 @@ LONGDOUBLE_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 DATETIME_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9290,7 +12671,7 @@ DATETIME_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 TIMEDELTA_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9306,9 +12687,9 @@ TIMEDELTA_to_CDOUBLE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1405
+#line 1572
 
-#line 1418
+#line 1585
 static void
 BOOL_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9323,7 +12704,7 @@ BOOL_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 BYTE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9338,7 +12719,7 @@ BYTE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 UBYTE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9353,7 +12734,7 @@ UBYTE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 SHORT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9368,7 +12749,7 @@ SHORT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 USHORT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9383,7 +12764,7 @@ USHORT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 INT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9398,7 +12779,7 @@ INT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 UINT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9413,7 +12794,7 @@ UINT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 LONG_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9428,7 +12809,7 @@ LONG_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 ULONG_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9443,7 +12824,7 @@ ULONG_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 LONGLONG_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9458,7 +12839,7 @@ LONGLONG_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 ULONGLONG_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9473,7 +12854,7 @@ ULONGLONG_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 FLOAT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9488,7 +12869,7 @@ FLOAT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 DOUBLE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9503,7 +12884,7 @@ DOUBLE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 LONGDOUBLE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9518,7 +12899,7 @@ LONGDOUBLE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 DATETIME_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9533,7 +12914,7 @@ DATETIME_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 }
 
-#line 1418
+#line 1585
 static void
 TIMEDELTA_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9550,9 +12931,9 @@ TIMEDELTA_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1439
+#line 1606
 
-#line 1444
+#line 1611
 static void
 CFLOAT_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9567,7 +12948,7 @@ CFLOAT_to_CFLOAT(void *input, void *output, npy_intp n,
 }
 
 
-#line 1444
+#line 1611
 static void
 CDOUBLE_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9582,7 +12963,7 @@ CDOUBLE_to_CFLOAT(void *input, void *output, npy_intp n,
 }
 
 
-#line 1444
+#line 1611
 static void
 CLONGDOUBLE_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9598,9 +12979,9 @@ CLONGDOUBLE_to_CFLOAT(void *input, void *output, npy_intp n,
 
 
 
-#line 1439
+#line 1606
 
-#line 1444
+#line 1611
 static void
 CFLOAT_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9615,7 +12996,7 @@ CFLOAT_to_CDOUBLE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1444
+#line 1611
 static void
 CDOUBLE_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9630,7 +13011,7 @@ CDOUBLE_to_CDOUBLE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1444
+#line 1611
 static void
 CLONGDOUBLE_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9646,9 +13027,9 @@ CLONGDOUBLE_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1439
+#line 1606
 
-#line 1444
+#line 1611
 static void
 CFLOAT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9663,7 +13044,7 @@ CFLOAT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1444
+#line 1611
 static void
 CDOUBLE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9678,7 +13059,7 @@ CDOUBLE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1444
+#line 1611
 static void
 CLONGDOUBLE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *NPY_UNUSED(aop))
@@ -9695,7 +13076,7 @@ CLONGDOUBLE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1478
+#line 1645
 static void
 BOOL_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9714,7 +13095,7 @@ BOOL_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 BYTE_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9733,7 +13114,7 @@ BYTE_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 UBYTE_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9752,7 +13133,7 @@ UBYTE_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 SHORT_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9771,7 +13152,7 @@ SHORT_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 USHORT_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9790,7 +13171,7 @@ USHORT_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 INT_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9809,7 +13190,7 @@ INT_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 UINT_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9828,7 +13209,7 @@ UINT_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 LONG_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9847,7 +13228,7 @@ LONG_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 ULONG_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9866,7 +13247,7 @@ ULONG_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 LONGLONG_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9885,7 +13266,7 @@ LONGLONG_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 ULONGLONG_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9904,7 +13285,7 @@ ULONGLONG_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 HALF_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9923,7 +13304,7 @@ HALF_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 FLOAT_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9942,7 +13323,7 @@ FLOAT_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 DOUBLE_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9961,7 +13342,7 @@ DOUBLE_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 LONGDOUBLE_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9980,7 +13361,7 @@ LONGDOUBLE_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 CFLOAT_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -9999,7 +13380,7 @@ CFLOAT_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 CDOUBLE_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -10018,7 +13399,7 @@ CDOUBLE_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 CLONGDOUBLE_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -10037,7 +13418,7 @@ CLONGDOUBLE_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 STRING_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -10056,7 +13437,7 @@ STRING_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 UNICODE_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -10075,7 +13456,7 @@ UNICODE_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 VOID_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -10094,7 +13475,7 @@ VOID_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 OBJECT_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -10113,7 +13494,7 @@ OBJECT_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 DATETIME_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -10132,7 +13513,7 @@ DATETIME_to_OBJECT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1478
+#line 1645
 static void
 TIMEDELTA_to_OBJECT(void *input, void *output, npy_intp n,
         void *vaip, void *NPY_UNUSED(aop))
@@ -10177,7 +13558,7 @@ TIMEDELTA_to_OBJECT(void *input, void *output, npy_intp n,
 #define _NPY_UNUSEDVOID
 #define _NPY_UNUSEDUNICODE
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_BOOL(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10202,7 +13583,7 @@ OBJECT_to_BOOL(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_BYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10227,7 +13608,7 @@ OBJECT_to_BYTE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_UBYTE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10252,7 +13633,7 @@ OBJECT_to_UBYTE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_SHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10277,7 +13658,7 @@ OBJECT_to_SHORT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_USHORT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10302,7 +13683,7 @@ OBJECT_to_USHORT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_INT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10327,7 +13708,7 @@ OBJECT_to_INT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_UINT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10352,7 +13733,7 @@ OBJECT_to_UINT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_LONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10377,7 +13758,7 @@ OBJECT_to_LONG(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_ULONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10402,7 +13783,7 @@ OBJECT_to_ULONG(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_LONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10427,7 +13808,7 @@ OBJECT_to_LONGLONG(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_ULONGLONG(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10452,7 +13833,7 @@ OBJECT_to_ULONGLONG(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_HALF(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10477,7 +13858,7 @@ OBJECT_to_HALF(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_FLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10502,7 +13883,7 @@ OBJECT_to_FLOAT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_DOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10527,7 +13908,7 @@ OBJECT_to_DOUBLE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10552,7 +13933,7 @@ OBJECT_to_LONGDOUBLE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_CFLOAT(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10577,7 +13958,7 @@ OBJECT_to_CFLOAT(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_CDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10602,7 +13983,7 @@ OBJECT_to_CDOUBLE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10627,7 +14008,7 @@ OBJECT_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_STRING(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10652,7 +14033,7 @@ OBJECT_to_STRING(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_UNICODE(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10677,7 +14058,7 @@ OBJECT_to_UNICODE(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_VOID(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10702,7 +14083,7 @@ OBJECT_to_VOID(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_DATETIME(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10727,7 +14108,7 @@ OBJECT_to_DATETIME(void *input, void *output, npy_intp n,
     }
 }
 
-#line 1540
+#line 1707
 static void
 OBJECT_to_TIMEDELTA(void *input, void *output, npy_intp n,
         void *NPY_UNUSED(aip), void *aop)
@@ -10754,7 +14135,7 @@ OBJECT_to_TIMEDELTA(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_BOOL(void *input, void *output, npy_intp n,
@@ -10790,7 +14171,7 @@ STRING_to_BOOL(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_BYTE(void *input, void *output, npy_intp n,
@@ -10826,7 +14207,7 @@ STRING_to_BYTE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_UBYTE(void *input, void *output, npy_intp n,
@@ -10862,7 +14243,7 @@ STRING_to_UBYTE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_SHORT(void *input, void *output, npy_intp n,
@@ -10898,7 +14279,7 @@ STRING_to_SHORT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_USHORT(void *input, void *output, npy_intp n,
@@ -10934,7 +14315,7 @@ STRING_to_USHORT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_INT(void *input, void *output, npy_intp n,
@@ -10970,7 +14351,7 @@ STRING_to_INT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_UINT(void *input, void *output, npy_intp n,
@@ -11006,7 +14387,7 @@ STRING_to_UINT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_LONG(void *input, void *output, npy_intp n,
@@ -11042,7 +14423,7 @@ STRING_to_LONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_ULONG(void *input, void *output, npy_intp n,
@@ -11078,7 +14459,7 @@ STRING_to_ULONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_LONGLONG(void *input, void *output, npy_intp n,
@@ -11114,7 +14495,7 @@ STRING_to_LONGLONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_ULONGLONG(void *input, void *output, npy_intp n,
@@ -11150,7 +14531,7 @@ STRING_to_ULONGLONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_HALF(void *input, void *output, npy_intp n,
@@ -11186,7 +14567,7 @@ STRING_to_HALF(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_FLOAT(void *input, void *output, npy_intp n,
@@ -11222,7 +14603,7 @@ STRING_to_FLOAT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_DOUBLE(void *input, void *output, npy_intp n,
@@ -11258,7 +14639,7 @@ STRING_to_DOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_LONGDOUBLE(void *input, void *output, npy_intp n,
@@ -11294,7 +14675,7 @@ STRING_to_LONGDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_CFLOAT(void *input, void *output, npy_intp n,
@@ -11330,7 +14711,7 @@ STRING_to_CFLOAT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_CDOUBLE(void *input, void *output, npy_intp n,
@@ -11366,7 +14747,7 @@ STRING_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
@@ -11402,7 +14783,7 @@ STRING_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_STRING(void *input, void *output, npy_intp n,
@@ -11438,7 +14819,7 @@ STRING_to_STRING(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_UNICODE(void *input, void *output, npy_intp n,
@@ -11474,7 +14855,7 @@ STRING_to_UNICODE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_VOID(void *input, void *output, npy_intp n,
@@ -11510,7 +14891,7 @@ STRING_to_VOID(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_DATETIME(void *input, void *output, npy_intp n,
@@ -11546,7 +14927,7 @@ STRING_to_DATETIME(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 STRING_to_TIMEDELTA(void *input, void *output, npy_intp n,
@@ -11582,7 +14963,7 @@ STRING_to_TIMEDELTA(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_BOOL(void *input, void *output, npy_intp n,
@@ -11618,7 +14999,7 @@ UNICODE_to_BOOL(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_BYTE(void *input, void *output, npy_intp n,
@@ -11654,7 +15035,7 @@ UNICODE_to_BYTE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_UBYTE(void *input, void *output, npy_intp n,
@@ -11690,7 +15071,7 @@ UNICODE_to_UBYTE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_SHORT(void *input, void *output, npy_intp n,
@@ -11726,7 +15107,7 @@ UNICODE_to_SHORT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_USHORT(void *input, void *output, npy_intp n,
@@ -11762,7 +15143,7 @@ UNICODE_to_USHORT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_INT(void *input, void *output, npy_intp n,
@@ -11798,7 +15179,7 @@ UNICODE_to_INT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_UINT(void *input, void *output, npy_intp n,
@@ -11834,7 +15215,7 @@ UNICODE_to_UINT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_LONG(void *input, void *output, npy_intp n,
@@ -11870,7 +15251,7 @@ UNICODE_to_LONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_ULONG(void *input, void *output, npy_intp n,
@@ -11906,7 +15287,7 @@ UNICODE_to_ULONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_LONGLONG(void *input, void *output, npy_intp n,
@@ -11942,7 +15323,7 @@ UNICODE_to_LONGLONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_ULONGLONG(void *input, void *output, npy_intp n,
@@ -11978,7 +15359,7 @@ UNICODE_to_ULONGLONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_HALF(void *input, void *output, npy_intp n,
@@ -12014,7 +15395,7 @@ UNICODE_to_HALF(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_FLOAT(void *input, void *output, npy_intp n,
@@ -12050,7 +15431,7 @@ UNICODE_to_FLOAT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_DOUBLE(void *input, void *output, npy_intp n,
@@ -12086,7 +15467,7 @@ UNICODE_to_DOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
@@ -12122,7 +15503,7 @@ UNICODE_to_LONGDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_CFLOAT(void *input, void *output, npy_intp n,
@@ -12158,7 +15539,7 @@ UNICODE_to_CFLOAT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_CDOUBLE(void *input, void *output, npy_intp n,
@@ -12194,7 +15575,7 @@ UNICODE_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
@@ -12230,7 +15611,7 @@ UNICODE_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_STRING(void *input, void *output, npy_intp n,
@@ -12266,7 +15647,7 @@ UNICODE_to_STRING(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_UNICODE(void *input, void *output, npy_intp n,
@@ -12302,7 +15683,7 @@ UNICODE_to_UNICODE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_VOID(void *input, void *output, npy_intp n,
@@ -12338,7 +15719,7 @@ UNICODE_to_VOID(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_DATETIME(void *input, void *output, npy_intp n,
@@ -12374,7 +15755,7 @@ UNICODE_to_DATETIME(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 UNICODE_to_TIMEDELTA(void *input, void *output, npy_intp n,
@@ -12410,7 +15791,7 @@ UNICODE_to_TIMEDELTA(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_BOOL(void *input, void *output, npy_intp n,
@@ -12446,7 +15827,7 @@ VOID_to_BOOL(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_BYTE(void *input, void *output, npy_intp n,
@@ -12482,7 +15863,7 @@ VOID_to_BYTE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_UBYTE(void *input, void *output, npy_intp n,
@@ -12518,7 +15899,7 @@ VOID_to_UBYTE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_SHORT(void *input, void *output, npy_intp n,
@@ -12554,7 +15935,7 @@ VOID_to_SHORT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_USHORT(void *input, void *output, npy_intp n,
@@ -12590,7 +15971,7 @@ VOID_to_USHORT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_INT(void *input, void *output, npy_intp n,
@@ -12626,7 +16007,7 @@ VOID_to_INT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_UINT(void *input, void *output, npy_intp n,
@@ -12662,7 +16043,7 @@ VOID_to_UINT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_LONG(void *input, void *output, npy_intp n,
@@ -12698,7 +16079,7 @@ VOID_to_LONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_ULONG(void *input, void *output, npy_intp n,
@@ -12734,7 +16115,7 @@ VOID_to_ULONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_LONGLONG(void *input, void *output, npy_intp n,
@@ -12770,7 +16151,7 @@ VOID_to_LONGLONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_ULONGLONG(void *input, void *output, npy_intp n,
@@ -12806,7 +16187,7 @@ VOID_to_ULONGLONG(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_HALF(void *input, void *output, npy_intp n,
@@ -12842,7 +16223,7 @@ VOID_to_HALF(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_FLOAT(void *input, void *output, npy_intp n,
@@ -12878,7 +16259,7 @@ VOID_to_FLOAT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_DOUBLE(void *input, void *output, npy_intp n,
@@ -12914,7 +16295,7 @@ VOID_to_DOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_LONGDOUBLE(void *input, void *output, npy_intp n,
@@ -12950,7 +16331,7 @@ VOID_to_LONGDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_CFLOAT(void *input, void *output, npy_intp n,
@@ -12986,7 +16367,7 @@ VOID_to_CFLOAT(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_CDOUBLE(void *input, void *output, npy_intp n,
@@ -13022,7 +16403,7 @@ VOID_to_CDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
@@ -13058,7 +16439,7 @@ VOID_to_CLONGDOUBLE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_STRING(void *input, void *output, npy_intp n,
@@ -13094,7 +16475,7 @@ VOID_to_STRING(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_UNICODE(void *input, void *output, npy_intp n,
@@ -13130,7 +16511,7 @@ VOID_to_UNICODE(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_VOID(void *input, void *output, npy_intp n,
@@ -13166,7 +16547,7 @@ VOID_to_VOID(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_DATETIME(void *input, void *output, npy_intp n,
@@ -13202,7 +16583,7 @@ VOID_to_DATETIME(void *input, void *output, npy_intp n,
 
 
 
-#line 1589
+#line 1756
 
 static void
 VOID_to_TIMEDELTA(void *input, void *output, npy_intp n,
@@ -13240,7 +16621,7 @@ VOID_to_TIMEDELTA(void *input, void *output, npy_intp n,
 
 
 
-#line 1643
+#line 1810
 static void
 BOOL_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13269,7 +16650,7 @@ BOOL_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 BYTE_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13298,7 +16679,7 @@ BYTE_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 UBYTE_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13327,7 +16708,7 @@ UBYTE_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 SHORT_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13356,7 +16737,7 @@ SHORT_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 USHORT_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13385,7 +16766,7 @@ USHORT_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 INT_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13414,7 +16795,7 @@ INT_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 UINT_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13443,7 +16824,7 @@ UINT_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 LONG_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13472,7 +16853,7 @@ LONG_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 ULONG_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13501,7 +16882,7 @@ ULONG_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 LONGLONG_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13530,7 +16911,7 @@ LONGLONG_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 ULONGLONG_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13559,7 +16940,7 @@ ULONGLONG_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 HALF_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13588,7 +16969,7 @@ HALF_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 FLOAT_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13617,7 +16998,7 @@ FLOAT_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 DOUBLE_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13646,7 +17027,7 @@ DOUBLE_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 LONGDOUBLE_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13675,7 +17056,7 @@ LONGDOUBLE_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 CFLOAT_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13704,7 +17085,7 @@ CFLOAT_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 CDOUBLE_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13733,7 +17114,7 @@ CDOUBLE_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 CLONGDOUBLE_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13762,7 +17143,7 @@ CLONGDOUBLE_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 DATETIME_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13791,7 +17172,7 @@ DATETIME_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 TIMEDELTA_to_STRING(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13820,7 +17201,7 @@ TIMEDELTA_to_STRING(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 BOOL_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13849,7 +17230,7 @@ BOOL_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 BYTE_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13878,7 +17259,7 @@ BYTE_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 UBYTE_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13907,7 +17288,7 @@ UBYTE_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 SHORT_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13936,7 +17317,7 @@ SHORT_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 USHORT_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13965,7 +17346,7 @@ USHORT_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 INT_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -13994,7 +17375,7 @@ INT_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 UINT_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14023,7 +17404,7 @@ UINT_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 LONG_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14052,7 +17433,7 @@ LONG_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 ULONG_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14081,7 +17462,7 @@ ULONG_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 LONGLONG_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14110,7 +17491,7 @@ LONGLONG_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 ULONGLONG_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14139,7 +17520,7 @@ ULONGLONG_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 HALF_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14168,7 +17549,7 @@ HALF_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 FLOAT_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14197,7 +17578,7 @@ FLOAT_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 DOUBLE_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14226,7 +17607,7 @@ DOUBLE_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 LONGDOUBLE_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14255,7 +17636,7 @@ LONGDOUBLE_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 CFLOAT_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14284,7 +17665,7 @@ CFLOAT_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 CDOUBLE_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14313,7 +17694,7 @@ CDOUBLE_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 CLONGDOUBLE_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14342,7 +17723,7 @@ CLONGDOUBLE_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 DATETIME_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14371,7 +17752,7 @@ DATETIME_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 TIMEDELTA_to_UNICODE(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14400,7 +17781,7 @@ TIMEDELTA_to_UNICODE(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 BOOL_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14429,7 +17810,7 @@ BOOL_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 BYTE_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14458,7 +17839,7 @@ BYTE_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 UBYTE_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14487,7 +17868,7 @@ UBYTE_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 SHORT_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14516,7 +17897,7 @@ SHORT_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 USHORT_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14545,7 +17926,7 @@ USHORT_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 INT_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14574,7 +17955,7 @@ INT_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 UINT_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14603,7 +17984,7 @@ UINT_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 LONG_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14632,7 +18013,7 @@ LONG_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 ULONG_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14661,7 +18042,7 @@ ULONG_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 LONGLONG_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14690,7 +18071,7 @@ LONGLONG_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 ULONGLONG_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14719,7 +18100,7 @@ ULONGLONG_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 HALF_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14748,7 +18129,7 @@ HALF_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 FLOAT_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14777,7 +18158,7 @@ FLOAT_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 DOUBLE_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14806,7 +18187,7 @@ DOUBLE_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 LONGDOUBLE_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14835,7 +18216,7 @@ LONGDOUBLE_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 CFLOAT_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14864,7 +18245,7 @@ CFLOAT_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 CDOUBLE_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14893,7 +18274,7 @@ CDOUBLE_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 CLONGDOUBLE_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14922,7 +18303,7 @@ CLONGDOUBLE_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 DATETIME_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14951,7 +18332,7 @@ DATETIME_to_VOID(void *input, void *output, npy_intp n,
 }
 
 
-#line 1643
+#line 1810
 static void
 TIMEDELTA_to_VOID(void *input, void *output, npy_intp n,
         void *vaip, void *vaop)
@@ -14994,7 +18375,7 @@ TIMEDELTA_to_VOID(void *input, void *output, npy_intp n,
  * Should be removed when the API version is bumped up.
  */
 
-#line 1693
+#line 1860
 static int
 SHORT_scan(FILE *fp, npy_short *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignored))
@@ -15002,7 +18383,7 @@ SHORT_scan(FILE *fp, npy_short *ip, void *NPY_UNUSED(ignore),
     return fscanf(fp, "%""hd", ip);
 }
 
-#line 1693
+#line 1860
 static int
 USHORT_scan(FILE *fp, npy_ushort *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignored))
@@ -15010,7 +18391,7 @@ USHORT_scan(FILE *fp, npy_ushort *ip, void *NPY_UNUSED(ignore),
     return fscanf(fp, "%""hu", ip);
 }
 
-#line 1693
+#line 1860
 static int
 INT_scan(FILE *fp, npy_int *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignored))
@@ -15018,7 +18399,7 @@ INT_scan(FILE *fp, npy_int *ip, void *NPY_UNUSED(ignore),
     return fscanf(fp, "%""d", ip);
 }
 
-#line 1693
+#line 1860
 static int
 UINT_scan(FILE *fp, npy_uint *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignored))
@@ -15026,7 +18407,7 @@ UINT_scan(FILE *fp, npy_uint *ip, void *NPY_UNUSED(ignore),
     return fscanf(fp, "%""u", ip);
 }
 
-#line 1693
+#line 1860
 static int
 LONG_scan(FILE *fp, npy_long *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignored))
@@ -15034,7 +18415,7 @@ LONG_scan(FILE *fp, npy_long *ip, void *NPY_UNUSED(ignore),
     return fscanf(fp, "%""ld", ip);
 }
 
-#line 1693
+#line 1860
 static int
 ULONG_scan(FILE *fp, npy_ulong *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignored))
@@ -15042,7 +18423,7 @@ ULONG_scan(FILE *fp, npy_ulong *ip, void *NPY_UNUSED(ignore),
     return fscanf(fp, "%""lu", ip);
 }
 
-#line 1693
+#line 1860
 static int
 LONGLONG_scan(FILE *fp, npy_longlong *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignored))
@@ -15050,7 +18431,7 @@ LONGLONG_scan(FILE *fp, npy_longlong *ip, void *NPY_UNUSED(ignore),
     return fscanf(fp, "%"NPY_LONGLONG_FMT, ip);
 }
 
-#line 1693
+#line 1860
 static int
 ULONGLONG_scan(FILE *fp, npy_ulonglong *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignored))
@@ -15059,7 +18440,7 @@ ULONGLONG_scan(FILE *fp, npy_ulonglong *ip, void *NPY_UNUSED(ignore),
 }
 
 
-#line 1705
+#line 1872
 static int
 FLOAT_scan(FILE *fp, npy_float *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignored))
@@ -15072,7 +18453,7 @@ FLOAT_scan(FILE *fp, npy_float *ip, void *NPY_UNUSED(ignore),
     return ret;
 }
 
-#line 1705
+#line 1872
 static int
 DOUBLE_scan(FILE *fp, npy_double *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignored))
@@ -15110,7 +18491,7 @@ HALF_scan(FILE *fp, npy_half *ip, void *NPY_UNUSED(ignore),
     return ret;
 }
 
-#line 1748
+#line 1915
 static int
 BYTE_scan(FILE *fp, npy_byte *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignore2))
@@ -15123,7 +18504,7 @@ BYTE_scan(FILE *fp, npy_byte *ip, void *NPY_UNUSED(ignore),
     return num;
 }
 
-#line 1748
+#line 1915
 static int
 UBYTE_scan(FILE *fp, npy_ubyte *ip, void *NPY_UNUSED(ignore),
         PyArray_Descr *NPY_UNUSED(ignore2))
@@ -15149,7 +18530,7 @@ BOOL_scan(FILE *fp, npy_bool *ip, void *NPY_UNUSED(ignore),
     return ret;
 }
 
-#line 1777
+#line 1944
 static int
 CFLOAT_scan(FILE *fp, npy_cfloat *ip, void *NPY_UNUSED(ignore),
              PyArray_Descr *NPY_UNUSED(ignored))
@@ -15195,7 +18576,7 @@ CFLOAT_scan(FILE *fp, npy_cfloat *ip, void *NPY_UNUSED(ignore),
     return ret_real;
 }
 
-#line 1777
+#line 1944
 static int
 CDOUBLE_scan(FILE *fp, npy_cdouble *ip, void *NPY_UNUSED(ignore),
              PyArray_Descr *NPY_UNUSED(ignored))
@@ -15243,37 +18624,37 @@ CDOUBLE_scan(FILE *fp, npy_cdouble *ip, void *NPY_UNUSED(ignore),
 
 
 
-#line 1829
+#line 1996
 
 #define CLONGDOUBLE_scan NULL
 
 
-#line 1829
+#line 1996
 
 #define OBJECT_scan NULL
 
 
-#line 1829
+#line 1996
 
 #define STRING_scan NULL
 
 
-#line 1829
+#line 1996
 
 #define UNICODE_scan NULL
 
 
-#line 1829
+#line 1996
 
 #define VOID_scan NULL
 
 
-#line 1829
+#line 1996
 
 #define DATETIME_scan NULL
 
 
-#line 1829
+#line 1996
 
 #define TIMEDELTA_scan NULL
 
@@ -15287,7 +18668,7 @@ CDOUBLE_scan(FILE *fp, npy_cdouble *ip, void *NPY_UNUSED(ignore),
  */
 
 
-#line 1854
+#line 2021
 static int
 BYTE_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15299,7 +18680,7 @@ BYTE_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 UBYTE_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15311,7 +18692,7 @@ UBYTE_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 SHORT_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15323,7 +18704,7 @@ SHORT_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 USHORT_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15335,7 +18716,7 @@ USHORT_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 INT_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15347,7 +18728,7 @@ INT_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 UINT_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15359,7 +18740,7 @@ UINT_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 LONG_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15371,7 +18752,7 @@ LONG_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 ULONG_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15383,7 +18764,7 @@ ULONG_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 LONGLONG_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15395,7 +18776,7 @@ LONGLONG_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 ULONGLONG_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15407,7 +18788,7 @@ ULONGLONG_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 DATETIME_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15419,7 +18800,7 @@ DATETIME_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1854
+#line 2021
 static int
 TIMEDELTA_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15432,7 +18813,7 @@ TIMEDELTA_fromstr(char *str, void *ip, char **endptr,
 }
 
 
-#line 1871
+#line 2038
 static int
 FLOAT_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15444,7 +18825,7 @@ FLOAT_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1871
+#line 2038
 static int
 DOUBLE_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15490,7 +18871,7 @@ BOOL_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1920
+#line 2087
 static int
 CFLOAT_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15538,7 +18919,7 @@ CFLOAT_fromstr(char *str, void *ip, char **endptr,
     return 0;
 }
 
-#line 1920
+#line 2087
 static int
 CDOUBLE_fromstr(char *str, void *ip, char **endptr,
         PyArray_Descr *NPY_UNUSED(ignore))
@@ -15588,27 +18969,27 @@ CDOUBLE_fromstr(char *str, void *ip, char **endptr,
 
 
 
-#line 1973
+#line 2140
 
 #define CLONGDOUBLE_fromstr NULL
 
 
-#line 1973
+#line 2140
 
 #define OBJECT_fromstr NULL
 
 
-#line 1973
+#line 2140
 
 #define STRING_fromstr NULL
 
 
-#line 1973
+#line 2140
 
 #define UNICODE_fromstr NULL
 
 
-#line 1973
+#line 2140
 
 #define VOID_fromstr NULL
 
@@ -15646,7 +19027,7 @@ _basic_copy(void *dst, void *src, int elsize) {
 }
 
 
-#line 2025
+#line 2192
 static void
 SHORT_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -15723,7 +19104,7 @@ SHORT_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 USHORT_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -15800,7 +19181,7 @@ USHORT_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 INT_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -15877,7 +19258,7 @@ INT_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 UINT_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -15954,7 +19335,7 @@ UINT_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 LONG_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16031,7 +19412,7 @@ LONG_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 ULONG_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16108,7 +19489,7 @@ ULONG_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 LONGLONG_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16185,7 +19566,7 @@ LONGLONG_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 ULONGLONG_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16262,7 +19643,7 @@ ULONGLONG_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 HALF_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16339,7 +19720,7 @@ HALF_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 FLOAT_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16416,7 +19797,7 @@ FLOAT_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 DOUBLE_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16493,7 +19874,7 @@ DOUBLE_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 LONGDOUBLE_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16570,7 +19951,7 @@ LONGDOUBLE_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 DATETIME_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16647,7 +20028,7 @@ DATETIME_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2025
+#line 2192
 static void
 TIMEDELTA_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
                    npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16725,7 +20106,7 @@ TIMEDELTA_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 
 
 
-#line 2109
+#line 2276
 static void
 BOOL_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
         npy_intp n, int NPY_UNUSED(swap), void *NPY_UNUSED(arr))
@@ -16745,7 +20126,7 @@ BOOL_copyswap (void *dst, void *src, int NPY_UNUSED(swap),
 }
 
 
-#line 2109
+#line 2276
 static void
 BYTE_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
         npy_intp n, int NPY_UNUSED(swap), void *NPY_UNUSED(arr))
@@ -16765,7 +20146,7 @@ BYTE_copyswap (void *dst, void *src, int NPY_UNUSED(swap),
 }
 
 
-#line 2109
+#line 2276
 static void
 UBYTE_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
         npy_intp n, int NPY_UNUSED(swap), void *NPY_UNUSED(arr))
@@ -16788,7 +20169,7 @@ UBYTE_copyswap (void *dst, void *src, int NPY_UNUSED(swap),
 
 
 
-#line 2137
+#line 2304
 static void
 CFLOAT_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
         npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -16906,7 +20287,7 @@ CFLOAT_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2137
+#line 2304
 static void
 CDOUBLE_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
         npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -17024,7 +20405,7 @@ CDOUBLE_copyswap (void *dst, void *src, int swap, void *NPY_UNUSED(arr))
 }
 
 
-#line 2137
+#line 2304
 static void
 CLONGDOUBLE_copyswapn (void *dst, npy_intp dstride, void *src, npy_intp sstride,
         npy_intp n, int swap, void *NPY_UNUSED(arr))
@@ -17464,7 +20845,7 @@ UNICODE_copyswap (char *dst, char *src, int swap, PyArrayObject *arr)
 
 #define _NONZERO(a) ((a) != 0)
 
-#line 2591
+#line 2758
 static npy_bool
 BOOL_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17489,7 +20870,7 @@ BOOL_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 BYTE_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17514,7 +20895,7 @@ BYTE_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 UBYTE_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17539,7 +20920,7 @@ UBYTE_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 SHORT_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17564,7 +20945,7 @@ SHORT_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 USHORT_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17589,7 +20970,7 @@ USHORT_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 INT_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17614,7 +20995,7 @@ INT_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 UINT_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17639,7 +21020,7 @@ UINT_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 LONG_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17664,7 +21045,7 @@ LONG_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 ULONG_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17689,7 +21070,7 @@ ULONG_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 LONGLONG_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17714,7 +21095,7 @@ LONGLONG_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 ULONGLONG_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17739,7 +21120,7 @@ ULONGLONG_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 HALF_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17764,7 +21145,7 @@ HALF_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 FLOAT_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17789,7 +21170,7 @@ FLOAT_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 DOUBLE_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17814,7 +21195,7 @@ DOUBLE_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 LONGDOUBLE_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17839,7 +21220,7 @@ LONGDOUBLE_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 DATETIME_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17864,7 +21245,7 @@ DATETIME_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2591
+#line 2758
 static npy_bool
 TIMEDELTA_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17890,7 +21271,7 @@ TIMEDELTA_nonzero (char *ip, PyArrayObject *ap)
 }
 
 
-#line 2621
+#line 2788
 static npy_bool
 CFLOAT_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17906,7 +21287,7 @@ CFLOAT_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2621
+#line 2788
 static npy_bool
 CDOUBLE_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -17922,7 +21303,7 @@ CDOUBLE_nonzero (char *ip, PyArrayObject *ap)
     }
 }
 
-#line 2621
+#line 2788
 static npy_bool
 CLONGDOUBLE_nonzero (char *ip, PyArrayObject *ap)
 {
@@ -18111,7 +21492,7 @@ BOOL_compare(npy_bool *ip1, npy_bool *ip2, PyArrayObject *NPY_UNUSED(ap))
 
 /* integer types */
 
-#line 2815
+#line 2982
 
 static int
 BYTE_compare (npy_byte *pa, npy_byte *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18123,7 +21504,7 @@ BYTE_compare (npy_byte *pa, npy_byte *pb, PyArrayObject *NPY_UNUSED(ap))
 }
 
 
-#line 2815
+#line 2982
 
 static int
 UBYTE_compare (npy_ubyte *pa, npy_ubyte *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18135,7 +21516,7 @@ UBYTE_compare (npy_ubyte *pa, npy_ubyte *pb, PyArrayObject *NPY_UNUSED(ap))
 }
 
 
-#line 2815
+#line 2982
 
 static int
 SHORT_compare (npy_short *pa, npy_short *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18147,7 +21528,7 @@ SHORT_compare (npy_short *pa, npy_short *pb, PyArrayObject *NPY_UNUSED(ap))
 }
 
 
-#line 2815
+#line 2982
 
 static int
 USHORT_compare (npy_ushort *pa, npy_ushort *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18159,7 +21540,7 @@ USHORT_compare (npy_ushort *pa, npy_ushort *pb, PyArrayObject *NPY_UNUSED(ap))
 }
 
 
-#line 2815
+#line 2982
 
 static int
 INT_compare (npy_int *pa, npy_int *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18171,7 +21552,7 @@ INT_compare (npy_int *pa, npy_int *pb, PyArrayObject *NPY_UNUSED(ap))
 }
 
 
-#line 2815
+#line 2982
 
 static int
 UINT_compare (npy_uint *pa, npy_uint *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18183,7 +21564,7 @@ UINT_compare (npy_uint *pa, npy_uint *pb, PyArrayObject *NPY_UNUSED(ap))
 }
 
 
-#line 2815
+#line 2982
 
 static int
 LONG_compare (npy_long *pa, npy_long *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18195,7 +21576,7 @@ LONG_compare (npy_long *pa, npy_long *pb, PyArrayObject *NPY_UNUSED(ap))
 }
 
 
-#line 2815
+#line 2982
 
 static int
 ULONG_compare (npy_ulong *pa, npy_ulong *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18207,7 +21588,7 @@ ULONG_compare (npy_ulong *pa, npy_ulong *pb, PyArrayObject *NPY_UNUSED(ap))
 }
 
 
-#line 2815
+#line 2982
 
 static int
 LONGLONG_compare (npy_longlong *pa, npy_longlong *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18219,7 +21600,7 @@ LONGLONG_compare (npy_longlong *pa, npy_longlong *pb, PyArrayObject *NPY_UNUSED(
 }
 
 
-#line 2815
+#line 2982
 
 static int
 ULONGLONG_compare (npy_ulonglong *pa, npy_ulonglong *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18251,7 +21632,7 @@ ULONGLONG_compare (npy_ulonglong *pa, npy_ulonglong *pb, PyArrayObject *NPY_UNUS
  *  imaginary parts.
  */
 
-#line 2851
+#line 3018
 
 #define LT(a,b) ((a) < (b) || ((b) != (b) && (a) ==(a)))
 
@@ -18324,7 +21705,7 @@ CFLOAT_compare(npy_float *pa, npy_float *pb, PyArrayObject *NPY_UNUSED(ap))
 #undef LT
 
 
-#line 2851
+#line 3018
 
 #define LT(a,b) ((a) < (b) || ((b) != (b) && (a) ==(a)))
 
@@ -18397,7 +21778,7 @@ CDOUBLE_compare(npy_double *pa, npy_double *pb, PyArrayObject *NPY_UNUSED(ap))
 #undef LT
 
 
-#line 2851
+#line 3018
 
 #define LT(a,b) ((a) < (b) || ((b) != (b) && (a) ==(a)))
 
@@ -18471,7 +21852,7 @@ CLONGDOUBLE_compare(npy_longdouble *pa, npy_longdouble *pb, PyArrayObject *NPY_U
 
 
 
-#line 2928
+#line 3095
 
 static int
 DATETIME_compare(npy_datetime *pa, npy_datetime *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18498,7 +21879,7 @@ DATETIME_compare(npy_datetime *pa, npy_datetime *pb, PyArrayObject *NPY_UNUSED(a
 }
 
 
-#line 2928
+#line 3095
 
 static int
 TIMEDELTA_compare(npy_timedelta *pa, npy_timedelta *pb, PyArrayObject *NPY_UNUSED(ap))
@@ -18756,7 +22137,7 @@ finish:
 
 #define _LESS_THAN_OR_EQUAL(a,b) ((a) <= (b))
 
-#line 3198
+#line 3365
 static int
 HALF_argmax(npy_half *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -18829,7 +22210,7 @@ HALF_argmax(npy_half *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3198
+#line 3365
 static int
 CFLOAT_argmax(npy_float *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -18902,7 +22283,7 @@ CFLOAT_argmax(npy_float *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3198
+#line 3365
 static int
 CDOUBLE_argmax(npy_double *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -18975,7 +22356,7 @@ CDOUBLE_argmax(npy_double *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3198
+#line 3365
 static int
 CLONGDOUBLE_argmax(npy_longdouble *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19048,7 +22429,7 @@ CLONGDOUBLE_argmax(npy_longdouble *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3198
+#line 3365
 static int
 DATETIME_argmax(npy_datetime *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19121,7 +22502,7 @@ DATETIME_argmax(npy_datetime *ip, npy_intp n, npy_intp *max_ind,
 }
 
 
-#line 3198
+#line 3365
 static int
 TIMEDELTA_argmax(npy_timedelta *ip, npy_intp n, npy_intp *max_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19209,7 +22590,7 @@ BOOL_argmin(npy_bool *ip, npy_intp n, npy_intp *min_ind,
     return 0;
 }
 
-#line 3298
+#line 3465
 static int
 HALF_argmin(npy_half *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19282,7 +22663,7 @@ HALF_argmin(npy_half *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3298
+#line 3465
 static int
 CFLOAT_argmin(npy_float *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19355,7 +22736,7 @@ CFLOAT_argmin(npy_float *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3298
+#line 3465
 static int
 CDOUBLE_argmin(npy_double *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19428,7 +22809,7 @@ CDOUBLE_argmin(npy_double *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3298
+#line 3465
 static int
 CLONGDOUBLE_argmin(npy_longdouble *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19501,7 +22882,7 @@ CLONGDOUBLE_argmin(npy_longdouble *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3298
+#line 3465
 static int
 DATETIME_argmin(npy_datetime *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19574,7 +22955,7 @@ DATETIME_argmin(npy_datetime *ip, npy_intp n, npy_intp *min_ind,
 }
 
 
-#line 3298
+#line 3465
 static int
 TIMEDELTA_argmin(npy_timedelta *ip, npy_intp n, npy_intp *min_ind,
         PyArrayObject *NPY_UNUSED(aip))
@@ -19682,7 +23063,7 @@ OBJECT_argmax(PyObject **ip, npy_intp n, npy_intp *max_ind,
     return 0;
 }
 
-#line 3410
+#line 3577
 static int
 STRING_argmax(npy_char *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip)
 {
@@ -19707,7 +23088,7 @@ STRING_argmax(npy_char *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip)
 }
 
 
-#line 3410
+#line 3577
 static int
 UNICODE_argmax(npy_ucs4 *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip)
 {
@@ -19767,7 +23148,7 @@ OBJECT_argmin(PyObject **ip, npy_intp n, npy_intp *min_ind,
     return 0;
 }
 
-#line 3474
+#line 3641
 static int
 STRING_argmin(npy_char *ip, npy_intp n, npy_intp *min_ind, PyArrayObject *aip)
 {
@@ -19790,7 +23171,7 @@ STRING_argmin(npy_char *ip, npy_intp n, npy_intp *min_ind, PyArrayObject *aip)
 }
 
 
-#line 3474
+#line 3641
 static int
 UNICODE_argmin(npy_ucs4 *ip, npy_intp n, npy_intp *min_ind, PyArrayObject *aip)
 {
@@ -19831,7 +23212,7 @@ UNICODE_argmin(npy_ucs4 *ip, npy_intp n, npy_intp *min_ind, PyArrayObject *aip)
 /************************** MAYBE USE CBLAS *********************************/
 
 
-#line 3520
+#line 3687
 NPY_NO_EXPORT void
 FLOAT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
            npy_intp n, void *NPY_UNUSED(ignore))
@@ -19873,7 +23254,7 @@ FLOAT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
     }
 }
 
-#line 3520
+#line 3687
 NPY_NO_EXPORT void
 DOUBLE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
            npy_intp n, void *NPY_UNUSED(ignore))
@@ -19916,7 +23297,7 @@ DOUBLE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
 }
 
 
-#line 3569
+#line 3736
 NPY_NO_EXPORT void
 CFLOAT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2,
            char *op, npy_intp n, void *NPY_UNUSED(ignore))
@@ -19966,7 +23347,7 @@ CFLOAT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2,
 }
 
 
-#line 3569
+#line 3736
 NPY_NO_EXPORT void
 CDOUBLE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2,
            char *op, npy_intp n, void *NPY_UNUSED(ignore))
@@ -20035,7 +23416,13 @@ BOOL_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
     *((npy_bool *)op) = tmp;
 }
 
-#line 3649
+/*
+ * `dot` does not make sense for times, for DATETIME it never worked.
+ *  For timedelta it does/did , but should probably also just be removed.
+ */
+#define DATETIME_dot NULL
+
+#line 3822
 static void
 BYTE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20050,7 +23437,7 @@ BYTE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
     *((npy_byte *)op) = (npy_byte) tmp;
 }
 
-#line 3649
+#line 3822
 static void
 UBYTE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20065,7 +23452,7 @@ UBYTE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n
     *((npy_ubyte *)op) = (npy_ubyte) tmp;
 }
 
-#line 3649
+#line 3822
 static void
 SHORT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20080,7 +23467,7 @@ SHORT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n
     *((npy_short *)op) = (npy_short) tmp;
 }
 
-#line 3649
+#line 3822
 static void
 USHORT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20095,7 +23482,7 @@ USHORT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp 
     *((npy_ushort *)op) = (npy_ushort) tmp;
 }
 
-#line 3649
+#line 3822
 static void
 INT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20110,7 +23497,7 @@ INT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
     *((npy_int *)op) = (npy_int) tmp;
 }
 
-#line 3649
+#line 3822
 static void
 UINT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20125,7 +23512,7 @@ UINT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
     *((npy_uint *)op) = (npy_uint) tmp;
 }
 
-#line 3649
+#line 3822
 static void
 LONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20140,7 +23527,7 @@ LONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
     *((npy_long *)op) = (npy_long) tmp;
 }
 
-#line 3649
+#line 3822
 static void
 ULONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20155,7 +23542,7 @@ ULONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n
     *((npy_ulong *)op) = (npy_ulong) tmp;
 }
 
-#line 3649
+#line 3822
 static void
 LONGLONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20170,7 +23557,7 @@ LONGLONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_int
     *((npy_longlong *)op) = (npy_longlong) tmp;
 }
 
-#line 3649
+#line 3822
 static void
 ULONGLONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20185,7 +23572,7 @@ ULONGLONG_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_in
     *((npy_ulonglong *)op) = (npy_ulonglong) tmp;
 }
 
-#line 3649
+#line 3822
 static void
 LONGDOUBLE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20200,22 +23587,7 @@ LONGDOUBLE_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_i
     *((npy_longdouble *)op) = (npy_longdouble) tmp;
 }
 
-#line 3649
-static void
-DATETIME_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
-           void *NPY_UNUSED(ignore))
-{
-    npy_datetime tmp = (npy_datetime)0;
-    npy_intp i;
-
-    for (i = 0; i < n; i++, ip1 += is1, ip2 += is2) {
-        tmp += (npy_datetime)(*((npy_datetime *)ip1)) *
-               (npy_datetime)(*((npy_datetime *)ip2));
-    }
-    *((npy_datetime *)op) = (npy_datetime) tmp;
-}
-
-#line 3649
+#line 3822
 static void
 TIMEDELTA_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp n,
            void *NPY_UNUSED(ignore))
@@ -20317,7 +23689,18 @@ OBJECT_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op, npy_intp 
  */
 
 
-#define BOOL_fill NULL
+/* Boolean fill never works, but define it so that it works up to length 2 */
+static int
+BOOL_fill(PyObject **buffer, npy_intp length, void *NPY_UNUSED(ignored))
+{
+    NPY_ALLOW_C_API_DEF;
+    NPY_ALLOW_C_API;
+    PyErr_SetString(PyExc_TypeError,
+            "arange() is only supported for booleans when the result has at "
+            "most length 2.");
+    NPY_DISABLE_C_API;
+    return -1;
+}
 
 /* this requires buffer to be filled with objects or NULL */
 static int
@@ -20358,7 +23741,7 @@ finish:
     return retval;
 }
 
-#line 3802
+#line 3986
 static int
 BYTE_fill(npy_byte *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20373,7 +23756,7 @@ BYTE_fill(npy_byte *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 UBYTE_fill(npy_ubyte *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20388,7 +23771,7 @@ UBYTE_fill(npy_ubyte *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 SHORT_fill(npy_short *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20403,7 +23786,7 @@ SHORT_fill(npy_short *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 USHORT_fill(npy_ushort *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20418,7 +23801,7 @@ USHORT_fill(npy_ushort *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 INT_fill(npy_int *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20433,7 +23816,7 @@ INT_fill(npy_int *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 UINT_fill(npy_uint *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20448,7 +23831,7 @@ UINT_fill(npy_uint *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 LONG_fill(npy_long *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20463,7 +23846,7 @@ LONG_fill(npy_long *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 ULONG_fill(npy_ulong *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20478,7 +23861,7 @@ ULONG_fill(npy_ulong *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 LONGLONG_fill(npy_longlong *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20493,7 +23876,7 @@ LONGLONG_fill(npy_longlong *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 ULONGLONG_fill(npy_ulonglong *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20508,7 +23891,7 @@ ULONGLONG_fill(npy_ulonglong *buffer, npy_intp length, void *NPY_UNUSED(ignored)
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 FLOAT_fill(npy_float *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20523,7 +23906,7 @@ FLOAT_fill(npy_float *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 DOUBLE_fill(npy_double *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20538,7 +23921,7 @@ DOUBLE_fill(npy_double *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 LONGDOUBLE_fill(npy_longdouble *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20553,7 +23936,7 @@ LONGDOUBLE_fill(npy_longdouble *buffer, npy_intp length, void *NPY_UNUSED(ignore
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 DATETIME_fill(npy_datetime *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20568,7 +23951,7 @@ DATETIME_fill(npy_datetime *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3802
+#line 3986
 static int
 TIMEDELTA_fill(npy_timedelta *buffer, npy_intp length, void *NPY_UNUSED(ignored))
 {
@@ -20598,7 +23981,7 @@ HALF_fill(npy_half *buffer, npy_intp length, void *NPY_UNUSED(ignored))
     return 0;
 }
 
-#line 3836
+#line 4020
 static int
 CFLOAT_fill(npy_cfloat *buffer, npy_intp length, void *NPY_UNUSED(ignore))
 {
@@ -20620,7 +24003,7 @@ CFLOAT_fill(npy_cfloat *buffer, npy_intp length, void *NPY_UNUSED(ignore))
     return 0;
 }
 
-#line 3836
+#line 4020
 static int
 CDOUBLE_fill(npy_cdouble *buffer, npy_intp length, void *NPY_UNUSED(ignore))
 {
@@ -20642,7 +24025,7 @@ CDOUBLE_fill(npy_cdouble *buffer, npy_intp length, void *NPY_UNUSED(ignore))
     return 0;
 }
 
-#line 3836
+#line 4020
 static int
 CLONGDOUBLE_fill(npy_clongdouble *buffer, npy_intp length, void *NPY_UNUSED(ignore))
 {
@@ -20679,7 +24062,7 @@ OBJECT_fillwithscalar(PyObject **buffer, npy_intp length, PyObject **value,
         buffer[i] = val;
     }
 }
-#line 3877
+#line 4061
 static void
 BOOL_fillwithscalar(npy_bool *buffer, npy_intp length, npy_bool *value,
         void *NPY_UNUSED(ignored))
@@ -20687,7 +24070,7 @@ BOOL_fillwithscalar(npy_bool *buffer, npy_intp length, npy_bool *value,
     memset(buffer, *value, length);
 }
 
-#line 3877
+#line 4061
 static void
 BYTE_fillwithscalar(npy_byte *buffer, npy_intp length, npy_byte *value,
         void *NPY_UNUSED(ignored))
@@ -20695,7 +24078,7 @@ BYTE_fillwithscalar(npy_byte *buffer, npy_intp length, npy_byte *value,
     memset(buffer, *value, length);
 }
 
-#line 3877
+#line 4061
 static void
 UBYTE_fillwithscalar(npy_ubyte *buffer, npy_intp length, npy_ubyte *value,
         void *NPY_UNUSED(ignored))
@@ -20704,7 +24087,7 @@ UBYTE_fillwithscalar(npy_ubyte *buffer, npy_intp length, npy_ubyte *value,
 }
 
 
-#line 3898
+#line 4082
 static void
 SHORT_fillwithscalar(npy_short *buffer, npy_intp length, npy_short *value,
         void *NPY_UNUSED(ignored))
@@ -20717,7 +24100,7 @@ SHORT_fillwithscalar(npy_short *buffer, npy_intp length, npy_short *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 USHORT_fillwithscalar(npy_ushort *buffer, npy_intp length, npy_ushort *value,
         void *NPY_UNUSED(ignored))
@@ -20730,7 +24113,7 @@ USHORT_fillwithscalar(npy_ushort *buffer, npy_intp length, npy_ushort *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 INT_fillwithscalar(npy_int *buffer, npy_intp length, npy_int *value,
         void *NPY_UNUSED(ignored))
@@ -20743,7 +24126,7 @@ INT_fillwithscalar(npy_int *buffer, npy_intp length, npy_int *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 UINT_fillwithscalar(npy_uint *buffer, npy_intp length, npy_uint *value,
         void *NPY_UNUSED(ignored))
@@ -20756,7 +24139,7 @@ UINT_fillwithscalar(npy_uint *buffer, npy_intp length, npy_uint *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 LONG_fillwithscalar(npy_long *buffer, npy_intp length, npy_long *value,
         void *NPY_UNUSED(ignored))
@@ -20769,7 +24152,7 @@ LONG_fillwithscalar(npy_long *buffer, npy_intp length, npy_long *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 ULONG_fillwithscalar(npy_ulong *buffer, npy_intp length, npy_ulong *value,
         void *NPY_UNUSED(ignored))
@@ -20782,7 +24165,7 @@ ULONG_fillwithscalar(npy_ulong *buffer, npy_intp length, npy_ulong *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 LONGLONG_fillwithscalar(npy_longlong *buffer, npy_intp length, npy_longlong *value,
         void *NPY_UNUSED(ignored))
@@ -20795,7 +24178,7 @@ LONGLONG_fillwithscalar(npy_longlong *buffer, npy_intp length, npy_longlong *val
     }
 }
 
-#line 3898
+#line 4082
 static void
 ULONGLONG_fillwithscalar(npy_ulonglong *buffer, npy_intp length, npy_ulonglong *value,
         void *NPY_UNUSED(ignored))
@@ -20808,7 +24191,7 @@ ULONGLONG_fillwithscalar(npy_ulonglong *buffer, npy_intp length, npy_ulonglong *
     }
 }
 
-#line 3898
+#line 4082
 static void
 HALF_fillwithscalar(npy_half *buffer, npy_intp length, npy_half *value,
         void *NPY_UNUSED(ignored))
@@ -20821,7 +24204,7 @@ HALF_fillwithscalar(npy_half *buffer, npy_intp length, npy_half *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 FLOAT_fillwithscalar(npy_float *buffer, npy_intp length, npy_float *value,
         void *NPY_UNUSED(ignored))
@@ -20834,7 +24217,7 @@ FLOAT_fillwithscalar(npy_float *buffer, npy_intp length, npy_float *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 DOUBLE_fillwithscalar(npy_double *buffer, npy_intp length, npy_double *value,
         void *NPY_UNUSED(ignored))
@@ -20847,7 +24230,7 @@ DOUBLE_fillwithscalar(npy_double *buffer, npy_intp length, npy_double *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 LONGDOUBLE_fillwithscalar(npy_longdouble *buffer, npy_intp length, npy_longdouble *value,
         void *NPY_UNUSED(ignored))
@@ -20860,7 +24243,7 @@ LONGDOUBLE_fillwithscalar(npy_longdouble *buffer, npy_intp length, npy_longdoubl
     }
 }
 
-#line 3898
+#line 4082
 static void
 CFLOAT_fillwithscalar(npy_cfloat *buffer, npy_intp length, npy_cfloat *value,
         void *NPY_UNUSED(ignored))
@@ -20873,7 +24256,7 @@ CFLOAT_fillwithscalar(npy_cfloat *buffer, npy_intp length, npy_cfloat *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 CDOUBLE_fillwithscalar(npy_cdouble *buffer, npy_intp length, npy_cdouble *value,
         void *NPY_UNUSED(ignored))
@@ -20886,7 +24269,7 @@ CDOUBLE_fillwithscalar(npy_cdouble *buffer, npy_intp length, npy_cdouble *value,
     }
 }
 
-#line 3898
+#line 4082
 static void
 CLONGDOUBLE_fillwithscalar(npy_clongdouble *buffer, npy_intp length, npy_clongdouble *value,
         void *NPY_UNUSED(ignored))
@@ -20899,7 +24282,7 @@ CLONGDOUBLE_fillwithscalar(npy_clongdouble *buffer, npy_intp length, npy_clongdo
     }
 }
 
-#line 3898
+#line 4082
 static void
 DATETIME_fillwithscalar(npy_datetime *buffer, npy_intp length, npy_datetime *value,
         void *NPY_UNUSED(ignored))
@@ -20912,7 +24295,7 @@ DATETIME_fillwithscalar(npy_datetime *buffer, npy_intp length, npy_datetime *val
     }
 }
 
-#line 3898
+#line 4082
 static void
 TIMEDELTA_fillwithscalar(npy_timedelta *buffer, npy_intp length, npy_timedelta *value,
         void *NPY_UNUSED(ignored))
@@ -20962,7 +24345,7 @@ small_correlate(const char * d_, npy_intp dstride,
     }
 
     switch (dtype) {
-#line 3952
+#line 4136
         case NPY_FLOAT:
             {
                 npy_intp i;
@@ -20974,70 +24357,70 @@ small_correlate(const char * d_, npy_intp dstride,
                 ostride /= sizeof(npy_float);
                 /* unroll inner loop to optimize register usage of the kernel*/
                 switch (nk) {
-#line 3965
+#line 4149
                     case 1:
                     {
-#line 3969
+#line 4153
 #if 1 <= 1
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 1
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 1
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 1
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 1
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 1
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 1
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 1
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 1
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 1
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 1
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -21045,57 +24428,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 1
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 1
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 1
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 1
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 1
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 1
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 1
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 1
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 1
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 1
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 1
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -21105,70 +24488,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 2:
                     {
-#line 3969
+#line 4153
 #if 1 <= 2
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 2
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 2
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 2
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 2
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 2
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 2
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 2
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 2
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 2
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 2
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -21176,57 +24559,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 2
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 2
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 2
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 2
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 2
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 2
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 2
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 2
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 2
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 2
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 2
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -21236,70 +24619,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 3:
                     {
-#line 3969
+#line 4153
 #if 1 <= 3
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 3
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 3
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 3
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 3
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 3
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 3
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 3
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 3
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 3
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 3
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -21307,57 +24690,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 3
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 3
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 3
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 3
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 3
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 3
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 3
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 3
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 3
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 3
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 3
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -21367,70 +24750,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 4:
                     {
-#line 3969
+#line 4153
 #if 1 <= 4
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 4
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 4
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 4
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 4
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 4
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 4
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 4
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 4
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 4
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 4
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -21438,57 +24821,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 4
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 4
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 4
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 4
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 4
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 4
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 4
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 4
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 4
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 4
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 4
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -21498,70 +24881,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 5:
                     {
-#line 3969
+#line 4153
 #if 1 <= 5
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 5
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 5
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 5
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 5
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 5
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 5
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 5
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 5
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 5
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 5
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -21569,57 +24952,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 5
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 5
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 5
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 5
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 5
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 5
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 5
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 5
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 5
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 5
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 5
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -21629,70 +25012,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 6:
                     {
-#line 3969
+#line 4153
 #if 1 <= 6
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 6
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 6
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 6
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 6
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 6
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 6
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 6
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 6
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 6
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 6
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -21700,57 +25083,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 6
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 6
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 6
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 6
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 6
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 6
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 6
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 6
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 6
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 6
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 6
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -21760,70 +25143,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 7:
                     {
-#line 3969
+#line 4153
 #if 1 <= 7
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 7
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 7
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 7
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 7
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 7
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 7
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 7
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 7
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 7
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 7
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -21831,57 +25214,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 7
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 7
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 7
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 7
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 7
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 7
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 7
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 7
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 7
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 7
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 7
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -21891,70 +25274,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 8:
                     {
-#line 3969
+#line 4153
 #if 1 <= 8
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 8
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 8
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 8
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 8
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 8
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 8
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 8
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 8
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 8
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 8
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -21962,57 +25345,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 8
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 8
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 8
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 8
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 8
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 8
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 8
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 8
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 8
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 8
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 8
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -22022,70 +25405,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 9:
                     {
-#line 3969
+#line 4153
 #if 1 <= 9
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 9
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 9
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 9
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 9
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 9
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 9
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 9
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 9
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 9
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 9
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -22093,57 +25476,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 9
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 9
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 9
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 9
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 9
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 9
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 9
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 9
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 9
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 9
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 9
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -22153,70 +25536,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 10:
                     {
-#line 3969
+#line 4153
 #if 1 <= 10
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 10
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 10
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 10
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 10
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 10
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 10
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 10
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 10
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 10
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 10
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -22224,57 +25607,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 10
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 10
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 10
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 10
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 10
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 10
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 10
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 10
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 10
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 10
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 10
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -22284,70 +25667,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 11:
                     {
-#line 3969
+#line 4153
 #if 1 <= 11
                         /* load kernel */
                         const npy_float k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 11
                         /* load kernel */
                         const npy_float k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 11
                         /* load kernel */
                         const npy_float k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 11
                         /* load kernel */
                         const npy_float k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 11
                         /* load kernel */
                         const npy_float k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 11
                         /* load kernel */
                         const npy_float k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 11
                         /* load kernel */
                         const npy_float k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 11
                         /* load kernel */
                         const npy_float k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 11
                         /* load kernel */
                         const npy_float k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 11
                         /* load kernel */
                         const npy_float k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 11
                         /* load kernel */
                         const npy_float k11 = k[(11 - 1) * kstride];
@@ -22355,57 +25738,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_float s = 0;
-#line 3978
+#line 4162
 #if 1 <= 11
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 11
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 11
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 11
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 11
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 11
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 11
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 11
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 11
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 11
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 11
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -22420,7 +25803,7 @@ small_correlate(const char * d_, npy_intp dstride,
                 }
             }
 
-#line 3952
+#line 4136
         case NPY_DOUBLE:
             {
                 npy_intp i;
@@ -22432,70 +25815,70 @@ small_correlate(const char * d_, npy_intp dstride,
                 ostride /= sizeof(npy_double);
                 /* unroll inner loop to optimize register usage of the kernel*/
                 switch (nk) {
-#line 3965
+#line 4149
                     case 1:
                     {
-#line 3969
+#line 4153
 #if 1 <= 1
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 1
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 1
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 1
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 1
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 1
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 1
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 1
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 1
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 1
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 1
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -22503,57 +25886,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 1
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 1
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 1
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 1
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 1
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 1
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 1
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 1
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 1
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 1
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 1
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -22563,70 +25946,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 2:
                     {
-#line 3969
+#line 4153
 #if 1 <= 2
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 2
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 2
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 2
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 2
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 2
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 2
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 2
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 2
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 2
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 2
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -22634,57 +26017,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 2
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 2
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 2
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 2
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 2
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 2
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 2
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 2
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 2
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 2
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 2
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -22694,70 +26077,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 3:
                     {
-#line 3969
+#line 4153
 #if 1 <= 3
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 3
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 3
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 3
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 3
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 3
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 3
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 3
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 3
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 3
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 3
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -22765,57 +26148,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 3
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 3
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 3
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 3
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 3
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 3
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 3
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 3
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 3
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 3
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 3
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -22825,70 +26208,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 4:
                     {
-#line 3969
+#line 4153
 #if 1 <= 4
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 4
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 4
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 4
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 4
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 4
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 4
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 4
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 4
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 4
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 4
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -22896,57 +26279,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 4
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 4
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 4
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 4
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 4
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 4
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 4
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 4
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 4
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 4
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 4
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -22956,70 +26339,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 5:
                     {
-#line 3969
+#line 4153
 #if 1 <= 5
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 5
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 5
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 5
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 5
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 5
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 5
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 5
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 5
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 5
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 5
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -23027,57 +26410,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 5
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 5
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 5
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 5
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 5
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 5
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 5
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 5
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 5
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 5
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 5
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23087,70 +26470,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 6:
                     {
-#line 3969
+#line 4153
 #if 1 <= 6
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 6
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 6
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 6
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 6
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 6
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 6
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 6
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 6
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 6
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 6
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -23158,57 +26541,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 6
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 6
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 6
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 6
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 6
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 6
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 6
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 6
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 6
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 6
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 6
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23218,70 +26601,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 7:
                     {
-#line 3969
+#line 4153
 #if 1 <= 7
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 7
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 7
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 7
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 7
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 7
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 7
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 7
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 7
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 7
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 7
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -23289,57 +26672,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 7
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 7
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 7
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 7
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 7
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 7
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 7
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 7
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 7
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 7
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 7
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23349,70 +26732,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 8:
                     {
-#line 3969
+#line 4153
 #if 1 <= 8
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 8
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 8
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 8
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 8
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 8
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 8
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 8
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 8
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 8
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 8
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -23420,57 +26803,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 8
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 8
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 8
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 8
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 8
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 8
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 8
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 8
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 8
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 8
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 8
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23480,70 +26863,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 9:
                     {
-#line 3969
+#line 4153
 #if 1 <= 9
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 9
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 9
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 9
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 9
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 9
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 9
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 9
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 9
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 9
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 9
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -23551,57 +26934,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 9
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 9
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 9
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 9
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 9
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 9
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 9
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 9
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 9
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 9
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 9
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23611,70 +26994,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 10:
                     {
-#line 3969
+#line 4153
 #if 1 <= 10
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 10
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 10
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 10
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 10
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 10
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 10
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 10
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 10
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 10
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 10
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -23682,57 +27065,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 10
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 10
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 10
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 10
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 10
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 10
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 10
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 10
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 10
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 10
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 10
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23742,70 +27125,70 @@ small_correlate(const char * d_, npy_intp dstride,
                         return 1;
                     }
 
-#line 3965
+#line 4149
                     case 11:
                     {
-#line 3969
+#line 4153
 #if 1 <= 11
                         /* load kernel */
                         const npy_double k1 = k[(1 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 2 <= 11
                         /* load kernel */
                         const npy_double k2 = k[(2 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 3 <= 11
                         /* load kernel */
                         const npy_double k3 = k[(3 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 4 <= 11
                         /* load kernel */
                         const npy_double k4 = k[(4 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 5 <= 11
                         /* load kernel */
                         const npy_double k5 = k[(5 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 6 <= 11
                         /* load kernel */
                         const npy_double k6 = k[(6 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 7 <= 11
                         /* load kernel */
                         const npy_double k7 = k[(7 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 8 <= 11
                         /* load kernel */
                         const npy_double k8 = k[(8 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 9 <= 11
                         /* load kernel */
                         const npy_double k9 = k[(9 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 10 <= 11
                         /* load kernel */
                         const npy_double k10 = k[(10 - 1) * kstride];
 #endif
 
-#line 3969
+#line 4153
 #if 11 <= 11
                         /* load kernel */
                         const npy_double k11 = k[(11 - 1) * kstride];
@@ -23813,57 +27196,57 @@ small_correlate(const char * d_, npy_intp dstride,
 
                         for (i = 0; i < nd; i++) {
                             npy_double s = 0;
-#line 3978
+#line 4162
 #if 1 <= 11
                             s += d[(i + 1 - 1) * dstride] * k1;
 #endif
 
-#line 3978
+#line 4162
 #if 2 <= 11
                             s += d[(i + 2 - 1) * dstride] * k2;
 #endif
 
-#line 3978
+#line 4162
 #if 3 <= 11
                             s += d[(i + 3 - 1) * dstride] * k3;
 #endif
 
-#line 3978
+#line 4162
 #if 4 <= 11
                             s += d[(i + 4 - 1) * dstride] * k4;
 #endif
 
-#line 3978
+#line 4162
 #if 5 <= 11
                             s += d[(i + 5 - 1) * dstride] * k5;
 #endif
 
-#line 3978
+#line 4162
 #if 6 <= 11
                             s += d[(i + 6 - 1) * dstride] * k6;
 #endif
 
-#line 3978
+#line 4162
 #if 7 <= 11
                             s += d[(i + 7 - 1) * dstride] * k7;
 #endif
 
-#line 3978
+#line 4162
 #if 8 <= 11
                             s += d[(i + 8 - 1) * dstride] * k8;
 #endif
 
-#line 3978
+#line 4162
 #if 9 <= 11
                             s += d[(i + 9 - 1) * dstride] * k9;
 #endif
 
-#line 3978
+#line 4162
 #if 10 <= 11
                             s += d[(i + 10 - 1) * dstride] * k10;
 #endif
 
-#line 3978
+#line 4162
 #if 11 <= 11
                             s += d[(i + 11 - 1) * dstride] * k11;
 #endif
@@ -23936,7 +27319,7 @@ _create_datetime_metadata(NPY_DATETIMEUNIT base, int num)
  *****************************************************************************
  */
 
-#line 4060
+#line 4244
 static PyArray_ArrFuncs _PyVoid_ArrFuncs = {
     {
         VOID_to_BOOL,
@@ -24040,7 +27423,7 @@ static PyArray_Descr VOID_Descr = {
 };
 
 
-#line 4060
+#line 4244
 static PyArray_ArrFuncs _PyString_ArrFuncs = {
     {
         STRING_to_BOOL,
@@ -24144,7 +27527,7 @@ static PyArray_Descr STRING_Descr = {
 };
 
 
-#line 4060
+#line 4244
 static PyArray_ArrFuncs _PyUnicode_ArrFuncs = {
     {
         UNICODE_to_BOOL,
@@ -24249,7 +27632,7 @@ static PyArray_Descr UNICODE_Descr = {
 
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyBool_ArrFuncs = {
     {
@@ -24362,7 +27745,7 @@ NPY_NO_EXPORT PyArray_Descr BOOL_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyByte_ArrFuncs = {
     {
@@ -24475,7 +27858,7 @@ NPY_NO_EXPORT PyArray_Descr BYTE_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyUByte_ArrFuncs = {
     {
@@ -24588,7 +27971,7 @@ NPY_NO_EXPORT PyArray_Descr UBYTE_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyShort_ArrFuncs = {
     {
@@ -24701,7 +28084,7 @@ NPY_NO_EXPORT PyArray_Descr SHORT_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyUShort_ArrFuncs = {
     {
@@ -24814,7 +28197,7 @@ NPY_NO_EXPORT PyArray_Descr USHORT_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyInt_ArrFuncs = {
     {
@@ -24927,7 +28310,7 @@ NPY_NO_EXPORT PyArray_Descr INT_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyUInt_ArrFuncs = {
     {
@@ -25040,7 +28423,7 @@ NPY_NO_EXPORT PyArray_Descr UINT_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyLong_ArrFuncs = {
     {
@@ -25153,7 +28536,7 @@ NPY_NO_EXPORT PyArray_Descr LONG_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyULong_ArrFuncs = {
     {
@@ -25266,7 +28649,7 @@ NPY_NO_EXPORT PyArray_Descr ULONG_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyLongLong_ArrFuncs = {
     {
@@ -25379,7 +28762,7 @@ NPY_NO_EXPORT PyArray_Descr LONGLONG_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyULongLong_ArrFuncs = {
     {
@@ -25492,7 +28875,7 @@ NPY_NO_EXPORT PyArray_Descr ULONGLONG_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyHalf_ArrFuncs = {
     {
@@ -25605,7 +28988,7 @@ NPY_NO_EXPORT PyArray_Descr HALF_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyFloat_ArrFuncs = {
     {
@@ -25718,7 +29101,7 @@ NPY_NO_EXPORT PyArray_Descr FLOAT_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyDouble_ArrFuncs = {
     {
@@ -25831,7 +29214,7 @@ NPY_NO_EXPORT PyArray_Descr DOUBLE_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyLongDouble_ArrFuncs = {
     {
@@ -25944,7 +29327,7 @@ NPY_NO_EXPORT PyArray_Descr LONGDOUBLE_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyCFloat_ArrFuncs = {
     {
@@ -26057,7 +29440,7 @@ NPY_NO_EXPORT PyArray_Descr CFLOAT_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyCDouble_ArrFuncs = {
     {
@@ -26170,7 +29553,7 @@ NPY_NO_EXPORT PyArray_Descr CDOUBLE_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyCLongDouble_ArrFuncs = {
     {
@@ -26283,7 +29666,7 @@ NPY_NO_EXPORT PyArray_Descr CLONGDOUBLE_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyObject_ArrFuncs = {
     {
@@ -26396,7 +29779,7 @@ NPY_NO_EXPORT PyArray_Descr OBJECT_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyDatetime_ArrFuncs = {
     {
@@ -26509,7 +29892,7 @@ NPY_NO_EXPORT PyArray_Descr DATETIME_Descr = {
 };
 
 
-#line 4201
+#line 4385
 
 static PyArray_ArrFuncs _PyTimedelta_ArrFuncs = {
     {
@@ -26752,107 +30135,107 @@ set_typeinfo(PyObject *dict)
     #ifndef NPY_DISABLE_OPTIMIZATION
         #include "argfunc.dispatch.h"
     #endif
-    #line 4452
-    #line 4455
+    #line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyByte_ArrFuncs.argmax = (PyArray_ArgFunc*)BYTE_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyByte_ArrFuncs.argmin = (PyArray_ArgFunc*)BYTE_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyUByte_ArrFuncs.argmax = (PyArray_ArgFunc*)UBYTE_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyUByte_ArrFuncs.argmin = (PyArray_ArgFunc*)UBYTE_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyShort_ArrFuncs.argmax = (PyArray_ArgFunc*)SHORT_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyShort_ArrFuncs.argmin = (PyArray_ArgFunc*)SHORT_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyUShort_ArrFuncs.argmax = (PyArray_ArgFunc*)USHORT_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyUShort_ArrFuncs.argmin = (PyArray_ArgFunc*)USHORT_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyInt_ArrFuncs.argmax = (PyArray_ArgFunc*)INT_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyInt_ArrFuncs.argmin = (PyArray_ArgFunc*)INT_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyUInt_ArrFuncs.argmax = (PyArray_ArgFunc*)UINT_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyUInt_ArrFuncs.argmin = (PyArray_ArgFunc*)UINT_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyLong_ArrFuncs.argmax = (PyArray_ArgFunc*)LONG_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyLong_ArrFuncs.argmin = (PyArray_ArgFunc*)LONG_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyULong_ArrFuncs.argmax = (PyArray_ArgFunc*)ULONG_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyULong_ArrFuncs.argmin = (PyArray_ArgFunc*)ULONG_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyLongLong_ArrFuncs.argmax = (PyArray_ArgFunc*)LONGLONG_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyLongLong_ArrFuncs.argmin = (PyArray_ArgFunc*)LONGLONG_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyULongLong_ArrFuncs.argmax = (PyArray_ArgFunc*)ULONGLONG_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyULongLong_ArrFuncs.argmin = (PyArray_ArgFunc*)ULONGLONG_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyFloat_ArrFuncs.argmax = (PyArray_ArgFunc*)FLOAT_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyFloat_ArrFuncs.argmin = (PyArray_ArgFunc*)FLOAT_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyDouble_ArrFuncs.argmax = (PyArray_ArgFunc*)DOUBLE_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyDouble_ArrFuncs.argmin = (PyArray_ArgFunc*)DOUBLE_argmin);
     
     
-#line 4452
-    #line 4455
+#line 4636
+    #line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyLongDouble_ArrFuncs.argmax = (PyArray_ArgFunc*)LONGDOUBLE_argmax);
     
-#line 4455
+#line 4639
     NPY_CPU_DISPATCH_CALL_XB(_PyLongDouble_ArrFuncs.argmin = (PyArray_ArgFunc*)LONGDOUBLE_argmin);
     
     
@@ -26873,9 +30256,9 @@ set_typeinfo(PyObject *dict)
      * Add cast functions for the new types
      */
 
-    #line 4485
+    #line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_BOOL];
     if (dtype->f->castdict == NULL) {
@@ -26902,7 +30285,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_BOOL];
     if (dtype->f->castdict == NULL) {
@@ -26929,7 +30312,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_BOOL];
     if (dtype->f->castdict == NULL) {
@@ -26958,9 +30341,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_BYTE];
     if (dtype->f->castdict == NULL) {
@@ -26987,7 +30370,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_BYTE];
     if (dtype->f->castdict == NULL) {
@@ -27014,7 +30397,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_BYTE];
     if (dtype->f->castdict == NULL) {
@@ -27043,9 +30426,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_UBYTE];
     if (dtype->f->castdict == NULL) {
@@ -27072,7 +30455,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_UBYTE];
     if (dtype->f->castdict == NULL) {
@@ -27099,7 +30482,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_UBYTE];
     if (dtype->f->castdict == NULL) {
@@ -27128,9 +30511,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_SHORT];
     if (dtype->f->castdict == NULL) {
@@ -27157,7 +30540,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_SHORT];
     if (dtype->f->castdict == NULL) {
@@ -27184,7 +30567,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_SHORT];
     if (dtype->f->castdict == NULL) {
@@ -27213,9 +30596,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_USHORT];
     if (dtype->f->castdict == NULL) {
@@ -27242,7 +30625,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_USHORT];
     if (dtype->f->castdict == NULL) {
@@ -27269,7 +30652,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_USHORT];
     if (dtype->f->castdict == NULL) {
@@ -27298,9 +30681,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_INT];
     if (dtype->f->castdict == NULL) {
@@ -27327,7 +30710,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_INT];
     if (dtype->f->castdict == NULL) {
@@ -27354,7 +30737,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_INT];
     if (dtype->f->castdict == NULL) {
@@ -27383,9 +30766,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_UINT];
     if (dtype->f->castdict == NULL) {
@@ -27412,7 +30795,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_UINT];
     if (dtype->f->castdict == NULL) {
@@ -27439,7 +30822,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_UINT];
     if (dtype->f->castdict == NULL) {
@@ -27468,9 +30851,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_LONG];
     if (dtype->f->castdict == NULL) {
@@ -27497,7 +30880,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_LONG];
     if (dtype->f->castdict == NULL) {
@@ -27524,7 +30907,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_LONG];
     if (dtype->f->castdict == NULL) {
@@ -27553,9 +30936,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_ULONG];
     if (dtype->f->castdict == NULL) {
@@ -27582,7 +30965,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_ULONG];
     if (dtype->f->castdict == NULL) {
@@ -27609,7 +30992,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_ULONG];
     if (dtype->f->castdict == NULL) {
@@ -27638,9 +31021,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_LONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -27667,7 +31050,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_LONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -27694,7 +31077,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_LONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -27723,9 +31106,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_ULONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -27752,7 +31135,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_ULONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -27779,7 +31162,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_ULONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -27808,9 +31191,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_HALF];
     if (dtype->f->castdict == NULL) {
@@ -27837,7 +31220,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_HALF];
     if (dtype->f->castdict == NULL) {
@@ -27864,7 +31247,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_HALF];
     if (dtype->f->castdict == NULL) {
@@ -27893,9 +31276,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_FLOAT];
     if (dtype->f->castdict == NULL) {
@@ -27922,7 +31305,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_FLOAT];
     if (dtype->f->castdict == NULL) {
@@ -27949,7 +31332,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_FLOAT];
     if (dtype->f->castdict == NULL) {
@@ -27978,9 +31361,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_DOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28007,7 +31390,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_DOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28034,7 +31417,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_DOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28063,9 +31446,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_LONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28092,7 +31475,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_LONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28119,7 +31502,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_LONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28148,9 +31531,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_CFLOAT];
     if (dtype->f->castdict == NULL) {
@@ -28177,7 +31560,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_CFLOAT];
     if (dtype->f->castdict == NULL) {
@@ -28204,7 +31587,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_CFLOAT];
     if (dtype->f->castdict == NULL) {
@@ -28233,9 +31616,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_CDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28262,7 +31645,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_CDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28289,7 +31672,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_CDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28318,9 +31701,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_CLONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28347,7 +31730,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_CLONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28374,7 +31757,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_CLONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -28403,9 +31786,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_OBJECT];
     if (dtype->f->castdict == NULL) {
@@ -28432,7 +31815,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_OBJECT];
     if (dtype->f->castdict == NULL) {
@@ -28459,7 +31842,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_OBJECT];
     if (dtype->f->castdict == NULL) {
@@ -28488,9 +31871,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_STRING];
     if (dtype->f->castdict == NULL) {
@@ -28517,7 +31900,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_STRING];
     if (dtype->f->castdict == NULL) {
@@ -28544,7 +31927,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_STRING];
     if (dtype->f->castdict == NULL) {
@@ -28573,9 +31956,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_UNICODE];
     if (dtype->f->castdict == NULL) {
@@ -28602,7 +31985,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_UNICODE];
     if (dtype->f->castdict == NULL) {
@@ -28629,7 +32012,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_UNICODE];
     if (dtype->f->castdict == NULL) {
@@ -28658,9 +32041,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_VOID];
     if (dtype->f->castdict == NULL) {
@@ -28687,7 +32070,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_VOID];
     if (dtype->f->castdict == NULL) {
@@ -28714,7 +32097,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_VOID];
     if (dtype->f->castdict == NULL) {
@@ -28743,9 +32126,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_DATETIME];
     if (dtype->f->castdict == NULL) {
@@ -28772,7 +32155,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_DATETIME];
     if (dtype->f->castdict == NULL) {
@@ -28799,7 +32182,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_DATETIME];
     if (dtype->f->castdict == NULL) {
@@ -28828,9 +32211,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4485
+#line 4669
 
-    #line 4490
+    #line 4674
 
     dtype = _builtin_descrs[NPY_TIMEDELTA];
     if (dtype->f->castdict == NULL) {
@@ -28857,7 +32240,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_TIMEDELTA];
     if (dtype->f->castdict == NULL) {
@@ -28884,7 +32267,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4490
+#line 4674
 
     dtype = _builtin_descrs[NPY_TIMEDELTA];
     if (dtype->f->castdict == NULL) {
@@ -28929,132 +32312,132 @@ set_typeinfo(PyObject *dict)
         _letter_to_num[i] = NPY_NTYPES;
     }
 
-    #line 4545
+    #line 4729
 
     _letter_to_num[NPY_BOOLLTR] = NPY_BOOL;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_BYTELTR] = NPY_BYTE;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_UBYTELTR] = NPY_UBYTE;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_SHORTLTR] = NPY_SHORT;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_USHORTLTR] = NPY_USHORT;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_INTLTR] = NPY_INT;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_UINTLTR] = NPY_UINT;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_INTPLTR] = NPY_INTP;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_UINTPLTR] = NPY_UINTP;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_LONGLTR] = NPY_LONG;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_ULONGLTR] = NPY_ULONG;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_LONGLONGLTR] = NPY_LONGLONG;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_ULONGLONGLTR] = NPY_ULONGLONG;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_HALFLTR] = NPY_HALF;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_FLOATLTR] = NPY_FLOAT;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_DOUBLELTR] = NPY_DOUBLE;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_LONGDOUBLELTR] = NPY_LONGDOUBLE;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_CFLOATLTR] = NPY_CFLOAT;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_CDOUBLELTR] = NPY_CDOUBLE;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_CLONGDOUBLELTR] = NPY_CLONGDOUBLE;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_OBJECTLTR] = NPY_OBJECT;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_STRINGLTR] = NPY_STRING;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_UNICODELTR] = NPY_UNICODE;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_VOIDLTR] = NPY_VOID;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_DATETIMELTR] = NPY_DATETIME;
 
     
-#line 4545
+#line 4729
 
     _letter_to_num[NPY_TIMEDELTALTR] = NPY_TIMEDELTA;
 
@@ -29062,139 +32445,139 @@ set_typeinfo(PyObject *dict)
 
     _letter_to_num[NPY_STRINGLTR2] = NPY_STRING;
 
-    #line 4561
+    #line 4745
 
     BOOL_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     BYTE_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     UBYTE_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     SHORT_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     USHORT_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     INT_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     UINT_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     LONG_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     ULONG_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     LONGLONG_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     ULONGLONG_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     HALF_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     FLOAT_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     DOUBLE_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     LONGDOUBLE_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     CFLOAT_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     CDOUBLE_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     CLONGDOUBLE_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     OBJECT_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     STRING_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     UNICODE_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     VOID_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     DATETIME_Descr.fields = Py_None;
 
     
-#line 4561
+#line 4745
 
     TIMEDELTA_Descr.fields = Py_None;
 
     
 
 
-    #line 4570
+    #line 4754
 
     PyDataType_MAKEUNSIZED(&STRING_Descr);
 
     
-#line 4570
+#line 4754
 
     PyDataType_MAKEUNSIZED(&UNICODE_Descr);
 
     
-#line 4570
+#line 4754
 
     PyDataType_MAKEUNSIZED(&VOID_Descr);
 
@@ -29205,7 +32588,7 @@ set_typeinfo(PyObject *dict)
     if (infodict == NULL) return -1;
 
     int ret;
-    #line 4614
+    #line 4798
 
     s = PyArray_typeinforanged(
         NPY_BOOLLTR, NPY_BOOL, NPY_BITSOF_BOOL, _ALIGN(npy_bool),
@@ -29226,7 +32609,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_BYTELTR, NPY_BYTE, NPY_BITSOF_BYTE, _ALIGN(npy_byte),
@@ -29247,7 +32630,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_UBYTELTR, NPY_UBYTE, NPY_BITSOF_BYTE, _ALIGN(npy_ubyte),
@@ -29268,7 +32651,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_SHORTLTR, NPY_SHORT, NPY_BITSOF_SHORT, _ALIGN(npy_short),
@@ -29289,7 +32672,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_USHORTLTR, NPY_USHORT, NPY_BITSOF_SHORT, _ALIGN(npy_ushort),
@@ -29310,7 +32693,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_INTLTR, NPY_INT, NPY_BITSOF_INT, _ALIGN(npy_int),
@@ -29331,7 +32714,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_UINTLTR, NPY_UINT, NPY_BITSOF_INT, _ALIGN(npy_uint),
@@ -29352,7 +32735,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_INTPLTR, NPY_INTP, NPY_BITSOF_INTP, _ALIGN(npy_intp),
@@ -29373,7 +32756,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_UINTPLTR, NPY_UINTP, NPY_BITSOF_INTP, _ALIGN(npy_uintp),
@@ -29394,7 +32777,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_LONGLTR, NPY_LONG, NPY_BITSOF_LONG, _ALIGN(npy_long),
@@ -29415,7 +32798,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_ULONGLTR, NPY_ULONG, NPY_BITSOF_LONG, _ALIGN(npy_ulong),
@@ -29436,7 +32819,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_LONGLONGLTR, NPY_LONGLONG, NPY_BITSOF_LONGLONG, _ALIGN(npy_longlong),
@@ -29457,7 +32840,7 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4614
+#line 4798
 
     s = PyArray_typeinforanged(
         NPY_ULONGLONGLTR, NPY_ULONGLONG, NPY_BITSOF_LONGLONG, _ALIGN(npy_ulonglong),
@@ -29480,7 +32863,7 @@ set_typeinfo(PyObject *dict)
     
 
 
-    #line 4645
+    #line 4829
     s = PyArray_typeinfo(
         NPY_HALFLTR, NPY_HALF, NPY_BITSOF_HALF,
         _ALIGN(npy_half), &PyHalfArrType_Type
@@ -29497,7 +32880,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4645
+#line 4829
     s = PyArray_typeinfo(
         NPY_FLOATLTR, NPY_FLOAT, NPY_BITSOF_FLOAT,
         _ALIGN(npy_float), &PyFloatArrType_Type
@@ -29514,7 +32897,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4645
+#line 4829
     s = PyArray_typeinfo(
         NPY_DOUBLELTR, NPY_DOUBLE, NPY_BITSOF_DOUBLE,
         _ALIGN(npy_double), &PyDoubleArrType_Type
@@ -29531,7 +32914,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4645
+#line 4829
     s = PyArray_typeinfo(
         NPY_LONGDOUBLELTR, NPY_LONGDOUBLE, NPY_BITSOF_LONGDOUBLE,
         _ALIGN(npy_longdouble), &PyLongDoubleArrType_Type
@@ -29548,7 +32931,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4645
+#line 4829
     s = PyArray_typeinfo(
         NPY_CFLOATLTR, NPY_CFLOAT, NPY_BITSOF_CFLOAT,
         _ALIGN(npy_cfloat), &PyCFloatArrType_Type
@@ -29565,7 +32948,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4645
+#line 4829
     s = PyArray_typeinfo(
         NPY_CDOUBLELTR, NPY_CDOUBLE, NPY_BITSOF_CDOUBLE,
         _ALIGN(npy_cdouble), &PyCDoubleArrType_Type
@@ -29582,7 +32965,7 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4645
+#line 4829
     s = PyArray_typeinfo(
         NPY_CLONGDOUBLELTR, NPY_CLONGDOUBLE, NPY_BITSOF_CLONGDOUBLE,
         _ALIGN(npy_clongdouble), &PyCLongDoubleArrType_Type

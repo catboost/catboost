@@ -9,4 +9,4 @@
 #define NPY__CPU_TARGET_SSE3
 #define NPY__CPU_TARGET_SSSE3
 #define NPY__CPU_TARGET_SSE41
-#include "_umath_tests.dispatch.c"
+#include "numpy/core/src/umath/_umath_tests.dispatch.c"

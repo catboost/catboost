@@ -1,5 +1,5 @@
 /* File: _arpackmodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <string.h>
 #include <math.h>
@@ -30,6 +29,7 @@ static PyObject *_arpack_module;
 
 /*********************** See f2py2e/cfuncs.py: typedefs ***********************/
 typedef char * string;
+typedef char character;
 typedef struct {float r,i;} complex_float;
 typedef struct {double r,i;} complex_double;
 
@@ -88,17 +88,14 @@ typedef struct {double r,i;} complex_double;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 #define STRINGFREE(str) do {if (!(str == NULL)) free(str);} while (0)
 
@@ -281,30 +278,6 @@ double_from_pyobj(double* v, PyObject *obj, const char *errmess)
     return 0;
 }
 
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int
 int_from_pyobj(int* v, PyObject *obj, const char *errmess)
 {
@@ -462,6 +435,64 @@ float_from_pyobj(float* v, PyObject *obj, const char *errmess)
 }
 
 static int
+character_from_pyobj(character* v, PyObject *obj, const char *errmess) {
+    if (PyBytes_Check(obj)) {
+        /* empty bytes has trailing null, so dereferencing is always safe */
+        *v = PyBytes_AS_STRING(obj)[0];
+        return 1;
+    } else if (PyUnicode_Check(obj)) {
+        PyObject* tmp = PyUnicode_AsASCIIString(obj);
+        if (tmp != NULL) {
+            *v = PyBytes_AS_STRING(tmp)[0];
+            Py_DECREF(tmp);
+            return 1;
+        }
+    } else if (PyArray_Check(obj)) {
+        PyArrayObject* arr = (PyArrayObject*)obj;
+        if (F2PY_ARRAY_IS_CHARACTER_COMPATIBLE(arr)) {
+            *v = PyArray_BYTES(arr)[0];
+            return 1;
+        } else if (F2PY_IS_UNICODE_ARRAY(arr)) {
+            // TODO: update when numpy will support 1-byte and
+            // 2-byte unicode dtypes
+            PyObject* tmp = PyUnicode_FromKindAndData(
+                              PyUnicode_4BYTE_KIND,
+                              PyArray_BYTES(arr),
+                              (PyArray_NBYTES(arr)>0?1:0));
+            if (tmp != NULL) {
+                if (character_from_pyobj(v, tmp, errmess)) {
+                    Py_DECREF(tmp);
+                    return 1;
+                }
+                Py_DECREF(tmp);
+            }
+        }
+    } else if (PySequence_Check(obj)) {
+        PyObject* tmp = PySequence_GetItem(obj,0);
+        if (tmp != NULL) {
+            if (character_from_pyobj(v, tmp, errmess)) {
+                Py_DECREF(tmp);
+                return 1;
+            }
+            Py_DECREF(tmp);
+        }
+    }
+    {
+        char mess[F2PY_MESSAGE_BUFFER_SIZE];
+        strcpy(mess, errmess);
+        PyObject* err = PyErr_Occurred();
+        if (err == NULL) {
+            err = PyExc_TypeError;
+        }
+        sprintf(mess + strlen(mess),
+                " -- expected str|bytes|sequence-of-str-or-bytes, got ");
+        f2py_describe(obj, mess + strlen(mess));
+        PyErr_SetString(err, mess);
+    }
+    return 0;
+}
+
+static int
 complex_float_from_pyobj(complex_float* v,PyObject *obj,const char *errmess)
 {
     complex_double cd={0.0,0.0};
@@ -483,16 +514,16 @@ complex_float_from_pyobj(complex_float* v,PyObject *obj,const char *errmess)
 /* See f2py2e/rules.py */
 extern void F_FUNC(ssaupd,SSAUPD)(int*,string,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t,size_t);
 extern void F_FUNC(dsaupd,DSAUPD)(int*,string,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t,size_t);
-extern void F_FUNC(sseupd,SSEUPD)(int*,string,int*,float*,float*,int*,float*,string,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t,size_t,size_t);
-extern void F_FUNC(dseupd,DSEUPD)(int*,string,int*,double*,double*,int*,double*,string,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t,size_t,size_t);
+extern void F_FUNC(sseupd,SSEUPD)(int*,character*,int*,float*,float*,int*,float*,character*,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t);
+extern void F_FUNC(dseupd,DSEUPD)(int*,character*,int*,double*,double*,int*,double*,character*,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t);
 extern void F_FUNC(snaupd,SNAUPD)(int*,string,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t,size_t);
 extern void F_FUNC(dnaupd,DNAUPD)(int*,string,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t,size_t);
-extern void F_FUNC(sneupd,SNEUPD)(int*,string,int*,float*,float*,float*,int*,float*,float*,float*,string,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t,size_t,size_t);
-extern void F_FUNC(dneupd,DNEUPD)(int*,string,int*,double*,double*,double*,int*,double*,double*,double*,string,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t,size_t,size_t);
+extern void F_FUNC(sneupd,SNEUPD)(int*,character*,int*,float*,float*,float*,int*,float*,float*,float*,character*,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t);
+extern void F_FUNC(dneupd,DNEUPD)(int*,character*,int*,double*,double*,double*,int*,double*,double*,double*,character*,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t);
 extern void F_FUNC(cnaupd,CNAUPD)(int*,string,int*,string,int*,float*,complex_float*,int*,complex_float*,int*,int*,int*,complex_float*,complex_float*,int*,float*,int*,size_t,size_t);
 extern void F_FUNC(znaupd,ZNAUPD)(int*,string,int*,string,int*,double*,complex_double*,int*,complex_double*,int*,int*,int*,complex_double*,complex_double*,int*,double*,int*,size_t,size_t);
-extern void F_FUNC(cneupd,CNEUPD)(int*,string,int*,complex_float*,complex_float*,int*,complex_float*,complex_float*,string,int*,string,int*,float*,complex_float*,int*,complex_float*,int*,int*,int*,complex_float*,complex_float*,int*,float*,int*,size_t,size_t,size_t);
-extern void F_FUNC(zneupd,ZNEUPD)(int*,string,int*,complex_double*,complex_double*,int*,complex_double*,complex_double*,string,int*,string,int*,double*,complex_double*,int*,complex_double*,int*,int*,int*,complex_double*,complex_double*,int*,double*,int*,size_t,size_t,size_t);
+extern void F_FUNC(cneupd,CNEUPD)(int*,character*,int*,complex_float*,complex_float*,int*,complex_float*,complex_float*,character*,int*,string,int*,float*,complex_float*,int*,complex_float*,int*,int*,int*,complex_float*,complex_float*,int*,float*,int*,size_t);
+extern void F_FUNC(zneupd,ZNEUPD)(int*,character*,int*,complex_double*,complex_double*,int*,complex_double*,complex_double*,character*,int*,string,int*,double*,complex_double*,int*,complex_double*,int*,int*,int*,complex_double*,complex_double*,int*,double*,int*,size_t);
 /*eof externroutines*/
 
 /******************** See f2py2e/capi_rules.py: usercode1 ********************/
@@ -558,7 +589,7 @@ static PyObject *f2py_rout__arpack_ssaupd(const PyObject *capi_self,
     float *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -566,7 +597,7 @@ static PyObject *f2py_rout__arpack_ssaupd(const PyObject *capi_self,
     float *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -574,25 +605,25 @@ static PyObject *f2py_rout__arpack_ssaupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     float *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     float *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -632,62 +663,72 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_resid_tmp = array_from_pyobj(NPY_FLOAT,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 6th argument `resid' of _arpack.ssaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.ssaupd: failed to create array from the 6th argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (float *)(PyArray_DATA(capi_resid_tmp));
+        resid = (float *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable v */
     ;
     capi_v_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_v_tmp = array_from_pyobj(NPY_FLOAT,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 7th argument `v' of _arpack.ssaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.ssaupd: failed to create array from the 7th argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (float *)(PyArray_DATA(capi_v_tmp));
+        v = (float *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=11;
     capi_iparam_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 8th argument `iparam' of _arpack.ssaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.ssaupd: failed to create array from the 8th argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=11;
     capi_ipntr_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 9th argument `ipntr' of _arpack.ssaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.ssaupd: failed to create array from the 9th argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_INOUT;
-    capi_workl_tmp = array_from_pyobj(NPY_FLOAT,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `workl' of _arpack.ssaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.ssaupd: failed to create array from the 11st argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (float *)(PyArray_DATA(capi_workl_tmp));
+        workl = (float *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.ssaupd() 12nd argument (info) can't be converted to int");
@@ -710,14 +751,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=3 * n;
     capi_workd_intent |= F2PY_INTENT_INOUT;
-    capi_workd_tmp = array_from_pyobj(NPY_FLOAT,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 10th argument `workd' of _arpack.ssaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.ssaupd: failed to create array from the 10th argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (float *)(PyArray_DATA(capi_workd_tmp));
+        workd = (float *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -742,7 +785,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("ifNNNNi",ido,tol,capi_resid_tmp,capi_v_tmp,capi_iparam_tmp,capi_ipntr_tmp,info);
+        capi_buildvalue = Py_BuildValue("ifNNNNi",ido,tol,capi_resid_as_array,capi_v_as_array,capi_iparam_as_array,capi_ipntr_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -750,9 +793,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
@@ -765,17 +808,17 @@ f2py_stop_call_clock();
     /* End of cleaning variable n */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -859,7 +902,7 @@ static PyObject *f2py_rout__arpack_dsaupd(const PyObject *capi_self,
     double *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -867,7 +910,7 @@ static PyObject *f2py_rout__arpack_dsaupd(const PyObject *capi_self,
     double *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -875,25 +918,25 @@ static PyObject *f2py_rout__arpack_dsaupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     double *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     double *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -933,62 +976,72 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_resid_tmp = array_from_pyobj(NPY_DOUBLE,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 6th argument `resid' of _arpack.dsaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dsaupd: failed to create array from the 6th argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (double *)(PyArray_DATA(capi_resid_tmp));
+        resid = (double *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable v */
     ;
     capi_v_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 7th argument `v' of _arpack.dsaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dsaupd: failed to create array from the 7th argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (double *)(PyArray_DATA(capi_v_tmp));
+        v = (double *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=11;
     capi_iparam_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 8th argument `iparam' of _arpack.dsaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dsaupd: failed to create array from the 8th argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=11;
     capi_ipntr_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 9th argument `ipntr' of _arpack.dsaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dsaupd: failed to create array from the 9th argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_INOUT;
-    capi_workl_tmp = array_from_pyobj(NPY_DOUBLE,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `workl' of _arpack.dsaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dsaupd: failed to create array from the 11st argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (double *)(PyArray_DATA(capi_workl_tmp));
+        workl = (double *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.dsaupd() 12nd argument (info) can't be converted to int");
@@ -1011,14 +1064,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=3 * n;
     capi_workd_intent |= F2PY_INTENT_INOUT;
-    capi_workd_tmp = array_from_pyobj(NPY_DOUBLE,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 10th argument `workd' of _arpack.dsaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dsaupd: failed to create array from the 10th argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (double *)(PyArray_DATA(capi_workd_tmp));
+        workd = (double *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -1043,7 +1098,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("idNNNNi",ido,tol,capi_resid_tmp,capi_v_tmp,capi_iparam_tmp,capi_ipntr_tmp,info);
+        capi_buildvalue = Py_BuildValue("idNNNNi",ido,tol,capi_resid_as_array,capi_v_as_array,capi_iparam_as_array,capi_ipntr_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -1051,9 +1106,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
@@ -1066,17 +1121,17 @@ f2py_stop_call_clock();
     /* End of cleaning variable n */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -1110,10 +1165,10 @@ static char doc_f2py_rout__arpack_sseupd[] = "\
 d,z,info = sseupd(rvec,howmny,select,sigma,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,[ldz,n,ncv,ldv,lworkl])\n\nWrapper for ``sseupd``.\
 \n\nParameters\n----------\n"
 "rvec : input int\n"
-"howmny : input string(len=1)\n"
+"howmny : input bytes\n"
 "select : input rank-1 array('i') with bounds (ncv)\n"
 "sigma : input float\n"
-"bmat : input string(len=1)\n"
+"bmat : input bytes\n"
 "which : input string(len=2)\n"
 "nev : input int\n"
 "tol : input float\n"
@@ -1134,42 +1189,40 @@ d,z,info = sseupd(rvec,howmny,select,sigma,bmat,which,nev,tol,resid,v,iparam,ipn
 "d : rank-1 array('f') with bounds (nev)\n"
 "z : rank-2 array('f') with bounds (n,nev)\n"
 "info : int";
-/* extern void F_FUNC(sseupd,SSEUPD)(int*,string,int*,float*,float*,int*,float*,string,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t,size_t,size_t); */
+/* extern void F_FUNC(sseupd,SSEUPD)(int*,character*,int*,float*,float*,int*,float*,character*,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t); */
 static PyObject *f2py_rout__arpack_sseupd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
-                           void (*f2py_func)(int*,string,int*,float*,float*,int*,float*,string,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t,size_t,size_t)) {
+                           void (*f2py_func)(int*,character*,int*,float*,float*,int*,float*,character*,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t)) {
     PyObject * volatile capi_buildvalue = NULL;
     volatile int f2py_success = 1;
 /*decl*/
 
     int rvec = 0;
     PyObject *rvec_capi = Py_None;
-    string howmny = NULL;
-    int slen(howmny);
+    character howmny = 0;
     PyObject *howmny_capi = Py_None;
     int *select = NULL;
     npy_intp select_Dims[1] = {-1};
     const int select_Rank = 1;
-    PyArrayObject *capi_select_tmp = NULL;
+    PyArrayObject *capi_select_as_array = NULL;
     int capi_select_intent = 0;
     PyObject *select_capi = Py_None;
     float *d = NULL;
     npy_intp d_Dims[1] = {-1};
     const int d_Rank = 1;
-    PyArrayObject *capi_d_tmp = NULL;
+    PyArrayObject *capi_d_as_array = NULL;
     int capi_d_intent = 0;
     float *z = NULL;
     npy_intp z_Dims[2] = {-1, -1};
     const int z_Rank = 2;
-    PyArrayObject *capi_z_tmp = NULL;
+    PyArrayObject *capi_z_as_array = NULL;
     int capi_z_intent = 0;
     int ldz = 0;
     PyObject *ldz_capi = Py_None;
     float sigma = 0;
     PyObject *sigma_capi = Py_None;
-    string bmat = NULL;
-    int slen(bmat);
+    character bmat = 0;
     PyObject *bmat_capi = Py_None;
     int n = 0;
     PyObject *n_capi = Py_None;
@@ -1183,7 +1236,7 @@ static PyObject *f2py_rout__arpack_sseupd(const PyObject *capi_self,
     float *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -1191,7 +1244,7 @@ static PyObject *f2py_rout__arpack_sseupd(const PyObject *capi_self,
     float *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -1199,25 +1252,25 @@ static PyObject *f2py_rout__arpack_sseupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     float *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     float *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -1240,30 +1293,28 @@ f2py_start_clock();
         f2py_success = 1;
     if (f2py_success) {
     /* Processing variable howmny */
-    slen(howmny) = 1;
-    f2py_success = string_from_pyobj(&howmny,&slen(howmny),"",howmny_capi,"string_from_pyobj failed in converting 2nd argument`howmny' of _arpack.sseupd to C string");
+        f2py_success = character_from_pyobj(&howmny,howmny_capi,"_arpack.sseupd() 2nd argument (howmny) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(howmny, slen(howmny), '\0', ' ');
     /* Processing variable select */
     ;
     capi_select_intent |= F2PY_INTENT_IN;
-    capi_select_tmp = array_from_pyobj(NPY_INT,select_Dims,select_Rank,capi_select_intent,select_capi);
-    if (capi_select_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 3rd argument `select' of _arpack.sseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sseupd: failed to create array from the 3rd argument `select`";
+    capi_select_as_array = ndarray_from_pyobj(  NPY_INT,1,select_Dims,select_Rank,  capi_select_intent,select_capi,capi_errmess);
+    if (capi_select_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        select = (int *)(PyArray_DATA(capi_select_tmp));
+        select = (int *)(PyArray_DATA(capi_select_as_array));
 
     /* Processing variable sigma */
         f2py_success = float_from_pyobj(&sigma,sigma_capi,"_arpack.sseupd() 4th argument (sigma) can't be converted to float");
     if (f2py_success) {
     /* Processing variable bmat */
-    slen(bmat) = 1;
-    f2py_success = string_from_pyobj(&bmat,&slen(bmat),"",bmat_capi,"string_from_pyobj failed in converting 5th argument`bmat' of _arpack.sseupd to C string");
+        f2py_success = character_from_pyobj(&bmat,bmat_capi,"_arpack.sseupd() 5th argument (bmat) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(bmat, slen(bmat), '\0', ' ');
     /* Processing variable which */
     slen(which) = 2;
     f2py_success = string_from_pyobj(&which,&slen(which),"",which_capi,"string_from_pyobj failed in converting 6th argument`which' of _arpack.sseupd to C string");
@@ -1278,50 +1329,58 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN;
-    capi_resid_tmp = array_from_pyobj(NPY_FLOAT,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 9th argument `resid' of _arpack.sseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sseupd: failed to create array from the 9th argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (float *)(PyArray_DATA(capi_resid_tmp));
+        resid = (float *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=7;
     capi_iparam_intent |= F2PY_INTENT_IN;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `iparam' of _arpack.sseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sseupd: failed to create array from the 11st argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=11;
     capi_ipntr_intent |= F2PY_INTENT_IN;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 12nd argument `ipntr' of _arpack.sseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sseupd: failed to create array from the 12nd argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_IN;
-    capi_workl_tmp = array_from_pyobj(NPY_FLOAT,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 14th argument `workl' of _arpack.sseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sseupd: failed to create array from the 14th argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (float *)(PyArray_DATA(capi_workl_tmp));
+        workl = (float *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.sseupd() 15th argument (info) can't be converted to int");
@@ -1329,14 +1388,16 @@ f2py_start_clock();
     /* Processing variable d */
     d_Dims[0]=nev;
     capi_d_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_d_tmp = array_from_pyobj(NPY_FLOAT,d_Dims,d_Rank,capi_d_intent,Py_None);
-    if (capi_d_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `d' of _arpack.sseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sseupd: failed to create array from the hidden `d`";
+    capi_d_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,d_Dims,d_Rank,  capi_d_intent,Py_None,capi_errmess);
+    if (capi_d_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        d = (float *)(PyArray_DATA(capi_d_tmp));
+        d = (float *)(PyArray_DATA(capi_d_as_array));
 
     /* Processing variable n */
     if (n_capi == Py_None) n = len(resid); else
@@ -1351,14 +1412,16 @@ f2py_start_clock();
     /* Processing variable v */
     v_Dims[1]=ncv;
     capi_v_intent |= F2PY_INTENT_IN;
-    capi_v_tmp = array_from_pyobj(NPY_FLOAT,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 10th argument `v' of _arpack.sseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sseupd: failed to create array from the 10th argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (float *)(PyArray_DATA(capi_v_tmp));
+        v = (float *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable ldv */
     if (ldv_capi == Py_None) ldv = shape(v,0); else
@@ -1368,14 +1431,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=2 * n;
     capi_workd_intent |= F2PY_INTENT_IN;
-    capi_workd_tmp = array_from_pyobj(NPY_FLOAT,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 13rd argument `workd' of _arpack.sseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sseupd: failed to create array from the 13rd argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (float *)(PyArray_DATA(capi_workd_tmp));
+        workd = (float *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -1385,14 +1450,16 @@ f2py_start_clock();
     /* Processing variable z */
     z_Dims[0]=n,z_Dims[1]=nev;
     capi_z_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_z_tmp = array_from_pyobj(NPY_FLOAT,z_Dims,z_Rank,capi_z_intent,Py_None);
-    if (capi_z_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `z' of _arpack.sseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sseupd: failed to create array from the hidden `z`";
+    capi_z_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,z_Dims,z_Rank,  capi_z_intent,Py_None,capi_errmess);
+    if (capi_z_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        z = (float *)(PyArray_DATA(capi_z_tmp));
+        z = (float *)(PyArray_DATA(capi_z_as_array));
 
     /* Processing variable ldz */
     if (ldz_capi == Py_None) ldz = shape(z,0); else
@@ -1405,7 +1472,7 @@ f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
             Py_BEGIN_ALLOW_THREADS
-                (*f2py_func)(&rvec,howmny,select,d,z,&ldz,&sigma,bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,&info,slen(howmny),slen(bmat),slen(which));
+                (*f2py_func)(&rvec,&howmny,select,d,z,&ldz,&sigma,&bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,&info,slen(which));
             Py_END_ALLOW_THREADS
 if (PyErr_Occurred())
   f2py_success = 0;
@@ -1417,7 +1484,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NNi",capi_d_tmp,capi_z_tmp,info);
+        capi_buildvalue = Py_BuildValue("NNi",capi_d_as_array,capi_z_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -1425,21 +1492,21 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(shape(z,0)==ldz)*/
     } /*if (f2py_success) of ldz*/
     /* End of cleaning variable ldz */
-    }  /*if (capi_z_tmp == NULL) ... else of z*/
+    }  /* if (capi_z_as_array == NULL) ... else of z */
     /* End of cleaning variable z */
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
     /* End of cleaning variable ldv */
-    if((PyObject *)capi_v_tmp!=v_capi) {
-        Py_XDECREF(capi_v_tmp); }
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    if((PyObject *)capi_v_as_array!=v_capi) {
+        Py_XDECREF(capi_v_as_array); }
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
     } /*CHECKSCALAR(len(select)>=ncv)*/
     } /*if (f2py_success) of ncv*/
@@ -1447,25 +1514,25 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(resid)>=n)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
-    }  /*if (capi_d_tmp == NULL) ... else of d*/
+    }  /* if (capi_d_as_array == NULL) ... else of d */
     /* End of cleaning variable d */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    if((PyObject *)capi_ipntr_tmp!=ipntr_capi) {
-        Py_XDECREF(capi_ipntr_tmp); }
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    if((PyObject *)capi_ipntr_as_array!=ipntr_capi) {
+        Py_XDECREF(capi_ipntr_as_array); }
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    if((PyObject *)capi_iparam_tmp!=iparam_capi) {
-        Py_XDECREF(capi_iparam_tmp); }
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    if((PyObject *)capi_iparam_as_array!=iparam_capi) {
+        Py_XDECREF(capi_iparam_as_array); }
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    if((PyObject *)capi_resid_tmp!=resid_capi) {
-        Py_XDECREF(capi_resid_tmp); }
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    if((PyObject *)capi_resid_as_array!=resid_capi) {
+        Py_XDECREF(capi_resid_as_array); }
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -1474,17 +1541,15 @@ f2py_stop_call_clock();
         STRINGFREE(which);
     }  /*if (f2py_success) of which*/
     /* End of cleaning variable which */
-        STRINGFREE(bmat);
-    }  /*if (f2py_success) of bmat*/
+    } /*if (f2py_success) of bmat*/
     /* End of cleaning variable bmat */
     } /*if (f2py_success) of sigma*/
     /* End of cleaning variable sigma */
-    if((PyObject *)capi_select_tmp!=select_capi) {
-        Py_XDECREF(capi_select_tmp); }
-    }  /*if (capi_select_tmp == NULL) ... else of select*/
+    if((PyObject *)capi_select_as_array!=select_capi) {
+        Py_XDECREF(capi_select_as_array); }
+    }  /* if (capi_select_as_array == NULL) ... else of select */
     /* End of cleaning variable select */
-        STRINGFREE(howmny);
-    }  /*if (f2py_success) of howmny*/
+    } /*if (f2py_success) of howmny*/
     /* End of cleaning variable howmny */
     } /*if (f2py_success) of rvec*/
     /* End of cleaning variable rvec */
@@ -1508,10 +1573,10 @@ static char doc_f2py_rout__arpack_dseupd[] = "\
 d,z,info = dseupd(rvec,howmny,select,sigma,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,[ldz,n,ncv,ldv,lworkl])\n\nWrapper for ``dseupd``.\
 \n\nParameters\n----------\n"
 "rvec : input int\n"
-"howmny : input string(len=1)\n"
+"howmny : input bytes\n"
 "select : input rank-1 array('i') with bounds (ncv)\n"
 "sigma : input float\n"
-"bmat : input string(len=1)\n"
+"bmat : input bytes\n"
 "which : input string(len=2)\n"
 "nev : input int\n"
 "tol : input float\n"
@@ -1532,42 +1597,40 @@ d,z,info = dseupd(rvec,howmny,select,sigma,bmat,which,nev,tol,resid,v,iparam,ipn
 "d : rank-1 array('d') with bounds (nev)\n"
 "z : rank-2 array('d') with bounds (n,nev)\n"
 "info : int";
-/* extern void F_FUNC(dseupd,DSEUPD)(int*,string,int*,double*,double*,int*,double*,string,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t,size_t,size_t); */
+/* extern void F_FUNC(dseupd,DSEUPD)(int*,character*,int*,double*,double*,int*,double*,character*,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t); */
 static PyObject *f2py_rout__arpack_dseupd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
-                           void (*f2py_func)(int*,string,int*,double*,double*,int*,double*,string,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t,size_t,size_t)) {
+                           void (*f2py_func)(int*,character*,int*,double*,double*,int*,double*,character*,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t)) {
     PyObject * volatile capi_buildvalue = NULL;
     volatile int f2py_success = 1;
 /*decl*/
 
     int rvec = 0;
     PyObject *rvec_capi = Py_None;
-    string howmny = NULL;
-    int slen(howmny);
+    character howmny = 0;
     PyObject *howmny_capi = Py_None;
     int *select = NULL;
     npy_intp select_Dims[1] = {-1};
     const int select_Rank = 1;
-    PyArrayObject *capi_select_tmp = NULL;
+    PyArrayObject *capi_select_as_array = NULL;
     int capi_select_intent = 0;
     PyObject *select_capi = Py_None;
     double *d = NULL;
     npy_intp d_Dims[1] = {-1};
     const int d_Rank = 1;
-    PyArrayObject *capi_d_tmp = NULL;
+    PyArrayObject *capi_d_as_array = NULL;
     int capi_d_intent = 0;
     double *z = NULL;
     npy_intp z_Dims[2] = {-1, -1};
     const int z_Rank = 2;
-    PyArrayObject *capi_z_tmp = NULL;
+    PyArrayObject *capi_z_as_array = NULL;
     int capi_z_intent = 0;
     int ldz = 0;
     PyObject *ldz_capi = Py_None;
     double sigma = 0;
     PyObject *sigma_capi = Py_None;
-    string bmat = NULL;
-    int slen(bmat);
+    character bmat = 0;
     PyObject *bmat_capi = Py_None;
     int n = 0;
     PyObject *n_capi = Py_None;
@@ -1581,7 +1644,7 @@ static PyObject *f2py_rout__arpack_dseupd(const PyObject *capi_self,
     double *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -1589,7 +1652,7 @@ static PyObject *f2py_rout__arpack_dseupd(const PyObject *capi_self,
     double *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -1597,25 +1660,25 @@ static PyObject *f2py_rout__arpack_dseupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     double *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     double *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -1638,30 +1701,28 @@ f2py_start_clock();
         f2py_success = 1;
     if (f2py_success) {
     /* Processing variable howmny */
-    slen(howmny) = 1;
-    f2py_success = string_from_pyobj(&howmny,&slen(howmny),"",howmny_capi,"string_from_pyobj failed in converting 2nd argument`howmny' of _arpack.dseupd to C string");
+        f2py_success = character_from_pyobj(&howmny,howmny_capi,"_arpack.dseupd() 2nd argument (howmny) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(howmny, slen(howmny), '\0', ' ');
     /* Processing variable select */
     ;
     capi_select_intent |= F2PY_INTENT_IN;
-    capi_select_tmp = array_from_pyobj(NPY_INT,select_Dims,select_Rank,capi_select_intent,select_capi);
-    if (capi_select_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 3rd argument `select' of _arpack.dseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dseupd: failed to create array from the 3rd argument `select`";
+    capi_select_as_array = ndarray_from_pyobj(  NPY_INT,1,select_Dims,select_Rank,  capi_select_intent,select_capi,capi_errmess);
+    if (capi_select_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        select = (int *)(PyArray_DATA(capi_select_tmp));
+        select = (int *)(PyArray_DATA(capi_select_as_array));
 
     /* Processing variable sigma */
         f2py_success = double_from_pyobj(&sigma,sigma_capi,"_arpack.dseupd() 4th argument (sigma) can't be converted to double");
     if (f2py_success) {
     /* Processing variable bmat */
-    slen(bmat) = 1;
-    f2py_success = string_from_pyobj(&bmat,&slen(bmat),"",bmat_capi,"string_from_pyobj failed in converting 5th argument`bmat' of _arpack.dseupd to C string");
+        f2py_success = character_from_pyobj(&bmat,bmat_capi,"_arpack.dseupd() 5th argument (bmat) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(bmat, slen(bmat), '\0', ' ');
     /* Processing variable which */
     slen(which) = 2;
     f2py_success = string_from_pyobj(&which,&slen(which),"",which_capi,"string_from_pyobj failed in converting 6th argument`which' of _arpack.dseupd to C string");
@@ -1676,50 +1737,58 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN;
-    capi_resid_tmp = array_from_pyobj(NPY_DOUBLE,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 9th argument `resid' of _arpack.dseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dseupd: failed to create array from the 9th argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (double *)(PyArray_DATA(capi_resid_tmp));
+        resid = (double *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=7;
     capi_iparam_intent |= F2PY_INTENT_IN;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `iparam' of _arpack.dseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dseupd: failed to create array from the 11st argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=11;
     capi_ipntr_intent |= F2PY_INTENT_IN;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 12nd argument `ipntr' of _arpack.dseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dseupd: failed to create array from the 12nd argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_IN;
-    capi_workl_tmp = array_from_pyobj(NPY_DOUBLE,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 14th argument `workl' of _arpack.dseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dseupd: failed to create array from the 14th argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (double *)(PyArray_DATA(capi_workl_tmp));
+        workl = (double *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.dseupd() 15th argument (info) can't be converted to int");
@@ -1727,14 +1796,16 @@ f2py_start_clock();
     /* Processing variable d */
     d_Dims[0]=nev;
     capi_d_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_d_tmp = array_from_pyobj(NPY_DOUBLE,d_Dims,d_Rank,capi_d_intent,Py_None);
-    if (capi_d_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `d' of _arpack.dseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dseupd: failed to create array from the hidden `d`";
+    capi_d_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,d_Dims,d_Rank,  capi_d_intent,Py_None,capi_errmess);
+    if (capi_d_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        d = (double *)(PyArray_DATA(capi_d_tmp));
+        d = (double *)(PyArray_DATA(capi_d_as_array));
 
     /* Processing variable n */
     if (n_capi == Py_None) n = len(resid); else
@@ -1749,14 +1820,16 @@ f2py_start_clock();
     /* Processing variable v */
     v_Dims[1]=ncv;
     capi_v_intent |= F2PY_INTENT_IN;
-    capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 10th argument `v' of _arpack.dseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dseupd: failed to create array from the 10th argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (double *)(PyArray_DATA(capi_v_tmp));
+        v = (double *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable ldv */
     if (ldv_capi == Py_None) ldv = shape(v,0); else
@@ -1766,14 +1839,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=2 * n;
     capi_workd_intent |= F2PY_INTENT_IN;
-    capi_workd_tmp = array_from_pyobj(NPY_DOUBLE,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 13rd argument `workd' of _arpack.dseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dseupd: failed to create array from the 13rd argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (double *)(PyArray_DATA(capi_workd_tmp));
+        workd = (double *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -1783,14 +1858,16 @@ f2py_start_clock();
     /* Processing variable z */
     z_Dims[0]=n,z_Dims[1]=nev;
     capi_z_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_z_tmp = array_from_pyobj(NPY_DOUBLE,z_Dims,z_Rank,capi_z_intent,Py_None);
-    if (capi_z_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `z' of _arpack.dseupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dseupd: failed to create array from the hidden `z`";
+    capi_z_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,z_Dims,z_Rank,  capi_z_intent,Py_None,capi_errmess);
+    if (capi_z_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        z = (double *)(PyArray_DATA(capi_z_tmp));
+        z = (double *)(PyArray_DATA(capi_z_as_array));
 
     /* Processing variable ldz */
     if (ldz_capi == Py_None) ldz = shape(z,0); else
@@ -1803,7 +1880,7 @@ f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
             Py_BEGIN_ALLOW_THREADS
-                (*f2py_func)(&rvec,howmny,select,d,z,&ldz,&sigma,bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,&info,slen(howmny),slen(bmat),slen(which));
+                (*f2py_func)(&rvec,&howmny,select,d,z,&ldz,&sigma,&bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,&info,slen(which));
             Py_END_ALLOW_THREADS
 if (PyErr_Occurred())
   f2py_success = 0;
@@ -1815,7 +1892,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NNi",capi_d_tmp,capi_z_tmp,info);
+        capi_buildvalue = Py_BuildValue("NNi",capi_d_as_array,capi_z_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -1823,21 +1900,21 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(shape(z,0)==ldz)*/
     } /*if (f2py_success) of ldz*/
     /* End of cleaning variable ldz */
-    }  /*if (capi_z_tmp == NULL) ... else of z*/
+    }  /* if (capi_z_as_array == NULL) ... else of z */
     /* End of cleaning variable z */
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
     /* End of cleaning variable ldv */
-    if((PyObject *)capi_v_tmp!=v_capi) {
-        Py_XDECREF(capi_v_tmp); }
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    if((PyObject *)capi_v_as_array!=v_capi) {
+        Py_XDECREF(capi_v_as_array); }
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
     } /*CHECKSCALAR(len(select)>=ncv)*/
     } /*if (f2py_success) of ncv*/
@@ -1845,25 +1922,25 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(resid)>=n)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
-    }  /*if (capi_d_tmp == NULL) ... else of d*/
+    }  /* if (capi_d_as_array == NULL) ... else of d */
     /* End of cleaning variable d */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    if((PyObject *)capi_ipntr_tmp!=ipntr_capi) {
-        Py_XDECREF(capi_ipntr_tmp); }
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    if((PyObject *)capi_ipntr_as_array!=ipntr_capi) {
+        Py_XDECREF(capi_ipntr_as_array); }
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    if((PyObject *)capi_iparam_tmp!=iparam_capi) {
-        Py_XDECREF(capi_iparam_tmp); }
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    if((PyObject *)capi_iparam_as_array!=iparam_capi) {
+        Py_XDECREF(capi_iparam_as_array); }
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    if((PyObject *)capi_resid_tmp!=resid_capi) {
-        Py_XDECREF(capi_resid_tmp); }
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    if((PyObject *)capi_resid_as_array!=resid_capi) {
+        Py_XDECREF(capi_resid_as_array); }
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -1872,17 +1949,15 @@ f2py_stop_call_clock();
         STRINGFREE(which);
     }  /*if (f2py_success) of which*/
     /* End of cleaning variable which */
-        STRINGFREE(bmat);
-    }  /*if (f2py_success) of bmat*/
+    } /*if (f2py_success) of bmat*/
     /* End of cleaning variable bmat */
     } /*if (f2py_success) of sigma*/
     /* End of cleaning variable sigma */
-    if((PyObject *)capi_select_tmp!=select_capi) {
-        Py_XDECREF(capi_select_tmp); }
-    }  /*if (capi_select_tmp == NULL) ... else of select*/
+    if((PyObject *)capi_select_as_array!=select_capi) {
+        Py_XDECREF(capi_select_as_array); }
+    }  /* if (capi_select_as_array == NULL) ... else of select */
     /* End of cleaning variable select */
-        STRINGFREE(howmny);
-    }  /*if (f2py_success) of howmny*/
+    } /*if (f2py_success) of howmny*/
     /* End of cleaning variable howmny */
     } /*if (f2py_success) of rvec*/
     /* End of cleaning variable rvec */
@@ -1956,7 +2031,7 @@ static PyObject *f2py_rout__arpack_snaupd(const PyObject *capi_self,
     float *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -1964,7 +2039,7 @@ static PyObject *f2py_rout__arpack_snaupd(const PyObject *capi_self,
     float *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -1972,25 +2047,25 @@ static PyObject *f2py_rout__arpack_snaupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     float *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     float *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -2030,62 +2105,72 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_resid_tmp = array_from_pyobj(NPY_FLOAT,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 6th argument `resid' of _arpack.snaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.snaupd: failed to create array from the 6th argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (float *)(PyArray_DATA(capi_resid_tmp));
+        resid = (float *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable v */
     ;
     capi_v_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_v_tmp = array_from_pyobj(NPY_FLOAT,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 7th argument `v' of _arpack.snaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.snaupd: failed to create array from the 7th argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (float *)(PyArray_DATA(capi_v_tmp));
+        v = (float *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=11;
     capi_iparam_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 8th argument `iparam' of _arpack.snaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.snaupd: failed to create array from the 8th argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=14;
     capi_ipntr_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 9th argument `ipntr' of _arpack.snaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.snaupd: failed to create array from the 9th argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_INOUT;
-    capi_workl_tmp = array_from_pyobj(NPY_FLOAT,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `workl' of _arpack.snaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.snaupd: failed to create array from the 11st argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (float *)(PyArray_DATA(capi_workl_tmp));
+        workl = (float *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.snaupd() 12nd argument (info) can't be converted to int");
@@ -2108,14 +2193,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=3 * n;
     capi_workd_intent |= F2PY_INTENT_INOUT;
-    capi_workd_tmp = array_from_pyobj(NPY_FLOAT,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 10th argument `workd' of _arpack.snaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.snaupd: failed to create array from the 10th argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (float *)(PyArray_DATA(capi_workd_tmp));
+        workd = (float *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -2140,7 +2227,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("ifNNNNi",ido,tol,capi_resid_tmp,capi_v_tmp,capi_iparam_tmp,capi_ipntr_tmp,info);
+        capi_buildvalue = Py_BuildValue("ifNNNNi",ido,tol,capi_resid_as_array,capi_v_as_array,capi_iparam_as_array,capi_ipntr_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -2148,9 +2235,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
@@ -2163,17 +2250,17 @@ f2py_stop_call_clock();
     /* End of cleaning variable n */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -2257,7 +2344,7 @@ static PyObject *f2py_rout__arpack_dnaupd(const PyObject *capi_self,
     double *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -2265,7 +2352,7 @@ static PyObject *f2py_rout__arpack_dnaupd(const PyObject *capi_self,
     double *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -2273,25 +2360,25 @@ static PyObject *f2py_rout__arpack_dnaupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     double *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     double *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -2331,62 +2418,72 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_resid_tmp = array_from_pyobj(NPY_DOUBLE,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 6th argument `resid' of _arpack.dnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dnaupd: failed to create array from the 6th argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (double *)(PyArray_DATA(capi_resid_tmp));
+        resid = (double *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable v */
     ;
     capi_v_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 7th argument `v' of _arpack.dnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dnaupd: failed to create array from the 7th argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (double *)(PyArray_DATA(capi_v_tmp));
+        v = (double *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=11;
     capi_iparam_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 8th argument `iparam' of _arpack.dnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dnaupd: failed to create array from the 8th argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=14;
     capi_ipntr_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 9th argument `ipntr' of _arpack.dnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dnaupd: failed to create array from the 9th argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_INOUT;
-    capi_workl_tmp = array_from_pyobj(NPY_DOUBLE,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `workl' of _arpack.dnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dnaupd: failed to create array from the 11st argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (double *)(PyArray_DATA(capi_workl_tmp));
+        workl = (double *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.dnaupd() 12nd argument (info) can't be converted to int");
@@ -2409,14 +2506,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=3 * n;
     capi_workd_intent |= F2PY_INTENT_INOUT;
-    capi_workd_tmp = array_from_pyobj(NPY_DOUBLE,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 10th argument `workd' of _arpack.dnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dnaupd: failed to create array from the 10th argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (double *)(PyArray_DATA(capi_workd_tmp));
+        workd = (double *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -2441,7 +2540,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("idNNNNi",ido,tol,capi_resid_tmp,capi_v_tmp,capi_iparam_tmp,capi_ipntr_tmp,info);
+        capi_buildvalue = Py_BuildValue("idNNNNi",ido,tol,capi_resid_as_array,capi_v_as_array,capi_iparam_as_array,capi_ipntr_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -2449,9 +2548,9 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
@@ -2464,17 +2563,17 @@ f2py_stop_call_clock();
     /* End of cleaning variable n */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -2508,12 +2607,12 @@ static char doc_f2py_rout__arpack_sneupd[] = "\
 dr,di,z,info = sneupd(rvec,howmny,select,sigmar,sigmai,workev,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,[ldz,n,ncv,ldv,lworkl])\n\nWrapper for ``sneupd``.\
 \n\nParameters\n----------\n"
 "rvec : input int\n"
-"howmny : input string(len=1)\n"
+"howmny : input bytes\n"
 "select : input rank-1 array('i') with bounds (ncv)\n"
 "sigmar : input float\n"
 "sigmai : input float\n"
 "workev : input rank-1 array('f') with bounds (3 * ncv)\n"
-"bmat : input string(len=1)\n"
+"bmat : input bytes\n"
 "which : input string(len=2)\n"
 "nev : input int\n"
 "tol : input float\n"
@@ -2535,40 +2634,39 @@ dr,di,z,info = sneupd(rvec,howmny,select,sigmar,sigmai,workev,bmat,which,nev,tol
 "di : rank-1 array('f') with bounds (1 + nev)\n"
 "z : rank-2 array('f') with bounds (n,1 + nev)\n"
 "info : int";
-/* extern void F_FUNC(sneupd,SNEUPD)(int*,string,int*,float*,float*,float*,int*,float*,float*,float*,string,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t,size_t,size_t); */
+/* extern void F_FUNC(sneupd,SNEUPD)(int*,character*,int*,float*,float*,float*,int*,float*,float*,float*,character*,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t); */
 static PyObject *f2py_rout__arpack_sneupd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
-                           void (*f2py_func)(int*,string,int*,float*,float*,float*,int*,float*,float*,float*,string,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t,size_t,size_t)) {
+                           void (*f2py_func)(int*,character*,int*,float*,float*,float*,int*,float*,float*,float*,character*,int*,string,int*,float*,float*,int*,float*,int*,int*,int*,float*,float*,int*,int*,size_t)) {
     PyObject * volatile capi_buildvalue = NULL;
     volatile int f2py_success = 1;
 /*decl*/
 
     int rvec = 0;
     PyObject *rvec_capi = Py_None;
-    string howmny = NULL;
-    int slen(howmny);
+    character howmny = 0;
     PyObject *howmny_capi = Py_None;
     int *select = NULL;
     npy_intp select_Dims[1] = {-1};
     const int select_Rank = 1;
-    PyArrayObject *capi_select_tmp = NULL;
+    PyArrayObject *capi_select_as_array = NULL;
     int capi_select_intent = 0;
     PyObject *select_capi = Py_None;
     float *dr = NULL;
     npy_intp dr_Dims[1] = {-1};
     const int dr_Rank = 1;
-    PyArrayObject *capi_dr_tmp = NULL;
+    PyArrayObject *capi_dr_as_array = NULL;
     int capi_dr_intent = 0;
     float *di = NULL;
     npy_intp di_Dims[1] = {-1};
     const int di_Rank = 1;
-    PyArrayObject *capi_di_tmp = NULL;
+    PyArrayObject *capi_di_as_array = NULL;
     int capi_di_intent = 0;
     float *z = NULL;
     npy_intp z_Dims[2] = {-1, -1};
     const int z_Rank = 2;
-    PyArrayObject *capi_z_tmp = NULL;
+    PyArrayObject *capi_z_as_array = NULL;
     int capi_z_intent = 0;
     int ldz = 0;
     PyObject *ldz_capi = Py_None;
@@ -2579,11 +2677,10 @@ static PyObject *f2py_rout__arpack_sneupd(const PyObject *capi_self,
     float *workev = NULL;
     npy_intp workev_Dims[1] = {-1};
     const int workev_Rank = 1;
-    PyArrayObject *capi_workev_tmp = NULL;
+    PyArrayObject *capi_workev_as_array = NULL;
     int capi_workev_intent = 0;
     PyObject *workev_capi = Py_None;
-    string bmat = NULL;
-    int slen(bmat);
+    character bmat = 0;
     PyObject *bmat_capi = Py_None;
     int n = 0;
     PyObject *n_capi = Py_None;
@@ -2597,7 +2694,7 @@ static PyObject *f2py_rout__arpack_sneupd(const PyObject *capi_self,
     float *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -2605,7 +2702,7 @@ static PyObject *f2py_rout__arpack_sneupd(const PyObject *capi_self,
     float *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -2613,25 +2710,25 @@ static PyObject *f2py_rout__arpack_sneupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     float *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     float *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -2654,21 +2751,21 @@ f2py_start_clock();
         f2py_success = 1;
     if (f2py_success) {
     /* Processing variable howmny */
-    slen(howmny) = 1;
-    f2py_success = string_from_pyobj(&howmny,&slen(howmny),"",howmny_capi,"string_from_pyobj failed in converting 2nd argument`howmny' of _arpack.sneupd to C string");
+        f2py_success = character_from_pyobj(&howmny,howmny_capi,"_arpack.sneupd() 2nd argument (howmny) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(howmny, slen(howmny), '\0', ' ');
     /* Processing variable select */
     ;
     capi_select_intent |= F2PY_INTENT_IN;
-    capi_select_tmp = array_from_pyobj(NPY_INT,select_Dims,select_Rank,capi_select_intent,select_capi);
-    if (capi_select_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 3rd argument `select' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the 3rd argument `select`";
+    capi_select_as_array = ndarray_from_pyobj(  NPY_INT,1,select_Dims,select_Rank,  capi_select_intent,select_capi,capi_errmess);
+    if (capi_select_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        select = (int *)(PyArray_DATA(capi_select_tmp));
+        select = (int *)(PyArray_DATA(capi_select_as_array));
 
     /* Processing variable sigmar */
         f2py_success = float_from_pyobj(&sigmar,sigmar_capi,"_arpack.sneupd() 4th argument (sigmar) can't be converted to float");
@@ -2677,10 +2774,8 @@ f2py_start_clock();
         f2py_success = float_from_pyobj(&sigmai,sigmai_capi,"_arpack.sneupd() 5th argument (sigmai) can't be converted to float");
     if (f2py_success) {
     /* Processing variable bmat */
-    slen(bmat) = 1;
-    f2py_success = string_from_pyobj(&bmat,&slen(bmat),"",bmat_capi,"string_from_pyobj failed in converting 7th argument`bmat' of _arpack.sneupd to C string");
+        f2py_success = character_from_pyobj(&bmat,bmat_capi,"_arpack.sneupd() 7th argument (bmat) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(bmat, slen(bmat), '\0', ' ');
     /* Processing variable which */
     slen(which) = 2;
     f2py_success = string_from_pyobj(&which,&slen(which),"",which_capi,"string_from_pyobj failed in converting 8th argument`which' of _arpack.sneupd to C string");
@@ -2695,50 +2790,58 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN;
-    capi_resid_tmp = array_from_pyobj(NPY_FLOAT,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `resid' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the 11st argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (float *)(PyArray_DATA(capi_resid_tmp));
+        resid = (float *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=11;
     capi_iparam_intent |= F2PY_INTENT_IN;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 13rd argument `iparam' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the 13rd argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=14;
     capi_ipntr_intent |= F2PY_INTENT_IN;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 14th argument `ipntr' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the 14th argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_IN;
-    capi_workl_tmp = array_from_pyobj(NPY_FLOAT,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 16th argument `workl' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the 16th argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (float *)(PyArray_DATA(capi_workl_tmp));
+        workl = (float *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.sneupd() 17th argument (info) can't be converted to int");
@@ -2746,26 +2849,30 @@ f2py_start_clock();
     /* Processing variable dr */
     dr_Dims[0]=1 + nev;
     capi_dr_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_dr_tmp = array_from_pyobj(NPY_FLOAT,dr_Dims,dr_Rank,capi_dr_intent,Py_None);
-    if (capi_dr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `dr' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the hidden `dr`";
+    capi_dr_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,dr_Dims,dr_Rank,  capi_dr_intent,Py_None,capi_errmess);
+    if (capi_dr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dr = (float *)(PyArray_DATA(capi_dr_tmp));
+        dr = (float *)(PyArray_DATA(capi_dr_as_array));
 
     /* Processing variable di */
     di_Dims[0]=1 + nev;
     capi_di_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_di_tmp = array_from_pyobj(NPY_FLOAT,di_Dims,di_Rank,capi_di_intent,Py_None);
-    if (capi_di_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `di' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the hidden `di`";
+    capi_di_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,di_Dims,di_Rank,  capi_di_intent,Py_None,capi_errmess);
+    if (capi_di_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        di = (float *)(PyArray_DATA(capi_di_tmp));
+        di = (float *)(PyArray_DATA(capi_di_as_array));
 
     /* Processing variable n */
     if (n_capi == Py_None) n = len(resid); else
@@ -2780,14 +2887,16 @@ f2py_start_clock();
     /* Processing variable v */
     v_Dims[0]=n,v_Dims[1]=ncv;
     capi_v_intent |= F2PY_INTENT_IN;
-    capi_v_tmp = array_from_pyobj(NPY_FLOAT,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 12nd argument `v' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the 12nd argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (float *)(PyArray_DATA(capi_v_tmp));
+        v = (float *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable ldv */
     if (ldv_capi == Py_None) ldv = shape(v,0); else
@@ -2797,14 +2906,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=3 * n;
     capi_workd_intent |= F2PY_INTENT_IN;
-    capi_workd_tmp = array_from_pyobj(NPY_FLOAT,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 15th argument `workd' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the 15th argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (float *)(PyArray_DATA(capi_workd_tmp));
+        workd = (float *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -2814,14 +2925,16 @@ f2py_start_clock();
     /* Processing variable z */
     z_Dims[0]=n,z_Dims[1]=1 + nev;
     capi_z_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_z_tmp = array_from_pyobj(NPY_FLOAT,z_Dims,z_Rank,capi_z_intent,Py_None);
-    if (capi_z_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `z' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the hidden `z`";
+    capi_z_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,z_Dims,z_Rank,  capi_z_intent,Py_None,capi_errmess);
+    if (capi_z_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        z = (float *)(PyArray_DATA(capi_z_tmp));
+        z = (float *)(PyArray_DATA(capi_z_as_array));
 
     /* Processing variable ldz */
     if (ldz_capi == Py_None) ldz = shape(z,0); else
@@ -2831,14 +2944,16 @@ f2py_start_clock();
     /* Processing variable workev */
     workev_Dims[0]=3 * ncv;
     capi_workev_intent |= F2PY_INTENT_IN;
-    capi_workev_tmp = array_from_pyobj(NPY_FLOAT,workev_Dims,workev_Rank,capi_workev_intent,workev_capi);
-    if (capi_workev_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 6th argument `workev' of _arpack.sneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.sneupd: failed to create array from the 6th argument `workev`";
+    capi_workev_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,workev_Dims,workev_Rank,  capi_workev_intent,workev_capi,capi_errmess);
+    if (capi_workev_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workev = (float *)(PyArray_DATA(capi_workev_tmp));
+        workev = (float *)(PyArray_DATA(capi_workev_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -2846,7 +2961,7 @@ f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
             Py_BEGIN_ALLOW_THREADS
-                (*f2py_func)(&rvec,howmny,select,dr,di,z,&ldz,&sigmar,&sigmai,workev,bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,&info,slen(howmny),slen(bmat),slen(which));
+                (*f2py_func)(&rvec,&howmny,select,dr,di,z,&ldz,&sigmar,&sigmai,workev,&bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,&info,slen(which));
             Py_END_ALLOW_THREADS
 if (PyErr_Occurred())
   f2py_success = 0;
@@ -2858,33 +2973,33 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NNNi",capi_dr_tmp,capi_di_tmp,capi_z_tmp,info);
+        capi_buildvalue = Py_BuildValue("NNNi",capi_dr_as_array,capi_di_as_array,capi_z_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_workev_tmp!=workev_capi) {
-        Py_XDECREF(capi_workev_tmp); }
-    }  /*if (capi_workev_tmp == NULL) ... else of workev*/
+    if((PyObject *)capi_workev_as_array!=workev_capi) {
+        Py_XDECREF(capi_workev_as_array); }
+    }  /* if (capi_workev_as_array == NULL) ... else of workev */
     /* End of cleaning variable workev */
     } /*CHECKSCALAR(shape(z,0)==ldz)*/
     } /*if (f2py_success) of ldz*/
     /* End of cleaning variable ldz */
-    }  /*if (capi_z_tmp == NULL) ... else of z*/
+    }  /* if (capi_z_as_array == NULL) ... else of z */
     /* End of cleaning variable z */
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
     /* End of cleaning variable ldv */
-    if((PyObject *)capi_v_tmp!=v_capi) {
-        Py_XDECREF(capi_v_tmp); }
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    if((PyObject *)capi_v_as_array!=v_capi) {
+        Py_XDECREF(capi_v_as_array); }
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
     } /*CHECKSCALAR(len(select)>=ncv)*/
     } /*if (f2py_success) of ncv*/
@@ -2892,27 +3007,27 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(resid)>=n)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
-    }  /*if (capi_di_tmp == NULL) ... else of di*/
+    }  /* if (capi_di_as_array == NULL) ... else of di */
     /* End of cleaning variable di */
-    }  /*if (capi_dr_tmp == NULL) ... else of dr*/
+    }  /* if (capi_dr_as_array == NULL) ... else of dr */
     /* End of cleaning variable dr */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    if((PyObject *)capi_ipntr_tmp!=ipntr_capi) {
-        Py_XDECREF(capi_ipntr_tmp); }
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    if((PyObject *)capi_ipntr_as_array!=ipntr_capi) {
+        Py_XDECREF(capi_ipntr_as_array); }
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    if((PyObject *)capi_iparam_tmp!=iparam_capi) {
-        Py_XDECREF(capi_iparam_tmp); }
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    if((PyObject *)capi_iparam_as_array!=iparam_capi) {
+        Py_XDECREF(capi_iparam_as_array); }
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    if((PyObject *)capi_resid_tmp!=resid_capi) {
-        Py_XDECREF(capi_resid_tmp); }
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    if((PyObject *)capi_resid_as_array!=resid_capi) {
+        Py_XDECREF(capi_resid_as_array); }
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -2921,19 +3036,17 @@ f2py_stop_call_clock();
         STRINGFREE(which);
     }  /*if (f2py_success) of which*/
     /* End of cleaning variable which */
-        STRINGFREE(bmat);
-    }  /*if (f2py_success) of bmat*/
+    } /*if (f2py_success) of bmat*/
     /* End of cleaning variable bmat */
     } /*if (f2py_success) of sigmai*/
     /* End of cleaning variable sigmai */
     } /*if (f2py_success) of sigmar*/
     /* End of cleaning variable sigmar */
-    if((PyObject *)capi_select_tmp!=select_capi) {
-        Py_XDECREF(capi_select_tmp); }
-    }  /*if (capi_select_tmp == NULL) ... else of select*/
+    if((PyObject *)capi_select_as_array!=select_capi) {
+        Py_XDECREF(capi_select_as_array); }
+    }  /* if (capi_select_as_array == NULL) ... else of select */
     /* End of cleaning variable select */
-        STRINGFREE(howmny);
-    }  /*if (f2py_success) of howmny*/
+    } /*if (f2py_success) of howmny*/
     /* End of cleaning variable howmny */
     } /*if (f2py_success) of rvec*/
     /* End of cleaning variable rvec */
@@ -2957,12 +3070,12 @@ static char doc_f2py_rout__arpack_dneupd[] = "\
 dr,di,z,info = dneupd(rvec,howmny,select,sigmar,sigmai,workev,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,[ldz,n,ncv,ldv,lworkl])\n\nWrapper for ``dneupd``.\
 \n\nParameters\n----------\n"
 "rvec : input int\n"
-"howmny : input string(len=1)\n"
+"howmny : input bytes\n"
 "select : input rank-1 array('i') with bounds (ncv)\n"
 "sigmar : input float\n"
 "sigmai : input float\n"
 "workev : input rank-1 array('d') with bounds (3 * ncv)\n"
-"bmat : input string(len=1)\n"
+"bmat : input bytes\n"
 "which : input string(len=2)\n"
 "nev : input int\n"
 "tol : input float\n"
@@ -2984,40 +3097,39 @@ dr,di,z,info = dneupd(rvec,howmny,select,sigmar,sigmai,workev,bmat,which,nev,tol
 "di : rank-1 array('d') with bounds (1 + nev)\n"
 "z : rank-2 array('d') with bounds (n,1 + nev)\n"
 "info : int";
-/* extern void F_FUNC(dneupd,DNEUPD)(int*,string,int*,double*,double*,double*,int*,double*,double*,double*,string,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t,size_t,size_t); */
+/* extern void F_FUNC(dneupd,DNEUPD)(int*,character*,int*,double*,double*,double*,int*,double*,double*,double*,character*,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t); */
 static PyObject *f2py_rout__arpack_dneupd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
-                           void (*f2py_func)(int*,string,int*,double*,double*,double*,int*,double*,double*,double*,string,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t,size_t,size_t)) {
+                           void (*f2py_func)(int*,character*,int*,double*,double*,double*,int*,double*,double*,double*,character*,int*,string,int*,double*,double*,int*,double*,int*,int*,int*,double*,double*,int*,int*,size_t)) {
     PyObject * volatile capi_buildvalue = NULL;
     volatile int f2py_success = 1;
 /*decl*/
 
     int rvec = 0;
     PyObject *rvec_capi = Py_None;
-    string howmny = NULL;
-    int slen(howmny);
+    character howmny = 0;
     PyObject *howmny_capi = Py_None;
     int *select = NULL;
     npy_intp select_Dims[1] = {-1};
     const int select_Rank = 1;
-    PyArrayObject *capi_select_tmp = NULL;
+    PyArrayObject *capi_select_as_array = NULL;
     int capi_select_intent = 0;
     PyObject *select_capi = Py_None;
     double *dr = NULL;
     npy_intp dr_Dims[1] = {-1};
     const int dr_Rank = 1;
-    PyArrayObject *capi_dr_tmp = NULL;
+    PyArrayObject *capi_dr_as_array = NULL;
     int capi_dr_intent = 0;
     double *di = NULL;
     npy_intp di_Dims[1] = {-1};
     const int di_Rank = 1;
-    PyArrayObject *capi_di_tmp = NULL;
+    PyArrayObject *capi_di_as_array = NULL;
     int capi_di_intent = 0;
     double *z = NULL;
     npy_intp z_Dims[2] = {-1, -1};
     const int z_Rank = 2;
-    PyArrayObject *capi_z_tmp = NULL;
+    PyArrayObject *capi_z_as_array = NULL;
     int capi_z_intent = 0;
     int ldz = 0;
     PyObject *ldz_capi = Py_None;
@@ -3028,11 +3140,10 @@ static PyObject *f2py_rout__arpack_dneupd(const PyObject *capi_self,
     double *workev = NULL;
     npy_intp workev_Dims[1] = {-1};
     const int workev_Rank = 1;
-    PyArrayObject *capi_workev_tmp = NULL;
+    PyArrayObject *capi_workev_as_array = NULL;
     int capi_workev_intent = 0;
     PyObject *workev_capi = Py_None;
-    string bmat = NULL;
-    int slen(bmat);
+    character bmat = 0;
     PyObject *bmat_capi = Py_None;
     int n = 0;
     PyObject *n_capi = Py_None;
@@ -3046,7 +3157,7 @@ static PyObject *f2py_rout__arpack_dneupd(const PyObject *capi_self,
     double *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -3054,7 +3165,7 @@ static PyObject *f2py_rout__arpack_dneupd(const PyObject *capi_self,
     double *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -3062,25 +3173,25 @@ static PyObject *f2py_rout__arpack_dneupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     double *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     double *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -3103,21 +3214,21 @@ f2py_start_clock();
         f2py_success = 1;
     if (f2py_success) {
     /* Processing variable howmny */
-    slen(howmny) = 1;
-    f2py_success = string_from_pyobj(&howmny,&slen(howmny),"",howmny_capi,"string_from_pyobj failed in converting 2nd argument`howmny' of _arpack.dneupd to C string");
+        f2py_success = character_from_pyobj(&howmny,howmny_capi,"_arpack.dneupd() 2nd argument (howmny) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(howmny, slen(howmny), '\0', ' ');
     /* Processing variable select */
     ;
     capi_select_intent |= F2PY_INTENT_IN;
-    capi_select_tmp = array_from_pyobj(NPY_INT,select_Dims,select_Rank,capi_select_intent,select_capi);
-    if (capi_select_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 3rd argument `select' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the 3rd argument `select`";
+    capi_select_as_array = ndarray_from_pyobj(  NPY_INT,1,select_Dims,select_Rank,  capi_select_intent,select_capi,capi_errmess);
+    if (capi_select_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        select = (int *)(PyArray_DATA(capi_select_tmp));
+        select = (int *)(PyArray_DATA(capi_select_as_array));
 
     /* Processing variable sigmar */
         f2py_success = double_from_pyobj(&sigmar,sigmar_capi,"_arpack.dneupd() 4th argument (sigmar) can't be converted to double");
@@ -3126,10 +3237,8 @@ f2py_start_clock();
         f2py_success = double_from_pyobj(&sigmai,sigmai_capi,"_arpack.dneupd() 5th argument (sigmai) can't be converted to double");
     if (f2py_success) {
     /* Processing variable bmat */
-    slen(bmat) = 1;
-    f2py_success = string_from_pyobj(&bmat,&slen(bmat),"",bmat_capi,"string_from_pyobj failed in converting 7th argument`bmat' of _arpack.dneupd to C string");
+        f2py_success = character_from_pyobj(&bmat,bmat_capi,"_arpack.dneupd() 7th argument (bmat) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(bmat, slen(bmat), '\0', ' ');
     /* Processing variable which */
     slen(which) = 2;
     f2py_success = string_from_pyobj(&which,&slen(which),"",which_capi,"string_from_pyobj failed in converting 8th argument`which' of _arpack.dneupd to C string");
@@ -3144,50 +3253,58 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN;
-    capi_resid_tmp = array_from_pyobj(NPY_DOUBLE,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `resid' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the 11st argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (double *)(PyArray_DATA(capi_resid_tmp));
+        resid = (double *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=11;
     capi_iparam_intent |= F2PY_INTENT_IN;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 13rd argument `iparam' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the 13rd argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=14;
     capi_ipntr_intent |= F2PY_INTENT_IN;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 14th argument `ipntr' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the 14th argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_IN;
-    capi_workl_tmp = array_from_pyobj(NPY_DOUBLE,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 16th argument `workl' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the 16th argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (double *)(PyArray_DATA(capi_workl_tmp));
+        workl = (double *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.dneupd() 17th argument (info) can't be converted to int");
@@ -3195,26 +3312,30 @@ f2py_start_clock();
     /* Processing variable dr */
     dr_Dims[0]=1 + nev;
     capi_dr_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_dr_tmp = array_from_pyobj(NPY_DOUBLE,dr_Dims,dr_Rank,capi_dr_intent,Py_None);
-    if (capi_dr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `dr' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the hidden `dr`";
+    capi_dr_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,dr_Dims,dr_Rank,  capi_dr_intent,Py_None,capi_errmess);
+    if (capi_dr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dr = (double *)(PyArray_DATA(capi_dr_tmp));
+        dr = (double *)(PyArray_DATA(capi_dr_as_array));
 
     /* Processing variable di */
     di_Dims[0]=1 + nev;
     capi_di_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_di_tmp = array_from_pyobj(NPY_DOUBLE,di_Dims,di_Rank,capi_di_intent,Py_None);
-    if (capi_di_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `di' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the hidden `di`";
+    capi_di_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,di_Dims,di_Rank,  capi_di_intent,Py_None,capi_errmess);
+    if (capi_di_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        di = (double *)(PyArray_DATA(capi_di_tmp));
+        di = (double *)(PyArray_DATA(capi_di_as_array));
 
     /* Processing variable n */
     if (n_capi == Py_None) n = len(resid); else
@@ -3229,14 +3350,16 @@ f2py_start_clock();
     /* Processing variable v */
     v_Dims[0]=n,v_Dims[1]=ncv;
     capi_v_intent |= F2PY_INTENT_IN;
-    capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 12nd argument `v' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the 12nd argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (double *)(PyArray_DATA(capi_v_tmp));
+        v = (double *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable ldv */
     if (ldv_capi == Py_None) ldv = shape(v,0); else
@@ -3246,14 +3369,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=3 * n;
     capi_workd_intent |= F2PY_INTENT_IN;
-    capi_workd_tmp = array_from_pyobj(NPY_DOUBLE,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 15th argument `workd' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the 15th argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (double *)(PyArray_DATA(capi_workd_tmp));
+        workd = (double *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -3263,14 +3388,16 @@ f2py_start_clock();
     /* Processing variable z */
     z_Dims[0]=n,z_Dims[1]=1 + nev;
     capi_z_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_z_tmp = array_from_pyobj(NPY_DOUBLE,z_Dims,z_Rank,capi_z_intent,Py_None);
-    if (capi_z_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `z' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the hidden `z`";
+    capi_z_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,z_Dims,z_Rank,  capi_z_intent,Py_None,capi_errmess);
+    if (capi_z_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        z = (double *)(PyArray_DATA(capi_z_tmp));
+        z = (double *)(PyArray_DATA(capi_z_as_array));
 
     /* Processing variable ldz */
     if (ldz_capi == Py_None) ldz = shape(z,0); else
@@ -3280,14 +3407,16 @@ f2py_start_clock();
     /* Processing variable workev */
     workev_Dims[0]=3 * ncv;
     capi_workev_intent |= F2PY_INTENT_IN;
-    capi_workev_tmp = array_from_pyobj(NPY_DOUBLE,workev_Dims,workev_Rank,capi_workev_intent,workev_capi);
-    if (capi_workev_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 6th argument `workev' of _arpack.dneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.dneupd: failed to create array from the 6th argument `workev`";
+    capi_workev_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,workev_Dims,workev_Rank,  capi_workev_intent,workev_capi,capi_errmess);
+    if (capi_workev_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workev = (double *)(PyArray_DATA(capi_workev_tmp));
+        workev = (double *)(PyArray_DATA(capi_workev_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3295,7 +3424,7 @@ f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
             Py_BEGIN_ALLOW_THREADS
-                (*f2py_func)(&rvec,howmny,select,dr,di,z,&ldz,&sigmar,&sigmai,workev,bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,&info,slen(howmny),slen(bmat),slen(which));
+                (*f2py_func)(&rvec,&howmny,select,dr,di,z,&ldz,&sigmar,&sigmai,workev,&bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,&info,slen(which));
             Py_END_ALLOW_THREADS
 if (PyErr_Occurred())
   f2py_success = 0;
@@ -3307,33 +3436,33 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NNNi",capi_dr_tmp,capi_di_tmp,capi_z_tmp,info);
+        capi_buildvalue = Py_BuildValue("NNNi",capi_dr_as_array,capi_di_as_array,capi_z_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_workev_tmp!=workev_capi) {
-        Py_XDECREF(capi_workev_tmp); }
-    }  /*if (capi_workev_tmp == NULL) ... else of workev*/
+    if((PyObject *)capi_workev_as_array!=workev_capi) {
+        Py_XDECREF(capi_workev_as_array); }
+    }  /* if (capi_workev_as_array == NULL) ... else of workev */
     /* End of cleaning variable workev */
     } /*CHECKSCALAR(shape(z,0)==ldz)*/
     } /*if (f2py_success) of ldz*/
     /* End of cleaning variable ldz */
-    }  /*if (capi_z_tmp == NULL) ... else of z*/
+    }  /* if (capi_z_as_array == NULL) ... else of z */
     /* End of cleaning variable z */
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
     /* End of cleaning variable ldv */
-    if((PyObject *)capi_v_tmp!=v_capi) {
-        Py_XDECREF(capi_v_tmp); }
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    if((PyObject *)capi_v_as_array!=v_capi) {
+        Py_XDECREF(capi_v_as_array); }
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
     } /*CHECKSCALAR(len(select)>=ncv)*/
     } /*if (f2py_success) of ncv*/
@@ -3341,27 +3470,27 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(resid)>=n)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
-    }  /*if (capi_di_tmp == NULL) ... else of di*/
+    }  /* if (capi_di_as_array == NULL) ... else of di */
     /* End of cleaning variable di */
-    }  /*if (capi_dr_tmp == NULL) ... else of dr*/
+    }  /* if (capi_dr_as_array == NULL) ... else of dr */
     /* End of cleaning variable dr */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    if((PyObject *)capi_ipntr_tmp!=ipntr_capi) {
-        Py_XDECREF(capi_ipntr_tmp); }
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    if((PyObject *)capi_ipntr_as_array!=ipntr_capi) {
+        Py_XDECREF(capi_ipntr_as_array); }
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    if((PyObject *)capi_iparam_tmp!=iparam_capi) {
-        Py_XDECREF(capi_iparam_tmp); }
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    if((PyObject *)capi_iparam_as_array!=iparam_capi) {
+        Py_XDECREF(capi_iparam_as_array); }
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    if((PyObject *)capi_resid_tmp!=resid_capi) {
-        Py_XDECREF(capi_resid_tmp); }
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    if((PyObject *)capi_resid_as_array!=resid_capi) {
+        Py_XDECREF(capi_resid_as_array); }
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -3370,19 +3499,17 @@ f2py_stop_call_clock();
         STRINGFREE(which);
     }  /*if (f2py_success) of which*/
     /* End of cleaning variable which */
-        STRINGFREE(bmat);
-    }  /*if (f2py_success) of bmat*/
+    } /*if (f2py_success) of bmat*/
     /* End of cleaning variable bmat */
     } /*if (f2py_success) of sigmai*/
     /* End of cleaning variable sigmai */
     } /*if (f2py_success) of sigmar*/
     /* End of cleaning variable sigmar */
-    if((PyObject *)capi_select_tmp!=select_capi) {
-        Py_XDECREF(capi_select_tmp); }
-    }  /*if (capi_select_tmp == NULL) ... else of select*/
+    if((PyObject *)capi_select_as_array!=select_capi) {
+        Py_XDECREF(capi_select_as_array); }
+    }  /* if (capi_select_as_array == NULL) ... else of select */
     /* End of cleaning variable select */
-        STRINGFREE(howmny);
-    }  /*if (f2py_success) of howmny*/
+    } /*if (f2py_success) of howmny*/
     /* End of cleaning variable howmny */
     } /*if (f2py_success) of rvec*/
     /* End of cleaning variable rvec */
@@ -3457,7 +3584,7 @@ static PyObject *f2py_rout__arpack_cnaupd(const PyObject *capi_self,
     complex_float *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -3465,7 +3592,7 @@ static PyObject *f2py_rout__arpack_cnaupd(const PyObject *capi_self,
     complex_float *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -3473,25 +3600,25 @@ static PyObject *f2py_rout__arpack_cnaupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     complex_float *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     complex_float *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -3499,7 +3626,7 @@ static PyObject *f2py_rout__arpack_cnaupd(const PyObject *capi_self,
     float *rwork = NULL;
     npy_intp rwork_Dims[1] = {-1};
     const int rwork_Rank = 1;
-    PyArrayObject *capi_rwork_tmp = NULL;
+    PyArrayObject *capi_rwork_as_array = NULL;
     int capi_rwork_intent = 0;
     PyObject *rwork_capi = Py_None;
     int info = 0;
@@ -3537,62 +3664,72 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_resid_tmp = array_from_pyobj(NPY_CFLOAT,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 6th argument `resid' of _arpack.cnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cnaupd: failed to create array from the 6th argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (complex_float *)(PyArray_DATA(capi_resid_tmp));
+        resid = (complex_float *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable v */
     ;
     capi_v_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_v_tmp = array_from_pyobj(NPY_CFLOAT,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 7th argument `v' of _arpack.cnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cnaupd: failed to create array from the 7th argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (complex_float *)(PyArray_DATA(capi_v_tmp));
+        v = (complex_float *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=11;
     capi_iparam_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 8th argument `iparam' of _arpack.cnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cnaupd: failed to create array from the 8th argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=14;
     capi_ipntr_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 9th argument `ipntr' of _arpack.cnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cnaupd: failed to create array from the 9th argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_INOUT;
-    capi_workl_tmp = array_from_pyobj(NPY_CFLOAT,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `workl' of _arpack.cnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cnaupd: failed to create array from the 11st argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (complex_float *)(PyArray_DATA(capi_workl_tmp));
+        workl = (complex_float *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.cnaupd() 13rd argument (info) can't be converted to int");
@@ -3615,14 +3752,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=3 * n;
     capi_workd_intent |= F2PY_INTENT_INOUT;
-    capi_workd_tmp = array_from_pyobj(NPY_CFLOAT,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 10th argument `workd' of _arpack.cnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cnaupd: failed to create array from the 10th argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (complex_float *)(PyArray_DATA(capi_workd_tmp));
+        workd = (complex_float *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -3632,14 +3771,16 @@ f2py_start_clock();
     /* Processing variable rwork */
     rwork_Dims[0]=ncv;
     capi_rwork_intent |= F2PY_INTENT_INOUT;
-    capi_rwork_tmp = array_from_pyobj(NPY_FLOAT,rwork_Dims,rwork_Rank,capi_rwork_intent,rwork_capi);
-    if (capi_rwork_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 12nd argument `rwork' of _arpack.cnaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cnaupd: failed to create array from the 12nd argument `rwork`";
+    capi_rwork_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,rwork_Dims,rwork_Rank,  capi_rwork_intent,rwork_capi,capi_errmess);
+    if (capi_rwork_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        rwork = (float *)(PyArray_DATA(capi_rwork_tmp));
+        rwork = (float *)(PyArray_DATA(capi_rwork_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3659,21 +3800,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("ifNNNNi",ido,tol,capi_resid_tmp,capi_v_tmp,capi_iparam_tmp,capi_ipntr_tmp,info);
+        capi_buildvalue = Py_BuildValue("ifNNNNi",ido,tol,capi_resid_as_array,capi_v_as_array,capi_iparam_as_array,capi_ipntr_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_rwork_tmp!=rwork_capi) {
-        Py_XDECREF(capi_rwork_tmp); }
-    }  /*if (capi_rwork_tmp == NULL) ... else of rwork*/
+    if((PyObject *)capi_rwork_as_array!=rwork_capi) {
+        Py_XDECREF(capi_rwork_as_array); }
+    }  /* if (capi_rwork_as_array == NULL) ... else of rwork */
     /* End of cleaning variable rwork */
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
@@ -3686,17 +3827,17 @@ f2py_stop_call_clock();
     /* End of cleaning variable n */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -3781,7 +3922,7 @@ static PyObject *f2py_rout__arpack_znaupd(const PyObject *capi_self,
     complex_double *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -3789,7 +3930,7 @@ static PyObject *f2py_rout__arpack_znaupd(const PyObject *capi_self,
     complex_double *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -3797,25 +3938,25 @@ static PyObject *f2py_rout__arpack_znaupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     complex_double *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     complex_double *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -3823,7 +3964,7 @@ static PyObject *f2py_rout__arpack_znaupd(const PyObject *capi_self,
     double *rwork = NULL;
     npy_intp rwork_Dims[1] = {-1};
     const int rwork_Rank = 1;
-    PyArrayObject *capi_rwork_tmp = NULL;
+    PyArrayObject *capi_rwork_as_array = NULL;
     int capi_rwork_intent = 0;
     PyObject *rwork_capi = Py_None;
     int info = 0;
@@ -3861,62 +4002,72 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_resid_tmp = array_from_pyobj(NPY_CDOUBLE,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 6th argument `resid' of _arpack.znaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.znaupd: failed to create array from the 6th argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (complex_double *)(PyArray_DATA(capi_resid_tmp));
+        resid = (complex_double *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable v */
     ;
     capi_v_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 7th argument `v' of _arpack.znaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.znaupd: failed to create array from the 7th argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (complex_double *)(PyArray_DATA(capi_v_tmp));
+        v = (complex_double *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=11;
     capi_iparam_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 8th argument `iparam' of _arpack.znaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.znaupd: failed to create array from the 8th argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=14;
     capi_ipntr_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 9th argument `ipntr' of _arpack.znaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.znaupd: failed to create array from the 9th argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_INOUT;
-    capi_workl_tmp = array_from_pyobj(NPY_CDOUBLE,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `workl' of _arpack.znaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.znaupd: failed to create array from the 11st argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (complex_double *)(PyArray_DATA(capi_workl_tmp));
+        workl = (complex_double *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.znaupd() 13rd argument (info) can't be converted to int");
@@ -3939,14 +4090,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=3 * n;
     capi_workd_intent |= F2PY_INTENT_INOUT;
-    capi_workd_tmp = array_from_pyobj(NPY_CDOUBLE,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 10th argument `workd' of _arpack.znaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.znaupd: failed to create array from the 10th argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (complex_double *)(PyArray_DATA(capi_workd_tmp));
+        workd = (complex_double *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -3956,14 +4109,16 @@ f2py_start_clock();
     /* Processing variable rwork */
     rwork_Dims[0]=ncv;
     capi_rwork_intent |= F2PY_INTENT_INOUT;
-    capi_rwork_tmp = array_from_pyobj(NPY_DOUBLE,rwork_Dims,rwork_Rank,capi_rwork_intent,rwork_capi);
-    if (capi_rwork_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 12nd argument `rwork' of _arpack.znaupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.znaupd: failed to create array from the 12nd argument `rwork`";
+    capi_rwork_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,rwork_Dims,rwork_Rank,  capi_rwork_intent,rwork_capi,capi_errmess);
+    if (capi_rwork_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        rwork = (double *)(PyArray_DATA(capi_rwork_tmp));
+        rwork = (double *)(PyArray_DATA(capi_rwork_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -3983,21 +4138,21 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("idNNNNi",ido,tol,capi_resid_tmp,capi_v_tmp,capi_iparam_tmp,capi_ipntr_tmp,info);
+        capi_buildvalue = Py_BuildValue("idNNNNi",ido,tol,capi_resid_as_array,capi_v_as_array,capi_iparam_as_array,capi_ipntr_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_rwork_tmp!=rwork_capi) {
-        Py_XDECREF(capi_rwork_tmp); }
-    }  /*if (capi_rwork_tmp == NULL) ... else of rwork*/
+    if((PyObject *)capi_rwork_as_array!=rwork_capi) {
+        Py_XDECREF(capi_rwork_as_array); }
+    }  /* if (capi_rwork_as_array == NULL) ... else of rwork */
     /* End of cleaning variable rwork */
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
@@ -4010,17 +4165,17 @@ f2py_stop_call_clock();
     /* End of cleaning variable n */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -4054,11 +4209,11 @@ static char doc_f2py_rout__arpack_cneupd[] = "\
 d,z,info = cneupd(rvec,howmny,select,sigma,workev,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,rwork,info,[ldz,n,ncv,ldv,lworkl])\n\nWrapper for ``cneupd``.\
 \n\nParameters\n----------\n"
 "rvec : input int\n"
-"howmny : input string(len=1)\n"
+"howmny : input bytes\n"
 "select : input rank-1 array('i') with bounds (ncv)\n"
 "sigma : input complex\n"
 "workev : input rank-1 array('F') with bounds (3 * ncv)\n"
-"bmat : input string(len=1)\n"
+"bmat : input bytes\n"
 "which : input string(len=2)\n"
 "nev : input int\n"
 "tol : input float\n"
@@ -4080,35 +4235,34 @@ d,z,info = cneupd(rvec,howmny,select,sigma,workev,bmat,which,nev,tol,resid,v,ipa
 "d : rank-1 array('F') with bounds (nev)\n"
 "z : rank-2 array('F') with bounds (n,nev)\n"
 "info : int";
-/* extern void F_FUNC(cneupd,CNEUPD)(int*,string,int*,complex_float*,complex_float*,int*,complex_float*,complex_float*,string,int*,string,int*,float*,complex_float*,int*,complex_float*,int*,int*,int*,complex_float*,complex_float*,int*,float*,int*,size_t,size_t,size_t); */
+/* extern void F_FUNC(cneupd,CNEUPD)(int*,character*,int*,complex_float*,complex_float*,int*,complex_float*,complex_float*,character*,int*,string,int*,float*,complex_float*,int*,complex_float*,int*,int*,int*,complex_float*,complex_float*,int*,float*,int*,size_t); */
 static PyObject *f2py_rout__arpack_cneupd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
-                           void (*f2py_func)(int*,string,int*,complex_float*,complex_float*,int*,complex_float*,complex_float*,string,int*,string,int*,float*,complex_float*,int*,complex_float*,int*,int*,int*,complex_float*,complex_float*,int*,float*,int*,size_t,size_t,size_t)) {
+                           void (*f2py_func)(int*,character*,int*,complex_float*,complex_float*,int*,complex_float*,complex_float*,character*,int*,string,int*,float*,complex_float*,int*,complex_float*,int*,int*,int*,complex_float*,complex_float*,int*,float*,int*,size_t)) {
     PyObject * volatile capi_buildvalue = NULL;
     volatile int f2py_success = 1;
 /*decl*/
 
     int rvec = 0;
     PyObject *rvec_capi = Py_None;
-    string howmny = NULL;
-    int slen(howmny);
+    character howmny = 0;
     PyObject *howmny_capi = Py_None;
     int *select = NULL;
     npy_intp select_Dims[1] = {-1};
     const int select_Rank = 1;
-    PyArrayObject *capi_select_tmp = NULL;
+    PyArrayObject *capi_select_as_array = NULL;
     int capi_select_intent = 0;
     PyObject *select_capi = Py_None;
     complex_float *d = NULL;
     npy_intp d_Dims[1] = {-1};
     const int d_Rank = 1;
-    PyArrayObject *capi_d_tmp = NULL;
+    PyArrayObject *capi_d_as_array = NULL;
     int capi_d_intent = 0;
     complex_float *z = NULL;
     npy_intp z_Dims[2] = {-1, -1};
     const int z_Rank = 2;
-    PyArrayObject *capi_z_tmp = NULL;
+    PyArrayObject *capi_z_as_array = NULL;
     int capi_z_intent = 0;
     int ldz = 0;
     PyObject *ldz_capi = Py_None;
@@ -4117,11 +4271,10 @@ static PyObject *f2py_rout__arpack_cneupd(const PyObject *capi_self,
     complex_float *workev = NULL;
     npy_intp workev_Dims[1] = {-1};
     const int workev_Rank = 1;
-    PyArrayObject *capi_workev_tmp = NULL;
+    PyArrayObject *capi_workev_as_array = NULL;
     int capi_workev_intent = 0;
     PyObject *workev_capi = Py_None;
-    string bmat = NULL;
-    int slen(bmat);
+    character bmat = 0;
     PyObject *bmat_capi = Py_None;
     int n = 0;
     PyObject *n_capi = Py_None;
@@ -4135,7 +4288,7 @@ static PyObject *f2py_rout__arpack_cneupd(const PyObject *capi_self,
     complex_float *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -4143,7 +4296,7 @@ static PyObject *f2py_rout__arpack_cneupd(const PyObject *capi_self,
     complex_float *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -4151,25 +4304,25 @@ static PyObject *f2py_rout__arpack_cneupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     complex_float *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     complex_float *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -4177,7 +4330,7 @@ static PyObject *f2py_rout__arpack_cneupd(const PyObject *capi_self,
     float *rwork = NULL;
     npy_intp rwork_Dims[1] = {-1};
     const int rwork_Rank = 1;
-    PyArrayObject *capi_rwork_tmp = NULL;
+    PyArrayObject *capi_rwork_as_array = NULL;
     int capi_rwork_intent = 0;
     PyObject *rwork_capi = Py_None;
     int info = 0;
@@ -4198,30 +4351,28 @@ f2py_start_clock();
         f2py_success = 1;
     if (f2py_success) {
     /* Processing variable howmny */
-    slen(howmny) = 1;
-    f2py_success = string_from_pyobj(&howmny,&slen(howmny),"",howmny_capi,"string_from_pyobj failed in converting 2nd argument`howmny' of _arpack.cneupd to C string");
+        f2py_success = character_from_pyobj(&howmny,howmny_capi,"_arpack.cneupd() 2nd argument (howmny) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(howmny, slen(howmny), '\0', ' ');
     /* Processing variable select */
     ;
     capi_select_intent |= F2PY_INTENT_IN;
-    capi_select_tmp = array_from_pyobj(NPY_INT,select_Dims,select_Rank,capi_select_intent,select_capi);
-    if (capi_select_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 3rd argument `select' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the 3rd argument `select`";
+    capi_select_as_array = ndarray_from_pyobj(  NPY_INT,1,select_Dims,select_Rank,  capi_select_intent,select_capi,capi_errmess);
+    if (capi_select_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        select = (int *)(PyArray_DATA(capi_select_tmp));
+        select = (int *)(PyArray_DATA(capi_select_as_array));
 
     /* Processing variable sigma */
         f2py_success = complex_float_from_pyobj(&sigma,sigma_capi,"_arpack.cneupd() 4th argument (sigma) can't be converted to complex_float");
     if (f2py_success) {
     /* Processing variable bmat */
-    slen(bmat) = 1;
-    f2py_success = string_from_pyobj(&bmat,&slen(bmat),"",bmat_capi,"string_from_pyobj failed in converting 6th argument`bmat' of _arpack.cneupd to C string");
+        f2py_success = character_from_pyobj(&bmat,bmat_capi,"_arpack.cneupd() 6th argument (bmat) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(bmat, slen(bmat), '\0', ' ');
     /* Processing variable which */
     slen(which) = 2;
     f2py_success = string_from_pyobj(&which,&slen(which),"",which_capi,"string_from_pyobj failed in converting 7th argument`which' of _arpack.cneupd to C string");
@@ -4236,50 +4387,58 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN;
-    capi_resid_tmp = array_from_pyobj(NPY_CFLOAT,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 10th argument `resid' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the 10th argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (complex_float *)(PyArray_DATA(capi_resid_tmp));
+        resid = (complex_float *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=11;
     capi_iparam_intent |= F2PY_INTENT_IN;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 12nd argument `iparam' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the 12nd argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=14;
     capi_ipntr_intent |= F2PY_INTENT_IN;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 13rd argument `ipntr' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the 13rd argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_IN;
-    capi_workl_tmp = array_from_pyobj(NPY_CFLOAT,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 15th argument `workl' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the 15th argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (complex_float *)(PyArray_DATA(capi_workl_tmp));
+        workl = (complex_float *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.cneupd() 17th argument (info) can't be converted to int");
@@ -4287,14 +4446,16 @@ f2py_start_clock();
     /* Processing variable d */
     d_Dims[0]=nev;
     capi_d_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_d_tmp = array_from_pyobj(NPY_CFLOAT,d_Dims,d_Rank,capi_d_intent,Py_None);
-    if (capi_d_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `d' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the hidden `d`";
+    capi_d_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,d_Dims,d_Rank,  capi_d_intent,Py_None,capi_errmess);
+    if (capi_d_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        d = (complex_float *)(PyArray_DATA(capi_d_tmp));
+        d = (complex_float *)(PyArray_DATA(capi_d_as_array));
 
     /* Processing variable n */
     if (n_capi == Py_None) n = len(resid); else
@@ -4309,14 +4470,16 @@ f2py_start_clock();
     /* Processing variable v */
     v_Dims[1]=ncv;
     capi_v_intent |= F2PY_INTENT_IN;
-    capi_v_tmp = array_from_pyobj(NPY_CFLOAT,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `v' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the 11st argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (complex_float *)(PyArray_DATA(capi_v_tmp));
+        v = (complex_float *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable ldv */
     if (ldv_capi == Py_None) ldv = shape(v,0); else
@@ -4326,14 +4489,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=3 * n;
     capi_workd_intent |= F2PY_INTENT_IN;
-    capi_workd_tmp = array_from_pyobj(NPY_CFLOAT,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 14th argument `workd' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the 14th argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (complex_float *)(PyArray_DATA(capi_workd_tmp));
+        workd = (complex_float *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -4343,26 +4508,30 @@ f2py_start_clock();
     /* Processing variable rwork */
     rwork_Dims[0]=ncv;
     capi_rwork_intent |= F2PY_INTENT_IN;
-    capi_rwork_tmp = array_from_pyobj(NPY_FLOAT,rwork_Dims,rwork_Rank,capi_rwork_intent,rwork_capi);
-    if (capi_rwork_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 16th argument `rwork' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the 16th argument `rwork`";
+    capi_rwork_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,rwork_Dims,rwork_Rank,  capi_rwork_intent,rwork_capi,capi_errmess);
+    if (capi_rwork_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        rwork = (float *)(PyArray_DATA(capi_rwork_tmp));
+        rwork = (float *)(PyArray_DATA(capi_rwork_as_array));
 
     /* Processing variable z */
     z_Dims[0]=n,z_Dims[1]=nev;
     capi_z_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_z_tmp = array_from_pyobj(NPY_CFLOAT,z_Dims,z_Rank,capi_z_intent,Py_None);
-    if (capi_z_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `z' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the hidden `z`";
+    capi_z_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,z_Dims,z_Rank,  capi_z_intent,Py_None,capi_errmess);
+    if (capi_z_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        z = (complex_float *)(PyArray_DATA(capi_z_tmp));
+        z = (complex_float *)(PyArray_DATA(capi_z_as_array));
 
     /* Processing variable ldz */
     if (ldz_capi == Py_None) ldz = shape(z,0); else
@@ -4372,14 +4541,16 @@ f2py_start_clock();
     /* Processing variable workev */
     workev_Dims[0]=3 * ncv;
     capi_workev_intent |= F2PY_INTENT_IN;
-    capi_workev_tmp = array_from_pyobj(NPY_CFLOAT,workev_Dims,workev_Rank,capi_workev_intent,workev_capi);
-    if (capi_workev_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 5th argument `workev' of _arpack.cneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.cneupd: failed to create array from the 5th argument `workev`";
+    capi_workev_as_array = ndarray_from_pyobj(  NPY_CFLOAT,1,workev_Dims,workev_Rank,  capi_workev_intent,workev_capi,capi_errmess);
+    if (capi_workev_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workev = (complex_float *)(PyArray_DATA(capi_workev_tmp));
+        workev = (complex_float *)(PyArray_DATA(capi_workev_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -4387,7 +4558,7 @@ f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
             Py_BEGIN_ALLOW_THREADS
-                (*f2py_func)(&rvec,howmny,select,d,z,&ldz,&sigma,workev,bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,rwork,&info,slen(howmny),slen(bmat),slen(which));
+                (*f2py_func)(&rvec,&howmny,select,d,z,&ldz,&sigma,workev,&bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,rwork,&info,slen(which));
             Py_END_ALLOW_THREADS
 if (PyErr_Occurred())
   f2py_success = 0;
@@ -4399,37 +4570,37 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NNi",capi_d_tmp,capi_z_tmp,info);
+        capi_buildvalue = Py_BuildValue("NNi",capi_d_as_array,capi_z_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_workev_tmp!=workev_capi) {
-        Py_XDECREF(capi_workev_tmp); }
-    }  /*if (capi_workev_tmp == NULL) ... else of workev*/
+    if((PyObject *)capi_workev_as_array!=workev_capi) {
+        Py_XDECREF(capi_workev_as_array); }
+    }  /* if (capi_workev_as_array == NULL) ... else of workev */
     /* End of cleaning variable workev */
     } /*CHECKSCALAR(shape(z,0)==ldz)*/
     } /*if (f2py_success) of ldz*/
     /* End of cleaning variable ldz */
-    }  /*if (capi_z_tmp == NULL) ... else of z*/
+    }  /* if (capi_z_as_array == NULL) ... else of z */
     /* End of cleaning variable z */
-    if((PyObject *)capi_rwork_tmp!=rwork_capi) {
-        Py_XDECREF(capi_rwork_tmp); }
-    }  /*if (capi_rwork_tmp == NULL) ... else of rwork*/
+    if((PyObject *)capi_rwork_as_array!=rwork_capi) {
+        Py_XDECREF(capi_rwork_as_array); }
+    }  /* if (capi_rwork_as_array == NULL) ... else of rwork */
     /* End of cleaning variable rwork */
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
     /* End of cleaning variable ldv */
-    if((PyObject *)capi_v_tmp!=v_capi) {
-        Py_XDECREF(capi_v_tmp); }
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    if((PyObject *)capi_v_as_array!=v_capi) {
+        Py_XDECREF(capi_v_as_array); }
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
     } /*CHECKSCALAR(len(select)>=ncv)*/
     } /*if (f2py_success) of ncv*/
@@ -4437,25 +4608,25 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(resid)>=n)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
-    }  /*if (capi_d_tmp == NULL) ... else of d*/
+    }  /* if (capi_d_as_array == NULL) ... else of d */
     /* End of cleaning variable d */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    if((PyObject *)capi_ipntr_tmp!=ipntr_capi) {
-        Py_XDECREF(capi_ipntr_tmp); }
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    if((PyObject *)capi_ipntr_as_array!=ipntr_capi) {
+        Py_XDECREF(capi_ipntr_as_array); }
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    if((PyObject *)capi_iparam_tmp!=iparam_capi) {
-        Py_XDECREF(capi_iparam_tmp); }
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    if((PyObject *)capi_iparam_as_array!=iparam_capi) {
+        Py_XDECREF(capi_iparam_as_array); }
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    if((PyObject *)capi_resid_tmp!=resid_capi) {
-        Py_XDECREF(capi_resid_tmp); }
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    if((PyObject *)capi_resid_as_array!=resid_capi) {
+        Py_XDECREF(capi_resid_as_array); }
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -4464,17 +4635,15 @@ f2py_stop_call_clock();
         STRINGFREE(which);
     }  /*if (f2py_success) of which*/
     /* End of cleaning variable which */
-        STRINGFREE(bmat);
-    }  /*if (f2py_success) of bmat*/
+    } /*if (f2py_success) of bmat*/
     /* End of cleaning variable bmat */
     }  /*if (f2py_success) of sigma frompyobj*/
     /* End of cleaning variable sigma */
-    if((PyObject *)capi_select_tmp!=select_capi) {
-        Py_XDECREF(capi_select_tmp); }
-    }  /*if (capi_select_tmp == NULL) ... else of select*/
+    if((PyObject *)capi_select_as_array!=select_capi) {
+        Py_XDECREF(capi_select_as_array); }
+    }  /* if (capi_select_as_array == NULL) ... else of select */
     /* End of cleaning variable select */
-        STRINGFREE(howmny);
-    }  /*if (f2py_success) of howmny*/
+    } /*if (f2py_success) of howmny*/
     /* End of cleaning variable howmny */
     } /*if (f2py_success) of rvec*/
     /* End of cleaning variable rvec */
@@ -4498,11 +4667,11 @@ static char doc_f2py_rout__arpack_zneupd[] = "\
 d,z,info = zneupd(rvec,howmny,select,sigma,workev,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,rwork,info,[ldz,n,ncv,ldv,lworkl])\n\nWrapper for ``zneupd``.\
 \n\nParameters\n----------\n"
 "rvec : input int\n"
-"howmny : input string(len=1)\n"
+"howmny : input bytes\n"
 "select : input rank-1 array('i') with bounds (ncv)\n"
 "sigma : input complex\n"
 "workev : input rank-1 array('D') with bounds (3 * ncv)\n"
-"bmat : input string(len=1)\n"
+"bmat : input bytes\n"
 "which : input string(len=2)\n"
 "nev : input int\n"
 "tol : input float\n"
@@ -4524,35 +4693,34 @@ d,z,info = zneupd(rvec,howmny,select,sigma,workev,bmat,which,nev,tol,resid,v,ipa
 "d : rank-1 array('D') with bounds (nev)\n"
 "z : rank-2 array('D') with bounds (n,nev)\n"
 "info : int";
-/* extern void F_FUNC(zneupd,ZNEUPD)(int*,string,int*,complex_double*,complex_double*,int*,complex_double*,complex_double*,string,int*,string,int*,double*,complex_double*,int*,complex_double*,int*,int*,int*,complex_double*,complex_double*,int*,double*,int*,size_t,size_t,size_t); */
+/* extern void F_FUNC(zneupd,ZNEUPD)(int*,character*,int*,complex_double*,complex_double*,int*,complex_double*,complex_double*,character*,int*,string,int*,double*,complex_double*,int*,complex_double*,int*,int*,int*,complex_double*,complex_double*,int*,double*,int*,size_t); */
 static PyObject *f2py_rout__arpack_zneupd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
-                           void (*f2py_func)(int*,string,int*,complex_double*,complex_double*,int*,complex_double*,complex_double*,string,int*,string,int*,double*,complex_double*,int*,complex_double*,int*,int*,int*,complex_double*,complex_double*,int*,double*,int*,size_t,size_t,size_t)) {
+                           void (*f2py_func)(int*,character*,int*,complex_double*,complex_double*,int*,complex_double*,complex_double*,character*,int*,string,int*,double*,complex_double*,int*,complex_double*,int*,int*,int*,complex_double*,complex_double*,int*,double*,int*,size_t)) {
     PyObject * volatile capi_buildvalue = NULL;
     volatile int f2py_success = 1;
 /*decl*/
 
     int rvec = 0;
     PyObject *rvec_capi = Py_None;
-    string howmny = NULL;
-    int slen(howmny);
+    character howmny = 0;
     PyObject *howmny_capi = Py_None;
     int *select = NULL;
     npy_intp select_Dims[1] = {-1};
     const int select_Rank = 1;
-    PyArrayObject *capi_select_tmp = NULL;
+    PyArrayObject *capi_select_as_array = NULL;
     int capi_select_intent = 0;
     PyObject *select_capi = Py_None;
     complex_double *d = NULL;
     npy_intp d_Dims[1] = {-1};
     const int d_Rank = 1;
-    PyArrayObject *capi_d_tmp = NULL;
+    PyArrayObject *capi_d_as_array = NULL;
     int capi_d_intent = 0;
     complex_double *z = NULL;
     npy_intp z_Dims[2] = {-1, -1};
     const int z_Rank = 2;
-    PyArrayObject *capi_z_tmp = NULL;
+    PyArrayObject *capi_z_as_array = NULL;
     int capi_z_intent = 0;
     int ldz = 0;
     PyObject *ldz_capi = Py_None;
@@ -4561,11 +4729,10 @@ static PyObject *f2py_rout__arpack_zneupd(const PyObject *capi_self,
     complex_double *workev = NULL;
     npy_intp workev_Dims[1] = {-1};
     const int workev_Rank = 1;
-    PyArrayObject *capi_workev_tmp = NULL;
+    PyArrayObject *capi_workev_as_array = NULL;
     int capi_workev_intent = 0;
     PyObject *workev_capi = Py_None;
-    string bmat = NULL;
-    int slen(bmat);
+    character bmat = 0;
     PyObject *bmat_capi = Py_None;
     int n = 0;
     PyObject *n_capi = Py_None;
@@ -4579,7 +4746,7 @@ static PyObject *f2py_rout__arpack_zneupd(const PyObject *capi_self,
     complex_double *resid = NULL;
     npy_intp resid_Dims[1] = {-1};
     const int resid_Rank = 1;
-    PyArrayObject *capi_resid_tmp = NULL;
+    PyArrayObject *capi_resid_as_array = NULL;
     int capi_resid_intent = 0;
     PyObject *resid_capi = Py_None;
     int ncv = 0;
@@ -4587,7 +4754,7 @@ static PyObject *f2py_rout__arpack_zneupd(const PyObject *capi_self,
     complex_double *v = NULL;
     npy_intp v_Dims[2] = {-1, -1};
     const int v_Rank = 2;
-    PyArrayObject *capi_v_tmp = NULL;
+    PyArrayObject *capi_v_as_array = NULL;
     int capi_v_intent = 0;
     PyObject *v_capi = Py_None;
     int ldv = 0;
@@ -4595,25 +4762,25 @@ static PyObject *f2py_rout__arpack_zneupd(const PyObject *capi_self,
     int *iparam = NULL;
     npy_intp iparam_Dims[1] = {-1};
     const int iparam_Rank = 1;
-    PyArrayObject *capi_iparam_tmp = NULL;
+    PyArrayObject *capi_iparam_as_array = NULL;
     int capi_iparam_intent = 0;
     PyObject *iparam_capi = Py_None;
     int *ipntr = NULL;
     npy_intp ipntr_Dims[1] = {-1};
     const int ipntr_Rank = 1;
-    PyArrayObject *capi_ipntr_tmp = NULL;
+    PyArrayObject *capi_ipntr_as_array = NULL;
     int capi_ipntr_intent = 0;
     PyObject *ipntr_capi = Py_None;
     complex_double *workd = NULL;
     npy_intp workd_Dims[1] = {-1};
     const int workd_Rank = 1;
-    PyArrayObject *capi_workd_tmp = NULL;
+    PyArrayObject *capi_workd_as_array = NULL;
     int capi_workd_intent = 0;
     PyObject *workd_capi = Py_None;
     complex_double *workl = NULL;
     npy_intp workl_Dims[1] = {-1};
     const int workl_Rank = 1;
-    PyArrayObject *capi_workl_tmp = NULL;
+    PyArrayObject *capi_workl_as_array = NULL;
     int capi_workl_intent = 0;
     PyObject *workl_capi = Py_None;
     int lworkl = 0;
@@ -4621,7 +4788,7 @@ static PyObject *f2py_rout__arpack_zneupd(const PyObject *capi_self,
     double *rwork = NULL;
     npy_intp rwork_Dims[1] = {-1};
     const int rwork_Rank = 1;
-    PyArrayObject *capi_rwork_tmp = NULL;
+    PyArrayObject *capi_rwork_as_array = NULL;
     int capi_rwork_intent = 0;
     PyObject *rwork_capi = Py_None;
     int info = 0;
@@ -4642,30 +4809,28 @@ f2py_start_clock();
         f2py_success = 1;
     if (f2py_success) {
     /* Processing variable howmny */
-    slen(howmny) = 1;
-    f2py_success = string_from_pyobj(&howmny,&slen(howmny),"",howmny_capi,"string_from_pyobj failed in converting 2nd argument`howmny' of _arpack.zneupd to C string");
+        f2py_success = character_from_pyobj(&howmny,howmny_capi,"_arpack.zneupd() 2nd argument (howmny) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(howmny, slen(howmny), '\0', ' ');
     /* Processing variable select */
     ;
     capi_select_intent |= F2PY_INTENT_IN;
-    capi_select_tmp = array_from_pyobj(NPY_INT,select_Dims,select_Rank,capi_select_intent,select_capi);
-    if (capi_select_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 3rd argument `select' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the 3rd argument `select`";
+    capi_select_as_array = ndarray_from_pyobj(  NPY_INT,1,select_Dims,select_Rank,  capi_select_intent,select_capi,capi_errmess);
+    if (capi_select_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        select = (int *)(PyArray_DATA(capi_select_tmp));
+        select = (int *)(PyArray_DATA(capi_select_as_array));
 
     /* Processing variable sigma */
         f2py_success = complex_double_from_pyobj(&sigma,sigma_capi,"_arpack.zneupd() 4th argument (sigma) can't be converted to complex_double");
     if (f2py_success) {
     /* Processing variable bmat */
-    slen(bmat) = 1;
-    f2py_success = string_from_pyobj(&bmat,&slen(bmat),"",bmat_capi,"string_from_pyobj failed in converting 6th argument`bmat' of _arpack.zneupd to C string");
+        f2py_success = character_from_pyobj(&bmat,bmat_capi,"_arpack.zneupd() 6th argument (bmat) can't be converted to character");
     if (f2py_success) {
-        STRINGPADN(bmat, slen(bmat), '\0', ' ');
     /* Processing variable which */
     slen(which) = 2;
     f2py_success = string_from_pyobj(&which,&slen(which),"",which_capi,"string_from_pyobj failed in converting 7th argument`which' of _arpack.zneupd to C string");
@@ -4680,50 +4845,58 @@ f2py_start_clock();
     /* Processing variable resid */
     ;
     capi_resid_intent |= F2PY_INTENT_IN;
-    capi_resid_tmp = array_from_pyobj(NPY_CDOUBLE,resid_Dims,resid_Rank,capi_resid_intent,resid_capi);
-    if (capi_resid_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 10th argument `resid' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the 10th argument `resid`";
+    capi_resid_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,resid_Dims,resid_Rank,  capi_resid_intent,resid_capi,capi_errmess);
+    if (capi_resid_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        resid = (complex_double *)(PyArray_DATA(capi_resid_tmp));
+        resid = (complex_double *)(PyArray_DATA(capi_resid_as_array));
 
     /* Processing variable iparam */
     iparam_Dims[0]=11;
     capi_iparam_intent |= F2PY_INTENT_IN;
-    capi_iparam_tmp = array_from_pyobj(NPY_INT,iparam_Dims,iparam_Rank,capi_iparam_intent,iparam_capi);
-    if (capi_iparam_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 12nd argument `iparam' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the 12nd argument `iparam`";
+    capi_iparam_as_array = ndarray_from_pyobj(  NPY_INT,1,iparam_Dims,iparam_Rank,  capi_iparam_intent,iparam_capi,capi_errmess);
+    if (capi_iparam_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iparam = (int *)(PyArray_DATA(capi_iparam_tmp));
+        iparam = (int *)(PyArray_DATA(capi_iparam_as_array));
 
     /* Processing variable ipntr */
     ipntr_Dims[0]=14;
     capi_ipntr_intent |= F2PY_INTENT_IN;
-    capi_ipntr_tmp = array_from_pyobj(NPY_INT,ipntr_Dims,ipntr_Rank,capi_ipntr_intent,ipntr_capi);
-    if (capi_ipntr_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 13rd argument `ipntr' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the 13rd argument `ipntr`";
+    capi_ipntr_as_array = ndarray_from_pyobj(  NPY_INT,1,ipntr_Dims,ipntr_Rank,  capi_ipntr_intent,ipntr_capi,capi_errmess);
+    if (capi_ipntr_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        ipntr = (int *)(PyArray_DATA(capi_ipntr_tmp));
+        ipntr = (int *)(PyArray_DATA(capi_ipntr_as_array));
 
     /* Processing variable workl */
     ;
     capi_workl_intent |= F2PY_INTENT_IN;
-    capi_workl_tmp = array_from_pyobj(NPY_CDOUBLE,workl_Dims,workl_Rank,capi_workl_intent,workl_capi);
-    if (capi_workl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 15th argument `workl' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the 15th argument `workl`";
+    capi_workl_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,workl_Dims,workl_Rank,  capi_workl_intent,workl_capi,capi_errmess);
+    if (capi_workl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workl = (complex_double *)(PyArray_DATA(capi_workl_tmp));
+        workl = (complex_double *)(PyArray_DATA(capi_workl_as_array));
 
     /* Processing variable info */
         f2py_success = int_from_pyobj(&info,info_capi,"_arpack.zneupd() 17th argument (info) can't be converted to int");
@@ -4731,14 +4904,16 @@ f2py_start_clock();
     /* Processing variable d */
     d_Dims[0]=nev;
     capi_d_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_d_tmp = array_from_pyobj(NPY_CDOUBLE,d_Dims,d_Rank,capi_d_intent,Py_None);
-    if (capi_d_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `d' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the hidden `d`";
+    capi_d_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,d_Dims,d_Rank,  capi_d_intent,Py_None,capi_errmess);
+    if (capi_d_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        d = (complex_double *)(PyArray_DATA(capi_d_tmp));
+        d = (complex_double *)(PyArray_DATA(capi_d_as_array));
 
     /* Processing variable n */
     if (n_capi == Py_None) n = len(resid); else
@@ -4753,14 +4928,16 @@ f2py_start_clock();
     /* Processing variable v */
     v_Dims[1]=ncv;
     capi_v_intent |= F2PY_INTENT_IN;
-    capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,v_capi);
-    if (capi_v_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 11st argument `v' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the 11st argument `v`";
+    capi_v_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,v_Dims,v_Rank,  capi_v_intent,v_capi,capi_errmess);
+    if (capi_v_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        v = (complex_double *)(PyArray_DATA(capi_v_tmp));
+        v = (complex_double *)(PyArray_DATA(capi_v_as_array));
 
     /* Processing variable ldv */
     if (ldv_capi == Py_None) ldv = shape(v,0); else
@@ -4770,14 +4947,16 @@ f2py_start_clock();
     /* Processing variable workd */
     workd_Dims[0]=3 * n;
     capi_workd_intent |= F2PY_INTENT_IN;
-    capi_workd_tmp = array_from_pyobj(NPY_CDOUBLE,workd_Dims,workd_Rank,capi_workd_intent,workd_capi);
-    if (capi_workd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 14th argument `workd' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the 14th argument `workd`";
+    capi_workd_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,workd_Dims,workd_Rank,  capi_workd_intent,workd_capi,capi_errmess);
+    if (capi_workd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workd = (complex_double *)(PyArray_DATA(capi_workd_tmp));
+        workd = (complex_double *)(PyArray_DATA(capi_workd_as_array));
 
     /* Processing variable lworkl */
     if (lworkl_capi == Py_None) lworkl = len(workl); else
@@ -4787,26 +4966,30 @@ f2py_start_clock();
     /* Processing variable rwork */
     rwork_Dims[0]=ncv;
     capi_rwork_intent |= F2PY_INTENT_IN;
-    capi_rwork_tmp = array_from_pyobj(NPY_DOUBLE,rwork_Dims,rwork_Rank,capi_rwork_intent,rwork_capi);
-    if (capi_rwork_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 16th argument `rwork' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the 16th argument `rwork`";
+    capi_rwork_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,rwork_Dims,rwork_Rank,  capi_rwork_intent,rwork_capi,capi_errmess);
+    if (capi_rwork_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        rwork = (double *)(PyArray_DATA(capi_rwork_tmp));
+        rwork = (double *)(PyArray_DATA(capi_rwork_as_array));
 
     /* Processing variable z */
     z_Dims[0]=n,z_Dims[1]=nev;
     capi_z_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_z_tmp = array_from_pyobj(NPY_CDOUBLE,z_Dims,z_Rank,capi_z_intent,Py_None);
-    if (capi_z_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting hidden `z' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the hidden `z`";
+    capi_z_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,z_Dims,z_Rank,  capi_z_intent,Py_None,capi_errmess);
+    if (capi_z_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        z = (complex_double *)(PyArray_DATA(capi_z_tmp));
+        z = (complex_double *)(PyArray_DATA(capi_z_as_array));
 
     /* Processing variable ldz */
     if (ldz_capi == Py_None) ldz = shape(z,0); else
@@ -4816,14 +4999,16 @@ f2py_start_clock();
     /* Processing variable workev */
     workev_Dims[0]=3 * ncv;
     capi_workev_intent |= F2PY_INTENT_IN;
-    capi_workev_tmp = array_from_pyobj(NPY_CDOUBLE,workev_Dims,workev_Rank,capi_workev_intent,workev_capi);
-    if (capi_workev_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _arpack_error,"failed in converting 5th argument `workev' of _arpack.zneupd to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_arpack._arpack.zneupd: failed to create array from the 5th argument `workev`";
+    capi_workev_as_array = ndarray_from_pyobj(  NPY_CDOUBLE,1,workev_Dims,workev_Rank,  capi_workev_intent,workev_capi,capi_errmess);
+    if (capi_workev_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _arpack_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        workev = (complex_double *)(PyArray_DATA(capi_workev_tmp));
+        workev = (complex_double *)(PyArray_DATA(capi_workev_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -4831,7 +5016,7 @@ f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
             Py_BEGIN_ALLOW_THREADS
-                (*f2py_func)(&rvec,howmny,select,d,z,&ldz,&sigma,workev,bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,rwork,&info,slen(howmny),slen(bmat),slen(which));
+                (*f2py_func)(&rvec,&howmny,select,d,z,&ldz,&sigma,workev,&bmat,&n,which,&nev,&tol,resid,&ncv,v,&ldv,iparam,ipntr,workd,workl,&lworkl,rwork,&info,slen(which));
             Py_END_ALLOW_THREADS
 if (PyErr_Occurred())
   f2py_success = 0;
@@ -4843,37 +5028,37 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("NNi",capi_d_tmp,capi_z_tmp,info);
+        capi_buildvalue = Py_BuildValue("NNi",capi_d_as_array,capi_z_as_array,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_workev_tmp!=workev_capi) {
-        Py_XDECREF(capi_workev_tmp); }
-    }  /*if (capi_workev_tmp == NULL) ... else of workev*/
+    if((PyObject *)capi_workev_as_array!=workev_capi) {
+        Py_XDECREF(capi_workev_as_array); }
+    }  /* if (capi_workev_as_array == NULL) ... else of workev */
     /* End of cleaning variable workev */
     } /*CHECKSCALAR(shape(z,0)==ldz)*/
     } /*if (f2py_success) of ldz*/
     /* End of cleaning variable ldz */
-    }  /*if (capi_z_tmp == NULL) ... else of z*/
+    }  /* if (capi_z_as_array == NULL) ... else of z */
     /* End of cleaning variable z */
-    if((PyObject *)capi_rwork_tmp!=rwork_capi) {
-        Py_XDECREF(capi_rwork_tmp); }
-    }  /*if (capi_rwork_tmp == NULL) ... else of rwork*/
+    if((PyObject *)capi_rwork_as_array!=rwork_capi) {
+        Py_XDECREF(capi_rwork_as_array); }
+    }  /* if (capi_rwork_as_array == NULL) ... else of rwork */
     /* End of cleaning variable rwork */
     } /*CHECKSCALAR(len(workl)>=lworkl)*/
     } /*if (f2py_success) of lworkl*/
     /* End of cleaning variable lworkl */
-    if((PyObject *)capi_workd_tmp!=workd_capi) {
-        Py_XDECREF(capi_workd_tmp); }
-    }  /*if (capi_workd_tmp == NULL) ... else of workd*/
+    if((PyObject *)capi_workd_as_array!=workd_capi) {
+        Py_XDECREF(capi_workd_as_array); }
+    }  /* if (capi_workd_as_array == NULL) ... else of workd */
     /* End of cleaning variable workd */
     } /*CHECKSCALAR(shape(v,0)==ldv)*/
     } /*if (f2py_success) of ldv*/
     /* End of cleaning variable ldv */
-    if((PyObject *)capi_v_tmp!=v_capi) {
-        Py_XDECREF(capi_v_tmp); }
-    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    if((PyObject *)capi_v_as_array!=v_capi) {
+        Py_XDECREF(capi_v_as_array); }
+    }  /* if (capi_v_as_array == NULL) ... else of v */
     /* End of cleaning variable v */
     } /*CHECKSCALAR(len(select)>=ncv)*/
     } /*if (f2py_success) of ncv*/
@@ -4881,25 +5066,25 @@ f2py_stop_call_clock();
     } /*CHECKSCALAR(len(resid)>=n)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
-    }  /*if (capi_d_tmp == NULL) ... else of d*/
+    }  /* if (capi_d_as_array == NULL) ... else of d */
     /* End of cleaning variable d */
     } /*if (f2py_success) of info*/
     /* End of cleaning variable info */
-    if((PyObject *)capi_workl_tmp!=workl_capi) {
-        Py_XDECREF(capi_workl_tmp); }
-    }  /*if (capi_workl_tmp == NULL) ... else of workl*/
+    if((PyObject *)capi_workl_as_array!=workl_capi) {
+        Py_XDECREF(capi_workl_as_array); }
+    }  /* if (capi_workl_as_array == NULL) ... else of workl */
     /* End of cleaning variable workl */
-    if((PyObject *)capi_ipntr_tmp!=ipntr_capi) {
-        Py_XDECREF(capi_ipntr_tmp); }
-    }  /*if (capi_ipntr_tmp == NULL) ... else of ipntr*/
+    if((PyObject *)capi_ipntr_as_array!=ipntr_capi) {
+        Py_XDECREF(capi_ipntr_as_array); }
+    }  /* if (capi_ipntr_as_array == NULL) ... else of ipntr */
     /* End of cleaning variable ipntr */
-    if((PyObject *)capi_iparam_tmp!=iparam_capi) {
-        Py_XDECREF(capi_iparam_tmp); }
-    }  /*if (capi_iparam_tmp == NULL) ... else of iparam*/
+    if((PyObject *)capi_iparam_as_array!=iparam_capi) {
+        Py_XDECREF(capi_iparam_as_array); }
+    }  /* if (capi_iparam_as_array == NULL) ... else of iparam */
     /* End of cleaning variable iparam */
-    if((PyObject *)capi_resid_tmp!=resid_capi) {
-        Py_XDECREF(capi_resid_tmp); }
-    }  /*if (capi_resid_tmp == NULL) ... else of resid*/
+    if((PyObject *)capi_resid_as_array!=resid_capi) {
+        Py_XDECREF(capi_resid_as_array); }
+    }  /* if (capi_resid_as_array == NULL) ... else of resid */
     /* End of cleaning variable resid */
     } /*if (f2py_success) of tol*/
     /* End of cleaning variable tol */
@@ -4908,17 +5093,15 @@ f2py_stop_call_clock();
         STRINGFREE(which);
     }  /*if (f2py_success) of which*/
     /* End of cleaning variable which */
-        STRINGFREE(bmat);
-    }  /*if (f2py_success) of bmat*/
+    } /*if (f2py_success) of bmat*/
     /* End of cleaning variable bmat */
     }  /*if (f2py_success) of sigma frompyobj*/
     /* End of cleaning variable sigma */
-    if((PyObject *)capi_select_tmp!=select_capi) {
-        Py_XDECREF(capi_select_tmp); }
-    }  /*if (capi_select_tmp == NULL) ... else of select*/
+    if((PyObject *)capi_select_as_array!=select_capi) {
+        Py_XDECREF(capi_select_as_array); }
+    }  /* if (capi_select_as_array == NULL) ... else of select */
     /* End of cleaning variable select */
-        STRINGFREE(howmny);
-    }  /*if (f2py_success) of howmny*/
+    } /*if (f2py_success) of howmny*/
     /* End of cleaning variable howmny */
     } /*if (f2py_success) of rvec*/
     /* End of cleaning variable rvec */
@@ -4946,30 +5129,30 @@ f2py_stop_clock();
 /******************* See f2py2e/common_rules.py: buildhooks *******************/
 
 static FortranDataDef f2py_debug_def[] = {
-  {"logfil",0,{{-1}},NPY_INT},
-  {"ndigit",0,{{-1}},NPY_INT},
-  {"mgetv0",0,{{-1}},NPY_INT},
-  {"msaupd",0,{{-1}},NPY_INT},
-  {"msaup2",0,{{-1}},NPY_INT},
-  {"msaitr",0,{{-1}},NPY_INT},
-  {"mseigt",0,{{-1}},NPY_INT},
-  {"msapps",0,{{-1}},NPY_INT},
-  {"msgets",0,{{-1}},NPY_INT},
-  {"mseupd",0,{{-1}},NPY_INT},
-  {"mnaupd",0,{{-1}},NPY_INT},
-  {"mnaup2",0,{{-1}},NPY_INT},
-  {"mnaitr",0,{{-1}},NPY_INT},
-  {"mneigh",0,{{-1}},NPY_INT},
-  {"mnapps",0,{{-1}},NPY_INT},
-  {"mngets",0,{{-1}},NPY_INT},
-  {"mneupd",0,{{-1}},NPY_INT},
-  {"mcaupd",0,{{-1}},NPY_INT},
-  {"mcaup2",0,{{-1}},NPY_INT},
-  {"mcaitr",0,{{-1}},NPY_INT},
-  {"mceigh",0,{{-1}},NPY_INT},
-  {"mcapps",0,{{-1}},NPY_INT},
-  {"mcgets",0,{{-1}},NPY_INT},
-  {"mceupd",0,{{-1}},NPY_INT},
+  {"logfil",0,{{-1}},NPY_INT, 1},
+  {"ndigit",0,{{-1}},NPY_INT, 1},
+  {"mgetv0",0,{{-1}},NPY_INT, 1},
+  {"msaupd",0,{{-1}},NPY_INT, 1},
+  {"msaup2",0,{{-1}},NPY_INT, 1},
+  {"msaitr",0,{{-1}},NPY_INT, 1},
+  {"mseigt",0,{{-1}},NPY_INT, 1},
+  {"msapps",0,{{-1}},NPY_INT, 1},
+  {"msgets",0,{{-1}},NPY_INT, 1},
+  {"mseupd",0,{{-1}},NPY_INT, 1},
+  {"mnaupd",0,{{-1}},NPY_INT, 1},
+  {"mnaup2",0,{{-1}},NPY_INT, 1},
+  {"mnaitr",0,{{-1}},NPY_INT, 1},
+  {"mneigh",0,{{-1}},NPY_INT, 1},
+  {"mnapps",0,{{-1}},NPY_INT, 1},
+  {"mngets",0,{{-1}},NPY_INT, 1},
+  {"mneupd",0,{{-1}},NPY_INT, 1},
+  {"mcaupd",0,{{-1}},NPY_INT, 1},
+  {"mcaup2",0,{{-1}},NPY_INT, 1},
+  {"mcaitr",0,{{-1}},NPY_INT, 1},
+  {"mceigh",0,{{-1}},NPY_INT, 1},
+  {"mcapps",0,{{-1}},NPY_INT, 1},
+  {"mcgets",0,{{-1}},NPY_INT, 1},
+  {"mceupd",0,{{-1}},NPY_INT, 1},
   {NULL}
 };
 static void f2py_setup_debug(char *logfil,char *ndigit,char *mgetv0,char *msaupd,char *msaup2,char *msaitr,char *mseigt,char *msapps,char *msgets,char *mseupd,char *mnaupd,char *mnaup2,char *mnaitr,char *mneigh,char *mnapps,char *mngets,char *mneupd,char *mcaupd,char *mcaup2,char *mcaitr,char *mceigh,char *mcapps,char *mcgets,char *mceupd) {
@@ -5005,37 +5188,37 @@ static void f2py_init_debug(void) {
 }
 
 static FortranDataDef f2py_timing_def[] = {
-  {"nopx",0,{{-1}},NPY_INT},
-  {"nbx",0,{{-1}},NPY_INT},
-  {"nrorth",0,{{-1}},NPY_INT},
-  {"nitref",0,{{-1}},NPY_INT},
-  {"nrstrt",0,{{-1}},NPY_INT},
-  {"tsaupd",0,{{-1}},NPY_FLOAT},
-  {"tsaup2",0,{{-1}},NPY_FLOAT},
-  {"tsaitr",0,{{-1}},NPY_FLOAT},
-  {"tseigt",0,{{-1}},NPY_FLOAT},
-  {"tsgets",0,{{-1}},NPY_FLOAT},
-  {"tsapps",0,{{-1}},NPY_FLOAT},
-  {"tsconv",0,{{-1}},NPY_FLOAT},
-  {"tnaupd",0,{{-1}},NPY_FLOAT},
-  {"tnaup2",0,{{-1}},NPY_FLOAT},
-  {"tnaitr",0,{{-1}},NPY_FLOAT},
-  {"tneigh",0,{{-1}},NPY_FLOAT},
-  {"tngets",0,{{-1}},NPY_FLOAT},
-  {"tnapps",0,{{-1}},NPY_FLOAT},
-  {"tnconv",0,{{-1}},NPY_FLOAT},
-  {"tcaupd",0,{{-1}},NPY_FLOAT},
-  {"tcaup2",0,{{-1}},NPY_FLOAT},
-  {"tcaitr",0,{{-1}},NPY_FLOAT},
-  {"tceigh",0,{{-1}},NPY_FLOAT},
-  {"tcgets",0,{{-1}},NPY_FLOAT},
-  {"tcapps",0,{{-1}},NPY_FLOAT},
-  {"tcconv",0,{{-1}},NPY_FLOAT},
-  {"tmvopx",0,{{-1}},NPY_FLOAT},
-  {"tmvbx",0,{{-1}},NPY_FLOAT},
-  {"tgetv0",0,{{-1}},NPY_FLOAT},
-  {"titref",0,{{-1}},NPY_FLOAT},
-  {"trvec",0,{{-1}},NPY_FLOAT},
+  {"nopx",0,{{-1}},NPY_INT, 1},
+  {"nbx",0,{{-1}},NPY_INT, 1},
+  {"nrorth",0,{{-1}},NPY_INT, 1},
+  {"nitref",0,{{-1}},NPY_INT, 1},
+  {"nrstrt",0,{{-1}},NPY_INT, 1},
+  {"tsaupd",0,{{-1}},NPY_FLOAT, 1},
+  {"tsaup2",0,{{-1}},NPY_FLOAT, 1},
+  {"tsaitr",0,{{-1}},NPY_FLOAT, 1},
+  {"tseigt",0,{{-1}},NPY_FLOAT, 1},
+  {"tsgets",0,{{-1}},NPY_FLOAT, 1},
+  {"tsapps",0,{{-1}},NPY_FLOAT, 1},
+  {"tsconv",0,{{-1}},NPY_FLOAT, 1},
+  {"tnaupd",0,{{-1}},NPY_FLOAT, 1},
+  {"tnaup2",0,{{-1}},NPY_FLOAT, 1},
+  {"tnaitr",0,{{-1}},NPY_FLOAT, 1},
+  {"tneigh",0,{{-1}},NPY_FLOAT, 1},
+  {"tngets",0,{{-1}},NPY_FLOAT, 1},
+  {"tnapps",0,{{-1}},NPY_FLOAT, 1},
+  {"tnconv",0,{{-1}},NPY_FLOAT, 1},
+  {"tcaupd",0,{{-1}},NPY_FLOAT, 1},
+  {"tcaup2",0,{{-1}},NPY_FLOAT, 1},
+  {"tcaitr",0,{{-1}},NPY_FLOAT, 1},
+  {"tceigh",0,{{-1}},NPY_FLOAT, 1},
+  {"tcgets",0,{{-1}},NPY_FLOAT, 1},
+  {"tcapps",0,{{-1}},NPY_FLOAT, 1},
+  {"tcconv",0,{{-1}},NPY_FLOAT, 1},
+  {"tmvopx",0,{{-1}},NPY_FLOAT, 1},
+  {"tmvbx",0,{{-1}},NPY_FLOAT, 1},
+  {"tgetv0",0,{{-1}},NPY_FLOAT, 1},
+  {"titref",0,{{-1}},NPY_FLOAT, 1},
+  {"trvec",0,{{-1}},NPY_FLOAT, 1},
   {NULL}
 };
 static void f2py_setup_timing(char *nopx,char *nbx,char *nrorth,char *nitref,char *nrstrt,char *tsaupd,char *tsaup2,char *tsaitr,char *tseigt,char *tsgets,char *tsapps,char *tsconv,char *tnaupd,char *tnaup2,char *tnaitr,char *tneigh,char *tngets,char *tnapps,char *tnconv,char *tcaupd,char *tcaup2,char *tcaitr,char *tceigh,char *tcgets,char *tcapps,char *tcconv,char *tmvopx,char *tmvbx,char *tgetv0,char *titref,char *trvec) {
@@ -5082,18 +5265,18 @@ static void f2py_init_timing(void) {
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"ssaupd",-1,{{-1}},0,(char *)F_FUNC(ssaupd,SSAUPD),(f2py_init_func)f2py_rout__arpack_ssaupd,doc_f2py_rout__arpack_ssaupd},
-    {"dsaupd",-1,{{-1}},0,(char *)F_FUNC(dsaupd,DSAUPD),(f2py_init_func)f2py_rout__arpack_dsaupd,doc_f2py_rout__arpack_dsaupd},
-    {"sseupd",-1,{{-1}},0,(char *)F_FUNC(sseupd,SSEUPD),(f2py_init_func)f2py_rout__arpack_sseupd,doc_f2py_rout__arpack_sseupd},
-    {"dseupd",-1,{{-1}},0,(char *)F_FUNC(dseupd,DSEUPD),(f2py_init_func)f2py_rout__arpack_dseupd,doc_f2py_rout__arpack_dseupd},
-    {"snaupd",-1,{{-1}},0,(char *)F_FUNC(snaupd,SNAUPD),(f2py_init_func)f2py_rout__arpack_snaupd,doc_f2py_rout__arpack_snaupd},
-    {"dnaupd",-1,{{-1}},0,(char *)F_FUNC(dnaupd,DNAUPD),(f2py_init_func)f2py_rout__arpack_dnaupd,doc_f2py_rout__arpack_dnaupd},
-    {"sneupd",-1,{{-1}},0,(char *)F_FUNC(sneupd,SNEUPD),(f2py_init_func)f2py_rout__arpack_sneupd,doc_f2py_rout__arpack_sneupd},
-    {"dneupd",-1,{{-1}},0,(char *)F_FUNC(dneupd,DNEUPD),(f2py_init_func)f2py_rout__arpack_dneupd,doc_f2py_rout__arpack_dneupd},
-    {"cnaupd",-1,{{-1}},0,(char *)F_FUNC(cnaupd,CNAUPD),(f2py_init_func)f2py_rout__arpack_cnaupd,doc_f2py_rout__arpack_cnaupd},
-    {"znaupd",-1,{{-1}},0,(char *)F_FUNC(znaupd,ZNAUPD),(f2py_init_func)f2py_rout__arpack_znaupd,doc_f2py_rout__arpack_znaupd},
-    {"cneupd",-1,{{-1}},0,(char *)F_FUNC(cneupd,CNEUPD),(f2py_init_func)f2py_rout__arpack_cneupd,doc_f2py_rout__arpack_cneupd},
-    {"zneupd",-1,{{-1}},0,(char *)F_FUNC(zneupd,ZNEUPD),(f2py_init_func)f2py_rout__arpack_zneupd,doc_f2py_rout__arpack_zneupd},
+    {"ssaupd",-1,{{-1}},0,0,(char *)  F_FUNC(ssaupd,SSAUPD),  (f2py_init_func)f2py_rout__arpack_ssaupd,doc_f2py_rout__arpack_ssaupd},
+    {"dsaupd",-1,{{-1}},0,0,(char *)  F_FUNC(dsaupd,DSAUPD),  (f2py_init_func)f2py_rout__arpack_dsaupd,doc_f2py_rout__arpack_dsaupd},
+    {"sseupd",-1,{{-1}},0,0,(char *)  F_FUNC(sseupd,SSEUPD),  (f2py_init_func)f2py_rout__arpack_sseupd,doc_f2py_rout__arpack_sseupd},
+    {"dseupd",-1,{{-1}},0,0,(char *)  F_FUNC(dseupd,DSEUPD),  (f2py_init_func)f2py_rout__arpack_dseupd,doc_f2py_rout__arpack_dseupd},
+    {"snaupd",-1,{{-1}},0,0,(char *)  F_FUNC(snaupd,SNAUPD),  (f2py_init_func)f2py_rout__arpack_snaupd,doc_f2py_rout__arpack_snaupd},
+    {"dnaupd",-1,{{-1}},0,0,(char *)  F_FUNC(dnaupd,DNAUPD),  (f2py_init_func)f2py_rout__arpack_dnaupd,doc_f2py_rout__arpack_dnaupd},
+    {"sneupd",-1,{{-1}},0,0,(char *)  F_FUNC(sneupd,SNEUPD),  (f2py_init_func)f2py_rout__arpack_sneupd,doc_f2py_rout__arpack_sneupd},
+    {"dneupd",-1,{{-1}},0,0,(char *)  F_FUNC(dneupd,DNEUPD),  (f2py_init_func)f2py_rout__arpack_dneupd,doc_f2py_rout__arpack_dneupd},
+    {"cnaupd",-1,{{-1}},0,0,(char *)  F_FUNC(cnaupd,CNAUPD),  (f2py_init_func)f2py_rout__arpack_cnaupd,doc_f2py_rout__arpack_cnaupd},
+    {"znaupd",-1,{{-1}},0,0,(char *)  F_FUNC(znaupd,ZNAUPD),  (f2py_init_func)f2py_rout__arpack_znaupd,doc_f2py_rout__arpack_znaupd},
+    {"cneupd",-1,{{-1}},0,0,(char *)  F_FUNC(cneupd,CNEUPD),  (f2py_init_func)f2py_rout__arpack_cneupd,doc_f2py_rout__arpack_cneupd},
+    {"zneupd",-1,{{-1}},0,0,(char *)  F_FUNC(zneupd,ZNEUPD),  (f2py_init_func)f2py_rout__arpack_zneupd,doc_f2py_rout__arpack_zneupd},
 
 /*eof routine_defs*/
     {NULL}
@@ -5125,11 +5308,11 @@ PyMODINIT_FUNC PyInit__arpack(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _arpack (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_arpack' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module '_arpack' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    ido,tol,resid,v,iparam,ipntr,info = ssaupd(ido,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,n=len(resid),ncv=shape(v,1),ldv=shape(v,0),lworkl=len(workl))\n"
 "    ido,tol,resid,v,iparam,ipntr,info = dsaupd(ido,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,n=len(resid),ncv=shape(v,1),ldv=shape(v,0),lworkl=len(workl))\n"
 "    d,z,info = sseupd(rvec,howmny,select,sigma,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,ldz=shape(z,0),n=len(resid),ncv=len(select),ldv=shape(v,0),lworkl=len(workl))\n"
@@ -5145,7 +5328,7 @@ PyMODINIT_FUNC PyInit__arpack(void) {
 "COMMON blocks:\n""  /debug/ logfil,ndigit,mgetv0,msaupd,msaup2,msaitr,mseigt,msapps,msgets,mseupd,mnaupd,mnaup2,mnaitr,mneigh,mnapps,mngets,mneupd,mcaupd,mcaup2,mcaitr,mceigh,mcapps,mcgets,mceupd\n""  /timing/ nopx,nbx,nrorth,nitref,nrstrt,tsaupd,tsaup2,tsaitr,tseigt,tsgets,tsapps,tsconv,tnaupd,tnaup2,tnaitr,tneigh,tngets,tnapps,tnconv,tcaupd,tcaup2,tcaitr,tceigh,tcgets,tcapps,tcconv,tmvopx,tmvbx,tgetv0,titref,trvec\n"".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _arpack_error = PyErr_NewException ("_arpack.error", NULL, NULL);
@@ -5176,10 +5359,12 @@ PyMODINIT_FUNC PyInit__arpack(void) {
 /*eof initf90modhooks*/
 
   tmp = PyFortranObject_New(f2py_debug_def,f2py_init_debug);
-  F2PyDict_SetItemString(d, "debug", tmp);
+  if (tmp == NULL) return NULL;
+  if (F2PyDict_SetItemString(d, "debug", tmp) == -1) return NULL;
   Py_DECREF(tmp);
   tmp = PyFortranObject_New(f2py_timing_def,f2py_init_timing);
-  F2PyDict_SetItemString(d, "timing", tmp);
+  if (tmp == NULL) return NULL;
+  if (F2PyDict_SetItemString(d, "timing", tmp) == -1) return NULL;
   Py_DECREF(tmp);
 /*eof initcommonhooks*/
 

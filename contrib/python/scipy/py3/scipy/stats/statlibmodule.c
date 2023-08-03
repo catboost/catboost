@@ -1,5 +1,5 @@
 /* File: statlibmodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
 
@@ -69,17 +68,14 @@ static PyObject *statlib_module;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 #define CHECKSCALAR(check,tcheck,name,show,var)\
     if (!(check)) {\
@@ -113,30 +109,6 @@ static PyObject *statlib_module;
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int
 int_from_pyobj(int* v, PyObject *obj, const char *errmess)
 {
@@ -233,7 +205,7 @@ static PyObject *f2py_rout_statlib_swilk(const PyObject *capi_self,
     float *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     int n = 0;
@@ -243,7 +215,7 @@ static PyObject *f2py_rout_statlib_swilk(const PyObject *capi_self,
     float *a = NULL;
     npy_intp a_Dims[1] = {-1};
     const int a_Rank = 1;
-    PyArrayObject *capi_a_tmp = NULL;
+    PyArrayObject *capi_a_as_array = NULL;
     int capi_a_intent = 0;
     PyObject *a_capi = Py_None;
     float w = 0;
@@ -268,14 +240,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_IN;
-    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : statlib_error,"failed in converting 1st argument `x' of statlib.swilk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "statlib.statlib.swilk: failed to create array from the 1st argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = statlib_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (float *)(PyArray_DATA(capi_x_tmp));
+        x = (float *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable w */
     /* Processing variable pw */
@@ -292,14 +266,16 @@ f2py_start_clock();
     /* Processing variable a */
     a_Dims[0]=n2;
     capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-    if (capi_a_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : statlib_error,"failed in converting 2nd argument `a' of statlib.swilk to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "statlib.statlib.swilk: failed to create array from the 2nd argument `a`";
+    capi_a_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a_Dims,a_Rank,  capi_a_intent,a_capi,capi_errmess);
+    if (capi_a_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = statlib_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a = (float *)(PyArray_DATA(capi_a_tmp));
+        a = (float *)(PyArray_DATA(capi_a_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -317,12 +293,12 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("Nffi",capi_a_tmp,w,pw,ifault);
+        capi_buildvalue = Py_BuildValue("Nffi",capi_a_as_array,w,pw,ifault);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    }  /* if (capi_a_as_array == NULL) ... else of a */
     /* End of cleaning variable a */
     /* End of cleaning variable n2 */
     } /*CHECKSCALAR(n1<=n)*/
@@ -332,9 +308,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable ifault */
     /* End of cleaning variable pw */
     /* End of cleaning variable w */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of init*/
     /* End of cleaning variable init */
@@ -380,18 +356,18 @@ static PyObject *f2py_rout_statlib_gscale(const PyObject *capi_self,
     float *a1 = NULL;
     npy_intp a1_Dims[1] = {-1};
     const int a1_Rank = 1;
-    PyArrayObject *capi_a1_tmp = NULL;
+    PyArrayObject *capi_a1_as_array = NULL;
     int capi_a1_intent = 0;
     int l1 = 0;
     float *a2 = NULL;
     npy_intp a2_Dims[1] = {-1};
     const int a2_Rank = 1;
-    PyArrayObject *capi_a2_tmp = NULL;
+    PyArrayObject *capi_a2_as_array = NULL;
     int capi_a2_intent = 0;
     float *a3 = NULL;
     npy_intp a3_Dims[1] = {-1};
     const int a3_Rank = 1;
-    PyArrayObject *capi_a3_tmp = NULL;
+    PyArrayObject *capi_a3_as_array = NULL;
     int capi_a3_intent = 0;
     int ifault = 0;
     static char *capi_kwlist[] = {"test","other",NULL};
@@ -418,38 +394,44 @@ f2py_start_clock();
     /* Processing variable a2 */
     a2_Dims[0]=l1;
     capi_a2_intent |= F2PY_INTENT_HIDE;
-    capi_a2_tmp = array_from_pyobj(NPY_FLOAT,a2_Dims,a2_Rank,capi_a2_intent,Py_None);
-    if (capi_a2_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : statlib_error,"failed in converting hidden `a2' of statlib.gscale to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "statlib.statlib.gscale: failed to create array from the hidden `a2`";
+    capi_a2_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a2_Dims,a2_Rank,  capi_a2_intent,Py_None,capi_errmess);
+    if (capi_a2_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = statlib_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a2 = (float *)(PyArray_DATA(capi_a2_tmp));
+        a2 = (float *)(PyArray_DATA(capi_a2_as_array));
 
     /* Processing variable a3 */
     a3_Dims[0]=l1;
     capi_a3_intent |= F2PY_INTENT_HIDE;
-    capi_a3_tmp = array_from_pyobj(NPY_FLOAT,a3_Dims,a3_Rank,capi_a3_intent,Py_None);
-    if (capi_a3_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : statlib_error,"failed in converting hidden `a3' of statlib.gscale to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "statlib.statlib.gscale: failed to create array from the hidden `a3`";
+    capi_a3_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a3_Dims,a3_Rank,  capi_a3_intent,Py_None,capi_errmess);
+    if (capi_a3_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = statlib_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a3 = (float *)(PyArray_DATA(capi_a3_tmp));
+        a3 = (float *)(PyArray_DATA(capi_a3_as_array));
 
     /* Processing variable a1 */
     a1_Dims[0]=l1;
     capi_a1_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-    capi_a1_tmp = array_from_pyobj(NPY_FLOAT,a1_Dims,a1_Rank,capi_a1_intent,Py_None);
-    if (capi_a1_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : statlib_error,"failed in converting hidden `a1' of statlib.gscale to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "statlib.statlib.gscale: failed to create array from the hidden `a1`";
+    capi_a1_as_array = ndarray_from_pyobj(  NPY_FLOAT,1,a1_Dims,a1_Rank,  capi_a1_intent,Py_None,capi_errmess);
+    if (capi_a1_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = statlib_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        a1 = (float *)(PyArray_DATA(capi_a1_tmp));
+        a1 = (float *)(PyArray_DATA(capi_a1_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -467,18 +449,18 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("fNi",astart,capi_a1_tmp,ifault);
+        capi_buildvalue = Py_BuildValue("fNi",astart,capi_a1_as_array,ifault);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    }  /*if (capi_a1_tmp == NULL) ... else of a1*/
+    }  /* if (capi_a1_as_array == NULL) ... else of a1 */
     /* End of cleaning variable a1 */
-        Py_XDECREF(capi_a3_tmp);
-    }  /*if (capi_a3_tmp == NULL) ... else of a3*/
+        Py_XDECREF(capi_a3_as_array);
+    }  /* if (capi_a3_as_array == NULL) ... else of a3 */
     /* End of cleaning variable a3 */
-        Py_XDECREF(capi_a2_tmp);
-    }  /*if (capi_a2_tmp == NULL) ... else of a2*/
+        Py_XDECREF(capi_a2_as_array);
+    }  /* if (capi_a2_as_array == NULL) ... else of a2 */
     /* End of cleaning variable a2 */
     /* End of cleaning variable l1 */
     /* End of cleaning variable ifault */
@@ -598,9 +580,9 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"swilk",-1,{{-1}},0,(char *)F_FUNC(swilk,SWILK),(f2py_init_func)f2py_rout_statlib_swilk,doc_f2py_rout_statlib_swilk},
-    {"gscale",-1,{{-1}},0,(char *)F_FUNC(gscale,GSCALE),(f2py_init_func)f2py_rout_statlib_gscale,doc_f2py_rout_statlib_gscale},
-    {"prho",-1,{{-1}},0,(char *)F_FUNC(prho,PRHO),(f2py_init_func)f2py_rout_statlib_prho,doc_f2py_rout_statlib_prho},
+    {"swilk",-1,{{-1}},0,0,(char *)  F_FUNC(swilk,SWILK),  (f2py_init_func)f2py_rout_statlib_swilk,doc_f2py_rout_statlib_swilk},
+    {"gscale",-1,{{-1}},0,0,(char *)  F_FUNC(gscale,GSCALE),  (f2py_init_func)f2py_rout_statlib_gscale,doc_f2py_rout_statlib_gscale},
+    {"prho",-1,{{-1}},0,0,(char *)  F_FUNC(prho,PRHO),  (f2py_init_func)f2py_rout_statlib_prho,doc_f2py_rout_statlib_prho},
 
 /*eof routine_defs*/
     {NULL}
@@ -632,18 +614,18 @@ PyMODINIT_FUNC PyInit_statlib(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module statlib (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module 'statlib' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module 'statlib' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    a,w,pw,ifault = swilk(x,a,init=0,n1=n)\n"
 "    astart,a1,ifault = gscale(test,other)\n"
 "    ifault = prho(n,is)\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     statlib_error = PyErr_NewException ("statlib.error", NULL, NULL);

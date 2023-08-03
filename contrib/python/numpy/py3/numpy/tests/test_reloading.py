@@ -1,6 +1,13 @@
-from numpy.testing import assert_raises, assert_warns, assert_, assert_equal
+from numpy.testing import (
+    assert_raises,
+    assert_warns,
+    assert_,
+    assert_equal,
+    IS_WASM,
+)
 from numpy.compat import pickle
 
+import pytest
 import sys
 import subprocess
 import textwrap
@@ -39,6 +46,7 @@ def test_novalue():
 
 import pytest
 @pytest.mark.skip
+@pytest.mark.skipif(IS_WASM, reason="can't start subprocess")
 def test_full_reimport():
     """At the time of writing this, it is *not* truly supported, but
     apparently enough users rely on it, for it to be an annoying change

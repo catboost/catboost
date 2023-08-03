@@ -14,9 +14,9 @@
 /* utility functions that profit from templates */
 
 #include "numpy/npy_common.h"
+#include <assert.h>
 
-#line 16
-
+#line 20
 /*
  * writes result of a * b into r
  * returns 1 if a * b overflowed else returns 0
@@ -37,16 +37,21 @@ npy_mul_with_overflow_int(npy_int * r, npy_int a, npy_int b)
     /*
      * avoid expensive division on common no overflow case
      */
-    if (NPY_UNLIKELY((a | b) >= half_sz) &&
-            a != 0 && b > NPY_MAX_INT / a) {
+    if ((NPY_UNLIKELY((a | b) >= half_sz) || (a | b) < 0) &&
+            a != 0 && 
+#if 1
+            abs(b) > abs(NPY_MAX_INT / a)
+#else
+            b > NPY_MAX_INT / a
+#endif
+            ) {
         return 1;
     }
     return 0;
 #endif
 }
 
-#line 16
-
+#line 20
 /*
  * writes result of a * b into r
  * returns 1 if a * b overflowed else returns 0
@@ -67,16 +72,21 @@ npy_mul_with_overflow_uint(npy_uint * r, npy_uint a, npy_uint b)
     /*
      * avoid expensive division on common no overflow case
      */
-    if (NPY_UNLIKELY((a | b) >= half_sz) &&
-            a != 0 && b > NPY_MAX_UINT / a) {
+    if ((NPY_UNLIKELY((a | b) >= half_sz) || (a | b) < 0) &&
+            a != 0 && 
+#if 0
+            abs(b) > abs(NPY_MAX_UINT / a)
+#else
+            b > NPY_MAX_UINT / a
+#endif
+            ) {
         return 1;
     }
     return 0;
 #endif
 }
 
-#line 16
-
+#line 20
 /*
  * writes result of a * b into r
  * returns 1 if a * b overflowed else returns 0
@@ -97,16 +107,21 @@ npy_mul_with_overflow_long(npy_long * r, npy_long a, npy_long b)
     /*
      * avoid expensive division on common no overflow case
      */
-    if (NPY_UNLIKELY((a | b) >= half_sz) &&
-            a != 0 && b > NPY_MAX_LONG / a) {
+    if ((NPY_UNLIKELY((a | b) >= half_sz) || (a | b) < 0) &&
+            a != 0 && 
+#if 1
+            labs(b) > labs(NPY_MAX_LONG / a)
+#else
+            b > NPY_MAX_LONG / a
+#endif
+            ) {
         return 1;
     }
     return 0;
 #endif
 }
 
-#line 16
-
+#line 20
 /*
  * writes result of a * b into r
  * returns 1 if a * b overflowed else returns 0
@@ -127,16 +142,21 @@ npy_mul_with_overflow_ulong(npy_ulong * r, npy_ulong a, npy_ulong b)
     /*
      * avoid expensive division on common no overflow case
      */
-    if (NPY_UNLIKELY((a | b) >= half_sz) &&
-            a != 0 && b > NPY_MAX_ULONG / a) {
+    if ((NPY_UNLIKELY((a | b) >= half_sz) || (a | b) < 0) &&
+            a != 0 && 
+#if 0
+            labs(b) > labs(NPY_MAX_ULONG / a)
+#else
+            b > NPY_MAX_ULONG / a
+#endif
+            ) {
         return 1;
     }
     return 0;
 #endif
 }
 
-#line 16
-
+#line 20
 /*
  * writes result of a * b into r
  * returns 1 if a * b overflowed else returns 0
@@ -157,16 +177,21 @@ npy_mul_with_overflow_longlong(npy_longlong * r, npy_longlong a, npy_longlong b)
     /*
      * avoid expensive division on common no overflow case
      */
-    if (NPY_UNLIKELY((a | b) >= half_sz) &&
-            a != 0 && b > NPY_MAX_LONGLONG / a) {
+    if ((NPY_UNLIKELY((a | b) >= half_sz) || (a | b) < 0) &&
+            a != 0 && 
+#if 1
+            llabs(b) > llabs(NPY_MAX_LONGLONG / a)
+#else
+            b > NPY_MAX_LONGLONG / a
+#endif
+            ) {
         return 1;
     }
     return 0;
 #endif
 }
 
-#line 16
-
+#line 20
 /*
  * writes result of a * b into r
  * returns 1 if a * b overflowed else returns 0
@@ -187,44 +212,42 @@ npy_mul_with_overflow_ulonglong(npy_ulonglong * r, npy_ulonglong a, npy_ulonglon
     /*
      * avoid expensive division on common no overflow case
      */
-    if (NPY_UNLIKELY((a | b) >= half_sz) &&
-            a != 0 && b > NPY_MAX_ULONGLONG / a) {
+    if ((NPY_UNLIKELY((a | b) >= half_sz) || (a | b) < 0) &&
+            a != 0 && 
+#if 0
+            llabs(b) > llabs(NPY_MAX_ULONGLONG / a)
+#else
+            b > NPY_MAX_ULONGLONG / a
+#endif
+            ) {
         return 1;
     }
     return 0;
 #endif
 }
 
-#line 16
 
-/*
- * writes result of a * b into r
- * returns 1 if a * b overflowed else returns 0
- * 
- * These functions are not designed to work if either a or b is negative, but
- * that is not checked. Could use absolute values and adjust the sign if that
- * functionality was desired.
- */
 static NPY_INLINE int
-npy_mul_with_overflow_intp(npy_intp * r, npy_intp a, npy_intp b)
+npy_mul_sizes_with_overflow (npy_intp * r, npy_intp a, npy_intp b)
 {
 #ifdef HAVE___BUILTIN_MUL_OVERFLOW
     return __builtin_mul_overflow(a, b, r);
 #else
+    /* this function only supports non-negative numbers */
+    assert(a >= 0 && b >= 0);
     const npy_intp half_sz = ((npy_intp)1 << ((sizeof(a) * 8 - 1 ) / 2));
 
     *r = a * b;
     /*
      * avoid expensive division on common no overflow case
      */
-    if (NPY_UNLIKELY((a | b) >= half_sz) &&
-            a != 0 && b > NPY_MAX_INTP / a) {
+    if (NPY_UNLIKELY((a | b) >= half_sz)
+        && a != 0 && b > NPY_MAX_INTP / a) {
         return 1;
     }
     return 0;
 #endif
 }
-
 
 #endif
 

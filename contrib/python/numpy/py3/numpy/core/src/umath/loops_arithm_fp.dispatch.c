@@ -11,6 +11,7 @@
 /*@targets
  ** $maxopt baseline
  ** sse2 avx2 avx512f
+ ** vx vxe
  **/
 #define _UMATHMODULE
 #define _MULTIARRAYMODULE
@@ -31,8 +32,8 @@
  ** Defining the SIMD kernels
  ********************************************************************************/
 #ifdef NPY_HAVE_SSE2
-#line 41
-#line 47
+#line 42
+#line 48
 static void
 sse2_binary_add_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
 {
@@ -345,7 +346,7 @@ sse2_binary_scalar2_add_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, 
 }
 
 
-#line 47
+#line 48
 static void
 sse2_binary_subtract_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
 {
@@ -658,7 +659,7 @@ sse2_binary_scalar2_subtract_FLOAT(npy_float * op, npy_float * ip1, npy_float * 
 }
 
 
-#line 47
+#line 48
 static void
 sse2_binary_multiply_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
 {
@@ -971,7 +972,7 @@ sse2_binary_scalar2_multiply_FLOAT(npy_float * op, npy_float * ip1, npy_float * 
 }
 
 
-#line 47
+#line 48
 static void
 sse2_binary_divide_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
 {
@@ -1285,8 +1286,8 @@ sse2_binary_scalar2_divide_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip
 
 
 
-#line 41
-#line 47
+#line 42
+#line 48
 static void
 sse2_binary_add_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
 {
@@ -1599,7 +1600,7 @@ sse2_binary_scalar2_add_DOUBLE(npy_double * op, npy_double * ip1, npy_double * i
 }
 
 
-#line 47
+#line 48
 static void
 sse2_binary_subtract_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
 {
@@ -1912,7 +1913,7 @@ sse2_binary_scalar2_subtract_DOUBLE(npy_double * op, npy_double * ip1, npy_doubl
 }
 
 
-#line 47
+#line 48
 static void
 sse2_binary_multiply_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
 {
@@ -2225,7 +2226,7 @@ sse2_binary_scalar2_multiply_DOUBLE(npy_double * op, npy_double * ip1, npy_doubl
 }
 
 
-#line 47
+#line 48
 static void
 sse2_binary_divide_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
 {
@@ -2542,9 +2543,9 @@ sse2_binary_scalar2_divide_DOUBLE(npy_double * op, npy_double * ip1, npy_double 
 
 #else // NPY_HAVE_SSE2
 
-#line 369
-#if NPY_SIMD
-#line 376
+#line 370
+#if NPY_SIMD_F32
+#line 377
 
 static void
 simd_binary_add_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
@@ -2607,7 +2608,7 @@ simd_binary_scalar2_add_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, 
     }
 }
 
-#line 376
+#line 377
 
 static void
 simd_binary_subtract_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
@@ -2670,7 +2671,7 @@ simd_binary_scalar2_subtract_FLOAT(npy_float * op, npy_float * ip1, npy_float * 
     }
 }
 
-#line 376
+#line 377
 
 static void
 simd_binary_multiply_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
@@ -2733,7 +2734,7 @@ simd_binary_scalar2_multiply_FLOAT(npy_float * op, npy_float * ip1, npy_float * 
     }
 }
 
-#line 376
+#line 377
 
 static void
 simd_binary_divide_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
@@ -2796,11 +2797,11 @@ simd_binary_scalar2_divide_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip
     }
 }
 
-#endif /* NPY_SIMD */
+#endif /* NPY_SIMD_F32 */
 
-#line 369
+#line 370
 #if NPY_SIMD_F64
-#line 376
+#line 377
 
 static void
 simd_binary_add_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
@@ -2863,7 +2864,7 @@ simd_binary_scalar2_add_DOUBLE(npy_double * op, npy_double * ip1, npy_double * i
     }
 }
 
-#line 376
+#line 377
 
 static void
 simd_binary_subtract_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
@@ -2926,7 +2927,7 @@ simd_binary_scalar2_subtract_DOUBLE(npy_double * op, npy_double * ip1, npy_doubl
     }
 }
 
-#line 376
+#line 377
 
 static void
 simd_binary_multiply_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
@@ -2989,7 +2990,7 @@ simd_binary_scalar2_multiply_DOUBLE(npy_double * op, npy_double * ip1, npy_doubl
     }
 }
 
-#line 376
+#line 377
 
 static void
 simd_binary_divide_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
@@ -3056,8 +3057,8 @@ simd_binary_scalar2_divide_DOUBLE(npy_double * op, npy_double * ip1, npy_double 
 
 #endif // NPY_HAVE_SSE2
 
-#line 449
-#line 453
+#line 450
+#line 454
 static NPY_INLINE int
 run_binary_simd_add_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3087,7 +3088,7 @@ run_binary_simd_add_FLOAT(char **args, npy_intp const *dimensions, npy_intp cons
         sse2_binary_add_FLOAT(op, ip1, ip2, n);
         return 1;
     }
-#elif NPY_SIMD
+#elif NPY_SIMD_F32
     npy_float * ip1 = (npy_float *)args[0];
     npy_float * ip2 = (npy_float *)args[1];
     npy_float * op = (npy_float *)args[2];
@@ -3110,7 +3111,7 @@ run_binary_simd_add_FLOAT(char **args, npy_intp const *dimensions, npy_intp cons
     return 0;
 }
 
-#line 453
+#line 454
 static NPY_INLINE int
 run_binary_simd_subtract_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3140,7 +3141,7 @@ run_binary_simd_subtract_FLOAT(char **args, npy_intp const *dimensions, npy_intp
         sse2_binary_subtract_FLOAT(op, ip1, ip2, n);
         return 1;
     }
-#elif NPY_SIMD
+#elif NPY_SIMD_F32
     npy_float * ip1 = (npy_float *)args[0];
     npy_float * ip2 = (npy_float *)args[1];
     npy_float * op = (npy_float *)args[2];
@@ -3163,7 +3164,7 @@ run_binary_simd_subtract_FLOAT(char **args, npy_intp const *dimensions, npy_intp
     return 0;
 }
 
-#line 453
+#line 454
 static NPY_INLINE int
 run_binary_simd_multiply_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3193,7 +3194,7 @@ run_binary_simd_multiply_FLOAT(char **args, npy_intp const *dimensions, npy_intp
         sse2_binary_multiply_FLOAT(op, ip1, ip2, n);
         return 1;
     }
-#elif NPY_SIMD
+#elif NPY_SIMD_F32
     npy_float * ip1 = (npy_float *)args[0];
     npy_float * ip2 = (npy_float *)args[1];
     npy_float * op = (npy_float *)args[2];
@@ -3216,7 +3217,7 @@ run_binary_simd_multiply_FLOAT(char **args, npy_intp const *dimensions, npy_intp
     return 0;
 }
 
-#line 453
+#line 454
 static NPY_INLINE int
 run_binary_simd_divide_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3246,7 +3247,7 @@ run_binary_simd_divide_FLOAT(char **args, npy_intp const *dimensions, npy_intp c
         sse2_binary_divide_FLOAT(op, ip1, ip2, n);
         return 1;
     }
-#elif NPY_SIMD
+#elif NPY_SIMD_F32
     npy_float * ip1 = (npy_float *)args[0];
     npy_float * ip2 = (npy_float *)args[1];
     npy_float * op = (npy_float *)args[2];
@@ -3270,8 +3271,8 @@ run_binary_simd_divide_FLOAT(char **args, npy_intp const *dimensions, npy_intp c
 }
 
 
-#line 449
-#line 453
+#line 450
+#line 454
 static NPY_INLINE int
 run_binary_simd_add_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3324,7 +3325,7 @@ run_binary_simd_add_DOUBLE(char **args, npy_intp const *dimensions, npy_intp con
     return 0;
 }
 
-#line 453
+#line 454
 static NPY_INLINE int
 run_binary_simd_subtract_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3377,7 +3378,7 @@ run_binary_simd_subtract_DOUBLE(char **args, npy_intp const *dimensions, npy_int
     return 0;
 }
 
-#line 453
+#line 454
 static NPY_INLINE int
 run_binary_simd_multiply_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3430,7 +3431,7 @@ run_binary_simd_multiply_DOUBLE(char **args, npy_intp const *dimensions, npy_int
     return 0;
 }
 
-#line 453
+#line 454
 static NPY_INLINE int
 run_binary_simd_divide_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3484,8 +3485,8 @@ run_binary_simd_divide_DOUBLE(char **args, npy_intp const *dimensions, npy_intp 
 }
 
 
-#line 449
-#line 453
+#line 450
+#line 454
 static NPY_INLINE int
 run_binary_simd_add_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3538,7 +3539,7 @@ run_binary_simd_add_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp
     return 0;
 }
 
-#line 453
+#line 454
 static NPY_INLINE int
 run_binary_simd_subtract_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3591,7 +3592,7 @@ run_binary_simd_subtract_LONGDOUBLE(char **args, npy_intp const *dimensions, npy
     return 0;
 }
 
-#line 453
+#line 454
 static NPY_INLINE int
 run_binary_simd_multiply_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3644,7 +3645,7 @@ run_binary_simd_multiply_LONGDOUBLE(char **args, npy_intp const *dimensions, npy
     return 0;
 }
 
-#line 453
+#line 454
 static NPY_INLINE int
 run_binary_simd_divide_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -3702,8 +3703,8 @@ run_binary_simd_divide_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_i
 /********************************************************************************
  ** Defining ufunc inner functions
  ********************************************************************************/
-#line 517
-#line 523
+#line 518
+#line 524
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3729,7 +3730,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
     }
 }
 
-#line 523
+#line 524
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3755,7 +3756,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
     }
 }
 
-#line 523
+#line 524
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3781,7 +3782,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
     }
 }
 
-#line 523
+#line 524
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3808,8 +3809,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
 }
 
 
-#line 517
-#line 523
+#line 518
+#line 524
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3835,7 +3836,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
     }
 }
 
-#line 523
+#line 524
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3861,7 +3862,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
     }
 }
 
-#line 523
+#line 524
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3887,7 +3888,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
     }
 }
 
-#line 523
+#line 524
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3967,7 +3968,7 @@ avx512_get_partial_load_mask_pd(const npy_int num_elem, const npy_int total_elem
 {
     return (0x01 << num_elem) - 0x01;
 }
-#line 616
+#line 617
 NPY_FINLINE __m512
 avx512_hadd_ps(const __m512 x)
 {
@@ -3992,7 +3993,7 @@ avx512_cmul_ps(__m512 x1, __m512 x2)
     return _mm512_mask_blend_ps(0xAAAA, outreal, outimg);
 }
 
-#line 616
+#line 617
 NPY_FINLINE __m512d
 avx512_hadd_pd(const __m512d x)
 {
@@ -4019,8 +4020,8 @@ avx512_cmul_pd(__m512d x1, __m512d x2)
 
 #endif
 
-#line 656
-#line 660
+#line 657
+#line 661
 #if defined AVX512F_NOMSVC
 static NPY_INLINE void
 AVX512F_add_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
@@ -4054,7 +4055,7 @@ AVX512F_add_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *step
 }
 #endif // AVX512F_NOMSVC
 
-#line 660
+#line 661
 #if defined AVX512F_NOMSVC
 static NPY_INLINE void
 AVX512F_subtract_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
@@ -4088,7 +4089,7 @@ AVX512F_subtract_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp 
 }
 #endif // AVX512F_NOMSVC
 
-#line 660
+#line 661
 #if defined AVX512F_NOMSVC
 static NPY_INLINE void
 AVX512F_multiply_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
@@ -4123,8 +4124,8 @@ AVX512F_multiply_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp 
 #endif // AVX512F_NOMSVC
 
 
-#line 656
-#line 660
+#line 657
+#line 661
 #if defined AVX512F_NOMSVC
 static NPY_INLINE void
 AVX512F_add_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
@@ -4158,7 +4159,7 @@ AVX512F_add_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *ste
 }
 #endif // AVX512F_NOMSVC
 
-#line 660
+#line 661
 #if defined AVX512F_NOMSVC
 static NPY_INLINE void
 AVX512F_subtract_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
@@ -4192,7 +4193,7 @@ AVX512F_subtract_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp
 }
 #endif // AVX512F_NOMSVC
 
-#line 660
+#line 661
 #if defined AVX512F_NOMSVC
 static NPY_INLINE void
 AVX512F_multiply_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
@@ -4228,8 +4229,8 @@ AVX512F_multiply_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp
 
 
 
-#line 700
-#line 703
+#line 701
+#line 704
 static NPY_INLINE int
 run_binary_avx512f_add_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
@@ -4244,7 +4245,7 @@ run_binary_avx512f_add_CFLOAT(char **args, const npy_intp *dimensions, const npy
     return 0;
 }
 
-#line 703
+#line 704
 static NPY_INLINE int
 run_binary_avx512f_subtract_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
@@ -4259,7 +4260,7 @@ run_binary_avx512f_subtract_CFLOAT(char **args, const npy_intp *dimensions, cons
     return 0;
 }
 
-#line 703
+#line 704
 static NPY_INLINE int
 run_binary_avx512f_multiply_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
@@ -4275,8 +4276,8 @@ run_binary_avx512f_multiply_CFLOAT(char **args, const npy_intp *dimensions, cons
 }
 
 
-#line 700
-#line 703
+#line 701
+#line 704
 static NPY_INLINE int
 run_binary_avx512f_add_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
@@ -4291,7 +4292,7 @@ run_binary_avx512f_add_CDOUBLE(char **args, const npy_intp *dimensions, const np
     return 0;
 }
 
-#line 703
+#line 704
 static NPY_INLINE int
 run_binary_avx512f_subtract_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
@@ -4306,7 +4307,7 @@ run_binary_avx512f_subtract_CDOUBLE(char **args, const npy_intp *dimensions, con
     return 0;
 }
 
-#line 703
+#line 704
 static NPY_INLINE int
 run_binary_avx512f_multiply_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
@@ -4326,8 +4327,8 @@ run_binary_avx512f_multiply_CDOUBLE(char **args, const npy_intp *dimensions, con
 /********************************************************************************
  ** Defining ufunc inner functions
  ********************************************************************************/
-#line 729
-#line 735
+#line 730
+#line 736
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -4355,7 +4356,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_add)
     }
 }
 
-#line 735
+#line 736
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -4399,8 +4400,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_multiply)
     }
 }
 
-#line 729
-#line 735
+#line 730
+#line 736
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -4428,7 +4429,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_add)
     }
 }
 
-#line 735
+#line 736
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {

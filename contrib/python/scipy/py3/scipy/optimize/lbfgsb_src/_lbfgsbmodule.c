@@ -1,5 +1,5 @@
 /* File: _lbfgsbmodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <string.h>
 #include <math.h>
@@ -92,17 +91,14 @@ typedef char * string;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 /*
 STRINGPADN replaces null values with padding values from the right.
@@ -205,30 +201,6 @@ STRINGCOPYN copies N bytes.
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int try_pyarr_from_double(PyObject* obj,double* v) {
     TRYPYARRAYTEMPLATE(double,'d');
 }
@@ -511,25 +483,25 @@ static PyObject *f2py_rout__lbfgsb_setulb(const PyObject *capi_self,
     double *x = NULL;
     npy_intp x_Dims[1] = {-1};
     const int x_Rank = 1;
-    PyArrayObject *capi_x_tmp = NULL;
+    PyArrayObject *capi_x_as_array = NULL;
     int capi_x_intent = 0;
     PyObject *x_capi = Py_None;
     double *l = NULL;
     npy_intp l_Dims[1] = {-1};
     const int l_Rank = 1;
-    PyArrayObject *capi_l_tmp = NULL;
+    PyArrayObject *capi_l_as_array = NULL;
     int capi_l_intent = 0;
     PyObject *l_capi = Py_None;
     double *u = NULL;
     npy_intp u_Dims[1] = {-1};
     const int u_Rank = 1;
-    PyArrayObject *capi_u_tmp = NULL;
+    PyArrayObject *capi_u_as_array = NULL;
     int capi_u_intent = 0;
     PyObject *u_capi = Py_None;
     int *nbd = NULL;
     npy_intp nbd_Dims[1] = {-1};
     const int nbd_Rank = 1;
-    PyArrayObject *capi_nbd_tmp = NULL;
+    PyArrayObject *capi_nbd_as_array = NULL;
     int capi_nbd_intent = 0;
     PyObject *nbd_capi = Py_None;
     double f = 0;
@@ -537,7 +509,7 @@ static PyObject *f2py_rout__lbfgsb_setulb(const PyObject *capi_self,
     double *g = NULL;
     npy_intp g_Dims[1] = {-1};
     const int g_Rank = 1;
-    PyArrayObject *capi_g_tmp = NULL;
+    PyArrayObject *capi_g_as_array = NULL;
     int capi_g_intent = 0;
     PyObject *g_capi = Py_None;
     double factr = 0;
@@ -547,13 +519,13 @@ static PyObject *f2py_rout__lbfgsb_setulb(const PyObject *capi_self,
     double *wa = NULL;
     npy_intp wa_Dims[1] = {-1};
     const int wa_Rank = 1;
-    PyArrayObject *capi_wa_tmp = NULL;
+    PyArrayObject *capi_wa_as_array = NULL;
     int capi_wa_intent = 0;
     PyObject *wa_capi = Py_None;
     int *iwa = NULL;
     npy_intp iwa_Dims[1] = {-1};
     const int iwa_Rank = 1;
-    PyArrayObject *capi_iwa_tmp = NULL;
+    PyArrayObject *capi_iwa_as_array = NULL;
     int capi_iwa_intent = 0;
     PyObject *iwa_capi = Py_None;
     string task = NULL;
@@ -567,19 +539,19 @@ static PyObject *f2py_rout__lbfgsb_setulb(const PyObject *capi_self,
     int *lsave = NULL;
     npy_intp lsave_Dims[1] = {-1};
     const int lsave_Rank = 1;
-    PyArrayObject *capi_lsave_tmp = NULL;
+    PyArrayObject *capi_lsave_as_array = NULL;
     int capi_lsave_intent = 0;
     PyObject *lsave_capi = Py_None;
     int *isave = NULL;
     npy_intp isave_Dims[1] = {-1};
     const int isave_Rank = 1;
-    PyArrayObject *capi_isave_tmp = NULL;
+    PyArrayObject *capi_isave_as_array = NULL;
     int capi_isave_intent = 0;
     PyObject *isave_capi = Py_None;
     double *dsave = NULL;
     npy_intp dsave_Dims[1] = {-1};
     const int dsave_Rank = 1;
-    PyArrayObject *capi_dsave_tmp = NULL;
+    PyArrayObject *capi_dsave_as_array = NULL;
     int capi_dsave_intent = 0;
     PyObject *dsave_capi = Py_None;
     int maxls = 0;
@@ -601,14 +573,16 @@ f2py_start_clock();
     /* Processing variable x */
     ;
     capi_x_intent |= F2PY_INTENT_INOUT;
-    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-    if (capi_x_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _lbfgsb_error,"failed in converting 2nd argument `x' of _lbfgsb.setulb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_lbfgsb._lbfgsb.setulb: failed to create array from the 2nd argument `x`";
+    capi_x_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,x_Dims,x_Rank,  capi_x_intent,x_capi,capi_errmess);
+    if (capi_x_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _lbfgsb_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        x = (double *)(PyArray_DATA(capi_x_tmp));
+        x = (double *)(PyArray_DATA(capi_x_as_array));
 
     /* Processing variable f */
         f2py_success = double_from_pyobj(&f,f_capi,"_lbfgsb.setulb() 6th argument (f) can't be converted to double");
@@ -635,38 +609,44 @@ f2py_start_clock();
     /* Processing variable lsave */
     lsave_Dims[0]=4;
     capi_lsave_intent |= F2PY_INTENT_INOUT;
-    capi_lsave_tmp = array_from_pyobj(NPY_INT,lsave_Dims,lsave_Rank,capi_lsave_intent,lsave_capi);
-    if (capi_lsave_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _lbfgsb_error,"failed in converting 15th argument `lsave' of _lbfgsb.setulb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_lbfgsb._lbfgsb.setulb: failed to create array from the 15th argument `lsave`";
+    capi_lsave_as_array = ndarray_from_pyobj(  NPY_INT,1,lsave_Dims,lsave_Rank,  capi_lsave_intent,lsave_capi,capi_errmess);
+    if (capi_lsave_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _lbfgsb_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        lsave = (int *)(PyArray_DATA(capi_lsave_tmp));
+        lsave = (int *)(PyArray_DATA(capi_lsave_as_array));
 
     /* Processing variable isave */
     isave_Dims[0]=44;
     capi_isave_intent |= F2PY_INTENT_INOUT;
-    capi_isave_tmp = array_from_pyobj(NPY_INT,isave_Dims,isave_Rank,capi_isave_intent,isave_capi);
-    if (capi_isave_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _lbfgsb_error,"failed in converting 16th argument `isave' of _lbfgsb.setulb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_lbfgsb._lbfgsb.setulb: failed to create array from the 16th argument `isave`";
+    capi_isave_as_array = ndarray_from_pyobj(  NPY_INT,1,isave_Dims,isave_Rank,  capi_isave_intent,isave_capi,capi_errmess);
+    if (capi_isave_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _lbfgsb_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        isave = (int *)(PyArray_DATA(capi_isave_tmp));
+        isave = (int *)(PyArray_DATA(capi_isave_as_array));
 
     /* Processing variable dsave */
     dsave_Dims[0]=29;
     capi_dsave_intent |= F2PY_INTENT_INOUT;
-    capi_dsave_tmp = array_from_pyobj(NPY_DOUBLE,dsave_Dims,dsave_Rank,capi_dsave_intent,dsave_capi);
-    if (capi_dsave_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _lbfgsb_error,"failed in converting 17th argument `dsave' of _lbfgsb.setulb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_lbfgsb._lbfgsb.setulb: failed to create array from the 17th argument `dsave`";
+    capi_dsave_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,dsave_Dims,dsave_Rank,  capi_dsave_intent,dsave_capi,capi_errmess);
+    if (capi_dsave_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _lbfgsb_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        dsave = (double *)(PyArray_DATA(capi_dsave_tmp));
+        dsave = (double *)(PyArray_DATA(capi_dsave_as_array));
 
     /* Processing variable maxls */
         f2py_success = int_from_pyobj(&maxls,maxls_capi,"_lbfgsb.setulb() 18th argument (maxls) can't be converted to int");
@@ -679,74 +659,86 @@ f2py_start_clock();
     /* Processing variable l */
     l_Dims[0]=n;
     capi_l_intent |= F2PY_INTENT_IN;
-    capi_l_tmp = array_from_pyobj(NPY_DOUBLE,l_Dims,l_Rank,capi_l_intent,l_capi);
-    if (capi_l_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _lbfgsb_error,"failed in converting 3rd argument `l' of _lbfgsb.setulb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_lbfgsb._lbfgsb.setulb: failed to create array from the 3rd argument `l`";
+    capi_l_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,l_Dims,l_Rank,  capi_l_intent,l_capi,capi_errmess);
+    if (capi_l_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _lbfgsb_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        l = (double *)(PyArray_DATA(capi_l_tmp));
+        l = (double *)(PyArray_DATA(capi_l_as_array));
 
     /* Processing variable u */
     u_Dims[0]=n;
     capi_u_intent |= F2PY_INTENT_IN;
-    capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,u_capi);
-    if (capi_u_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _lbfgsb_error,"failed in converting 4th argument `u' of _lbfgsb.setulb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_lbfgsb._lbfgsb.setulb: failed to create array from the 4th argument `u`";
+    capi_u_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,u_Dims,u_Rank,  capi_u_intent,u_capi,capi_errmess);
+    if (capi_u_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _lbfgsb_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        u = (double *)(PyArray_DATA(capi_u_tmp));
+        u = (double *)(PyArray_DATA(capi_u_as_array));
 
     /* Processing variable nbd */
     nbd_Dims[0]=n;
     capi_nbd_intent |= F2PY_INTENT_IN;
-    capi_nbd_tmp = array_from_pyobj(NPY_INT,nbd_Dims,nbd_Rank,capi_nbd_intent,nbd_capi);
-    if (capi_nbd_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _lbfgsb_error,"failed in converting 5th argument `nbd' of _lbfgsb.setulb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_lbfgsb._lbfgsb.setulb: failed to create array from the 5th argument `nbd`";
+    capi_nbd_as_array = ndarray_from_pyobj(  NPY_INT,1,nbd_Dims,nbd_Rank,  capi_nbd_intent,nbd_capi,capi_errmess);
+    if (capi_nbd_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _lbfgsb_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        nbd = (int *)(PyArray_DATA(capi_nbd_tmp));
+        nbd = (int *)(PyArray_DATA(capi_nbd_as_array));
 
     /* Processing variable g */
     g_Dims[0]=n;
     capi_g_intent |= F2PY_INTENT_INOUT;
-    capi_g_tmp = array_from_pyobj(NPY_DOUBLE,g_Dims,g_Rank,capi_g_intent,g_capi);
-    if (capi_g_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _lbfgsb_error,"failed in converting 7th argument `g' of _lbfgsb.setulb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_lbfgsb._lbfgsb.setulb: failed to create array from the 7th argument `g`";
+    capi_g_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,g_Dims,g_Rank,  capi_g_intent,g_capi,capi_errmess);
+    if (capi_g_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _lbfgsb_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        g = (double *)(PyArray_DATA(capi_g_tmp));
+        g = (double *)(PyArray_DATA(capi_g_as_array));
 
     /* Processing variable wa */
     wa_Dims[0]=8 * m + 5 * n + 2 * m * n + 11 * m * m;
     capi_wa_intent |= F2PY_INTENT_INOUT;
-    capi_wa_tmp = array_from_pyobj(NPY_DOUBLE,wa_Dims,wa_Rank,capi_wa_intent,wa_capi);
-    if (capi_wa_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _lbfgsb_error,"failed in converting 10th argument `wa' of _lbfgsb.setulb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_lbfgsb._lbfgsb.setulb: failed to create array from the 10th argument `wa`";
+    capi_wa_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,wa_Dims,wa_Rank,  capi_wa_intent,wa_capi,capi_errmess);
+    if (capi_wa_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _lbfgsb_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        wa = (double *)(PyArray_DATA(capi_wa_tmp));
+        wa = (double *)(PyArray_DATA(capi_wa_as_array));
 
     /* Processing variable iwa */
     iwa_Dims[0]=3 * n;
     capi_iwa_intent |= F2PY_INTENT_INOUT;
-    capi_iwa_tmp = array_from_pyobj(NPY_INT,iwa_Dims,iwa_Rank,capi_iwa_intent,iwa_capi);
-    if (capi_iwa_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _lbfgsb_error,"failed in converting 11st argument `iwa' of _lbfgsb.setulb to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_lbfgsb._lbfgsb.setulb: failed to create array from the 11st argument `iwa`";
+    capi_iwa_as_array = ndarray_from_pyobj(  NPY_INT,1,iwa_Dims,iwa_Rank,  capi_iwa_intent,iwa_capi,capi_errmess);
+    if (capi_iwa_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _lbfgsb_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iwa = (int *)(PyArray_DATA(capi_iwa_tmp));
+        iwa = (int *)(PyArray_DATA(capi_iwa_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -782,46 +774,46 @@ f2py_stop_call_clock();
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_iwa_tmp!=iwa_capi) {
-        Py_XDECREF(capi_iwa_tmp); }
-    }  /*if (capi_iwa_tmp == NULL) ... else of iwa*/
+    if((PyObject *)capi_iwa_as_array!=iwa_capi) {
+        Py_XDECREF(capi_iwa_as_array); }
+    }  /* if (capi_iwa_as_array == NULL) ... else of iwa */
     /* End of cleaning variable iwa */
-    if((PyObject *)capi_wa_tmp!=wa_capi) {
-        Py_XDECREF(capi_wa_tmp); }
-    }  /*if (capi_wa_tmp == NULL) ... else of wa*/
+    if((PyObject *)capi_wa_as_array!=wa_capi) {
+        Py_XDECREF(capi_wa_as_array); }
+    }  /* if (capi_wa_as_array == NULL) ... else of wa */
     /* End of cleaning variable wa */
-    if((PyObject *)capi_g_tmp!=g_capi) {
-        Py_XDECREF(capi_g_tmp); }
-    }  /*if (capi_g_tmp == NULL) ... else of g*/
+    if((PyObject *)capi_g_as_array!=g_capi) {
+        Py_XDECREF(capi_g_as_array); }
+    }  /* if (capi_g_as_array == NULL) ... else of g */
     /* End of cleaning variable g */
-    if((PyObject *)capi_nbd_tmp!=nbd_capi) {
-        Py_XDECREF(capi_nbd_tmp); }
-    }  /*if (capi_nbd_tmp == NULL) ... else of nbd*/
+    if((PyObject *)capi_nbd_as_array!=nbd_capi) {
+        Py_XDECREF(capi_nbd_as_array); }
+    }  /* if (capi_nbd_as_array == NULL) ... else of nbd */
     /* End of cleaning variable nbd */
-    if((PyObject *)capi_u_tmp!=u_capi) {
-        Py_XDECREF(capi_u_tmp); }
-    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    if((PyObject *)capi_u_as_array!=u_capi) {
+        Py_XDECREF(capi_u_as_array); }
+    }  /* if (capi_u_as_array == NULL) ... else of u */
     /* End of cleaning variable u */
-    if((PyObject *)capi_l_tmp!=l_capi) {
-        Py_XDECREF(capi_l_tmp); }
-    }  /*if (capi_l_tmp == NULL) ... else of l*/
+    if((PyObject *)capi_l_as_array!=l_capi) {
+        Py_XDECREF(capi_l_as_array); }
+    }  /* if (capi_l_as_array == NULL) ... else of l */
     /* End of cleaning variable l */
     } /*CHECKSCALAR(len(x)>=n)*/
     } /*if (f2py_success) of n*/
     /* End of cleaning variable n */
     } /*if (f2py_success) of maxls*/
     /* End of cleaning variable maxls */
-    if((PyObject *)capi_dsave_tmp!=dsave_capi) {
-        Py_XDECREF(capi_dsave_tmp); }
-    }  /*if (capi_dsave_tmp == NULL) ... else of dsave*/
+    if((PyObject *)capi_dsave_as_array!=dsave_capi) {
+        Py_XDECREF(capi_dsave_as_array); }
+    }  /* if (capi_dsave_as_array == NULL) ... else of dsave */
     /* End of cleaning variable dsave */
-    if((PyObject *)capi_isave_tmp!=isave_capi) {
-        Py_XDECREF(capi_isave_tmp); }
-    }  /*if (capi_isave_tmp == NULL) ... else of isave*/
+    if((PyObject *)capi_isave_as_array!=isave_capi) {
+        Py_XDECREF(capi_isave_as_array); }
+    }  /* if (capi_isave_as_array == NULL) ... else of isave */
     /* End of cleaning variable isave */
-    if((PyObject *)capi_lsave_tmp!=lsave_capi) {
-        Py_XDECREF(capi_lsave_tmp); }
-    }  /*if (capi_lsave_tmp == NULL) ... else of lsave*/
+    if((PyObject *)capi_lsave_as_array!=lsave_capi) {
+        Py_XDECREF(capi_lsave_as_array); }
+    }  /* if (capi_lsave_as_array == NULL) ... else of lsave */
     /* End of cleaning variable lsave */
         STRINGFREE(csave);
     }  /*if (f2py_success) of csave*/
@@ -837,9 +829,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable factr */
     } /*if (f2py_success) of f*/
     /* End of cleaning variable f */
-    if((PyObject *)capi_x_tmp!=x_capi) {
-        Py_XDECREF(capi_x_tmp); }
-    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    if((PyObject *)capi_x_as_array!=x_capi) {
+        Py_XDECREF(capi_x_as_array); }
+    }  /* if (capi_x_as_array == NULL) ... else of x */
     /* End of cleaning variable x */
     } /*if (f2py_success) of m*/
     /* End of cleaning variable m */
@@ -867,7 +859,7 @@ f2py_stop_clock();
 /******************* See f2py2e/common_rules.py: buildhooks *******************/
 
 static FortranDataDef f2py_types_def[] = {
-  {"intvar",0,{{-1}},NPY_INT},
+  {"intvar",0,{{-1}},NPY_INT, 1},
   {NULL}
 };
 static void f2py_setup_types(char *intvar) {
@@ -884,7 +876,7 @@ static void f2py_init_types(void) {
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"setulb",-1,{{-1}},0,(char *)F_FUNC(setulb,SETULB),(f2py_init_func)f2py_rout__lbfgsb_setulb,doc_f2py_rout__lbfgsb_setulb},
+    {"setulb",-1,{{-1}},0,0,(char *)  F_FUNC(setulb,SETULB),  (f2py_init_func)f2py_rout__lbfgsb_setulb,doc_f2py_rout__lbfgsb_setulb},
 
 /*eof routine_defs*/
     {NULL}
@@ -916,16 +908,16 @@ PyMODINIT_FUNC PyInit__lbfgsb(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _lbfgsb (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_lbfgsb' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module '_lbfgsb' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    setulb(m,x,l,u,nbd,f,g,factr,pgtol,wa,iwa,task,iprint,csave,lsave,isave,dsave,maxls,n=len(x))\n"
 "COMMON blocks:\n""  /types/ intvar\n"".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _lbfgsb_error = PyErr_NewException ("_lbfgsb.error", NULL, NULL);
@@ -945,7 +937,8 @@ PyMODINIT_FUNC PyInit__lbfgsb(void) {
 /*eof initf90modhooks*/
 
   tmp = PyFortranObject_New(f2py_types_def,f2py_init_types);
-  F2PyDict_SetItemString(d, "types", tmp);
+  if (tmp == NULL) return NULL;
+  if (F2PyDict_SetItemString(d, "types", tmp) == -1) return NULL;
   Py_DECREF(tmp);
 /*eof initcommonhooks*/
 

@@ -19,8 +19,8 @@
 #include "fast_loop_macros.h"
 
 #if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
-#line 16
-#line 20
+#line 17
+#line 22
 static void
 simd_exp2_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -41,7 +41,15 @@ simd_exp2_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_exp2f16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_exp2f16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -51,7 +59,7 @@ simd_exp2_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_log2_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -72,7 +80,15 @@ simd_log2_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(1));
+        npyv_f32 out = __svml_log2f16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_log2f16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -82,7 +98,7 @@ simd_log2_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_log10_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -103,7 +119,15 @@ simd_log10_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(1));
+        npyv_f32 out = __svml_log10f16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_log10f16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -113,7 +137,7 @@ simd_log10_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_expm1_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -134,7 +158,15 @@ simd_expm1_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 64 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(1));
+        npyv_f32 out = __svml_expm1f16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_expm1f16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -144,7 +176,7 @@ simd_expm1_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_log1p_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -165,7 +197,15 @@ simd_log1p_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_log1pf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_log1pf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -175,7 +215,7 @@ simd_log1p_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_cbrt_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -196,7 +236,15 @@ simd_cbrt_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_cbrtf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_cbrtf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -206,7 +254,7 @@ simd_cbrt_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_tan_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -227,7 +275,15 @@ simd_tan_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_tanf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_tanf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -237,7 +293,7 @@ simd_tan_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_asin_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -258,7 +314,15 @@ simd_asin_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_asinf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_asinf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -268,7 +332,7 @@ simd_asin_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_acos_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -289,7 +353,15 @@ simd_acos_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_acosf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_acosf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -299,7 +371,7 @@ simd_acos_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_atan_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -320,7 +392,15 @@ simd_atan_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_atanf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_atanf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -330,7 +410,7 @@ simd_atan_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_sinh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -351,7 +431,15 @@ simd_sinh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_sinhf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_sinhf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -361,7 +449,7 @@ simd_sinh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_cosh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -382,7 +470,15 @@ simd_cosh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_coshf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_coshf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -392,7 +488,7 @@ simd_cosh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_asinh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -413,7 +509,15 @@ simd_asinh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_asinhf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_asinhf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -423,7 +527,7 @@ simd_asinh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_acosh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -444,7 +548,15 @@ simd_acosh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(1));
+        npyv_f32 out = __svml_acoshf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_acoshf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -454,7 +566,7 @@ simd_acosh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_atanh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                         npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
@@ -475,7 +587,15 @@ simd_atanh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f32(src, ssrc, len);
             }
         #endif
+    #if 0 == 32
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b32 nnan_mask = npyv_notnan_f32(x);
+        npyv_f32 x_exnan = npyv_select_f32(nnan_mask, x, npyv_setall_f32(0));
+        npyv_f32 out = __svml_atanhf16(x_exnan);
+        out = npyv_select_f32(nnan_mask, out, x);
+    #else
         npyv_f32 out = __svml_atanhf16(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f32(dst, len, out);
         } else {
@@ -486,8 +606,8 @@ simd_atanh_f32(const npyv_lanetype_f32 *src, npy_intp ssrc,
 }
 
 
-#line 16
-#line 20
+#line 17
+#line 22
 static void
 simd_exp2_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -508,7 +628,15 @@ simd_exp2_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_exp28(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_exp28(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -518,7 +646,7 @@ simd_exp2_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_log2_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -539,7 +667,15 @@ simd_log2_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(1));
+        npyv_f64 out = __svml_log28(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_log28(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -549,7 +685,7 @@ simd_log2_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_log10_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -570,7 +706,15 @@ simd_log10_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(1));
+        npyv_f64 out = __svml_log108(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_log108(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -580,7 +724,7 @@ simd_log10_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_expm1_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -601,7 +745,15 @@ simd_expm1_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 64 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(1));
+        npyv_f64 out = __svml_expm18(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_expm18(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -611,7 +763,7 @@ simd_expm1_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_log1p_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -632,7 +784,15 @@ simd_log1p_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_log1p8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_log1p8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -642,7 +802,7 @@ simd_log1p_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_cbrt_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -663,7 +823,15 @@ simd_cbrt_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_cbrt8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_cbrt8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -673,7 +841,7 @@ simd_cbrt_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_tan_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -694,7 +862,15 @@ simd_tan_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_tan8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_tan8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -704,7 +880,7 @@ simd_tan_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_asin_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -725,7 +901,15 @@ simd_asin_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_asin8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_asin8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -735,7 +919,7 @@ simd_asin_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_acos_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -756,7 +940,15 @@ simd_acos_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_acos8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_acos8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -766,7 +958,7 @@ simd_acos_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_atan_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -787,7 +979,15 @@ simd_atan_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_atan8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_atan8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -797,7 +997,7 @@ simd_atan_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_sinh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -818,7 +1018,15 @@ simd_sinh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_sinh8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_sinh8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -828,7 +1036,7 @@ simd_sinh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_cosh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -849,7 +1057,15 @@ simd_cosh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_cosh8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_cosh8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -859,7 +1075,7 @@ simd_cosh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_asinh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -880,7 +1096,15 @@ simd_asinh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_asinh8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_asinh8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -890,7 +1114,7 @@ simd_asinh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_acosh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -911,7 +1135,15 @@ simd_acosh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(1));
+        npyv_f64 out = __svml_acosh8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_acosh8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -921,7 +1153,7 @@ simd_acosh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 20
+#line 22
 static void
 simd_atanh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                         npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
@@ -942,7 +1174,15 @@ simd_atanh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
                 x = npyv_loadn_tillz_f64(src, ssrc, len);
             }
         #endif
+    #if 0 == 64
+        // Workaround, invalid value encountered when x is set to nan
+        npyv_b64 nnan_mask = npyv_notnan_f64(x);
+        npyv_f64 x_exnan = npyv_select_f64(nnan_mask, x, npyv_setall_f64(0));
+        npyv_f64 out = __svml_atanh8(x_exnan);
+        out = npyv_select_f64(nnan_mask, out, x);
+    #else
         npyv_f64 out = __svml_atanh8(x);
+    #endif
         if (sdst == 1) {
             npyv_store_till_f64(dst, len, out);
         } else {
@@ -954,7 +1194,7 @@ simd_atanh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
 
 
 
-#line 55
+#line 65
 static void
 simd_sin_f64(const double *src, npy_intp ssrc,
                       double *dst, npy_intp sdst, npy_intp len)
@@ -977,7 +1217,7 @@ simd_sin_f64(const double *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
-#line 55
+#line 65
 static void
 simd_cos_f64(const double *src, npy_intp ssrc,
                       double *dst, npy_intp sdst, npy_intp len)
@@ -1000,10 +1240,1164 @@ simd_cos_f64(const double *src, npy_intp ssrc,
     npyv_cleanup();
 }
 
+
+#line 92
+#line 95
+
+static void
+simd_pow_f32(const npyv_lanetype_f32 *src1, npy_intp ssrc1,
+                  const npyv_lanetype_f32 *src2, npy_intp ssrc2,
+                        npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
+{
+    const int vstep = npyv_nlanes_f32;
+    for (; len > 0; len -= vstep, src1 += ssrc1*vstep, src2 += ssrc2*vstep, dst += sdst*vstep) {
+        npyv_f32 x1;
+        if (ssrc1 == 1) {
+            x1 = npyv_load_till_f32(src1, len, 1);
+        } else {
+            x1 = npyv_loadn_till_f32(src1, ssrc1, len, 1);
+        }
+
+        npyv_f32 x2;
+        if (ssrc2 == 1) {
+            x2 = npyv_load_till_f32(src2, len, 1);
+        } else {
+            x2 = npyv_loadn_till_f32(src2, ssrc2, len, 1);
+        }
+
+        npyv_f32 out = __svml_powf16(x1, x2);
+        if (sdst == 1) {
+            npyv_store_till_f32(dst, len, out);
+        } else {
+            npyv_storen_till_f32(dst, sdst, len, out);
+        }
+    }
+}
+
+#line 95
+
+static void
+simd_atan2_f32(const npyv_lanetype_f32 *src1, npy_intp ssrc1,
+                  const npyv_lanetype_f32 *src2, npy_intp ssrc2,
+                        npyv_lanetype_f32 *dst, npy_intp sdst, npy_intp len)
+{
+    const int vstep = npyv_nlanes_f32;
+    for (; len > 0; len -= vstep, src1 += ssrc1*vstep, src2 += ssrc2*vstep, dst += sdst*vstep) {
+        npyv_f32 x1;
+        if (ssrc1 == 1) {
+            x1 = npyv_load_till_f32(src1, len, 1);
+        } else {
+            x1 = npyv_loadn_till_f32(src1, ssrc1, len, 1);
+        }
+
+        npyv_f32 x2;
+        if (ssrc2 == 1) {
+            x2 = npyv_load_till_f32(src2, len, 1);
+        } else {
+            x2 = npyv_loadn_till_f32(src2, ssrc2, len, 1);
+        }
+
+        npyv_f32 out = __svml_atan2f16(x1, x2);
+        if (sdst == 1) {
+            npyv_store_till_f32(dst, len, out);
+        } else {
+            npyv_storen_till_f32(dst, sdst, len, out);
+        }
+    }
+}
+
+
+#line 92
+#line 95
+
+static void
+simd_pow_f64(const npyv_lanetype_f64 *src1, npy_intp ssrc1,
+                  const npyv_lanetype_f64 *src2, npy_intp ssrc2,
+                        npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
+{
+    const int vstep = npyv_nlanes_f64;
+    for (; len > 0; len -= vstep, src1 += ssrc1*vstep, src2 += ssrc2*vstep, dst += sdst*vstep) {
+        npyv_f64 x1;
+        if (ssrc1 == 1) {
+            x1 = npyv_load_till_f64(src1, len, 1);
+        } else {
+            x1 = npyv_loadn_till_f64(src1, ssrc1, len, 1);
+        }
+
+        npyv_f64 x2;
+        if (ssrc2 == 1) {
+            x2 = npyv_load_till_f64(src2, len, 1);
+        } else {
+            x2 = npyv_loadn_till_f64(src2, ssrc2, len, 1);
+        }
+
+        npyv_f64 out = __svml_pow8(x1, x2);
+        if (sdst == 1) {
+            npyv_store_till_f64(dst, len, out);
+        } else {
+            npyv_storen_till_f64(dst, sdst, len, out);
+        }
+    }
+}
+
+#line 95
+
+static void
+simd_atan2_f64(const npyv_lanetype_f64 *src1, npy_intp ssrc1,
+                  const npyv_lanetype_f64 *src2, npy_intp ssrc2,
+                        npyv_lanetype_f64 *dst, npy_intp sdst, npy_intp len)
+{
+    const int vstep = npyv_nlanes_f64;
+    for (; len > 0; len -= vstep, src1 += ssrc1*vstep, src2 += ssrc2*vstep, dst += sdst*vstep) {
+        npyv_f64 x1;
+        if (ssrc1 == 1) {
+            x1 = npyv_load_till_f64(src1, len, 1);
+        } else {
+            x1 = npyv_loadn_till_f64(src1, ssrc1, len, 1);
+        }
+
+        npyv_f64 x2;
+        if (ssrc2 == 1) {
+            x2 = npyv_load_till_f64(src2, len, 1);
+        } else {
+            x2 = npyv_loadn_till_f64(src2, ssrc2, len, 1);
+        }
+
+        npyv_f64 out = __svml_atan28(x1, x2);
+        if (sdst == 1) {
+            npyv_store_till_f64(dst, len, out);
+        } else {
+            npyv_storen_till_f64(dst, sdst, len, out);
+        }
+    }
+}
+
+
+
+typedef __m256i npyvh_f16;
+#define npyv_cvt_f16_f32 _mm512_cvtph_ps
+#define npyv_cvt_f32_f16 _mm512_cvtps_ph
+#define npyvh_load_f16(PTR) _mm256_loadu_si256((const __m256i*)(PTR))
+#define npyvh_store_f16(PTR, data) _mm256_storeu_si256((__m256i*)PTR, data)
+NPY_FINLINE npyvh_f16 npyvh_load_till_f16(const npy_half *ptr, npy_uintp nlane, npy_half fill)
+{
+    assert(nlane > 0);
+    const __m256i vfill = _mm256_set1_epi16(fill);
+    const __mmask16 mask = (0x0001 << nlane) - 0x0001;
+    return _mm256_mask_loadu_epi16(vfill, mask, ptr);
+}
+NPY_FINLINE void npyvh_store_till_f16(npy_half *ptr, npy_uintp nlane, npyvh_f16 data)
+{
+    assert(nlane > 0);
+    const __mmask16 mask = (0x0001 << nlane) - 0x0001;
+    _mm256_mask_storeu_epi16(ptr, mask, data);
+}
+
+#line 151
+static void
+avx512_sin_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_sinf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_sinf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_cos_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_cosf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_cosf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_tan_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_tanf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_tanf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_exp_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_expf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_expf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_exp2_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_exp2f16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_exp2f16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_expm1_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_expm1f16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0x3c00);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_expm1f16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_log_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_logf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0x3c00);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_logf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_log2_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_log2f16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0x3c00);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_log2f16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_log10_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_log10f16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0x3c00);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_log10f16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_log1p_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_log1pf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_log1pf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_cbrt_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_cbrtf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_cbrtf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_asin_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_asinf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_asinf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_acos_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_acosf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_acosf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_atan_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_atanf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_atanf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_sinh_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_sinhf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_sinhf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_cosh_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_coshf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_coshf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_tanh_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_tanhf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_tanhf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_asinh_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_asinhf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_asinhf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_acosh_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_acoshf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0x3c00);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_acoshf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
+#line 151
+static void
+avx512_atanh_f16(const npy_half *src, npy_half *dst, npy_intp len)
+{
+    const int num_lanes = npyv_nlanes_f32;
+    npyvh_f16 x, out;
+    npyv_f32 x_ps, out_ps;
+    for (; len > 0; len -= num_lanes, src += num_lanes, dst += num_lanes) {
+        if (len >= num_lanes) {
+            x       = npyvh_load_f16(src);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_atanhf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_f16(dst, out);
+        }
+        else {
+            x       = npyvh_load_till_f16(src, len, 0);
+            x_ps    = npyv_cvt_f16_f32(x);
+            out_ps  = __svml_atanhf16(x_ps);
+            out     = npyv_cvt_f32_f16(out_ps, 0);
+            npyvh_store_till_f16(dst, len, out);
+        }
+    }
+    npyv_cleanup();
+}
+
 #endif
 
-#line 85
-#line 89
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_sin)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_sin_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_sinf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_cos)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_cos_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_cosf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_tan)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_tan_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_tanf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_exp)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_exp_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_expf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_exp2)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_exp2_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_exp2f(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_expm1)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_expm1_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_expm1f(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_log_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_logf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log2)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_log2_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_log2f(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log10)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_log10_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_log10f(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log1p)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_log1p_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_log1pf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_cbrt)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_cbrt_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_cbrtf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arcsin)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_asin_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_asinf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arccos)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_acos_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_acosf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arctan)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_atan_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_atanf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_sinh)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_sinh_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_sinhf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_cosh)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_cosh_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_coshf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_tanh)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_tanh_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_tanhf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arcsinh)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_asinh_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_asinhf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arccosh)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_acosh_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_acoshf(in1));
+    }
+}
+
+#line 182
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arctanh)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_half *src = (npy_half*)args[0];
+          npy_half *dst = (npy_half*)args[1];
+    const int lsize = sizeof(src[0]);
+    const npy_intp ssrc = steps[0] / lsize;
+    const npy_intp sdst = steps[1] / lsize;
+    const npy_intp len = dimensions[0];
+    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
+        (ssrc == 1) &&
+        (sdst == 1)) {
+        avx512_atanh_f16(src, dst, len);
+        return;
+    }
+#endif
+    UNARY_LOOP {
+        const npy_float in1 = npy_half_to_float(*(npy_half *)ip1);
+        *((npy_half *)op1) = npy_float_to_half(npy_atanhf(in1));
+    }
+}
+
+
+#line 212
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_exp2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1028,7 +2422,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_exp2)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1053,7 +2447,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log2)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log10)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1078,7 +2472,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log10)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_expm1)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1103,7 +2497,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_expm1)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log1p)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1128,7 +2522,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log1p)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cbrt)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1153,7 +2547,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cbrt)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_tan)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1178,7 +2572,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_tan)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arcsin)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1203,7 +2597,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arcsin)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arccos)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1228,7 +2622,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arccos)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctan)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1253,7 +2647,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctan)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_sinh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1278,7 +2672,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_sinh)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cosh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1303,7 +2697,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cosh)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arcsinh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1328,7 +2722,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arcsinh)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arccosh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1353,7 +2747,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arccosh)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctanh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1379,8 +2773,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctanh)
 }
 
 
-#line 85
-#line 89
+#line 212
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_exp2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1405,7 +2799,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_exp2)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1430,7 +2824,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log2)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log10)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1455,7 +2849,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log10)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_expm1)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1480,7 +2874,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_expm1)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log1p)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1505,7 +2899,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log1p)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cbrt)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1530,7 +2924,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cbrt)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_tan)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1555,7 +2949,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_tan)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arcsin)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1580,7 +2974,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arcsin)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arccos)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1605,7 +2999,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arccos)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctan)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1630,7 +3024,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctan)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_sinh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1655,7 +3049,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_sinh)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cosh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1680,7 +3074,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cosh)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arcsinh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1705,7 +3099,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arcsinh)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arccosh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1730,7 +3124,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arccosh)
     }
 }
 
-#line 89
+#line 216
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctanh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1757,7 +3151,124 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctanh)
 
 
 
-#line 118
+#line 248
+#line 252
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_power)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_double *src1 = (npy_double*)args[0];
+    const npy_double *src2 = (npy_double*)args[1];
+          npy_double *dst  = (npy_double*)args[2];
+    const int lsize = sizeof(src1[0]);
+    const npy_intp ssrc1 = steps[0] / lsize;
+    const npy_intp ssrc2 = steps[1] / lsize;
+    const npy_intp sdst  = steps[2] / lsize;
+    const npy_intp len = dimensions[0];
+    assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
+    if (!is_mem_overlap(src1, steps[0], dst, steps[2], len) && !is_mem_overlap(src2, steps[1], dst, steps[2], len) &&
+        npyv_loadable_stride_f64(ssrc1) && npyv_loadable_stride_f64(ssrc2) &&
+        npyv_storable_stride_f64(sdst)) {
+        simd_pow_f64(src1, ssrc1, src2, ssrc2, dst, sdst, len);
+        return;
+    }
+#endif
+    BINARY_LOOP {
+        const npy_double in1 = *(npy_double *)ip1;
+        const npy_double in2 = *(npy_double *)ip2;
+        *(npy_double *)op1 = npy_pow(in1, in2);
+    }
+}
+
+#line 252
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctan2)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_double *src1 = (npy_double*)args[0];
+    const npy_double *src2 = (npy_double*)args[1];
+          npy_double *dst  = (npy_double*)args[2];
+    const int lsize = sizeof(src1[0]);
+    const npy_intp ssrc1 = steps[0] / lsize;
+    const npy_intp ssrc2 = steps[1] / lsize;
+    const npy_intp sdst  = steps[2] / lsize;
+    const npy_intp len = dimensions[0];
+    assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
+    if (!is_mem_overlap(src1, steps[0], dst, steps[2], len) && !is_mem_overlap(src2, steps[1], dst, steps[2], len) &&
+        npyv_loadable_stride_f64(ssrc1) && npyv_loadable_stride_f64(ssrc2) &&
+        npyv_storable_stride_f64(sdst)) {
+        simd_atan2_f64(src1, ssrc1, src2, ssrc2, dst, sdst, len);
+        return;
+    }
+#endif
+    BINARY_LOOP {
+        const npy_double in1 = *(npy_double *)ip1;
+        const npy_double in2 = *(npy_double *)ip2;
+        *(npy_double *)op1 = npy_atan2(in1, in2);
+    }
+}
+
+
+#line 248
+#line 252
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_power)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_float *src1 = (npy_float*)args[0];
+    const npy_float *src2 = (npy_float*)args[1];
+          npy_float *dst  = (npy_float*)args[2];
+    const int lsize = sizeof(src1[0]);
+    const npy_intp ssrc1 = steps[0] / lsize;
+    const npy_intp ssrc2 = steps[1] / lsize;
+    const npy_intp sdst  = steps[2] / lsize;
+    const npy_intp len = dimensions[0];
+    assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
+    if (!is_mem_overlap(src1, steps[0], dst, steps[2], len) && !is_mem_overlap(src2, steps[1], dst, steps[2], len) &&
+        npyv_loadable_stride_f32(ssrc1) && npyv_loadable_stride_f32(ssrc2) &&
+        npyv_storable_stride_f32(sdst)) {
+        simd_pow_f32(src1, ssrc1, src2, ssrc2, dst, sdst, len);
+        return;
+    }
+#endif
+    BINARY_LOOP {
+        const npy_float in1 = *(npy_float *)ip1;
+        const npy_float in2 = *(npy_float *)ip2;
+        *(npy_float *)op1 = npy_powf(in1, in2);
+    }
+}
+
+#line 252
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctan2)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
+{
+#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
+    const npy_float *src1 = (npy_float*)args[0];
+    const npy_float *src2 = (npy_float*)args[1];
+          npy_float *dst  = (npy_float*)args[2];
+    const int lsize = sizeof(src1[0]);
+    const npy_intp ssrc1 = steps[0] / lsize;
+    const npy_intp ssrc2 = steps[1] / lsize;
+    const npy_intp sdst  = steps[2] / lsize;
+    const npy_intp len = dimensions[0];
+    assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
+    if (!is_mem_overlap(src1, steps[0], dst, steps[2], len) && !is_mem_overlap(src2, steps[1], dst, steps[2], len) &&
+        npyv_loadable_stride_f32(ssrc1) && npyv_loadable_stride_f32(ssrc2) &&
+        npyv_storable_stride_f32(sdst)) {
+        simd_atan2_f32(src1, ssrc1, src2, ssrc2, dst, sdst, len);
+        return;
+    }
+#endif
+    BINARY_LOOP {
+        const npy_float in1 = *(npy_float *)ip1;
+        const npy_float in2 = *(npy_float *)ip2;
+        *(npy_float *)op1 = npy_atan2f(in1, in2);
+    }
+}
+
+
+
+#line 284
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_sin)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1782,7 +3293,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_sin)
     }
 }
 
-#line 118
+#line 284
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cos)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {

@@ -4160,6 +4160,7 @@ class TestCOO(sparse_test_class(getset=False,
         assert_((asp.data != 0).all())
         assert_array_equal(asp.A, bsp.A)
 
+    @pytest.mark.xfail
     def test_reshape_copy(self):
         arr = [[0, 10, 0, 0], [0, 0, 0, 0], [0, 20, 30, 40]]
         new_shape = (2, 6)

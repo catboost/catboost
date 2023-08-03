@@ -52460,7 +52460,7 @@ half_sum_of_products_outstride0_any(int nop, char **dataptr,
 static NPY_GCC_OPT_3 npy_float float_sum_of_arr(npy_float *data, npy_intp count)
 {
     npy_float accum = 0;
-#if NPY_SIMD // NPYV check for npy_float
+#if NPY_SIMD_F32 // NPYV check for npy_float
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data);
     const int vstep = npyv_nlanes_f32;
@@ -52870,7 +52870,7 @@ finish_after_unrolled_loop:
 static NPY_GCC_OPT_3 void
 float_sum_of_products_muladd(npy_float *data, npy_float *data_out, npy_float scalar, npy_intp count)
 {
-#if NPY_SIMD // NPYV check for npy_float
+#if NPY_SIMD_F32 // NPYV check for npy_float
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data) && EINSUM_IS_ALIGNED(data_out);
     const int vstep = npyv_nlanes_f32;
@@ -53038,7 +53038,7 @@ float_sum_of_products_contig_two(int nop, char **dataptr,
     NPY_EINSUM_DBG_PRINT1("float_sum_of_products_contig_two (%d)\n",
                                                             (int)count);
     // NPYV check for npy_float
-#if NPY_SIMD
+#if NPY_SIMD_F32
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1) &&
                         EINSUM_IS_ALIGNED(data_out);
@@ -53250,7 +53250,7 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
 
     NPY_EINSUM_DBG_PRINT1("float_sum_of_products_contig_contig_outstride0_two (%d)\n",
                                                     (int)count);
-#if NPY_SIMD // NPYV check for npy_float
+#if NPY_SIMD_F32 // NPYV check for npy_float
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
@@ -54041,7 +54041,7 @@ finish_after_unrolled_loop:
 static NPY_GCC_OPT_3 void
 float_sum_of_products_muladd(npy_float *data, npy_float *data_out, npy_float scalar, npy_intp count)
 {
-#if NPY_SIMD // NPYV check for npy_float
+#if NPY_SIMD_F32 // NPYV check for npy_float
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data) && EINSUM_IS_ALIGNED(data_out);
     const int vstep = npyv_nlanes_f32;
@@ -54209,7 +54209,7 @@ float_sum_of_products_contig_two(int nop, char **dataptr,
     NPY_EINSUM_DBG_PRINT1("float_sum_of_products_contig_two (%d)\n",
                                                             (int)count);
     // NPYV check for npy_float
-#if NPY_SIMD
+#if NPY_SIMD_F32
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1) &&
                         EINSUM_IS_ALIGNED(data_out);
@@ -54421,7 +54421,7 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
 
     NPY_EINSUM_DBG_PRINT1("float_sum_of_products_contig_contig_outstride0_two (%d)\n",
                                                     (int)count);
-#if NPY_SIMD // NPYV check for npy_float
+#if NPY_SIMD_F32 // NPYV check for npy_float
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
@@ -55212,7 +55212,7 @@ finish_after_unrolled_loop:
 static NPY_GCC_OPT_3 void
 float_sum_of_products_muladd(npy_float *data, npy_float *data_out, npy_float scalar, npy_intp count)
 {
-#if NPY_SIMD // NPYV check for npy_float
+#if NPY_SIMD_F32 // NPYV check for npy_float
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data) && EINSUM_IS_ALIGNED(data_out);
     const int vstep = npyv_nlanes_f32;
@@ -55380,7 +55380,7 @@ float_sum_of_products_contig_two(int nop, char **dataptr,
     NPY_EINSUM_DBG_PRINT1("float_sum_of_products_contig_two (%d)\n",
                                                             (int)count);
     // NPYV check for npy_float
-#if NPY_SIMD
+#if NPY_SIMD_F32
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1) &&
                         EINSUM_IS_ALIGNED(data_out);
@@ -55592,7 +55592,7 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
 
     NPY_EINSUM_DBG_PRINT1("float_sum_of_products_contig_contig_outstride0_two (%d)\n",
                                                     (int)count);
-#if NPY_SIMD // NPYV check for npy_float
+#if NPY_SIMD_F32 // NPYV check for npy_float
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;
@@ -56383,7 +56383,7 @@ finish_after_unrolled_loop:
 static NPY_GCC_OPT_3 void
 float_sum_of_products_muladd(npy_float *data, npy_float *data_out, npy_float scalar, npy_intp count)
 {
-#if NPY_SIMD // NPYV check for npy_float
+#if NPY_SIMD_F32 // NPYV check for npy_float
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data) && EINSUM_IS_ALIGNED(data_out);
     const int vstep = npyv_nlanes_f32;
@@ -56551,7 +56551,7 @@ float_sum_of_products_contig_two(int nop, char **dataptr,
     NPY_EINSUM_DBG_PRINT1("float_sum_of_products_contig_two (%d)\n",
                                                             (int)count);
     // NPYV check for npy_float
-#if NPY_SIMD
+#if NPY_SIMD_F32
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1) &&
                         EINSUM_IS_ALIGNED(data_out);
@@ -56763,7 +56763,7 @@ float_sum_of_products_contig_contig_outstride0_two(int nop, char **dataptr,
 
     NPY_EINSUM_DBG_PRINT1("float_sum_of_products_contig_contig_outstride0_two (%d)\n",
                                                     (int)count);
-#if NPY_SIMD // NPYV check for npy_float
+#if NPY_SIMD_F32 // NPYV check for npy_float
     /* Use aligned instructions if possible */
     const int is_aligned = EINSUM_IS_ALIGNED(data0) && EINSUM_IS_ALIGNED(data1);
     const int vstep = npyv_nlanes_f32;

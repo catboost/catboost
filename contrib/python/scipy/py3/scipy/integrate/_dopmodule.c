@@ -1,5 +1,5 @@
 /* File: _dopmodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <string.h>
 #include <setjmp.h>
@@ -86,7 +85,7 @@ typedef void(*cb_fcn_in___user__routines_typedef)(int *,double *,double *,double
       && (__STDC_VERSION__ >= 201112L) \
       && !defined(__STDC_NO_THREADS__) \
       && (!defined(__GLIBC__) || __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ > 12)) \
-      && !defined(NPY_OS_OPENBSD)
+      && !defined(NPY_OS_OPENBSD) && !defined(NPY_OS_HAIKU)
 /* __STDC_NO_THREADS__ was first defined in a maintenance release of glibc 2.12,
    see https://lists.gnu.org/archive/html/commit-hurd/2012-07/msg00180.html,
    so `!defined(__STDC_NO_THREADS__)` may give false positive for the existence
@@ -142,17 +141,14 @@ typedef void(*cb_fcn_in___user__routines_typedef)(int *,double *,double *,double
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 #define SWAP(a,b,t) {\
     t *c;\
@@ -167,30 +163,6 @@ typedef void(*cb_fcn_in___user__routines_typedef)(int *,double *,double *,double
     } else 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int
 int_from_pyobj(int* v, PyObject *obj, const char *errmess)
 {
@@ -287,7 +259,7 @@ create_cb_arglist(PyObject* fun, PyTupleObject* xa , const int maxnofargs,
             if (xa != NULL)
                 ext = PyTuple_Size((PyObject *)xa);
             if(ext>0) {
-                fprintf(stderr,"extra arguments tuple cannot be used with CObject call-back\n");
+                fprintf(stderr,"extra arguments tuple cannot be used with PyCapsule call-back\n");
                 goto capi_fail;
             }
             tmp_fun = fun;
@@ -536,9 +508,12 @@ f2py_cb_start_clock();
         if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(x)))
             goto capi_fail;
     if (cb->nofargs>capi_i) {
-        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-        /*XXX: Hmm, what will destroy this array??? */
-        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,y_Dims,NPY_DOUBLE,NULL,(char*)y,itemsize_,NPY_ARRAY_CARRAY,NULL);
+        /* tmp_arr will be inserted to capi_arglist_list that will be
+           destroyed when leaving callback function wrapper together
+           with tmp_arr. */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,
+          1,y_Dims,NPY_DOUBLE,NULL,(char*)y,1,
+          NPY_ARRAY_CARRAY,NULL);
 
 
         if (tmp_arr==NULL)
@@ -741,9 +716,12 @@ f2py_cb_start_clock();
         if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(x)))
             goto capi_fail;
     if (cb->nofargs>capi_i) {
-        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-        /*XXX: Hmm, what will destroy this array??? */
-        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,y_Dims,NPY_DOUBLE,NULL,(char*)y,itemsize_,NPY_ARRAY_CARRAY,NULL);
+        /* tmp_arr will be inserted to capi_arglist_list that will be
+           destroyed when leaving callback function wrapper together
+           with tmp_arr. */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,
+          1,y_Dims,NPY_DOUBLE,NULL,(char*)y,1,
+          NPY_ARRAY_CARRAY,NULL);
 
 
         if (tmp_arr==NULL)
@@ -752,9 +730,12 @@ f2py_cb_start_clock();
             goto capi_fail;
 }
     if (cb->nofargs>capi_i) {
-        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-        /*XXX: Hmm, what will destroy this array??? */
-        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,con_Dims,NPY_DOUBLE,NULL,(char*)con,itemsize_,NPY_ARRAY_FARRAY,NULL);
+        /* tmp_arr will be inserted to capi_arglist_list that will be
+           destroyed when leaving callback function wrapper together
+           with tmp_arr. */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,
+          1,con_Dims,NPY_DOUBLE,NULL,(char*)con,1,
+          NPY_ARRAY_FARRAY,NULL);
 
 
         if (tmp_arr==NULL)
@@ -763,9 +744,12 @@ f2py_cb_start_clock();
             goto capi_fail;
 }
     if (cb->nofargs>capi_i) {
-        int itemsize_ = NPY_INT == NPY_STRING ? 1 : 0;
-        /*XXX: Hmm, what will destroy this array??? */
-        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,icomp_Dims,NPY_INT,NULL,(char*)icomp,itemsize_,NPY_ARRAY_FARRAY,NULL);
+        /* tmp_arr will be inserted to capi_arglist_list that will be
+           destroyed when leaving callback function wrapper together
+           with tmp_arr. */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,
+          1,icomp_Dims,NPY_INT,NULL,(char*)icomp,1,
+          NPY_ARRAY_FARRAY,NULL);
 
 
         if (tmp_arr==NULL)
@@ -896,7 +880,7 @@ static PyObject *f2py_rout__dop_dopri5(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -905,13 +889,13 @@ static PyObject *f2py_rout__dop_dopri5(const PyObject *capi_self,
     double *rtol = NULL;
     npy_intp rtol_Dims[1] = {-1};
     const int rtol_Rank = 1;
-    PyArrayObject *capi_rtol_tmp = NULL;
+    PyArrayObject *capi_rtol_as_array = NULL;
     int capi_rtol_intent = 0;
     PyObject *rtol_capi = Py_None;
     double *atol = NULL;
     npy_intp atol_Dims[1] = {-1};
     const int atol_Rank = 1;
-    PyArrayObject *capi_atol_tmp = NULL;
+    PyArrayObject *capi_atol_as_array = NULL;
     int capi_atol_intent = 0;
     PyObject *atol_capi = Py_None;
     int itol = 0;
@@ -924,14 +908,14 @@ static PyObject *f2py_rout__dop_dopri5(const PyObject *capi_self,
     double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int lwork = 0;
     int *iwork = NULL;
     npy_intp iwork_Dims[1] = {-1};
     const int iwork_Rank = 1;
-    PyArrayObject *capi_iwork_tmp = NULL;
+    PyArrayObject *capi_iwork_as_array = NULL;
     int capi_iwork_intent = 0;
     PyObject *iwork_capi = Py_None;
     int liwork = 0;
@@ -975,14 +959,16 @@ if(F2PyCapsule_Check(solout_cb.capi)) {
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _dop_error,"failed in converting 3rd argument `y' of _dop.dopri5 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_dop._dop.dopri5: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _dop_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable x */
         f2py_success = double_from_pyobj(&x,x_capi,"_dop.dopri5() 2nd argument (x) can't be converted to double");
@@ -996,27 +982,31 @@ if(F2PyCapsule_Check(solout_cb.capi)) {
     /* Processing variable work */
     ;
     capi_work_intent |= F2PY_INTENT_IN;
-    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _dop_error,"failed in converting 9th argument `work' of _dop.dopri5 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_dop._dop.dopri5: failed to create array from the 9th argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _dop_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (double *)(PyArray_DATA(capi_work_tmp));
+        work = (double *)(PyArray_DATA(capi_work_as_array));
 
     CHECKARRAY(len(work)>=8*n+21,"len(work)>=8*n+21","9th argument work") {
     /* Processing variable iwork */
     ;
     capi_iwork_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_iwork_tmp = array_from_pyobj(NPY_INT,iwork_Dims,iwork_Rank,capi_iwork_intent,iwork_capi);
-    if (capi_iwork_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _dop_error,"failed in converting 10th argument `iwork' of _dop.dopri5 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_dop._dop.dopri5: failed to create array from the 10th argument `iwork`";
+    capi_iwork_as_array = ndarray_from_pyobj(  NPY_INT,1,iwork_Dims,iwork_Rank,  capi_iwork_intent,iwork_capi,capi_errmess);
+    if (capi_iwork_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _dop_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iwork = (int *)(PyArray_DATA(capi_iwork_tmp));
+        iwork = (int *)(PyArray_DATA(capi_iwork_as_array));
 
     CHECKARRAY(len(iwork)>=21,"len(iwork)>=21","10th argument iwork") {
     /* Processing variable idid */
@@ -1029,27 +1019,31 @@ if(F2PyCapsule_Check(solout_cb.capi)) {
     /* Processing variable atol */
     ;
     capi_atol_intent |= F2PY_INTENT_IN;
-    capi_atol_tmp = array_from_pyobj(NPY_DOUBLE,atol_Dims,atol_Rank,capi_atol_intent,atol_capi);
-    if (capi_atol_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _dop_error,"failed in converting 6th argument `atol' of _dop.dopri5 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_dop._dop.dopri5: failed to create array from the 6th argument `atol`";
+    capi_atol_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,atol_Dims,atol_Rank,  capi_atol_intent,atol_capi,capi_errmess);
+    if (capi_atol_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _dop_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        atol = (double *)(PyArray_DATA(capi_atol_tmp));
+        atol = (double *)(PyArray_DATA(capi_atol_as_array));
 
     CHECKARRAY(len(atol)<=1||len(atol)>=n,"len(atol)<=1||len(atol)>=n","6th argument atol") {
     /* Processing variable rtol */
     ;
     capi_rtol_intent |= F2PY_INTENT_IN;
-    capi_rtol_tmp = array_from_pyobj(NPY_DOUBLE,rtol_Dims,rtol_Rank,capi_rtol_intent,rtol_capi);
-    if (capi_rtol_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _dop_error,"failed in converting 5th argument `rtol' of _dop.dopri5 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_dop._dop.dopri5: failed to create array from the 5th argument `rtol`";
+    capi_rtol_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,rtol_Dims,rtol_Rank,  capi_rtol_intent,rtol_capi,capi_errmess);
+    if (capi_rtol_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _dop_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        rtol = (double *)(PyArray_DATA(capi_rtol_tmp));
+        rtol = (double *)(PyArray_DATA(capi_rtol_as_array));
 
     CHECKARRAY(len(rtol)==len(atol),"len(rtol)==len(atol)","5th argument rtol") {
     /* Processing variable itol */
@@ -1078,7 +1072,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("dNNi",x,capi_y_tmp,capi_iwork_tmp,idid);
+        capi_buildvalue = Py_BuildValue("dNNi",x,capi_y_as_array,capi_iwork_as_array,idid);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -1087,26 +1081,26 @@ f2py_stop_call_clock();
     /* End of cleaning variable lwork */
     /* End of cleaning variable itol */
     } /*CHECKARRAY(len(rtol)==len(atol))*/
-    if((PyObject *)capi_rtol_tmp!=rtol_capi) {
-        Py_XDECREF(capi_rtol_tmp); }
-    }  /*if (capi_rtol_tmp == NULL) ... else of rtol*/
+    if((PyObject *)capi_rtol_as_array!=rtol_capi) {
+        Py_XDECREF(capi_rtol_as_array); }
+    }  /* if (capi_rtol_as_array == NULL) ... else of rtol */
     /* End of cleaning variable rtol */
     } /*CHECKARRAY(len(atol)<=1||len(atol)>=n)*/
-    if((PyObject *)capi_atol_tmp!=atol_capi) {
-        Py_XDECREF(capi_atol_tmp); }
-    }  /*if (capi_atol_tmp == NULL) ... else of atol*/
+    if((PyObject *)capi_atol_as_array!=atol_capi) {
+        Py_XDECREF(capi_atol_as_array); }
+    }  /* if (capi_atol_as_array == NULL) ... else of atol */
     /* End of cleaning variable atol */
     /* End of cleaning variable n */
     /* End of cleaning variable ipar */
     /* End of cleaning variable rpar */
     /* End of cleaning variable idid */
     } /*CHECKARRAY(len(iwork)>=21)*/
-    }  /*if (capi_iwork_tmp == NULL) ... else of iwork*/
+    }  /* if (capi_iwork_as_array == NULL) ... else of iwork */
     /* End of cleaning variable iwork */
     } /*CHECKARRAY(len(work)>=8*n+21)*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     } /*if (f2py_success) of iout*/
     /* End of cleaning variable iout */
@@ -1114,7 +1108,7 @@ f2py_stop_call_clock();
     /* End of cleaning variable xend */
     } /*if (f2py_success) of x*/
     /* End of cleaning variable x */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
         CFUNCSMESS("Restoring callback variables for `solout`.\n");
         solout_cb_ptr = swap_active_cb_solout_in___user__routines(solout_cb_ptr);
@@ -1202,7 +1196,7 @@ static PyObject *f2py_rout__dop_dop853(const PyObject *capi_self,
     double *y = NULL;
     npy_intp y_Dims[1] = {-1};
     const int y_Rank = 1;
-    PyArrayObject *capi_y_tmp = NULL;
+    PyArrayObject *capi_y_as_array = NULL;
     int capi_y_intent = 0;
     int capi_overwrite_y = 0;
     PyObject *y_capi = Py_None;
@@ -1211,13 +1205,13 @@ static PyObject *f2py_rout__dop_dop853(const PyObject *capi_self,
     double *rtol = NULL;
     npy_intp rtol_Dims[1] = {-1};
     const int rtol_Rank = 1;
-    PyArrayObject *capi_rtol_tmp = NULL;
+    PyArrayObject *capi_rtol_as_array = NULL;
     int capi_rtol_intent = 0;
     PyObject *rtol_capi = Py_None;
     double *atol = NULL;
     npy_intp atol_Dims[1] = {-1};
     const int atol_Rank = 1;
-    PyArrayObject *capi_atol_tmp = NULL;
+    PyArrayObject *capi_atol_as_array = NULL;
     int capi_atol_intent = 0;
     PyObject *atol_capi = Py_None;
     int itol = 0;
@@ -1230,14 +1224,14 @@ static PyObject *f2py_rout__dop_dop853(const PyObject *capi_self,
     double *work = NULL;
     npy_intp work_Dims[1] = {-1};
     const int work_Rank = 1;
-    PyArrayObject *capi_work_tmp = NULL;
+    PyArrayObject *capi_work_as_array = NULL;
     int capi_work_intent = 0;
     PyObject *work_capi = Py_None;
     int lwork = 0;
     int *iwork = NULL;
     npy_intp iwork_Dims[1] = {-1};
     const int iwork_Rank = 1;
-    PyArrayObject *capi_iwork_tmp = NULL;
+    PyArrayObject *capi_iwork_as_array = NULL;
     int capi_iwork_intent = 0;
     PyObject *iwork_capi = Py_None;
     int liwork = 0;
@@ -1281,14 +1275,16 @@ if(F2PyCapsule_Check(solout_cb.capi)) {
     capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
     ;
     capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-    if (capi_y_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _dop_error,"failed in converting 3rd argument `y' of _dop.dop853 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_dop._dop.dop853: failed to create array from the 3rd argument `y`";
+    capi_y_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,y_Dims,y_Rank,  capi_y_intent,y_capi,capi_errmess);
+    if (capi_y_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _dop_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        y = (double *)(PyArray_DATA(capi_y_tmp));
+        y = (double *)(PyArray_DATA(capi_y_as_array));
 
     /* Processing variable x */
         f2py_success = double_from_pyobj(&x,x_capi,"_dop.dop853() 2nd argument (x) can't be converted to double");
@@ -1302,27 +1298,31 @@ if(F2PyCapsule_Check(solout_cb.capi)) {
     /* Processing variable work */
     ;
     capi_work_intent |= F2PY_INTENT_IN;
-    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-    if (capi_work_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _dop_error,"failed in converting 9th argument `work' of _dop.dop853 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_dop._dop.dop853: failed to create array from the 9th argument `work`";
+    capi_work_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,work_Dims,work_Rank,  capi_work_intent,work_capi,capi_errmess);
+    if (capi_work_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _dop_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        work = (double *)(PyArray_DATA(capi_work_tmp));
+        work = (double *)(PyArray_DATA(capi_work_as_array));
 
     CHECKARRAY(len(work)>=8*n+21,"len(work)>=8*n+21","9th argument work") {
     /* Processing variable iwork */
     ;
     capi_iwork_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-    capi_iwork_tmp = array_from_pyobj(NPY_INT,iwork_Dims,iwork_Rank,capi_iwork_intent,iwork_capi);
-    if (capi_iwork_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _dop_error,"failed in converting 10th argument `iwork' of _dop.dop853 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_dop._dop.dop853: failed to create array from the 10th argument `iwork`";
+    capi_iwork_as_array = ndarray_from_pyobj(  NPY_INT,1,iwork_Dims,iwork_Rank,  capi_iwork_intent,iwork_capi,capi_errmess);
+    if (capi_iwork_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _dop_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        iwork = (int *)(PyArray_DATA(capi_iwork_tmp));
+        iwork = (int *)(PyArray_DATA(capi_iwork_as_array));
 
     CHECKARRAY(len(iwork)>=21,"len(iwork)>=21","10th argument iwork") {
     /* Processing variable idid */
@@ -1335,27 +1335,31 @@ if(F2PyCapsule_Check(solout_cb.capi)) {
     /* Processing variable atol */
     ;
     capi_atol_intent |= F2PY_INTENT_IN;
-    capi_atol_tmp = array_from_pyobj(NPY_DOUBLE,atol_Dims,atol_Rank,capi_atol_intent,atol_capi);
-    if (capi_atol_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _dop_error,"failed in converting 6th argument `atol' of _dop.dop853 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_dop._dop.dop853: failed to create array from the 6th argument `atol`";
+    capi_atol_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,atol_Dims,atol_Rank,  capi_atol_intent,atol_capi,capi_errmess);
+    if (capi_atol_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _dop_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        atol = (double *)(PyArray_DATA(capi_atol_tmp));
+        atol = (double *)(PyArray_DATA(capi_atol_as_array));
 
     CHECKARRAY(len(atol)<=1||len(atol)>=n,"len(atol)<=1||len(atol)>=n","6th argument atol") {
     /* Processing variable rtol */
     ;
     capi_rtol_intent |= F2PY_INTENT_IN;
-    capi_rtol_tmp = array_from_pyobj(NPY_DOUBLE,rtol_Dims,rtol_Rank,capi_rtol_intent,rtol_capi);
-    if (capi_rtol_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : _dop_error,"failed in converting 5th argument `rtol' of _dop.dop853 to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "_dop._dop.dop853: failed to create array from the 5th argument `rtol`";
+    capi_rtol_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,rtol_Dims,rtol_Rank,  capi_rtol_intent,rtol_capi,capi_errmess);
+    if (capi_rtol_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = _dop_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        rtol = (double *)(PyArray_DATA(capi_rtol_tmp));
+        rtol = (double *)(PyArray_DATA(capi_rtol_as_array));
 
     CHECKARRAY(len(rtol)==len(atol),"len(rtol)==len(atol)","5th argument rtol") {
     /* Processing variable itol */
@@ -1384,7 +1388,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("dNNi",x,capi_y_tmp,capi_iwork_tmp,idid);
+        capi_buildvalue = Py_BuildValue("dNNi",x,capi_y_as_array,capi_iwork_as_array,idid);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
@@ -1393,26 +1397,26 @@ f2py_stop_call_clock();
     /* End of cleaning variable lwork */
     /* End of cleaning variable itol */
     } /*CHECKARRAY(len(rtol)==len(atol))*/
-    if((PyObject *)capi_rtol_tmp!=rtol_capi) {
-        Py_XDECREF(capi_rtol_tmp); }
-    }  /*if (capi_rtol_tmp == NULL) ... else of rtol*/
+    if((PyObject *)capi_rtol_as_array!=rtol_capi) {
+        Py_XDECREF(capi_rtol_as_array); }
+    }  /* if (capi_rtol_as_array == NULL) ... else of rtol */
     /* End of cleaning variable rtol */
     } /*CHECKARRAY(len(atol)<=1||len(atol)>=n)*/
-    if((PyObject *)capi_atol_tmp!=atol_capi) {
-        Py_XDECREF(capi_atol_tmp); }
-    }  /*if (capi_atol_tmp == NULL) ... else of atol*/
+    if((PyObject *)capi_atol_as_array!=atol_capi) {
+        Py_XDECREF(capi_atol_as_array); }
+    }  /* if (capi_atol_as_array == NULL) ... else of atol */
     /* End of cleaning variable atol */
     /* End of cleaning variable n */
     /* End of cleaning variable ipar */
     /* End of cleaning variable rpar */
     /* End of cleaning variable idid */
     } /*CHECKARRAY(len(iwork)>=21)*/
-    }  /*if (capi_iwork_tmp == NULL) ... else of iwork*/
+    }  /* if (capi_iwork_as_array == NULL) ... else of iwork */
     /* End of cleaning variable iwork */
     } /*CHECKARRAY(len(work)>=8*n+21)*/
-    if((PyObject *)capi_work_tmp!=work_capi) {
-        Py_XDECREF(capi_work_tmp); }
-    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    if((PyObject *)capi_work_as_array!=work_capi) {
+        Py_XDECREF(capi_work_as_array); }
+    }  /* if (capi_work_as_array == NULL) ... else of work */
     /* End of cleaning variable work */
     } /*if (f2py_success) of iout*/
     /* End of cleaning variable iout */
@@ -1420,7 +1424,7 @@ f2py_stop_call_clock();
     /* End of cleaning variable xend */
     } /*if (f2py_success) of x*/
     /* End of cleaning variable x */
-    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    }  /* if (capi_y_as_array == NULL) ... else of y */
     /* End of cleaning variable y */
         CFUNCSMESS("Restoring callback variables for `solout`.\n");
         solout_cb_ptr = swap_active_cb_solout_in___user__routines(solout_cb_ptr);
@@ -1456,7 +1460,7 @@ f2py_stop_clock();
 /******************* See f2py2e/common_rules.py: buildhooks *******************/
 
 static FortranDataDef f2py_types_def[] = {
-  {"intvar",0,{{-1}},NPY_INT},
+  {"intvar",0,{{-1}},NPY_INT, 1},
   {NULL}
 };
 static void f2py_setup_types(char *intvar) {
@@ -1473,8 +1477,8 @@ static void f2py_init_types(void) {
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"dopri5",-1,{{-1}},0,(char *)F_FUNC(dopri5,DOPRI5),(f2py_init_func)f2py_rout__dop_dopri5,doc_f2py_rout__dop_dopri5},
-    {"dop853",-1,{{-1}},0,(char *)F_FUNC(dop853,DOP853),(f2py_init_func)f2py_rout__dop_dop853,doc_f2py_rout__dop_dop853},
+    {"dopri5",-1,{{-1}},0,0,(char *)  F_FUNC(dopri5,DOPRI5),  (f2py_init_func)f2py_rout__dop_dopri5,doc_f2py_rout__dop_dopri5},
+    {"dop853",-1,{{-1}},0,0,(char *)  F_FUNC(dop853,DOP853),  (f2py_init_func)f2py_rout__dop_dop853,doc_f2py_rout__dop_dop853},
 
 /*eof routine_defs*/
     {NULL}
@@ -1506,17 +1510,17 @@ PyMODINIT_FUNC PyInit__dop(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _dop (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_dop' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module '_dop' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    x,y,iwork,idid = dopri5(fcn,x,y,xend,rtol,atol,solout,iout,work,iwork,fcn_extra_args=(),overwrite_y=0,solout_extra_args=())\n"
 "    x,y,iwork,idid = dop853(fcn,x,y,xend,rtol,atol,solout,iout,work,iwork,fcn_extra_args=(),overwrite_y=0,solout_extra_args=())\n"
 "COMMON blocks:\n""  /types/ intvar\n"".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _dop_error = PyErr_NewException ("_dop.error", NULL, NULL);
@@ -1537,7 +1541,8 @@ PyMODINIT_FUNC PyInit__dop(void) {
 /*eof initf90modhooks*/
 
   tmp = PyFortranObject_New(f2py_types_def,f2py_init_types);
-  F2PyDict_SetItemString(d, "types", tmp);
+  if (tmp == NULL) return NULL;
+  if (F2PyDict_SetItemString(d, "types", tmp) == -1) return NULL;
   Py_DECREF(tmp);
 /*eof initcommonhooks*/
 

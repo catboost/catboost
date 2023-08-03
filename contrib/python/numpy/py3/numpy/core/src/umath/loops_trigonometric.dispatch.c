@@ -13,6 +13,7 @@
  ** (avx2 fma3) avx512f
  ** vsx2 vsx3 vsx4
  ** neon_vfpv4
+ ** vxe vxe2
  **/
 #include "numpy/npy_math.h"
 #include "contrib/python/numpy/py3/numpy/core/src/common/simd/simd.h"
@@ -23,7 +24,7 @@
  * - use vectorized version of Payne-Hanek style reduction for large elements or
  *   when there's no native FUSED support instead of fallback to libc
  */
-#if NPY_SIMD_FMA3 // native support
+#if NPY_SIMD_F32 && NPY_SIMD_FMA3 // native support
 /*
  * Vectorized Cody-Waite range reduction technique
  * Performs the reduction step x* = x - y*C in three steps:
@@ -133,6 +134,11 @@ simd_sincos_f32(const float *src, npy_intp ssrc, float *dst, npy_intp sdst,
         } else {
             x_in = npyv_loadn_tillz_f32(src, ssrc, len);
         }
+        npyv_b32 nnan_mask = npyv_notnan_f32(x_in);
+    #if NPY_SIMD_CMPSIGNAL
+        // Eliminate NaN to avoid FP invalid exception
+        x_in = npyv_and_f32(x_in, npyv_reinterpret_f32_u32(npyv_cvt_u32_b32(nnan_mask)));
+    #endif
         npyv_b32 simd_mask = npyv_cmple_f32(npyv_abs_f32(x_in), max_cody);
         npy_uint64 simd_maski = npyv_tobits_b32(simd_mask);
         /*
@@ -141,7 +147,6 @@ simd_sincos_f32(const float *src, npy_intp ssrc, float *dst, npy_intp sdst,
          * these numbers
          */
         if (simd_maski != 0) {
-            npyv_b32 nnan_mask = npyv_notnan_f32(x_in);
             npyv_f32 x = npyv_select_f32(npyv_and_b32(nnan_mask, simd_mask), x_in, zerosf);
 
             npyv_f32 quadrant = npyv_mul_f32(x, two_over_pi);
@@ -205,7 +210,7 @@ simd_sincos_f32(const float *src, npy_intp ssrc, float *dst, npy_intp sdst,
 }
 #endif // NPY_SIMD_FMA3
 
-#line 202
+#line 207
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cos)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -217,7 +222,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cos)
     const npy_intp sdst = steps[1] / lsize;
     npy_intp len = dimensions[0];
     assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
-#if NPY_SIMD_FMA3
+#if NPY_SIMD_F32 && NPY_SIMD_FMA3
     if (is_mem_overlap(src, steps[0], dst, steps[1], len) ||
         !npyv_loadable_stride_f32(ssrc) || !npyv_storable_stride_f32(sdst)
     ) {
@@ -235,7 +240,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cos)
 #endif
 }
 
-#line 202
+#line 207
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_sin)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -247,7 +252,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_sin)
     const npy_intp sdst = steps[1] / lsize;
     npy_intp len = dimensions[0];
     assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
-#if NPY_SIMD_FMA3
+#if NPY_SIMD_F32 && NPY_SIMD_FMA3
     if (is_mem_overlap(src, steps[0], dst, steps[1], len) ||
         !npyv_loadable_stride_f32(ssrc) || !npyv_storable_stride_f32(sdst)
     ) {

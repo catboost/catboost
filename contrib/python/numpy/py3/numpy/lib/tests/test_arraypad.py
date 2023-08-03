@@ -474,8 +474,7 @@ class TestStatistic:
 
     @pytest.mark.filterwarnings("ignore:Mean of empty slice:RuntimeWarning")
     @pytest.mark.filterwarnings(
-        "ignore:invalid value encountered in (divide|double_scalars):"
-        "RuntimeWarning"
+        "ignore:invalid value encountered in( scalar)? divide:RuntimeWarning"
     )
     @pytest.mark.parametrize("mode", ["mean", "median"])
     def test_zero_stat_length_valid(self, mode):
@@ -1215,7 +1214,7 @@ def test_legacy_vector_functionality():
 
 
 def test_unicode_mode():
-    a = np.pad([1], 2, mode=u'constant')
+    a = np.pad([1], 2, mode='constant')
     b = np.array([0, 0, 1, 0, 0])
     assert_array_equal(a, b)
 

@@ -1,5 +1,5 @@
 /* File: mvnmodule.c
- * This file is auto-generated with f2py (version:1.23.5).
+ * This file is auto-generated with f2py (version:1.24.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov  4 02:30:29 2020
@@ -19,7 +19,6 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
 
@@ -69,17 +68,14 @@ static PyObject *mvn_module;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
-#define rank(var) var ## _Rank
-#define shape(var,dim) var ## _Dims[dim]
-#define old_rank(var) (PyArray_NDIM((PyArrayObject *)(capi_ ## var ## _tmp)))
-#define old_shape(var,dim) PyArray_DIM(((PyArrayObject *)(capi_ ## var ## _tmp)),dim)
-#define fshape(var,dim) shape(var,rank(var)-dim-1)
-#define len(var) shape(var,0)
-#define flen(var) fshape(var,0)
-#define old_size(var) PyArray_SIZE((PyArrayObject *)(capi_ ## var ## _tmp))
-/* #define index(i) capi_i ## i */
-#define slen(var) capi_ ## var ## _len
-#define size(var, ...) f2py_size((PyArrayObject *)(capi_ ## var ## _tmp), ## __VA_ARGS__, -1)
+/* See fortranobject.h for definitions. The macros here are provided for BC. */
+#define rank f2py_rank
+#define shape f2py_shape
+#define fshape f2py_shape
+#define len f2py_len
+#define flen f2py_flen
+#define slen f2py_slen
+#define size f2py_size
 
 #ifdef DEBUGCFUNCS
 #define CFUNCSMESS(mess) fprintf(stderr,"debug-capi:"mess);
@@ -106,30 +102,6 @@ static PyObject *mvn_module;
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int f2py_size(PyArrayObject* var, ...)
-{
-  npy_int sz = 0;
-  npy_int dim;
-  npy_int rank;
-  va_list argp;
-  va_start(argp, var);
-  dim = va_arg(argp, npy_int);
-  if (dim==-1)
-    {
-      sz = PyArray_SIZE(var);
-    }
-  else
-    {
-      rank = PyArray_NDIM(var);
-      if (dim>=1 && dim<=rank)
-        sz = PyArray_DIM(var, dim-1);
-      else
-        fprintf(stderr, "f2py_size: 2nd argument value=%d fails to satisfy 1<=value<=%d. Result will be 0.\n", dim, rank);
-    }
-  va_end(argp);
-  return sz;
-}
-
 static int
 double_from_pyobj(double* v, PyObject *obj, const char *errmess)
 {
@@ -267,25 +239,25 @@ static PyObject *f2py_rout_mvn_mvnun(const PyObject *capi_self,
     double *lower = NULL;
     npy_intp lower_Dims[1] = {-1};
     const int lower_Rank = 1;
-    PyArrayObject *capi_lower_tmp = NULL;
+    PyArrayObject *capi_lower_as_array = NULL;
     int capi_lower_intent = 0;
     PyObject *lower_capi = Py_None;
     double *upper = NULL;
     npy_intp upper_Dims[1] = {-1};
     const int upper_Rank = 1;
-    PyArrayObject *capi_upper_tmp = NULL;
+    PyArrayObject *capi_upper_as_array = NULL;
     int capi_upper_intent = 0;
     PyObject *upper_capi = Py_None;
     double *means = NULL;
     npy_intp means_Dims[2] = {-1, -1};
     const int means_Rank = 2;
-    PyArrayObject *capi_means_tmp = NULL;
+    PyArrayObject *capi_means_as_array = NULL;
     int capi_means_intent = 0;
     PyObject *means_capi = Py_None;
     double *covar = NULL;
     npy_intp covar_Dims[2] = {-1, -1};
     const int covar_Rank = 2;
-    PyArrayObject *capi_covar_tmp = NULL;
+    PyArrayObject *capi_covar_as_array = NULL;
     int capi_covar_intent = 0;
     PyObject *covar_capi = Py_None;
     int maxpts = 0;
@@ -310,14 +282,16 @@ f2py_start_clock();
     /* Processing variable means */
     ;
     capi_means_intent |= F2PY_INTENT_IN;
-    capi_means_tmp = array_from_pyobj(NPY_DOUBLE,means_Dims,means_Rank,capi_means_intent,means_capi);
-    if (capi_means_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 3rd argument `means' of mvn.mvnun to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvnun: failed to create array from the 3rd argument `means`";
+    capi_means_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,means_Dims,means_Rank,  capi_means_intent,means_capi,capi_errmess);
+    if (capi_means_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        means = (double *)(PyArray_DATA(capi_means_tmp));
+        means = (double *)(PyArray_DATA(capi_means_as_array));
 
     /* Processing variable abseps */
     if (abseps_capi == Py_None) abseps = 1e-06; else
@@ -336,38 +310,44 @@ f2py_start_clock();
     /* Processing variable lower */
     lower_Dims[0]=d;
     capi_lower_intent |= F2PY_INTENT_IN;
-    capi_lower_tmp = array_from_pyobj(NPY_DOUBLE,lower_Dims,lower_Rank,capi_lower_intent,lower_capi);
-    if (capi_lower_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 1st argument `lower' of mvn.mvnun to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvnun: failed to create array from the 1st argument `lower`";
+    capi_lower_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,lower_Dims,lower_Rank,  capi_lower_intent,lower_capi,capi_errmess);
+    if (capi_lower_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        lower = (double *)(PyArray_DATA(capi_lower_tmp));
+        lower = (double *)(PyArray_DATA(capi_lower_as_array));
 
     /* Processing variable upper */
     upper_Dims[0]=d;
     capi_upper_intent |= F2PY_INTENT_IN;
-    capi_upper_tmp = array_from_pyobj(NPY_DOUBLE,upper_Dims,upper_Rank,capi_upper_intent,upper_capi);
-    if (capi_upper_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 2nd argument `upper' of mvn.mvnun to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvnun: failed to create array from the 2nd argument `upper`";
+    capi_upper_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,upper_Dims,upper_Rank,  capi_upper_intent,upper_capi,capi_errmess);
+    if (capi_upper_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        upper = (double *)(PyArray_DATA(capi_upper_tmp));
+        upper = (double *)(PyArray_DATA(capi_upper_as_array));
 
     /* Processing variable covar */
     covar_Dims[0]=d,covar_Dims[1]=d;
     capi_covar_intent |= F2PY_INTENT_IN;
-    capi_covar_tmp = array_from_pyobj(NPY_DOUBLE,covar_Dims,covar_Rank,capi_covar_intent,covar_capi);
-    if (capi_covar_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 4th argument `covar' of mvn.mvnun to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvnun: failed to create array from the 4th argument `covar`";
+    capi_covar_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,covar_Dims,covar_Rank,  capi_covar_intent,covar_capi,capi_errmess);
+    if (capi_covar_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        covar = (double *)(PyArray_DATA(capi_covar_tmp));
+        covar = (double *)(PyArray_DATA(capi_covar_as_array));
 
     /* Processing variable maxpts */
     if (maxpts_capi == Py_None) maxpts = d*1000; else
@@ -396,17 +376,17 @@ f2py_stop_call_clock();
 /*cleanupfrompyobj*/
     } /*if (f2py_success) of maxpts*/
     /* End of cleaning variable maxpts */
-    if((PyObject *)capi_covar_tmp!=covar_capi) {
-        Py_XDECREF(capi_covar_tmp); }
-    }  /*if (capi_covar_tmp == NULL) ... else of covar*/
+    if((PyObject *)capi_covar_as_array!=covar_capi) {
+        Py_XDECREF(capi_covar_as_array); }
+    }  /* if (capi_covar_as_array == NULL) ... else of covar */
     /* End of cleaning variable covar */
-    if((PyObject *)capi_upper_tmp!=upper_capi) {
-        Py_XDECREF(capi_upper_tmp); }
-    }  /*if (capi_upper_tmp == NULL) ... else of upper*/
+    if((PyObject *)capi_upper_as_array!=upper_capi) {
+        Py_XDECREF(capi_upper_as_array); }
+    }  /* if (capi_upper_as_array == NULL) ... else of upper */
     /* End of cleaning variable upper */
-    if((PyObject *)capi_lower_tmp!=lower_capi) {
-        Py_XDECREF(capi_lower_tmp); }
-    }  /*if (capi_lower_tmp == NULL) ... else of lower*/
+    if((PyObject *)capi_lower_as_array!=lower_capi) {
+        Py_XDECREF(capi_lower_as_array); }
+    }  /* if (capi_lower_as_array == NULL) ... else of lower */
     /* End of cleaning variable lower */
     /* End of cleaning variable n */
     /* End of cleaning variable d */
@@ -416,9 +396,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable releps */
     } /*if (f2py_success) of abseps*/
     /* End of cleaning variable abseps */
-    if((PyObject *)capi_means_tmp!=means_capi) {
-        Py_XDECREF(capi_means_tmp); }
-    }  /*if (capi_means_tmp == NULL) ... else of means*/
+    if((PyObject *)capi_means_as_array!=means_capi) {
+        Py_XDECREF(capi_means_as_array); }
+    }  /* if (capi_means_as_array == NULL) ... else of means */
     /* End of cleaning variable means */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -465,31 +445,31 @@ static PyObject *f2py_rout_mvn_mvnun_weighted(const PyObject *capi_self,
     double *lower = NULL;
     npy_intp lower_Dims[1] = {-1};
     const int lower_Rank = 1;
-    PyArrayObject *capi_lower_tmp = NULL;
+    PyArrayObject *capi_lower_as_array = NULL;
     int capi_lower_intent = 0;
     PyObject *lower_capi = Py_None;
     double *upper = NULL;
     npy_intp upper_Dims[1] = {-1};
     const int upper_Rank = 1;
-    PyArrayObject *capi_upper_tmp = NULL;
+    PyArrayObject *capi_upper_as_array = NULL;
     int capi_upper_intent = 0;
     PyObject *upper_capi = Py_None;
     double *means = NULL;
     npy_intp means_Dims[2] = {-1, -1};
     const int means_Rank = 2;
-    PyArrayObject *capi_means_tmp = NULL;
+    PyArrayObject *capi_means_as_array = NULL;
     int capi_means_intent = 0;
     PyObject *means_capi = Py_None;
     double *weights = NULL;
     npy_intp weights_Dims[1] = {-1};
     const int weights_Rank = 1;
-    PyArrayObject *capi_weights_tmp = NULL;
+    PyArrayObject *capi_weights_as_array = NULL;
     int capi_weights_intent = 0;
     PyObject *weights_capi = Py_None;
     double *covar = NULL;
     npy_intp covar_Dims[2] = {-1, -1};
     const int covar_Rank = 2;
-    PyArrayObject *capi_covar_tmp = NULL;
+    PyArrayObject *capi_covar_as_array = NULL;
     int capi_covar_intent = 0;
     PyObject *covar_capi = Py_None;
     int maxpts = 0;
@@ -514,14 +494,16 @@ f2py_start_clock();
     /* Processing variable means */
     ;
     capi_means_intent |= F2PY_INTENT_IN;
-    capi_means_tmp = array_from_pyobj(NPY_DOUBLE,means_Dims,means_Rank,capi_means_intent,means_capi);
-    if (capi_means_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 3rd argument `means' of mvn.mvnun_weighted to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvnun_weighted: failed to create array from the 3rd argument `means`";
+    capi_means_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,means_Dims,means_Rank,  capi_means_intent,means_capi,capi_errmess);
+    if (capi_means_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        means = (double *)(PyArray_DATA(capi_means_tmp));
+        means = (double *)(PyArray_DATA(capi_means_as_array));
 
     /* Processing variable abseps */
     if (abseps_capi == Py_None) abseps = 1e-06; else
@@ -540,50 +522,58 @@ f2py_start_clock();
     /* Processing variable lower */
     lower_Dims[0]=d;
     capi_lower_intent |= F2PY_INTENT_IN;
-    capi_lower_tmp = array_from_pyobj(NPY_DOUBLE,lower_Dims,lower_Rank,capi_lower_intent,lower_capi);
-    if (capi_lower_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 1st argument `lower' of mvn.mvnun_weighted to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvnun_weighted: failed to create array from the 1st argument `lower`";
+    capi_lower_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,lower_Dims,lower_Rank,  capi_lower_intent,lower_capi,capi_errmess);
+    if (capi_lower_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        lower = (double *)(PyArray_DATA(capi_lower_tmp));
+        lower = (double *)(PyArray_DATA(capi_lower_as_array));
 
     /* Processing variable upper */
     upper_Dims[0]=d;
     capi_upper_intent |= F2PY_INTENT_IN;
-    capi_upper_tmp = array_from_pyobj(NPY_DOUBLE,upper_Dims,upper_Rank,capi_upper_intent,upper_capi);
-    if (capi_upper_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 2nd argument `upper' of mvn.mvnun_weighted to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvnun_weighted: failed to create array from the 2nd argument `upper`";
+    capi_upper_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,upper_Dims,upper_Rank,  capi_upper_intent,upper_capi,capi_errmess);
+    if (capi_upper_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        upper = (double *)(PyArray_DATA(capi_upper_tmp));
+        upper = (double *)(PyArray_DATA(capi_upper_as_array));
 
     /* Processing variable weights */
     weights_Dims[0]=n;
     capi_weights_intent |= F2PY_INTENT_IN;
-    capi_weights_tmp = array_from_pyobj(NPY_DOUBLE,weights_Dims,weights_Rank,capi_weights_intent,weights_capi);
-    if (capi_weights_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 4th argument `weights' of mvn.mvnun_weighted to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvnun_weighted: failed to create array from the 4th argument `weights`";
+    capi_weights_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,weights_Dims,weights_Rank,  capi_weights_intent,weights_capi,capi_errmess);
+    if (capi_weights_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        weights = (double *)(PyArray_DATA(capi_weights_tmp));
+        weights = (double *)(PyArray_DATA(capi_weights_as_array));
 
     /* Processing variable covar */
     covar_Dims[0]=d,covar_Dims[1]=d;
     capi_covar_intent |= F2PY_INTENT_IN;
-    capi_covar_tmp = array_from_pyobj(NPY_DOUBLE,covar_Dims,covar_Rank,capi_covar_intent,covar_capi);
-    if (capi_covar_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 5th argument `covar' of mvn.mvnun_weighted to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvnun_weighted: failed to create array from the 5th argument `covar`";
+    capi_covar_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,covar_Dims,covar_Rank,  capi_covar_intent,covar_capi,capi_errmess);
+    if (capi_covar_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        covar = (double *)(PyArray_DATA(capi_covar_tmp));
+        covar = (double *)(PyArray_DATA(capi_covar_as_array));
 
     /* Processing variable maxpts */
     if (maxpts_capi == Py_None) maxpts = d*1000; else
@@ -612,21 +602,21 @@ f2py_stop_call_clock();
 /*cleanupfrompyobj*/
     } /*if (f2py_success) of maxpts*/
     /* End of cleaning variable maxpts */
-    if((PyObject *)capi_covar_tmp!=covar_capi) {
-        Py_XDECREF(capi_covar_tmp); }
-    }  /*if (capi_covar_tmp == NULL) ... else of covar*/
+    if((PyObject *)capi_covar_as_array!=covar_capi) {
+        Py_XDECREF(capi_covar_as_array); }
+    }  /* if (capi_covar_as_array == NULL) ... else of covar */
     /* End of cleaning variable covar */
-    if((PyObject *)capi_weights_tmp!=weights_capi) {
-        Py_XDECREF(capi_weights_tmp); }
-    }  /*if (capi_weights_tmp == NULL) ... else of weights*/
+    if((PyObject *)capi_weights_as_array!=weights_capi) {
+        Py_XDECREF(capi_weights_as_array); }
+    }  /* if (capi_weights_as_array == NULL) ... else of weights */
     /* End of cleaning variable weights */
-    if((PyObject *)capi_upper_tmp!=upper_capi) {
-        Py_XDECREF(capi_upper_tmp); }
-    }  /*if (capi_upper_tmp == NULL) ... else of upper*/
+    if((PyObject *)capi_upper_as_array!=upper_capi) {
+        Py_XDECREF(capi_upper_as_array); }
+    }  /* if (capi_upper_as_array == NULL) ... else of upper */
     /* End of cleaning variable upper */
-    if((PyObject *)capi_lower_tmp!=lower_capi) {
-        Py_XDECREF(capi_lower_tmp); }
-    }  /*if (capi_lower_tmp == NULL) ... else of lower*/
+    if((PyObject *)capi_lower_as_array!=lower_capi) {
+        Py_XDECREF(capi_lower_as_array); }
+    }  /* if (capi_lower_as_array == NULL) ... else of lower */
     /* End of cleaning variable lower */
     /* End of cleaning variable n */
     /* End of cleaning variable d */
@@ -636,9 +626,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable releps */
     } /*if (f2py_success) of abseps*/
     /* End of cleaning variable abseps */
-    if((PyObject *)capi_means_tmp!=means_capi) {
-        Py_XDECREF(capi_means_tmp); }
-    }  /*if (capi_means_tmp == NULL) ... else of means*/
+    if((PyObject *)capi_means_as_array!=means_capi) {
+        Py_XDECREF(capi_means_as_array); }
+    }  /* if (capi_means_as_array == NULL) ... else of means */
     /* End of cleaning variable means */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -684,25 +674,25 @@ static PyObject *f2py_rout_mvn_mvndst(const PyObject *capi_self,
     double *lower = NULL;
     npy_intp lower_Dims[1] = {-1};
     const int lower_Rank = 1;
-    PyArrayObject *capi_lower_tmp = NULL;
+    PyArrayObject *capi_lower_as_array = NULL;
     int capi_lower_intent = 0;
     PyObject *lower_capi = Py_None;
     double *upper = NULL;
     npy_intp upper_Dims[1] = {-1};
     const int upper_Rank = 1;
-    PyArrayObject *capi_upper_tmp = NULL;
+    PyArrayObject *capi_upper_as_array = NULL;
     int capi_upper_intent = 0;
     PyObject *upper_capi = Py_None;
     int *infin = NULL;
     npy_intp infin_Dims[1] = {-1};
     const int infin_Rank = 1;
-    PyArrayObject *capi_infin_tmp = NULL;
+    PyArrayObject *capi_infin_as_array = NULL;
     int capi_infin_intent = 0;
     PyObject *infin_capi = Py_None;
     double *correl = NULL;
     npy_intp correl_Dims[1] = {-1};
     const int correl_Rank = 1;
-    PyArrayObject *capi_correl_tmp = NULL;
+    PyArrayObject *capi_correl_as_array = NULL;
     int capi_correl_intent = 0;
     PyObject *correl_capi = Py_None;
     int maxpts = 0;
@@ -728,14 +718,16 @@ f2py_start_clock();
     /* Processing variable lower */
     ;
     capi_lower_intent |= F2PY_INTENT_IN;
-    capi_lower_tmp = array_from_pyobj(NPY_DOUBLE,lower_Dims,lower_Rank,capi_lower_intent,lower_capi);
-    if (capi_lower_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 1st argument `lower' of mvn.mvndst to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvndst: failed to create array from the 1st argument `lower`";
+    capi_lower_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,lower_Dims,lower_Rank,  capi_lower_intent,lower_capi,capi_errmess);
+    if (capi_lower_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        lower = (double *)(PyArray_DATA(capi_lower_tmp));
+        lower = (double *)(PyArray_DATA(capi_lower_as_array));
 
     /* Processing variable maxpts */
     if (maxpts_capi == Py_None) maxpts = 2000; else
@@ -757,38 +749,44 @@ f2py_start_clock();
     /* Processing variable upper */
     upper_Dims[0]=n;
     capi_upper_intent |= F2PY_INTENT_IN;
-    capi_upper_tmp = array_from_pyobj(NPY_DOUBLE,upper_Dims,upper_Rank,capi_upper_intent,upper_capi);
-    if (capi_upper_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 2nd argument `upper' of mvn.mvndst to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvndst: failed to create array from the 2nd argument `upper`";
+    capi_upper_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,upper_Dims,upper_Rank,  capi_upper_intent,upper_capi,capi_errmess);
+    if (capi_upper_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        upper = (double *)(PyArray_DATA(capi_upper_tmp));
+        upper = (double *)(PyArray_DATA(capi_upper_as_array));
 
     /* Processing variable infin */
     infin_Dims[0]=n;
     capi_infin_intent |= F2PY_INTENT_IN;
-    capi_infin_tmp = array_from_pyobj(NPY_INT,infin_Dims,infin_Rank,capi_infin_intent,infin_capi);
-    if (capi_infin_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 3rd argument `infin' of mvn.mvndst to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvndst: failed to create array from the 3rd argument `infin`";
+    capi_infin_as_array = ndarray_from_pyobj(  NPY_INT,1,infin_Dims,infin_Rank,  capi_infin_intent,infin_capi,capi_errmess);
+    if (capi_infin_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        infin = (int *)(PyArray_DATA(capi_infin_tmp));
+        infin = (int *)(PyArray_DATA(capi_infin_as_array));
 
     /* Processing variable correl */
     correl_Dims[0]=(-n + n * n) / 2;
     capi_correl_intent |= F2PY_INTENT_IN;
-    capi_correl_tmp = array_from_pyobj(NPY_DOUBLE,correl_Dims,correl_Rank,capi_correl_intent,correl_capi);
-    if (capi_correl_tmp == NULL) {
-        PyObject *exc, *val, *tb;
-        PyErr_Fetch(&exc, &val, &tb);
-        PyErr_SetString(exc ? exc : mvn_error,"failed in converting 4th argument `correl' of mvn.mvndst to C/Fortran array" );
-        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    const char * capi_errmess = "mvn.mvn.mvndst: failed to create array from the 4th argument `correl`";
+    capi_correl_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,correl_Dims,correl_Rank,  capi_correl_intent,correl_capi,capi_errmess);
+    if (capi_correl_as_array == NULL) {
+        PyObject* capi_err = PyErr_Occurred();
+        if (capi_err == NULL) {
+            capi_err = mvn_error;
+            PyErr_SetString(capi_err, capi_errmess);
+        }
     } else {
-        correl = (double *)(PyArray_DATA(capi_correl_tmp));
+        correl = (double *)(PyArray_DATA(capi_correl_as_array));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -811,17 +809,17 @@ f2py_stop_call_clock();
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    if((PyObject *)capi_correl_tmp!=correl_capi) {
-        Py_XDECREF(capi_correl_tmp); }
-    }  /*if (capi_correl_tmp == NULL) ... else of correl*/
+    if((PyObject *)capi_correl_as_array!=correl_capi) {
+        Py_XDECREF(capi_correl_as_array); }
+    }  /* if (capi_correl_as_array == NULL) ... else of correl */
     /* End of cleaning variable correl */
-    if((PyObject *)capi_infin_tmp!=infin_capi) {
-        Py_XDECREF(capi_infin_tmp); }
-    }  /*if (capi_infin_tmp == NULL) ... else of infin*/
+    if((PyObject *)capi_infin_as_array!=infin_capi) {
+        Py_XDECREF(capi_infin_as_array); }
+    }  /* if (capi_infin_as_array == NULL) ... else of infin */
     /* End of cleaning variable infin */
-    if((PyObject *)capi_upper_tmp!=upper_capi) {
-        Py_XDECREF(capi_upper_tmp); }
-    }  /*if (capi_upper_tmp == NULL) ... else of upper*/
+    if((PyObject *)capi_upper_as_array!=upper_capi) {
+        Py_XDECREF(capi_upper_as_array); }
+    }  /* if (capi_upper_as_array == NULL) ... else of upper */
     /* End of cleaning variable upper */
     /* End of cleaning variable n */
     /* End of cleaning variable inform */
@@ -833,9 +831,9 @@ f2py_stop_call_clock();
     /* End of cleaning variable abseps */
     } /*if (f2py_success) of maxpts*/
     /* End of cleaning variable maxpts */
-    if((PyObject *)capi_lower_tmp!=lower_capi) {
-        Py_XDECREF(capi_lower_tmp); }
-    }  /*if (capi_lower_tmp == NULL) ... else of lower*/
+    if((PyObject *)capi_lower_as_array!=lower_capi) {
+        Py_XDECREF(capi_lower_as_array); }
+    }  /* if (capi_lower_as_array == NULL) ... else of lower */
     /* End of cleaning variable lower */
 /*end of cleanupfrompyobj*/
     if (capi_buildvalue == NULL) {
@@ -861,7 +859,7 @@ f2py_stop_clock();
 /******************* See f2py2e/common_rules.py: buildhooks *******************/
 
 static FortranDataDef f2py_dkblck_def[] = {
-  {"ivls",0,{{-1}},NPY_INT},
+  {"ivls",0,{{-1}},NPY_INT, 1},
   {NULL}
 };
 static void f2py_setup_dkblck(char *ivls) {
@@ -878,9 +876,9 @@ static void f2py_init_dkblck(void) {
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-    {"mvnun",-1,{{-1}},0,(char *)F_FUNC(mvnun,MVNUN),(f2py_init_func)f2py_rout_mvn_mvnun,doc_f2py_rout_mvn_mvnun},
-    {"mvnun_weighted",-1,{{-1}},0,(char *)F_FUNC_US(mvnun_weighted,MVNUN_WEIGHTED),(f2py_init_func)f2py_rout_mvn_mvnun_weighted,doc_f2py_rout_mvn_mvnun_weighted},
-    {"mvndst",-1,{{-1}},0,(char *)F_FUNC(mvndst,MVNDST),(f2py_init_func)f2py_rout_mvn_mvndst,doc_f2py_rout_mvn_mvndst},
+    {"mvnun",-1,{{-1}},0,0,(char *)  F_FUNC(mvnun,MVNUN),  (f2py_init_func)f2py_rout_mvn_mvnun,doc_f2py_rout_mvn_mvnun},
+    {"mvnun_weighted",-1,{{-1}},0,0,(char *)  F_FUNC_US(mvnun_weighted,MVNUN_WEIGHTED),  (f2py_init_func)f2py_rout_mvn_mvnun_weighted,doc_f2py_rout_mvn_mvnun_weighted},
+    {"mvndst",-1,{{-1}},0,0,(char *)  F_FUNC(mvndst,MVNDST),  (f2py_init_func)f2py_rout_mvn_mvndst,doc_f2py_rout_mvn_mvndst},
 
 /*eof routine_defs*/
     {NULL}
@@ -912,18 +910,18 @@ PyMODINIT_FUNC PyInit_mvn(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module mvn (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module 'mvn' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+        "This module 'mvn' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
 "    value,inform = mvnun(lower,upper,means,covar,maxpts=d*1000,abseps=1e-06,releps=1e-06)\n"
 "    value,inform = mvnun_weighted(lower,upper,means,weights,covar,maxpts=d*1000,abseps=1e-06,releps=1e-06)\n"
 "    error,value,inform = mvndst(lower,upper,infin,correl,maxpts=2000,abseps=1e-06,releps=1e-06)\n"
 "COMMON blocks:\n""  /dkblck/ ivls\n"".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.23.5");
+    s = PyUnicode_FromString("1.24.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     mvn_error = PyErr_NewException ("mvn.error", NULL, NULL);
@@ -945,7 +943,8 @@ PyMODINIT_FUNC PyInit_mvn(void) {
 /*eof initf90modhooks*/
 
   tmp = PyFortranObject_New(f2py_dkblck_def,f2py_init_dkblck);
-  F2PyDict_SetItemString(d, "dkblck", tmp);
+  if (tmp == NULL) return NULL;
+  if (F2PyDict_SetItemString(d, "dkblck", tmp) == -1) return NULL;
   Py_DECREF(tmp);
 /*eof initcommonhooks*/
 

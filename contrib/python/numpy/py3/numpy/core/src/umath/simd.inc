@@ -527,360 +527,7 @@ run_unary_simd_negative_FLOAT(char **args, npy_intp const *dimensions, npy_intp 
 
 
 
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_equal_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_not_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_not_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_not_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_not_equal_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_not_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_not_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_not_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_less_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_less_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_less_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_less_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_less_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_less_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_less_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_less_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_less_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_less_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_less_equal_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_less_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_less_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_less_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_greater_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_greater_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_greater_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_greater_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_greater_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_greater_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_greater_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_greater_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_greater_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_greater_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_greater_equal_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_greater_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_greater_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_greater_equal_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_logical_and_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_logical_and_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_logical_and_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_logical_and_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_logical_and_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_logical_and_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_logical_and_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_logical_or_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_logical_or_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_logical_or_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_logical_or_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_logical_or_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_logical_or_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_binary_logical_or_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-
-#line 213
+#line 164
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -903,7 +550,7 @@ run_isnan_simd_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *st
 }
 
 
-#line 213
+#line 164
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -926,7 +573,7 @@ run_isfinite_simd_FLOAT(char **args, npy_intp const *dimensions, npy_intp const 
 }
 
 
-#line 213
+#line 164
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -949,7 +596,7 @@ run_isinf_simd_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *st
 }
 
 
-#line 213
+#line 164
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1000,360 +647,7 @@ run_unary_simd_negative_DOUBLE(char **args, npy_intp const *dimensions, npy_intp
 
 
 
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_equal_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_not_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_not_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_not_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_not_equal_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_not_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_not_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_not_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_less_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_less_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_less_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_less_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_less_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_less_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_less_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_less_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_less_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_less_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_less_equal_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_less_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_less_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_less_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_greater_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_greater_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_greater_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_greater_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_greater_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_greater_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_greater_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_greater_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_greater_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_greater_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_greater_equal_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_greater_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_greater_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_greater_equal_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_logical_and_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_logical_and_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_logical_and_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_logical_and_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_logical_and_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_logical_and_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_logical_and_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_logical_or_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_logical_or_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_logical_or_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_logical_or_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_logical_or_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_logical_or_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_binary_logical_or_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-
-#line 213
+#line 164
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1376,7 +670,7 @@ run_isnan_simd_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 213
+#line 164
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1399,7 +693,7 @@ run_isfinite_simd_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const
 }
 
 
-#line 213
+#line 164
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1422,7 +716,7 @@ run_isinf_simd_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 213
+#line 164
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1473,360 +767,7 @@ run_unary_simd_negative_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_
 
 
 
-#line 166
-
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_equal_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_not_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_not_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_not_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_not_equal_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_not_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_not_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_not_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_less_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_less_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_less_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_less_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_less_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_less_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_less_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_less_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_less_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_less_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_less_equal_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_less_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_less_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_less_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_greater_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_greater_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_greater_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_greater_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_greater_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_greater_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_greater_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_greater_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_greater_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_greater_equal_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_greater_equal_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_greater_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_greater_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_greater_equal_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 0 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_logical_and_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_logical_and_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_logical_and_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_logical_and_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_logical_and_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_logical_and_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_logical_and_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 166
-
-#if 0 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_binary_logical_or_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                          npy_intp n);
-static void
-sse2_binary_scalar1_logical_or_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-static void
-sse2_binary_scalar2_logical_or_LONGDOUBLE(npy_bool * op, npy_longdouble * ip1, npy_longdouble * ip2,
-                                  npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_binary_simd_logical_or_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_bool * op = (npy_bool *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar1_logical_or_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_scalar2_logical_or_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY_BOOL(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_binary_logical_or_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-
-#line 213
+#line 164
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1849,7 +790,7 @@ run_isnan_simd_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp cons
 }
 
 
-#line 213
+#line 164
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1872,7 +813,7 @@ run_isfinite_simd_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp c
 }
 
 
-#line 213
+#line 164
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1895,7 +836,7 @@ run_isinf_simd_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp cons
 }
 
 
-#line 213
+#line 164
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1927,7 +868,7 @@ run_signbit_simd_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp co
  *****************************************************************************
  */
 
-#line 247
+#line 198
 
 #if defined NPY_HAVE_SSE2_INTRINSICS
 static void
@@ -1968,7 +909,7 @@ run_reduce_simd_logical_or_BOOL(char **args, npy_intp const *dimensions, npy_int
 }
 
 
-#line 247
+#line 198
 
 #if defined NPY_HAVE_SSE2_INTRINSICS
 static void
@@ -2010,7 +951,7 @@ run_reduce_simd_logical_and_BOOL(char **args, npy_intp const *dimensions, npy_in
 
 
 
-#line 291
+#line 242
 
 #if defined NPY_HAVE_SSE2_INTRINSICS
 static void
@@ -2031,7 +972,7 @@ run_unary_simd_absolute_BOOL(char **args, npy_intp const *dimensions, npy_intp c
 }
 
 
-#line 291
+#line 242
 
 #if defined NPY_HAVE_SSE2_INTRINSICS
 static void
@@ -2064,7 +1005,7 @@ run_unary_simd_logical_not_BOOL(char **args, npy_intp const *dimensions, npy_int
  *****************************************************************************
  */
 
-#line 327
+#line 278
 
 NPY_FINLINE npy_float sse2_horizontal_min___m128(__m128 v)
 {
@@ -2084,7 +1025,7 @@ NPY_FINLINE npy_double sse2_horizontal_min___m128d(__m128d v)
     return r;
 }
 
-#line 327
+#line 278
 
 NPY_FINLINE npy_float sse2_horizontal_max___m128(__m128 v)
 {
@@ -2105,7 +1046,7 @@ NPY_FINLINE npy_double sse2_horizontal_max___m128d(__m128d v)
 }
 
 
-#line 364
+#line 315
 /*
  * compress 4 vectors to 4/8 bytes in op with filled with 0 or 1
  * the last vector is passed as a pointer as MSVC 2010 is unable to ignore the
@@ -2154,7 +1095,7 @@ sse2_signbit_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
     }
 }
 
-#line 416
+#line 367
 
 static void
 sse2_isnan_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
@@ -2217,7 +1158,7 @@ sse2_isnan_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
 }
 
 
-#line 416
+#line 367
 
 static void
 sse2_isfinite_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
@@ -2280,7 +1221,7 @@ sse2_isfinite_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
 }
 
 
-#line 416
+#line 367
 
 static void
 sse2_isinf_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
@@ -2344,542 +1285,6 @@ sse2_isinf_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
 
 
 
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_equal_FLOAT(const npy_float a, const npy_float b)
-{
-    __m128 one = _mm_set1_ps(1);
-    npy_float tmp;
-    __m128 v = _mm_cmpeq_ss(_mm_load_ss(&a),
-                                     _mm_load_ss(&b));
-    v = _mm_and_ps(v, one);
-    _mm_store_ss(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_equal_FLOAT(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a1 = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b1 = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c1 = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d1 = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 a2 = _mm_loadu_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b2 = _mm_loadu_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c2 = _mm_loadu_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d2 = _mm_loadu_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpeq_ps(a1, a2);
-        __m128 r2 = _mm_cmpeq_ps(b1, b2);
-        __m128 r3 = _mm_cmpeq_ps(c1, c2);
-        __m128 r4 = _mm_cmpeq_ps(d1, d2);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_equal_FLOAT(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_equal_FLOAT(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpeq_ps(s, a);
-        __m128 r2 = _mm_cmpeq_ps(s, b);
-        __m128 r3 = _mm_cmpeq_ps(s, c);
-        __m128 r4 = _mm_cmpeq_ps(s, d);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_equal_FLOAT(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_equal_FLOAT(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpeq_ps(a, s);
-        __m128 r2 = _mm_cmpeq_ps(b, s);
-        __m128 r3 = _mm_cmpeq_ps(c, s);
-        __m128 r4 = _mm_cmpeq_ps(d, s);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_equal_FLOAT(ip1[i], ip2[0]);
-    }
-}
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_not_equal_FLOAT(const npy_float a, const npy_float b)
-{
-    __m128 one = _mm_set1_ps(1);
-    npy_float tmp;
-    __m128 v = _mm_cmpneq_ss(_mm_load_ss(&a),
-                                     _mm_load_ss(&b));
-    v = _mm_and_ps(v, one);
-    _mm_store_ss(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_not_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_not_equal_FLOAT(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a1 = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b1 = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c1 = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d1 = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 a2 = _mm_loadu_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b2 = _mm_loadu_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c2 = _mm_loadu_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d2 = _mm_loadu_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpneq_ps(a1, a2);
-        __m128 r2 = _mm_cmpneq_ps(b1, b2);
-        __m128 r3 = _mm_cmpneq_ps(c1, c2);
-        __m128 r4 = _mm_cmpneq_ps(d1, d2);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_not_equal_FLOAT(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_not_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_not_equal_FLOAT(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpneq_ps(s, a);
-        __m128 r2 = _mm_cmpneq_ps(s, b);
-        __m128 r3 = _mm_cmpneq_ps(s, c);
-        __m128 r4 = _mm_cmpneq_ps(s, d);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_not_equal_FLOAT(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_not_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_not_equal_FLOAT(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpneq_ps(a, s);
-        __m128 r2 = _mm_cmpneq_ps(b, s);
-        __m128 r3 = _mm_cmpneq_ps(c, s);
-        __m128 r4 = _mm_cmpneq_ps(d, s);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_not_equal_FLOAT(ip1[i], ip2[0]);
-    }
-}
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_less_FLOAT(const npy_float a, const npy_float b)
-{
-    __m128 one = _mm_set1_ps(1);
-    npy_float tmp;
-    __m128 v = _mm_cmplt_ss(_mm_load_ss(&a),
-                                     _mm_load_ss(&b));
-    v = _mm_and_ps(v, one);
-    _mm_store_ss(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_less_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_FLOAT(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a1 = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b1 = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c1 = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d1 = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 a2 = _mm_loadu_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b2 = _mm_loadu_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c2 = _mm_loadu_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d2 = _mm_loadu_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmplt_ps(a1, a2);
-        __m128 r2 = _mm_cmplt_ps(b1, b2);
-        __m128 r3 = _mm_cmplt_ps(c1, c2);
-        __m128 r4 = _mm_cmplt_ps(d1, d2);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_FLOAT(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_less_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_FLOAT(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmplt_ps(s, a);
-        __m128 r2 = _mm_cmplt_ps(s, b);
-        __m128 r3 = _mm_cmplt_ps(s, c);
-        __m128 r4 = _mm_cmplt_ps(s, d);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_FLOAT(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_less_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_FLOAT(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmplt_ps(a, s);
-        __m128 r2 = _mm_cmplt_ps(b, s);
-        __m128 r3 = _mm_cmplt_ps(c, s);
-        __m128 r4 = _mm_cmplt_ps(d, s);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_FLOAT(ip1[i], ip2[0]);
-    }
-}
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_less_equal_FLOAT(const npy_float a, const npy_float b)
-{
-    __m128 one = _mm_set1_ps(1);
-    npy_float tmp;
-    __m128 v = _mm_cmple_ss(_mm_load_ss(&a),
-                                     _mm_load_ss(&b));
-    v = _mm_and_ps(v, one);
-    _mm_store_ss(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_less_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_equal_FLOAT(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a1 = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b1 = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c1 = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d1 = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 a2 = _mm_loadu_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b2 = _mm_loadu_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c2 = _mm_loadu_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d2 = _mm_loadu_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmple_ps(a1, a2);
-        __m128 r2 = _mm_cmple_ps(b1, b2);
-        __m128 r3 = _mm_cmple_ps(c1, c2);
-        __m128 r4 = _mm_cmple_ps(d1, d2);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_equal_FLOAT(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_less_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_equal_FLOAT(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmple_ps(s, a);
-        __m128 r2 = _mm_cmple_ps(s, b);
-        __m128 r3 = _mm_cmple_ps(s, c);
-        __m128 r4 = _mm_cmple_ps(s, d);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_equal_FLOAT(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_less_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_equal_FLOAT(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmple_ps(a, s);
-        __m128 r2 = _mm_cmple_ps(b, s);
-        __m128 r3 = _mm_cmple_ps(c, s);
-        __m128 r4 = _mm_cmple_ps(d, s);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_equal_FLOAT(ip1[i], ip2[0]);
-    }
-}
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_greater_FLOAT(const npy_float a, const npy_float b)
-{
-    __m128 one = _mm_set1_ps(1);
-    npy_float tmp;
-    __m128 v = _mm_cmpgt_ss(_mm_load_ss(&a),
-                                     _mm_load_ss(&b));
-    v = _mm_and_ps(v, one);
-    _mm_store_ss(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_greater_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_FLOAT(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a1 = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b1 = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c1 = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d1 = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 a2 = _mm_loadu_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b2 = _mm_loadu_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c2 = _mm_loadu_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d2 = _mm_loadu_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpgt_ps(a1, a2);
-        __m128 r2 = _mm_cmpgt_ps(b1, b2);
-        __m128 r3 = _mm_cmpgt_ps(c1, c2);
-        __m128 r4 = _mm_cmpgt_ps(d1, d2);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_FLOAT(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_greater_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_FLOAT(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpgt_ps(s, a);
-        __m128 r2 = _mm_cmpgt_ps(s, b);
-        __m128 r3 = _mm_cmpgt_ps(s, c);
-        __m128 r4 = _mm_cmpgt_ps(s, d);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_FLOAT(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_greater_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_FLOAT(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpgt_ps(a, s);
-        __m128 r2 = _mm_cmpgt_ps(b, s);
-        __m128 r3 = _mm_cmpgt_ps(c, s);
-        __m128 r4 = _mm_cmpgt_ps(d, s);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_FLOAT(ip1[i], ip2[0]);
-    }
-}
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_greater_equal_FLOAT(const npy_float a, const npy_float b)
-{
-    __m128 one = _mm_set1_ps(1);
-    npy_float tmp;
-    __m128 v = _mm_cmpge_ss(_mm_load_ss(&a),
-                                     _mm_load_ss(&b));
-    v = _mm_and_ps(v, one);
-    _mm_store_ss(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_greater_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_equal_FLOAT(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a1 = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b1 = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c1 = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d1 = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 a2 = _mm_loadu_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b2 = _mm_loadu_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c2 = _mm_loadu_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d2 = _mm_loadu_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpge_ps(a1, a2);
-        __m128 r2 = _mm_cmpge_ps(b1, b2);
-        __m128 r3 = _mm_cmpge_ps(c1, c2);
-        __m128 r4 = _mm_cmpge_ps(d1, d2);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_equal_FLOAT(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_greater_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_equal_FLOAT(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpge_ps(s, a);
-        __m128 r2 = _mm_cmpge_ps(s, b);
-        __m128 r3 = _mm_cmpge_ps(s, c);
-        __m128 r4 = _mm_cmpge_ps(s, d);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_equal_FLOAT(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_greater_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    __m128 s = _mm_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_equal_FLOAT(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_float, 4 * VECTOR_SIZE_BYTES) {
-        __m128 a = _mm_load_ps(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 b = _mm_load_ps(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 c = _mm_load_ps(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 d = _mm_load_ps(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_float)]);
-        __m128 r1 = _mm_cmpge_ps(a, s);
-        __m128 r2 = _mm_cmpge_ps(b, s);
-        __m128 r3 = _mm_cmpge_ps(c, s);
-        __m128 r4 = _mm_cmpge_ps(d, s);
-        sse2_compress4_to_byte_FLOAT(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_equal_FLOAT(ip1[i], ip2[0]);
-    }
-}
-
-
-
 static void
 sse2_negative_FLOAT(npy_float * op, npy_float * ip, const npy_intp n)
 {
@@ -2915,7 +1320,7 @@ sse2_negative_FLOAT(npy_float * op, npy_float * ip, const npy_intp n)
 /**end repeat1**/
 
 
-#line 364
+#line 315
 /*
  * compress 4 vectors to 4/8 bytes in op with filled with 0 or 1
  * the last vector is passed as a pointer as MSVC 2010 is unable to ignore the
@@ -2964,7 +1369,7 @@ sse2_signbit_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
     }
 }
 
-#line 416
+#line 367
 
 static void
 sse2_isnan_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
@@ -3027,7 +1432,7 @@ sse2_isnan_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
 }
 
 
-#line 416
+#line 367
 
 static void
 sse2_isfinite_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
@@ -3090,7 +1495,7 @@ sse2_isfinite_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
 }
 
 
-#line 416
+#line 367
 
 static void
 sse2_isinf_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
@@ -3149,542 +1554,6 @@ sse2_isinf_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
     }
     LOOP_BLOCKED_END {
         op[i] = npy_isinf(ip1[i]) != 0;
-    }
-}
-
-
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_equal_DOUBLE(const npy_double a, const npy_double b)
-{
-    __m128d one = _mm_set1_pd(1);
-    npy_double tmp;
-    __m128d v = _mm_cmpeq_sd(_mm_load_sd(&a),
-                                     _mm_load_sd(&b));
-    v = _mm_and_pd(v, one);
-    _mm_store_sd(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_equal_DOUBLE(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a1 = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b1 = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c1 = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d1 = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d a2 = _mm_loadu_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b2 = _mm_loadu_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c2 = _mm_loadu_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d2 = _mm_loadu_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpeq_pd(a1, a2);
-        __m128d r2 = _mm_cmpeq_pd(b1, b2);
-        __m128d r3 = _mm_cmpeq_pd(c1, c2);
-        __m128d r4 = _mm_cmpeq_pd(d1, d2);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_equal_DOUBLE(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_equal_DOUBLE(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpeq_pd(s, a);
-        __m128d r2 = _mm_cmpeq_pd(s, b);
-        __m128d r3 = _mm_cmpeq_pd(s, c);
-        __m128d r4 = _mm_cmpeq_pd(s, d);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_equal_DOUBLE(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_equal_DOUBLE(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpeq_pd(a, s);
-        __m128d r2 = _mm_cmpeq_pd(b, s);
-        __m128d r3 = _mm_cmpeq_pd(c, s);
-        __m128d r4 = _mm_cmpeq_pd(d, s);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_equal_DOUBLE(ip1[i], ip2[0]);
-    }
-}
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_not_equal_DOUBLE(const npy_double a, const npy_double b)
-{
-    __m128d one = _mm_set1_pd(1);
-    npy_double tmp;
-    __m128d v = _mm_cmpneq_sd(_mm_load_sd(&a),
-                                     _mm_load_sd(&b));
-    v = _mm_and_pd(v, one);
-    _mm_store_sd(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_not_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_not_equal_DOUBLE(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a1 = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b1 = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c1 = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d1 = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d a2 = _mm_loadu_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b2 = _mm_loadu_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c2 = _mm_loadu_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d2 = _mm_loadu_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpneq_pd(a1, a2);
-        __m128d r2 = _mm_cmpneq_pd(b1, b2);
-        __m128d r3 = _mm_cmpneq_pd(c1, c2);
-        __m128d r4 = _mm_cmpneq_pd(d1, d2);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_not_equal_DOUBLE(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_not_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_not_equal_DOUBLE(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpneq_pd(s, a);
-        __m128d r2 = _mm_cmpneq_pd(s, b);
-        __m128d r3 = _mm_cmpneq_pd(s, c);
-        __m128d r4 = _mm_cmpneq_pd(s, d);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_not_equal_DOUBLE(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_not_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_not_equal_DOUBLE(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpneq_pd(a, s);
-        __m128d r2 = _mm_cmpneq_pd(b, s);
-        __m128d r3 = _mm_cmpneq_pd(c, s);
-        __m128d r4 = _mm_cmpneq_pd(d, s);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_not_equal_DOUBLE(ip1[i], ip2[0]);
-    }
-}
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_less_DOUBLE(const npy_double a, const npy_double b)
-{
-    __m128d one = _mm_set1_pd(1);
-    npy_double tmp;
-    __m128d v = _mm_cmplt_sd(_mm_load_sd(&a),
-                                     _mm_load_sd(&b));
-    v = _mm_and_pd(v, one);
-    _mm_store_sd(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_less_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_DOUBLE(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a1 = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b1 = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c1 = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d1 = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d a2 = _mm_loadu_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b2 = _mm_loadu_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c2 = _mm_loadu_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d2 = _mm_loadu_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmplt_pd(a1, a2);
-        __m128d r2 = _mm_cmplt_pd(b1, b2);
-        __m128d r3 = _mm_cmplt_pd(c1, c2);
-        __m128d r4 = _mm_cmplt_pd(d1, d2);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_DOUBLE(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_less_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_DOUBLE(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmplt_pd(s, a);
-        __m128d r2 = _mm_cmplt_pd(s, b);
-        __m128d r3 = _mm_cmplt_pd(s, c);
-        __m128d r4 = _mm_cmplt_pd(s, d);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_DOUBLE(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_less_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_DOUBLE(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmplt_pd(a, s);
-        __m128d r2 = _mm_cmplt_pd(b, s);
-        __m128d r3 = _mm_cmplt_pd(c, s);
-        __m128d r4 = _mm_cmplt_pd(d, s);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_DOUBLE(ip1[i], ip2[0]);
-    }
-}
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_less_equal_DOUBLE(const npy_double a, const npy_double b)
-{
-    __m128d one = _mm_set1_pd(1);
-    npy_double tmp;
-    __m128d v = _mm_cmple_sd(_mm_load_sd(&a),
-                                     _mm_load_sd(&b));
-    v = _mm_and_pd(v, one);
-    _mm_store_sd(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_less_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_equal_DOUBLE(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a1 = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b1 = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c1 = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d1 = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d a2 = _mm_loadu_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b2 = _mm_loadu_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c2 = _mm_loadu_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d2 = _mm_loadu_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmple_pd(a1, a2);
-        __m128d r2 = _mm_cmple_pd(b1, b2);
-        __m128d r3 = _mm_cmple_pd(c1, c2);
-        __m128d r4 = _mm_cmple_pd(d1, d2);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_equal_DOUBLE(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_less_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_equal_DOUBLE(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmple_pd(s, a);
-        __m128d r2 = _mm_cmple_pd(s, b);
-        __m128d r3 = _mm_cmple_pd(s, c);
-        __m128d r4 = _mm_cmple_pd(s, d);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_equal_DOUBLE(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_less_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_less_equal_DOUBLE(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmple_pd(a, s);
-        __m128d r2 = _mm_cmple_pd(b, s);
-        __m128d r3 = _mm_cmple_pd(c, s);
-        __m128d r4 = _mm_cmple_pd(d, s);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_less_equal_DOUBLE(ip1[i], ip2[0]);
-    }
-}
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_greater_DOUBLE(const npy_double a, const npy_double b)
-{
-    __m128d one = _mm_set1_pd(1);
-    npy_double tmp;
-    __m128d v = _mm_cmpgt_sd(_mm_load_sd(&a),
-                                     _mm_load_sd(&b));
-    v = _mm_and_pd(v, one);
-    _mm_store_sd(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_greater_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_DOUBLE(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a1 = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b1 = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c1 = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d1 = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d a2 = _mm_loadu_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b2 = _mm_loadu_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c2 = _mm_loadu_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d2 = _mm_loadu_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpgt_pd(a1, a2);
-        __m128d r2 = _mm_cmpgt_pd(b1, b2);
-        __m128d r3 = _mm_cmpgt_pd(c1, c2);
-        __m128d r4 = _mm_cmpgt_pd(d1, d2);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_DOUBLE(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_greater_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_DOUBLE(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpgt_pd(s, a);
-        __m128d r2 = _mm_cmpgt_pd(s, b);
-        __m128d r3 = _mm_cmpgt_pd(s, c);
-        __m128d r4 = _mm_cmpgt_pd(s, d);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_DOUBLE(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_greater_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_DOUBLE(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpgt_pd(a, s);
-        __m128d r2 = _mm_cmpgt_pd(b, s);
-        __m128d r3 = _mm_cmpgt_pd(c, s);
-        __m128d r4 = _mm_cmpgt_pd(d, s);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_DOUBLE(ip1[i], ip2[0]);
-    }
-}
-
-#line 484
-
-/* sets invalid fpu flag on QNaN for consistency with packed compare */
-NPY_FINLINE int
-sse2_ordered_cmp_greater_equal_DOUBLE(const npy_double a, const npy_double b)
-{
-    __m128d one = _mm_set1_pd(1);
-    npy_double tmp;
-    __m128d v = _mm_cmpge_sd(_mm_load_sd(&a),
-                                     _mm_load_sd(&b));
-    v = _mm_and_pd(v, one);
-    _mm_store_sd(&tmp, v);
-    return tmp;
-}
-
-static void
-sse2_binary_greater_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_equal_DOUBLE(ip1[i], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a1 = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b1 = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c1 = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d1 = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d a2 = _mm_loadu_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b2 = _mm_loadu_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c2 = _mm_loadu_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d2 = _mm_loadu_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpge_pd(a1, a2);
-        __m128d r2 = _mm_cmpge_pd(b1, b2);
-        __m128d r3 = _mm_cmpge_pd(c1, c2);
-        __m128d r4 = _mm_cmpge_pd(d1, d2);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_equal_DOUBLE(ip1[i], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar1_greater_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip2, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_equal_DOUBLE(ip1[0], ip2[i]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip2[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip2[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip2[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip2[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpge_pd(s, a);
-        __m128d r2 = _mm_cmpge_pd(s, b);
-        __m128d r3 = _mm_cmpge_pd(s, c);
-        __m128d r4 = _mm_cmpge_pd(s, d);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_equal_DOUBLE(ip1[0], ip2[i]);
-    }
-}
-
-
-static void
-sse2_binary_scalar2_greater_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    __m128d s = _mm_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(ip1, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = sse2_ordered_cmp_greater_equal_DOUBLE(ip1[i], ip2[0]);
-    }
-    LOOP_BLOCKED(npy_double, 4 * VECTOR_SIZE_BYTES) {
-        __m128d a = _mm_load_pd(&ip1[i + 0 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d b = _mm_load_pd(&ip1[i + 1 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d c = _mm_load_pd(&ip1[i + 2 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d d = _mm_load_pd(&ip1[i + 3 * VECTOR_SIZE_BYTES / sizeof(npy_double)]);
-        __m128d r1 = _mm_cmpge_pd(a, s);
-        __m128d r2 = _mm_cmpge_pd(b, s);
-        __m128d r3 = _mm_cmpge_pd(c, s);
-        __m128d r4 = _mm_cmpge_pd(d, s);
-        sse2_compress4_to_byte_DOUBLE(r1, r2, r3, &r4, &op[i]);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = sse2_ordered_cmp_greater_equal_DOUBLE(ip1[i], ip2[0]);
     }
 }
 
@@ -3818,7 +1687,7 @@ fma_invert_mask_pd(__m256i ymask)
     return _mm256_andnot_si256(ymask, _mm256_set1_epi32(0xFFFFFFFF));
 }
 
-#line 706
+#line 562
 NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_abs_ps(__m256 x)
 {
@@ -3849,7 +1718,7 @@ fma_trunc_ps(__m256 x)
     return _mm256_round_ps(x, _MM_FROUND_TO_ZERO);
 }
 
-#line 706
+#line 562
 NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_abs_pd(__m256d x)
 {
@@ -3967,7 +1836,7 @@ avx512_invert_mask_pd(__mmask8 ymask)
     return _mm512_knot(ymask);
 }
 
-#line 837
+#line 693
 NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_abs_ps(__m512 x)
 {
@@ -4089,7 +1958,7 @@ avx512_csquare_ps(__m512 x)
 }
 
 
-#line 837
+#line 693
 NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_abs_pd(__m512d x)
 {
@@ -4213,7 +2082,7 @@ avx512_csquare_pd(__m512d x)
 
 #endif
 
-#line 971
+#line 827
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
 
@@ -4243,7 +2112,7 @@ fma_square_pd(__m256d x)
 
 #endif
 
-#line 971
+#line 827
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
 
@@ -4274,9 +2143,9 @@ avx512_square_pd(__m512d x)
 #endif
 
 
-#line 1013
+#line 869
 
-#line 1020
+#line 876
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -4335,7 +2204,7 @@ AVX512_SKX_isnan_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size, c
 }
 #endif
 
-#line 1020
+#line 876
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -4394,7 +2263,7 @@ AVX512_SKX_isfinite_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size
 }
 #endif
 
-#line 1020
+#line 876
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -4453,7 +2322,7 @@ AVX512_SKX_isinf_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size, c
 }
 #endif
 
-#line 1020
+#line 876
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -4513,9 +2382,9 @@ AVX512_SKX_signbit_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size,
 #endif
 
 
-#line 1013
+#line 869
 
-#line 1020
+#line 876
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -4574,7 +2443,7 @@ AVX512_SKX_isnan_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_size,
 }
 #endif
 
-#line 1020
+#line 876
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -4633,7 +2502,7 @@ AVX512_SKX_isfinite_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_si
 }
 #endif
 
-#line 1020
+#line 876
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -4692,7 +2561,7 @@ AVX512_SKX_isinf_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_size,
 }
 #endif
 
-#line 1020
+#line 876
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -4753,9 +2622,9 @@ AVX512_SKX_signbit_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_siz
 
 
 
-#line 1094
+#line 950
 
-#line 1099
+#line 955
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_GCC_OPT_3 NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -4803,7 +2672,7 @@ AVX512F_square_CFLOAT(npy_float * op,
 }
 #endif
 
-#line 1099
+#line 955
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_GCC_OPT_3 NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -4923,9 +2792,9 @@ AVX512F_absolute_CFLOAT(npy_float * op,
 
 #endif
 
-#line 1094
+#line 950
 
-#line 1099
+#line 955
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_GCC_OPT_3 NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -4973,7 +2842,7 @@ AVX512F_square_CDOUBLE(npy_double * op,
 }
 #endif
 
-#line 1099
+#line 955
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_GCC_OPT_3 NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -5100,7 +2969,7 @@ AVX512F_absolute_CDOUBLE(npy_double * op,
  *****************************************************************************
  */
 
-#line 1238
+#line 1094
 
 /*
  * convert any bit set to boolean true so vectorized and normal operations are
@@ -5180,7 +3049,7 @@ sse2_reduce_logical_or_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)
 }
 
 
-#line 1238
+#line 1094
 
 /*
  * convert any bit set to boolean true so vectorized and normal operations are
@@ -5261,7 +3130,7 @@ sse2_reduce_logical_and_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)
 
 
 
-#line 1329
+#line 1185
 
 static void
 sse2_absolute_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)
@@ -5288,7 +3157,7 @@ sse2_absolute_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)
 }
 
 
-#line 1329
+#line 1185
 
 static void
 sse2_logical_not_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)

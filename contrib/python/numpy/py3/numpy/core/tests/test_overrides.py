@@ -355,6 +355,45 @@ class TestArrayFunctionImplementation:
                 TypeError, "no implementation found for 'my.func'"):
             func(MyArray())
 
+    def test_signature_error_message(self):
+        # The lambda function will be named "<lambda>", but the TypeError
+        # should show the name as "func"
+        def _dispatcher():
+            return ()
+
+        @array_function_dispatch(_dispatcher)
+        def func():
+            pass
+
+        try:
+            func(bad_arg=3)
+        except TypeError as e:
+            expected_exception = e
+
+        try:
+            func(bad_arg=3)
+            raise AssertionError("must fail")
+        except TypeError as exc:
+            assert exc.args == expected_exception.args
+
+    @pytest.mark.parametrize("value", [234, "this func is not replaced"])
+    def test_dispatcher_error(self, value):
+        # If the dispatcher raises an error, we must not attempt to mutate it
+        error = TypeError(value)
+
+        def dispatcher():
+            raise error
+
+        @array_function_dispatch(dispatcher)
+        def func():
+            return 3
+
+        try:
+            func()
+            raise AssertionError("must fail")
+        except TypeError as exc:
+            assert exc is error  # unmodified exception
+
 
 class TestNDArrayMethods:
 
@@ -492,7 +531,7 @@ class TestArrayLike:
         ('fromiter', *func_args(range(3), dtype=int)),
         ('fromstring', *func_args('1,2', dtype=int, sep=',')),
         ('loadtxt', *func_args(lambda: StringIO('0 1\n2 3'))),
-        ('genfromtxt', *func_args(lambda: StringIO(u'1,2.1'),
+        ('genfromtxt', *func_args(lambda: StringIO('1,2.1'),
                                   dtype=[('int', 'i8'), ('float', 'f8')],
                                   delimiter=',')),
     ]
@@ -583,3 +622,21 @@ class TestArrayLike:
         with assert_raises(TypeError):
             # Raises the error about `value_error` being invalid first
             np.array(1, value_error=True, like=ref)
+
+    @pytest.mark.parametrize('function, args, kwargs', _array_tests)
+    def test_like_as_none(self, function, args, kwargs):
+        self.add_method('array', self.MyArray)
+        self.add_method(function, self.MyArray)
+        np_func = getattr(np, function)
+
+        like_args = tuple(a() if callable(a) else a for a in args)
+        # required for loadtxt and genfromtxt to init w/o error.
+        like_args_exp = tuple(a() if callable(a) else a for a in args)
+
+        array_like = np_func(*like_args, **kwargs, like=None)
+        expected = np_func(*like_args_exp, **kwargs)
+        # Special-case np.empty to ensure values match
+        if function == "empty":
+            array_like.fill(1)
+            expected.fill(1)
+        assert_equal(array_like, expected)

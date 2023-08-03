@@ -10,6 +10,7 @@ import pytest
 import textwrap
 import enum
 import random
+import ctypes
 
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
@@ -168,6 +169,9 @@ class TestCasting:
 
         for i, value in enumerate(values):
             # Use item assignment to ensure this is not using casting:
+            if value < 0 and dtype1.kind == "u":
+                # Manually rollover unsigned integers (-1 -> int.max)
+                value = value + np.iinfo(dtype1).max + 1
             arr1[i] = value
 
         if dtype2 is None:
@@ -184,6 +188,9 @@ class TestCasting:
 
         for i, value in enumerate(values):
             # Use item assignment to ensure this is not using casting:
+            if value < 0 and dtype2.kind == "u":
+                # Manually rollover unsigned integers (-1 -> int.max)
+                value = value + np.iinfo(dtype2).max + 1
             arr2[i] = value
 
         return arr1, arr2, values
@@ -786,7 +793,8 @@ class TestCasting:
         # None to <other> casts may succeed or fail, but a NULL'ed array must
         # behave the same as one filled with None's.
         arr_normal = np.array([None] * 5)
-        arr_NULLs = np.empty_like([None] * 5)
+        arr_NULLs = np.empty_like(arr_normal)
+        ctypes.memset(arr_NULLs.ctypes.data, 0, arr_NULLs.nbytes)
         # If the check fails (maybe it should) the test would lose its purpose:
         assert arr_NULLs.tobytes() == b"\x00" * arr_NULLs.nbytes
 

@@ -6,7 +6,7 @@ import numpy as np
 from numpy.testing import (
         assert_, assert_raises, assert_equal, assert_warns,
         assert_no_warnings, assert_array_equal, assert_array_almost_equal,
-        suppress_warnings
+        suppress_warnings, IS_WASM
         )
 from numpy import random
 import sys
@@ -1615,6 +1615,7 @@ class TestBroadcast:
         assert_raises(ValueError, logseries, bad_p_two * 3)
 
 
+@pytest.mark.skipif(IS_WASM, reason="can't start thread")
 class TestThread:
     # make sure each state produces the same sequence even in threads
     def setup_method(self):
@@ -1712,23 +1713,22 @@ class TestSingleEltArrayInput:
             out = func(self.argOne, argTwo[0])
             assert_equal(out.shape, self.tgtShape)
 
-# TODO: Uncomment once randint can broadcast arguments
-#    def test_randint(self):
-#        itype = [bool, np.int8, np.uint8, np.int16, np.uint16,
-#                 np.int32, np.uint32, np.int64, np.uint64]
-#        func = np.random.randint
-#        high = np.array([1])
-#        low = np.array([0])
-#
-#        for dt in itype:
-#            out = func(low, high, dtype=dt)
-#            self.assert_equal(out.shape, self.tgtShape)
-#
-#            out = func(low[0], high, dtype=dt)
-#            self.assert_equal(out.shape, self.tgtShape)
-#
-#            out = func(low, high[0], dtype=dt)
-#            self.assert_equal(out.shape, self.tgtShape)
+    def test_randint(self):
+        itype = [bool, np.int8, np.uint8, np.int16, np.uint16,
+                 np.int32, np.uint32, np.int64, np.uint64]
+        func = np.random.randint
+        high = np.array([1])
+        low = np.array([0])
+
+        for dt in itype:
+            out = func(low, high, dtype=dt)
+            assert_equal(out.shape, self.tgtShape)
+
+            out = func(low[0], high, dtype=dt)
+            assert_equal(out.shape, self.tgtShape)
+
+            out = func(low, high[0], dtype=dt)
+            assert_equal(out.shape, self.tgtShape)
 
     def test_three_arg_funcs(self):
         funcs = [np.random.noncentral_f, np.random.triangular,

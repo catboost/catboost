@@ -165,8 +165,9 @@ import numpy
 import warnings
 from numpy.lib.utils import safe_eval
 from numpy.compat import (
-    isfileobj, os_fspath, pickle
+    os_fspath, pickle
     )
+from numpy.compat.py3k import _isfileobj
 
 
 __all__ = []
@@ -177,6 +178,8 @@ MAGIC_PREFIX = b'\x93NUMPY'
 MAGIC_LEN = len(MAGIC_PREFIX) + 2
 ARRAY_ALIGN = 64 # plausible values are powers of 2 between 16 and 4096
 BUFFER_SIZE = 2**18  # size of buffer for reading npz files in bytes
+# allow growth within the address space of a 64 bit machine along one axis
+GROWTH_AXIS_MAX_DIGITS = 21  # = len(str(8*2**64-1)) hypothetical int1 dtype
 
 # difference between version 1.0 and 2.0 is a 4 byte (I) header length
 # instead of 2 bytes (H) allowing storage of large structured arrays
@@ -435,6 +438,15 @@ def _write_array_header(fp, d, version=None):
         header.append("'%s': %s, " % (key, repr(value)))
     header.append("}")
     header = "".join(header)
+    
+    # Add some spare space so that the array header can be modified in-place
+    # when changing the array size, e.g. when growing it by appending data at
+    # the end. 
+    shape = d['shape']
+    header += " " * ((GROWTH_AXIS_MAX_DIGITS - len(repr(
+        shape[-1 if d['fortran_order'] else 0]
+    ))) if len(shape) > 0 else 0)
+    
     if version is None:
         header = _wrap_header_guess_version(header)
     else:
@@ -699,7 +711,7 @@ def write_array(fp, array, version=None, allow_pickle=True, pickle_kwargs=None):
             pickle_kwargs = {}
         pickle.dump(array, fp, protocol=3, **pickle_kwargs)
     elif array.flags.f_contiguous and not array.flags.c_contiguous:
-        if isfileobj(fp):
+        if _isfileobj(fp):
             array.T.tofile(fp)
         else:
             for chunk in numpy.nditer(
@@ -707,7 +719,7 @@ def write_array(fp, array, version=None, allow_pickle=True, pickle_kwargs=None):
                     buffersize=buffersize, order='F'):
                 fp.write(chunk.tobytes('C'))
     else:
-        if isfileobj(fp):
+        if _isfileobj(fp):
             array.tofile(fp)
         else:
             for chunk in numpy.nditer(
@@ -785,7 +797,7 @@ def read_array(fp, allow_pickle=False, pickle_kwargs=None, *,
                                "You may need to pass the encoding= option "
                                "to numpy.load" % (err,)) from err
     else:
-        if isfileobj(fp):
+        if _isfileobj(fp):
             # We can use the fast fromfile() function.
             array = numpy.fromfile(fp, dtype=dtype, count=count)
         else:
@@ -877,7 +889,7 @@ def open_memmap(filename, mode='r+', dtype=None, shape=None,
     numpy.memmap
 
     """
-    if isfileobj(filename):
+    if _isfileobj(filename):
         raise ValueError("Filename must be a string or a path-like object."
                          "  Memmap cannot use existing file handles.")
 

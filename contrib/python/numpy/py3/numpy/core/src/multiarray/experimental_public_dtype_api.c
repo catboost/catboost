@@ -16,7 +16,7 @@
 #include "common_dtype.h"
 
 
-#define EXPERIMENTAL_DTYPE_API_VERSION 4
+#define EXPERIMENTAL_DTYPE_API_VERSION 5
 
 
 typedef struct{
@@ -111,13 +111,13 @@ legacy_getitem_using_DType(void *data, void *arr)
  * from the user in the future and more could get defaults for compatibility.
  */
 PyArray_ArrFuncs default_funcs = {
+        .getitem = &legacy_getitem_using_DType,
         .setitem = &legacy_setitem_using_DType,
-        .getitem = &legacy_getitem_using_DType
 };
 
 
 /* other slots are in order, so keep only last around: */
-#define NUM_DTYPE_SLOTS 7
+#define NUM_DTYPE_SLOTS 8
 
 
 int
@@ -209,6 +209,12 @@ PyArrayInitDTypeMeta_FromSpec(
         return -1;
     }
 
+    if (NPY_DT_SLOTS(DType)->ensure_canonical == NULL) {
+        PyErr_SetString(PyExc_RuntimeError,
+                        "A DType must provide an ensure_canonical implementation.");
+        return -1;
+    }
+
     /*
      * Now that the spec is read we can check that all required functions were
      * defined by the user.
@@ -252,6 +258,14 @@ PyArrayInitDTypeMeta_FromSpec(
     /*
      * And now, register all the casts that are currently defined!
      */
+    if (spec->casts == NULL) {
+        PyErr_SetString(
+            PyExc_RuntimeError,
+            "DType must at least provide a function to cast (or just copy) "
+            "between its own instances!");
+        return -1;
+    }
+
     PyArrayMethod_Spec **next_meth_spec = spec->casts;
     while (1) {
         PyArrayMethod_Spec *meth_spec = *next_meth_spec;
@@ -300,37 +314,13 @@ PyArrayInitDTypeMeta_FromSpec(
 }
 
 
-/* Function is defined in umath/dispatching.c (same/one compilation unit) */
+/* Functions defined in umath/dispatching.c (same/one compilation unit) */
 NPY_NO_EXPORT int
 PyUFunc_AddLoop(PyUFuncObject *ufunc, PyObject *info, int ignore_duplicate);
 
-static int
-PyUFunc_AddLoopFromSpec(PyObject *ufunc, PyArrayMethod_Spec *spec)
-{
-    if (!PyObject_TypeCheck(ufunc, &PyUFunc_Type)) {
-        PyErr_SetString(PyExc_TypeError,
-                "ufunc object passed is not a ufunc!");
-        return -1;
-    }
-    PyBoundArrayMethodObject *bmeth =
-            (PyBoundArrayMethodObject *)PyArrayMethod_FromSpec(spec);
-    if (bmeth == NULL) {
-        return -1;
-    }
-    int nargs = bmeth->method->nin + bmeth->method->nout;
-    PyObject *dtypes = PyArray_TupleFromItems(
-            nargs, (PyObject **)bmeth->dtypes, 1);
-    if (dtypes == NULL) {
-        return -1;
-    }
-    PyObject *info = PyTuple_Pack(2, dtypes, bmeth->method);
-    Py_DECREF(bmeth);
-    Py_DECREF(dtypes);
-    if (info == NULL) {
-        return -1;
-    }
-    return PyUFunc_AddLoop((PyUFuncObject *)ufunc, info, 0);
-}
+NPY_NO_EXPORT int
+PyUFunc_AddLoopFromSpec(PyUFuncObject *ufunc, PyObject *info, int ignore_duplicate);
+
 
 /*
  * Function is defined in umath/wrapping_array_method.c
