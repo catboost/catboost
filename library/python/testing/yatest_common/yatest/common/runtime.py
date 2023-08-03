@@ -287,6 +287,28 @@ def get_param(key, default=None):
     return _get_ya_plugin_instance().get_param(key, default)
 
 
+def set_metric_value(name, val):
+    """
+    Use this method only when your test environment does not support pytest fixtures,
+    otherwise you should prefer using https://docs.yandex-team.ru/ya-make/manual/tests/#python
+    :param name: name
+    :param val: value
+    """
+    _get_ya_plugin_instance().set_metric_value(name, val)
+
+
+@default_arg1
+def get_metric_value(name, default=None):
+    """
+    Use this method only when your test environment does not support pytest fixtures,
+    otherwise you should prefer using https://docs.yandex-team.ru/ya-make/manual/tests/#python
+    :param name: name
+    :param default: default
+    :return: parameter value or the default
+    """
+    return _get_ya_plugin_instance().get_metric_value(name, default)
+
+
 @default_value(lambda _: {})
 def get_param_dict_copy():
     """
