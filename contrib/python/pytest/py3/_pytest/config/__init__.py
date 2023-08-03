@@ -2,6 +2,7 @@
 import argparse
 import collections.abc
 import copy
+import dataclasses
 import enum
 import glob
 import inspect
@@ -34,7 +35,6 @@ from typing import Type
 from typing import TYPE_CHECKING
 from typing import Union
 
-import attr
 from pluggy import HookimplMarker
 from pluggy import HookspecMarker
 from pluggy import PluginManager
@@ -62,7 +62,6 @@ from _pytest.warning_types import PytestConfigWarning
 from _pytest.warning_types import warn_explicit_for
 
 if TYPE_CHECKING:
-
     from _pytest._code.code import _TracebackStyle
     from _pytest.terminal import TerminalReporter
     from .argparsing import Argument
@@ -527,7 +526,10 @@ class PytestPluginManager(PluginManager):
     # Internal API for local conftest plugin handling.
     #
     def _set_initial_conftests(
-        self, namespace: argparse.Namespace, rootpath: Path
+        self,
+        namespace: argparse.Namespace,
+        rootpath: Path,
+        testpaths_ini: Sequence[str],
     ) -> None:
         """Load initial conftest files given a preparsed "namespace".
 
@@ -544,7 +546,7 @@ class PytestPluginManager(PluginManager):
         )
         self._noconftest = namespace.noconftest
         self._using_pyargs = namespace.pyargs
-        testpaths = namespace.file_or_dir
+        testpaths = namespace.file_or_dir + testpaths_ini
         foundanchor = False
         for testpath in testpaths:
             path = str(testpath)
@@ -553,7 +555,14 @@ class PytestPluginManager(PluginManager):
             if i != -1:
                 path = path[:i]
             anchor = absolutepath(current / path)
-            if anchor.exists():  # we found some file object
+
+            # Ensure we do not break if what appears to be an anchor
+            # is in fact a very long option (#10169).
+            try:
+                anchor_exists = anchor.exists()
+            except OSError:  # pragma: no cover
+                anchor_exists = False
+            if anchor_exists:
                 self._try_load_conftest(anchor, namespace.importmode, rootpath)
                 foundanchor = True
         if not foundanchor:
@@ -697,6 +706,7 @@ class PytestPluginManager(PluginManager):
                     parg = opt[2:]
                 else:
                     continue
+                parg = parg.strip()
                 if exclude_only and not parg.startswith("no:"):
                     continue
                 self.consider_pluginarg(parg)
@@ -886,10 +896,6 @@ def _iter_rewritable_modules(package_files: Iterable[str]) -> Iterator[str]:
             yield from _iter_rewritable_modules(new_package_files)
 
 
-def _args_converter(args: Iterable[str]) -> Tuple[str, ...]:
-    return tuple(args)
-
-
 @final
 class Config:
     """Access to configuration values, pluginmanager and plugin hooks.
@@ -903,7 +909,7 @@ class Config:
     """
 
     @final
-    @attr.s(frozen=True, auto_attribs=True)
+    @dataclasses.dataclass(frozen=True)
     class InvocationParams:
         """Holds parameters passed during :func:`pytest.main`.
 
@@ -919,12 +925,23 @@ class Config:
             Plugins accessing ``InvocationParams`` must be aware of that.
         """
 
-        args: Tuple[str, ...] = attr.ib(converter=_args_converter)
+        args: Tuple[str, ...]
         """The command-line arguments as passed to :func:`pytest.main`."""
         plugins: Optional[Sequence[Union[str, _PluggyPlugin]]]
         """Extra plugins, might be `None`."""
         dir: Path
         """The directory from which :func:`pytest.main` was invoked."""
+
+        def __init__(
+            self,
+            *,
+            args: Iterable[str],
+            plugins: Optional[Sequence[Union[str, _PluggyPlugin]]],
+            dir: Path,
+        ) -> None:
+            object.__setattr__(self, "args", tuple(args))
+            object.__setattr__(self, "plugins", plugins)
+            object.__setattr__(self, "dir", dir)
 
     class ArgsSource(enum.Enum):
         """Indicates the source of the test arguments.
@@ -1059,7 +1076,6 @@ class Config:
         try:
             self.parse(args)
         except UsageError:
-
             # Handle --version and --help here in a minimal fashion.
             # This gets done via helpconfig normally, but its
             # pytest_cmdline_main is not called in case of errors.
@@ -1125,7 +1141,9 @@ class Config:
     @hookimpl(trylast=True)
     def pytest_load_initial_conftests(self, early_config: "Config") -> None:
         self.pluginmanager._set_initial_conftests(
-            early_config.known_args_namespace, rootpath=early_config.rootpath
+            early_config.known_args_namespace,
+            rootpath=early_config.rootpath,
+            testpaths_ini=self.getini("testpaths"),
         )
 
     def _initini(self, args: Sequence[str]) -> None:

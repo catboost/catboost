@@ -1,4 +1,7 @@
 """Python version compatibility code."""
+from __future__ import annotations
+
+import dataclasses
 import enum
 import functools
 import inspect
@@ -11,13 +14,8 @@ from typing import Any
 from typing import Callable
 from typing import Generic
 from typing import NoReturn
-from typing import Optional
-from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import TypeVar
-from typing import Union
-
-import attr
 
 import _pytest._py.path as py_path
 
@@ -47,7 +45,7 @@ LEGACY_PATH = py_path. local
 # fmt: on
 
 
-def legacy_path(path: Union[str, "os.PathLike[str]"]) -> LEGACY_PATH:
+def legacy_path(path: str | os.PathLike[str]) -> LEGACY_PATH:
     """Internal wrapper to prepare lazy proxies for legacy_path instances"""
     return LEGACY_PATH(path)
 
@@ -57,7 +55,7 @@ def legacy_path(path: Union[str, "os.PathLike[str]"]) -> LEGACY_PATH:
 # https://www.python.org/dev/peps/pep-0484/#support-for-singleton-types-in-unions
 class NotSetType(enum.Enum):
     token = 0
-NOTSET: "Final" = NotSetType.token  # noqa: E305
+NOTSET: Final = NotSetType.token  # noqa: E305
 # fmt: on
 
 if sys.version_info >= (3, 8):
@@ -95,7 +93,7 @@ def is_async_function(func: object) -> bool:
     return iscoroutinefunction(func) or inspect.isasyncgenfunction(func)
 
 
-def getlocation(function, curdir: Optional[str] = None) -> str:
+def getlocation(function, curdir: str | None = None) -> str:
     function = get_real_func(function)
     fn = Path(inspect.getfile(function))
     lineno = function.__code__.co_firstlineno
@@ -133,8 +131,8 @@ def getfuncargnames(
     *,
     name: str = "",
     is_method: bool = False,
-    cls: Optional[type] = None,
-) -> Tuple[str, ...]:
+    cls: type | None = None,
+) -> tuple[str, ...]:
     """Return the names of a function's mandatory arguments.
 
     Should return the names of all function arguments that:
@@ -198,7 +196,7 @@ def getfuncargnames(
     return arg_names
 
 
-def get_default_arg_names(function: Callable[..., Any]) -> Tuple[str, ...]:
+def get_default_arg_names(function: Callable[..., Any]) -> tuple[str, ...]:
     # Note: this code intentionally mirrors the code at the beginning of
     # getfuncargnames, to get the arguments which were excluded from its result
     # because they had default values.
@@ -229,7 +227,7 @@ def _bytes_to_ascii(val: bytes) -> str:
     return val.decode("ascii", "backslashreplace")
 
 
-def ascii_escaped(val: Union[bytes, str]) -> str:
+def ascii_escaped(val: bytes | str) -> str:
     r"""If val is pure ASCII, return it as an str, otherwise, escape
     bytes objects into a sequence of escaped bytes:
 
@@ -253,7 +251,7 @@ def ascii_escaped(val: Union[bytes, str]) -> str:
     return ret
 
 
-@attr.s
+@dataclasses.dataclass
 class _PytestWrapper:
     """Dummy wrapper around a function object for internal use only.
 
@@ -262,7 +260,7 @@ class _PytestWrapper:
     decorator to issue warnings when the fixture function is called directly.
     """
 
-    obj = attr.ib()
+    obj: Any
 
 
 def get_real_func(obj):
@@ -356,7 +354,6 @@ else:
 if sys.version_info >= (3, 8):
     from functools import cached_property as cached_property
 else:
-    from typing import Type
 
     class cached_property(Generic[_S, _T]):
         __slots__ = ("func", "__doc__")
@@ -367,12 +364,12 @@ else:
 
         @overload
         def __get__(
-            self, instance: None, owner: Optional[Type[_S]] = ...
-        ) -> "cached_property[_S, _T]":
+            self, instance: None, owner: type[_S] | None = ...
+        ) -> cached_property[_S, _T]:
             ...
 
         @overload
-        def __get__(self, instance: _S, owner: Optional[Type[_S]] = ...) -> _T:
+        def __get__(self, instance: _S, owner: type[_S] | None = ...) -> _T:
             ...
 
         def __get__(self, instance, owner=None):
@@ -380,6 +377,18 @@ else:
                 return self
             value = instance.__dict__[self.func.__name__] = self.func(instance)
             return value
+
+
+def get_user_id() -> int | None:
+    """Return the current user id, or None if we cannot get it reliably on the current platform."""
+    # win32 does not have a getuid() function.
+    # On Emscripten, getuid() is a stub that always returns 0.
+    if sys.platform in ("win32", "emscripten"):
+        return None
+    # getuid shouldn't fail, but cpython defines such a case.
+    # Let's hope for the best.
+    uid = os.getuid()
+    return uid if uid != -1 else None
 
 
 # Perform exhaustiveness checking.

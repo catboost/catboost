@@ -3,6 +3,7 @@
 This is a good source for looking at the various reporting hooks.
 """
 import argparse
+import dataclasses
 import datetime
 import inspect
 import platform
@@ -27,7 +28,6 @@ from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import Union
 
-import attr
 import pluggy
 
 import _pytest._version
@@ -229,7 +229,8 @@ def pytest_addoption(parser: Parser) -> None:
     parser.addini(
         "console_output_style",
         help='Console output: "classic", or with additional progress information '
-        '("progress" (percentage) | "count")',
+        '("progress" (percentage) | "count" | "progress-even-when-capture-no" (forces '
+        "progress even when capture=no)",
         default="progress",
     )
 
@@ -287,7 +288,7 @@ def pytest_report_teststatus(report: BaseReport) -> Tuple[str, str, str]:
     return outcome, letter, outcome.upper()
 
 
-@attr.s(auto_attribs=True)
+@dataclasses.dataclass
 class WarningReport:
     """Simple structure to hold warnings information captured by ``pytest_warning_recorded``.
 
@@ -346,14 +347,19 @@ class TerminalReporter:
 
     def _determine_show_progress_info(self) -> "Literal['progress', 'count', False]":
         """Return whether we should display progress information based on the current config."""
-        # do not show progress if we are not capturing output (#3038)
-        if self.config.getoption("capture", "no") == "no":
+        # do not show progress if we are not capturing output (#3038) unless explicitly
+        # overridden by progress-even-when-capture-no
+        if (
+            self.config.getoption("capture", "no") == "no"
+            and self.config.getini("console_output_style")
+            != "progress-even-when-capture-no"
+        ):
             return False
         # do not show progress if we are showing fixture setup/teardown
         if self.config.getoption("setupshow", False):
             return False
         cfg: str = self.config.getini("console_output_style")
-        if cfg == "progress":
+        if cfg == "progress" or cfg == "progress-even-when-capture-no":
             return "progress"
         elif cfg == "count":
             return "count"
@@ -733,16 +739,14 @@ class TerminalReporter:
                     self.write_line(line)
 
     def pytest_report_header(self, config: Config) -> List[str]:
-        line = "rootdir: %s" % config.rootpath
+        result = [f"rootdir: {config.rootpath}"]
 
         if config.inipath:
-            line += ", configfile: " + bestrelpath(config.rootpath, config.inipath)
+            result.append("configfile: " + bestrelpath(config.rootpath, config.inipath))
 
         if config.args_source == Config.ArgsSource.TESTPATHS:
             testpaths: List[str] = config.getini("testpaths")
-            line += ", testpaths: {}".format(", ".join(testpaths))
-
-        result = [line]
+            result.append("testpaths: {}".format(", ".join(testpaths)))
 
         plugininfo = config.pluginmanager.list_plugin_distinfo()
         if plugininfo:

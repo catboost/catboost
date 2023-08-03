@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from typing_extensions import Literal
 
     from _pytest._code.code import ExceptionRepr
-    from _pytest.code import ExceptionInfo
+    from _pytest._code.code import ExceptionInfo
     from _pytest.config import Config
     from _pytest.config import ExitCode
     from _pytest.config import PytestPluginManager
@@ -505,7 +505,9 @@ def pytest_runtest_logstart(
     See :hook:`pytest_runtest_protocol` for a description of the runtest protocol.
 
     :param nodeid: Full node ID of the item.
-    :param location: A tuple of ``(filename, lineno, testname)``.
+    :param location: A tuple of ``(filename, lineno, testname)``
+        where ``filename`` is a file path relative to ``config.rootpath``
+        and ``lineno`` is 0-based.
     """
 
 
@@ -517,7 +519,9 @@ def pytest_runtest_logfinish(
     See :hook:`pytest_runtest_protocol` for a description of the runtest protocol.
 
     :param nodeid: Full node ID of the item.
-    :param location: A tuple of ``(filename, lineno, testname)``.
+    :param location: A tuple of ``(filename, lineno, testname)``
+        where ``filename`` is a file path relative to ``config.rootpath``
+        and ``lineno`` is 0-based.
     """
 
 
@@ -738,7 +742,7 @@ def pytest_assertion_pass(item: "Item", lineno: int, orig: str, expl: str) -> No
 # -------------------------------------------------------------------------
 
 
-def pytest_report_header(
+def pytest_report_header(  # type:ignore[empty-body]
     config: "Config", start_path: Path, startdir: "LEGACY_PATH"
 ) -> Union[str, List[str]]:
     """Return a string or list of strings to be displayed as header info for terminal reporting.
@@ -767,7 +771,7 @@ def pytest_report_header(
     """
 
 
-def pytest_report_collectionfinish(
+def pytest_report_collectionfinish(  # type:ignore[empty-body]
     config: "Config",
     start_path: Path,
     startdir: "LEGACY_PATH",
@@ -800,7 +804,7 @@ def pytest_report_collectionfinish(
 
 
 @hookspec(firstresult=True)
-def pytest_report_teststatus(
+def pytest_report_teststatus(  # type:ignore[empty-body]
     report: Union["CollectReport", "TestReport"], config: "Config"
 ) -> Tuple[str, str, Union[str, Mapping[str, bool]]]:
     """Return result-category, shortletter and verbose word for status
@@ -880,7 +884,9 @@ def pytest_warning_recorded(
 # -------------------------------------------------------------------------
 
 
-def pytest_markeval_namespace(config: "Config") -> Dict[str, Any]:
+def pytest_markeval_namespace(  # type:ignore[empty-body]
+    config: "Config",
+) -> Dict[str, Any]:
     """Called when constructing the globals dictionary used for
     evaluating string conditions in xfail/skipif markers.
 
