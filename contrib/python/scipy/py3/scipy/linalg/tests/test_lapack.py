@@ -1421,7 +1421,6 @@ def test_sfrk_hfrk():
                                   decimal=4 if ind % 2 == 0 else 6)
 
 
-@pytest.mark.xfail
 def test_syconv():
     """
     Test for going back and forth between the returned format of he/sytrf to
@@ -1463,7 +1462,6 @@ class TestBlockedQR(object):
     and tpmqr.
     """
 
-    @pytest.mark.xfail
     def test_geqrt_gemqrt(self):
         seed(1234)
         for ind, dtype in enumerate(DTYPES):
@@ -1526,7 +1524,6 @@ class TestBlockedQR(object):
             assert_raises(Exception, gemqrt, a, t, C, side='A')
             assert_raises(Exception, gemqrt, a, t, C, trans='A')
 
-    @pytest.mark.xfail
     def test_tpqrt_tpmqrt(self):
         seed(1234)
         for ind, dtype in enumerate(DTYPES):
@@ -2143,7 +2140,6 @@ def test_gttrf_gttrs_NAG_f07cdf_f07cef_f07crf_f07csf(du, d, dl, du_exp, d_exp,
     assert_allclose(x_gttrs, x)
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize('dtype', DTYPES)
 @pytest.mark.parametrize('shape', [(3, 7), (7, 3), (2**18, 2**18)])
 def test_geqrfp_lwork(dtype, shape):
@@ -2411,7 +2407,6 @@ def test_pteqr_NAG_f08jgf(compute_z, d, e, d_expect, z_expect):
     assert_allclose(np.abs(_z), np.abs(z_expect), atol=atol)
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize('dtype', DTYPES)
 @pytest.mark.parametrize('matrix_size', [(3, 4), (7, 6), (6, 6)])
 def test_geqrfp(dtype, matrix_size):
@@ -2478,7 +2473,6 @@ def test_geqrfp(dtype, matrix_size):
             np.all(np.diag(r) > 0))
 
 
-@pytest.mark.xfail
 def test_geqrfp_errors_with_empty_array():
     # check that empty array raises good error message
     A_empty = np.array([])
@@ -2517,7 +2511,6 @@ def test_generalized_eigh_lworks(pfx, driver):
                     "".format(pfx+driver, e))
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize("dtype_", DTYPES)
 @pytest.mark.parametrize("m", [1, 10, 100, 1000])
 def test_orcsd_uncsd_lwork(dtype_, m):
@@ -2532,7 +2525,6 @@ def test_orcsd_uncsd_lwork(dtype_, m):
     assert all([x > 0 for x in lwval])
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize("dtype_", DTYPES)
 def test_orcsd_uncsd(dtype_):
     m, p, q = 250, 80, 170

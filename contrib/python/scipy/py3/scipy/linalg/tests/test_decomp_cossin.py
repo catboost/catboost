@@ -12,7 +12,6 @@ COMPLEX_DTYPES = (np.complex64, np.complex128)
 DTYPES = REAL_DTYPES + COMPLEX_DTYPES
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize('dtype_', DTYPES)
 @pytest.mark.parametrize('m, p, q',
                          [
@@ -69,7 +68,6 @@ def test_cossin(dtype_, m, p, q, swap_sign):
     assert_allclose(cs, cs2, rtol=0., atol=10*np.finfo(dtype_).eps)
 
 
-@pytest.mark.xfail
 def test_cossin_mixed_types():
     seed(1234)
     x = np.array(ortho_group.rvs(4), dtype=np.float64)
@@ -130,7 +128,6 @@ def test_cossin_error_partitioning():
         cossin(x, 1, 5)
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize("dtype_", DTYPES)
 def test_cossin_separate(dtype_):
     m, p, q = 250, 80, 170
