@@ -4,6 +4,8 @@
 #include <util/generic/maybe.h>
 #include <util/system/tempfile.h>
 
+#include <optional>
+
 namespace NUnitTest {
 
 extern const TString Y_UNITTEST_OUTPUT_CMDLINE_OPTION;
@@ -52,6 +54,26 @@ class TJUnitProcessor : public ITestSuiteProcessor {
         }
     };
 
+    // Holds a copy of TTest structure for current test
+    class TCurrentTest {
+    public:
+        TCurrentTest(const TTest* test)
+            : TestName(test->name)
+            , Unit(*test->unit)
+            , Test{&Unit, TestName.c_str()}
+        {
+        }
+
+        operator const TTest*() const {
+            return &Test;
+        }
+
+    private:
+        TString TestName;
+        TUnit Unit;
+        TTest Test;
+    };
+
     struct TOutputCapturer;
 
 public:
@@ -96,6 +118,10 @@ private:
     void MakeTmpFileNameForForkedTests();
     static void TransferFromCapturer(THolder<TJUnitProcessor::TOutputCapturer>& capturer, TString& out, IOutputStream& outStream);
 
+    static void CaptureSignal(TJUnitProcessor* processor);
+    static void UncaptureSignal();
+    static void SignalHandler(int signal);
+
 private:
     const TString FileName; // cmd line param
     const TString ExecName; // cmd line param
@@ -105,6 +131,9 @@ private:
     THolder<TOutputCapturer> StdErrCapturer;
     THolder<TOutputCapturer> StdOutCapturer;
     TInstant StartCurrentTestTime;
+    void (*PrevAbortHandler)(int) = nullptr;
+    void (*PrevSegvHandler)(int) = nullptr;
+    std::optional<TCurrentTest> CurrentTest;
 };
 
 } // namespace NUnitTest

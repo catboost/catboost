@@ -8,6 +8,7 @@
 #include <util/generic/size_literals.h>
 #include <util/stream/file.h>
 #include <util/stream/input.h>
+#include <util/system/backtrace.h>
 #include <util/system/env.h>
 #include <util/system/file.h>
 #include <util/system/fs.h>
@@ -16,6 +17,7 @@
 #include <util/system/tempfile.h>
 
 #include <stdio.h>
+#include <signal.h>
 
 #if defined(_win_)
 #include <io.h>
@@ -186,7 +188,8 @@ TJUnitProcessor::~TJUnitProcessor() {
 }
 
 void TJUnitProcessor::OnBeforeTest(const TTest* test) {
-    Y_UNUSED(test);
+    CurrentTest.emplace(test);
+    CaptureSignal(this);
     if (!GetForkTests() || GetIsForked()) {
         StdErrCapturer = MakeHolder<TOutputCapturer>(TOutputCapturer::STDERR_FD);
         StdOutCapturer = MakeHolder<TOutputCapturer>(TOutputCapturer::STDOUT_FD);
@@ -228,6 +231,7 @@ void TJUnitProcessor::OnFinish(const TFinish* descr) {
     } else {
         MergeSubprocessReport();
     }
+    UncaptureSignal();
 }
 
 TString TJUnitProcessor::BuildFileName(size_t index, const TStringBuf extension) const {
@@ -293,6 +297,69 @@ void TJUnitProcessor::MakeTmpFileNameForForkedTests() {
         TmpReportFile.ConstructInPlace(MakeTempName());
         // Replace option for child processes
         SetEnv(Y_UNITTEST_OUTPUT_CMDLINE_OPTION, TStringBuilder() << "xml:" << TmpReportFile->Name());
+    }
+}
+
+static TJUnitProcessor* CurrentJUnitProcessor = nullptr;
+
+void TJUnitProcessor::CaptureSignal(TJUnitProcessor* processor) {
+    CurrentJUnitProcessor = processor;
+    processor->PrevAbortHandler = signal(SIGABRT, &TJUnitProcessor::SignalHandler);
+    if (processor->PrevAbortHandler == SIG_ERR) {
+        processor->PrevAbortHandler = nullptr;
+    }
+    processor->PrevSegvHandler = signal(SIGSEGV, &TJUnitProcessor::SignalHandler);
+    if (processor->PrevSegvHandler == SIG_ERR) {
+        processor->PrevSegvHandler = nullptr;
+    }
+}
+
+void TJUnitProcessor::UncaptureSignal() {
+    if (CurrentJUnitProcessor) {
+        if (CurrentJUnitProcessor->PrevAbortHandler != nullptr) {
+            signal(SIGABRT, CurrentJUnitProcessor->PrevAbortHandler);
+        } else {
+            signal(SIGABRT, SIG_DFL);
+        }
+
+        if (CurrentJUnitProcessor->PrevSegvHandler != nullptr) {
+            signal(SIGSEGV, CurrentJUnitProcessor->PrevSegvHandler);
+        } else {
+            signal(SIGSEGV, SIG_DFL);
+        }
+    }
+}
+
+void TJUnitProcessor::SignalHandler(int signal) {
+    if (CurrentJUnitProcessor) {
+        if (CurrentJUnitProcessor->CurrentTest) {
+            TError errDesc;
+            errDesc.test = *CurrentJUnitProcessor->CurrentTest;
+            if (signal == SIGABRT) {
+                errDesc.msg = "Test aborted";
+            } else {
+                errDesc.msg = "Segmentation fault";
+                PrintBackTrace();
+            }
+            CurrentJUnitProcessor->OnError(&errDesc);
+
+            TFinish finishDesc;
+            finishDesc.Success = false;
+            finishDesc.test = *CurrentJUnitProcessor->CurrentTest;
+            CurrentJUnitProcessor->OnFinish(&finishDesc);
+        }
+
+        CurrentJUnitProcessor->Save();
+
+        if (signal == SIGABRT) {
+            if (CurrentJUnitProcessor->PrevAbortHandler) {
+                CurrentJUnitProcessor->PrevAbortHandler(signal);
+            }
+        } else {
+            if (CurrentJUnitProcessor->PrevSegvHandler) {
+                CurrentJUnitProcessor->PrevSegvHandler(signal);
+            }
+        }
     }
 }
 
