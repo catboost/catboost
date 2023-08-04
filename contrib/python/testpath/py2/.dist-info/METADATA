@@ -1,19 +1,20 @@
 Metadata-Version: 2.1
 Name: testpath
-Version: 0.5.0
+Version: 0.4.4
 Summary: Test utilities for code working with files and commands
-Author-email: Jupyter Development Team <jupyter@googlegroups.com>
-Requires-Python: >= 3.5
+Home-page: https://github.com/jupyter/testpath
+License: UNKNOWN
+Author: Jupyter Development Team
+Author-email: jupyter@googlegroups.com
 Description-Content-Type: text/x-rst
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: BSD License
 Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
 Classifier: Programming Language :: Python :: 3
 Classifier: Topic :: Software Development :: Testing
-Requires-Dist: pytest ; extra == "test"
-Requires-Dist: pathlib2 ; extra == "test" and ( python_version == "2.7")
+Requires-Dist: pathlib2; extra == "test" and ( python_version == "2.7")
 Project-URL: Documentation, https://testpath.readthedocs.io/en/latest/
-Project-URL: Source, https://github.com/jupyter/testpath
 Provides-Extra: test
 
 Testpath is a collection of utilities for Python code working with files and commands.

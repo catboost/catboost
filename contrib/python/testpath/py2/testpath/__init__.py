@@ -3,4 +3,4 @@ from .asserts import *
 from .env import temporary_env, modified_env, make_env_restorer
 from .commands import MockCommand, assert_calls
 
-__version__ = '0.5.0'
+__version__ = '0.4.4'
