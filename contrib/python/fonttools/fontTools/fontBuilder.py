@@ -339,7 +339,7 @@ class FontBuilder(object):
             assert unitsPerEm is not None
             self.setupHead(
                 unitsPerEm=unitsPerEm,
-                create=now,
+                created=now,
                 modified=now,
                 glyphDataFormat=glyphDataFormat,
             )

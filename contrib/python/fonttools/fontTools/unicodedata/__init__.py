@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 from fontTools.misc.textTools import byteord, tostr
 
 import re
 from bisect import bisect_right
+from typing import Literal, TypeVar, overload
+
 
 try:
     # use unicodedata backport compatible with python2:
@@ -15,33 +19,30 @@ from . import Blocks, Scripts, ScriptExtensions, OTTags
 
 
 __all__ = [
-    tostr(s)
-    for s in (
-        # names from built-in unicodedata module
-        "lookup",
-        "name",
-        "decimal",
-        "digit",
-        "numeric",
-        "category",
-        "bidirectional",
-        "combining",
-        "east_asian_width",
-        "mirrored",
-        "decomposition",
-        "normalize",
-        "unidata_version",
-        "ucd_3_2_0",
-        # additonal functions
-        "block",
-        "script",
-        "script_extension",
-        "script_name",
-        "script_code",
-        "script_horizontal_direction",
-        "ot_tags_from_script",
-        "ot_tag_to_script",
-    )
+    # names from built-in unicodedata module
+    "lookup",
+    "name",
+    "decimal",
+    "digit",
+    "numeric",
+    "category",
+    "bidirectional",
+    "combining",
+    "east_asian_width",
+    "mirrored",
+    "decomposition",
+    "normalize",
+    "unidata_version",
+    "ucd_3_2_0",
+    # additonal functions
+    "block",
+    "script",
+    "script_extension",
+    "script_name",
+    "script_code",
+    "script_horizontal_direction",
+    "ot_tags_from_script",
+    "ot_tag_to_script",
 ]
 
 
@@ -195,7 +196,25 @@ RTL_SCRIPTS = {
 }
 
 
-def script_horizontal_direction(script_code, default=KeyError):
+HorizDirection = Literal["RTL", "LTR"]
+T = TypeVar("T")
+
+
+@overload
+def script_horizontal_direction(script_code: str, default: T) -> HorizDirection | T:
+    ...
+
+
+@overload
+def script_horizontal_direction(
+    script_code: str, default: type[KeyError] = KeyError
+) -> HorizDirection:
+    ...
+
+
+def script_horizontal_direction(
+    script_code: str, default: T | type[KeyError] = KeyError
+) -> HorizDirection | T:
     """Return "RTL" for scripts that contain right-to-left characters
     according to the Bidi_Class property. Otherwise return "LTR".
     """
@@ -203,7 +222,7 @@ def script_horizontal_direction(script_code, default=KeyError):
         if isinstance(default, type) and issubclass(default, KeyError):
             raise default(script_code)
         return default
-    return str("RTL") if script_code in RTL_SCRIPTS else str("LTR")
+    return "RTL" if script_code in RTL_SCRIPTS else "LTR"
 
 
 def block(char):

@@ -912,6 +912,30 @@ def _Lookup_SinglePos_subtables_flatten(lst, font, min_inclusive_rec_format):
     return [new]
 
 
+@AligningMerger.merger(ot.CursivePos)
+def merge(merger, self, lst):
+    # Align them
+    glyphs, padded = _merge_GlyphOrders(
+        merger.font,
+        [l.Coverage.glyphs for l in lst],
+        [l.EntryExitRecord for l in lst],
+    )
+
+    self.Format = 1
+    self.Coverage = ot.Coverage()
+    self.Coverage.glyphs = glyphs
+    self.EntryExitRecord = []
+    for _ in glyphs:
+        rec = ot.EntryExitRecord()
+        rec.EntryAnchor = ot.Anchor()
+        rec.EntryAnchor.Format = 1
+        rec.ExitAnchor = ot.Anchor()
+        rec.ExitAnchor.Format = 1
+        self.EntryExitRecord.append(rec)
+    merger.mergeLists(self.EntryExitRecord, padded)
+    self.EntryExitCount = len(self.EntryExitRecord)
+
+
 @AligningMerger.merger(ot.Lookup)
 def merge(merger, self, lst):
     subtables = merger.lookup_subtables = [l.SubTable for l in lst]

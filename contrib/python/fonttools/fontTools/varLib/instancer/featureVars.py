@@ -8,7 +8,10 @@ log = logging.getLogger("fontTools.varLib.instancer")
 
 def _featureVariationRecordIsUnique(rec, seen):
     conditionSet = []
-    for cond in rec.ConditionSet.ConditionTable:
+    conditionSets = (
+        rec.ConditionSet.ConditionTable if rec.ConditionSet is not None else []
+    )
+    for cond in conditionSets:
         if cond.Format != 1:
             # can't tell whether this is duplicate, assume is unique
             return True
@@ -54,6 +57,10 @@ def _instantiateFeatureVariationRecord(
     from fontTools.varLib.instancer import NormalizedAxisTripleAndDistances
 
     default_triple = NormalizedAxisTripleAndDistances(-1, 0, +1)
+    if record.ConditionSet is None:
+        record.ConditionSet = ot.ConditionSet()
+        record.ConditionSet.ConditionTable = []
+        record.ConditionSet.ConditionCount = 0
     for i, condition in enumerate(record.ConditionSet.ConditionTable):
         if condition.Format == 1:
             axisIdx = condition.AxisIndex
@@ -100,6 +107,8 @@ def _instantiateFeatureVariationRecord(
 
     if newConditions is not None and shouldKeep:
         record.ConditionSet.ConditionTable = newConditions
+        if not newConditions:
+            record.ConditionSet = None
         shouldKeep = True
     else:
         shouldKeep = False

@@ -242,9 +242,6 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
             if record.nameID not in visitor.seen:
                 toDelete.add(record.nameID)
 
-        if not toDelete:
-            return
-        log.info(f"Deleting name records with NameIDs {toDelete}")
         for nameID in toDelete:
             ttFont["name"].removeNames(nameID)
         return toDelete
@@ -1167,6 +1164,9 @@ _MAC_LANGUAGE_TO_SCRIPT = {
 
 
 class NameRecordVisitor(TTVisitor):
+    # Font tables that have NameIDs we need to collect.
+    TABLES = ("GSUB", "GPOS", "fvar", "CPAL", "STAT")
+
     def __init__(self):
         self.seen = set()
 
@@ -1211,3 +1211,16 @@ def visit(visitor, obj):
     if obj.version == 1:
         visitor.seen.update(obj.paletteLabels)
         visitor.seen.update(obj.paletteEntryLabels)
+
+
+@NameRecordVisitor.register(ttLib.TTFont)
+def visit(visitor, font, *args, **kwargs):
+    if hasattr(visitor, "font"):
+        return False
+
+    visitor.font = font
+    for tag in visitor.TABLES:
+        if tag in font:
+            visitor.visit(font[tag], *args, **kwargs)
+    del visitor.font
+    return False
