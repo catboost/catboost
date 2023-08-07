@@ -1251,6 +1251,8 @@ fts_alloc(FTS* sp, const char* name, int namelen)
 
     if (!ISSET(FTS_NOSTAT)) {
         p->fts_statp = (stat_struct*)ALIGN(p->fts_name + namelen + 2);
+    } else {
+        p->fts_statp = nullptr;
     }
     p->fts_namelen = (u_short)namelen;
     p->fts_path = sp->fts_path;
