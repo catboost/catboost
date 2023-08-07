@@ -36,6 +36,9 @@ public:
     //! Creates a non-owning TRef for a given string.
     static TRef FromString(const TString& str);
 
+    //! Creates a non-owning TRef for a given std::string.
+    static TRef FromString(const std::string& str);
+
     //! Creates a non-owning TRef for a given stringbuf.
     static TRef FromStringBuf(TStringBuf strBuf);
 

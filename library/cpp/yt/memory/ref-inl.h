@@ -35,6 +35,11 @@ Y_FORCE_INLINE TRef TRef::FromString(const TString& str)
     return FromStringBuf(str);
 }
 
+Y_FORCE_INLINE TRef TRef::FromString(const std::string& str)
+{
+    return TRef(str.data(), str.size());
+}
+
 Y_FORCE_INLINE TRef TRef::FromStringBuf(TStringBuf strBuf)
 {
     return TRef(strBuf.data(), strBuf.length());
