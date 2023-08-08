@@ -12,6 +12,7 @@ from itertools import (
     accumulate,
     chain,
     combinations,
+    combinations_with_replacement,
     count,
     cycle,
     groupby,
@@ -22,11 +23,10 @@ from itertools import (
 )
 from operator import add, mul, itemgetter
 from pickle import loads, dumps
-from platform import python_implementation
 from random import seed, Random
 from statistics import mean
 from string import ascii_letters
-from sys import version_info, getsizeof
+from sys import version_info
 from time import sleep
 from traceback import format_exc
 from unittest import skipIf, TestCase
@@ -3345,6 +3345,18 @@ class SeekableTest(PeekableMixinTests, TestCase):
         self.assertEqual(list(s), iterable)
         self.assertEqual(list(s.elements()), [])
 
+    def test_relative_seek(self):
+        iterable = [str(x) for x in range(5)]
+        s = mi.seekable(iterable)
+        s.relative_seek(2)
+        self.assertEqual(next(s), '2')
+        s.relative_seek(-2)
+        self.assertEqual(next(s), '1')
+        s.relative_seek(-10)  # Lower bound
+        self.assertEqual(next(s), '0')
+        s.relative_seek(10)  # Lower bound
+        self.assertEqual(list(s.elements()), [str(x) for x in range(5)])
+
 
 class SequenceViewTests(TestCase):
     def test_init(self):
@@ -3982,27 +3994,23 @@ class IchunkedTests(TestCase):
         self.assertEqual(next(chunk), 0)
         self.assertRaises(RuntimeError, next, it)
 
-    @skipIf(
-        'PyPy' == python_implementation(),
-        'tracemalloc not implemented in pypy',
-    )
     def test_memory_in_order(self):
-        """Test that only one item is kept in memory at a time if chunks are
-        iterated over in order."""
-        import tracemalloc
+        # No items should be kept in memory when a chunk is produced
+        all_chunks = mi.ichunked(count(), 4)
+        first_chunk = next(all_chunks)
+        self.assertEqual(len(first_chunk._cache), 0)
 
-        def big_string_iterator():
-            while True:
-                # Must be larger than 4096 to get around str interning
-                yield 'X' * 5000
+        # If we don't read a chunk before getting its successor, its contents
+        # will be cached
+        second_chunk = next(all_chunks)
+        self.assertEqual(len(first_chunk._cache), 4)
 
-        ichunks = mi.ichunked(big_string_iterator(), 50)
-        ichunk = next(ichunks)
-        tracemalloc.start()
-        mi.consume(ichunk)
-        curr_mem, peak_mem = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
-        self.assertLess(peak_mem, getsizeof('X' * 5000) * 2)
+        # If we read in order, there again should be nothing cached
+        mi.consume(first_chunk)
+        mi.consume(second_chunk)
+        third_chunk = next(all_chunks)
+        for chunk in (first_chunk, second_chunk, third_chunk):
+            self.assertEqual(len(chunk._cache), 0)
 
 
 class DistinctCombinationsTests(TestCase):
@@ -4459,6 +4467,31 @@ class NthProductTests(TestCase):
             mi.nth_product(24, 'ab', 'cde', 'fghi')
 
 
+class NthCombinationWithReplacementTests(TestCase):
+    def test_basic(self):
+        iterable = 'abcdefg'
+        r = 4
+        for index, expected in enumerate(
+            combinations_with_replacement(iterable, r)
+        ):
+            actual = mi.nth_combination_with_replacement(iterable, r, index)
+            self.assertEqual(actual, expected)
+
+    def test_long(self):
+        actual = mi.nth_combination_with_replacement(range(90), 4, 2000000)
+        expected = (22, 65, 68, 81)
+        self.assertEqual(actual, expected)
+
+    def test_invalid_r(self):
+        for r in (-1, 3):
+            with self.assertRaises(ValueError):
+                mi.nth_combination_with_replacement([], r, 0)
+
+    def test_invalid_index(self):
+        with self.assertRaises(IndexError):
+            mi.nth_combination_with_replacement('abcdefg', 3, -85)
+
+
 class ValueChainTests(TestCase):
     def test_empty(self):
         actual = list(mi.value_chain())
@@ -4582,6 +4615,65 @@ class CombinationIndexTests(TestCase):
     def test_invalid_match(self):
         with self.assertRaises(ValueError):
             mi.combination_index(tuple('axe'), 'abcde')
+
+
+class CombinationWithReplacementIndexTests(TestCase):
+    def test_r_less_than_n(self):
+        iterable = 'abcdefg'
+        r = 4
+        first_index = {}
+        for index, element in enumerate(
+            combinations_with_replacement(iterable, r)
+        ):
+            actual = mi.combination_with_replacement_index(element, iterable)
+            expected = first_index.setdefault(element, index)
+            self.assertEqual(actual, expected)
+
+    def test_r_equal_to_n(self):
+        iterable = 'abcd'
+        r = len(iterable)
+        first_index = {}
+        for index, element in enumerate(
+            combinations_with_replacement(iterable, r=r)
+        ):
+            actual = mi.combination_with_replacement_index(element, iterable)
+            expected = first_index.setdefault(element, index)
+            self.assertEqual(actual, expected)
+
+    def test_multiplicity(self):
+        iterable = 'abacba'
+        r = 3
+        first_index = {}
+        for index, element in enumerate(
+            combinations_with_replacement(iterable, r)
+        ):
+            actual = mi.combination_with_replacement_index(element, iterable)
+            expected = first_index.setdefault(element, index)
+            self.assertEqual(actual, expected)
+
+    def test_null(self):
+        actual = mi.combination_with_replacement_index(tuple(), [])
+        expected = 0
+        self.assertEqual(actual, expected)
+
+    def test_long(self):
+        actual = mi.combination_with_replacement_index(
+            (22, 65, 68, 81), range(90)
+        )
+        expected = 2000000
+        self.assertEqual(actual, expected)
+
+    def test_invalid_order(self):
+        with self.assertRaises(ValueError):
+            mi.combination_with_replacement_index(tuple('acb'), 'abcde')
+
+    def test_invalid_large(self):
+        with self.assertRaises(ValueError):
+            mi.combination_with_replacement_index(tuple('abcdefg'), 'abcdef')
+
+    def test_invalid_match(self):
+        with self.assertRaises(ValueError):
+            mi.combination_with_replacement_index(tuple('axe'), 'abcde')
 
 
 class PermutationIndexTests(TestCase):
@@ -4783,11 +4875,16 @@ class UniqueInWindowTests(TestCase):
         for iterable, n, expected in [
             (range(9), 10, list(range(9))),
             (range(20), 10, list(range(20))),
-            ([1, 2, 3, 4, 4, 4], 1, [1, 2, 3, 4]),
+            ([1, 2, 3, 4, 4, 4], 1, [1, 2, 3, 4, 4, 4]),
             ([1, 2, 3, 4, 4, 4], 2, [1, 2, 3, 4]),
             ([1, 2, 3, 4, 4, 4], 3, [1, 2, 3, 4]),
             ([1, 2, 3, 4, 4, 4], 4, [1, 2, 3, 4]),
             ([1, 2, 3, 4, 4, 4], 5, [1, 2, 3, 4]),
+            (
+                [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 2, 3, 4, 2],
+                2,
+                [0, 1, 0, 2, 3, 4, 2],
+            ),
         ]:
             with self.subTest(expected=expected):
                 actual = list(mi.unique_in_window(iterable, n))
@@ -5228,3 +5325,88 @@ class GrayProductTests(TestCase):
         self.assertEqual(
             sorted(product(*iters)), sorted(mi.gray_product(*iters))
         )
+
+
+class PartialProductTests(TestCase):
+    def test_no_iterables(self):
+        self.assertEqual(tuple(mi.partial_product()), ((),))
+
+    def test_empty_iterable(self):
+        self.assertEqual(tuple(mi.partial_product('AB', '', 'CD')), ())
+
+    def test_one_iterable(self):
+        # a single iterable should pass through
+        self.assertEqual(
+            tuple(mi.partial_product('ABCD')),
+            (
+                ('A',),
+                ('B',),
+                ('C',),
+                ('D',),
+            ),
+        )
+
+    def test_two_iterables(self):
+        self.assertEqual(
+            list(mi.partial_product('ABCD', [1])),
+            [('A', 1), ('B', 1), ('C', 1), ('D', 1)],
+        )
+        expected = [
+            ('A', 1),
+            ('B', 1),
+            ('C', 1),
+            ('D', 1),
+            ('D', 2),
+            ('D', 3),
+            ('D', 4),
+        ]
+        self.assertEqual(
+            list(mi.partial_product('ABCD', [1, 2, 3, 4])), expected
+        )
+
+    def test_basic(self):
+        ones = [1, 2, 3]
+        tens = [10, 20, 30, 40, 50]
+        hundreds = [100, 200]
+
+        expected = [
+            (1, 10, 100),
+            (2, 10, 100),
+            (3, 10, 100),
+            (3, 20, 100),
+            (3, 30, 100),
+            (3, 40, 100),
+            (3, 50, 100),
+            (3, 50, 200),
+        ]
+
+        actual = list(mi.partial_product(ones, tens, hundreds))
+        self.assertEqual(actual, expected)
+
+    def test_uneven_length_iterables(self):
+        # this is also the docstring example
+        expected = [
+            ('A', 'C', 'D'),
+            ('B', 'C', 'D'),
+            ('B', 'C', 'E'),
+            ('B', 'C', 'F'),
+        ]
+
+        self.assertEqual(list(mi.partial_product('AB', 'C', 'DEF')), expected)
+
+
+class IterateTests(TestCase):
+    def test_basic(self) -> None:
+        result = list(islice(mi.iterate(lambda x: 2 * x, start=1), 10))
+        expected = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
+        self.assertEqual(result, expected)
+
+    def test_func_controls_iteration_stop(self) -> None:
+        def func(num):
+            if num > 100:
+                raise StopIteration
+            return num * 2
+
+        result = list(islice(mi.iterate(func, start=1), 10))
+        expected = [1, 2, 4, 8, 16, 32, 64, 128]
+        self.assertEqual(result, expected)

@@ -2,7 +2,7 @@ import warnings
 
 from collections import Counter, defaultdict, deque, abc
 from collections.abc import Sequence
-from functools import partial, reduce, wraps
+from functools import cached_property, partial, reduce, wraps
 from heapq import heapify, heapreplace, heappop
 from itertools import (
     chain,
@@ -53,6 +53,7 @@ __all__ = [
     'circular_shifts',
     'collapse',
     'combination_index',
+    'combination_with_replacement_index',
     'consecutive_groups',
     'constrained_batches',
     'consumer',
@@ -93,10 +94,12 @@ __all__ = [
     'nth_or_last',
     'nth_permutation',
     'nth_product',
+    'nth_combination_with_replacement',
     'numeric_range',
     'one',
     'only',
     'padded',
+    'partial_product',
     'partitions',
     'peekable',
     'permutation_index',
@@ -472,7 +475,10 @@ def iterate(func, start):
     """
     while True:
         yield start
-        start = func(start)
+        try:
+            start = func(start)
+        except StopIteration:
+            break
 
 
 def with_iter(context_manager):
@@ -2069,7 +2075,6 @@ class numeric_range(abc.Sequence, abc.Hashable):
         if self._step == self._zero:
             raise ValueError('numeric_range() arg 3 must not be zero')
         self._growing = self._step > self._zero
-        self._init_len()
 
     def __bool__(self):
         if self._growing:
@@ -2145,7 +2150,8 @@ class numeric_range(abc.Sequence, abc.Hashable):
     def __len__(self):
         return self._len
 
-    def _init_len(self):
+    @cached_property
+    def _len(self):
         if self._growing:
             start = self._start
             stop = self._stop
@@ -2156,10 +2162,10 @@ class numeric_range(abc.Sequence, abc.Hashable):
             step = -self._step
         distance = stop - start
         if distance <= self._zero:
-            self._len = 0
+            return 0
         else:  # distance > 0 and step > 0: regular euclidean division
             q, r = divmod(distance, step)
-            self._len = int(q) + int(r != self._zero)
+            return int(q) + int(r != self._zero)
 
     def __reduce__(self):
         return numeric_range, (self._start, self._stop, self._step)
@@ -2699,6 +2705,9 @@ class seekable:
         >>> it.seek(10)
         >>> next(it)
         '10'
+        >>> it.relative_seek(-2)  # Seeking relative to the current position
+        >>> next(it)
+        '9'
         >>> it.seek(20)  # Seeking past the end of the source isn't a problem
         >>> list(it)
         []
@@ -2811,6 +2820,10 @@ class seekable:
         remainder = index - len(self._cache)
         if remainder > 0:
             consume(self, remainder)
+
+    def relative_seek(self, count):
+        index = len(self._cache)
+        self.seek(max(index + count, 0))
 
 
 class run_length:
@@ -3859,6 +3872,54 @@ def nth_permutation(iterable, r, index):
     return tuple(map(pool.pop, result))
 
 
+def nth_combination_with_replacement(iterable, r, index):
+    """Equivalent to
+    ``list(combinations_with_replacement(iterable, r))[index]``.
+
+
+    The subsequences with repetition of *iterable* that are of length *r* can
+    be ordered lexicographically. :func:`nth_combination_with_replacement`
+    computes the subsequence at sort position *index* directly, without
+    computing the previous subsequences with replacement.
+
+        >>> nth_combination_with_replacement(range(5), 3, 5)
+        (0, 1, 1)
+
+    ``ValueError`` will be raised If *r* is negative or greater than the length
+    of *iterable*.
+    ``IndexError`` will be raised if the given *index* is invalid.
+    """
+    pool = tuple(iterable)
+    n = len(pool)
+    if (r < 0) or (r > n):
+        raise ValueError
+
+    c = factorial(n + r - 1) // (factorial(r) * factorial(n - 1))
+
+    if index < 0:
+        index += c
+
+    if (index < 0) or (index >= c):
+        raise IndexError
+
+    result = []
+    i = 0
+    while r:
+        r -= 1
+        while n >= 0:
+            num_combs = factorial(n + r - 1) // (
+                factorial(r) * factorial(n - 1)
+            )
+            if index < num_combs:
+                break
+            n -= 1
+            i += 1
+            index -= num_combs
+        result.append(pool[i])
+
+    return tuple(result)
+
+
 def value_chain(*args):
     """Yield all arguments passed to the function in the same order in which
     they were passed. If an argument itself is iterable then iterate over its
@@ -3953,6 +4014,61 @@ def combination_index(element, iterable):
             index += factorial(j) // (factorial(i) * factorial(j - i))
 
     return factorial(n + 1) // (factorial(k + 1) * factorial(n - k)) - index
+
+
+def combination_with_replacement_index(element, iterable):
+    """Equivalent to
+    ``list(combinations_with_replacement(iterable, r)).index(element)``
+
+    The subsequences with repetition of *iterable* that are of length *r* can
+    be ordered lexicographically. :func:`combination_with_replacement_index`
+    computes the index of the first *element*, without computing the previous
+    combinations with replacement.
+
+        >>> combination_with_replacement_index('adf', 'abcdefg')
+        20
+
+    ``ValueError`` will be raised if the given *element* isn't one of the
+    combinations with replacement of *iterable*.
+    """
+    element = tuple(element)
+    l = len(element)
+    element = enumerate(element)
+
+    k, y = next(element, (None, None))
+    if k is None:
+        return 0
+
+    indexes = []
+    pool = tuple(iterable)
+    for n, x in enumerate(pool):
+        while x == y:
+            indexes.append(n)
+            tmp, y = next(element, (None, None))
+            if tmp is None:
+                break
+            else:
+                k = tmp
+        if y is None:
+            break
+    else:
+        raise ValueError(
+            'element is not a combination with replacment of iterable'
+        )
+
+    n = len(pool)
+    occupations = [0] * n
+    for p in indexes:
+        occupations[p] += 1
+
+    index = 0
+    for k in range(1, n):
+        j = l + n - 1 - k - sum(occupations[:k])
+        i = n - k
+        if i <= j:
+            index += factorial(j) // (factorial(i) * factorial(j - i))
+
+    return index
 
 
 def permutation_index(element, iterable):
@@ -4057,26 +4173,20 @@ def _chunked_even_finite(iterable, N, n):
     num_full = N - partial_size * num_lists
     num_partial = num_lists - num_full
 
-    buffer = []
-    iterator = iter(iterable)
-
     # Yield num_full lists of full_size
-    for x in iterator:
-        buffer.append(x)
-        if len(buffer) == full_size:
-            yield buffer
-            buffer = []
-            num_full -= 1
-            if num_full <= 0:
-                break
+    partial_start_idx = num_full * full_size
+    if full_size > 0:
+        for i in range(0, partial_start_idx, full_size):
+            yield list(islice(iterable, i, i + full_size))
 
     # Yield num_partial lists of partial_size
-    for x in iterator:
-        buffer.append(x)
-        if len(buffer) == partial_size:
-            yield buffer
-            buffer = []
-            num_partial -= 1
+    if partial_size > 0:
+        for i in range(
+            partial_start_idx,
+            partial_start_idx + (num_partial * partial_size),
+            partial_size,
+        ):
+            yield list(islice(iterable, i, i + partial_size))
 
 
 def zip_broadcast(*objects, scalar_types=(str, bytes), strict=False):
@@ -4163,21 +4273,22 @@ def unique_in_window(iterable, n, key=None):
         raise ValueError('n must be greater than 0')
 
     window = deque(maxlen=n)
-    uniques = set()
+    counts = defaultdict(int)
     use_key = key is not None
 
     for item in iterable:
+        if len(window) == n:
+            to_discard = window[0]
+            if counts[to_discard] == 1:
+                del counts[to_discard]
+            else:
+                counts[to_discard] -= 1
+
         k = key(item) if use_key else item
-        if k in uniques:
-            continue
-
-        if len(uniques) == n:
-            uniques.discard(window[0])
-
-        uniques.add(k)
+        if k not in counts:
+            yield item
+        counts[k] += 1
         window.append(k)
-
-        yield item
 
 
 def duplicates_everseen(iterable, key=None):
@@ -4221,12 +4332,7 @@ def duplicates_justseen(iterable, key=None):
     This function is analagous to :func:`unique_justseen`.
 
     """
-    return flatten(
-        map(
-            lambda group_tuple: islice_extended(group_tuple[1])[1:],
-            groupby(iterable, key),
-        )
-    )
+    return flatten(g for _, g in groupby(iterable, key) for _ in g)
 
 
 def minmax(iterable_or_value, *others, key=None, default=_marker):
@@ -4390,3 +4496,28 @@ def gray_product(*iterables):
             o[j] = -o[j]
             f[j] = f[j + 1]
             f[j + 1] = j + 1
+
+
+def partial_product(*iterables):
+    """Yields tuples containing one item from each iterator, with subsequent
+    tuples changing a single item at a time by advancing each iterator until it
+    is exhausted. This sequence guarantees every value in each iterable is
+    output at least once without generating all possible combinations.
+
+    This may be useful, for example, when testing an expensive function.
+
+        >>> list(partial_product('AB', 'C', 'DEF'))
+        [('A', 'C', 'D'), ('B', 'C', 'D'), ('B', 'C', 'E'), ('B', 'C', 'F')]
+    """
+
+    iterators = list(map(iter, iterables))
+
+    try:
+        prod = [next(it) for it in iterators]
+    except StopIteration:
+        return
+    yield tuple(prod)
+
+    for i, it in enumerate(iterators):
+        for prod[i] in it:
+            yield tuple(prod)

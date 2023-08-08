@@ -1,9 +1,12 @@
+from decimal import Decimal
 from doctest import DocTestSuite
+from fractions import Fraction
 from functools import reduce
 from itertools import combinations, count, permutations
 from operator import mul
 from math import factorial
-from unittest import TestCase
+from sys import version_info
+from unittest import TestCase, skipIf
 
 import more_itertools as mi
 
@@ -824,7 +827,6 @@ class TriplewiseTests(TestCase):
 class SlidingWindowTests(TestCase):
     def test_basic(self):
         for iterable, n, expected in [
-            ([], 0, [()]),
             ([], 1, []),
             ([0], 1, [(0,)]),
             ([0, 1], 1, [(0,), (1,)]),
@@ -879,6 +881,26 @@ class PolynomialFromRootsTests(TestCase):
             with self.subTest(roots=roots):
                 actual = mi.polynomial_from_roots(roots)
                 self.assertEqual(actual, expected)
+
+
+class PolynomialEvalTests(TestCase):
+    def test_basic(self):
+        for coefficients, x, expected in [
+            ([1, -4, -17, 60], 2, 18),
+            ([1, -4, -17, 60], 2.5, 8.125),
+            ([1, -4, -17, 60], Fraction(2, 3), Fraction(1274, 27)),
+            ([1, -4, -17, 60], Decimal('1.75'), Decimal('23.359375')),
+            ([], 2, 0),
+            ([], 2.5, 0.0),
+            ([], Fraction(2, 3), Fraction(0, 1)),
+            ([], Decimal('1.75'), Decimal('0.00')),
+            ([11], 7, 11),
+            ([11, 2], 7, 79),
+        ]:
+            with self.subTest(x=x):
+                actual = mi.polynomial_eval(coefficients, x)
+                self.assertEqual(actual, expected)
+                self.assertEqual(type(actual), type(x))
 
 
 class IterIndexTests(TestCase):
@@ -961,13 +983,12 @@ class BatchedTests(TestCase):
     def test_basic(self):
         iterable = range(1, 5 + 1)
         for n, expected in (
-            (0, []),
-            (1, [[1], [2], [3], [4], [5]]),
-            (2, [[1, 2], [3, 4], [5]]),
-            (3, [[1, 2, 3], [4, 5]]),
-            (4, [[1, 2, 3, 4], [5]]),
-            (5, [[1, 2, 3, 4, 5]]),
-            (6, [[1, 2, 3, 4, 5]]),
+            (1, [(1,), (2,), (3,), (4,), (5,)]),
+            (2, [(1, 2), (3, 4), (5,)]),
+            (3, [(1, 2, 3), (4, 5)]),
+            (4, [(1, 2, 3, 4), (5,)]),
+            (5, [(1, 2, 3, 4, 5)]),
+            (6, [(1, 2, 3, 4, 5)]),
         ):
             with self.subTest(n=n):
                 actual = list(mi.batched(iterable, n))
@@ -987,7 +1008,14 @@ class TransposeTests(TestCase):
         expected = [(10, 20, 30), (11, 21, 31), (12, 22, 32)]
         self.assertEqual(actual, expected)
 
-    def test_incompatible(self):
+    @skipIf(version_info[:2] < (3, 10), 'strict=True missing on 3.9')
+    def test_incompatible_error(self):
+        it = [(10, 11, 12, 13), (20, 21, 22), (30, 31, 32)]
+        with self.assertRaises(ValueError):
+            list(mi.transpose(it))
+
+    @skipIf(version_info[:2] >= (3, 9), 'strict=True missing on 3.9')
+    def test_incompatible_allow(self):
         it = [(10, 11, 12, 13), (20, 21, 22), (30, 31, 32)]
         actual = list(mi.transpose(it))
         expected = [(10, 20, 30), (11, 21, 31), (12, 22, 32)]
@@ -997,7 +1025,7 @@ class TransposeTests(TestCase):
 class MatMulTests(TestCase):
     def test_n_by_n(self):
         actual = list(mi.matmul([(7, 5), (3, 5)], [[2, 5], [7, 9]]))
-        expected = [[49, 80], [41, 60]]
+        expected = [(49, 80), (41, 60)]
         self.assertEqual(actual, expected)
 
     def test_m_by_n(self):
@@ -1005,9 +1033,9 @@ class MatMulTests(TestCase):
         m2 = [[7, 11, 5, 4, 9], [3, 5, 2, 6, 3]]
         actual = list(mi.matmul(m1, m2))
         expected = [
-            [29, 47, 20, 38, 33],
-            [76, 122, 53, 82, 90],
-            [33, 53, 23, 36, 39],
+            (29, 47, 20, 38, 33),
+            (76, 122, 53, 82, 90),
+            (33, 53, 23, 36, 39),
         ]
         self.assertEqual(actual, expected)
 
@@ -1041,3 +1069,30 @@ class FactorTests(TestCase):
                 list(mi.factor(n)) == sorted(mi.factor(n)) for n in range(2000)
             )
         )
+
+
+class SumOfSquaresTests(TestCase):
+    def test_basic(self):
+        for it, expected in (
+            ([], 0),
+            ([1, 2, 3], 1 + 4 + 9),
+            ([2, 4, 6, 8], 4 + 16 + 36 + 64),
+        ):
+            with self.subTest(it=it):
+                actual = mi.sum_of_squares(it)
+                self.assertEqual(actual, expected)
+
+
+class PolynomialDerivativeTests(TestCase):
+    def test_basic(self):
+        for coefficients, expected in [
+            ([], []),
+            ([1], []),
+            ([1, 2], [1]),
+            ([1, 2, 3], [2, 2]),
+            ([1, 2, 3, 4], [3, 4, 3]),
+            ([1.1, 2, 3, 4], [(1.1 * 3), 4, 3]),
+        ]:
+            with self.subTest(coefficients=coefficients):
+                actual = mi.polynomial_derivative(coefficients)
+                self.assertEqual(actual, expected)
