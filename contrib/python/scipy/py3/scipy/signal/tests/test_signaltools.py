@@ -21,7 +21,7 @@ from scipy.ndimage.filters import correlate1d
 from scipy.optimize import fmin, linear_sum_assignment
 from scipy import signal
 from scipy.signal import (
-    correlate, convolve, convolve2d,
+    correlate, correlation_lags, convolve, convolve2d,
     fftconvolve, oaconvolve, choose_conv_method,
     hilbert, hilbert2, lfilter, lfilter_zi, filtfilt, butter, zpk2tf, zpk2sos,
     invres, invresz, vectorstrength, lfiltic, tf2sos, sosfilt, sosfiltfilt,
@@ -1762,8 +1762,6 @@ def test_lfilter_bad_object():
     assert_raises(TypeError, lfilter, [1.0], [1.0], [1.0, None, 2.0])
     assert_raises(TypeError, lfilter, [1.0], [None], [1.0, 2.0, 3.0])
     assert_raises(TypeError, lfilter, [None], [1.0], [1.0, 2.0, 3.0])
-    with assert_raises(ValueError, match='common type'):
-        lfilter([1.], [1., 1.], ['a', 'b', 'c'])
 
 
 def test_lfilter_notimplemented_input():
@@ -1936,6 +1934,34 @@ class TestCorrelate(object):
         assert_allclose(correlate(a, b, mode='same'), [17, 32, 23])
         assert_allclose(correlate(a, b, mode='full'), [6, 17, 32, 23, 12])
         assert_allclose(correlate(a, b, mode='valid'), [32])
+
+
+@pytest.mark.parametrize("mode", ["valid", "same", "full"])
+@pytest.mark.parametrize("behind", [True, False])
+@pytest.mark.parametrize("input_size", [100, 101, 1000, 1001, 10000, 10001])
+def test_correlation_lags(mode, behind, input_size):
+    # generate random data
+    rng = np.random.RandomState(0)
+    in1 = rng.standard_normal(input_size)
+    offset = int(input_size/10)
+    # generate offset version of array to correlate with
+    if behind:
+        # y is behind x
+        in2 = np.concatenate([rng.standard_normal(offset), in1])
+        expected = -offset
+    else:
+        # y is ahead of x
+        in2 = in1[offset:]
+        expected = offset
+    # cross correlate, returning lag information
+    correlation = correlate(in1, in2, mode=mode)
+    lags = correlation_lags(in1.size, in2.size, mode=mode)
+    # identify the peak
+    lag_index = np.argmax(correlation)
+    # Check as expected
+    assert_equal(lags[lag_index], expected)
+    # Correlation and lags shape should match
+    assert_equal(lags.shape, correlation.shape)
 
 
 @pytest.mark.parametrize('dt', [np.csingle, np.cdouble, np.clongdouble])
@@ -3102,9 +3128,7 @@ def test_nonnumeric_dtypes(func):
         args = [1., 1.]
     else:
         args = [tf2sos(1., 1.)]
-    with pytest.raises(NotImplementedError,
-                       match='input type .* not supported'):
-        func(*args, x=['foo'])
+
     with pytest.raises(ValueError, match='must be at least 1-D'):
         func(*args, x=1.)
 

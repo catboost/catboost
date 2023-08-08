@@ -1,4 +1,3 @@
-import functools
 import operator
 
 import numpy as np
@@ -599,10 +598,10 @@ def _process_deriv_spec(deriv):
     if deriv is not None:
         try:
             ords, vals = zip(*deriv)
-        except TypeError:
+        except TypeError as e:
             msg = ("Derivatives, `bc_type`, should be specified as a pair of "
                    "iterables of pairs of (order, value).")
-            raise ValueError(msg)
+            raise ValueError(msg) from e
     else:
         ords, vals = [], []
     return np.atleast_1d(ords, vals)
@@ -730,8 +729,8 @@ def make_interp_spline(x, y, k=3, t=None, bc_type=None, axis=0,
     else:
         try:
             deriv_l, deriv_r = bc_type
-        except TypeError:
-            raise ValueError("Unknown boundary condition: %s" % bc_type)
+        except TypeError as e:
+            raise ValueError("Unknown boundary condition: %s" % bc_type) from e
 
     y = np.asarray(y)
 
@@ -792,7 +791,8 @@ def make_interp_spline(x, y, k=3, t=None, bc_type=None, axis=0,
     if t.ndim != 1 or np.any(t[1:] < t[:-1]):
         raise ValueError("Expect t to be a 1-D sorted array_like.")
     if x.size != y.shape[0]:
-        raise ValueError('x and y are incompatible.')
+        raise ValueError('Shapes of x {} and y {} are incompatible'
+                         .format(x.shape, y.shape))
     if t.size < x.size + k + 1:
         raise ValueError('Got %d knots, need at least %d.' %
                          (t.size, x.size + k + 1))
@@ -978,11 +978,13 @@ def make_lsq_spline(x, y, t, k=3, w=None, axis=0, check_finite=True):
     if t.ndim != 1 or np.any(t[1:] - t[:-1] < 0):
         raise ValueError("Expect t to be a 1-D sorted array_like.")
     if x.size != y.shape[0]:
-        raise ValueError('x & y are incompatible.')
+        raise ValueError('Shapes of x {} and y {} are incompatible'
+                         .format(x.shape, y.shape))
     if k > 0 and np.any((x < t[k]) | (x > t[-k])):
         raise ValueError('Out of bounds w/ x = %s.' % x)
     if x.size != w.size:
-        raise ValueError('Incompatible weights.')
+        raise ValueError('Shapes of x {} and w {} are incompatible'
+                         .format(x.shape, w.shape))
 
     # number of coefficients
     n = t.size - k - 1

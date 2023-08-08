@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: scipy
-Version: 1.5.4
+Version: 1.6.3
 Summary: SciPy: Scientific Library for Python
 Home-page: https://www.scipy.org
 Download-URL: https://github.com/scipy/scipy/releases
@@ -22,18 +22,18 @@ Classifier: License :: OSI Approved :: BSD License
 Classifier: Programming Language :: C
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
 Classifier: Topic :: Software Development
 Classifier: Topic :: Scientific/Engineering
 Classifier: Operating System :: Microsoft :: Windows
 Classifier: Operating System :: POSIX
 Classifier: Operating System :: Unix
 Classifier: Operating System :: MacOS
-Requires-Python: >=3.6
+Requires-Python: >=3.7,<3.11
 License-File: LICENSE.txt
-Requires-Dist: numpy (>=1.14.5)
+Requires-Dist: numpy (<1.25.0,>=1.16.5)
 
 SciPy (pronounced "Sigh Pie") is open-source software for mathematics,
 science, and engineering. The SciPy library

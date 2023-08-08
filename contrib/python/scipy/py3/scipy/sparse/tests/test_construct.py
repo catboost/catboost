@@ -274,9 +274,11 @@ class TestConstructUtils(object):
 
         for a in cases:
             for b in cases:
-                result = construct.kron(csr_matrix(a),csr_matrix(b)).todense()
-                expected = np.kron(a,b)
-                assert_array_equal(result,expected)
+                expected = np.kron(a, b)
+                for fmt in sparse_formats:
+                    result = construct.kron(csr_matrix(a), csr_matrix(b), format=fmt) 
+                    assert_equal(result.format, fmt)
+                    assert_array_equal(result.todense(), expected)
 
     def test_kron_large(self):
         n = 2**16
@@ -379,6 +381,7 @@ class TestConstructUtils(object):
 
     @pytest.mark.skip
     @pytest.mark.slow
+    @pytest.mark.xfail_on_32bit("Can't create large array for test")
     def test_concatenate_int32_overflow(self):
         """ test for indptr overflow when concatenating matrices """
         check_free_memory(30000)
@@ -423,6 +426,21 @@ class TestConstructUtils(object):
         # just on scalar
         assert_equal(construct.block_diag([1]).todense(),
                      matrix([[1]]))
+
+    def test_block_diag_sparse_matrices(self):
+        """ block_diag with sparse matrices """
+
+        sparse_col_matrices = [coo_matrix(([[1, 2, 3]]), shape=(1, 3)),
+                               coo_matrix(([[4, 5]]), shape=(1, 2))]
+        block_sparse_cols_matrices = construct.block_diag(sparse_col_matrices)
+        assert_equal(block_sparse_cols_matrices.todense(),
+                     matrix([[1, 2, 3, 0, 0], [0, 0, 0, 4, 5]]))
+
+        sparse_row_matrices = [coo_matrix(([[1], [2], [3]]), shape=(3, 1)),
+                               coo_matrix(([[4], [5]]), shape=(2, 1))]
+        block_sparse_row_matrices = construct.block_diag(sparse_row_matrices)
+        assert_equal(block_sparse_row_matrices.todense(),
+                     matrix([[1, 0], [2, 0], [3, 0], [0, 4], [0, 5]]))
 
     def test_random_sampling(self):
         # Simple sanity checks for sparse random sampling.

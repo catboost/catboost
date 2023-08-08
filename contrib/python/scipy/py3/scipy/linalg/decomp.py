@@ -370,7 +370,7 @@ def eigh(a, b=None, lower=True, eigvals_only=False, overwrite_a=False,
 
     Notes
     -----
-    This function does not check the input array for being hermitian/symmetric
+    This function does not check the input array for being Hermitian/symmetric
     in order to allow for representing arrays with only their upper/lower
     triangular parts. Also, note that even though not taken into account,
     finiteness check applies to the whole array and unaffected by "lower"
@@ -385,13 +385,13 @@ def eigh(a, b=None, lower=True, eigvals_only=False, overwrite_a=False,
     As a brief summary, the slowest and the most robust driver is the
     classical ``<sy/he>ev`` which uses symmetric QR. ``<sy/he>evr`` is seen as
     the optimal choice for the most general cases. However, there are certain
-    occassions that ``<sy/he>evd`` computes faster at the expense of more
+    occasions that ``<sy/he>evd`` computes faster at the expense of more
     memory usage. ``<sy/he>evx``, while still being faster than ``<sy/he>ev``,
     often performs worse than the rest except when very few eigenvalues are
     requested for large arrays though there is still no performance guarantee.
 
 
-    For the generalized problem, normalization with respoect to the given
+    For the generalized problem, normalization with respect to the given
     type argument::
 
             type 1 and 3 :      v.conj().T @ a @ v = w
@@ -615,8 +615,8 @@ def _check_select(select, select_range, max_ev, max_len):
         select = select.lower()
     try:
         select = _conv_dict[select]
-    except KeyError:
-        raise ValueError('invalid argument for select')
+    except KeyError as e:
+        raise ValueError('invalid argument for select') from e
     vl, vu = 0., 1.
     il = iu = 1
     if select != 0:  # (non-all)
@@ -726,7 +726,7 @@ def eig_banded(a_band, lower=False, eigvals_only=False, overwrite_a_band=False,
     eigvals_banded : eigenvalues for symmetric/Hermitian band matrices
     eig : eigenvalues and right eigenvectors of general arrays.
     eigh : eigenvalues and right eigenvectors for symmetric/Hermitian arrays
-    eigh_tridiagonal : eigenvalues and right eiegenvectors for
+    eigh_tridiagonal : eigenvalues and right eigenvectors for
         symmetric/Hermitian tridiagonal matrices
 
     Examples

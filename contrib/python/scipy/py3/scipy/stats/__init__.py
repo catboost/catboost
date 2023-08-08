@@ -52,8 +52,6 @@ Continuous distributions
    fisk              -- Fisk
    foldcauchy        -- Folded Cauchy
    foldnorm          -- Folded Normal
-   frechet_r         -- Deprecated. Alias for weibull_min
-   frechet_l         -- Deprecated. Alias for weibull_max
    genlogistic       -- Generalized Logistic
    gennorm           -- Generalized normal
    genpareto         -- Generalized Pareto
@@ -84,6 +82,7 @@ Continuous distributions
    kstwo             -- Distribution of Kolmogorov-Smirnov two-sided test statistic
    kstwobign         -- Limiting Distribution of scaled Kolmogorov-Smirnov two-sided test statistic.
    laplace           -- Laplace
+   laplace_asymmetric    -- Asymmetric Laplace
    levy              -- Levy
    levy_l
    levy_stable
@@ -114,7 +113,7 @@ Continuous distributions
    semicircular      -- Semicircular
    skewnorm          -- Skew normal
    t                 -- Student's T
-   trapz             -- Trapezoidal
+   trapezoid         -- Trapezoidal
    triang            -- Triangular
    truncexpon        -- Truncated Exponential
    truncnorm         -- Truncated Normal
@@ -133,16 +132,18 @@ Multivariate distributions
 .. autosummary::
    :toctree: generated/
 
-   multivariate_normal   -- Multivariate normal distribution
-   matrix_normal         -- Matrix normal distribution
-   dirichlet             -- Dirichlet
-   wishart               -- Wishart
-   invwishart            -- Inverse Wishart
-   multinomial           -- Multinomial distribution
-   special_ortho_group   -- SO(N) group
-   ortho_group           -- O(N) group
-   unitary_group         -- U(N) group
-   random_correlation    -- random correlation matrices
+   multivariate_normal    -- Multivariate normal distribution
+   matrix_normal          -- Matrix normal distribution
+   dirichlet              -- Dirichlet
+   wishart                -- Wishart
+   invwishart             -- Inverse Wishart
+   multinomial            -- Multinomial distribution
+   special_ortho_group    -- SO(N) group
+   ortho_group            -- O(N) group
+   unitary_group          -- U(N) group
+   random_correlation     -- random correlation matrices
+   multivariate_t         -- Multivariate t-distribution
+   multivariate_hypergeom -- Multivariate hypergeometric distribution
 
 Discrete distributions
 ======================
@@ -159,6 +160,7 @@ Discrete distributions
    hypergeom         -- Hypergeometric
    logser            -- Logarithmic (Log-Series, Series)
    nbinom            -- Negative Binomial
+   nhypergeom        -- Negative Hypergeometric
    planck            -- Planck (Discrete Exponential)
    poisson           -- Poisson
    randint           -- Discrete Uniform
@@ -250,6 +252,7 @@ Statistical tests
    ttest_ind_from_stats
    ttest_rel
    chisquare
+   cramervonmises
    power_divergence
    kstest
    ks_1samp

@@ -51,7 +51,8 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
                 if len(arg1) == 2:
                     # (data, ij) format
                     from .coo import coo_matrix
-                    other = self.__class__(coo_matrix(arg1, shape=shape))
+                    other = self.__class__(coo_matrix(arg1, shape=shape,
+                                                      dtype=dtype))
                     self._set_self(other)
                 elif len(arg1) == 3:
                     # (data, indices, indptr) format
@@ -78,9 +79,9 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
             # must be dense
             try:
                 arg1 = np.asarray(arg1)
-            except Exception:
+            except Exception as e:
                 raise ValueError("unrecognized {}_matrix constructor usage"
-                                 "".format(self.format))
+                                 "".format(self.format)) from e
             from .coo import coo_matrix
             self._set_self(self.__class__(coo_matrix(arg1, dtype=dtype)))
 
@@ -93,8 +94,8 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
                 try:
                     major_dim = len(self.indptr) - 1
                     minor_dim = self.indices.max() + 1
-                except Exception:
-                    raise ValueError('unable to infer matrix dimensions')
+                except Exception as e:
+                    raise ValueError('unable to infer matrix dimensions') from e
                 else:
                     self._shape = check_shape(self._swap((major_dim,
                                                           minor_dim)))
@@ -345,7 +346,8 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
 
     def _add_dense(self, other):
         if other.shape != self.shape:
-            raise ValueError('Incompatible shapes.')
+            raise ValueError('Incompatible shapes ({} and {})'
+                             .format(self.shape, other.shape))
         dtype = upcast_char(self.dtype.char, other.dtype.char)
         order = self._swap('CF')[0]
         result = np.array(other, dtype=dtype, order=order, copy=True)
@@ -1049,7 +1051,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
     def eliminate_zeros(self):
         """Remove zero entries from the matrix
 
-        This is an *in place* operation
+        This is an *in place* operation.
         """
         M, N = self._swap(self.shape)
         _sparsetools.csr_eliminate_zeros(M, N, self.indptr, self.indices,
@@ -1073,8 +1075,9 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
             # not sorted => not canonical
             self._has_canonical_format = False
         elif not hasattr(self, '_has_canonical_format'):
-            self.has_canonical_format = _sparsetools.csr_has_canonical_format(
-                len(self.indptr) - 1, self.indptr, self.indices)
+            self.has_canonical_format = bool(
+                _sparsetools.csr_has_canonical_format(
+                    len(self.indptr) - 1, self.indptr, self.indices))
         return self._has_canonical_format
 
     def __set_has_canonical_format(self, val):
@@ -1088,7 +1091,7 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
     def sum_duplicates(self):
         """Eliminate duplicate matrix entries by adding them together
 
-        The is an *in place* operation
+        This is an *in place* operation.
         """
         if self.has_canonical_format:
             return
@@ -1112,8 +1115,9 @@ class _cs_matrix(_data_matrix, _minmax_mixin, IndexMixin):
 
         # first check to see if result was cached
         if not hasattr(self, '_has_sorted_indices'):
-            self._has_sorted_indices = _sparsetools.csr_has_sorted_indices(
-                len(self.indptr) - 1, self.indptr, self.indices)
+            self._has_sorted_indices = bool(
+                _sparsetools.csr_has_sorted_indices(
+                    len(self.indptr) - 1, self.indptr, self.indices))
         return self._has_sorted_indices
 
     def __set_sorted(self, val):

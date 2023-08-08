@@ -3513,23 +3513,6 @@ class TestCSR(sparse_test_class()):
         assert_array_equal(bsp.indptr,[0,1,2,3])
         assert_array_almost_equal(bsp.todense(),b)
 
-### currently disabled
-##    def test_constructor4(self):
-##        """try using int64 indices"""
-##        data = arange( 6 ) + 1
-##        col = array( [1, 2, 1, 0, 0, 2], dtype='int64' )
-##        ptr = array( [0, 2, 4, 6], dtype='int64' )
-##
-##        a = csr_matrix( (data, col, ptr), shape = (3,3) )
-##
-##        b = matrix([[0,1,2],
-##                    [4,3,0],
-##                    [5,0,6]],'d')
-##
-##        assert_equal(a.indptr.dtype,numpy.dtype('int64'))
-##        assert_equal(a.indices.dtype,numpy.dtype('int64'))
-##        assert_array_equal(a.todense(),b)
-
     def test_constructor4(self):
         # using (data, ij) format
         row = array([2, 3, 1, 3, 0, 1, 3, 0, 2, 1, 2])
@@ -3540,6 +3523,11 @@ class TestCSR(sparse_test_class()):
         ij = vstack((row,col))
         csr = csr_matrix((data,ij),(4,3))
         assert_array_equal(arange(12).reshape(4,3),csr.todense())
+        
+        # using Python lists and a specified dtype
+        csr = csr_matrix(([2**63 + 1, 1], ([0, 1], [0, 1])), dtype=np.uint64)
+        dense = array([[2**63 + 1, 0], [0, 1]], dtype=np.uint64)
+        assert_array_equal(dense, csr.toarray())
 
     def test_constructor5(self):
         # infer dimensions from arrays
@@ -3557,6 +3545,35 @@ class TestCSR(sparse_test_class()):
         csr = csr_matrix((data, indices, indptr))
         assert_array_equal(csr.shape, (3,6))
         assert_(np.issubdtype(csr.dtype, np.signedinteger))
+
+    def test_constructor_smallcol(self):
+        # int64 indices not required
+        data = arange(6) + 1
+        col = array([1, 2, 1, 0, 0, 2], dtype=np.int64)
+        ptr = array([0, 2, 4, 6], dtype=np.int64)
+
+        a = csr_matrix((data, col, ptr), shape=(3, 3))
+
+        b = matrix([[0, 1, 2],
+                    [4, 3, 0],
+                    [5, 0, 6]], 'd')
+
+        assert_equal(a.indptr.dtype, np.dtype(np.int32))
+        assert_equal(a.indices.dtype, np.dtype(np.int32))
+        assert_array_equal(a.todense(), b)
+
+    def test_constructor_largecol(self):
+        # int64 indices required
+        data = arange(6) + 1
+        large = np.iinfo(np.int32).max + 100
+        col = array([0, 1, 2, large, large+1, large+2], dtype=np.int64)
+        ptr = array([0, 2, 4, 6], dtype=np.int64)
+
+        a = csr_matrix((data, col, ptr))
+
+        assert_equal(a.indptr.dtype, np.dtype(np.int64))
+        assert_equal(a.indices.dtype, np.dtype(np.int64))
+        assert_array_equal(a.shape, (3, max(col)+1))
 
     def test_sort_indices(self):
         data = arange(5)
@@ -3624,6 +3641,7 @@ class TestCSR(sparse_test_class()):
         indptr = np.array([0, 2])
         M = csr_matrix((data, sorted_inds, indptr)).copy()
         assert_equal(True, M.has_sorted_indices)
+        assert type(M.has_sorted_indices) == bool
 
         M = csr_matrix((data, unsorted_inds, indptr)).copy()
         assert_equal(False, M.has_sorted_indices)
@@ -3655,6 +3673,7 @@ class TestCSR(sparse_test_class()):
 
         M = csr_matrix((data, indices, indptr)).copy()
         assert_equal(False, M.has_canonical_format)
+        assert type(M.has_canonical_format) == bool
 
         # set by deduplicating
         M.sum_duplicates()
@@ -4074,12 +4093,15 @@ class TestCOO(sparse_test_class(getset=False,
         # unsorted triplet format
         row = array([2, 3, 1, 3, 0, 1, 3, 0, 2, 1, 2])
         col = array([0, 1, 0, 0, 1, 1, 2, 2, 2, 2, 1])
-        data = array([6., 10., 3., 9., 1., 4.,
-                              11., 2., 8., 5., 7.])
+        data = array([6., 10., 3., 9., 1., 4., 11., 2., 8., 5., 7.])
 
         coo = coo_matrix((data,(row,col)),(4,3))
-
         assert_array_equal(arange(12).reshape(4,3),coo.todense())
+
+        # using Python lists and a specified dtype
+        coo = coo_matrix(([2**63 + 1, 1], ([0, 1], [0, 1])), dtype=np.uint64)
+        dense = array([[2**63 + 1, 0], [0, 1]], dtype=np.uint64)
+        assert_array_equal(dense, coo.toarray())
 
     def test_constructor2(self):
         # unsorted triplet format with duplicates (which are summed)
@@ -4122,6 +4144,11 @@ class TestCOO(sparse_test_class(getset=False,
         # error if explicit shape arg doesn't match the dense matrix
         with pytest.raises(ValueError, match=r'inconsistent shapes'):
             coo_matrix([0, 11, 22, 33], shape=(4, 4))
+
+    def test_constructor_data_ij_dtypeNone(self):
+        data = [1]
+        coo = coo_matrix((data, ([0], [0])), dtype=None)
+        assert coo.dtype == np.array(data).dtype
 
     @pytest.mark.xfail(run=False, reason='COO does not have a __getitem__')
     def test_iterator(self):
@@ -4297,6 +4324,14 @@ class TestBSR(sparse_test_class(getset=False,
         indptr = np.array([0, n], dtype=np.int32)
         indices = np.arange(n, dtype=np.int32)
         bsr_matrix((data, indices, indptr), blocksize=(n, 1), copy=False)
+
+    def test_default_dtype(self):
+        # As a numpy array, `values` has shape (2, 2, 1).
+        values = [[[1], [1]], [[1], [1]]]
+        indptr = np.array([0, 2], dtype=np.int32)
+        indices = np.array([0, 1], dtype=np.int32)
+        b = bsr_matrix((values, indices, indptr), blocksize=(2, 1))
+        assert b.dtype == np.array(values).dtype
 
     def test_bsr_tocsr(self):
         # check native conversion from BSR to CSR
@@ -4648,6 +4683,8 @@ def cases_64bit():
         'test_solve': 'linsolve for 64-bit indices not available',
         'test_scalar_idx_dtype': 'test implemented in base class',
         'test_large_dimensions_reshape': 'test actually requires 64-bit to work',
+        'test_constructor_smallcol': 'test verifies int32 indexes',
+        'test_constructor_largecol': 'test verifies int64 indexes',
     }
 
     for cls in TEST_CLASSES:

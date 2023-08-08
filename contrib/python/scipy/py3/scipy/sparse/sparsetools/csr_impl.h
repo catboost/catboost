@@ -53,9 +53,9 @@ static PY_LONG_LONG csr_matmat_maxnnz_thunk(int I_typenum, int T_typenum, void *
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 0:
-            return csr_matmat_maxnnz<npy_int32>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5]);
+            return csr_matmat_maxnnz(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5]);
         case 18:
-            return csr_matmat_maxnnz<npy_int64>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5]);
+            return csr_matmat_maxnnz(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5]);
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
     }
@@ -66,106 +66,106 @@ static PY_LONG_LONG csr_matmat_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_matmat<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_matmat<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
             return 0;
         case 3:
-            (void)csr_matmat<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 4:
-            (void)csr_matmat<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
             return 0;
         case 5:
-            (void)csr_matmat<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 6:
-            (void)csr_matmat<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
             return 0;
         case 7:
-            (void)csr_matmat<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
             return 0;
         case 8:
-            (void)csr_matmat<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
             return 0;
         case 9:
-            (void)csr_matmat<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 10:
-            (void)csr_matmat<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 11:
-            (void)csr_matmat<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 12:
-            (void)csr_matmat<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
             return 0;
         case 13:
-            (void)csr_matmat<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
             return 0;
         case 14:
-            (void)csr_matmat<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 15:
-            (void)csr_matmat<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_matmat<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_matmat<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_matmat(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_matmat<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_matmat<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
             return 0;
         case 21:
-            (void)csr_matmat<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 22:
-            (void)csr_matmat<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
             return 0;
         case 23:
-            (void)csr_matmat<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 24:
-            (void)csr_matmat<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
             return 0;
         case 25:
-            (void)csr_matmat<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
             return 0;
         case 26:
-            (void)csr_matmat<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
             return 0;
         case 27:
-            (void)csr_matmat<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 28:
-            (void)csr_matmat<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 29:
-            (void)csr_matmat<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 30:
-            (void)csr_matmat<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
             return 0;
         case 31:
-            (void)csr_matmat<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
             return 0;
         case 32:
-            (void)csr_matmat<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 33:
-            (void)csr_matmat<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_matmat<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_matmat<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_matmat(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -177,106 +177,106 @@ static PY_LONG_LONG csr_diagonal_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_diagonal<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_bool_wrapper*)a[5], (npy_bool_wrapper*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_bool_wrapper*)a[5], (npy_bool_wrapper*)a[6]);
             return 0;
         case 2:
-            (void)csr_diagonal<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_byte*)a[5], (npy_byte*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_byte*)a[5], (npy_byte*)a[6]);
             return 0;
         case 3:
-            (void)csr_diagonal<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ubyte*)a[5], (npy_ubyte*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ubyte*)a[5], (npy_ubyte*)a[6]);
             return 0;
         case 4:
-            (void)csr_diagonal<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_short*)a[5], (npy_short*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_short*)a[5], (npy_short*)a[6]);
             return 0;
         case 5:
-            (void)csr_diagonal<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ushort*)a[5], (npy_ushort*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ushort*)a[5], (npy_ushort*)a[6]);
             return 0;
         case 6:
-            (void)csr_diagonal<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int*)a[5], (npy_int*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int*)a[5], (npy_int*)a[6]);
             return 0;
         case 7:
-            (void)csr_diagonal<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_uint*)a[5], (npy_uint*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_uint*)a[5], (npy_uint*)a[6]);
             return 0;
         case 8:
-            (void)csr_diagonal<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_long*)a[5], (npy_long*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_long*)a[5], (npy_long*)a[6]);
             return 0;
         case 9:
-            (void)csr_diagonal<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulong*)a[5], (npy_ulong*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulong*)a[5], (npy_ulong*)a[6]);
             return 0;
         case 10:
-            (void)csr_diagonal<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longlong*)a[5], (npy_longlong*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longlong*)a[5], (npy_longlong*)a[6]);
             return 0;
         case 11:
-            (void)csr_diagonal<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulonglong*)a[5], (npy_ulonglong*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulonglong*)a[5], (npy_ulonglong*)a[6]);
             return 0;
         case 12:
-            (void)csr_diagonal<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_float*)a[5], (npy_float*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_float*)a[5], (npy_float*)a[6]);
             return 0;
         case 13:
-            (void)csr_diagonal<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_double*)a[5], (npy_double*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_double*)a[5], (npy_double*)a[6]);
             return 0;
         case 14:
-            (void)csr_diagonal<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longdouble*)a[5], (npy_longdouble*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longdouble*)a[5], (npy_longdouble*)a[6]);
             return 0;
         case 15:
-            (void)csr_diagonal<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_cfloat_wrapper*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_cfloat_wrapper*)a[6]);
             return 0;
         case 16:
-            (void)csr_diagonal<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_cdouble_wrapper*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_cdouble_wrapper*)a[6]);
             return 0;
         case 17:
-            (void)csr_diagonal<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_clongdouble_wrapper*)a[6]);
+            (void)csr_diagonal(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_clongdouble_wrapper*)a[6]);
             return 0;
         case 19:
-            (void)csr_diagonal<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_bool_wrapper*)a[5], (npy_bool_wrapper*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_bool_wrapper*)a[5], (npy_bool_wrapper*)a[6]);
             return 0;
         case 20:
-            (void)csr_diagonal<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_byte*)a[5], (npy_byte*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_byte*)a[5], (npy_byte*)a[6]);
             return 0;
         case 21:
-            (void)csr_diagonal<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ubyte*)a[5], (npy_ubyte*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ubyte*)a[5], (npy_ubyte*)a[6]);
             return 0;
         case 22:
-            (void)csr_diagonal<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_short*)a[5], (npy_short*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_short*)a[5], (npy_short*)a[6]);
             return 0;
         case 23:
-            (void)csr_diagonal<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ushort*)a[5], (npy_ushort*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ushort*)a[5], (npy_ushort*)a[6]);
             return 0;
         case 24:
-            (void)csr_diagonal<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int*)a[5], (npy_int*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int*)a[5], (npy_int*)a[6]);
             return 0;
         case 25:
-            (void)csr_diagonal<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_uint*)a[5], (npy_uint*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_uint*)a[5], (npy_uint*)a[6]);
             return 0;
         case 26:
-            (void)csr_diagonal<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_long*)a[5], (npy_long*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_long*)a[5], (npy_long*)a[6]);
             return 0;
         case 27:
-            (void)csr_diagonal<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulong*)a[5], (npy_ulong*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulong*)a[5], (npy_ulong*)a[6]);
             return 0;
         case 28:
-            (void)csr_diagonal<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longlong*)a[5], (npy_longlong*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longlong*)a[5], (npy_longlong*)a[6]);
             return 0;
         case 29:
-            (void)csr_diagonal<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulonglong*)a[5], (npy_ulonglong*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulonglong*)a[5], (npy_ulonglong*)a[6]);
             return 0;
         case 30:
-            (void)csr_diagonal<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_float*)a[5], (npy_float*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_float*)a[5], (npy_float*)a[6]);
             return 0;
         case 31:
-            (void)csr_diagonal<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_double*)a[5], (npy_double*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_double*)a[5], (npy_double*)a[6]);
             return 0;
         case 32:
-            (void)csr_diagonal<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longdouble*)a[5], (npy_longdouble*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longdouble*)a[5], (npy_longdouble*)a[6]);
             return 0;
         case 33:
-            (void)csr_diagonal<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_cfloat_wrapper*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_cfloat_wrapper*)a[6]);
             return 0;
         case 34:
-            (void)csr_diagonal<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_cdouble_wrapper*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_cdouble_wrapper*)a[6]);
             return 0;
         case 35:
-            (void)csr_diagonal<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_clongdouble_wrapper*)a[6]);
+            (void)csr_diagonal(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_clongdouble_wrapper*)a[6]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -288,106 +288,106 @@ static PY_LONG_LONG csr_tocsc_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_tocsc<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_bool_wrapper*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_bool_wrapper*)a[7]);
             return 0;
         case 2:
-            (void)csr_tocsc<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_byte*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_byte*)a[7]);
             return 0;
         case 3:
-            (void)csr_tocsc<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_ubyte*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_ubyte*)a[7]);
             return 0;
         case 4:
-            (void)csr_tocsc<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_short*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_short*)a[7]);
             return 0;
         case 5:
-            (void)csr_tocsc<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_ushort*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_ushort*)a[7]);
             return 0;
         case 6:
-            (void)csr_tocsc<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_int*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_int*)a[7]);
             return 0;
         case 7:
-            (void)csr_tocsc<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_uint*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_uint*)a[7]);
             return 0;
         case 8:
-            (void)csr_tocsc<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_long*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_long*)a[7]);
             return 0;
         case 9:
-            (void)csr_tocsc<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_ulong*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_ulong*)a[7]);
             return 0;
         case 10:
-            (void)csr_tocsc<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_longlong*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_longlong*)a[7]);
             return 0;
         case 11:
-            (void)csr_tocsc<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_ulonglong*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_ulonglong*)a[7]);
             return 0;
         case 12:
-            (void)csr_tocsc<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_float*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_float*)a[7]);
             return 0;
         case 13:
-            (void)csr_tocsc<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_double*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_double*)a[7]);
             return 0;
         case 14:
-            (void)csr_tocsc<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_longdouble*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_longdouble*)a[7]);
             return 0;
         case 15:
-            (void)csr_tocsc<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_cfloat_wrapper*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_cfloat_wrapper*)a[7]);
             return 0;
         case 16:
-            (void)csr_tocsc<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_cdouble_wrapper*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_cdouble_wrapper*)a[7]);
             return 0;
         case 17:
-            (void)csr_tocsc<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_clongdouble_wrapper*)a[7]);
+            (void)csr_tocsc(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_int32*)a[6], (npy_clongdouble_wrapper*)a[7]);
             return 0;
         case 19:
-            (void)csr_tocsc<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_bool_wrapper*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_bool_wrapper*)a[7]);
             return 0;
         case 20:
-            (void)csr_tocsc<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_byte*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_byte*)a[7]);
             return 0;
         case 21:
-            (void)csr_tocsc<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_ubyte*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_ubyte*)a[7]);
             return 0;
         case 22:
-            (void)csr_tocsc<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_short*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_short*)a[7]);
             return 0;
         case 23:
-            (void)csr_tocsc<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_ushort*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_ushort*)a[7]);
             return 0;
         case 24:
-            (void)csr_tocsc<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_int*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_int*)a[7]);
             return 0;
         case 25:
-            (void)csr_tocsc<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_uint*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_uint*)a[7]);
             return 0;
         case 26:
-            (void)csr_tocsc<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_long*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_long*)a[7]);
             return 0;
         case 27:
-            (void)csr_tocsc<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_ulong*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_ulong*)a[7]);
             return 0;
         case 28:
-            (void)csr_tocsc<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_longlong*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_longlong*)a[7]);
             return 0;
         case 29:
-            (void)csr_tocsc<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_ulonglong*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_ulonglong*)a[7]);
             return 0;
         case 30:
-            (void)csr_tocsc<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_float*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_float*)a[7]);
             return 0;
         case 31:
-            (void)csr_tocsc<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_double*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_double*)a[7]);
             return 0;
         case 32:
-            (void)csr_tocsc<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_longdouble*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_longdouble*)a[7]);
             return 0;
         case 33:
-            (void)csr_tocsc<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_cfloat_wrapper*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_cfloat_wrapper*)a[7]);
             return 0;
         case 34:
-            (void)csr_tocsc<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_cdouble_wrapper*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_cdouble_wrapper*)a[7]);
             return 0;
         case 35:
-            (void)csr_tocsc<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_clongdouble_wrapper*)a[7]);
+            (void)csr_tocsc(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_int64*)a[6], (npy_clongdouble_wrapper*)a[7]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -399,106 +399,106 @@ static PY_LONG_LONG csr_tobsr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_tobsr<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_bool_wrapper*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_bool_wrapper*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_bool_wrapper*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_bool_wrapper*)a[9]);
             return 0;
         case 2:
-            (void)csr_tobsr<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_byte*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_byte*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_byte*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_byte*)a[9]);
             return 0;
         case 3:
-            (void)csr_tobsr<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_ubyte*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_ubyte*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_ubyte*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_ubyte*)a[9]);
             return 0;
         case 4:
-            (void)csr_tobsr<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_short*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_short*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_short*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_short*)a[9]);
             return 0;
         case 5:
-            (void)csr_tobsr<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_ushort*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_ushort*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_ushort*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_ushort*)a[9]);
             return 0;
         case 6:
-            (void)csr_tobsr<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_int*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_int*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_int*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_int*)a[9]);
             return 0;
         case 7:
-            (void)csr_tobsr<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_uint*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_uint*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_uint*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_uint*)a[9]);
             return 0;
         case 8:
-            (void)csr_tobsr<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_long*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_long*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_long*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_long*)a[9]);
             return 0;
         case 9:
-            (void)csr_tobsr<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_ulong*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_ulong*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_ulong*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_ulong*)a[9]);
             return 0;
         case 10:
-            (void)csr_tobsr<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_longlong*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_longlong*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_longlong*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_longlong*)a[9]);
             return 0;
         case 11:
-            (void)csr_tobsr<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_ulonglong*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_ulonglong*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_ulonglong*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_ulonglong*)a[9]);
             return 0;
         case 12:
-            (void)csr_tobsr<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_float*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_float*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_float*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_float*)a[9]);
             return 0;
         case 13:
-            (void)csr_tobsr<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_double*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_double*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_double*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_double*)a[9]);
             return 0;
         case 14:
-            (void)csr_tobsr<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_longdouble*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_longdouble*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_longdouble*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_longdouble*)a[9]);
             return 0;
         case 15:
-            (void)csr_tobsr<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_cfloat_wrapper*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_cfloat_wrapper*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_cfloat_wrapper*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_cfloat_wrapper*)a[9]);
             return 0;
         case 16:
-            (void)csr_tobsr<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_cdouble_wrapper*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_cdouble_wrapper*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_cdouble_wrapper*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_cdouble_wrapper*)a[9]);
             return 0;
         case 17:
-            (void)csr_tobsr<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_clongdouble_wrapper*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_clongdouble_wrapper*)a[9]);
+            (void)csr_tobsr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_clongdouble_wrapper*)a[6], (npy_int32*)a[7], (npy_int32*)a[8], (npy_clongdouble_wrapper*)a[9]);
             return 0;
         case 19:
-            (void)csr_tobsr<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_bool_wrapper*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_bool_wrapper*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_bool_wrapper*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_bool_wrapper*)a[9]);
             return 0;
         case 20:
-            (void)csr_tobsr<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_byte*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_byte*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_byte*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_byte*)a[9]);
             return 0;
         case 21:
-            (void)csr_tobsr<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_ubyte*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_ubyte*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_ubyte*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_ubyte*)a[9]);
             return 0;
         case 22:
-            (void)csr_tobsr<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_short*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_short*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_short*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_short*)a[9]);
             return 0;
         case 23:
-            (void)csr_tobsr<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_ushort*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_ushort*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_ushort*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_ushort*)a[9]);
             return 0;
         case 24:
-            (void)csr_tobsr<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_int*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_int*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_int*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_int*)a[9]);
             return 0;
         case 25:
-            (void)csr_tobsr<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_uint*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_uint*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_uint*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_uint*)a[9]);
             return 0;
         case 26:
-            (void)csr_tobsr<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_long*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_long*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_long*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_long*)a[9]);
             return 0;
         case 27:
-            (void)csr_tobsr<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_ulong*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_ulong*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_ulong*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_ulong*)a[9]);
             return 0;
         case 28:
-            (void)csr_tobsr<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_longlong*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_longlong*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_longlong*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_longlong*)a[9]);
             return 0;
         case 29:
-            (void)csr_tobsr<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_ulonglong*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_ulonglong*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_ulonglong*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_ulonglong*)a[9]);
             return 0;
         case 30:
-            (void)csr_tobsr<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_float*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_float*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_float*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_float*)a[9]);
             return 0;
         case 31:
-            (void)csr_tobsr<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_double*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_double*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_double*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_double*)a[9]);
             return 0;
         case 32:
-            (void)csr_tobsr<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_longdouble*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_longdouble*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_longdouble*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_longdouble*)a[9]);
             return 0;
         case 33:
-            (void)csr_tobsr<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_cfloat_wrapper*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_cfloat_wrapper*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_cfloat_wrapper*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_cfloat_wrapper*)a[9]);
             return 0;
         case 34:
-            (void)csr_tobsr<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_cdouble_wrapper*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_cdouble_wrapper*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_cdouble_wrapper*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_cdouble_wrapper*)a[9]);
             return 0;
         case 35:
-            (void)csr_tobsr<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_clongdouble_wrapper*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_clongdouble_wrapper*)a[9]);
+            (void)csr_tobsr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_clongdouble_wrapper*)a[6], (npy_int64*)a[7], (npy_int64*)a[8], (npy_clongdouble_wrapper*)a[9]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -510,106 +510,106 @@ static PY_LONG_LONG csr_todense_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_todense<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (npy_bool_wrapper*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (npy_bool_wrapper*)a[5]);
             return 0;
         case 2:
-            (void)csr_todense<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (npy_byte*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (npy_byte*)a[5]);
             return 0;
         case 3:
-            (void)csr_todense<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (npy_ubyte*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (npy_ubyte*)a[5]);
             return 0;
         case 4:
-            (void)csr_todense<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (npy_short*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (npy_short*)a[5]);
             return 0;
         case 5:
-            (void)csr_todense<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (npy_ushort*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (npy_ushort*)a[5]);
             return 0;
         case 6:
-            (void)csr_todense<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (npy_int*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (npy_int*)a[5]);
             return 0;
         case 7:
-            (void)csr_todense<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (npy_uint*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (npy_uint*)a[5]);
             return 0;
         case 8:
-            (void)csr_todense<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (npy_long*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (npy_long*)a[5]);
             return 0;
         case 9:
-            (void)csr_todense<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (npy_ulong*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (npy_ulong*)a[5]);
             return 0;
         case 10:
-            (void)csr_todense<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (npy_longlong*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (npy_longlong*)a[5]);
             return 0;
         case 11:
-            (void)csr_todense<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (npy_ulonglong*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (npy_ulonglong*)a[5]);
             return 0;
         case 12:
-            (void)csr_todense<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (npy_float*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (npy_float*)a[5]);
             return 0;
         case 13:
-            (void)csr_todense<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (npy_double*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (npy_double*)a[5]);
             return 0;
         case 14:
-            (void)csr_todense<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (npy_longdouble*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (npy_longdouble*)a[5]);
             return 0;
         case 15:
-            (void)csr_todense<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_cfloat_wrapper*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_cfloat_wrapper*)a[5]);
             return 0;
         case 16:
-            (void)csr_todense<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_cdouble_wrapper*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_cdouble_wrapper*)a[5]);
             return 0;
         case 17:
-            (void)csr_todense<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_clongdouble_wrapper*)a[5]);
+            (void)csr_todense(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_clongdouble_wrapper*)a[5]);
             return 0;
         case 19:
-            (void)csr_todense<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (npy_bool_wrapper*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (npy_bool_wrapper*)a[5]);
             return 0;
         case 20:
-            (void)csr_todense<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (npy_byte*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (npy_byte*)a[5]);
             return 0;
         case 21:
-            (void)csr_todense<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (npy_ubyte*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (npy_ubyte*)a[5]);
             return 0;
         case 22:
-            (void)csr_todense<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (npy_short*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (npy_short*)a[5]);
             return 0;
         case 23:
-            (void)csr_todense<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (npy_ushort*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (npy_ushort*)a[5]);
             return 0;
         case 24:
-            (void)csr_todense<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (npy_int*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (npy_int*)a[5]);
             return 0;
         case 25:
-            (void)csr_todense<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (npy_uint*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (npy_uint*)a[5]);
             return 0;
         case 26:
-            (void)csr_todense<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (npy_long*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (npy_long*)a[5]);
             return 0;
         case 27:
-            (void)csr_todense<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (npy_ulong*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (npy_ulong*)a[5]);
             return 0;
         case 28:
-            (void)csr_todense<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (npy_longlong*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (npy_longlong*)a[5]);
             return 0;
         case 29:
-            (void)csr_todense<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (npy_ulonglong*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (npy_ulonglong*)a[5]);
             return 0;
         case 30:
-            (void)csr_todense<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (npy_float*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (npy_float*)a[5]);
             return 0;
         case 31:
-            (void)csr_todense<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (npy_double*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (npy_double*)a[5]);
             return 0;
         case 32:
-            (void)csr_todense<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (npy_longdouble*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (npy_longdouble*)a[5]);
             return 0;
         case 33:
-            (void)csr_todense<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_cfloat_wrapper*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_cfloat_wrapper*)a[5]);
             return 0;
         case 34:
-            (void)csr_todense<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_cdouble_wrapper*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_cdouble_wrapper*)a[5]);
             return 0;
         case 35:
-            (void)csr_todense<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_clongdouble_wrapper*)a[5]);
+            (void)csr_todense(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_clongdouble_wrapper*)a[5]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -621,106 +621,106 @@ static PY_LONG_LONG csr_matvec_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_matvec<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5], (npy_bool_wrapper*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5], (npy_bool_wrapper*)a[6]);
             return 0;
         case 2:
-            (void)csr_matvec<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_byte*)a[5], (npy_byte*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_byte*)a[5], (npy_byte*)a[6]);
             return 0;
         case 3:
-            (void)csr_matvec<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_ubyte*)a[5], (npy_ubyte*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_ubyte*)a[5], (npy_ubyte*)a[6]);
             return 0;
         case 4:
-            (void)csr_matvec<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_short*)a[5], (npy_short*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_short*)a[5], (npy_short*)a[6]);
             return 0;
         case 5:
-            (void)csr_matvec<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_ushort*)a[5], (npy_ushort*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_ushort*)a[5], (npy_ushort*)a[6]);
             return 0;
         case 6:
-            (void)csr_matvec<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int*)a[5], (npy_int*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int*)a[5], (npy_int*)a[6]);
             return 0;
         case 7:
-            (void)csr_matvec<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_uint*)a[5], (npy_uint*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_uint*)a[5], (npy_uint*)a[6]);
             return 0;
         case 8:
-            (void)csr_matvec<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_long*)a[5], (npy_long*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_long*)a[5], (npy_long*)a[6]);
             return 0;
         case 9:
-            (void)csr_matvec<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_ulong*)a[5], (npy_ulong*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_ulong*)a[5], (npy_ulong*)a[6]);
             return 0;
         case 10:
-            (void)csr_matvec<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_longlong*)a[5], (npy_longlong*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_longlong*)a[5], (npy_longlong*)a[6]);
             return 0;
         case 11:
-            (void)csr_matvec<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_ulonglong*)a[5], (npy_ulonglong*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_ulonglong*)a[5], (npy_ulonglong*)a[6]);
             return 0;
         case 12:
-            (void)csr_matvec<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_float*)a[5], (npy_float*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_float*)a[5], (npy_float*)a[6]);
             return 0;
         case 13:
-            (void)csr_matvec<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_double*)a[5], (npy_double*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_double*)a[5], (npy_double*)a[6]);
             return 0;
         case 14:
-            (void)csr_matvec<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_longdouble*)a[5], (npy_longdouble*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_longdouble*)a[5], (npy_longdouble*)a[6]);
             return 0;
         case 15:
-            (void)csr_matvec<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_cfloat_wrapper*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_cfloat_wrapper*)a[6]);
             return 0;
         case 16:
-            (void)csr_matvec<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_cdouble_wrapper*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_cdouble_wrapper*)a[6]);
             return 0;
         case 17:
-            (void)csr_matvec<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_clongdouble_wrapper*)a[6]);
+            (void)csr_matvec(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_clongdouble_wrapper*)a[6]);
             return 0;
         case 19:
-            (void)csr_matvec<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5], (npy_bool_wrapper*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5], (npy_bool_wrapper*)a[6]);
             return 0;
         case 20:
-            (void)csr_matvec<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_byte*)a[5], (npy_byte*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_byte*)a[5], (npy_byte*)a[6]);
             return 0;
         case 21:
-            (void)csr_matvec<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_ubyte*)a[5], (npy_ubyte*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_ubyte*)a[5], (npy_ubyte*)a[6]);
             return 0;
         case 22:
-            (void)csr_matvec<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_short*)a[5], (npy_short*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_short*)a[5], (npy_short*)a[6]);
             return 0;
         case 23:
-            (void)csr_matvec<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_ushort*)a[5], (npy_ushort*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_ushort*)a[5], (npy_ushort*)a[6]);
             return 0;
         case 24:
-            (void)csr_matvec<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int*)a[5], (npy_int*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int*)a[5], (npy_int*)a[6]);
             return 0;
         case 25:
-            (void)csr_matvec<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_uint*)a[5], (npy_uint*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_uint*)a[5], (npy_uint*)a[6]);
             return 0;
         case 26:
-            (void)csr_matvec<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_long*)a[5], (npy_long*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_long*)a[5], (npy_long*)a[6]);
             return 0;
         case 27:
-            (void)csr_matvec<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_ulong*)a[5], (npy_ulong*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_ulong*)a[5], (npy_ulong*)a[6]);
             return 0;
         case 28:
-            (void)csr_matvec<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_longlong*)a[5], (npy_longlong*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_longlong*)a[5], (npy_longlong*)a[6]);
             return 0;
         case 29:
-            (void)csr_matvec<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_ulonglong*)a[5], (npy_ulonglong*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_ulonglong*)a[5], (npy_ulonglong*)a[6]);
             return 0;
         case 30:
-            (void)csr_matvec<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_float*)a[5], (npy_float*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_float*)a[5], (npy_float*)a[6]);
             return 0;
         case 31:
-            (void)csr_matvec<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_double*)a[5], (npy_double*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_double*)a[5], (npy_double*)a[6]);
             return 0;
         case 32:
-            (void)csr_matvec<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_longdouble*)a[5], (npy_longdouble*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_longdouble*)a[5], (npy_longdouble*)a[6]);
             return 0;
         case 33:
-            (void)csr_matvec<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_cfloat_wrapper*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_cfloat_wrapper*)a[6]);
             return 0;
         case 34:
-            (void)csr_matvec<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_cdouble_wrapper*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_cdouble_wrapper*)a[6]);
             return 0;
         case 35:
-            (void)csr_matvec<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_clongdouble_wrapper*)a[6]);
+            (void)csr_matvec(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_clongdouble_wrapper*)a[6]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -732,106 +732,106 @@ static PY_LONG_LONG csr_matvecs_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_matvecs<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_bool_wrapper*)a[5], (const npy_bool_wrapper*)a[6], (npy_bool_wrapper*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_bool_wrapper*)a[5], (const npy_bool_wrapper*)a[6], (npy_bool_wrapper*)a[7]);
             return 0;
         case 2:
-            (void)csr_matvecs<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_byte*)a[5], (const npy_byte*)a[6], (npy_byte*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_byte*)a[5], (const npy_byte*)a[6], (npy_byte*)a[7]);
             return 0;
         case 3:
-            (void)csr_matvecs<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ubyte*)a[5], (const npy_ubyte*)a[6], (npy_ubyte*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ubyte*)a[5], (const npy_ubyte*)a[6], (npy_ubyte*)a[7]);
             return 0;
         case 4:
-            (void)csr_matvecs<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_short*)a[5], (const npy_short*)a[6], (npy_short*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_short*)a[5], (const npy_short*)a[6], (npy_short*)a[7]);
             return 0;
         case 5:
-            (void)csr_matvecs<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ushort*)a[5], (const npy_ushort*)a[6], (npy_ushort*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ushort*)a[5], (const npy_ushort*)a[6], (npy_ushort*)a[7]);
             return 0;
         case 6:
-            (void)csr_matvecs<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int*)a[5], (const npy_int*)a[6], (npy_int*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int*)a[5], (const npy_int*)a[6], (npy_int*)a[7]);
             return 0;
         case 7:
-            (void)csr_matvecs<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_uint*)a[5], (const npy_uint*)a[6], (npy_uint*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_uint*)a[5], (const npy_uint*)a[6], (npy_uint*)a[7]);
             return 0;
         case 8:
-            (void)csr_matvecs<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_long*)a[5], (const npy_long*)a[6], (npy_long*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_long*)a[5], (const npy_long*)a[6], (npy_long*)a[7]);
             return 0;
         case 9:
-            (void)csr_matvecs<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulong*)a[5], (const npy_ulong*)a[6], (npy_ulong*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulong*)a[5], (const npy_ulong*)a[6], (npy_ulong*)a[7]);
             return 0;
         case 10:
-            (void)csr_matvecs<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longlong*)a[5], (const npy_longlong*)a[6], (npy_longlong*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longlong*)a[5], (const npy_longlong*)a[6], (npy_longlong*)a[7]);
             return 0;
         case 11:
-            (void)csr_matvecs<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulonglong*)a[5], (const npy_ulonglong*)a[6], (npy_ulonglong*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulonglong*)a[5], (const npy_ulonglong*)a[6], (npy_ulonglong*)a[7]);
             return 0;
         case 12:
-            (void)csr_matvecs<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_float*)a[5], (const npy_float*)a[6], (npy_float*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_float*)a[5], (const npy_float*)a[6], (npy_float*)a[7]);
             return 0;
         case 13:
-            (void)csr_matvecs<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_double*)a[5], (const npy_double*)a[6], (npy_double*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_double*)a[5], (const npy_double*)a[6], (npy_double*)a[7]);
             return 0;
         case 14:
-            (void)csr_matvecs<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longdouble*)a[5], (const npy_longdouble*)a[6], (npy_longdouble*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longdouble*)a[5], (const npy_longdouble*)a[6], (npy_longdouble*)a[7]);
             return 0;
         case 15:
-            (void)csr_matvecs<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cfloat_wrapper*)a[5], (const npy_cfloat_wrapper*)a[6], (npy_cfloat_wrapper*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cfloat_wrapper*)a[5], (const npy_cfloat_wrapper*)a[6], (npy_cfloat_wrapper*)a[7]);
             return 0;
         case 16:
-            (void)csr_matvecs<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cdouble_wrapper*)a[5], (const npy_cdouble_wrapper*)a[6], (npy_cdouble_wrapper*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cdouble_wrapper*)a[5], (const npy_cdouble_wrapper*)a[6], (npy_cdouble_wrapper*)a[7]);
             return 0;
         case 17:
-            (void)csr_matvecs<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_clongdouble_wrapper*)a[5], (const npy_clongdouble_wrapper*)a[6], (npy_clongdouble_wrapper*)a[7]);
+            (void)csr_matvecs(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_clongdouble_wrapper*)a[5], (const npy_clongdouble_wrapper*)a[6], (npy_clongdouble_wrapper*)a[7]);
             return 0;
         case 19:
-            (void)csr_matvecs<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_bool_wrapper*)a[5], (const npy_bool_wrapper*)a[6], (npy_bool_wrapper*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_bool_wrapper*)a[5], (const npy_bool_wrapper*)a[6], (npy_bool_wrapper*)a[7]);
             return 0;
         case 20:
-            (void)csr_matvecs<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_byte*)a[5], (const npy_byte*)a[6], (npy_byte*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_byte*)a[5], (const npy_byte*)a[6], (npy_byte*)a[7]);
             return 0;
         case 21:
-            (void)csr_matvecs<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ubyte*)a[5], (const npy_ubyte*)a[6], (npy_ubyte*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ubyte*)a[5], (const npy_ubyte*)a[6], (npy_ubyte*)a[7]);
             return 0;
         case 22:
-            (void)csr_matvecs<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_short*)a[5], (const npy_short*)a[6], (npy_short*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_short*)a[5], (const npy_short*)a[6], (npy_short*)a[7]);
             return 0;
         case 23:
-            (void)csr_matvecs<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ushort*)a[5], (const npy_ushort*)a[6], (npy_ushort*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ushort*)a[5], (const npy_ushort*)a[6], (npy_ushort*)a[7]);
             return 0;
         case 24:
-            (void)csr_matvecs<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int*)a[5], (const npy_int*)a[6], (npy_int*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int*)a[5], (const npy_int*)a[6], (npy_int*)a[7]);
             return 0;
         case 25:
-            (void)csr_matvecs<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_uint*)a[5], (const npy_uint*)a[6], (npy_uint*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_uint*)a[5], (const npy_uint*)a[6], (npy_uint*)a[7]);
             return 0;
         case 26:
-            (void)csr_matvecs<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_long*)a[5], (const npy_long*)a[6], (npy_long*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_long*)a[5], (const npy_long*)a[6], (npy_long*)a[7]);
             return 0;
         case 27:
-            (void)csr_matvecs<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulong*)a[5], (const npy_ulong*)a[6], (npy_ulong*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulong*)a[5], (const npy_ulong*)a[6], (npy_ulong*)a[7]);
             return 0;
         case 28:
-            (void)csr_matvecs<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longlong*)a[5], (const npy_longlong*)a[6], (npy_longlong*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longlong*)a[5], (const npy_longlong*)a[6], (npy_longlong*)a[7]);
             return 0;
         case 29:
-            (void)csr_matvecs<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulonglong*)a[5], (const npy_ulonglong*)a[6], (npy_ulonglong*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulonglong*)a[5], (const npy_ulonglong*)a[6], (npy_ulonglong*)a[7]);
             return 0;
         case 30:
-            (void)csr_matvecs<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_float*)a[5], (const npy_float*)a[6], (npy_float*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_float*)a[5], (const npy_float*)a[6], (npy_float*)a[7]);
             return 0;
         case 31:
-            (void)csr_matvecs<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_double*)a[5], (const npy_double*)a[6], (npy_double*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_double*)a[5], (const npy_double*)a[6], (npy_double*)a[7]);
             return 0;
         case 32:
-            (void)csr_matvecs<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longdouble*)a[5], (const npy_longdouble*)a[6], (npy_longdouble*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longdouble*)a[5], (const npy_longdouble*)a[6], (npy_longdouble*)a[7]);
             return 0;
         case 33:
-            (void)csr_matvecs<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cfloat_wrapper*)a[5], (const npy_cfloat_wrapper*)a[6], (npy_cfloat_wrapper*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cfloat_wrapper*)a[5], (const npy_cfloat_wrapper*)a[6], (npy_cfloat_wrapper*)a[7]);
             return 0;
         case 34:
-            (void)csr_matvecs<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cdouble_wrapper*)a[5], (const npy_cdouble_wrapper*)a[6], (npy_cdouble_wrapper*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cdouble_wrapper*)a[5], (const npy_cdouble_wrapper*)a[6], (npy_cdouble_wrapper*)a[7]);
             return 0;
         case 35:
-            (void)csr_matvecs<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_clongdouble_wrapper*)a[5], (const npy_clongdouble_wrapper*)a[6], (npy_clongdouble_wrapper*)a[7]);
+            (void)csr_matvecs(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_clongdouble_wrapper*)a[5], (const npy_clongdouble_wrapper*)a[6], (npy_clongdouble_wrapper*)a[7]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -843,106 +843,106 @@ static PY_LONG_LONG csr_elmul_csr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_elmul_csr<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_elmul_csr<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
             return 0;
         case 3:
-            (void)csr_elmul_csr<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 4:
-            (void)csr_elmul_csr<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
             return 0;
         case 5:
-            (void)csr_elmul_csr<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 6:
-            (void)csr_elmul_csr<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
             return 0;
         case 7:
-            (void)csr_elmul_csr<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
             return 0;
         case 8:
-            (void)csr_elmul_csr<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
             return 0;
         case 9:
-            (void)csr_elmul_csr<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 10:
-            (void)csr_elmul_csr<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 11:
-            (void)csr_elmul_csr<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 12:
-            (void)csr_elmul_csr<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
             return 0;
         case 13:
-            (void)csr_elmul_csr<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
             return 0;
         case 14:
-            (void)csr_elmul_csr<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 15:
-            (void)csr_elmul_csr<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_elmul_csr<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_elmul_csr<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_elmul_csr<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_elmul_csr<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
             return 0;
         case 21:
-            (void)csr_elmul_csr<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 22:
-            (void)csr_elmul_csr<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
             return 0;
         case 23:
-            (void)csr_elmul_csr<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 24:
-            (void)csr_elmul_csr<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
             return 0;
         case 25:
-            (void)csr_elmul_csr<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
             return 0;
         case 26:
-            (void)csr_elmul_csr<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
             return 0;
         case 27:
-            (void)csr_elmul_csr<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 28:
-            (void)csr_elmul_csr<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 29:
-            (void)csr_elmul_csr<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 30:
-            (void)csr_elmul_csr<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
             return 0;
         case 31:
-            (void)csr_elmul_csr<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
             return 0;
         case 32:
-            (void)csr_elmul_csr<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 33:
-            (void)csr_elmul_csr<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_elmul_csr<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_elmul_csr<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_elmul_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -954,106 +954,106 @@ static PY_LONG_LONG csr_eldiv_csr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_eldiv_csr<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_eldiv_csr<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
             return 0;
         case 3:
-            (void)csr_eldiv_csr<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 4:
-            (void)csr_eldiv_csr<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
             return 0;
         case 5:
-            (void)csr_eldiv_csr<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 6:
-            (void)csr_eldiv_csr<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
             return 0;
         case 7:
-            (void)csr_eldiv_csr<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
             return 0;
         case 8:
-            (void)csr_eldiv_csr<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
             return 0;
         case 9:
-            (void)csr_eldiv_csr<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 10:
-            (void)csr_eldiv_csr<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 11:
-            (void)csr_eldiv_csr<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 12:
-            (void)csr_eldiv_csr<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
             return 0;
         case 13:
-            (void)csr_eldiv_csr<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
             return 0;
         case 14:
-            (void)csr_eldiv_csr<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 15:
-            (void)csr_eldiv_csr<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_eldiv_csr<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_eldiv_csr<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_eldiv_csr<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_eldiv_csr<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
             return 0;
         case 21:
-            (void)csr_eldiv_csr<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 22:
-            (void)csr_eldiv_csr<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
             return 0;
         case 23:
-            (void)csr_eldiv_csr<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 24:
-            (void)csr_eldiv_csr<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
             return 0;
         case 25:
-            (void)csr_eldiv_csr<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
             return 0;
         case 26:
-            (void)csr_eldiv_csr<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
             return 0;
         case 27:
-            (void)csr_eldiv_csr<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 28:
-            (void)csr_eldiv_csr<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 29:
-            (void)csr_eldiv_csr<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 30:
-            (void)csr_eldiv_csr<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
             return 0;
         case 31:
-            (void)csr_eldiv_csr<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
             return 0;
         case 32:
-            (void)csr_eldiv_csr<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 33:
-            (void)csr_eldiv_csr<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_eldiv_csr<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_eldiv_csr<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_eldiv_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -1065,106 +1065,106 @@ static PY_LONG_LONG csr_plus_csr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_plus_csr<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_plus_csr<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
             return 0;
         case 3:
-            (void)csr_plus_csr<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 4:
-            (void)csr_plus_csr<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
             return 0;
         case 5:
-            (void)csr_plus_csr<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 6:
-            (void)csr_plus_csr<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
             return 0;
         case 7:
-            (void)csr_plus_csr<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
             return 0;
         case 8:
-            (void)csr_plus_csr<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
             return 0;
         case 9:
-            (void)csr_plus_csr<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 10:
-            (void)csr_plus_csr<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 11:
-            (void)csr_plus_csr<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 12:
-            (void)csr_plus_csr<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
             return 0;
         case 13:
-            (void)csr_plus_csr<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
             return 0;
         case 14:
-            (void)csr_plus_csr<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 15:
-            (void)csr_plus_csr<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_plus_csr<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_plus_csr<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_plus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_plus_csr<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_plus_csr<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
             return 0;
         case 21:
-            (void)csr_plus_csr<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 22:
-            (void)csr_plus_csr<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
             return 0;
         case 23:
-            (void)csr_plus_csr<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 24:
-            (void)csr_plus_csr<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
             return 0;
         case 25:
-            (void)csr_plus_csr<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
             return 0;
         case 26:
-            (void)csr_plus_csr<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
             return 0;
         case 27:
-            (void)csr_plus_csr<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 28:
-            (void)csr_plus_csr<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 29:
-            (void)csr_plus_csr<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 30:
-            (void)csr_plus_csr<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
             return 0;
         case 31:
-            (void)csr_plus_csr<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
             return 0;
         case 32:
-            (void)csr_plus_csr<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 33:
-            (void)csr_plus_csr<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_plus_csr<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_plus_csr<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_plus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -1176,106 +1176,106 @@ static PY_LONG_LONG csr_minus_csr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_minus_csr<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_minus_csr<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
             return 0;
         case 3:
-            (void)csr_minus_csr<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 4:
-            (void)csr_minus_csr<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
             return 0;
         case 5:
-            (void)csr_minus_csr<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 6:
-            (void)csr_minus_csr<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
             return 0;
         case 7:
-            (void)csr_minus_csr<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
             return 0;
         case 8:
-            (void)csr_minus_csr<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
             return 0;
         case 9:
-            (void)csr_minus_csr<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 10:
-            (void)csr_minus_csr<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 11:
-            (void)csr_minus_csr<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 12:
-            (void)csr_minus_csr<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
             return 0;
         case 13:
-            (void)csr_minus_csr<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
             return 0;
         case 14:
-            (void)csr_minus_csr<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 15:
-            (void)csr_minus_csr<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_minus_csr<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_minus_csr<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_minus_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_minus_csr<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_minus_csr<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
             return 0;
         case 21:
-            (void)csr_minus_csr<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 22:
-            (void)csr_minus_csr<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
             return 0;
         case 23:
-            (void)csr_minus_csr<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 24:
-            (void)csr_minus_csr<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
             return 0;
         case 25:
-            (void)csr_minus_csr<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
             return 0;
         case 26:
-            (void)csr_minus_csr<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
             return 0;
         case 27:
-            (void)csr_minus_csr<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 28:
-            (void)csr_minus_csr<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 29:
-            (void)csr_minus_csr<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 30:
-            (void)csr_minus_csr<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
             return 0;
         case 31:
-            (void)csr_minus_csr<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
             return 0;
         case 32:
-            (void)csr_minus_csr<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 33:
-            (void)csr_minus_csr<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_minus_csr<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_minus_csr<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_minus_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -1287,106 +1287,106 @@ static PY_LONG_LONG csr_maximum_csr_thunk(int I_typenum, int T_typenum, void **a
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_maximum_csr<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_maximum_csr<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
             return 0;
         case 3:
-            (void)csr_maximum_csr<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 4:
-            (void)csr_maximum_csr<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
             return 0;
         case 5:
-            (void)csr_maximum_csr<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 6:
-            (void)csr_maximum_csr<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
             return 0;
         case 7:
-            (void)csr_maximum_csr<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
             return 0;
         case 8:
-            (void)csr_maximum_csr<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
             return 0;
         case 9:
-            (void)csr_maximum_csr<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 10:
-            (void)csr_maximum_csr<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 11:
-            (void)csr_maximum_csr<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 12:
-            (void)csr_maximum_csr<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
             return 0;
         case 13:
-            (void)csr_maximum_csr<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
             return 0;
         case 14:
-            (void)csr_maximum_csr<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 15:
-            (void)csr_maximum_csr<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_maximum_csr<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_maximum_csr<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_maximum_csr<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_maximum_csr<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
             return 0;
         case 21:
-            (void)csr_maximum_csr<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 22:
-            (void)csr_maximum_csr<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
             return 0;
         case 23:
-            (void)csr_maximum_csr<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 24:
-            (void)csr_maximum_csr<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
             return 0;
         case 25:
-            (void)csr_maximum_csr<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
             return 0;
         case 26:
-            (void)csr_maximum_csr<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
             return 0;
         case 27:
-            (void)csr_maximum_csr<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 28:
-            (void)csr_maximum_csr<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 29:
-            (void)csr_maximum_csr<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 30:
-            (void)csr_maximum_csr<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
             return 0;
         case 31:
-            (void)csr_maximum_csr<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
             return 0;
         case 32:
-            (void)csr_maximum_csr<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 33:
-            (void)csr_maximum_csr<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_maximum_csr<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_maximum_csr<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_maximum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -1398,106 +1398,106 @@ static PY_LONG_LONG csr_minimum_csr_thunk(int I_typenum, int T_typenum, void **a
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_minimum_csr<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_minimum_csr<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_byte*)a[10]);
             return 0;
         case 3:
-            (void)csr_minimum_csr<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 4:
-            (void)csr_minimum_csr<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_short*)a[10]);
             return 0;
         case 5:
-            (void)csr_minimum_csr<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 6:
-            (void)csr_minimum_csr<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_int*)a[10]);
             return 0;
         case 7:
-            (void)csr_minimum_csr<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_uint*)a[10]);
             return 0;
         case 8:
-            (void)csr_minimum_csr<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_long*)a[10]);
             return 0;
         case 9:
-            (void)csr_minimum_csr<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 10:
-            (void)csr_minimum_csr<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 11:
-            (void)csr_minimum_csr<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 12:
-            (void)csr_minimum_csr<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_float*)a[10]);
             return 0;
         case 13:
-            (void)csr_minimum_csr<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_double*)a[10]);
             return 0;
         case 14:
-            (void)csr_minimum_csr<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 15:
-            (void)csr_minimum_csr<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_minimum_csr<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_minimum_csr<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_minimum_csr<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_minimum_csr<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_byte*)a[10]);
             return 0;
         case 21:
-            (void)csr_minimum_csr<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ubyte*)a[10]);
             return 0;
         case 22:
-            (void)csr_minimum_csr<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_short*)a[10]);
             return 0;
         case 23:
-            (void)csr_minimum_csr<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ushort*)a[10]);
             return 0;
         case 24:
-            (void)csr_minimum_csr<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_int*)a[10]);
             return 0;
         case 25:
-            (void)csr_minimum_csr<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_uint*)a[10]);
             return 0;
         case 26:
-            (void)csr_minimum_csr<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_long*)a[10]);
             return 0;
         case 27:
-            (void)csr_minimum_csr<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulong*)a[10]);
             return 0;
         case 28:
-            (void)csr_minimum_csr<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longlong*)a[10]);
             return 0;
         case 29:
-            (void)csr_minimum_csr<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_ulonglong*)a[10]);
             return 0;
         case 30:
-            (void)csr_minimum_csr<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_float*)a[10]);
             return 0;
         case 31:
-            (void)csr_minimum_csr<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_double*)a[10]);
             return 0;
         case 32:
-            (void)csr_minimum_csr<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_longdouble*)a[10]);
             return 0;
         case 33:
-            (void)csr_minimum_csr<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cfloat_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_minimum_csr<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_cdouble_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_minimum_csr<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
+            (void)csr_minimum_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_clongdouble_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -1509,106 +1509,106 @@ static PY_LONG_LONG csr_ne_csr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_ne_csr<npy_int32,npy_bool_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_ne_csr<npy_int32,npy_byte,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 3:
-            (void)csr_ne_csr<npy_int32,npy_ubyte,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 4:
-            (void)csr_ne_csr<npy_int32,npy_short,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 5:
-            (void)csr_ne_csr<npy_int32,npy_ushort,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 6:
-            (void)csr_ne_csr<npy_int32,npy_int,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 7:
-            (void)csr_ne_csr<npy_int32,npy_uint,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 8:
-            (void)csr_ne_csr<npy_int32,npy_long,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 9:
-            (void)csr_ne_csr<npy_int32,npy_ulong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 10:
-            (void)csr_ne_csr<npy_int32,npy_longlong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 11:
-            (void)csr_ne_csr<npy_int32,npy_ulonglong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 12:
-            (void)csr_ne_csr<npy_int32,npy_float,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 13:
-            (void)csr_ne_csr<npy_int32,npy_double,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 14:
-            (void)csr_ne_csr<npy_int32,npy_longdouble,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 15:
-            (void)csr_ne_csr<npy_int32,npy_cfloat_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_ne_csr<npy_int32,npy_cdouble_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_ne_csr<npy_int32,npy_clongdouble_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_ne_csr<npy_int64,npy_bool_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_ne_csr<npy_int64,npy_byte,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 21:
-            (void)csr_ne_csr<npy_int64,npy_ubyte,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 22:
-            (void)csr_ne_csr<npy_int64,npy_short,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 23:
-            (void)csr_ne_csr<npy_int64,npy_ushort,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 24:
-            (void)csr_ne_csr<npy_int64,npy_int,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 25:
-            (void)csr_ne_csr<npy_int64,npy_uint,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 26:
-            (void)csr_ne_csr<npy_int64,npy_long,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 27:
-            (void)csr_ne_csr<npy_int64,npy_ulong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 28:
-            (void)csr_ne_csr<npy_int64,npy_longlong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 29:
-            (void)csr_ne_csr<npy_int64,npy_ulonglong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 30:
-            (void)csr_ne_csr<npy_int64,npy_float,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 31:
-            (void)csr_ne_csr<npy_int64,npy_double,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 32:
-            (void)csr_ne_csr<npy_int64,npy_longdouble,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 33:
-            (void)csr_ne_csr<npy_int64,npy_cfloat_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_ne_csr<npy_int64,npy_cdouble_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_ne_csr<npy_int64,npy_clongdouble_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ne_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -1620,106 +1620,106 @@ static PY_LONG_LONG csr_lt_csr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_lt_csr<npy_int32,npy_bool_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_lt_csr<npy_int32,npy_byte,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 3:
-            (void)csr_lt_csr<npy_int32,npy_ubyte,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 4:
-            (void)csr_lt_csr<npy_int32,npy_short,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 5:
-            (void)csr_lt_csr<npy_int32,npy_ushort,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 6:
-            (void)csr_lt_csr<npy_int32,npy_int,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 7:
-            (void)csr_lt_csr<npy_int32,npy_uint,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 8:
-            (void)csr_lt_csr<npy_int32,npy_long,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 9:
-            (void)csr_lt_csr<npy_int32,npy_ulong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 10:
-            (void)csr_lt_csr<npy_int32,npy_longlong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 11:
-            (void)csr_lt_csr<npy_int32,npy_ulonglong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 12:
-            (void)csr_lt_csr<npy_int32,npy_float,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 13:
-            (void)csr_lt_csr<npy_int32,npy_double,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 14:
-            (void)csr_lt_csr<npy_int32,npy_longdouble,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 15:
-            (void)csr_lt_csr<npy_int32,npy_cfloat_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_lt_csr<npy_int32,npy_cdouble_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_lt_csr<npy_int32,npy_clongdouble_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_lt_csr<npy_int64,npy_bool_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_lt_csr<npy_int64,npy_byte,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 21:
-            (void)csr_lt_csr<npy_int64,npy_ubyte,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 22:
-            (void)csr_lt_csr<npy_int64,npy_short,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 23:
-            (void)csr_lt_csr<npy_int64,npy_ushort,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 24:
-            (void)csr_lt_csr<npy_int64,npy_int,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 25:
-            (void)csr_lt_csr<npy_int64,npy_uint,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 26:
-            (void)csr_lt_csr<npy_int64,npy_long,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 27:
-            (void)csr_lt_csr<npy_int64,npy_ulong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 28:
-            (void)csr_lt_csr<npy_int64,npy_longlong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 29:
-            (void)csr_lt_csr<npy_int64,npy_ulonglong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 30:
-            (void)csr_lt_csr<npy_int64,npy_float,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 31:
-            (void)csr_lt_csr<npy_int64,npy_double,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 32:
-            (void)csr_lt_csr<npy_int64,npy_longdouble,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 33:
-            (void)csr_lt_csr<npy_int64,npy_cfloat_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_lt_csr<npy_int64,npy_cdouble_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_lt_csr<npy_int64,npy_clongdouble_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_lt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -1731,106 +1731,106 @@ static PY_LONG_LONG csr_gt_csr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_gt_csr<npy_int32,npy_bool_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_gt_csr<npy_int32,npy_byte,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 3:
-            (void)csr_gt_csr<npy_int32,npy_ubyte,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 4:
-            (void)csr_gt_csr<npy_int32,npy_short,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 5:
-            (void)csr_gt_csr<npy_int32,npy_ushort,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 6:
-            (void)csr_gt_csr<npy_int32,npy_int,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 7:
-            (void)csr_gt_csr<npy_int32,npy_uint,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 8:
-            (void)csr_gt_csr<npy_int32,npy_long,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 9:
-            (void)csr_gt_csr<npy_int32,npy_ulong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 10:
-            (void)csr_gt_csr<npy_int32,npy_longlong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 11:
-            (void)csr_gt_csr<npy_int32,npy_ulonglong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 12:
-            (void)csr_gt_csr<npy_int32,npy_float,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 13:
-            (void)csr_gt_csr<npy_int32,npy_double,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 14:
-            (void)csr_gt_csr<npy_int32,npy_longdouble,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 15:
-            (void)csr_gt_csr<npy_int32,npy_cfloat_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_gt_csr<npy_int32,npy_cdouble_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_gt_csr<npy_int32,npy_clongdouble_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_gt_csr<npy_int64,npy_bool_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_gt_csr<npy_int64,npy_byte,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 21:
-            (void)csr_gt_csr<npy_int64,npy_ubyte,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 22:
-            (void)csr_gt_csr<npy_int64,npy_short,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 23:
-            (void)csr_gt_csr<npy_int64,npy_ushort,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 24:
-            (void)csr_gt_csr<npy_int64,npy_int,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 25:
-            (void)csr_gt_csr<npy_int64,npy_uint,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 26:
-            (void)csr_gt_csr<npy_int64,npy_long,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 27:
-            (void)csr_gt_csr<npy_int64,npy_ulong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 28:
-            (void)csr_gt_csr<npy_int64,npy_longlong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 29:
-            (void)csr_gt_csr<npy_int64,npy_ulonglong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 30:
-            (void)csr_gt_csr<npy_int64,npy_float,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 31:
-            (void)csr_gt_csr<npy_int64,npy_double,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 32:
-            (void)csr_gt_csr<npy_int64,npy_longdouble,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 33:
-            (void)csr_gt_csr<npy_int64,npy_cfloat_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_gt_csr<npy_int64,npy_cdouble_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_gt_csr<npy_int64,npy_clongdouble_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_gt_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -1842,106 +1842,106 @@ static PY_LONG_LONG csr_le_csr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_le_csr<npy_int32,npy_bool_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_le_csr<npy_int32,npy_byte,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 3:
-            (void)csr_le_csr<npy_int32,npy_ubyte,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 4:
-            (void)csr_le_csr<npy_int32,npy_short,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 5:
-            (void)csr_le_csr<npy_int32,npy_ushort,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 6:
-            (void)csr_le_csr<npy_int32,npy_int,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 7:
-            (void)csr_le_csr<npy_int32,npy_uint,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 8:
-            (void)csr_le_csr<npy_int32,npy_long,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 9:
-            (void)csr_le_csr<npy_int32,npy_ulong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 10:
-            (void)csr_le_csr<npy_int32,npy_longlong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 11:
-            (void)csr_le_csr<npy_int32,npy_ulonglong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 12:
-            (void)csr_le_csr<npy_int32,npy_float,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 13:
-            (void)csr_le_csr<npy_int32,npy_double,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 14:
-            (void)csr_le_csr<npy_int32,npy_longdouble,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 15:
-            (void)csr_le_csr<npy_int32,npy_cfloat_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_le_csr<npy_int32,npy_cdouble_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_le_csr<npy_int32,npy_clongdouble_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_le_csr<npy_int64,npy_bool_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_le_csr<npy_int64,npy_byte,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 21:
-            (void)csr_le_csr<npy_int64,npy_ubyte,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 22:
-            (void)csr_le_csr<npy_int64,npy_short,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 23:
-            (void)csr_le_csr<npy_int64,npy_ushort,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 24:
-            (void)csr_le_csr<npy_int64,npy_int,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 25:
-            (void)csr_le_csr<npy_int64,npy_uint,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 26:
-            (void)csr_le_csr<npy_int64,npy_long,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 27:
-            (void)csr_le_csr<npy_int64,npy_ulong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 28:
-            (void)csr_le_csr<npy_int64,npy_longlong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 29:
-            (void)csr_le_csr<npy_int64,npy_ulonglong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 30:
-            (void)csr_le_csr<npy_int64,npy_float,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 31:
-            (void)csr_le_csr<npy_int64,npy_double,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 32:
-            (void)csr_le_csr<npy_int64,npy_longdouble,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 33:
-            (void)csr_le_csr<npy_int64,npy_cfloat_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_le_csr<npy_int64,npy_cdouble_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_le_csr<npy_int64,npy_clongdouble_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_le_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -1953,106 +1953,106 @@ static PY_LONG_LONG csr_ge_csr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_ge_csr<npy_int32,npy_bool_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_bool_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 2:
-            (void)csr_ge_csr<npy_int32,npy_byte,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_byte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 3:
-            (void)csr_ge_csr<npy_int32,npy_ubyte,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ubyte*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 4:
-            (void)csr_ge_csr<npy_int32,npy_short,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_short*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 5:
-            (void)csr_ge_csr<npy_int32,npy_ushort,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ushort*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 6:
-            (void)csr_ge_csr<npy_int32,npy_int,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 7:
-            (void)csr_ge_csr<npy_int32,npy_uint,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_uint*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 8:
-            (void)csr_ge_csr<npy_int32,npy_long,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_long*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 9:
-            (void)csr_ge_csr<npy_int32,npy_ulong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 10:
-            (void)csr_ge_csr<npy_int32,npy_longlong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longlong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 11:
-            (void)csr_ge_csr<npy_int32,npy_ulonglong,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_ulonglong*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 12:
-            (void)csr_ge_csr<npy_int32,npy_float,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_float*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 13:
-            (void)csr_ge_csr<npy_int32,npy_double,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_double*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 14:
-            (void)csr_ge_csr<npy_int32,npy_longdouble,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_longdouble*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 15:
-            (void)csr_ge_csr<npy_int32,npy_cfloat_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 16:
-            (void)csr_ge_csr<npy_int32,npy_cdouble_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 17:
-            (void)csr_ge_csr<npy_int32,npy_clongdouble_wrapper,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int32*)a[8], (npy_int32*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 19:
-            (void)csr_ge_csr<npy_int64,npy_bool_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_bool_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 20:
-            (void)csr_ge_csr<npy_int64,npy_byte,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_byte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 21:
-            (void)csr_ge_csr<npy_int64,npy_ubyte,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ubyte*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 22:
-            (void)csr_ge_csr<npy_int64,npy_short,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_short*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 23:
-            (void)csr_ge_csr<npy_int64,npy_ushort,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ushort*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 24:
-            (void)csr_ge_csr<npy_int64,npy_int,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 25:
-            (void)csr_ge_csr<npy_int64,npy_uint,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_uint*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 26:
-            (void)csr_ge_csr<npy_int64,npy_long,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_long*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 27:
-            (void)csr_ge_csr<npy_int64,npy_ulong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 28:
-            (void)csr_ge_csr<npy_int64,npy_longlong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longlong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 29:
-            (void)csr_ge_csr<npy_int64,npy_ulonglong,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_ulonglong*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 30:
-            (void)csr_ge_csr<npy_int64,npy_float,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_float*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 31:
-            (void)csr_ge_csr<npy_int64,npy_double,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_double*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 32:
-            (void)csr_ge_csr<npy_int64,npy_longdouble,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_longdouble*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 33:
-            (void)csr_ge_csr<npy_int64,npy_cfloat_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cfloat_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 34:
-            (void)csr_ge_csr<npy_int64,npy_cdouble_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_cdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
         case 35:
-            (void)csr_ge_csr<npy_int64,npy_clongdouble_wrapper,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
+            (void)csr_ge_csr(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_clongdouble_wrapper*)a[7], (npy_int64*)a[8], (npy_int64*)a[9], (npy_bool_wrapper*)a[10]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -2064,106 +2064,106 @@ static PY_LONG_LONG csr_scale_rows_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_scale_rows<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5]);
             return 0;
         case 2:
-            (void)csr_scale_rows<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_byte*)a[4], (const npy_byte*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_byte*)a[4], (const npy_byte*)a[5]);
             return 0;
         case 3:
-            (void)csr_scale_rows<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ubyte*)a[4], (const npy_ubyte*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ubyte*)a[4], (const npy_ubyte*)a[5]);
             return 0;
         case 4:
-            (void)csr_scale_rows<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_short*)a[4], (const npy_short*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_short*)a[4], (const npy_short*)a[5]);
             return 0;
         case 5:
-            (void)csr_scale_rows<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ushort*)a[4], (const npy_ushort*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ushort*)a[4], (const npy_ushort*)a[5]);
             return 0;
         case 6:
-            (void)csr_scale_rows<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_int*)a[4], (const npy_int*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_int*)a[4], (const npy_int*)a[5]);
             return 0;
         case 7:
-            (void)csr_scale_rows<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_uint*)a[4], (const npy_uint*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_uint*)a[4], (const npy_uint*)a[5]);
             return 0;
         case 8:
-            (void)csr_scale_rows<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_long*)a[4], (const npy_long*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_long*)a[4], (const npy_long*)a[5]);
             return 0;
         case 9:
-            (void)csr_scale_rows<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ulong*)a[4], (const npy_ulong*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ulong*)a[4], (const npy_ulong*)a[5]);
             return 0;
         case 10:
-            (void)csr_scale_rows<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_longlong*)a[4], (const npy_longlong*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_longlong*)a[4], (const npy_longlong*)a[5]);
             return 0;
         case 11:
-            (void)csr_scale_rows<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ulonglong*)a[4], (const npy_ulonglong*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ulonglong*)a[4], (const npy_ulonglong*)a[5]);
             return 0;
         case 12:
-            (void)csr_scale_rows<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_float*)a[4], (const npy_float*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_float*)a[4], (const npy_float*)a[5]);
             return 0;
         case 13:
-            (void)csr_scale_rows<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_double*)a[4], (const npy_double*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_double*)a[4], (const npy_double*)a[5]);
             return 0;
         case 14:
-            (void)csr_scale_rows<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_longdouble*)a[4], (const npy_longdouble*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_longdouble*)a[4], (const npy_longdouble*)a[5]);
             return 0;
         case 15:
-            (void)csr_scale_rows<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5]);
             return 0;
         case 16:
-            (void)csr_scale_rows<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5]);
             return 0;
         case 17:
-            (void)csr_scale_rows<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5]);
+            (void)csr_scale_rows(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5]);
             return 0;
         case 19:
-            (void)csr_scale_rows<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5]);
             return 0;
         case 20:
-            (void)csr_scale_rows<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_byte*)a[4], (const npy_byte*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_byte*)a[4], (const npy_byte*)a[5]);
             return 0;
         case 21:
-            (void)csr_scale_rows<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ubyte*)a[4], (const npy_ubyte*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ubyte*)a[4], (const npy_ubyte*)a[5]);
             return 0;
         case 22:
-            (void)csr_scale_rows<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_short*)a[4], (const npy_short*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_short*)a[4], (const npy_short*)a[5]);
             return 0;
         case 23:
-            (void)csr_scale_rows<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ushort*)a[4], (const npy_ushort*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ushort*)a[4], (const npy_ushort*)a[5]);
             return 0;
         case 24:
-            (void)csr_scale_rows<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_int*)a[4], (const npy_int*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_int*)a[4], (const npy_int*)a[5]);
             return 0;
         case 25:
-            (void)csr_scale_rows<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_uint*)a[4], (const npy_uint*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_uint*)a[4], (const npy_uint*)a[5]);
             return 0;
         case 26:
-            (void)csr_scale_rows<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_long*)a[4], (const npy_long*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_long*)a[4], (const npy_long*)a[5]);
             return 0;
         case 27:
-            (void)csr_scale_rows<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ulong*)a[4], (const npy_ulong*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ulong*)a[4], (const npy_ulong*)a[5]);
             return 0;
         case 28:
-            (void)csr_scale_rows<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_longlong*)a[4], (const npy_longlong*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_longlong*)a[4], (const npy_longlong*)a[5]);
             return 0;
         case 29:
-            (void)csr_scale_rows<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ulonglong*)a[4], (const npy_ulonglong*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ulonglong*)a[4], (const npy_ulonglong*)a[5]);
             return 0;
         case 30:
-            (void)csr_scale_rows<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_float*)a[4], (const npy_float*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_float*)a[4], (const npy_float*)a[5]);
             return 0;
         case 31:
-            (void)csr_scale_rows<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_double*)a[4], (const npy_double*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_double*)a[4], (const npy_double*)a[5]);
             return 0;
         case 32:
-            (void)csr_scale_rows<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_longdouble*)a[4], (const npy_longdouble*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_longdouble*)a[4], (const npy_longdouble*)a[5]);
             return 0;
         case 33:
-            (void)csr_scale_rows<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5]);
             return 0;
         case 34:
-            (void)csr_scale_rows<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5]);
             return 0;
         case 35:
-            (void)csr_scale_rows<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5]);
+            (void)csr_scale_rows(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -2175,106 +2175,106 @@ static PY_LONG_LONG csr_scale_columns_thunk(int I_typenum, int T_typenum, void *
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_scale_columns<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5]);
             return 0;
         case 2:
-            (void)csr_scale_columns<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_byte*)a[4], (const npy_byte*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_byte*)a[4], (const npy_byte*)a[5]);
             return 0;
         case 3:
-            (void)csr_scale_columns<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ubyte*)a[4], (const npy_ubyte*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ubyte*)a[4], (const npy_ubyte*)a[5]);
             return 0;
         case 4:
-            (void)csr_scale_columns<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_short*)a[4], (const npy_short*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_short*)a[4], (const npy_short*)a[5]);
             return 0;
         case 5:
-            (void)csr_scale_columns<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ushort*)a[4], (const npy_ushort*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ushort*)a[4], (const npy_ushort*)a[5]);
             return 0;
         case 6:
-            (void)csr_scale_columns<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_int*)a[4], (const npy_int*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_int*)a[4], (const npy_int*)a[5]);
             return 0;
         case 7:
-            (void)csr_scale_columns<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_uint*)a[4], (const npy_uint*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_uint*)a[4], (const npy_uint*)a[5]);
             return 0;
         case 8:
-            (void)csr_scale_columns<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_long*)a[4], (const npy_long*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_long*)a[4], (const npy_long*)a[5]);
             return 0;
         case 9:
-            (void)csr_scale_columns<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ulong*)a[4], (const npy_ulong*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ulong*)a[4], (const npy_ulong*)a[5]);
             return 0;
         case 10:
-            (void)csr_scale_columns<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_longlong*)a[4], (const npy_longlong*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_longlong*)a[4], (const npy_longlong*)a[5]);
             return 0;
         case 11:
-            (void)csr_scale_columns<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ulonglong*)a[4], (const npy_ulonglong*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_ulonglong*)a[4], (const npy_ulonglong*)a[5]);
             return 0;
         case 12:
-            (void)csr_scale_columns<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_float*)a[4], (const npy_float*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_float*)a[4], (const npy_float*)a[5]);
             return 0;
         case 13:
-            (void)csr_scale_columns<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_double*)a[4], (const npy_double*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_double*)a[4], (const npy_double*)a[5]);
             return 0;
         case 14:
-            (void)csr_scale_columns<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_longdouble*)a[4], (const npy_longdouble*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_longdouble*)a[4], (const npy_longdouble*)a[5]);
             return 0;
         case 15:
-            (void)csr_scale_columns<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5]);
             return 0;
         case 16:
-            (void)csr_scale_columns<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5]);
             return 0;
         case 17:
-            (void)csr_scale_columns<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5]);
+            (void)csr_scale_columns(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5]);
             return 0;
         case 19:
-            (void)csr_scale_columns<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_bool_wrapper*)a[4], (const npy_bool_wrapper*)a[5]);
             return 0;
         case 20:
-            (void)csr_scale_columns<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_byte*)a[4], (const npy_byte*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_byte*)a[4], (const npy_byte*)a[5]);
             return 0;
         case 21:
-            (void)csr_scale_columns<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ubyte*)a[4], (const npy_ubyte*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ubyte*)a[4], (const npy_ubyte*)a[5]);
             return 0;
         case 22:
-            (void)csr_scale_columns<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_short*)a[4], (const npy_short*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_short*)a[4], (const npy_short*)a[5]);
             return 0;
         case 23:
-            (void)csr_scale_columns<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ushort*)a[4], (const npy_ushort*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ushort*)a[4], (const npy_ushort*)a[5]);
             return 0;
         case 24:
-            (void)csr_scale_columns<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_int*)a[4], (const npy_int*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_int*)a[4], (const npy_int*)a[5]);
             return 0;
         case 25:
-            (void)csr_scale_columns<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_uint*)a[4], (const npy_uint*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_uint*)a[4], (const npy_uint*)a[5]);
             return 0;
         case 26:
-            (void)csr_scale_columns<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_long*)a[4], (const npy_long*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_long*)a[4], (const npy_long*)a[5]);
             return 0;
         case 27:
-            (void)csr_scale_columns<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ulong*)a[4], (const npy_ulong*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ulong*)a[4], (const npy_ulong*)a[5]);
             return 0;
         case 28:
-            (void)csr_scale_columns<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_longlong*)a[4], (const npy_longlong*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_longlong*)a[4], (const npy_longlong*)a[5]);
             return 0;
         case 29:
-            (void)csr_scale_columns<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ulonglong*)a[4], (const npy_ulonglong*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_ulonglong*)a[4], (const npy_ulonglong*)a[5]);
             return 0;
         case 30:
-            (void)csr_scale_columns<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_float*)a[4], (const npy_float*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_float*)a[4], (const npy_float*)a[5]);
             return 0;
         case 31:
-            (void)csr_scale_columns<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_double*)a[4], (const npy_double*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_double*)a[4], (const npy_double*)a[5]);
             return 0;
         case 32:
-            (void)csr_scale_columns<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_longdouble*)a[4], (const npy_longdouble*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_longdouble*)a[4], (const npy_longdouble*)a[5]);
             return 0;
         case 33:
-            (void)csr_scale_columns<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_cfloat_wrapper*)a[4], (const npy_cfloat_wrapper*)a[5]);
             return 0;
         case 34:
-            (void)csr_scale_columns<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_cdouble_wrapper*)a[4], (const npy_cdouble_wrapper*)a[5]);
             return 0;
         case 35:
-            (void)csr_scale_columns<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5]);
+            (void)csr_scale_columns(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (npy_clongdouble_wrapper*)a[4], (const npy_clongdouble_wrapper*)a[5]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -2286,106 +2286,106 @@ static PY_LONG_LONG csr_sort_indices_thunk(int I_typenum, int T_typenum, void **
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_sort_indices<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_bool_wrapper*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_bool_wrapper*)a[3]);
             return 0;
         case 2:
-            (void)csr_sort_indices<npy_int32,npy_byte>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_byte*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_byte*)a[3]);
             return 0;
         case 3:
-            (void)csr_sort_indices<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_ubyte*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_ubyte*)a[3]);
             return 0;
         case 4:
-            (void)csr_sort_indices<npy_int32,npy_short>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_short*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_short*)a[3]);
             return 0;
         case 5:
-            (void)csr_sort_indices<npy_int32,npy_ushort>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_ushort*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_ushort*)a[3]);
             return 0;
         case 6:
-            (void)csr_sort_indices<npy_int32,npy_int>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_int*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_int*)a[3]);
             return 0;
         case 7:
-            (void)csr_sort_indices<npy_int32,npy_uint>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_uint*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_uint*)a[3]);
             return 0;
         case 8:
-            (void)csr_sort_indices<npy_int32,npy_long>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_long*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_long*)a[3]);
             return 0;
         case 9:
-            (void)csr_sort_indices<npy_int32,npy_ulong>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_ulong*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_ulong*)a[3]);
             return 0;
         case 10:
-            (void)csr_sort_indices<npy_int32,npy_longlong>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_longlong*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_longlong*)a[3]);
             return 0;
         case 11:
-            (void)csr_sort_indices<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_ulonglong*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_ulonglong*)a[3]);
             return 0;
         case 12:
-            (void)csr_sort_indices<npy_int32,npy_float>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_float*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_float*)a[3]);
             return 0;
         case 13:
-            (void)csr_sort_indices<npy_int32,npy_double>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_double*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_double*)a[3]);
             return 0;
         case 14:
-            (void)csr_sort_indices<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_longdouble*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_longdouble*)a[3]);
             return 0;
         case 15:
-            (void)csr_sort_indices<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_cfloat_wrapper*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_cfloat_wrapper*)a[3]);
             return 0;
         case 16:
-            (void)csr_sort_indices<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_cdouble_wrapper*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_cdouble_wrapper*)a[3]);
             return 0;
         case 17:
-            (void)csr_sort_indices<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_clongdouble_wrapper*)a[3]);
+            (void)csr_sort_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2], (npy_clongdouble_wrapper*)a[3]);
             return 0;
         case 19:
-            (void)csr_sort_indices<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_bool_wrapper*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_bool_wrapper*)a[3]);
             return 0;
         case 20:
-            (void)csr_sort_indices<npy_int64,npy_byte>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_byte*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_byte*)a[3]);
             return 0;
         case 21:
-            (void)csr_sort_indices<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_ubyte*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_ubyte*)a[3]);
             return 0;
         case 22:
-            (void)csr_sort_indices<npy_int64,npy_short>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_short*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_short*)a[3]);
             return 0;
         case 23:
-            (void)csr_sort_indices<npy_int64,npy_ushort>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_ushort*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_ushort*)a[3]);
             return 0;
         case 24:
-            (void)csr_sort_indices<npy_int64,npy_int>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_int*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_int*)a[3]);
             return 0;
         case 25:
-            (void)csr_sort_indices<npy_int64,npy_uint>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_uint*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_uint*)a[3]);
             return 0;
         case 26:
-            (void)csr_sort_indices<npy_int64,npy_long>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_long*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_long*)a[3]);
             return 0;
         case 27:
-            (void)csr_sort_indices<npy_int64,npy_ulong>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_ulong*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_ulong*)a[3]);
             return 0;
         case 28:
-            (void)csr_sort_indices<npy_int64,npy_longlong>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_longlong*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_longlong*)a[3]);
             return 0;
         case 29:
-            (void)csr_sort_indices<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_ulonglong*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_ulonglong*)a[3]);
             return 0;
         case 30:
-            (void)csr_sort_indices<npy_int64,npy_float>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_float*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_float*)a[3]);
             return 0;
         case 31:
-            (void)csr_sort_indices<npy_int64,npy_double>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_double*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_double*)a[3]);
             return 0;
         case 32:
-            (void)csr_sort_indices<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_longdouble*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_longdouble*)a[3]);
             return 0;
         case 33:
-            (void)csr_sort_indices<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_cfloat_wrapper*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_cfloat_wrapper*)a[3]);
             return 0;
         case 34:
-            (void)csr_sort_indices<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_cdouble_wrapper*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_cdouble_wrapper*)a[3]);
             return 0;
         case 35:
-            (void)csr_sort_indices<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_clongdouble_wrapper*)a[3]);
+            (void)csr_sort_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2], (npy_clongdouble_wrapper*)a[3]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -2397,106 +2397,106 @@ static PY_LONG_LONG csr_eliminate_zeros_thunk(int I_typenum, int T_typenum, void
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_eliminate_zeros<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_bool_wrapper*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_bool_wrapper*)a[4]);
             return 0;
         case 2:
-            (void)csr_eliminate_zeros<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_byte*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_byte*)a[4]);
             return 0;
         case 3:
-            (void)csr_eliminate_zeros<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ubyte*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ubyte*)a[4]);
             return 0;
         case 4:
-            (void)csr_eliminate_zeros<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_short*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_short*)a[4]);
             return 0;
         case 5:
-            (void)csr_eliminate_zeros<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ushort*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ushort*)a[4]);
             return 0;
         case 6:
-            (void)csr_eliminate_zeros<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_int*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_int*)a[4]);
             return 0;
         case 7:
-            (void)csr_eliminate_zeros<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_uint*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_uint*)a[4]);
             return 0;
         case 8:
-            (void)csr_eliminate_zeros<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_long*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_long*)a[4]);
             return 0;
         case 9:
-            (void)csr_eliminate_zeros<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ulong*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ulong*)a[4]);
             return 0;
         case 10:
-            (void)csr_eliminate_zeros<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_longlong*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_longlong*)a[4]);
             return 0;
         case 11:
-            (void)csr_eliminate_zeros<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ulonglong*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ulonglong*)a[4]);
             return 0;
         case 12:
-            (void)csr_eliminate_zeros<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_float*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_float*)a[4]);
             return 0;
         case 13:
-            (void)csr_eliminate_zeros<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_double*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_double*)a[4]);
             return 0;
         case 14:
-            (void)csr_eliminate_zeros<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_longdouble*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_longdouble*)a[4]);
             return 0;
         case 15:
-            (void)csr_eliminate_zeros<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_cfloat_wrapper*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_cfloat_wrapper*)a[4]);
             return 0;
         case 16:
-            (void)csr_eliminate_zeros<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_cdouble_wrapper*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_cdouble_wrapper*)a[4]);
             return 0;
         case 17:
-            (void)csr_eliminate_zeros<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_clongdouble_wrapper*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_clongdouble_wrapper*)a[4]);
             return 0;
         case 19:
-            (void)csr_eliminate_zeros<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_bool_wrapper*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_bool_wrapper*)a[4]);
             return 0;
         case 20:
-            (void)csr_eliminate_zeros<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_byte*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_byte*)a[4]);
             return 0;
         case 21:
-            (void)csr_eliminate_zeros<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ubyte*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ubyte*)a[4]);
             return 0;
         case 22:
-            (void)csr_eliminate_zeros<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_short*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_short*)a[4]);
             return 0;
         case 23:
-            (void)csr_eliminate_zeros<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ushort*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ushort*)a[4]);
             return 0;
         case 24:
-            (void)csr_eliminate_zeros<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_int*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_int*)a[4]);
             return 0;
         case 25:
-            (void)csr_eliminate_zeros<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_uint*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_uint*)a[4]);
             return 0;
         case 26:
-            (void)csr_eliminate_zeros<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_long*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_long*)a[4]);
             return 0;
         case 27:
-            (void)csr_eliminate_zeros<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ulong*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ulong*)a[4]);
             return 0;
         case 28:
-            (void)csr_eliminate_zeros<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_longlong*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_longlong*)a[4]);
             return 0;
         case 29:
-            (void)csr_eliminate_zeros<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ulonglong*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ulonglong*)a[4]);
             return 0;
         case 30:
-            (void)csr_eliminate_zeros<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_float*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_float*)a[4]);
             return 0;
         case 31:
-            (void)csr_eliminate_zeros<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_double*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_double*)a[4]);
             return 0;
         case 32:
-            (void)csr_eliminate_zeros<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_longdouble*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_longdouble*)a[4]);
             return 0;
         case 33:
-            (void)csr_eliminate_zeros<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_cfloat_wrapper*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_cfloat_wrapper*)a[4]);
             return 0;
         case 34:
-            (void)csr_eliminate_zeros<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_cdouble_wrapper*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_cdouble_wrapper*)a[4]);
             return 0;
         case 35:
-            (void)csr_eliminate_zeros<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_clongdouble_wrapper*)a[4]);
+            (void)csr_eliminate_zeros(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_clongdouble_wrapper*)a[4]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -2508,106 +2508,106 @@ static PY_LONG_LONG csr_sum_duplicates_thunk(int I_typenum, int T_typenum, void 
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_sum_duplicates<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_bool_wrapper*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_bool_wrapper*)a[4]);
             return 0;
         case 2:
-            (void)csr_sum_duplicates<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_byte*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_byte*)a[4]);
             return 0;
         case 3:
-            (void)csr_sum_duplicates<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ubyte*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ubyte*)a[4]);
             return 0;
         case 4:
-            (void)csr_sum_duplicates<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_short*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_short*)a[4]);
             return 0;
         case 5:
-            (void)csr_sum_duplicates<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ushort*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ushort*)a[4]);
             return 0;
         case 6:
-            (void)csr_sum_duplicates<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_int*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_int*)a[4]);
             return 0;
         case 7:
-            (void)csr_sum_duplicates<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_uint*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_uint*)a[4]);
             return 0;
         case 8:
-            (void)csr_sum_duplicates<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_long*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_long*)a[4]);
             return 0;
         case 9:
-            (void)csr_sum_duplicates<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ulong*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ulong*)a[4]);
             return 0;
         case 10:
-            (void)csr_sum_duplicates<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_longlong*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_longlong*)a[4]);
             return 0;
         case 11:
-            (void)csr_sum_duplicates<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ulonglong*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_ulonglong*)a[4]);
             return 0;
         case 12:
-            (void)csr_sum_duplicates<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_float*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_float*)a[4]);
             return 0;
         case 13:
-            (void)csr_sum_duplicates<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_double*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_double*)a[4]);
             return 0;
         case 14:
-            (void)csr_sum_duplicates<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_longdouble*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_longdouble*)a[4]);
             return 0;
         case 15:
-            (void)csr_sum_duplicates<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_cfloat_wrapper*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_cfloat_wrapper*)a[4]);
             return 0;
         case 16:
-            (void)csr_sum_duplicates<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_cdouble_wrapper*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_cdouble_wrapper*)a[4]);
             return 0;
         case 17:
-            (void)csr_sum_duplicates<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_clongdouble_wrapper*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (npy_int32*)a[2], (npy_int32*)a[3], (npy_clongdouble_wrapper*)a[4]);
             return 0;
         case 19:
-            (void)csr_sum_duplicates<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_bool_wrapper*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_bool_wrapper*)a[4]);
             return 0;
         case 20:
-            (void)csr_sum_duplicates<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_byte*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_byte*)a[4]);
             return 0;
         case 21:
-            (void)csr_sum_duplicates<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ubyte*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ubyte*)a[4]);
             return 0;
         case 22:
-            (void)csr_sum_duplicates<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_short*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_short*)a[4]);
             return 0;
         case 23:
-            (void)csr_sum_duplicates<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ushort*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ushort*)a[4]);
             return 0;
         case 24:
-            (void)csr_sum_duplicates<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_int*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_int*)a[4]);
             return 0;
         case 25:
-            (void)csr_sum_duplicates<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_uint*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_uint*)a[4]);
             return 0;
         case 26:
-            (void)csr_sum_duplicates<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_long*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_long*)a[4]);
             return 0;
         case 27:
-            (void)csr_sum_duplicates<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ulong*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ulong*)a[4]);
             return 0;
         case 28:
-            (void)csr_sum_duplicates<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_longlong*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_longlong*)a[4]);
             return 0;
         case 29:
-            (void)csr_sum_duplicates<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ulonglong*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_ulonglong*)a[4]);
             return 0;
         case 30:
-            (void)csr_sum_duplicates<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_float*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_float*)a[4]);
             return 0;
         case 31:
-            (void)csr_sum_duplicates<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_double*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_double*)a[4]);
             return 0;
         case 32:
-            (void)csr_sum_duplicates<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_longdouble*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_longdouble*)a[4]);
             return 0;
         case 33:
-            (void)csr_sum_duplicates<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_cfloat_wrapper*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_cfloat_wrapper*)a[4]);
             return 0;
         case 34:
-            (void)csr_sum_duplicates<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_cdouble_wrapper*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_cdouble_wrapper*)a[4]);
             return 0;
         case 35:
-            (void)csr_sum_duplicates<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_clongdouble_wrapper*)a[4]);
+            (void)csr_sum_duplicates(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (npy_int64*)a[2], (npy_int64*)a[3], (npy_clongdouble_wrapper*)a[4]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -2619,106 +2619,106 @@ static PY_LONG_LONG get_csr_submatrix_thunk(int I_typenum, int T_typenum, void *
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)get_csr_submatrix<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_bool_wrapper>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_bool_wrapper>*)a[11]);
             return 0;
         case 2:
-            (void)get_csr_submatrix<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_byte>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_byte>*)a[11]);
             return 0;
         case 3:
-            (void)get_csr_submatrix<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_ubyte>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_ubyte>*)a[11]);
             return 0;
         case 4:
-            (void)get_csr_submatrix<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_short>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_short>*)a[11]);
             return 0;
         case 5:
-            (void)get_csr_submatrix<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_ushort>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_ushort>*)a[11]);
             return 0;
         case 6:
-            (void)get_csr_submatrix<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_int>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_int>*)a[11]);
             return 0;
         case 7:
-            (void)get_csr_submatrix<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_uint>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_uint>*)a[11]);
             return 0;
         case 8:
-            (void)get_csr_submatrix<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_long>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_long>*)a[11]);
             return 0;
         case 9:
-            (void)get_csr_submatrix<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_ulong>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_ulong>*)a[11]);
             return 0;
         case 10:
-            (void)get_csr_submatrix<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_longlong>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_longlong>*)a[11]);
             return 0;
         case 11:
-            (void)get_csr_submatrix<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_ulonglong>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_ulonglong>*)a[11]);
             return 0;
         case 12:
-            (void)get_csr_submatrix<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_float>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_float>*)a[11]);
             return 0;
         case 13:
-            (void)get_csr_submatrix<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_double>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_double>*)a[11]);
             return 0;
         case 14:
-            (void)get_csr_submatrix<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_longdouble>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_longdouble>*)a[11]);
             return 0;
         case 15:
-            (void)get_csr_submatrix<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_cfloat_wrapper>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_cfloat_wrapper>*)a[11]);
             return 0;
         case 16:
-            (void)get_csr_submatrix<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_cdouble_wrapper>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_cdouble_wrapper>*)a[11]);
             return 0;
         case 17:
-            (void)get_csr_submatrix<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_clongdouble_wrapper>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], *(const npy_int32*)a[5], *(const npy_int32*)a[6], *(const npy_int32*)a[7], *(const npy_int32*)a[8], (std::vector<npy_int32>*)a[9], (std::vector<npy_int32>*)a[10], (std::vector<npy_clongdouble_wrapper>*)a[11]);
             return 0;
         case 19:
-            (void)get_csr_submatrix<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_bool_wrapper>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_bool_wrapper>*)a[11]);
             return 0;
         case 20:
-            (void)get_csr_submatrix<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_byte>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_byte>*)a[11]);
             return 0;
         case 21:
-            (void)get_csr_submatrix<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_ubyte>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_ubyte>*)a[11]);
             return 0;
         case 22:
-            (void)get_csr_submatrix<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_short>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_short>*)a[11]);
             return 0;
         case 23:
-            (void)get_csr_submatrix<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_ushort>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_ushort>*)a[11]);
             return 0;
         case 24:
-            (void)get_csr_submatrix<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_int>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_int>*)a[11]);
             return 0;
         case 25:
-            (void)get_csr_submatrix<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_uint>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_uint>*)a[11]);
             return 0;
         case 26:
-            (void)get_csr_submatrix<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_long>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_long>*)a[11]);
             return 0;
         case 27:
-            (void)get_csr_submatrix<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_ulong>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_ulong>*)a[11]);
             return 0;
         case 28:
-            (void)get_csr_submatrix<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_longlong>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_longlong>*)a[11]);
             return 0;
         case 29:
-            (void)get_csr_submatrix<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_ulonglong>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_ulonglong>*)a[11]);
             return 0;
         case 30:
-            (void)get_csr_submatrix<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_float>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_float>*)a[11]);
             return 0;
         case 31:
-            (void)get_csr_submatrix<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_double>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_double>*)a[11]);
             return 0;
         case 32:
-            (void)get_csr_submatrix<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_longdouble>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_longdouble>*)a[11]);
             return 0;
         case 33:
-            (void)get_csr_submatrix<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_cfloat_wrapper>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_cfloat_wrapper>*)a[11]);
             return 0;
         case 34:
-            (void)get_csr_submatrix<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_cdouble_wrapper>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_cdouble_wrapper>*)a[11]);
             return 0;
         case 35:
-            (void)get_csr_submatrix<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_clongdouble_wrapper>*)a[11]);
+            (void)get_csr_submatrix(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], *(const npy_int64*)a[5], *(const npy_int64*)a[6], *(const npy_int64*)a[7], *(const npy_int64*)a[8], (std::vector<npy_int64>*)a[9], (std::vector<npy_int64>*)a[10], (std::vector<npy_clongdouble_wrapper>*)a[11]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -2730,106 +2730,106 @@ static PY_LONG_LONG csr_row_index_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_row_index<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (npy_int32*)a[5], (npy_bool_wrapper*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (npy_int32*)a[5], (npy_bool_wrapper*)a[6]);
             return 0;
         case 2:
-            (void)csr_row_index<npy_int32,npy_byte>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (npy_int32*)a[5], (npy_byte*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (npy_int32*)a[5], (npy_byte*)a[6]);
             return 0;
         case 3:
-            (void)csr_row_index<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (npy_int32*)a[5], (npy_ubyte*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (npy_int32*)a[5], (npy_ubyte*)a[6]);
             return 0;
         case 4:
-            (void)csr_row_index<npy_int32,npy_short>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (npy_int32*)a[5], (npy_short*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (npy_int32*)a[5], (npy_short*)a[6]);
             return 0;
         case 5:
-            (void)csr_row_index<npy_int32,npy_ushort>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (npy_int32*)a[5], (npy_ushort*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (npy_int32*)a[5], (npy_ushort*)a[6]);
             return 0;
         case 6:
-            (void)csr_row_index<npy_int32,npy_int>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (npy_int32*)a[5], (npy_int*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (npy_int32*)a[5], (npy_int*)a[6]);
             return 0;
         case 7:
-            (void)csr_row_index<npy_int32,npy_uint>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (npy_int32*)a[5], (npy_uint*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (npy_int32*)a[5], (npy_uint*)a[6]);
             return 0;
         case 8:
-            (void)csr_row_index<npy_int32,npy_long>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (npy_int32*)a[5], (npy_long*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (npy_int32*)a[5], (npy_long*)a[6]);
             return 0;
         case 9:
-            (void)csr_row_index<npy_int32,npy_ulong>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (npy_int32*)a[5], (npy_ulong*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (npy_int32*)a[5], (npy_ulong*)a[6]);
             return 0;
         case 10:
-            (void)csr_row_index<npy_int32,npy_longlong>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (npy_int32*)a[5], (npy_longlong*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (npy_int32*)a[5], (npy_longlong*)a[6]);
             return 0;
         case 11:
-            (void)csr_row_index<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (npy_int32*)a[5], (npy_ulonglong*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (npy_int32*)a[5], (npy_ulonglong*)a[6]);
             return 0;
         case 12:
-            (void)csr_row_index<npy_int32,npy_float>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (npy_int32*)a[5], (npy_float*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (npy_int32*)a[5], (npy_float*)a[6]);
             return 0;
         case 13:
-            (void)csr_row_index<npy_int32,npy_double>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (npy_int32*)a[5], (npy_double*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (npy_int32*)a[5], (npy_double*)a[6]);
             return 0;
         case 14:
-            (void)csr_row_index<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (npy_int32*)a[5], (npy_longdouble*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (npy_int32*)a[5], (npy_longdouble*)a[6]);
             return 0;
         case 15:
-            (void)csr_row_index<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int32*)a[5], (npy_cfloat_wrapper*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int32*)a[5], (npy_cfloat_wrapper*)a[6]);
             return 0;
         case 16:
-            (void)csr_row_index<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_cdouble_wrapper*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_cdouble_wrapper*)a[6]);
             return 0;
         case 17:
-            (void)csr_row_index<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_clongdouble_wrapper*)a[6]);
+            (void)csr_row_index(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_clongdouble_wrapper*)a[6]);
             return 0;
         case 19:
-            (void)csr_row_index<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (npy_int64*)a[5], (npy_bool_wrapper*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (npy_int64*)a[5], (npy_bool_wrapper*)a[6]);
             return 0;
         case 20:
-            (void)csr_row_index<npy_int64,npy_byte>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (npy_int64*)a[5], (npy_byte*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (npy_int64*)a[5], (npy_byte*)a[6]);
             return 0;
         case 21:
-            (void)csr_row_index<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (npy_int64*)a[5], (npy_ubyte*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (npy_int64*)a[5], (npy_ubyte*)a[6]);
             return 0;
         case 22:
-            (void)csr_row_index<npy_int64,npy_short>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (npy_int64*)a[5], (npy_short*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (npy_int64*)a[5], (npy_short*)a[6]);
             return 0;
         case 23:
-            (void)csr_row_index<npy_int64,npy_ushort>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (npy_int64*)a[5], (npy_ushort*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (npy_int64*)a[5], (npy_ushort*)a[6]);
             return 0;
         case 24:
-            (void)csr_row_index<npy_int64,npy_int>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (npy_int64*)a[5], (npy_int*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (npy_int64*)a[5], (npy_int*)a[6]);
             return 0;
         case 25:
-            (void)csr_row_index<npy_int64,npy_uint>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (npy_int64*)a[5], (npy_uint*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (npy_int64*)a[5], (npy_uint*)a[6]);
             return 0;
         case 26:
-            (void)csr_row_index<npy_int64,npy_long>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (npy_int64*)a[5], (npy_long*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (npy_int64*)a[5], (npy_long*)a[6]);
             return 0;
         case 27:
-            (void)csr_row_index<npy_int64,npy_ulong>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (npy_int64*)a[5], (npy_ulong*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (npy_int64*)a[5], (npy_ulong*)a[6]);
             return 0;
         case 28:
-            (void)csr_row_index<npy_int64,npy_longlong>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (npy_int64*)a[5], (npy_longlong*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (npy_int64*)a[5], (npy_longlong*)a[6]);
             return 0;
         case 29:
-            (void)csr_row_index<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (npy_int64*)a[5], (npy_ulonglong*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (npy_int64*)a[5], (npy_ulonglong*)a[6]);
             return 0;
         case 30:
-            (void)csr_row_index<npy_int64,npy_float>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (npy_int64*)a[5], (npy_float*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (npy_int64*)a[5], (npy_float*)a[6]);
             return 0;
         case 31:
-            (void)csr_row_index<npy_int64,npy_double>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (npy_int64*)a[5], (npy_double*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (npy_int64*)a[5], (npy_double*)a[6]);
             return 0;
         case 32:
-            (void)csr_row_index<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (npy_int64*)a[5], (npy_longdouble*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (npy_int64*)a[5], (npy_longdouble*)a[6]);
             return 0;
         case 33:
-            (void)csr_row_index<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int64*)a[5], (npy_cfloat_wrapper*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int64*)a[5], (npy_cfloat_wrapper*)a[6]);
             return 0;
         case 34:
-            (void)csr_row_index<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_cdouble_wrapper*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_cdouble_wrapper*)a[6]);
             return 0;
         case 35:
-            (void)csr_row_index<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_clongdouble_wrapper*)a[6]);
+            (void)csr_row_index(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_clongdouble_wrapper*)a[6]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -2841,106 +2841,106 @@ static PY_LONG_LONG csr_row_slice_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_row_slice<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_bool_wrapper*)a[5], (npy_int32*)a[6], (npy_bool_wrapper*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_bool_wrapper*)a[5], (npy_int32*)a[6], (npy_bool_wrapper*)a[7]);
             return 0;
         case 2:
-            (void)csr_row_slice<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_byte*)a[5], (npy_int32*)a[6], (npy_byte*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_byte*)a[5], (npy_int32*)a[6], (npy_byte*)a[7]);
             return 0;
         case 3:
-            (void)csr_row_slice<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ubyte*)a[5], (npy_int32*)a[6], (npy_ubyte*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ubyte*)a[5], (npy_int32*)a[6], (npy_ubyte*)a[7]);
             return 0;
         case 4:
-            (void)csr_row_slice<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_short*)a[5], (npy_int32*)a[6], (npy_short*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_short*)a[5], (npy_int32*)a[6], (npy_short*)a[7]);
             return 0;
         case 5:
-            (void)csr_row_slice<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ushort*)a[5], (npy_int32*)a[6], (npy_ushort*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ushort*)a[5], (npy_int32*)a[6], (npy_ushort*)a[7]);
             return 0;
         case 6:
-            (void)csr_row_slice<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int*)a[5], (npy_int32*)a[6], (npy_int*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int*)a[5], (npy_int32*)a[6], (npy_int*)a[7]);
             return 0;
         case 7:
-            (void)csr_row_slice<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_uint*)a[5], (npy_int32*)a[6], (npy_uint*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_uint*)a[5], (npy_int32*)a[6], (npy_uint*)a[7]);
             return 0;
         case 8:
-            (void)csr_row_slice<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_long*)a[5], (npy_int32*)a[6], (npy_long*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_long*)a[5], (npy_int32*)a[6], (npy_long*)a[7]);
             return 0;
         case 9:
-            (void)csr_row_slice<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulong*)a[5], (npy_int32*)a[6], (npy_ulong*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulong*)a[5], (npy_int32*)a[6], (npy_ulong*)a[7]);
             return 0;
         case 10:
-            (void)csr_row_slice<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longlong*)a[5], (npy_int32*)a[6], (npy_longlong*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longlong*)a[5], (npy_int32*)a[6], (npy_longlong*)a[7]);
             return 0;
         case 11:
-            (void)csr_row_slice<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulonglong*)a[5], (npy_int32*)a[6], (npy_ulonglong*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulonglong*)a[5], (npy_int32*)a[6], (npy_ulonglong*)a[7]);
             return 0;
         case 12:
-            (void)csr_row_slice<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_float*)a[5], (npy_int32*)a[6], (npy_float*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_float*)a[5], (npy_int32*)a[6], (npy_float*)a[7]);
             return 0;
         case 13:
-            (void)csr_row_slice<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_double*)a[5], (npy_int32*)a[6], (npy_double*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_double*)a[5], (npy_int32*)a[6], (npy_double*)a[7]);
             return 0;
         case 14:
-            (void)csr_row_slice<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longdouble*)a[5], (npy_int32*)a[6], (npy_longdouble*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longdouble*)a[5], (npy_int32*)a[6], (npy_longdouble*)a[7]);
             return 0;
         case 15:
-            (void)csr_row_slice<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_int32*)a[6], (npy_cfloat_wrapper*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_int32*)a[6], (npy_cfloat_wrapper*)a[7]);
             return 0;
         case 16:
-            (void)csr_row_slice<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_int32*)a[6], (npy_cdouble_wrapper*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_int32*)a[6], (npy_cdouble_wrapper*)a[7]);
             return 0;
         case 17:
-            (void)csr_row_slice<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_int32*)a[6], (npy_clongdouble_wrapper*)a[7]);
+            (void)csr_row_slice(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_int32*)a[6], (npy_clongdouble_wrapper*)a[7]);
             return 0;
         case 19:
-            (void)csr_row_slice<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_bool_wrapper*)a[5], (npy_int64*)a[6], (npy_bool_wrapper*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_bool_wrapper*)a[5], (npy_int64*)a[6], (npy_bool_wrapper*)a[7]);
             return 0;
         case 20:
-            (void)csr_row_slice<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_byte*)a[5], (npy_int64*)a[6], (npy_byte*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_byte*)a[5], (npy_int64*)a[6], (npy_byte*)a[7]);
             return 0;
         case 21:
-            (void)csr_row_slice<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ubyte*)a[5], (npy_int64*)a[6], (npy_ubyte*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ubyte*)a[5], (npy_int64*)a[6], (npy_ubyte*)a[7]);
             return 0;
         case 22:
-            (void)csr_row_slice<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_short*)a[5], (npy_int64*)a[6], (npy_short*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_short*)a[5], (npy_int64*)a[6], (npy_short*)a[7]);
             return 0;
         case 23:
-            (void)csr_row_slice<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ushort*)a[5], (npy_int64*)a[6], (npy_ushort*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ushort*)a[5], (npy_int64*)a[6], (npy_ushort*)a[7]);
             return 0;
         case 24:
-            (void)csr_row_slice<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int*)a[5], (npy_int64*)a[6], (npy_int*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int*)a[5], (npy_int64*)a[6], (npy_int*)a[7]);
             return 0;
         case 25:
-            (void)csr_row_slice<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_uint*)a[5], (npy_int64*)a[6], (npy_uint*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_uint*)a[5], (npy_int64*)a[6], (npy_uint*)a[7]);
             return 0;
         case 26:
-            (void)csr_row_slice<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_long*)a[5], (npy_int64*)a[6], (npy_long*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_long*)a[5], (npy_int64*)a[6], (npy_long*)a[7]);
             return 0;
         case 27:
-            (void)csr_row_slice<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulong*)a[5], (npy_int64*)a[6], (npy_ulong*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulong*)a[5], (npy_int64*)a[6], (npy_ulong*)a[7]);
             return 0;
         case 28:
-            (void)csr_row_slice<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longlong*)a[5], (npy_int64*)a[6], (npy_longlong*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longlong*)a[5], (npy_int64*)a[6], (npy_longlong*)a[7]);
             return 0;
         case 29:
-            (void)csr_row_slice<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulonglong*)a[5], (npy_int64*)a[6], (npy_ulonglong*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulonglong*)a[5], (npy_int64*)a[6], (npy_ulonglong*)a[7]);
             return 0;
         case 30:
-            (void)csr_row_slice<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_float*)a[5], (npy_int64*)a[6], (npy_float*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_float*)a[5], (npy_int64*)a[6], (npy_float*)a[7]);
             return 0;
         case 31:
-            (void)csr_row_slice<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_double*)a[5], (npy_int64*)a[6], (npy_double*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_double*)a[5], (npy_int64*)a[6], (npy_double*)a[7]);
             return 0;
         case 32:
-            (void)csr_row_slice<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longdouble*)a[5], (npy_int64*)a[6], (npy_longdouble*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longdouble*)a[5], (npy_int64*)a[6], (npy_longdouble*)a[7]);
             return 0;
         case 33:
-            (void)csr_row_slice<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_int64*)a[6], (npy_cfloat_wrapper*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_int64*)a[6], (npy_cfloat_wrapper*)a[7]);
             return 0;
         case 34:
-            (void)csr_row_slice<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_int64*)a[6], (npy_cdouble_wrapper*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_int64*)a[6], (npy_cdouble_wrapper*)a[7]);
             return 0;
         case 35:
-            (void)csr_row_slice<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_int64*)a[6], (npy_clongdouble_wrapper*)a[7]);
+            (void)csr_row_slice(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_int64*)a[6], (npy_clongdouble_wrapper*)a[7]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -2952,10 +2952,10 @@ static PY_LONG_LONG csr_column_index1_thunk(int I_typenum, int T_typenum, void *
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 0:
-            (void)csr_column_index1<npy_int32>(*(const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (npy_int32*)a[6], (npy_int32*)a[7]);
+            (void)csr_column_index1(*(const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5], (npy_int32*)a[6], (npy_int32*)a[7]);
             return 0;
         case 18:
-            (void)csr_column_index1<npy_int64>(*(const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (npy_int64*)a[6], (npy_int64*)a[7]);
+            (void)csr_column_index1(*(const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5], (npy_int64*)a[6], (npy_int64*)a[7]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -2967,106 +2967,106 @@ static PY_LONG_LONG csr_column_index2_thunk(int I_typenum, int T_typenum, void *
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_column_index2<npy_int32,npy_bool_wrapper>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (npy_int32*)a[5], (npy_bool_wrapper*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (npy_int32*)a[5], (npy_bool_wrapper*)a[6]);
             return 0;
         case 2:
-            (void)csr_column_index2<npy_int32,npy_byte>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (npy_int32*)a[5], (npy_byte*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (npy_int32*)a[5], (npy_byte*)a[6]);
             return 0;
         case 3:
-            (void)csr_column_index2<npy_int32,npy_ubyte>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (npy_int32*)a[5], (npy_ubyte*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (npy_int32*)a[5], (npy_ubyte*)a[6]);
             return 0;
         case 4:
-            (void)csr_column_index2<npy_int32,npy_short>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (npy_int32*)a[5], (npy_short*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (npy_int32*)a[5], (npy_short*)a[6]);
             return 0;
         case 5:
-            (void)csr_column_index2<npy_int32,npy_ushort>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (npy_int32*)a[5], (npy_ushort*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (npy_int32*)a[5], (npy_ushort*)a[6]);
             return 0;
         case 6:
-            (void)csr_column_index2<npy_int32,npy_int>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (npy_int32*)a[5], (npy_int*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (npy_int32*)a[5], (npy_int*)a[6]);
             return 0;
         case 7:
-            (void)csr_column_index2<npy_int32,npy_uint>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (npy_int32*)a[5], (npy_uint*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (npy_int32*)a[5], (npy_uint*)a[6]);
             return 0;
         case 8:
-            (void)csr_column_index2<npy_int32,npy_long>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (npy_int32*)a[5], (npy_long*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (npy_int32*)a[5], (npy_long*)a[6]);
             return 0;
         case 9:
-            (void)csr_column_index2<npy_int32,npy_ulong>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (npy_int32*)a[5], (npy_ulong*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (npy_int32*)a[5], (npy_ulong*)a[6]);
             return 0;
         case 10:
-            (void)csr_column_index2<npy_int32,npy_longlong>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (npy_int32*)a[5], (npy_longlong*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (npy_int32*)a[5], (npy_longlong*)a[6]);
             return 0;
         case 11:
-            (void)csr_column_index2<npy_int32,npy_ulonglong>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (npy_int32*)a[5], (npy_ulonglong*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (npy_int32*)a[5], (npy_ulonglong*)a[6]);
             return 0;
         case 12:
-            (void)csr_column_index2<npy_int32,npy_float>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (npy_int32*)a[5], (npy_float*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (npy_int32*)a[5], (npy_float*)a[6]);
             return 0;
         case 13:
-            (void)csr_column_index2<npy_int32,npy_double>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (npy_int32*)a[5], (npy_double*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (npy_int32*)a[5], (npy_double*)a[6]);
             return 0;
         case 14:
-            (void)csr_column_index2<npy_int32,npy_longdouble>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (npy_int32*)a[5], (npy_longdouble*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (npy_int32*)a[5], (npy_longdouble*)a[6]);
             return 0;
         case 15:
-            (void)csr_column_index2<npy_int32,npy_cfloat_wrapper>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int32*)a[5], (npy_cfloat_wrapper*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int32*)a[5], (npy_cfloat_wrapper*)a[6]);
             return 0;
         case 16:
-            (void)csr_column_index2<npy_int32,npy_cdouble_wrapper>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_cdouble_wrapper*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_cdouble_wrapper*)a[6]);
             return 0;
         case 17:
-            (void)csr_column_index2<npy_int32,npy_clongdouble_wrapper>((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_clongdouble_wrapper*)a[6]);
+            (void)csr_column_index2((const npy_int32*)a[0], (const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int32*)a[5], (npy_clongdouble_wrapper*)a[6]);
             return 0;
         case 19:
-            (void)csr_column_index2<npy_int64,npy_bool_wrapper>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (npy_int64*)a[5], (npy_bool_wrapper*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (npy_int64*)a[5], (npy_bool_wrapper*)a[6]);
             return 0;
         case 20:
-            (void)csr_column_index2<npy_int64,npy_byte>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (npy_int64*)a[5], (npy_byte*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (npy_int64*)a[5], (npy_byte*)a[6]);
             return 0;
         case 21:
-            (void)csr_column_index2<npy_int64,npy_ubyte>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (npy_int64*)a[5], (npy_ubyte*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (npy_int64*)a[5], (npy_ubyte*)a[6]);
             return 0;
         case 22:
-            (void)csr_column_index2<npy_int64,npy_short>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (npy_int64*)a[5], (npy_short*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (npy_int64*)a[5], (npy_short*)a[6]);
             return 0;
         case 23:
-            (void)csr_column_index2<npy_int64,npy_ushort>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (npy_int64*)a[5], (npy_ushort*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (npy_int64*)a[5], (npy_ushort*)a[6]);
             return 0;
         case 24:
-            (void)csr_column_index2<npy_int64,npy_int>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (npy_int64*)a[5], (npy_int*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (npy_int64*)a[5], (npy_int*)a[6]);
             return 0;
         case 25:
-            (void)csr_column_index2<npy_int64,npy_uint>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (npy_int64*)a[5], (npy_uint*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (npy_int64*)a[5], (npy_uint*)a[6]);
             return 0;
         case 26:
-            (void)csr_column_index2<npy_int64,npy_long>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (npy_int64*)a[5], (npy_long*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (npy_int64*)a[5], (npy_long*)a[6]);
             return 0;
         case 27:
-            (void)csr_column_index2<npy_int64,npy_ulong>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (npy_int64*)a[5], (npy_ulong*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (npy_int64*)a[5], (npy_ulong*)a[6]);
             return 0;
         case 28:
-            (void)csr_column_index2<npy_int64,npy_longlong>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (npy_int64*)a[5], (npy_longlong*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (npy_int64*)a[5], (npy_longlong*)a[6]);
             return 0;
         case 29:
-            (void)csr_column_index2<npy_int64,npy_ulonglong>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (npy_int64*)a[5], (npy_ulonglong*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (npy_int64*)a[5], (npy_ulonglong*)a[6]);
             return 0;
         case 30:
-            (void)csr_column_index2<npy_int64,npy_float>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (npy_int64*)a[5], (npy_float*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (npy_int64*)a[5], (npy_float*)a[6]);
             return 0;
         case 31:
-            (void)csr_column_index2<npy_int64,npy_double>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (npy_int64*)a[5], (npy_double*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (npy_int64*)a[5], (npy_double*)a[6]);
             return 0;
         case 32:
-            (void)csr_column_index2<npy_int64,npy_longdouble>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (npy_int64*)a[5], (npy_longdouble*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (npy_int64*)a[5], (npy_longdouble*)a[6]);
             return 0;
         case 33:
-            (void)csr_column_index2<npy_int64,npy_cfloat_wrapper>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int64*)a[5], (npy_cfloat_wrapper*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_int64*)a[5], (npy_cfloat_wrapper*)a[6]);
             return 0;
         case 34:
-            (void)csr_column_index2<npy_int64,npy_cdouble_wrapper>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_cdouble_wrapper*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_cdouble_wrapper*)a[6]);
             return 0;
         case 35:
-            (void)csr_column_index2<npy_int64,npy_clongdouble_wrapper>((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_clongdouble_wrapper*)a[6]);
+            (void)csr_column_index2((const npy_int64*)a[0], (const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_int64*)a[5], (npy_clongdouble_wrapper*)a[6]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -3078,106 +3078,106 @@ static PY_LONG_LONG csr_sample_values_thunk(int I_typenum, int T_typenum, void *
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_sample_values<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_bool_wrapper*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_bool_wrapper*)a[8]);
             return 0;
         case 2:
-            (void)csr_sample_values<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_byte*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_byte*)a[8]);
             return 0;
         case 3:
-            (void)csr_sample_values<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_ubyte*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_ubyte*)a[8]);
             return 0;
         case 4:
-            (void)csr_sample_values<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_short*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_short*)a[8]);
             return 0;
         case 5:
-            (void)csr_sample_values<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_ushort*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_ushort*)a[8]);
             return 0;
         case 6:
-            (void)csr_sample_values<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_int*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_int*)a[8]);
             return 0;
         case 7:
-            (void)csr_sample_values<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_uint*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_uint*)a[8]);
             return 0;
         case 8:
-            (void)csr_sample_values<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_long*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_long*)a[8]);
             return 0;
         case 9:
-            (void)csr_sample_values<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_ulong*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_ulong*)a[8]);
             return 0;
         case 10:
-            (void)csr_sample_values<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_longlong*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_longlong*)a[8]);
             return 0;
         case 11:
-            (void)csr_sample_values<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_ulonglong*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_ulonglong*)a[8]);
             return 0;
         case 12:
-            (void)csr_sample_values<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_float*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_float*)a[8]);
             return 0;
         case 13:
-            (void)csr_sample_values<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_double*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_double*)a[8]);
             return 0;
         case 14:
-            (void)csr_sample_values<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_longdouble*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_longdouble*)a[8]);
             return 0;
         case 15:
-            (void)csr_sample_values<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_cfloat_wrapper*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_cfloat_wrapper*)a[8]);
             return 0;
         case 16:
-            (void)csr_sample_values<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_cdouble_wrapper*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_cdouble_wrapper*)a[8]);
             return 0;
         case 17:
-            (void)csr_sample_values<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_clongdouble_wrapper*)a[8]);
+            (void)csr_sample_values(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], *(const npy_int32*)a[5], (const npy_int32*)a[6], (const npy_int32*)a[7], (npy_clongdouble_wrapper*)a[8]);
             return 0;
         case 19:
-            (void)csr_sample_values<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_bool_wrapper*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_bool_wrapper*)a[8]);
             return 0;
         case 20:
-            (void)csr_sample_values<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_byte*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_byte*)a[8]);
             return 0;
         case 21:
-            (void)csr_sample_values<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_ubyte*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_ubyte*)a[8]);
             return 0;
         case 22:
-            (void)csr_sample_values<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_short*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_short*)a[8]);
             return 0;
         case 23:
-            (void)csr_sample_values<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_ushort*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_ushort*)a[8]);
             return 0;
         case 24:
-            (void)csr_sample_values<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_int*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_int*)a[8]);
             return 0;
         case 25:
-            (void)csr_sample_values<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_uint*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_uint*)a[8]);
             return 0;
         case 26:
-            (void)csr_sample_values<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_long*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_long*)a[8]);
             return 0;
         case 27:
-            (void)csr_sample_values<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_ulong*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_ulong*)a[8]);
             return 0;
         case 28:
-            (void)csr_sample_values<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_longlong*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_longlong*)a[8]);
             return 0;
         case 29:
-            (void)csr_sample_values<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_ulonglong*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_ulonglong*)a[8]);
             return 0;
         case 30:
-            (void)csr_sample_values<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_float*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_float*)a[8]);
             return 0;
         case 31:
-            (void)csr_sample_values<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_double*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_double*)a[8]);
             return 0;
         case 32:
-            (void)csr_sample_values<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_longdouble*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_longdouble*)a[8]);
             return 0;
         case 33:
-            (void)csr_sample_values<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_cfloat_wrapper*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_cfloat_wrapper*)a[8]);
             return 0;
         case 34:
-            (void)csr_sample_values<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_cdouble_wrapper*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_cdouble_wrapper*)a[8]);
             return 0;
         case 35:
-            (void)csr_sample_values<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_clongdouble_wrapper*)a[8]);
+            (void)csr_sample_values(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], *(const npy_int64*)a[5], (const npy_int64*)a[6], (const npy_int64*)a[7], (npy_clongdouble_wrapper*)a[8]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -3189,9 +3189,9 @@ static PY_LONG_LONG csr_count_blocks_thunk(int I_typenum, int T_typenum, void **
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 0:
-            return csr_count_blocks<npy_int32>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5]);
+            return csr_count_blocks(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], *(const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int32*)a[5]);
         case 18:
-            return csr_count_blocks<npy_int64>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5]);
+            return csr_count_blocks(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], *(const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int64*)a[5]);
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
     }
@@ -3202,9 +3202,9 @@ static PY_LONG_LONG csr_sample_offsets_thunk(int I_typenum, int T_typenum, void 
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 0:
-            return csr_sample_offsets<npy_int32>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], *(const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (npy_int32*)a[7]);
+            return csr_sample_offsets(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], *(const npy_int32*)a[4], (const npy_int32*)a[5], (const npy_int32*)a[6], (npy_int32*)a[7]);
         case 18:
-            return csr_sample_offsets<npy_int64>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], *(const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (npy_int64*)a[7]);
+            return csr_sample_offsets(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], *(const npy_int64*)a[4], (const npy_int64*)a[5], (const npy_int64*)a[6], (npy_int64*)a[7]);
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
     }
@@ -3215,10 +3215,10 @@ static PY_LONG_LONG expandptr_thunk(int I_typenum, int T_typenum, void **a)
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 0:
-            (void)expandptr<npy_int32>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2]);
+            (void)expandptr(*(const npy_int32*)a[0], (const npy_int32*)a[1], (npy_int32*)a[2]);
             return 0;
         case 18:
-            (void)expandptr<npy_int64>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2]);
+            (void)expandptr(*(const npy_int64*)a[0], (const npy_int64*)a[1], (npy_int64*)a[2]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
@@ -3230,9 +3230,9 @@ static PY_LONG_LONG test_throw_error_thunk(int I_typenum, int T_typenum, void **
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 0:
-            return test_throw_error<npy_int32>();
+            return test_throw_error();
         case 18:
-            return test_throw_error<npy_int64>();
+            return test_throw_error();
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
     }
@@ -3243,9 +3243,9 @@ static PY_LONG_LONG csr_has_sorted_indices_thunk(int I_typenum, int T_typenum, v
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 0:
-            return csr_has_sorted_indices<npy_int32>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2]);
+            return csr_has_sorted_indices(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2]);
         case 18:
-            return csr_has_sorted_indices<npy_int64>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2]);
+            return csr_has_sorted_indices(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2]);
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
     }
@@ -3256,9 +3256,9 @@ static PY_LONG_LONG csr_has_canonical_format_thunk(int I_typenum, int T_typenum,
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 0:
-            return csr_has_canonical_format<npy_int32>(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2]);
+            return csr_has_canonical_format(*(const npy_int32*)a[0], (const npy_int32*)a[1], (const npy_int32*)a[2]);
         case 18:
-            return csr_has_canonical_format<npy_int64>(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2]);
+            return csr_has_canonical_format(*(const npy_int64*)a[0], (const npy_int64*)a[1], (const npy_int64*)a[2]);
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
     }

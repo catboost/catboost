@@ -100,12 +100,10 @@ slacon2_(int *n, float *v, float *x, int *isgn, float *est, int *kase, int isave
     float temp;
 #ifdef _CRAY
     extern int ISAMAX(int *, float *, int *);
-    extern int IDAMAX(int *, float *, int *);
     extern float SASUM(int *, float *, int *);
     extern int SCOPY(int *, float *, int *, float *, int *);
 #else
     extern int isamax_(int *, float *, int *);
-    extern int idamax_(int *, float *, int *);
     extern float sasum_(int *, float *, int *);
     extern int scopy_(int *, float *, int *, float *, int *);
 #endif
@@ -159,7 +157,7 @@ L40:
 #ifdef _CRAY
     isave[1] = ISAMAX(n, &x[0], &c__1);   /* j */
 #else
-    isave[1] = idamax_(n, &x[0], &c__1);  /* j */
+    isave[1] = isamax_(n, &x[0], &c__1);  /* j */
 #endif
     --isave[1];  /* --j; */
     isave[2] = 2;  /* iter = 2; */

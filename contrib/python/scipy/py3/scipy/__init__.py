@@ -81,14 +81,8 @@ _msg = ('scipy.{0} is deprecated and will be removed in SciPy 2.0.0, '
         'use numpy.random.{0} instead')
 rand = _deprecated(_msg.format('rand'))(rand)
 randn = _deprecated(_msg.format('randn'))(randn)
-from numpy.fft import fft, ifft
-# fft is especially problematic, so we deprecate it with a shorter window
-fft_msg = ('Using scipy.fft as a function is deprecated and will be '
-           'removed in SciPy 1.5.0, use scipy.fft.fft instead.')
-# for wrapping in scipy.fft.__call__, so the stacklevel is one off from the
-# usual (2)
-_dep_fft = _deprecated(fft_msg, stacklevel=3)(fft)
-fft = _deprecated(fft_msg)(fft)
+# fft is especially problematic, so was removed in SciPy 1.6.0
+from numpy.fft import ifft
 ifft = _deprecated('scipy.ifft is deprecated and will be removed in SciPy '
                    '2.0.0, use scipy.fft.ifft instead')(ifft)
 import numpy.lib.scimath as _sci
@@ -101,7 +95,7 @@ for _key in _sci.__all__:
     globals()[_key] = _fun
 
 __all__ += _num.__all__
-__all__ += ['randn', 'rand', 'fft', 'ifft']
+__all__ += ['randn', 'rand', 'ifft']
 
 del _num
 # Remove the linalg imported from NumPy so that the scipy.linalg package can be
@@ -124,26 +118,25 @@ if __SCIPY_SETUP__:
 else:
     try:
         from scipy.__config__ import show as show_config
-    except ImportError:
+    except ImportError as e:
         msg = """Error importing SciPy: you cannot import SciPy while
         being in scipy source directory; please exit the SciPy source
         tree first and relaunch your Python interpreter."""
-        raise ImportError(msg)
+        raise ImportError(msg) from e
 
     from scipy.version import version as __version__
 
     # Allow distributors to run custom init code
     from . import _distributor_init
-    import warnings
-    # Filter out Cython harmless warnings
-    warnings.filterwarnings("ignore", message="numpy.dtype size changed")
-    warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
     from scipy._lib import _pep440
-    if _pep440.parse(__numpy_version__) < _pep440.Version('1.14.5'):
+    np_minversion = '1.16.5'
+    np_maxversion = '1.25.0'
+    if (_pep440.parse(__numpy_version__) < _pep440.Version(np_minversion) or
+            _pep440.parse(__numpy_version__) >= _pep440.Version(np_maxversion)):
         import warnings
-        warnings.warn("NumPy 1.14.5 or above is required for this version of "
-                      "SciPy (detected version %s)" % __numpy_version__,
+        warnings.warn(f"A NumPy version >={np_minversion} and <{np_maxversion} is required for this version of "
+                      f"SciPy (detected version {__numpy_version__})",
                       UserWarning)
 
     del _pep440
@@ -156,4 +149,3 @@ else:
 
     # This makes "from scipy import fft" return scipy.fft, not np.fft
     del fft
-    from . import fft

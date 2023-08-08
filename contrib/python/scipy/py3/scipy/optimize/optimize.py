@@ -120,8 +120,8 @@ class OptimizeResult(dict):
     def __getattr__(self, name):
         try:
             return self[name]
-        except KeyError:
-            raise AttributeError(name)
+        except KeyError as e:
+            raise AttributeError(name) from e
 
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
@@ -264,6 +264,29 @@ def _prepare_scalar_function(fun, x0, jac=None, args=(), bounds=None,
     return sf
 
 
+def _clip_x_for_func(func, bounds):
+    # ensures that x values sent to func are clipped to bounds
+
+    # this is used as a mitigation for gh11403, slsqp/tnc sometimes
+    # suggest a move that is outside the limits by 1 or 2 ULP. This
+    # unclean fix makes sure x is strictly within bounds.
+    def eval(x):
+        x = _check_clip_x(x, bounds)
+        return func(x)
+
+    return eval
+
+
+def _check_clip_x(x, bounds):
+    if (x < bounds[0]).any() or (x > bounds[1]).any():
+        warnings.warn("Values in x were outside bounds during a "
+                      "minimize step, clipping to bounds", RuntimeWarning)
+        x = np.clip(x, bounds[0], bounds[1])
+        return x
+
+    return x
+
+
 def rosen(x):
     """
     The Rosenbrock function.
@@ -292,7 +315,18 @@ def rosen(x):
     >>> X = 0.1 * np.arange(10)
     >>> rosen(X)
     76.56
-
+    
+    For higher-dimensional input ``rosen`` broadcasts.
+    In the following example, we use this to plot a 2D landscape.
+    Note that ``rosen_hess`` does not broadcast in this manner.
+    
+    >>> import matplotlib.pyplot as plt
+    >>> from mpl_toolkits.mplot3d import Axes3D
+    >>> x = np.linspace(-1, 1, 50)
+    >>> X, Y = np.meshgrid(x, x)
+    >>> ax = plt.subplot(111, projection='3d')
+    >>> ax.plot_surface(X, Y, rosen([X, Y]))
+    >>> plt.show()
     """
     x = asarray(x)
     r = np.sum(100.0 * (x[1:] - x[:-1]**2.0)**2.0 + (1 - x[:-1])**2.0,
@@ -645,7 +679,7 @@ def _minimize_neldermead(func, x0, args=(), callback=None,
     if initial_simplex is None:
         N = len(x0)
 
-        sim = np.zeros((N + 1, N), dtype=x0.dtype)
+        sim = np.empty((N + 1, N), dtype=x0.dtype)
         sim[0] = x0
         for k in range(N):
             y = np.array(x0, copy=True)
@@ -683,7 +717,7 @@ def _minimize_neldermead(func, x0, args=(), callback=None,
             maxfun = np.inf
 
     one2np1 = list(range(1, N + 1))
-    fsim = np.zeros((N + 1,), float)
+    fsim = np.empty((N + 1,), float)
 
     for k in range(N + 1):
         fsim[k] = func(sim[k])
@@ -846,10 +880,10 @@ def approx_fprime(xk, f, epsilon, *args):
     if not np.isscalar(f0):
         try:
             f0 = f0.item()
-        except (ValueError, AttributeError):
+        except (ValueError, AttributeError) as e:
             raise ValueError("The user-provided "
                              "objective function must "
-                             "return a scalar value.")
+                             "return a scalar value.") from e
 
     return approx_derivative(f, xk, method='2-point', abs_step=epsilon,
                              args=args, f0=f0)
@@ -1110,10 +1144,10 @@ def _minimize_bfgs(fun, x0, args=(), jac=None, callback=None,
     if not np.isscalar(old_fval):
         try:
             old_fval = old_fval.item()
-        except (ValueError, AttributeError):
+        except (ValueError, AttributeError) as e:
             raise ValueError("The user-provided "
                              "objective function must "
-                             "return a scalar value.")
+                             "return a scalar value.") from e
 
     k = 0
     N = len(x0)
@@ -1162,16 +1196,15 @@ def _minimize_bfgs(fun, x0, args=(), jac=None, callback=None,
             warnflag = 2
             break
 
-        try:  # this was handled in numeric, let it remaines for more safety
-            rhok = 1.0 / (np.dot(yk, sk))
-        except ZeroDivisionError:
+        rhok_inv = np.dot(yk, sk)
+        # this was handled in numeric, let it remaines for more safety
+        if rhok_inv == 0.:
             rhok = 1000.0
             if disp:
                 print("Divide-by-zero encountered: rhok assumed large")
-        if isinf(rhok):  # this is patch for NumPy
-            rhok = 1000.0
-            if disp:
-                print("Divide-by-zero encountered: rhok assumed large")
+        else:
+            rhok = 1. / rhok_inv
+
         A1 = I - sk[:, np.newaxis] * yk[np.newaxis, :] * rhok
         A2 = I - yk[:, np.newaxis] * sk[np.newaxis, :] * rhok
         Hk = np.dot(A1, np.dot(Hk, A2)) + (rhok * sk[:, np.newaxis] *
@@ -1432,10 +1465,10 @@ def _minimize_cg(fun, x0, args=(), jac=None, callback=None,
     if not np.isscalar(old_fval):
         try:
             old_fval = old_fval.item()
-        except (ValueError, AttributeError):
+        except (ValueError, AttributeError) as e:
             raise ValueError("The user-provided "
                              "objective function must "
-                             "return a scalar value.")
+                             "return a scalar value.") from e
 
     k = 0
     xk = x0
@@ -1974,7 +2007,7 @@ def _minimize_scalar_bounded(func, bounds, args=(),
             step = '       golden'
 
         si = np.sign(rat) + (rat == 0)
-        x = xf + si * np.max([np.abs(rat), tol1])
+        x = xf + si * np.maximum(np.abs(rat), tol1)
         fu = func(x, *args)
         num += 1
         fmin_data = (num, x, fu)
@@ -2578,7 +2611,7 @@ def _line_for_search(x0, alpha, lower_bound, upper_bound):
 
     Parameters
     ----------
-    x0 : np.array. 
+    x0 : np.array.
         The vector representing the current location.
         Note ``np.shape(x0) == (n,)``.
     alpha : np.array.
@@ -2623,7 +2656,7 @@ def _line_for_search(x0, alpha, lower_bound, upper_bound):
     lmin = np.max(lmin_pos + lmin_neg)
     lmax = np.min(lmax_pos + lmax_neg)
 
-    # if x0 is outside the bounds, then it is possible that there is 
+    # if x0 is outside the bounds, then it is possible that there is
     # no way to get back in the bounds for the parameters being updated
     # with the current direction alpha.
     # when this happens, lmax < lmin.
@@ -3237,8 +3270,8 @@ def brute(func, ranges, args=(), Ns=20, full_output=0, finish=fmin,
     Nshape = shape(Jout)
 
     indx = argmin(Jout.ravel(), axis=-1)
-    Nindx = zeros(N, int)
-    xmin = zeros(N, float)
+    Nindx = np.empty(N, int)
+    xmin = np.empty(N, float)
     for k in range(N - 1, -1, -1):
         thisN = Nshape[k]
         Nindx[k] = indx % Nshape[k]
@@ -3312,7 +3345,7 @@ def show_options(solver=None, method=None, disp=True):
     ----------
     solver : str
         Type of optimization solver. One of 'minimize', 'minimize_scalar',
-        'root', or 'linprog'.
+        'root', 'root_scalar', 'linprog', or 'quadratic_assignment'.
     method : str, optional
         If not given, shows all methods of the specified solver. Otherwise,
         show only the options for the specified method. Valid values
@@ -3363,10 +3396,30 @@ def show_options(solver=None, method=None, disp=True):
     - :ref:`golden      <optimize.minimize_scalar-golden>`
     - :ref:`bounded     <optimize.minimize_scalar-bounded>`
 
+    `scipy.optimize.root_scalar`
+
+    - :ref:`bisect  <optimize.root_scalar-bisect>`
+    - :ref:`brentq  <optimize.root_scalar-brentq>`
+    - :ref:`brenth  <optimize.root_scalar-brenth>`
+    - :ref:`ridder  <optimize.root_scalar-ridder>`
+    - :ref:`toms748 <optimize.root_scalar-toms748>`
+    - :ref:`newton  <optimize.root_scalar-newton>`
+    - :ref:`secant  <optimize.root_scalar-secant>`
+    - :ref:`halley  <optimize.root_scalar-halley>`
+
     `scipy.optimize.linprog`
 
-    - :ref:`simplex         <optimize.linprog-simplex>`
-    - :ref:`interior-point  <optimize.linprog-interior-point>`
+    - :ref:`simplex           <optimize.linprog-simplex>`
+    - :ref:`interior-point    <optimize.linprog-interior-point>`
+    - :ref:`revised simplex   <optimize.linprog-revised_simplex>`
+    - :ref:`highs             <optimize.linprog-highs>`
+    - :ref:`highs-ds          <optimize.linprog-highs-ds>`
+    - :ref:`highs-ipm         <optimize.linprog-highs-ipm>`
+
+    `scipy.optimize.quadratic_assignment`
+
+    - :ref:`faq             <optimize.qap-faq>`
+    - :ref:`2opt            <optimize.qap-2opt>`
 
     Examples
     --------
@@ -3401,7 +3454,15 @@ def show_options(solver=None, method=None, disp=True):
             ('powell', 'scipy.optimize.optimize._minimize_powell'),
             ('slsqp', 'scipy.optimize.slsqp._minimize_slsqp'),
             ('tnc', 'scipy.optimize.tnc._minimize_tnc'),
-            ('trust-ncg', 'scipy.optimize._trustregion_ncg._minimize_trust_ncg'),
+            ('trust-ncg',
+             'scipy.optimize._trustregion_ncg._minimize_trust_ncg'),
+            ('trust-constr',
+             'scipy.optimize._trustregion_constr.'
+             '_minimize_trustregion_constr'),
+            ('trust-exact',
+             'scipy.optimize._trustregion_exact._minimize_trustregion_exact'),
+            ('trust-krylov',
+             'scipy.optimize._trustregion_krylov._minimize_trust_krylov'),
         ),
         'root': (
             ('hybr', 'scipy.optimize.minpack._root_hybr'),
@@ -3426,8 +3487,16 @@ def show_options(solver=None, method=None, disp=True):
             ('halley', 'scipy.optimize._root_scalar._root_scalar_halley_doc'),
         ),
         'linprog': (
-            ('simplex', 'scipy.optimize._linprog._linprog_simplex'),
-            ('interior-point', 'scipy.optimize._linprog._linprog_ip'),
+            ('simplex', 'scipy.optimize._linprog._linprog_simplex_doc'),
+            ('interior-point', 'scipy.optimize._linprog._linprog_ip_doc'),
+            ('revised simplex', 'scipy.optimize._linprog._linprog_rs_doc'),
+            ('highs-ipm', 'scipy.optimize._linprog._linprog_highs_ipm_doc'),
+            ('highs-ds', 'scipy.optimize._linprog._linprog_highs_ds_doc'),
+            ('highs', 'scipy.optimize._linprog._linprog_highs_doc'),
+        ),
+        'quadratic_assignment': (
+            ('faq', 'scipy.optimize._qap._quadratic_assignment_faq'),
+            ('2opt', 'scipy.optimize._qap._quadratic_assignment_2opt'),
         ),
         'minimize_scalar': (
             ('brent', 'scipy.optimize.optimize._minimize_scalar_brent'),
