@@ -28,14 +28,7 @@ public:
         , InProcess(false)
         , ResultTaken(false)
         , IsLocal(isLocal)
-        , FeatureCorrelationDocsToUse(0)
-        , DocsCount(1)
     {}
-
-    void SetTakenFraction(ui64 featureCorrelationDocsToUse, ui64 docsCount) {
-        FeatureCorrelationDocsToUse = featureCorrelationDocsToUse;
-        DocsCount = docsCount;
-    }
 
     void SetCustomBorders(
         const TFeatureCustomBorders& customBorders,
@@ -79,7 +72,7 @@ public:
         if (MetaInfo.TargetType == ERawTargetType::String && ConvertStringTargets) {
             MetaInfo.TargetType = ERawTargetType::Float;
         }
-        DatasetStatistics.Init(MetaInfo, CustomBorders, TargetCustomBorders, FeatureCorrelationDocsToUse > 0);
+        DatasetStatistics.Init(MetaInfo, CustomBorders, TargetCustomBorders);
 //        MetaInfo.TargetType = ERawTargetType::String;
         FloatTarget.resize(metaInfo.TargetCount);
     }
@@ -127,12 +120,7 @@ public:
                 .FloatFeatureStatistics[TFloatFeatureIdx(perTypeFeatureIdx).Idx]
                 .Update(features[perTypeFeatureIdx]);
         }
-        ui64 hash = static_cast<ui64>(IntHash(localObjectIdx));
-        if (hash % DocsCount < FeatureCorrelationDocsToUse) {
-            DatasetStatistics.FeatureStatistics
-                .FloatFeaturePairwiseProduct
-                .Update(features);
-        }
+        Y_UNUSED(localObjectIdx);
     }
     void AddAllFloatFeatures(
         ui32 localObjectIdx,
@@ -325,8 +313,6 @@ private:
     TVector<TVector<float>> FloatTarget;
     TMutex TargetLock;
     TDataMetaInfo MetaInfo;
-    ui64 FeatureCorrelationDocsToUse;
-    ui64 DocsCount;
     ui32 CatFeatureCount;
 
     TFeatureCustomBorders CustomBorders;

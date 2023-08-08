@@ -91,38 +91,6 @@ private:
     TMutex Mutex;
 };
 
-struct TFloatFeaturePairwiseProduct {
-    TFloatFeaturePairwiseProduct() = default;
-    TFloatFeaturePairwiseProduct(TFloatFeaturePairwiseProduct&&) noexcept = default;
-
-    TFloatFeaturePairwiseProduct(const TFloatFeaturePairwiseProduct& a)
-        : PairwiseProduct(a.PairwiseProduct)
-        , PairwiseProductDocsUsed(a.PairwiseProductDocsUsed)
-        , FeatureCount(a.FeatureCount)
-        , IsCalculated(a.IsCalculated)
-    {}
-
-    void Init(ui32 featureCount, bool calculatePairwiseStatistics);
-
-    void Update(TConstArrayRef<float> features);
-    void Update(const TFloatFeaturePairwiseProduct& update);
-
-    bool operator==(const TFloatFeaturePairwiseProduct& rhs) const;
-
-    NJson::TJsonValue ToJson(const TVector<TFloatFeatureStatistics>& featureStats) const;
-
-    TVector<long double> PairwiseProduct;
-    ui64 PairwiseProductDocsUsed;
-    ui32 FeatureCount;
-    bool IsCalculated = false;
-
-    Y_SAVELOAD_DEFINE(PairwiseProduct, PairwiseProductDocsUsed, FeatureCount, IsCalculated);
-
-    SAVELOAD(PairwiseProduct, PairwiseProductDocsUsed, FeatureCount, IsCalculated);
-private:
-    TMutex Mutex;
-};
-
 struct TSampleIdStatistics : public IStatistics {
     TSampleIdStatistics() : ObjectCount(0), SumLen(0) {}
 
@@ -334,26 +302,22 @@ public:
     Y_SAVELOAD_DEFINE(
         FloatFeatureStatistics,
         CatFeatureStatistics,
-        TextFeatureStatistics,
-        FloatFeaturePairwiseProduct
+        TextFeatureStatistics
     );
 
     SAVELOAD(
         FloatFeatureStatistics,
         CatFeatureStatistics,
-        TextFeatureStatistics,
-        FloatFeaturePairwiseProduct
+        TextFeatureStatistics
     );
 
     TVector<TFloatFeatureStatistics> FloatFeatureStatistics;
     TVector<TCatFeatureStatistics> CatFeatureStatistics;
     TVector<TTextFeatureStatistics> TextFeatureStatistics;
-    TFloatFeaturePairwiseProduct FloatFeaturePairwiseProduct;
 
     void Init(
         const TDataMetaInfo& metaInfo,
-        const TFeatureCustomBorders& customBorders,
-        bool calculatePairwiseStatistics=false);
+        const TFeatureCustomBorders& customBorders);
 
     NJson::TJsonValue ToJson() const override;
 
@@ -458,10 +422,9 @@ public:
 
     void Init(const TDataMetaInfo& metaInfo,
               const TFeatureCustomBorders& customBorders,
-              const TFeatureCustomBorders& targetCustomBorders,
-              bool calculatePairwiseStatistics=false
+              const TFeatureCustomBorders& targetCustomBorders
     ) {
-        FeatureStatistics.Init(metaInfo, customBorders, calculatePairwiseStatistics);
+        FeatureStatistics.Init(metaInfo, customBorders);
         TargetsStatistics.Init(metaInfo, targetCustomBorders);
         if (metaInfo.HasGroupId) {
             GroupwiseStats = MakeMaybe(TGroupwiseStats());
