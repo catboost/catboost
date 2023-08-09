@@ -24,7 +24,6 @@ from IPython.core.application import (  # type:ignore[attr-defined]
 )
 from IPython.core.profiledir import ProfileDir
 from IPython.core.shellapp import InteractiveShellApp, shell_aliases, shell_flags
-from jupyter_client import write_connection_file
 from jupyter_client.connect import ConnectionFileMixin
 from jupyter_client.session import Session, session_aliases, session_flags
 from jupyter_core.paths import jupyter_runtime_dir
@@ -44,10 +43,11 @@ from traitlets.utils import filefind
 from traitlets.utils.importstring import import_item
 from zmq.eventloop.zmqstream import ZMQStream
 
-from .control import ControlThread
-from .heartbeat import Heartbeat
+from .connect import get_connection_info, write_connection_file
 
 # local imports
+from .control import ControlThread
+from .heartbeat import Heartbeat
 from .iostream import IOPubThread
 from .ipkernel import IPythonKernel
 from .parentpoller import ParentPollerUnix, ParentPollerWindows
@@ -260,12 +260,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
     def write_connection_file(self):
         """write connection info to JSON file"""
         cf = self.abs_connection_file
-        if os.path.exists(cf):
-            self.log.debug("Connection file %s already exists", cf)
-            return
-        self.log.debug("Writing connection file: %s", cf)
-        write_connection_file(
-            cf,
+        connection_info = dict(
             ip=self.ip,
             key=self.session.key,
             transport=self.transport,
@@ -275,6 +270,19 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
             iopub_port=self.iopub_port,
             control_port=self.control_port,
         )
+        if os.path.exists(cf):
+            # If the file exists, merge our info into it. For example, if the
+            # original file had port number 0, we update with the actual port
+            # used.
+            existing_connection_info = get_connection_info(cf, unpack=True)
+            connection_info = dict(existing_connection_info, **connection_info)
+            if connection_info == existing_connection_info:
+                self.log.debug("Connection file %s with current information already exists", cf)
+                return
+
+        self.log.debug("Writing connection file: %s", cf)
+
+        write_connection_file(cf, **connection_info)
 
     def cleanup_connection_file(self):
         """Clean up our connection file."""

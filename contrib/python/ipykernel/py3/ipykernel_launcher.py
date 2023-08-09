@@ -9,7 +9,7 @@ import sys
 if __name__ == "__main__":
     # Remove the CWD from sys.path while we load stuff.
     # This is added back by InteractiveShellApp.init_path()
-    if sys.path[0] == "":  # noqa
+    if sys.path[0] == "":
         del sys.path[0]
 
     from ipykernel import kernelapp as app

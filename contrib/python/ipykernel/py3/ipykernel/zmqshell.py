@@ -144,11 +144,17 @@ class ZMQDisplayPublisher(DisplayPublisher):
         """
         content = dict(wait=wait)
         self._flush_streams()
+        msg = self.session.msg("clear_output", json_clean(content), parent=self.parent_header)
+
+        # see publish() for details on how this works
+        for hook in self._hooks:
+            msg = hook(msg)
+            if msg is None:
+                return
+
         self.session.send(
             self.pub_socket,
-            "clear_output",
-            content,
-            parent=self.parent_header,
+            msg,
             ident=self.topic,
         )
 
