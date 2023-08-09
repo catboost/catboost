@@ -15,6 +15,7 @@ import json
 from io import open
 from os import listdir, pathsep
 from os.path import join, isfile, isdir, dirname
+from subprocess import CalledProcessError
 import contextlib
 import platform
 import itertools
@@ -83,25 +84,28 @@ def _msvc14_find_vc2017():
     if not root:
         return None, None
 
-    try:
-        path = subprocess.check_output([
-            join(root, "Microsoft Visual Studio", "Installer", "vswhere.exe"),
-            "-latest",
-            "-prerelease",
-            "-requiresAny",
-            "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
-            "-requires", "Microsoft.VisualStudio.Workload.WDExpress",
-            "-property", "installationPath",
-            "-products", "*",
-        ]).decode(encoding="mbcs", errors="strict").strip()
-    except (subprocess.CalledProcessError, OSError, UnicodeDecodeError):
-        return None, None
+    suitable_components = (
+        "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+        "Microsoft.VisualStudio.Workload.WDExpress",
+    )
 
-    path = join(path, "VC", "Auxiliary", "Build")
-    if isdir(path):
-        return 15, path
+    for component in suitable_components:
+        # Workaround for `-requiresAny` (only available on VS 2017 > 15.6)
+        with contextlib.suppress(CalledProcessError, OSError, UnicodeDecodeError):
+            path = subprocess.check_output([
+                join(root, "Microsoft Visual Studio", "Installer", "vswhere.exe"),
+                "-latest",
+                "-prerelease",
+                "-requires", component,
+                "-property", "installationPath",
+                "-products", "*",
+            ]).decode(encoding="mbcs", errors="strict").strip()
 
-    return None, None
+            path = join(path, "VC", "Auxiliary", "Build")
+            if isdir(path):
+                return 15, path
+
+    return None, None  # no suitable component found
 
 
 PLAT_SPEC_TO_RUNTIME = {

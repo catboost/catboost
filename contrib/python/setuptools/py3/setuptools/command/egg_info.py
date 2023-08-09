@@ -13,7 +13,6 @@ import os
 import re
 import sys
 import io
-import warnings
 import time
 import collections
 
@@ -30,7 +29,7 @@ from setuptools.glob import glob
 
 from setuptools.extern import packaging
 from setuptools.extern.jaraco.text import yield_lines
-from setuptools import SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsDeprecationWarning
 
 
 PY_MAJOR = '{}.{}'.format(*sys.version_info)
@@ -182,7 +181,6 @@ class egg_info(InfoCommon, Command):
         self.egg_name = None
         self.egg_info = None
         self.egg_version = None
-        self.broken_egg_info = False
         self.ignore_egg_info_in_manifest = False
 
     ####################################
@@ -237,8 +235,6 @@ class egg_info(InfoCommon, Command):
         self.egg_info = _normalization.filename_component(self.egg_name) + '.egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
-        if '-' in self.egg_name:
-            self.check_broken_egg_info()
 
         # Set package version for the benefit of dumber commands
         # (e.g. sdist, bdist_wininst, etc.)
@@ -325,21 +321,6 @@ class egg_info(InfoCommon, Command):
         mm.manifest = manifest_filename
         mm.run()
         self.filelist = mm.filelist
-
-    def check_broken_egg_info(self):
-        bei = self.egg_name + '.egg-info'
-        if self.egg_base != os.curdir:
-            bei = os.path.join(self.egg_base, bei)
-        if os.path.exists(bei):
-            log.warn(
-                "-" * 78 + '\n'
-                "Note: Your current .egg-info directory has a '-' in its name;"
-                '\nthis will not work correctly with "setup.py develop".\n\n'
-                'Please rename %s to %s to correct this problem.\n' + '-' * 78,
-                bei, self.egg_info
-            )
-            self.broken_egg_info = self.egg_info
-            self.egg_info = bei  # make it work for now
 
 
 class FileList(_FileList):
@@ -658,11 +639,14 @@ class manifest_maker(sdist):
         if hasattr(build_py, 'get_data_files_without_manifest'):
             return build_py.get_data_files_without_manifest()
 
-        warnings.warn(
-            "Custom 'build_py' does not implement "
-            "'get_data_files_without_manifest'.\nPlease extend command classes"
-            " from setuptools instead of distutils.",
-            SetuptoolsDeprecationWarning
+        SetuptoolsDeprecationWarning.emit(
+            "`build_py` command does not inherit from setuptools' `build_py`.",
+            """
+            Custom 'build_py' does not implement 'get_data_files_without_manifest'.
+            Please extend command classes from setuptools instead of distutils.
+            """,
+            see_url="https://peps.python.org/pep-0632/",
+            # due_date not defined yet, old projects might still do it?
         )
         return build_py.get_data_files()
 
@@ -700,11 +684,13 @@ def write_pkg_info(cmd, basename, filename):
 
 
 def warn_depends_obsolete(cmd, basename, filename):
-    if os.path.exists(filename):
-        log.warn(
-            "WARNING: 'depends.txt' is not used by setuptools 0.6!\n"
-            "Use the install_requires/extras_require setup() args instead."
-        )
+    """
+    Unused: left to avoid errors when updating (from source) from <= 67.8.
+    Old installations have a .dist-info directory with the entry-point
+    ``depends.txt = setuptools.command.egg_info:warn_depends_obsolete``.
+    This may trigger errors when running the first egg_info in build_meta.
+    TODO: Remove this function in a version sufficiently > 68.
+    """
 
 
 def _write_requirements(stream, reqs):
@@ -759,22 +745,6 @@ def write_entries(cmd, basename, filename):
     eps = _entry_points.load(cmd.distribution.entry_points)
     defn = _entry_points.render(eps)
     cmd.write_or_delete_file('entry points', filename, defn, True)
-
-
-def get_pkg_info_revision():
-    """
-    Get a -r### off of PKG-INFO Version in case this is an sdist of
-    a subversion revision.
-    """
-    warnings.warn(
-        "get_pkg_info_revision is deprecated.", EggInfoDeprecationWarning)
-    if os.path.exists('PKG-INFO'):
-        with io.open('PKG-INFO') as f:
-            for line in f:
-                match = re.match(r"Version:.*-r(\d+)\s*$", line)
-                if match:
-                    return int(match.group(1))
-    return 0
 
 
 def _egg_basename(egg_name, egg_version, py_version=None, platform=None):

@@ -44,7 +44,6 @@ from glob import glob
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
-    Callable,
     Dict,
     Iterable,
     Iterator,
@@ -61,7 +60,6 @@ from distutils import log
 from distutils.util import convert_path
 
 _Path = Union[str, os.PathLike]
-_Filter = Callable[[str], bool]
 StrIter = Iterator[str]
 
 chain_iter = itertools.chain.from_iterable
@@ -73,6 +71,22 @@ if TYPE_CHECKING:
 def _valid_name(path: _Path) -> bool:
     # Ignore invalid names that cannot be imported directly
     return os.path.basename(path).isidentifier()
+
+
+class _Filter:
+    """
+    Given a list of patterns, create a callable that will be true only if
+    the input matches at least one of the patterns.
+    """
+
+    def __init__(self, *patterns: str):
+        self._patterns = dict.fromkeys(patterns)
+
+    def __call__(self, item: str) -> bool:
+        return any(fnmatchcase(item, pat) for pat in self._patterns)
+
+    def __contains__(self, item: str) -> bool:
+        return item in self._patterns
 
 
 class _Finder:
@@ -111,22 +125,14 @@ class _Finder:
         return list(
             cls._find_iter(
                 convert_path(str(where)),
-                cls._build_filter(*cls.ALWAYS_EXCLUDE, *exclude),
-                cls._build_filter(*include),
+                _Filter(*cls.ALWAYS_EXCLUDE, *exclude),
+                _Filter(*include),
             )
         )
 
     @classmethod
     def _find_iter(cls, where: _Path, exclude: _Filter, include: _Filter) -> StrIter:
         raise NotImplementedError
-
-    @staticmethod
-    def _build_filter(*patterns: str) -> _Filter:
-        """
-        Given a list of patterns, return a callable that will be true only if
-        the input matches at least one of the patterns.
-        """
-        return lambda name: any(fnmatchcase(name, pat) for pat in patterns)
 
 
 class PackageFinder(_Finder):
@@ -159,6 +165,10 @@ class PackageFinder(_Finder):
                 # Should this package be included?
                 if include(package) and not exclude(package):
                     yield package
+
+                # Early pruning if there is nothing else to be scanned
+                if f"{package}*" in exclude or f"{package}.*" in exclude:
+                    continue
 
                 # Keep searching subdirectories, as there may be more packages
                 # down there, even if the parent was excluded.
@@ -234,6 +244,7 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "benchmarks",
         "exercise",
         "exercises",
+        "htmlcov",  # Coverage.py
         # ---- Hidden directories/Private packages ----
         "[._]*",
     )
@@ -273,7 +284,6 @@ class FlatLayoutModuleFinder(ModuleFinder):
         "benchmarks",
         "exercise",
         "exercises",
-        "htmlcov",
         # ---- Hidden files/Private modules ----
         "[._]*",
     )

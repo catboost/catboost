@@ -45,7 +45,6 @@ zip_safe = setuptools.dist:assert_bool
 [egg_info.writers]
 PKG-INFO = setuptools.command.egg_info:write_pkg_info
 dependency_links.txt = setuptools.command.egg_info:overwrite_arg
-depends.txt = setuptools.command.egg_info:warn_depends_obsolete
 eager_resources.txt = setuptools.command.egg_info:overwrite_arg
 entry_points.txt = setuptools.command.egg_info:write_entries
 namespace_packages.txt = setuptools.command.egg_info:overwrite_arg

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 67.4.0
+Version: 68.0.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -38,9 +38,7 @@ Provides-Extra: ssl
 Provides-Extra: testing
 Requires-Dist: pytest (>=6) ; extra == 'testing'
 Requires-Dist: pytest-checkdocs (>=2.4) ; extra == 'testing'
-Requires-Dist: flake8 (<5) ; extra == 'testing'
 Requires-Dist: pytest-enabler (>=1.3) ; extra == 'testing'
-Requires-Dist: pytest-perf ; extra == 'testing'
 Requires-Dist: flake8-2020 ; extra == 'testing'
 Requires-Dist: virtualenv (>=13.0.0) ; extra == 'testing'
 Requires-Dist: wheel ; extra == 'testing'
@@ -54,6 +52,7 @@ Requires-Dist: pip-run (>=8.8) ; extra == 'testing'
 Requires-Dist: ini2toml[lite] (>=0.9) ; extra == 'testing'
 Requires-Dist: tomli-w (>=1.0.0) ; extra == 'testing'
 Requires-Dist: pytest-timeout ; extra == 'testing'
+Requires-Dist: pytest-perf ; extra == 'testing'
 Provides-Extra: testing-integration
 Requires-Dist: pytest ; extra == 'testing-integration'
 Requires-Dist: pytest-xdist ; extra == 'testing-integration'
@@ -68,7 +67,7 @@ Requires-Dist: filelock (>=3.4.0) ; extra == 'testing-integration'
 Requires-Dist: pytest-black (>=0.3.7) ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: pytest-cov ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: pytest-mypy (>=0.9.1) ; (platform_python_implementation != "PyPy") and extra == 'testing'
-Requires-Dist: pytest-flake8 ; (python_version < "3.12") and extra == 'testing'
+Requires-Dist: pytest-ruff ; (sys_platform != "cygwin") and extra == 'testing'
 
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: https://pypi.org/project/setuptools
@@ -78,6 +77,10 @@ Requires-Dist: pytest-flake8 ; (python_version < "3.12") and extra == 'testing'
 .. image:: https://github.com/pypa/setuptools/workflows/tests/badge.svg
    :target: https://github.com/pypa/setuptools/actions?query=workflow%3A%22tests%22
    :alt: tests
+
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Ruff
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black

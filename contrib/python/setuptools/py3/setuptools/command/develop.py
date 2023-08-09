@@ -1,6 +1,6 @@
 from distutils.util import convert_path
 from distutils import log
-from distutils.errors import DistutilsError, DistutilsOptionError
+from distutils.errors import DistutilsOptionError
 import os
 import glob
 import io
@@ -45,10 +45,6 @@ class develop(namespaces.DevelopInstaller, easy_install):
         import pkg_resources
 
         ei = self.get_finalized_command("egg_info")
-        if ei.broken_egg_info:
-            template = "Please rename %r to %r before using 'develop'"
-            args = ei.egg_info, ei.broken_egg_info
-            raise DistutilsError(template % args)
         self.args = [ei.egg_name]
 
         easy_install.finalize_options(self)

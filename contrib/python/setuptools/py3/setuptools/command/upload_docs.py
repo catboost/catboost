@@ -16,10 +16,9 @@ import itertools
 import functools
 import http.client
 import urllib.parse
-import warnings
 
 from .._importlib import metadata
-from .. import SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsDeprecationWarning
 
 from .upload import upload
 
@@ -91,10 +90,14 @@ class upload_docs(upload):
             zip_file.close()
 
     def run(self):
-        warnings.warn(
-            "upload_docs is deprecated and will be removed in a future "
-            "version. Use tools like httpie or curl instead.",
-            SetuptoolsDeprecationWarning,
+        SetuptoolsDeprecationWarning.emit(
+            "Deprecated command",
+            """
+            upload_docs is deprecated and will be removed in a future version.
+            Instead, use tools like devpi and Read the Docs; or lower level tools like
+            httpie and curl to interact directly with your hosting service API.
+            """,
+            due_date=(2023, 9, 26),  # warning introduced in 27 Jul 2022
         )
 
         # Run sub commands

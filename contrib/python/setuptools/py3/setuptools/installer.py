@@ -3,14 +3,13 @@ import os
 import subprocess
 import sys
 import tempfile
-import warnings
 from distutils import log
 from distutils.errors import DistutilsError
 from functools import partial
 
 from . import _reqs
 from .wheel import Wheel
-from ._deprecation_warning import SetuptoolsDeprecationWarning
+from .warnings import SetuptoolsDeprecationWarning
 
 
 def _fixup_find_links(find_links):
@@ -25,7 +24,7 @@ def fetch_build_egg(dist, req):
     """Fetch an egg needed for building.
 
     Use pip/wheel to fetch/build a wheel."""
-    _DeprecatedInstaller.warn(stacklevel=2)
+    _DeprecatedInstaller.emit()
     _warn_wheel_not_available(dist)
     return _fetch_build_egg_no_warn(dist, req)
 
@@ -33,7 +32,7 @@ def fetch_build_egg(dist, req):
 def _fetch_build_eggs(dist, requires):
     import pkg_resources  # Delay import to avoid unnecessary side-effects
 
-    _DeprecatedInstaller.warn(stacklevel=3)
+    _DeprecatedInstaller.emit(stacklevel=3)
     _warn_wheel_not_available(dist)
 
     resolved_dists = pkg_resources.working_set.resolve(
@@ -131,12 +130,9 @@ def _warn_wheel_not_available(dist):
 
 
 class _DeprecatedInstaller(SetuptoolsDeprecationWarning):
-    @classmethod
-    def warn(cls, stacklevel=1):
-        warnings.warn(
-            "setuptools.installer and fetch_build_eggs are deprecated. "
-            "Requirements should be satisfied by a PEP 517 installer. "
-            "If you are using pip, you can try `pip install --use-pep517`.",
-            cls,
-            stacklevel=stacklevel+1
-        )
+    _SUMMARY = "setuptools.installer and fetch_build_eggs are deprecated."
+    _DETAILS = """
+    Requirements should be satisfied by a PEP 517 installer.
+    If you are using pip, you can try `pip install --use-pep517`.
+    """
+    # _DUE_DATE not decided yet

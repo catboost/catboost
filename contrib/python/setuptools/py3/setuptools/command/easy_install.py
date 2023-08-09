@@ -44,8 +44,6 @@ import sysconfig
 
 from sysconfig import get_path
 
-from setuptools import SetuptoolsDeprecationWarning
-
 from setuptools import Command
 from setuptools.sandbox import run_setup
 from setuptools.command import setopt
@@ -54,6 +52,7 @@ from setuptools.package_index import (
     PackageIndex, parse_requirement_arg, URL_SCHEME,
 )
 from setuptools.command import bdist_egg, egg_info
+from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 from setuptools.wheel import Wheel
 from pkg_resources import (
     normalize_path, resource_string,
@@ -62,6 +61,7 @@ from pkg_resources import (
     VersionConflict, DEVELOP_DIST,
 )
 import pkg_resources
+from .. import py312compat
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
 
@@ -141,11 +141,7 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
-        warnings.warn(
-            "easy_install command is deprecated. "
-            "Use build and pip and other standards-based tools.",
-            EasyInstallDeprecationWarning,
-        )
+        EasyInstallDeprecationWarning.emit()
 
         # the --user option seems to be an opt-in one,
         # so the default should be False.
@@ -202,7 +198,7 @@ class easy_install(Command):
             return
 
         is_tree = os.path.isdir(path) and not os.path.islink(path)
-        remover = rmtree if is_tree else os.unlink
+        remover = _rmtree if is_tree else os.unlink
         remover(path)
 
     @staticmethod
@@ -645,7 +641,7 @@ class easy_install(Command):
             # cast to str as workaround for #709 and #710 and #712
             yield str(tmpdir)
         finally:
-            os.path.exists(tmpdir) and rmtree(tmpdir)
+            os.path.exists(tmpdir) and _rmtree(tmpdir)
 
     def easy_install(self, spec, deps=False):
         with self._tmpdir() as tmpdir:
@@ -1182,7 +1178,7 @@ class easy_install(Command):
                          dist_dir)
             return eggs
         finally:
-            rmtree(dist_dir)
+            _rmtree(dist_dir)
             log.set_verbosity(self.verbose)  # restore our log verbosity
 
     def _set_fetcher_options(self, base):
@@ -1571,50 +1567,79 @@ def get_exe_prefixes(exe_filename):
 class PthDistributions(Environment):
     """A .pth file with Distribution paths in it"""
 
-    dirty = False
-
     def __init__(self, filename, sitedirs=()):
         self.filename = filename
         self.sitedirs = list(map(normalize_path, sitedirs))
         self.basedir = normalize_path(os.path.dirname(self.filename))
-        self._load()
+        self.paths, self.dirty = self._load()
+        # keep a copy if someone manually updates the paths attribute on the instance
+        self._init_paths = self.paths[:]
         super().__init__([], None, None)
         for path in yield_lines(self.paths):
             list(map(self.add, find_distributions(path, True)))
 
-    def _load(self):
-        self.paths = []
-        saw_import = False
+    def _load_raw(self):
+        paths = []
+        dirty = saw_import = False
         seen = dict.fromkeys(self.sitedirs)
-        if os.path.isfile(self.filename):
-            f = open(self.filename, 'rt')
-            for line in f:
-                if line.startswith('import'):
-                    saw_import = True
-                    continue
-                path = line.rstrip()
-                self.paths.append(path)
-                if not path.strip() or path.strip().startswith('#'):
-                    continue
-                # skip non-existent paths, in case somebody deleted a package
-                # manually, and duplicate paths as well
-                path = self.paths[-1] = normalize_path(
-                    os.path.join(self.basedir, path)
-                )
-                if not os.path.exists(path) or path in seen:
-                    self.paths.pop()  # skip it
-                    self.dirty = True  # we cleaned up, so we're dirty now :)
-                    continue
-                seen[path] = 1
-            f.close()
+        f = open(self.filename, 'rt')
+        for line in f:
+            path = line.rstrip()
+            # still keep imports and empty/commented lines for formatting
+            paths.append(path)
+            if line.startswith(('import ', 'from ')):
+                saw_import = True
+                continue
+            stripped_path = path.strip()
+            if not stripped_path or stripped_path.startswith('#'):
+                continue
+            # skip non-existent paths, in case somebody deleted a package
+            # manually, and duplicate paths as well
+            normalized_path = normalize_path(os.path.join(self.basedir, path))
+            if normalized_path in seen or not os.path.exists(normalized_path):
+                log.debug("cleaned up dirty or duplicated %r", path)
+                dirty = True
+                paths.pop()
+                continue
+            seen[normalized_path] = 1
+        f.close()
+        # remove any trailing empty/blank line
+        while paths and not paths[-1].strip():
+            paths.pop()
+            dirty = True
+        return paths, dirty or (paths and saw_import)
 
-        if self.paths and not saw_import:
-            self.dirty = True  # ensure anything we touch has import wrappers
-        while self.paths and not self.paths[-1].strip():
-            self.paths.pop()
+    def _load(self):
+        if os.path.isfile(self.filename):
+            return self._load_raw()
+        return [], False
 
     def save(self):
         """Write changed .pth file back to disk"""
+        # first reload the file
+        last_paths, last_dirty = self._load()
+        # and check that there are no difference with what we have.
+        # there can be difference if someone else has written to the file
+        # since we first loaded it.
+        # we don't want to lose the eventual new paths added since then.
+        for path in last_paths[:]:
+            if path not in self.paths:
+                self.paths.append(path)
+                log.info("detected new path %r", path)
+                last_dirty = True
+            else:
+                last_paths.remove(path)
+        # also, re-check that all paths are still valid before saving them
+        for path in self.paths[:]:
+            if path not in last_paths \
+                    and not path.startswith(('import ', 'from ', '#')):
+                absolute_path = os.path.join(self.basedir, path)
+                if not os.path.exists(absolute_path):
+                    self.paths.remove(path)
+                    log.info("removing now non-existent path %r", path)
+                    last_dirty = True
+
+        self.dirty |= last_dirty or self.paths != self._init_paths
         if not self.dirty:
             return
 
@@ -1623,17 +1648,16 @@ class PthDistributions(Environment):
             log.debug("Saving %s", self.filename)
             lines = self._wrap_lines(rel_paths)
             data = '\n'.join(lines) + '\n'
-
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
             with open(self.filename, 'wt') as f:
                 f.write(data)
-
         elif os.path.exists(self.filename):
             log.debug("Deleting empty %s", self.filename)
             os.unlink(self.filename)
 
         self.dirty = False
+        self._init_paths[:] = self.paths[:]
 
     @staticmethod
     def _wrap_lines(lines):
@@ -1849,7 +1873,7 @@ def _update_zipimporter_cache(normalized_path, cache, updater=None):
         #    get/del patterns instead. For more detailed information see the
         #    following links:
         #      https://github.com/pypa/setuptools/issues/202#issuecomment-202913420
-        #      http://bit.ly/2h9itJX
+        #      https://foss.heptapod.net/pypy/pypy/-/blob/144c4e65cb6accb8e592f3a7584ea38265d1873c/pypy/module/zipimport/interp_zipimport.py
         old_entry = cache[p]
         del cache[p]
         new_entry = updater and updater(p, old_entry)
@@ -2092,23 +2116,6 @@ class ScriptWriter:
     command_spec_class = CommandSpec
 
     @classmethod
-    def get_script_args(cls, dist, executable=None, wininst=False):
-        # for backward compatibility
-        warnings.warn("Use get_args", EasyInstallDeprecationWarning)
-        writer = (WindowsScriptWriter if wininst else ScriptWriter).best()
-        header = cls.get_script_header("", executable, wininst)
-        return writer.get_args(dist, header)
-
-    @classmethod
-    def get_script_header(cls, script_text, executable=None, wininst=False):
-        # for backward compatibility
-        warnings.warn(
-            "Use get_header", EasyInstallDeprecationWarning, stacklevel=2)
-        if wininst:
-            executable = "python.exe"
-        return cls.get_header(script_text, executable)
-
-    @classmethod
     def get_args(cls, dist, header=None):
         """
         Yield write_script() argument tuples for a distribution's
@@ -2134,12 +2141,6 @@ class ScriptWriter:
         has_path_sep = re.search(r'[\\/]', name)
         if has_path_sep:
             raise ValueError("Path separators not allowed in script names")
-
-    @classmethod
-    def get_writer(cls, force_windows):
-        # for backward compatibility
-        warnings.warn("Use best", EasyInstallDeprecationWarning)
-        return WindowsScriptWriter.best() if force_windows else cls.best()
 
     @classmethod
     def best(cls):
@@ -2168,12 +2169,6 @@ class WindowsScriptWriter(ScriptWriter):
     command_spec_class = WindowsCommandSpec
 
     @classmethod
-    def get_writer(cls):
-        # for backward compatibility
-        warnings.warn("Use best", EasyInstallDeprecationWarning)
-        return cls.best()
-
-    @classmethod
     def best(cls):
         """
         Select the best ScriptWriter suitable for Windows
@@ -2195,7 +2190,7 @@ class WindowsScriptWriter(ScriptWriter):
                 "{ext} not listed in PATHEXT; scripts will not be "
                 "recognized as executables."
             ).format(**locals())
-            warnings.warn(msg, UserWarning)
+            SetuptoolsWarning.emit(msg)
         old = ['.pya', '.py', '-script.py', '.pyc', '.pyo', '.pyw', '.exe']
         old.remove(ext)
         header = cls._adjust_header(type_, header)
@@ -2260,11 +2255,6 @@ class WindowsExecutableLauncherWriter(WindowsScriptWriter):
             yield (m_name, load_launcher_manifest(name), 't')
 
 
-# for backward-compatibility
-get_script_args = ScriptWriter.get_script_args
-get_script_header = ScriptWriter.get_script_header
-
-
 def get_win_launcher(type):
     """
     Load the Windows launcher (executable) suitable for launching a script.
@@ -2289,8 +2279,8 @@ def load_launcher_manifest(name):
     return manifest.decode('utf-8') % vars()
 
 
-def rmtree(path, ignore_errors=False, onerror=auto_chmod):
-    return shutil.rmtree(path, ignore_errors, onerror)
+def _rmtree(path, ignore_errors=False, onexc=auto_chmod):
+    return py312compat.shutil_rmtree(path, ignore_errors, onexc)
 
 
 def current_umask():
@@ -2307,6 +2297,11 @@ def only_strs(values):
 
 
 class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):
+    _SUMMARY = "easy_install command is deprecated."
+    _DETAILS = """
+    Please avoid running ``setup.py`` and ``easy_install``.
+    Instead, use pypa/build, pypa/installer or other
+    standards-based tools.
     """
-    Warning for EasyInstall deprecations, bypassing suppression.
-    """
+    _SEE_URL = "https://github.com/pypa/setuptools/issues/917"
+    # _DUE_DATE not defined yet

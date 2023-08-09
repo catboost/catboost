@@ -1,11 +1,11 @@
 from distutils.errors import DistutilsArgError
 import inspect
 import glob
-import warnings
 import platform
 import distutils.command.install as orig
 
 import setuptools
+from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 # Prior to numpy 1.9, NumPy relies on the '_install' name, so provide it for
 # now. See https://github.com/pypa/setuptools/issues/199/
@@ -30,11 +30,17 @@ class install(orig.install):
     _nc = dict(new_commands)
 
     def initialize_options(self):
-
-        warnings.warn(
-            "setup.py install is deprecated. "
-            "Use build and pip and other standards-based tools.",
-            setuptools.SetuptoolsDeprecationWarning,
+        SetuptoolsDeprecationWarning.emit(
+            "setup.py install is deprecated.",
+            """
+            Please avoid running ``setup.py`` directly.
+            Instead, use pypa/build, pypa/installer or other
+            standards-based tools.
+            """,
+            see_url="https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html",
+            # TODO: Document how to bootstrap setuptools without install
+            #       (e.g. by unziping the wheel file)
+            #       and then add a due_date to this warning.
         )
 
         orig.install.initialize_options(self)
@@ -86,10 +92,10 @@ class install(orig.install):
         """
         if run_frame is None:
             msg = "Call stack not available. bdist_* commands may fail."
-            warnings.warn(msg)
+            SetuptoolsWarning.emit(msg)
             if platform.python_implementation() == 'IronPython':
                 msg = "For best results, pass -X:Frames to enable call stack."
-                warnings.warn(msg)
+                SetuptoolsWarning.emit(msg)
             return True
 
         frames = inspect.getouterframes(run_frame)

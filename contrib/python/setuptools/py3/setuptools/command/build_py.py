@@ -9,12 +9,11 @@ import io
 import distutils.errors
 import itertools
 import stat
-import warnings
 from pathlib import Path
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 
-from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
-from setuptools.extern.more_itertools import unique_everseen
+from ..extern.more_itertools import unique_everseen
+from ..warnings import SetuptoolsDeprecationWarning
 
 
 def make_writable(target):
@@ -325,28 +324,48 @@ def assert_relative(path):
 class _IncludePackageDataAbuse:
     """Inform users that package or module is included as 'data file'"""
 
-    MESSAGE = """\
-    Installing {importable!r} as data is deprecated, please list it in `packages`.
-    !!\n\n
-    ############################
-    # Package would be ignored #
-    ############################
-    Python recognizes {importable!r} as an importable package,
-    but it is not listed in the `packages` configuration of setuptools.
+    class _Warning(SetuptoolsDeprecationWarning):
+        _SUMMARY = """
+        Package {importable!r} is absent from the `packages` configuration.
+        """
 
-    {importable!r} has been automatically added to the distribution only
-    because it may contain data files, but this behavior is likely to change
-    in future versions of setuptools (and therefore is considered deprecated).
+        _DETAILS = """
+        ############################
+        # Package would be ignored #
+        ############################
+        Python recognizes {importable!r} as an importable package[^1],
+        but it is absent from setuptools' `packages` configuration.
 
-    Please make sure that {importable!r} is included as a package by using
-    the `packages` configuration field or the proper discovery methods
-    (for example by using `find_namespace_packages(...)`/`find_namespace:`
-    instead of `find_packages(...)`/`find:`).
+        This leads to an ambiguous overall configuration. If you want to distribute this
+        package, please make sure that {importable!r} is explicitly added
+        to the `packages` configuration field.
 
-    You can read more about "package discovery" and "data files" on setuptools
-    documentation page.
-    \n\n!!
-    """
+        Alternatively, you can also rely on setuptools' discovery methods
+        (for example by using `find_namespace_packages(...)`/`find_namespace:`
+        instead of `find_packages(...)`/`find:`).
+
+        You can read more about "package discovery" on setuptools documentation page:
+
+        - https://setuptools.pypa.io/en/latest/userguide/package_discovery.html
+
+        If you don't want {importable!r} to be distributed and are
+        already explicitly excluding {importable!r} via
+        `find_namespace_packages(...)/find_namespace` or `find_packages(...)/find`,
+        you can try to use `exclude_package_data`, or `include-package-data=False` in
+        combination with a more fine grained `package-data` configuration.
+
+        You can read more about "package data files" on setuptools documentation page:
+
+        - https://setuptools.pypa.io/en/latest/userguide/datafiles.html
+
+
+        [^1]: For Python, any directory (with suitable naming) can be imported,
+              even if it does not contain any `.py` files.
+              On the other hand, currently there is no concept of package data
+              directory, all directories are treated like packages.
+        """
+        # _DUE_DATE: still not defined as this is particularly controversial.
+        # Warning initially introduced in May 2022. See issue #3340 for discussion.
 
     def __init__(self):
         self._already_warned = set()
@@ -363,6 +382,5 @@ class _IncludePackageDataAbuse:
 
     def warn(self, importable):
         if importable not in self._already_warned:
-            msg = textwrap.dedent(self.MESSAGE).format(importable=importable)
-            warnings.warn(msg, SetuptoolsDeprecationWarning, stacklevel=2)
+            self._Warning.emit(importable=importable)
             self._already_warned.add(importable)

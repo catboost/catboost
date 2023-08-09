@@ -23,7 +23,6 @@ import io
 import os
 import pathlib
 import sys
-import warnings
 from glob import iglob
 from configparser import ConfigParser
 from importlib.machinery import ModuleSpec
@@ -48,6 +47,7 @@ from types import ModuleType
 from distutils.errors import DistutilsOptionError
 
 from .._path import same_path as _same_path
+from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
@@ -141,7 +141,7 @@ def _filter_existing_files(filepaths: Iterable[_Path]) -> Iterator[_Path]:
         if os.path.isfile(path):
             yield path
         else:
-            warnings.warn(f"File {path!r} cannot be found")
+            SetuptoolsWarning.emit(f"File {path!r} cannot be found")
 
 
 def _read_file(filepath: Union[bytes, _Path]) -> str:

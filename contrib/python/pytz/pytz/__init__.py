@@ -99,7 +99,10 @@ def open_resource(name):
             # unless absolutely necessary to help when a broken version of
             # pkg_resources is installed.
             try:
-                from pkg_resources import resource_stream
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(action='ignore', category=DeprecationWarning)
+                    from pkg_resources import resource_stream
             except ImportError:
                 resource_stream = None
 

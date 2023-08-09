@@ -6,14 +6,13 @@ As defined in the wheel specification
 import os
 import shutil
 import sys
-import warnings
 from contextlib import contextmanager
 from distutils import log
 from distutils.core import Command
 from pathlib import Path
 
 from .. import _normalization
-from .._deprecation_warning import SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsDeprecationWarning
 
 
 class dist_info(Command):
@@ -51,7 +50,9 @@ class dist_info(Command):
     def finalize_options(self):
         if self.egg_base:
             msg = "--egg-base is deprecated for dist_info command. Use --output-dir."
-            warnings.warn(msg, SetuptoolsDeprecationWarning)
+            SetuptoolsDeprecationWarning.emit(msg, due_date=(2023, 9, 26))
+            # This command is internal to setuptools, therefore it should be safe
+            # to remove the deprecated support soon.
             self.output_dir = self.egg_base or self.output_dir
 
         dist = self.distribution

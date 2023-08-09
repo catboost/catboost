@@ -237,7 +237,7 @@ def hide_setuptools():
     """
     _distutils_hack = sys.modules.get('_distutils_hack', None)
     if _distutils_hack is not None:
-        _distutils_hack.remove_shim()
+        _distutils_hack._remove_shim()
 
     modules = filter(_needs_hiding, sys.modules)
     _clear_modules(modules)

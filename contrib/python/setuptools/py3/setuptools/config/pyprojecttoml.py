@@ -2,19 +2,23 @@
 Load setuptools configuration from ``pyproject.toml`` files.
 
 **PRIVATE MODULE**: API reserved for setuptools internal usage only.
+
+To read project metadata, consider using
+``build.util.project_wheel_metadata`` (https://pypi.org/project/build/).
+For simple scenarios, you can also try parsing the file directly
+with the help of ``tomllib`` or ``tomli``.
 """
 import logging
 import os
-import warnings
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Set, Union
+from typing import TYPE_CHECKING, Callable, Dict, Mapping, Optional, Set, Union
 
-from setuptools.errors import FileError, OptionError
-
+from ..errors import FileError, OptionError
+from ..warnings import SetuptoolsWarning
 from . import expand as _expand
-from ._apply_pyprojecttoml import apply as _apply
 from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _WouldIgnoreField
+from ._apply_pyprojecttoml import apply as _apply
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
@@ -104,14 +108,12 @@ def read_configuration(
 
     if setuptools_table:
         # TODO: Remove the following once the feature stabilizes:
-        msg = "Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*."
-        warnings.warn(msg, _BetaConfiguration)
+        _BetaConfiguration.emit()
 
     # There is an overall sense in the community that making include_package_data=True
     # the default would be an improvement.
     # `ini2toml` backfills include_package_data=False when nothing is explicitly given,
     # therefore setting a default here is backwards compatible.
-    orig_setuptools_table = setuptools_table.copy()
     if dist and getattr(dist, "include_package_data", None) is not None:
         setuptools_table.setdefault("include-package-data", dist.include_package_data)
     else:
@@ -120,56 +122,16 @@ def read_configuration(
     asdict["tool"] = tool_table
     tool_table["setuptools"] = setuptools_table
 
-    try:
+    with _ignore_errors(ignore_option_errors):
         # Don't complain about unrelated errors (e.g. tools not using the "tool" table)
         subset = {"project": project_table, "tool": {"setuptools": setuptools_table}}
         validate(subset, filepath)
-    except Exception as ex:
-        # TODO: Remove the following once the feature stabilizes:
-        if _skip_bad_config(project_table, orig_setuptools_table, dist):
-            return {}
-        # TODO: After the previous statement is removed the try/except can be replaced
-        # by the _ignore_errors context manager.
-        if ignore_option_errors:
-            _logger.debug(f"ignored error: {ex.__class__.__name__} - {ex}")
-        else:
-            raise  # re-raise exception
 
     if expand:
         root_dir = os.path.dirname(filepath)
         return expand_configuration(asdict, root_dir, ignore_option_errors, dist)
 
     return asdict
-
-
-def _skip_bad_config(
-    project_cfg: dict, setuptools_cfg: dict, dist: Optional["Distribution"]
-) -> bool:
-    """Be temporarily forgiving with invalid ``pyproject.toml``"""
-    # See pypa/setuptools#3199 and pypa/cibuildwheel#1064
-
-    if dist is None or (
-        dist.metadata.name is None
-        and dist.metadata.version is None
-        and dist.install_requires is None
-    ):
-        # It seems that the build is not getting any configuration from other places
-        return False
-
-    if setuptools_cfg:
-        # If `[tool.setuptools]` is set, then `pyproject.toml` config is intentional
-        return False
-
-    given_config = set(project_cfg.keys())
-    popular_subset = {"name", "version", "python_requires", "requires-python"}
-    if given_config <= popular_subset:
-        # It seems that the docs in cibuildtool has been inadvertently encouraging users
-        # to create `pyproject.toml` files that are not compliant with the standards.
-        # Let's be forgiving for the time being.
-        warnings.warn(_InvalidFile.message(), _InvalidFile, stacklevel=2)
-        return True
-
-    return False
 
 
 def expand_configuration(
@@ -369,8 +331,7 @@ class _ConfigExpander:
             if group in groups:
                 value = groups.pop(group)
                 if field not in self.dynamic:
-                    msg = _WouldIgnoreField.message(field, value)
-                    warnings.warn(msg, _WouldIgnoreField)
+                    _WouldIgnoreField.emit(field=field, value=value)
                 # TODO: Don't set field when support for pyproject.toml stabilizes
                 #       instead raise an error as specified in PEP 621
                 expanded[field] = value
@@ -472,27 +433,5 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         return super().__exit__(exc_type, exc_value, traceback)
 
 
-class _BetaConfiguration(UserWarning):
-    """Explicitly inform users that some `pyproject.toml` configuration is *beta*"""
-
-
-class _InvalidFile(UserWarning):
-    """The given `pyproject.toml` file is invalid and would be ignored.
-    !!\n\n
-    ############################
-    # Invalid `pyproject.toml` #
-    ############################
-
-    Any configurations in `pyproject.toml` will be ignored.
-    Please note that future releases of setuptools will halt the build process
-    if an invalid file is given.
-
-    To prevent setuptools from considering `pyproject.toml` please
-    DO NOT include the `[project]` or `[tool.setuptools]` tables in your file.
-    \n\n!!
-    """
-
-    @classmethod
-    def message(cls):
-        from inspect import cleandoc
-        return cleandoc(cls.__doc__)
+class _BetaConfiguration(SetuptoolsWarning):
+    _SUMMARY = "Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*."

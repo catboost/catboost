@@ -4,7 +4,6 @@ import io
 import sys
 import re
 import os
-import warnings
 import numbers
 import distutils.log
 import distutils.core
@@ -31,10 +30,6 @@ from setuptools.extern import packaging
 from setuptools.extern import ordered_set
 from setuptools.extern.more_itertools import unique_everseen, partition
 
-from ._importlib import metadata
-
-from . import SetuptoolsDeprecationWarning, _normalization
-
 import setuptools
 import setuptools.command
 from setuptools import windows_support
@@ -45,17 +40,15 @@ from setuptools.discovery import ConfigDiscovery
 from setuptools.extern.packaging import version
 from . import _reqs
 from . import _entry_points
+from . import _normalization
+from ._importlib import metadata
+from .warnings import InformationOnly, SetuptoolsDeprecationWarning
 
 if TYPE_CHECKING:
     from email.message import Message
 
 __import__('setuptools.extern.packaging.specifiers')
 __import__('setuptools.extern.packaging.version')
-
-
-def _get_unpatched(cls):
-    warnings.warn("Do not call this function", DistDeprecationWarning)
-    return get_unpatched(cls)
 
 
 def get_metadata_version(self):
@@ -156,7 +149,9 @@ def single_line(val):
     if '\n' in val:
         # TODO: Replace with `raise ValueError("newlines not allowed")`
         # after reviewing #2893.
-        warnings.warn("newlines not allowed and will break in the future")
+        msg = "newlines are not allowed in `summary` and will break in the future"
+        SetuptoolsDeprecationWarning.emit("Invalid config.", msg)
+        # due_date is undefined. Controversial change, there was a lot of push back.
         val = val.strip().split('\n')[0]
     return val
 
@@ -278,13 +273,15 @@ def check_nsp(dist, attr, value):
                 nsp,
                 parent,
             )
-        msg = (
-            "The namespace_packages parameter is deprecated, "
-            "consider using implicit namespaces instead (PEP 420). "
-            "See https://setuptools.pypa.io/en/latest/references/"
-            "keywords.html#keyword-namespace-packages"
+        SetuptoolsDeprecationWarning.emit(
+            "The namespace_packages parameter is deprecated.",
+            "Please replace its usage with implicit namespaces (PEP 420).",
+            see_docs="references/keywords.html#keyword-namespace-packages"
+            # TODO: define due_date, it may break old packages that are no longer
+            # maintained (e.g. sphinxcontrib extensions) when installed from source.
+            # Warning officially introduced in May 2022, however the deprecation
+            # was mentioned much earlier in the docs (May 2020, see #2149).
         )
-        warnings.warn(msg, SetuptoolsDeprecationWarning)
 
 
 def check_extras(dist, attr, value):
@@ -325,7 +322,8 @@ def assert_bool(dist, attr, value):
 
 def invalid_unless_false(dist, attr, value):
     if not value:
-        warnings.warn(f"{attr} is ignored.", DistDeprecationWarning)
+        DistDeprecationWarning.emit(f"{attr} is ignored.")
+        # TODO: should there be a `due_date` here?
         return
     raise DistutilsSetupError(f"{attr} is invalid.")
 
@@ -543,8 +541,7 @@ class Distribution(_Distribution):
 
         normalized = str(packaging.version.Version(version))
         if version != normalized:
-            tmpl = "Normalizing '{version}' to '{normalized}'"
-            warnings.warn(tmpl.format(**locals()))
+            InformationOnly.emit(f"Normalizing '{version}' to '{normalized}'")
             return normalized
         return version
 
@@ -558,11 +555,17 @@ class Distribution(_Distribution):
             try:
                 packaging.version.Version(version)
             except (packaging.version.InvalidVersion, TypeError):
-                warnings.warn(
-                    "The version specified (%r) is an invalid version, this "
-                    "may not work as expected with newer versions of "
-                    "setuptools, pip, and PyPI. Please see PEP 440 for more "
-                    "details." % version
+                SetuptoolsDeprecationWarning.emit(
+                    f"Invalid version: {version!r}.",
+                    """
+                    The version specified is not a valid version according to PEP 440.
+                    This may not work as expected with newer versions of
+                    setuptools, pip, and PyPI.
+                    """,
+                    see_url="https://peps.python.org/pep-0440/",
+                    due_date=(2023, 9, 26),
+                    # Warning initially introduced in 26 Sept 2014
+                    # pypa/packaging already removed legacy versions.
                 )
                 return setuptools.sic(version)
         return version
@@ -785,10 +788,15 @@ class Distribution(_Distribution):
             return underscore_opt
 
         if '-' in opt:
-            warnings.warn(
-                "Usage of dash-separated '%s' will not be supported in future "
-                "versions. Please use the underscore name '%s' instead"
-                % (opt, underscore_opt)
+            SetuptoolsDeprecationWarning.emit(
+                "Invalid dash-separated options",
+                f"""
+                Usage of dash-separated {opt!r} will not be supported in future
+                versions. Please use the underscore name {underscore_opt!r} instead.
+                """,
+                see_docs="userguide/declarative_config.html",
+                due_date=(2023, 9, 26),
+                # Warning initially introduced in 3 Mar 2021
             )
         return underscore_opt
 
@@ -804,10 +812,15 @@ class Distribution(_Distribution):
             return opt
 
         lowercase_opt = opt.lower()
-        warnings.warn(
-            "Usage of uppercase key '%s' in '%s' will be deprecated in future "
-            "versions. Please use lowercase '%s' instead"
-            % (opt, section, lowercase_opt)
+        SetuptoolsDeprecationWarning.emit(
+            "Invalid uppercase configuration",
+            f"""
+            Usage of uppercase key {opt!r} in {section!r} will not be supported in
+            future versions. Please use lowercase {lowercase_opt!r} instead.
+            """,
+            see_docs="userguide/declarative_config.html",
+            due_date=(2023, 9, 26),
+            # Warning initially introduced in 6 Mar 2021
         )
         return lowercase_opt
 

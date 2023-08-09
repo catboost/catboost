@@ -2,6 +2,7 @@
 
 import email
 import itertools
+import functools
 import os
 import posixpath
 import re
@@ -26,6 +27,14 @@ WHEEL_NAME = re.compile(
 
 NAMESPACE_PACKAGE_INIT = \
     "__import__('pkg_resources').declare_namespace(__name__)\n"
+
+
+@functools.lru_cache(maxsize=None)
+def _get_supported_tags():
+    # We calculate the supported tags only once, otherwise calling
+    # this method on thousands of wheels takes seconds instead of
+    # milliseconds.
+    return {(t.interpreter, t.abi, t.platform) for t in sys_tags()}
 
 
 def unpack(src_dir, dst_dir):
@@ -82,10 +91,8 @@ class Wheel:
         )
 
     def is_compatible(self):
-        '''Is the wheel is compatible with the current platform?'''
-        supported_tags = set(
-            (t.interpreter, t.abi, t.platform) for t in sys_tags())
-        return next((True for t in self.tags() if t in supported_tags), False)
+        '''Is the wheel compatible with the current platform?'''
+        return next((True for t in self.tags() if t in _get_supported_tags()), False)
 
     def egg_name(self):
         return _egg_basename(

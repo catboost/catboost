@@ -6,8 +6,6 @@ import io
 import contextlib
 from itertools import chain
 
-from .py36compat import sdist_add_defaults
-
 from .._importlib import metadata
 from .build import _ORIGINAL_SUBCOMMANDS
 
@@ -21,7 +19,7 @@ def walk_revctrl(dirname=''):
             yield item
 
 
-class sdist(sdist_add_defaults, orig.sdist):
+class sdist(orig.sdist):
     """Smart sdist that finds anything supported by revision control"""
 
     user_options = [

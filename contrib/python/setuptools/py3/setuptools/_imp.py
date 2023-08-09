@@ -7,7 +7,7 @@ import os
 import importlib.util
 import importlib.machinery
 
-from .py34compat import module_from_spec
+from importlib.util import module_from_spec
 
 
 PY_SOURCE = 1
