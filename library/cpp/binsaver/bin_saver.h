@@ -77,8 +77,9 @@ private:
     template <class T>
     void CallObjectSerialize(T* p, NBinSaverInternals::TOverloadPriority<0>) { // lower priority - will be resolved last
 #if (!defined(_MSC_VER))
+        // broken in clang16 for some types
         // In MSVC __has_trivial_copy returns false to enums, primitive types and arrays.
-        static_assert(__has_trivial_copy(T), "Class is nontrivial copyable, you must define operator&, see");
+        // static_assert(__is_trivially_copyable(T), "Class is nontrivial copyable, you must define operator&, see");
 #endif
         DataChunk(p, sizeof(T));
     }
