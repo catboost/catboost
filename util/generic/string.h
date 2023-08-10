@@ -904,6 +904,11 @@ public:
         return Join(TCharType(ch), s);
     }
 
+    friend TBasicString operator+(TExplicitType<TCharType> ch, TBasicString&& s) Y_WARN_UNUSED_RESULT {
+        s.prepend(ch);
+        return std::move(s);
+    }
+
     friend TBasicString operator+(const TBasicString& s1, const TBasicString& s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
@@ -939,11 +944,11 @@ public:
     }
 
     friend TBasicString operator+(std::basic_string<TCharType, TTraits> l, TBasicString r) {
-        return l + r.ConstRef();
+        return std::move(l) + r.ConstRef();
     }
 
     friend TBasicString operator+(TBasicString l, std::basic_string<TCharType, TTraits> r) {
-        return l.ConstRef() + r;
+        return l.ConstRef() + std::move(r);
     }
 
     // ~~~ Prepending ~~~ : FAMILY0(TBasicString&, prepend);
