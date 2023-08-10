@@ -120,6 +120,10 @@ namespace std {
             return TFloat16::Load(0b0'00001'0000000000);
         }
 
+        static constexpr TFloat16 lowest() noexcept {
+            return TFloat16::Load(0b1'11110'1111111111);
+        }
+
         static constexpr TFloat16 denorm_min() noexcept {
             return TFloat16::Load(0b0'00000'0000000001);
         }

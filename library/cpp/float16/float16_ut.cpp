@@ -228,5 +228,11 @@ Y_UNIT_TEST_SUITE(Intrisincs) {
         UNIT_ASSERT_VALUES_EQUAL(65504.0f, Max<TFloat16>());
         UNIT_ASSERT_VALUES_EQUAL(-65504.0f, -Max<TFloat16>());
     }
+
+    Y_UNIT_TEST(StdNumericLimits) {
+        UNIT_ASSERT_VALUES_EQUAL(0.00006103515625f, std::numeric_limits<TFloat16>::min());
+        UNIT_ASSERT_VALUES_EQUAL(65504.0f, std::numeric_limits<TFloat16>::max());
+        UNIT_ASSERT_VALUES_EQUAL(-65504.0f, std::numeric_limits<TFloat16>::lowest());
+    }
 }
 
