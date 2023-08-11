@@ -21,50 +21,42 @@
  * be maintained according to the Swift-grpc repository
  */
 
+#include "src/compiler/ts_generator.h"
+
 #include <map>
 #include <sstream>
 
 #include "flatbuffers/util.h"
 #include "src/compiler/schema_interface.h"
-#include "src/compiler/ts_generator.h"
 
 namespace grpc_ts_generator {
+namespace {
 
-grpc::string ToDasherizedCase(const grpc::string pascal_case) {
-  std::string dasherized_case;
-  char p = 0;
-  for (size_t i = 0; i < pascal_case.length(); i++) {
-    char const &c = pascal_case[i];
-    if (flatbuffers::is_alpha_upper(c)) {
-      if (i > 0 && p != flatbuffers::kPathSeparator) dasherized_case += "-";
-      dasherized_case += flatbuffers::CharToLower(c);
-    } else {
-      dasherized_case += c;
-    }
-    p = c;
-  }
-  return dasherized_case;
-}
-
-grpc::string GenerateNamespace(const std::vector<std::string> namepsace,
+static grpc::string GenerateNamespace(const std::vector<std::string> ns,
                                const std::string filename,
                                const bool include_separator) {
   grpc::string path = "";
   if (include_separator) path += ".";
 
-  for (auto it = namepsace.begin(); it < namepsace.end(); it++) {
+  for (auto it = ns.begin(); it < ns.end(); it++) {
     if (include_separator) path += "/";
-    path += include_separator ? ToDasherizedCase(*it) : *it + "_";
+    path += include_separator
+                ? flatbuffers::ConvertCase(*it, flatbuffers::Case::kDasher,
+                                           flatbuffers::Case::kUpperCamel)
+                : *it + "_";
   }
 
   if (include_separator) path += "/";
-  path += include_separator ? ToDasherizedCase(filename) : filename;
+  path += include_separator
+              ? flatbuffers::ConvertCase(filename, flatbuffers::Case::kDasher,
+                                         flatbuffers::Case::kUpperCamel)
+              : filename;
   return path;
 }
 
 // MARK: - Shared code
 
-void GenerateImports(const grpc_generator::Service *service,
+static void GenerateImports(const grpc_generator::Service *service,
                      grpc_generator::Printer *printer,
                      std::map<grpc::string, grpc::string> *dictonary,
                      const bool grpc_var_import) {
@@ -105,15 +97,15 @@ void GenerateImports(const grpc_generator::Service *service,
   }
   printer->Print("\n");
   if (grpc_var_import)
-    printer->Print("var grpc = require('grpc');\n");
+    printer->Print("var grpc = require('@grpc/grpc-js');\n");
   else
-    printer->Print("import * as grpc from 'grpc';\n");
+    printer->Print("import * as grpc from '@grpc/grpc-js';\n");
   printer->Print("\n");
 }
 
 // MARK: - Generate Main GRPC Code
 
-void GetStreamType(grpc_generator::Printer *printer,
+static void GetStreamType(grpc_generator::Printer *printer,
                    const grpc_generator::Method *method,
                    std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -125,7 +117,7 @@ void GetStreamType(grpc_generator::Printer *printer,
   printer->Print(vars, "responseStream: $ServerStreaming$,\n");
 }
 
-void GenerateSerializeMethod(grpc_generator::Printer *printer,
+static void GenerateSerializeMethod(grpc_generator::Printer *printer,
                              std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
   printer->Print(vars, "function serialize_$Type$(buffer_args) {\n");
@@ -136,12 +128,12 @@ void GenerateSerializeMethod(grpc_generator::Printer *printer,
                  "throw new Error('Expected argument of type $VALUE$');\n");
   printer->Outdent();
   printer->Print("}\n");
-  printer->Print(vars, "return buffer_args.serialize();\n");
+  printer->Print(vars, "return Buffer.from(buffer_args.serialize());\n");
   printer->Outdent();
   printer->Print("}\n\n");
 }
 
-void GenerateDeserializeMethod(
+static void GenerateDeserializeMethod(
     grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -154,7 +146,7 @@ void GenerateDeserializeMethod(
   printer->Print("}\n\n");
 }
 
-void GenerateMethods(const grpc_generator::Service *service,
+static void GenerateMethods(const grpc_generator::Service *service,
                      grpc_generator::Printer *printer,
                      std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -186,7 +178,7 @@ void GenerateMethods(const grpc_generator::Service *service,
   }
 }
 
-void GenerateService(const grpc_generator::Service *service,
+static void GenerateService(const grpc_generator::Service *service,
                      grpc_generator::Printer *printer,
                      std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -221,6 +213,8 @@ void GenerateService(const grpc_generator::Service *service,
                  "grpc.makeGenericClientConstructor($NAME$);");
 }
 
+} // namespace
+
 grpc::string Generate(grpc_generator::File *file,
                       const grpc_generator::Service *service,
                       const grpc::string &filename) {
@@ -242,9 +236,11 @@ grpc::string Generate(grpc_generator::File *file,
   return output;
 }
 
+namespace {
+
 // MARK: - Generate Interface
 
-void FillInterface(grpc_generator::Printer *printer,
+static void FillInterface(grpc_generator::Printer *printer,
                    std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
   printer->Print(vars,
@@ -262,7 +258,7 @@ void FillInterface(grpc_generator::Printer *printer,
   printer->Print("}\n");
 }
 
-void GenerateInterfaces(const grpc_generator::Service *service,
+static void GenerateInterfaces(const grpc_generator::Service *service,
                         grpc_generator::Printer *printer,
                         std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -284,11 +280,13 @@ void GenerateInterfaces(const grpc_generator::Service *service,
   }
 }
 
-void GenerateExportedInterface(
+static void GenerateExportedInterface(
     const grpc_generator::Service *service, grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
-  printer->Print(vars, "export interface I$ServiceName$Server {\n");
+  printer->Print(vars,
+                 "export interface I$ServiceName$Server extends "
+                 "grpc.UntypedServiceImplementation {\n");
   printer->Indent();
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
@@ -326,7 +324,7 @@ void GenerateExportedInterface(
   printer->Print("}\n");
 }
 
-void GenerateMainInterface(const grpc_generator::Service *service,
+static void GenerateMainInterface(const grpc_generator::Service *service,
                            grpc_generator::Printer *printer,
                            std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -351,11 +349,11 @@ void GenerateMainInterface(const grpc_generator::Service *service,
   GenerateExportedInterface(service, printer, &vars);
 }
 
-grpc::string GenerateMetaData() { return "metadata: grpc.Metadata"; }
+static grpc::string GenerateMetaData() { return "metadata: grpc.Metadata"; }
 
-grpc::string GenerateOptions() { return "options: Partial<grpc.CallOptions>"; }
+static grpc::string GenerateOptions() { return "options: Partial<grpc.CallOptions>"; }
 
-void GenerateUnaryClientInterface(
+static void GenerateUnaryClientInterface(
     grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -370,7 +368,7 @@ void GenerateUnaryClientInterface(
   printer->Print(vars, (main + meta_data + options + callback).c_str());
 }
 
-void GenerateClientWriteStreamInterface(
+static void GenerateClientWriteStreamInterface(
     grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -387,7 +385,7 @@ void GenerateClientWriteStreamInterface(
   printer->Print(vars, (main + meta_data + options + callback).c_str());
 }
 
-void GenerateClientReadableStreamInterface(
+static void GenerateClientReadableStreamInterface(
     grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -399,7 +397,7 @@ void GenerateClientReadableStreamInterface(
   printer->Print(vars, (main + options + end_function).c_str());
 }
 
-void GenerateDepluxStreamInterface(
+static void GenerateDepluxStreamInterface(
     grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -415,7 +413,7 @@ void GenerateDepluxStreamInterface(
                            .c_str());
 }
 
-void GenerateClientInterface(const grpc_generator::Service *service,
+static void GenerateClientInterface(const grpc_generator::Service *service,
                              grpc_generator::Printer *printer,
                              std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -453,7 +451,7 @@ void GenerateClientInterface(const grpc_generator::Service *service,
   printer->Print("}\n");
 }
 
-void GenerateClientClassInterface(
+static void GenerateClientClassInterface(
     const grpc_generator::Service *service, grpc_generator::Printer *printer,
     std::map<grpc::string, grpc::string> *dictonary) {
   auto vars = *dictonary;
@@ -463,7 +461,7 @@ void GenerateClientClassInterface(
   printer->Indent();
   printer->Print(
       "constructor(address: string, credentials: grpc.ChannelCredentials, "
-      "options?: object);");
+      "options?: object);\n");
   for (auto it = 0; it < service->method_count(); it++) {
     auto method = service->method(it);
     vars["MethodName"] = method->name();
@@ -494,6 +492,8 @@ void GenerateClientClassInterface(
   printer->Outdent();
   printer->Print("}\n");
 }
+} // namespace
+
 
 grpc::string GenerateInterface(grpc_generator::File *file,
                                const grpc_generator::Service *service,

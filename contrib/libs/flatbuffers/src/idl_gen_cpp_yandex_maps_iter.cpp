@@ -181,7 +181,7 @@ class CppIterGenerator : public BaseGenerator {
       auto basename = flatbuffers::StripPath(noext);
 
       code_ += "#include \"" + parser_.opts.include_prefix +
-               (parser_.opts.keep_include_path ? noext : basename) +
+               (parser_.opts.keep_prefix ? noext : basename) +
                ".iter.fbs.h\"";
       num_includes++;
     }
@@ -488,7 +488,17 @@ class CppIterGenerator : public BaseGenerator {
     code_.SetValue("REQUIRED", field.IsRequired() ? "Required" : "");
     code_.SetValue("SIZE", GenTypeSize(field.value.type));
     code_.SetValue("OFFSET", GenFieldOffsetName(field));
-    code_ += "{{PRE}}this->template VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, {{OFFSET}})\\";
+    if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type)) {
+      code_.SetValue("ALIGN", NumToString(InlineAlignment(field.value.type)));
+      code_ +=
+          "{{PRE}}this->template VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, "
+          "{{OFFSET}}, {{ALIGN}})\\";
+    } else {
+      code_.SetValue("OFFSET_SIZE", field.offset64 ? "64" : "");
+      code_ +=
+          "{{PRE}}this->template VerifyOffset{{REQUIRED}}<{{SIZE}}>(verifier, "
+          "{{OFFSET}})\\";
+    }
 
     switch (field.value.type.base_type) {
       case BASE_TYPE_UNION: {
@@ -726,6 +736,57 @@ bool GenerateCPPYandexMapsIter(const Parser &parser, const std::string &path,
                  const std::string &file_name) {
   cpp_yandex_maps_iter::CppIterGenerator generator(parser, path, file_name);
   return generator.generate();
+}
+
+namespace cpp_yandex_maps_iter {
+
+class CppIterCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateCPPYandexMapsIter(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override { return IDLOptions::kCppYandexMapsIter; }
+
+  std::string LanguageName() const override { return "C++Iter"; }
+};
+
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewCppYandexMapsIterCodeGenerator() {
+  return std::unique_ptr<cpp_yandex_maps_iter::CppIterCodeGenerator>(new cpp_yandex_maps_iter::CppIterCodeGenerator());
 }
 
 }  // namespace flatbuffers

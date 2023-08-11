@@ -18,6 +18,7 @@ target_include_directories(libs-flatbuffers-flatc PRIVATE
 )
 target_link_libraries(libs-flatbuffers-flatc PUBLIC
   contrib-libs-cxxsupp
+  abseil-cpp-absl-base
 )
 target_sources(libs-flatbuffers-flatc PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/cpp_generator.cc
@@ -26,8 +27,16 @@ target_sources(libs-flatbuffers-flatc PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/python_generator.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/swift_generator.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/ts_generator.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/annotated_binary_text_gen.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/bfbs_gen_lua.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/bfbs_gen_nim.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/binary_annotator.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/code_generators.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/file_binary_writer.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/file_name_saving_file_manager.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/file_writer.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/flatc.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_binary.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_cpp.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_cpp_yandex_maps_iter.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_csharp.cpp

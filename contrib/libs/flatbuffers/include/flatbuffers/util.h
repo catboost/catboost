@@ -17,19 +17,22 @@
 #ifndef FLATBUFFERS_UTIL_H_
 #define FLATBUFFERS_UTIL_H_
 
+#include <ctype.h>
 #include <errno.h>
 
 #include "base.h"
 #include "stl_emulation.h"
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
+#  include <iomanip>
 #  include <sstream>
 #else  // FLATBUFFERS_PREFER_PRINTF
 #  include <float.h>
 #  include <stdio.h>
 #endif  // FLATBUFFERS_PREFER_PRINTF
 
-#include <iomanip>
+#include <cmath>
+#include <limits>
 #include <string>
 
 namespace flatbuffers {
@@ -94,7 +97,7 @@ template<typename T> size_t IntToDigitCount(T t) {
   // Count a single 0 left of the dot for fractional numbers
   if (-1 < t && t < 1) digit_count++;
   // Count digits until fractional part
-  T eps = std::numeric_limits<float>::epsilon();
+  T eps = std::numeric_limits<T>::epsilon();
   while (t <= (-1 + eps) || (1 - eps) <= t) {
     t /= 10;
     digit_count++;
@@ -145,20 +148,6 @@ template<> inline std::string NumToString<unsigned char>(unsigned char t) {
 template<> inline std::string NumToString<char>(char t) {
   return NumToString(static_cast<int>(t));
 }
-#if defined(FLATBUFFERS_CPP98_STL)
-template<> inline std::string NumToString<long long>(long long t) {
-  char buf[21];  // (log((1 << 63) - 1) / log(10)) + 2
-  snprintf(buf, sizeof(buf), "%lld", t);
-  return std::string(buf);
-}
-
-template<>
-inline std::string NumToString<unsigned long long>(unsigned long long t) {
-  char buf[22];  // (log((1 << 63) - 1) / log(10)) + 1
-  snprintf(buf, sizeof(buf), "%llu", t);
-  return std::string(buf);
-}
-#endif  // defined(FLATBUFFERS_CPP98_STL)
 
 // Special versions for floats/doubles.
 template<typename T> std::string FloatToString(T t, int precision) {
@@ -268,7 +257,7 @@ inline void strtoval_impl(double *val, const char *str, char **endptr) {
 }
 
 // UBSAN: double to float is safe if numeric_limits<float>::is_iec559 is true.
-__supress_ubsan__("float-cast-overflow")
+__suppress_ubsan__("float-cast-overflow")
 inline void strtoval_impl(float *val, const char *str, char **endptr) {
   *val = __strtof_impl(str, endptr);
 }
@@ -325,6 +314,7 @@ inline bool StringToFloatImpl(T *val, const char *const str) {
   strtoval_impl(val, str, const_cast<char **>(&end));
   auto done = (end != str) && (*end == '\0');
   if (!done) *val = 0;  // erase partial result
+  if (done && std::isnan(*val)) { *val = std::numeric_limits<T>::quiet_NaN(); }
   return done;
 }
 
@@ -405,6 +395,18 @@ inline uint64_t StringToUInt(const char *s, int base = 10) {
   return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
 
+inline bool StringIsFlatbufferNan(const std::string &s) {
+  return s == "nan" || s == "+nan" || s == "-nan";
+}
+
+inline bool StringIsFlatbufferPositiveInfinity(const std::string &s) {
+  return s == "inf" || s == "+inf" || s == "infinity" || s == "+infinity";
+}
+
+inline bool StringIsFlatbufferNegativeInfinity(const std::string &s) {
+  return s == "-inf" || s == "-infinity";
+}
+
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,
                                  std::string *dest);
 typedef bool (*FileExistsFunction)(const char *filename);
@@ -461,6 +463,9 @@ std::string StripPath(const std::string &filepath);
 // Strip the last component of the path + separator.
 std::string StripFileName(const std::string &filepath);
 
+std::string StripPrefix(const std::string &filepath,
+                        const std::string &prefix_to_remove);
+
 // Concatenates a path with a filename, regardless of whether the path
 // ends in a separator or not.
 std::string ConCatPathFileName(const std::string &path,
@@ -468,6 +473,7 @@ std::string ConCatPathFileName(const std::string &path,
 
 // Replaces any '\\' separators with '/'
 std::string PosixPath(const char *path);
+std::string PosixPath(const std::string &path);
 
 // This function ensure a directory exists, by recursively
 // creating dirs for any parts of the path that don't exist yet.
@@ -476,6 +482,10 @@ void EnsureDirExists(const std::string &filepath);
 // Obtains the absolute path from any other path.
 // Returns the input path if the absolute path couldn't be resolved.
 std::string AbsolutePath(const std::string &filepath);
+
+// Returns files relative to the --project_root path, prefixed with `//`.
+std::string RelativeToRootPath(const std::string &project,
+                               const std::string &filepath);
 
 // To and from UTF-8 unicode conversion functions
 
@@ -690,8 +700,32 @@ bool SetGlobalTestLocale(const char *locale_name,
 bool ReadEnvironmentVariable(const char *var_name,
                              std::string *_value = nullptr);
 
-// MSVC specific: Send all assert reports to STDOUT to prevent CI hangs.
-void SetupDefaultCRTReportMode();
+enum class Case {
+  kUnknown = 0,
+  // TheQuickBrownFox
+  kUpperCamel = 1,
+  // theQuickBrownFox
+  kLowerCamel = 2,
+  // the_quick_brown_fox
+  kSnake = 3,
+  // THE_QUICK_BROWN_FOX
+  kScreamingSnake = 4,
+  // THEQUICKBROWNFOX
+  kAllUpper = 5,
+  // thequickbrownfox
+  kAllLower = 6,
+  // the-quick-brown-fox
+  kDasher = 7,
+  // THEQuiCKBr_ownFox (or whatever you want, we won't change it)
+  kKeep = 8,
+  // the_quick_brown_fox123 (as opposed to the_quick_brown_fox_123)
+  kSnake2 = 9,
+};
+
+// Convert the `input` string of case `input_case` to the specified
+// `output_case`.
+std::string ConvertCase(const std::string &input, Case output_case,
+                        Case input_case = Case::kSnake);
 
 }  // namespace flatbuffers
 

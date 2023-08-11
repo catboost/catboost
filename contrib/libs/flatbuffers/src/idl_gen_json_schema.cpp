@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#include "idl_gen_json_schema.h"
+
+#include <algorithm>
 #include <iostream>
+#include <limits>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/idl.h"
@@ -24,7 +28,10 @@ namespace flatbuffers {
 
 namespace jsons {
 
-template<class T> std::string GenFullName(const T *enum_def) {
+namespace {
+
+template<class T>
+static std::string GenFullName(const T *enum_def) {
   std::string full_name;
   const auto &name_spaces = enum_def->defined_namespace->components;
   for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
@@ -34,15 +41,16 @@ template<class T> std::string GenFullName(const T *enum_def) {
   return full_name;
 }
 
-template<class T> std::string GenTypeRef(const T *enum_def) {
+template<class T>
+static std::string GenTypeRef(const T *enum_def) {
   return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
 }
 
-std::string GenType(const std::string &name) {
+static std::string GenType(const std::string &name) {
   return "\"type\" : \"" + name + "\"";
 }
 
-std::string GenType(BaseType type) {
+static std::string GenType(BaseType type) {
   switch (type) {
     case BASE_TYPE_BOOL: return "\"type\" : \"boolean\"";
     case BASE_TYPE_CHAR:
@@ -84,13 +92,13 @@ std::string GenType(BaseType type) {
   }
 }
 
-std::string GenBaseType(const Type &type) {
+static std::string GenBaseType(const Type &type) {
   if (type.struct_def != nullptr) { return GenTypeRef(type.struct_def); }
   if (type.enum_def != nullptr) { return GenTypeRef(type.enum_def); }
   return GenType(type.base_type);
 }
 
-std::string GenArrayType(const Type &type) {
+static std::string GenArrayType(const Type &type) {
   std::string element_type;
   if (type.struct_def != nullptr) {
     element_type = GenTypeRef(type.struct_def);
@@ -103,7 +111,7 @@ std::string GenArrayType(const Type &type) {
   return "\"type\" : \"array\", \"items\" : {" + element_type + "}";
 }
 
-std::string GenType(const Type &type) {
+static std::string GenType(const Type &type) {
   switch (type.base_type) {
     case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
     case BASE_TYPE_VECTOR: {
@@ -136,6 +144,8 @@ std::string GenType(const Type &type) {
   }
 }
 
+} // namespace
+
 class JsonSchemaGenerator : public BaseGenerator {
  private:
   std::string code_;
@@ -166,9 +176,45 @@ class JsonSchemaGenerator : public BaseGenerator {
     return std::string(num_spaces, ' ');
   }
 
+  std::string PrepareDescription(
+      const std::vector<std::string> &comment_lines) {
+    std::string comment;
+    for (auto line_iterator = comment_lines.cbegin();
+         line_iterator != comment_lines.cend(); ++line_iterator) {
+      const auto &comment_line = *line_iterator;
+
+      // remove leading and trailing spaces from comment line
+      const auto start = std::find_if(comment_line.begin(), comment_line.end(),
+                                      [](char c) { return !isspace(c); });
+      const auto end =
+          std::find_if(comment_line.rbegin(), comment_line.rend(), [](char c) {
+            return !isspace(c);
+          }).base();
+      if (start < end) {
+        comment.append(start, end);
+      } else {
+        comment.append(comment_line);
+      }
+
+      if (line_iterator + 1 != comment_lines.cend()) comment.append("\n");
+    }
+    if (!comment.empty()) {
+      std::string description;
+      if (EscapeString(comment.c_str(), comment.length(), &description, true,
+                       true)) {
+        return description;
+      }
+      return "";
+    }
+    return "";
+  }
+
   bool generate() {
     code_ = "";
-    if (parser_.root_struct_def_ == nullptr) { return false; }
+    if (parser_.root_struct_def_ == nullptr) {
+      std::cerr << "Error: Binary schema not generated, no root struct found\n";
+      return false;
+    }
     code_ += "{" + NewLine();
     code_ += Indent(1) +
              "\"$schema\": \"https://json-schema.org/draft/2019-09/schema\"," +
@@ -193,21 +239,12 @@ class JsonSchemaGenerator : public BaseGenerator {
       const auto &structure = *s;
       code_ += Indent(2) + "\"" + GenFullName(structure) + "\" : {" + NewLine();
       code_ += Indent(3) + GenType("object") + "," + NewLine();
-      std::string comment;
       const auto &comment_lines = structure->doc_comment;
-      for (auto comment_line = comment_lines.cbegin();
-           comment_line != comment_lines.cend(); ++comment_line) {
-        comment.append(*comment_line);
+      auto comment = PrepareDescription(comment_lines);
+      if (comment != "") {
+        code_ += Indent(3) + "\"description\" : " + comment + "," + NewLine();
       }
-      if (!comment.empty()) {
-        std::string description;
-        if (!EscapeString(comment.c_str(), comment.length(), &description, true,
-                          true)) {
-          return false;
-        }
-        code_ +=
-            Indent(3) + "\"description\" : " + description + "," + NewLine();
-      }
+
       code_ += Indent(3) + "\"properties\" : {" + NewLine();
 
       const auto &properties = structure->fields.vec;
@@ -223,13 +260,19 @@ class JsonSchemaGenerator : public BaseGenerator {
         std::string deprecated_info = "";
         if (property->deprecated) {
           deprecated_info =
-              "," + NewLine() + Indent(8) + "\"deprecated\" : true,";
+              "," + NewLine() + Indent(8) + "\"deprecated\" : true";
         }
         std::string typeLine = Indent(4) + "\"" + property->name + "\"";
         typeLine += " : {" + NewLine() + Indent(8);
         typeLine += GenType(property->value.type);
         typeLine += arrayInfo;
         typeLine += deprecated_info;
+        auto description = PrepareDescription(property->doc_comment);
+        if (description != "") {
+          typeLine +=
+              "," + NewLine() + Indent(8) + "\"description\" : " + description;
+        }
+
         typeLine += NewLine() + Indent(7) + "}";
         if (property != properties.back()) { typeLine.append(","); }
         code_ += typeLine + NewLine();
@@ -288,5 +331,64 @@ bool GenerateJsonSchema(const Parser &parser, std::string *json) {
   if (!generator.generate()) { return false; }
   *json = generator.getJson();
   return true;
+}
+
+namespace {
+
+class JsonSchemaCodeGenerator : public CodeGenerator {
+ public:
+  Status GenerateCode(const Parser &parser, const std::string &path,
+                      const std::string &filename) override {
+    if (!GenerateJsonSchema(parser, path, filename)) { return Status::ERROR; }
+    return Status::OK;
+  }
+
+  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
+    (void)buffer;
+    (void)length;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateMakeRule(const Parser &parser, const std::string &path,
+                          const std::string &filename,
+                          std::string &output) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    (void)output;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
+                          const std::string &filename) override {
+    (void)parser;
+    (void)path;
+    (void)filename;
+    return Status::NOT_IMPLEMENTED;
+  }
+
+  Status GenerateRootFile(const Parser &parser,
+                          const std::string &path) override {
+    (void)parser;
+    (void)path;
+    return Status::NOT_IMPLEMENTED;
+  }
+  bool IsSchemaOnly() const override { return true; }
+
+  bool SupportsBfbsGeneration() const override { return false; }
+
+  bool SupportsRootFileGeneration() const override { return false; }
+
+  IDLOptions::Language Language() const override {
+    return IDLOptions::kJsonSchema;
+  }
+
+  std::string LanguageName() const override { return "JsonSchema"; }
+};
+}  // namespace
+
+std::unique_ptr<CodeGenerator> NewJsonSchemaCodeGenerator() {
+  return std::unique_ptr<JsonSchemaCodeGenerator>(
+      new JsonSchemaCodeGenerator());
 }
 }  // namespace flatbuffers

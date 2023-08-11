@@ -19,6 +19,7 @@ target_include_directories(contrib-libs-flatbuffers PRIVATE
 target_link_libraries(contrib-libs-flatbuffers PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
+  abseil-cpp-absl-base
 )
 target_sources(contrib-libs-flatbuffers PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_text.cpp
