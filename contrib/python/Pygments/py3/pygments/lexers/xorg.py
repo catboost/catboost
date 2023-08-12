@@ -15,7 +15,7 @@ __all__ = ['XorgLexer']
 
 
 class XorgLexer(RegexLexer):
-    """Lexer for xorg.conf file."""
+    """Lexer for xorg.conf files."""
     name = 'Xorg'
     url = 'https://www.x.org/wiki/'
     aliases = ['xorg.conf']

@@ -9,8 +9,8 @@
 """
 
 from pygments.lexer import RegexLexer, words, bygroups, include
-from pygments.token import Name, Text, Comment, Keyword, String, Punctuation, Number, \
-    Operator
+from pygments.token import Name, Text, Comment, Keyword, String, Punctuation, \
+    Number, Operator, Whitespace
 
 __all__ = ['PraatLexer']
 
@@ -118,10 +118,10 @@ class PraatLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'(\s+)(#.*?$)',  bygroups(Text, Comment.Single)),
+            (r'(\s+)(#.*?$)',  bygroups(Whitespace, Comment.Single)),
             (r'^#.*?$',        Comment.Single),
             (r';[^\n]*',       Comment.Single),
-            (r'\s+',           Text),
+            (r'\s+',           Whitespace),
 
             (r'\bprocedure\b', Keyword,       'procedure_definition'),
             (r'\bcall\b',      Keyword,       'procedure_call'),
@@ -132,13 +132,13 @@ class PraatLexer(RegexLexer):
             (words(keywords, suffix=r'\b'), Keyword),
 
             (r'(\bform\b)(\s+)([^\n]+)',
-             bygroups(Keyword, Text, String), 'old_form'),
+             bygroups(Keyword, Whitespace, String), 'old_form'),
 
             (r'(print(?:line|tab)?|echo|exit|asserterror|pause|send(?:praat|socket)|'
              r'include|execute|system(?:_nocheck)?)(\s+)',
-             bygroups(Keyword, Text), 'string_unquoted'),
+             bygroups(Keyword, Whitespace), 'string_unquoted'),
 
-            (r'(goto|label)(\s+)(\w+)', bygroups(Keyword, Text, Name.Label)),
+            (r'(goto|label)(\s+)(\w+)', bygroups(Keyword, Whitespace, Name.Label)),
 
             include('variable_name'),
             include('number'),
@@ -157,18 +157,19 @@ class PraatLexer(RegexLexer):
 
             (r'\.{3}', Keyword, ('#pop', 'old_arguments')),
             (r':', Keyword, ('#pop', 'comma_list')),
-            (r'\s', Text, '#pop'),
+            (r'\s', Whitespace, '#pop'),
         ],
         'procedure_call': [
-            (r'\s+', Text),
-            (r'([\w.]+)(:|\s*\()',
-             bygroups(Name.Function, Text), '#pop'),
+            (r'\s+', Whitespace),
+            (r'([\w.]+)(?:(:)|(?:(\s*)(\()))',
+             bygroups(Name.Function, Punctuation,
+                      Text.Whitespace, Punctuation), '#pop'),
             (r'([\w.]+)', Name.Function, ('#pop', 'old_arguments')),
         ],
         'procedure_definition': [
-            (r'\s', Text),
+            (r'\s', Whitespace),
             (r'([\w.]+)(\s*?[(:])',
-             bygroups(Name.Function, Text), '#pop'),
+             bygroups(Name.Function, Whitespace), '#pop'),
             (r'([\w.]+)([^\n]*)',
              bygroups(Name.Function, Text), '#pop'),
         ],
@@ -178,16 +179,17 @@ class PraatLexer(RegexLexer):
             (words(functions_numeric, suffix=r'(?=\s*[:(])'),  Name.Function, 'function'),
         ],
         'function': [
-            (r'\s+',   Text),
+            (r'\s+',   Whitespace),
             (r':',     Punctuation, ('#pop', 'comma_list')),
             (r'\s*\(', Punctuation, ('#pop', 'comma_list')),
         ],
         'comma_list': [
-            (r'(\s*\n\s*)(\.{3})', bygroups(Text, Punctuation)),
+            (r'(\s*\n\s*)(\.{3})', bygroups(Whitespace, Punctuation)),
 
-            (r'(\s*[])\n])', Text, '#pop'),
+            (r'(\s*)(?:([)\]])|(\n))', bygroups(
+                Whitespace, Punctuation, Whitespace), '#pop'),
 
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'"',   String, 'string'),
             (r'\b(if|then|else|fi|endif)\b', Keyword),
 
@@ -200,7 +202,7 @@ class PraatLexer(RegexLexer):
             (r',', Punctuation),
         ],
         'old_arguments': [
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
 
             include('variable_name'),
             include('operator'),
@@ -210,7 +212,7 @@ class PraatLexer(RegexLexer):
             (r'[^\n]', Text),
         ],
         'number': [
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
             (r'\b\d+(\.\d*)?([eE][-+]?\d+)?%?', Number),
         ],
         'object_reference': [
@@ -249,10 +251,10 @@ class PraatLexer(RegexLexer):
              String.Interpol),
         ],
         'string_unquoted': [
-            (r'(\n\s*)(\.{3})', bygroups(Text, Punctuation)),
+            (r'(\n\s*)(\.{3})', bygroups(Whitespace, Punctuation)),
 
-            (r'\n',       Text,            '#pop'),
-            (r'\s',       Text),
+            (r'\n',       Whitespace,            '#pop'),
+            (r'\s',       Whitespace),
 
             include('string_interpolated'),
 
@@ -260,7 +262,7 @@ class PraatLexer(RegexLexer):
             (r"[^'\n]+",  String),
         ],
         'string': [
-            (r'(\n\s*)(\.{3})', bygroups(Text, Punctuation)),
+            (r'(\n\s*)(\.{3})', bygroups(Whitespace, Punctuation)),
 
             (r'"',          String,          '#pop'),
 
@@ -270,32 +272,32 @@ class PraatLexer(RegexLexer):
             (r'[^\'"\n]+',  String),
         ],
         'old_form': [
-            (r'(\s+)(#.*?$)',  bygroups(Text, Comment.Single)),
-            (r'\s+', Text),
+            (r'(\s+)(#.*?$)',  bygroups(Whitespace, Comment.Single)),
+            (r'\s+', Whitespace),
 
-            (r'(optionmenu|choice)([ \t]+\S+:[ \t]+)',
-             bygroups(Keyword, Text), 'number'),
+            (r'(optionmenu|choice)([ \t]+)(\S+)(:)([ \t]+)',
+             bygroups(Keyword, Whitespace, Text, Punctuation, Whitespace), 'number'),
 
             (r'(option|button)([ \t]+)',
-             bygroups(Keyword, Text), 'string_unquoted'),
+             bygroups(Keyword, Whitespace), 'string_unquoted'),
 
-            (r'(sentence|text)([ \t]+\S+)',
-             bygroups(Keyword, Text), 'string_unquoted'),
+            (r'(sentence|text)([ \t]+)(\S+)',
+             bygroups(Keyword, Whitespace, String), 'string_unquoted'),
 
-            (r'(word)([ \t]+\S+[ \t]*)(\S+)?([ \t]+.*)?',
-             bygroups(Keyword, Text, String, Text)),
+            (r'(word)([ \t]+)(\S+)([ \t]*)(\S+)?(?:([ \t]+)(.*))?',
+             bygroups(Keyword, Whitespace, Text, Whitespace, Text, Whitespace, Text)),
 
             (r'(boolean)(\s+\S+\s*)(0|1|"?(?:yes|no)"?)',
-             bygroups(Keyword, Text, Name.Variable)),
+             bygroups(Keyword, Whitespace, Name.Variable)),
 
             # Ideally processing of the number would happen in the 'number'
             # but that doesn't seem to work
             (r'(real|natural|positive|integer)([ \t]+\S+[ \t]*)([+-]?)(\d+(?:\.\d*)?'
              r'(?:[eE][-+]?\d+)?%?)',
-             bygroups(Keyword, Text, Operator, Number)),
+             bygroups(Keyword, Whitespace, Operator, Number)),
 
             (r'(comment)(\s+)',
-             bygroups(Keyword, Text), 'string_unquoted'),
+             bygroups(Keyword, Whitespace), 'string_unquoted'),
 
             (r'\bendform\b', Keyword, '#pop'),
         ]

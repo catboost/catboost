@@ -34,7 +34,7 @@ tabrowlin
 vbap1move
 '''.split())
 
-# Opcodes in Csound 6.17.0 using:
+# Opcodes in Csound 6.18.0 using:
 #   python3 -c "
 #   import re
 #   from subprocess import Popen, PIPE
@@ -431,6 +431,8 @@ dumpk4
 duserrnd
 dust
 dust2
+elapsedcycles
+elapsedtime
 envlpx
 envlpxr
 ephasor
@@ -438,6 +440,8 @@ eqfil
 evalstr
 event
 event_i
+eventcycles
+eventtime
 exciter
 exitnow
 exp
@@ -1340,6 +1344,7 @@ sensekey
 seqtime
 seqtime2
 sequ
+sequstate
 serialBegin
 serialEnd
 serialFlush

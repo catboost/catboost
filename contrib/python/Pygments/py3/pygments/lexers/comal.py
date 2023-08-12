@@ -34,7 +34,7 @@ class Comal80Lexer(RegexLexer):
     #
     _suffix = r"\b(?!['\[\]←£\\])"
     _identifier = r"[a-z]['\[\]←£\\\w]*"
-    
+
     tokens = {
         'root': [
             (r'//.*\n', Comment.Single),

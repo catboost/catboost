@@ -11,14 +11,12 @@
 import re
 
 from pygments.lexer import Lexer, RegexLexer, include, bygroups, default, \
-    using, this, words, do_insertions
+    using, this, words, do_insertions, line_re
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Other, Generic
 from pygments.util import get_bool_opt, get_list_opt, shebang_matches
 
 __all__ = ['ZephirLexer', 'PsyshConsoleLexer', 'PhpLexer']
-
-line_re = re.compile('.*?\n')
 
 
 class ZephirLexer(RegexLexer):

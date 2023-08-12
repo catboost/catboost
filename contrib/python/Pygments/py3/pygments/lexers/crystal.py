@@ -10,14 +10,12 @@
 
 import re
 
-from pygments.lexer import ExtendedRegexLexer, include, \
-    bygroups, default, words
-from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Error, Whitespace
+from pygments.lexer import ExtendedRegexLexer, include, bygroups, default, \
+    words, line_re
+from pygments.token import Comment, Operator, Keyword, Name, String, Number, \
+    Punctuation, Error, Whitespace
 
 __all__ = ['CrystalLexer']
-
-line_re = re.compile('.*?\n')
 
 
 CRYSTAL_OPERATORS = [

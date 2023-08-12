@@ -28,7 +28,7 @@ class SuperColliderLexer(RegexLexer):
     url = 'http://supercollider.github.io/'
     aliases = ['supercollider', 'sc']
     filenames = ['*.sc', '*.scd']
-    mimetypes = ['application/supercollider', 'text/supercollider', ]
+    mimetypes = ['application/supercollider', 'text/supercollider']
 
     flags = re.DOTALL | re.MULTILINE
     tokens = {

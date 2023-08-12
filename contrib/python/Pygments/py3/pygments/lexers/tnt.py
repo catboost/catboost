@@ -21,7 +21,7 @@ class TNTLexer(Lexer):
     """
     Lexer for Typographic Number Theory, as described in the book
     Gödel, Escher, Bach, by Douglas R. Hofstadter
-    
+
     .. versionadded:: 2.7
     """
 

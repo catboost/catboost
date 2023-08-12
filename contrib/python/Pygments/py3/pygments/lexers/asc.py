@@ -17,7 +17,8 @@ __all__ = ['AscLexer']
 
 class AscLexer(RegexLexer):
     """
-    Lexer for ASCII armored files, containing `-----BEGIN/END ...-----` wrapped base64 data.
+    Lexer for ASCII armored files, containing `-----BEGIN/END ...-----` wrapped
+    base64 data.
 
     .. versionadded:: 2.10
     """
@@ -26,9 +27,11 @@ class AscLexer(RegexLexer):
     filenames = [
         '*.asc',  # PGP; *.gpg, *.pgp, and *.sig too, but those can be binary
         '*.pem',  # X.509; *.cer, *.crt, *.csr, and key etc too, but those can be binary
-        'id_dsa', 'id_ecdsa', 'id_ecdsa_sk', 'id_ed25519', 'id_ed25519_sk', 'id_rsa',  # SSH private keys
+        'id_dsa', 'id_ecdsa', 'id_ecdsa_sk', 'id_ed25519', 'id_ed25519_sk',
+        'id_rsa',  # SSH private keys
     ]
-    mimetypes = ['application/pgp-keys', 'application/pgp-encrypted', 'application/pgp-signature']
+    mimetypes = ['application/pgp-keys', 'application/pgp-encrypted',
+                 'application/pgp-signature']
 
     flags = re.MULTILINE
 
@@ -40,7 +43,8 @@ class AscLexer(RegexLexer):
         ],
         'data': [
             (r'\s+', Whitespace),
-            (r'^([^:]+)(:)([ \t]+)(.*)', bygroups(Name.Attribute, Operator, Whitespace, String)),
+            (r'^([^:]+)(:)([ \t]+)(.*)',
+             bygroups(Name.Attribute, Operator, Whitespace, String)),
             (r'^-----END [^\n]+-----$', Generic.Heading, 'root'),
             (r'\S+', String),
         ],

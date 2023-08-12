@@ -17,6 +17,8 @@ __all__ = ['ZigLexer']
 
 class ZigLexer(RegexLexer):
     """
+    Lexer for the Zig language.
+
     grammar: https://ziglang.org/documentation/master/#Grammar
     """
     name = 'Zig'

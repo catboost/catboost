@@ -23,6 +23,14 @@ from pygments.token import Token
 
 __all__ = ["LilyPondLexer"]
 
+# In LilyPond, (unquoted) name tokens only contain letters, hyphens,
+# and underscores, where hyphens and underscores must not start or end
+# a name token.
+#
+# Note that many of the entities listed as LilyPond built-in keywords
+# (in file `_lilypond_builtins.py`) are only valid if surrounded by
+# double quotes, for example, 'hufnagel-fa1'. This means that
+# `NAME_END_RE` doesn't apply to such entities in valid LilyPond code.
 NAME_END_RE = r"(?=\d|[^\w\-]|[\-_][\W\d])"
 
 def builtin_words(names, backslash, suffix=NAME_END_RE):
@@ -34,6 +42,7 @@ def builtin_words(names, backslash, suffix=NAME_END_RE):
     else:
         assert backslash == "disallowed"
     return words(names, prefix, suffix)
+
 
 class LilyPondLexer(SchemeLexer):
     """
@@ -79,10 +88,10 @@ class LilyPondLexer(SchemeLexer):
             # Whitespace.
             (r"\s+", Token.Text.Whitespace),
 
-            # Multi-line comment. These are non-nestable.
+            # Multi-line comments. These are non-nestable.
             (r"%\{.*?%\}", Token.Comment.Multiline),
 
-            # Simple comment.
+            # Simple comments.
             (r"%.*?$", Token.Comment.Single),
 
             # End of embedded LilyPond in Scheme.
@@ -104,22 +113,37 @@ class LilyPondLexer(SchemeLexer):
             #   \override Stem.color = red,
             # - comma as alternative syntax for lists: \time 3,3,2 4/4,
             # - colon in tremolos: c:32,
-            # - double hyphen in lyrics: li -- ly -- pond,
-            (r"\\\\|--|[{}<>=.,:|]", Token.Punctuation),
+            # - double hyphen and underscore in lyrics: li -- ly -- pond __
+            #   (which must be preceded by ASCII whitespace)
+            (r"""(?x)
+               \\\\
+               | (?<= \s ) (?: -- | __ )
+               | [{}<>=.,:|]
+              """, Token.Punctuation),
 
-            # Pitch, with optional octavation marks, octave check,
+            # Pitches, with optional octavation marks, octave check,
             # and forced or cautionary accidental.
             (words(pitches, suffix=r"=?[',]*!?\??" + NAME_END_RE), Token.Pitch),
 
-            # String, optionally with direction specifier.
+            # Strings, optionally with direction specifier.
             (r'[\-_^]?"', Token.String, "string"),
 
             # Numbers.
             (r"-?\d+\.\d+", Token.Number.Float), # 5. and .5 are not allowed
             (r"-?\d+/\d+", Token.Number.Fraction),
-            # Integer, or duration with optional augmentation dots. We have no
-            # way to distinguish these, so we highlight them all as numbers.
-            (r"-?(\d+|\\longa|\\breve)\.*", Token.Number),
+            # Integers, or durations with optional augmentation dots.
+            # We have no way to distinguish these, so we highlight
+            # them all as numbers.
+            #
+            # Normally, there is a space before the integer (being an
+            # argument to a music function), which we check here.  The
+            # case without a space is handled below (as a fingering
+            # number).
+            (r"""(?x)
+               (?<= \s ) -\d+
+               | (?: (?: \d+ | \\breve | \\longa | \\maxima )
+                     \.* )
+              """, Token.Number),
             # Separates duration and duration multiplier highlighted as fraction.
             (r"\*", Token.Number),
 
@@ -167,7 +191,10 @@ class LilyPondLexer(SchemeLexer):
 
             # Definition of a variable. Support assignments to alist keys
             # (myAlist.my-key.my-nested-key = \markup \spam \eggs).
-            (r"([^\W\d]|-)+(?=([^\W\d]|[\-.])*\s*=)", Token.Name.Lvalue),
+            (r"""(?x)
+               (?: [^\W\d] | - )+
+               (?= (?: [^\W\d] | [\-.] )* \s* = )
+              """, Token.Name.Lvalue),
 
             # Virtually everything can appear in markup mode, so we highlight
             # as text.  Try to get a complete word, or we might wrongly lex

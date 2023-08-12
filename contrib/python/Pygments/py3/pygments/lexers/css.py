@@ -13,8 +13,8 @@ import copy
 
 from pygments.lexer import ExtendedRegexLexer, RegexLexer, include, bygroups, \
     default, words, inherit
-from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Whitespace
+from pygments.token import Comment, Operator, Keyword, Name, String, Number, \
+    Punctuation, Whitespace
 from pygments.lexers._css_builtins import _css_properties
 
 __all__ = ['CssLexer', 'SassLexer', 'ScssLexer', 'LessCssLexer']

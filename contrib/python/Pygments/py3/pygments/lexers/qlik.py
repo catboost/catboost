@@ -11,22 +11,10 @@
 import re
 
 from pygments.lexer import RegexLexer, include, bygroups, words
-from pygments.token import (
-    Comment,
-    Keyword,
-    Name,
-    Number,
-    Operator,
-    Punctuation,
-    String,
-    Text,
-)
-from pygments.lexers._qlik_builtins import (
-    OPERATORS_LIST,
-    STATEMENT_LIST,
-    SCRIPT_FUNCTIONS,
-    CONSTANT_LIST,
-)
+from pygments.token import Comment, Keyword, Name, Number, Operator, \
+    Punctuation, String, Text
+from pygments.lexers._qlik_builtins import OPERATORS_LIST, STATEMENT_LIST, \
+    SCRIPT_FUNCTIONS, CONSTANT_LIST
 
 __all__ = ["QlikLexer"]
 
@@ -93,33 +81,20 @@ class QlikLexer(RegexLexer):
             (r"/\*", Comment.Multiline, "comment"),
             (r"//.*\n", Comment.Single),
             # variable assignment
-            (
-                r"(let|set)(\s+)",
-                bygroups(
-                    Keyword.Declaration,
-                    Text.Whitespace,
-                ),
-                "assignment",
-            ),
+            (r"(let|set)(\s+)", bygroups(Keyword.Declaration, Text.Whitespace),
+             "assignment"),
             # Word operators
-            (
-                words(OPERATORS_LIST["words"], prefix=r"\b", suffix=r"\b"),
-                Operator.Word,
-            ),
+            (words(OPERATORS_LIST["words"], prefix=r"\b", suffix=r"\b"),
+             Operator.Word),
             # Statements
-            (
-                words(
-                    STATEMENT_LIST,
-                    suffix=r"\b",
-                ),
-                Keyword,
-            ),
+            (words(STATEMENT_LIST, suffix=r"\b"), Keyword),
             # Table names
             (r"[a-z]\w*:", Keyword.Declaration),
             # Constants
             (words(CONSTANT_LIST, suffix=r"\b"), Keyword.Constant),
             # Functions
-            (words(SCRIPT_FUNCTIONS, suffix=r"(?=\s*\()"), Name.Builtin, "function"),
+            (words(SCRIPT_FUNCTIONS, suffix=r"(?=\s*\()"), Name.Builtin,
+             "function"),
             # interpolation - e.g. $(variableName)
             include("interp"),
             # Quotes denote a field/file name

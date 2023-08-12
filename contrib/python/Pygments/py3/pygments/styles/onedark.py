@@ -12,13 +12,13 @@
 """
 
 from pygments.style import Style
-from pygments.token import (Comment, Generic, Keyword, Name, Number, Operator,
-                            Punctuation, String, Token, Whitespace)
+from pygments.token import Comment, Keyword, Name, Number, Operator, \
+    Punctuation, String, Token
 
 
 class OneDarkStyle(Style):
     """
-    Theme inspired by One Dark Pro for Atom
+    Theme inspired by One Dark Pro for Atom.
 
     .. versionadded:: 2.11
     """

@@ -136,12 +136,14 @@ Other contributors, listed alphabetically, are:
 * Sylvestre Ledru -- Scilab lexer
 * Chee Sing Lee -- Flatline lexer
 * Mark Lee -- Vala lexer
+* Pete Lomax -- Phix lexer
 * Valentin Lorentz -- C++ lexer improvements
 * Ben Mabey -- Gherkin lexer
 * Angus MacArthur -- QML lexer
 * Louis Mandel -- X10 lexer
 * Louis Marchand -- Eiffel lexer
 * Simone Margaritelli -- Hybris lexer
+* Tim Martin - World of Warcraft TOC lexer
 * Kirk McDonald -- D lexer
 * Gordon McGregor -- SystemVerilog lexer
 * Stephen McKamey -- Duel/JBST lexer

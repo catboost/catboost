@@ -10,12 +10,12 @@
     :license: BSD, see LICENSE for details.
 """
 
-import re
-
 from pygments.lexer import RegexLexer, words
-from pygments.token import Comment, Keyword, Name, String, Number, Punctuation, Whitespace, Literal
+from pygments.token import Comment, Keyword, Name, String, Number, \
+    Punctuation, Whitespace, Literal
 
 __all__ = ['TalLexer']
+
 
 class TalLexer(RegexLexer):
     """
@@ -49,7 +49,8 @@ class TalLexer(RegexLexer):
         'root': [
             (r'\s+', Whitespace), # spaces
             (r'(?<!\S)\((?!\S)', Comment.Multiline, 'comment'), # comments
-            (words(instructions, prefix=r'(?<!\S)', suffix=r'2?k?r?(?!\S)'), Keyword.Reserved), # instructions
+            (words(instructions, prefix=r'(?<!\S)', suffix=r'2?k?r?(?!\S)'),
+             Keyword.Reserved), # instructions
             (r'[][{}](?!\S)', Punctuation), # delimiters
             (r'#([0-9a-f]{2}){1,2}(?!\S)', Number.Hex), # integer
             (r'"\S+', String), # raw string

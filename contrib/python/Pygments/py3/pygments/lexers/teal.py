@@ -9,9 +9,11 @@
 """
 
 from pygments.lexer import RegexLexer, bygroups, include, words
-from pygments.token import Comment, Name, Number, String, Text, Keyword
+from pygments.token import Comment, Name, Number, String, Text, Keyword, \
+    Whitespace
 
 __all__ = ['TealLexer']
+
 
 class TealLexer(RegexLexer):
     """
@@ -48,7 +50,7 @@ class TealLexer(RegexLexer):
         'AssetTotal', 'AssetDecimals', 'AssetDefaultFrozen', 'AssetUnitName',
         'AssetName', 'AssetURL', 'AssetMetadataHash', 'AssetManager',
         'AssetReserve', 'AssetFreeze', 'AssetClawback',
-    }, suffix = r'\b')
+    }, suffix=r'\b')
 
     identifier = r'[^ \t\n]+(?=\/\/)|[^ \t\n]+'
     newline = r'\r?\n'
@@ -68,7 +70,7 @@ class TealLexer(RegexLexer):
             (r'"', String, 'string'),
             (r'(b(?:ase)?(?:32|64) ?)(\(?[a-zA-Z0-9+/=]+\)?)',
                 bygroups(String.Affix, String.Other)),
-            (r'[A-Z2-7]{58}', Number), # address
+            (r'[A-Z2-7]{58}', Number),  # address
             (r'0x[\da-fA-F]+', Number.Hex),
             (r'\d+', Number.Integer),
             (keywords, Keyword),
@@ -81,7 +83,7 @@ class TealLexer(RegexLexer):
             (r'"', String, '#pop'),
         ],
         'whitespace': [
-            (r'[ \t]+', Text),
+            (r'[ \t]+', Whitespace),
             (r'//[^\n]+', Comment.Single),
         ],
     }

@@ -9,7 +9,8 @@
 """
 
 from pygments.lexer import RegexLexer, words, include
-from pygments.token import Comment, Keyword, Name, Number, Punctuation, String, Text
+from pygments.token import Comment, Keyword, Name, Number, Punctuation, \
+    String, Text
 
 __all__ = ['RideLexer']
 

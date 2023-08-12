@@ -125,7 +125,7 @@ class Inform6Lexer(RegexLexer):
             (r'[%s]' % _squote, String.Single, ('#pop', 'dictionary-word')),
             (r'[%s]' % _dquote, String.Double, ('#pop', 'string')),
             # Numbers
-            (r'\$[+%s][0-9]*\.?[0-9]*([eE][+%s]?[0-9]+)?' % (_dash, _dash),
+            (r'\$[<>]?[+%s][0-9]*\.?[0-9]*([eE][+%s]?[0-9]+)?' % (_dash, _dash),
              Number.Float, '#pop'),
             (r'\$[0-9a-fA-F]+', Number.Hex, '#pop'),
             (r'\$\$[01]+', Number.Bin, '#pop'),
@@ -160,9 +160,10 @@ class Inform6Lexer(RegexLexer):
             # Other built-in symbols
             (words((
                 'call', 'copy', 'create', 'DEBUG', 'destroy', 'DICT_CHAR_SIZE',
-                'DICT_ENTRY_BYTES', 'DICT_IS_UNICODE', 'DICT_WORD_SIZE', 'false',
-                'FLOAT_INFINITY', 'FLOAT_NAN', 'FLOAT_NINFINITY', 'GOBJFIELD_CHAIN',
-                'GOBJFIELD_CHILD', 'GOBJFIELD_NAME', 'GOBJFIELD_PARENT',
+                'DICT_ENTRY_BYTES', 'DICT_IS_UNICODE', 'DICT_WORD_SIZE', 'DOUBLE_HI_INFINITY',
+                'DOUBLE_HI_NAN', 'DOUBLE_HI_NINFINITY', 'DOUBLE_LO_INFINITY', 'DOUBLE_LO_NAN',
+                'DOUBLE_LO_NINFINITY', 'false', 'FLOAT_INFINITY', 'FLOAT_NAN', 'FLOAT_NINFINITY',
+                'GOBJFIELD_CHAIN', 'GOBJFIELD_CHILD', 'GOBJFIELD_NAME', 'GOBJFIELD_PARENT',
                 'GOBJFIELD_PROPTAB', 'GOBJFIELD_SIBLING', 'GOBJ_EXT_START',
                 'GOBJ_TOTAL_LENGTH', 'Grammar__Version', 'INDIV_PROP_START', 'INFIX',
                 'infix__watching', 'MODULE_MODE', 'name', 'nothing', 'NUM_ATTR_BYTES', 'print',
@@ -411,7 +412,8 @@ class Inform6Lexer(RegexLexer):
         ],
         'property-keyword*': [
             include('_whitespace'),
-            (words(('additive', 'individual', 'long'), suffix=r'\b(?!(\s*|(![^%s]*))*;)' % _newline),
+            (words(('additive', 'individual', 'long'),
+                suffix=r'\b(?=(\s*|(![^%s]*[%s]))*[_a-zA-Z])' % (_newline, _newline)),
              Keyword),
             default('#pop')
         ],

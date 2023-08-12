@@ -8,8 +8,6 @@
     :license: BSD, see LICENSE for details.
 """
 
-import re
-
 from pygments.lexer import RegexLexer, bygroups, include, this, using, words
 from pygments.token import Comment, Keyword, Literal, Name, Number, \
     Operator, Punctuation, String, Text, Whitespace
@@ -196,7 +194,7 @@ class JsgfLexer(RegexLexer):
             (r'\*/', Comment.Multiline, '#pop'),
             (r'^(\s*)(\*?)(\s*)(@(?:example|see))(\s+)'
              r'([\w\W]*?(?=(?:^\s*\*?\s*@|\*/)))',
-             bygroups(Whitespace,Comment.Multiline, Whitespace, Comment.Special,
+             bygroups(Whitespace, Comment.Multiline, Whitespace, Comment.Special,
                       Whitespace, using(this, state='example'))),
             (r'(^\s*\*?\s*)(@\S*)',
              bygroups(Comment.Multiline, Comment.Special)),

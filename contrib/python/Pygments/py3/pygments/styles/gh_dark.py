@@ -10,8 +10,8 @@
 """
 
 from pygments.style import Style
-from pygments.token import (Keyword, Name, Comment, Error, Number,
-                            Operator, Generic, Text, Literal, String, Token)
+from pygments.token import Keyword, Name, Comment, Error, Number, Operator, \
+    Generic, Text, Literal, String, Token
 
 
 # vars are defined to match the defs in

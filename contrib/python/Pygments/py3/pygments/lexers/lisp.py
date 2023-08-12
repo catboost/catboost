@@ -22,6 +22,7 @@ __all__ = ['SchemeLexer', 'CommonLispLexer', 'HyLexer', 'RacketLexer',
            'NewLispLexer', 'EmacsLispLexer', 'ShenLexer', 'CPSALexer',
            'XtlangLexer', 'FennelLexer']
 
+
 class SchemeLexer(RegexLexer):
     """
     A Scheme lexer.

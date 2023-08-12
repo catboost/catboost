@@ -9,8 +9,8 @@
 """
 
 from pygments.lexer import RegexLexer
-from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Whitespace
+from pygments.token import Comment, Operator, Keyword, Name, String, Number, \
+    Whitespace
 
 __all__ = ['IoLexer']
 

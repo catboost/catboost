@@ -176,7 +176,6 @@ MODULES = {'basic': ('_G',
 
 if __name__ == '__main__':  # pragma: no cover
     import re
-    import sys
     from urllib.request import urlopen
     import pprint
 

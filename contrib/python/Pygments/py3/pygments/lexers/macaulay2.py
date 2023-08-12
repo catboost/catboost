@@ -1,6 +1,7 @@
 """
     pygments.lexers.macaulay2
     ~~~~~~~~~~~~~~~~~~~~~~~~~
+
     Lexer for Macaulay2.
 
     :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
@@ -12,7 +13,7 @@ from pygments.token import Comment, Keyword, Name, String, Text
 
 __all__ = ['Macaulay2Lexer']
 
-# Auto-generated for Macaulay2-1.20. Do not modify this file manually.
+# Auto-generated for Macaulay2-1.21. Do not modify this file manually.
 
 M2KEYWORDS = (
     "and",
@@ -142,6 +143,7 @@ M2DATATYPES = (
     "InfiniteNumber",
     "IntermediateMarkUpType",
     "ITALIC",
+    "Iterator",
     "Keyword",
     "LABEL",
     "LATER",
@@ -328,6 +330,7 @@ M2FUNCTIONS = (
     "ceiling",
     "centerString",
     "chainComplex",
+    "changeBase",
     "char",
     "characters",
     "charAnalyzer",
@@ -399,6 +402,7 @@ M2FUNCTIONS = (
     "deepSplice",
     "default",
     "degree",
+    "degreeGroup",
     "degreeLength",
     "degrees",
     "degreesMonoid",
@@ -647,6 +651,7 @@ M2FUNCTIONS = (
     "isUnit",
     "isWellDefined",
     "isWeylAlgebra",
+    "iterator",
     "jacobian",
     "jacobianDual",
     "join",
@@ -748,6 +753,7 @@ M2FUNCTIONS = (
     "newNetFile",
     "newPackage",
     "newRing",
+    "next",
     "nextkey",
     "nextPrime",
     "NNParser",
@@ -1037,6 +1043,7 @@ M2FUNCTIONS = (
     "userSymbols",
     "utf8",
     "utf8check",
+    "utf8substring",
     "validate",
     "value",
     "values",
@@ -1097,7 +1104,7 @@ M2CONSTANTS = (
     "BinomialEdgeIdeals",
     "Binomials",
     "BKZ",
-    "BlockMatrix",
+    "blockMatrixForm",
     "Body",
     "BoijSoederberg",
     "Book3264Examples",
@@ -1136,7 +1143,6 @@ M2CONSTANTS = (
     "CohomCalg",
     "CoincidentRootLoci",
     "commandLine",
-    "CompactMatrix",
     "compactMatrixForm",
     "Complement",
     "CompleteIntersection",
@@ -1170,6 +1176,7 @@ M2CONSTANTS = (
     "Default",
     "defaultPrecision",
     "Degree",
+    "DegreeGroup",
     "DegreeLift",
     "DegreeLimit",
     "DegreeMap",
@@ -1193,6 +1200,7 @@ M2CONSTANTS = (
     "docExample",
     "docTemplate",
     "Down",
+    "Dynamic",
     "EagonResolution",
     "EdgeIdeals",
     "edit",
@@ -1236,6 +1244,7 @@ M2CONSTANTS = (
     "Flexible",
     "flush",
     "FollowLinks",
+    "ForeignFunctions",
     "FormalGroupLaws",
     "Format",
     "FourierMotzkin",
@@ -1248,6 +1257,7 @@ M2CONSTANTS = (
     "GenerateAssertions",
     "Generic",
     "GenericInitialIdeal",
+    "GeometricDecomposability",
     "gfanInterface",
     "Givens",
     "GKMVarieties",
@@ -1321,6 +1331,7 @@ M2CONSTANTS = (
     "Jacobian",
     "Jets",
     "Join",
+    "JSON",
     "Jupyter",
     "K3Carpets",
     "K3Surfaces",
@@ -1487,6 +1498,7 @@ M2CONSTANTS = (
     "Prune",
     "PruneComplex",
     "pruningMap",
+    "PseudomonomialPrimaryDecomposition",
     "Pullback",
     "PushForward",
     "Python",
@@ -1593,6 +1605,7 @@ M2CONSTANTS = (
     "stdio",
     "StopBeforeComputation",
     "stopIfError",
+    "StopIteration",
     "StopWithMinimalGenerators",
     "Strategy",
     "Strict",
@@ -1634,9 +1647,11 @@ M2CONSTANTS = (
     "ToricInvariants",
     "ToricTopology",
     "ToricVectorBundles",
+    "Torsion",
     "TotalPairs",
     "Tree",
     "TriangularSets",
+    "Triangulations",
     "Tries",
     "Trim",
     "Triplets",
@@ -1679,6 +1694,7 @@ M2CONSTANTS = (
     "Weights",
     "WeylAlgebra",
     "WeylGroups",
+    "WhitneyStratifications",
     "Wrap",
     "XML"
     )

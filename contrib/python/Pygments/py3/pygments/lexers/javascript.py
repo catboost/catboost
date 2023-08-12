@@ -11,7 +11,7 @@
 import re
 
 from pygments.lexer import bygroups, combined, default, do_insertions, include, \
-    inherit, Lexer, RegexLexer, this, using, words
+    inherit, Lexer, RegexLexer, this, using, words, line_re
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Other, Generic, Whitespace
 from pygments.util import get_bool_opt
@@ -29,7 +29,6 @@ JS_IDENT_PART = ('(?:[$' + uni.combine('Lu', 'Ll', 'Lt', 'Lm', 'Lo', 'Nl',
                  '\u200c\u200d]|\\\\u[a-fA-F0-9]{4})')
 JS_IDENT = JS_IDENT_START + '(?:' + JS_IDENT_PART + ')*'
 
-line_re = re.compile('.*?\n')
 
 class JavascriptLexer(RegexLexer):
     """
@@ -801,7 +800,7 @@ class ObjectiveJLexer(RegexLexer):
     mimetypes = ['text/x-objective-j']
 
     #: optional Comment or Whitespace
-    _ws = r'(?:\s|//.*?\n|/[*].*?[*]/)*'
+    _ws = r'(?:\s|//[^\n]*\n|/[*](?:[^*]|[*][^/])*[*]/)*'
 
     flags = re.DOTALL | re.MULTILINE
 

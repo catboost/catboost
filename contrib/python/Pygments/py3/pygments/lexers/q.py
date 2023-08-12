@@ -9,19 +9,8 @@
 """
 
 from pygments.lexer import RegexLexer, words, include, bygroups, inherit
-from pygments.token import (
-    Comment,
-    Keyword,
-    Name,
-    Number,
-    Operator,
-    Punctuation,
-    String,
-    Text,
-    Whitespace,
-    Literal,
-    Generic,
-)
+from pygments.token import Comment, Name, Number, Operator, Punctuation, \
+    String, Whitespace, Literal, Generic
 
 __all__ = ["KLexer", "QLexer"]
 
@@ -55,43 +44,32 @@ class KLexer(RegexLexer):
             include("declarations"),
         ],
         "keywords": [
-            (
-                words(
-                    ("abs", "acos", "asin", "atan", "avg", "bin",
-                     "binr", "by", "cor", "cos", "cov", "dev",
-                     "delete", "div", "do", "enlist", "exec", "exit",
-                     "exp", "from", "getenv", "hopen", "if", "in",
-                     "insert", "last", "like", "log", "max", "min",
-                     "prd", "select", "setenv", "sin", "sqrt", "ss",
-                     "sum", "tan", "update", "var", "wavg", "while",
-                     "within", "wsum", "xexp"),
-                    suffix=r"\b",
-                ),
-                Operator.Word,
-            ),
+            (words(("abs", "acos", "asin", "atan", "avg", "bin",
+                    "binr", "by", "cor", "cos", "cov", "dev",
+                    "delete", "div", "do", "enlist", "exec", "exit",
+                    "exp", "from", "getenv", "hopen", "if", "in",
+                    "insert", "last", "like", "log", "max", "min",
+                    "prd", "select", "setenv", "sin", "sqrt", "ss",
+                    "sum", "tan", "update", "var", "wavg", "while",
+                    "within", "wsum", "xexp"),
+                   suffix=r"\b"), Operator.Word),
         ],
         "declarations": [
             # Timing
             (r"^\\ts?", Comment.Preproc),
-            (
-                r"^(\\\w\s+[^/\n]*?)(/.*)",
-                bygroups(Comment.Preproc, Comment.Single),
-            ),
+            (r"^(\\\w\s+[^/\n]*?)(/.*)",
+             bygroups(Comment.Preproc, Comment.Single)),
             # Generic System Commands
             (r"^\\\w.*", Comment.Preproc),
             # Prompt
             (r"^[a-zA-Z]\)", Generic.Prompt),
             # Function Names
-            (
-                r"([.]?[a-zA-Z][\w.]*)(\s*)([-.~=!@#$%^&*_+|,<>?/\\:']?:)(\s*)(\{)",
-                bygroups(Name.Function, Whitespace, Operator, Whitespace, Punctuation),
-                "functions",
-            ),
+            (r"([.]?[a-zA-Z][\w.]*)(\s*)([-.~=!@#$%^&*_+|,<>?/\\:']?:)(\s*)(\{)",
+             bygroups(Name.Function, Whitespace, Operator, Whitespace, Punctuation),
+             "functions"),
             # Variable Names
-            (
-                r"([.]?[a-zA-Z][\w.]*)(\s*)([-.~=!@#$%^&*_+|,<>?/\\:']?:)",
-                bygroups(Name.Variable, Whitespace, Operator),
-            ),
+            (r"([.]?[a-zA-Z][\w.]*)(\s*)([-.~=!@#$%^&*_+|,<>?/\\:']?:)",
+             bygroups(Name.Variable, Whitespace, Operator)),
             # Functions
             (r"\{", Punctuation, "functions"),
             # Parentheses
@@ -131,40 +109,24 @@ class KLexer(RegexLexer):
             # Nulls/Infinities
             (r"0[nNwW][cefghijmndzuvtp]?", Number),
             # Timestamps
-            (
-                (
-                    r"(?:[0-9]{4}[.][0-9]{2}[.][0-9]{2}|[0-9]+)"
-                    "D(?:[0-9](?:[0-9](?::[0-9]{2}"
-                    "(?::[0-9]{2}(?:[.][0-9]*)?)?)?)?)?"
-                ),
-                Literal.Date,
-            ),
+            ((r"(?:[0-9]{4}[.][0-9]{2}[.][0-9]{2}|[0-9]+)"
+              "D(?:[0-9](?:[0-9](?::[0-9]{2}"
+              "(?::[0-9]{2}(?:[.][0-9]*)?)?)?)?)?"), Literal.Date),
             # Datetimes
-            (
-                (
-                    r"[0-9]{4}[.][0-9]{2}"
-                    "(?:m|[.][0-9]{2}(?:T(?:[0-9]{2}:[0-9]{2}"
-                    "(?::[0-9]{2}(?:[.][0-9]*)?)?)?)?)"
-                ),
-                Literal.Date,
-            ),
+            ((r"[0-9]{4}[.][0-9]{2}"
+              "(?:m|[.][0-9]{2}(?:T(?:[0-9]{2}:[0-9]{2}"
+              "(?::[0-9]{2}(?:[.][0-9]*)?)?)?)?)"), Literal.Date),
             # Times
-            (
-                (r"[0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:[.][0-9]{1,3})?)?"),
-                Literal.Date,
-            ),
+            (r"[0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:[.][0-9]{1,3})?)?",
+             Literal.Date),
             # GUIDs
-            (
-                r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
-                Number.Hex,
-            ),
+            (r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+             Number.Hex),
             # Byte Vectors
             (r"0x[0-9a-fA-F]+", Number.Hex),
             # Floats
-            (
-                r"([0-9]*[.]?[0-9]+|[0-9]+[.]?[0-9]*)[eE][+-]?[0-9]+[ef]?",
-                Number.Float,
-            ),
+            (r"([0-9]*[.]?[0-9]+|[0-9]+[.]?[0-9]*)[eE][+-]?[0-9]+[ef]?",
+             Number.Float),
             (r"([0-9]*[.][0-9]+|[0-9]+[.][0-9]*)[ef]?", Number.Float),
             (r"[0-9]+[ef]", Number.Float),
             # Characters
@@ -200,35 +162,26 @@ class QLexer(KLexer):
 
     tokens = {
         "root": [
-            (
-                words(
-                    ("aj", "aj0", "ajf", "ajf0", "all", "and", "any",
-                     "asc", "asof", "attr", "avgs", "ceiling", "cols",
-                     "count", "cross", "csv", "cut", "deltas", "desc",
-                     "differ", "distinct", "dsave", "each", "ej",
-                     "ema", "eval", "except", "fby", "fills", "first",
-                     "fkeys", "flip", "floor", "get", "group", "gtime",
-                     "hclose", "hcount", "hdel", "hsym", "iasc",
-                     "idesc", "ij", "ijf", "inter", "inv", "key",
-                     "keys", "lj", "ljf", "load", "lower", "lsq",
-                     "ltime", "ltrim", "mavg", "maxs", "mcount", "md5",
-                     "mdev", "med", "meta", "mins", "mmax", "mmin",
-                     "mmu", "mod", "msum", "neg", "next", "not",
-                     "null", "or", "over", "parse", "peach", "pj",
-                     "prds", "prior", "prev", "rand", "rank", "ratios",
-                     "raze", "read0", "read1", "reciprocal", "reval",
-                     "reverse", "rload", "rotate", "rsave", "rtrim",
-                     "save", "scan", "scov", "sdev", "set", "show",
-                     "signum", "ssr", "string", "sublist", "sums",
-                     "sv", "svar", "system", "tables", "til", "trim",
-                     "txf", "type", "uj", "ujf", "ungroup", "union",
-                     "upper", "upsert", "value", "view", "views", "vs",
-                     "where", "wj", "wj1", "ww", "xasc", "xbar",
-                     "xcol", "xcols", "xdesc", "xgroup", "xkey",
-                     "xlog", "xprev", "xrank"),
-                    suffix=r"\b",
-                ),
-                Name.Builtin,
+            (words(("aj", "aj0", "ajf", "ajf0", "all", "and", "any", "asc",
+                    "asof", "attr", "avgs", "ceiling", "cols", "count", "cross",
+                    "csv", "cut", "deltas", "desc", "differ", "distinct", "dsave",
+                    "each", "ej", "ema", "eval", "except", "fby", "fills", "first",
+                    "fkeys", "flip", "floor", "get", "group", "gtime", "hclose",
+                    "hcount", "hdel", "hsym", "iasc", "idesc", "ij", "ijf",
+                    "inter", "inv", "key", "keys", "lj", "ljf", "load", "lower",
+                    "lsq", "ltime", "ltrim", "mavg", "maxs", "mcount", "md5",
+                    "mdev", "med", "meta", "mins", "mmax", "mmin", "mmu", "mod",
+                    "msum", "neg", "next", "not", "null", "or", "over", "parse",
+                    "peach", "pj", "prds", "prior", "prev", "rand", "rank", "ratios",
+                    "raze", "read0", "read1", "reciprocal", "reval", "reverse",
+                    "rload", "rotate", "rsave", "rtrim", "save", "scan", "scov",
+                    "sdev", "set", "show", "signum", "ssr", "string", "sublist",
+                    "sums", "sv", "svar", "system", "tables", "til", "trim", "txf",
+                    "type", "uj", "ujf", "ungroup", "union", "upper", "upsert",
+                    "value", "view", "views", "vs", "where", "wj", "wj1", "ww",
+                    "xasc", "xbar", "xcol", "xcols", "xdesc", "xgroup", "xkey",
+                    "xlog", "xprev", "xrank"),
+                    suffix=r"\b"), Name.Builtin,
             ),
             inherit,
         ],

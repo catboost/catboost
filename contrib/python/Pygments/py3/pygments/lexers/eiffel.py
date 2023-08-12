@@ -9,8 +9,8 @@
 """
 
 from pygments.lexer import RegexLexer, include, words, bygroups
-from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Whitespace
+from pygments.token import Comment, Operator, Keyword, Name, String, Number, \
+    Punctuation, Whitespace
 
 __all__ = ['EiffelLexer']
 
@@ -35,8 +35,10 @@ class EiffelLexer(RegexLexer):
             # Please note that keyword and operator are case insensitive.
             (r'(?i)(true|false|void|current|result|precursor)\b', Keyword.Constant),
             (r'(?i)(not|xor|implies|or)\b', Operator.Word),
-            (r'(?i)(and)(?:(\s+)(then))?\b', bygroups(Operator.Word, Whitespace, Operator.Word)),
-            (r'(?i)(or)(?:(\s+)(else))?\b', bygroups(Operator.Word, Whitespace, Operator.Word)),
+            (r'(?i)(and)(?:(\s+)(then))?\b',
+             bygroups(Operator.Word, Whitespace, Operator.Word)),
+            (r'(?i)(or)(?:(\s+)(else))?\b',
+             bygroups(Operator.Word, Whitespace, Operator.Word)),
             (words((
                 'across', 'agent', 'alias', 'all', 'as', 'assign', 'attached',
                 'attribute', 'check', 'class', 'convert', 'create', 'debug',

@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, bygroups
 from pygments.token import Text, Comment, Keyword, Name, String, Number, \
-        Whitespace
+    Whitespace
 
 
 __all__ = ['ForthLexer']

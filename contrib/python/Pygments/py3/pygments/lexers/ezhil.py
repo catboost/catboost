@@ -9,9 +9,10 @@
 """
 
 import re
-from pygments.lexer import RegexLexer, include, words, bygroups
-from pygments.token import Keyword, Text, Comment, Name
-from pygments.token import String, Number, Punctuation, Operator, Whitespace
+
+from pygments.lexer import RegexLexer, include, words
+from pygments.token import Keyword, Comment, Name, String, Number, \
+    Punctuation, Operator, Whitespace
 
 __all__ = ['EzhilLexer']
 

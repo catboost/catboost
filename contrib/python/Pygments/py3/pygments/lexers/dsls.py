@@ -232,7 +232,7 @@ class ZeekLexer(RegexLexer):
         'directives': [
             (r'@(load-plugin|load-sigs|load|unload)\b.*$', Comment.Preproc),
             (r'@(DEBUG|DIR|FILENAME|deprecated|if|ifdef|ifndef|else|endif)\b', Comment.Preproc),
-            (r'(@prefixes)(\s*)((\+?=).*)$', bygroups(Comment.Preproc, 
+            (r'(@prefixes)(\s*)((\+?=).*)$', bygroups(Comment.Preproc,
                 Whitespace, Comment.Preproc)),
         ],
 
@@ -601,7 +601,8 @@ class AlloyLexer(RegexLexer):
 
     flags = re.MULTILINE | re.DOTALL
 
-    iden_rex = r'[a-zA-Z_][\w\']*'
+    iden_rex = r'[a-zA-Z_][\w]*"*'
+    string_rex = r'"\b(\\\\|\\[^\\]|[^"\\])*"'
     text_tuple = (r'[^\S\n]+', Whitespace)
 
     tokens = {
@@ -621,6 +622,10 @@ class AlloyLexer(RegexLexer):
             (r'\{', Operator, '#pop'),
             (iden_rex, Name, '#pop'),
         ],
+        'fact': [
+            include('fun'),
+            (string_rex, String, '#pop'),
+        ],
         'root': [
             (r'--.*?$', Comment.Single),
             (r'//.*?$', Comment.Single),
@@ -631,17 +636,20 @@ class AlloyLexer(RegexLexer):
             (r'(sig|enum)(\s+)', bygroups(Keyword.Declaration, Whitespace), 'sig'),
             (r'(iden|univ|none)\b', Keyword.Constant),
             (r'(int|Int)\b', Keyword.Type),
-            (r'(this|abstract|extends|set|seq|one|lone|let)\b', Keyword),
+            (r'(var|this|abstract|extends|set|seq|one|lone|let)\b', Keyword),
             (r'(all|some|no|sum|disj|when|else)\b', Keyword),
-            (r'(run|check|for|but|exactly|expect|as)\b', Keyword),
+            (r'(run|check|for|but|exactly|expect|as|steps)\b', Keyword),
+            (r'(always|after|eventually|until|release)\b', Keyword), # future time operators
+            (r'(historically|before|once|since|triggered)\b', Keyword), # past time operators
             (r'(and|or|implies|iff|in)\b', Operator.Word),
-            (r'(fun|pred|fact|assert)(\s+)', bygroups(Keyword, Whitespace), 'fun'),
-            (r'!|#|&&|\+\+|<<|>>|>=|<=>|<=|\.|->', Operator),
-            (r'[-+/*%=<>&!^|~{}\[\]().]', Operator),
+            (r'(fun|pred|assert)(\s+)', bygroups(Keyword, Whitespace), 'fun'),
+            (r'(fact)(\s+)', bygroups(Keyword, Whitespace), 'fact'),
+            (r'!|#|&&|\+\+|<<|>>|>=|<=>|<=|\.\.|\.|->', Operator),
+            (r'[-+/*%=<>&!^|~{}\[\]().\';]', Operator),
             (iden_rex, Name),
             (r'[:,]', Punctuation),
             (r'[0-9]+', Number.Integer),
-            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
+            (string_rex, String),
             (r'\n', Whitespace),
         ]
     }

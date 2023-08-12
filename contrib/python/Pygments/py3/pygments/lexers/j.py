@@ -9,8 +9,8 @@
 """
 
 from pygments.lexer import RegexLexer, words, include, bygroups
-from pygments.token import Comment, Keyword, Name, Number, Operator, Punctuation, \
-    String, Text, Whitespace
+from pygments.token import Comment, Keyword, Name, Number, Operator, \
+    Punctuation, String, Whitespace
 
 __all__ = ['JLexer']
 

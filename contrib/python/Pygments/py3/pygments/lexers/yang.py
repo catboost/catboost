@@ -8,11 +8,11 @@
     :license: BSD, see LICENSE for details.
 """
 
-from pygments.lexer import (RegexLexer, bygroups, words)
-from pygments.token import (Text, Token, Name, String, Comment,
-                            Number)
+from pygments.lexer import RegexLexer, bygroups, words
+from pygments.token import Text, Token, Name, String, Comment, Number
 
 __all__ = ['YangLexer']
+
 
 class YangLexer(RegexLexer):
     """

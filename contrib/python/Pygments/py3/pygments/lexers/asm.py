@@ -95,7 +95,7 @@ class GasLexer(RegexLexer):
             (r'/[*][\w\W]*?[*]/', Comment.Multiline)
         ],
         'punctuation': [
-            (r'[-*,.()\[\]!:]+', Punctuation)
+            (r'[-*,.()\[\]!:{}]+', Punctuation)
         ]
     }
 
@@ -478,7 +478,7 @@ class LlvmLexer(RegexLexer):
             # Types
             (words(('void', 'half', 'bfloat', 'float', 'double', 'fp128',
                     'x86_fp80', 'ppc_fp128', 'label', 'metadata', 'x86_mmx',
-                    'x86_amx', 'token')),
+                    'x86_amx', 'token', 'ptr')),
                    Keyword.Type),
 
             # Integer types
@@ -713,7 +713,7 @@ class NasmLexer(RegexLexer):
     """
     name = 'NASM'
     aliases = ['nasm']
-    filenames = ['*.asm', '*.ASM']
+    filenames = ['*.asm', '*.ASM', '*.nasm']
     mimetypes = ['text/x-nasm']
 
     # Tasm uses the same file endings, but TASM is not as common as NASM, so
@@ -730,8 +730,9 @@ class NasmLexer(RegexLexer):
     declkw = r'(?:res|d)[bwdqt]|times'
     register = (r'(r[0-9][0-5]?[bwd]?|'
                 r'[a-d][lh]|[er]?[a-d]x|[er]?[sb]p|[er]?[sd]i|[c-gs]s|st[0-7]|'
-                r'mm[0-7]|cr[0-4]|dr[0-367]|tr[3-7])\b')
-    wordop = r'seg|wrt|strict'
+                r'mm[0-7]|cr[0-4]|dr[0-367]|tr[3-7]|k[0-7]|'
+                r'[xyz]mm(?:[12][0-9]?|3[01]?|[04-9]))\b')
+    wordop = r'seg|wrt|strict|rel|abs'
     type = r'byte|[dq]?word'
     # Directives must be followed by whitespace, otherwise CPU will match
     # cpuid for instance.
@@ -778,7 +779,7 @@ class NasmLexer(RegexLexer):
             (r'#.*', Comment.Single)
         ],
         'punctuation': [
-            (r'[,():\[\]]+', Punctuation),
+            (r'[,{}():\[\]]+', Punctuation),
             (r'[&|^<>+*/%~-]+', Operator),
             (r'[$]+', Keyword.Constant),
             (wordop, Operator.Word),
@@ -861,7 +862,8 @@ class TasmLexer(RegexLexer):
             (register, Name.Builtin),
             (identifier, Name.Variable),
             # Do not match newline when it's preceded by a backslash
-            (r'(\\)(\s*)(;.*)([\r\n])', bygroups(Text, Whitespace, Comment.Single, Whitespace)),
+            (r'(\\)(\s*)(;.*)([\r\n])',
+             bygroups(Text, Whitespace, Comment.Single, Whitespace)),
             (r'[\r\n]+', Whitespace, '#pop'),
             include('whitespace')
         ],

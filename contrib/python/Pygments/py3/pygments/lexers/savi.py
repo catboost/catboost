@@ -9,11 +9,11 @@
 """
 
 from pygments.lexer import RegexLexer, bygroups, include
-from pygments.token import \
-  Whitespace, Keyword, Name, String, Number, \
+from pygments.token import Whitespace, Keyword, Name, String, Number, \
   Operator, Punctuation, Comment, Generic, Error
 
 __all__ = ['SaviLexer']
+
 
 # The canonical version of this file can be found in the following repository,
 # where it is kept in sync with any language changes, as well as the other

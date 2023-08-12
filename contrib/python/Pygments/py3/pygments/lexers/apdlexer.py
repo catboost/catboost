@@ -11,7 +11,7 @@
 import re
 
 from pygments.lexer import RegexLexer, include, words
-from pygments.token import Comment, Keyword, Name, Text, Number, Operator, \
+from pygments.token import Comment, Keyword, Name, Number, Operator, \
     String, Generic, Punctuation, Whitespace
 
 __all__ = ['apdlexer']

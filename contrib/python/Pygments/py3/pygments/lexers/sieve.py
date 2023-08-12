@@ -18,7 +18,8 @@
 """
 
 from pygments.lexer import RegexLexer, bygroups
-from pygments.token import Comment, Name, Literal, String, Text, Punctuation, Keyword
+from pygments.token import Comment, Name, Literal, String, Text, Punctuation, \
+    Keyword
 
 __all__ = ["SieveLexer"]
 
@@ -26,6 +27,8 @@ __all__ = ["SieveLexer"]
 class SieveLexer(RegexLexer):
     """
     Lexer for sieve format.
+
+    .. versionadded:: 2.6
     """
     name = 'Sieve'
     filenames = ['*.siv', '*.sieve']
@@ -39,10 +42,17 @@ class SieveLexer(RegexLexer):
             (r'(?i)require',
              Keyword.Namespace),
             # tags:
-            (r'(?i)(:)(addresses|all|contains|content|create|copy|comparator|count|days|detail|domain|fcc|flags|from|handle|importance|is|localpart|length|lowerfirst|lower|matches|message|mime|options|over|percent|quotewildcard|raw|regex|specialuse|subject|text|under|upperfirst|upper|value)',
+            (r'(?i)(:)(addresses|all|contains|content|create|copy|comparator|'
+             r'count|days|detail|domain|fcc|flags|from|handle|importance|is|'
+             r'localpart|length|lowerfirst|lower|matches|message|mime|options|'
+             r'over|percent|quotewildcard|raw|regex|specialuse|subject|text|'
+             r'under|upperfirst|upper|value)',
              bygroups(Name.Tag, Name.Tag)),
             # tokens:
-            (r'(?i)(address|addflag|allof|anyof|body|discard|elsif|else|envelope|ereject|exists|false|fileinto|if|hasflag|header|keep|notify_method_capability|notify|not|redirect|reject|removeflag|setflag|size|spamtest|stop|string|true|vacation|virustest)',
+            (r'(?i)(address|addflag|allof|anyof|body|discard|elsif|else|envelope|'
+             r'ereject|exists|false|fileinto|if|hasflag|header|keep|'
+             r'notify_method_capability|notify|not|redirect|reject|removeflag|'
+             r'setflag|size|spamtest|stop|string|true|vacation|virustest)',
              Name.Builtin),
             (r'(?i)set',
              Keyword.Declaration),

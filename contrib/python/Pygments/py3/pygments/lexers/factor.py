@@ -8,11 +8,9 @@
     :license: BSD, see LICENSE for details.
 """
 
-import re
-
 from pygments.lexer import RegexLexer, bygroups, default, words
 from pygments.token import Text, Comment, Keyword, Name, String, Number, \
-        Whitespace, Punctuation
+    Whitespace, Punctuation
 
 __all__ = ['FactorLexer']
 

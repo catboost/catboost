@@ -18,15 +18,8 @@ from pygments.token import Comment, Text, Keyword, String, Number, Literal, \
 from pygments.lexers.web import HtmlLexer, XmlLexer, CssLexer, JavascriptLexer
 from pygments.lexers.python import PythonLexer
 
-
-__all__ = [
-    'UL4Lexer',
-    'HTMLUL4Lexer',
-    'XMLUL4Lexer',
-    'CSSUL4Lexer',
-    'JavascriptUL4Lexer',
-    'PythonUL4Lexer',
-]
+__all__ = ['UL4Lexer', 'HTMLUL4Lexer', 'XMLUL4Lexer', 'CSSUL4Lexer',
+           'JavascriptUL4Lexer', 'PythonUL4Lexer']
 
 
 class UL4Lexer(RegexLexer):
@@ -48,13 +41,15 @@ class UL4Lexer(RegexLexer):
                 # Template header without name:
                 # ``<?ul4?>``
                 r"(<\?)(\s*)(ul4)(\s*)(\?>)",
-                bygroups(Comment.Preproc, Text.Whitespace, Keyword, Text.Whitespace, Comment.Preproc),
+                bygroups(Comment.Preproc, Text.Whitespace, Keyword,
+                         Text.Whitespace, Comment.Preproc),
             ),
             (
                 # Template header with name (potentially followed by the signature):
                 # ``<?ul4 foo(bar=42)?>``
                 r"(<\?)(\s*)(ul4)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?",
-                bygroups(Comment.Preproc, Text.Whitespace, Keyword, Text.Whitespace, Name.Function),
+                bygroups(Comment.Preproc, Text.Whitespace, Keyword,
+                         Text.Whitespace, Name.Function),
                 "ul4", # Switch to "expression" mode
             ),
             (
@@ -80,7 +75,8 @@ class UL4Lexer(RegexLexer):
                 # ``<?def?>`` tag for defining local templates
                 # ``<?def foo(bar=42)?>...<?end def?>``
                 r"(<\?)(\s*)(def)(\s*)([a-zA-Z_][a-zA-Z_0-9]*)?",
-                bygroups(Comment.Preproc, Text.Whitespace, Keyword, Text.Whitespace, Name.Function),
+                bygroups(Comment.Preproc, Text.Whitespace, Keyword,
+                         Text.Whitespace, Name.Function),
                 "ul4", # Switch to "expression" mode
             ),
             (

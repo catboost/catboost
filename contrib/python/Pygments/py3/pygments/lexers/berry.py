@@ -8,20 +8,19 @@
     :license: BSD, see LICENSE for details.
 """
 
-import re
-from pygments.lexer import RegexLexer, words, default, include, bygroups
-from pygments.token import Text, Comment, Whitespace, Operator, Keyword, Name, String, Number, Punctuation
+from pygments.lexer import RegexLexer, words, include, bygroups
+from pygments.token import Comment, Whitespace, Operator, Keyword, Name, \
+    String, Number, Punctuation
 
 __all__ = ['BerryLexer']
 
-line_re = re.compile('.*?\n')
 
 class BerryLexer(RegexLexer):
     """
     For `berry <http://github.com/berry-lang/berry>`_ source code.
 
     .. versionadded:: 2.12.0
-    """    
+    """
     name = 'Berry'
     aliases = ['berry', 'be']
     filenames = ['*.be']
@@ -34,9 +33,12 @@ class BerryLexer(RegexLexer):
             include('whitespace'),
             include('numbers'),
             include('keywords'),
-            (rf'(def)(\s+)({_name})', bygroups(Keyword.Declaration, Whitespace, Name.Function)),
-            (rf'\b(class)(\s+)({_name})', bygroups(Keyword.Declaration, Whitespace, Name.Class)),
-            (rf'\b(import)(\s+)({_name})', bygroups(Keyword.Namespace, Whitespace, Name.Namespace)),
+            (rf'(def)(\s+)({_name})',
+             bygroups(Keyword.Declaration, Whitespace, Name.Function)),
+            (rf'\b(class)(\s+)({_name})',
+             bygroups(Keyword.Declaration, Whitespace, Name.Class)),
+            (rf'\b(import)(\s+)({_name})',
+             bygroups(Keyword.Namespace, Whitespace, Name.Namespace)),
             include('expr')
         ],
         'expr': [
@@ -57,14 +59,14 @@ class BerryLexer(RegexLexer):
         ],
         'keywords': [
             (words((
-                'as', 'break', 'continue', 'import', 'static', 'self', 'super'), 
+                'as', 'break', 'continue', 'import', 'static', 'self', 'super'),
                 suffix=r'\b'), Keyword.Reserved),
             (r'(true|false|nil)\b', Keyword.Constant),
             (r'(var|def)\b', Keyword.Declaration)
         ],
         'controls': [
             (words((
-                'if', 'elif', 'else', 'for', 'while', 'do', 'end', 'break', 
+                'if', 'elif', 'else', 'for', 'while', 'do', 'end', 'break',
                 'continue', 'return', 'try', 'except', 'raise'),
                 suffix=r'\b'), Keyword)
         ],
@@ -73,7 +75,7 @@ class BerryLexer(RegexLexer):
                 'assert', 'bool', 'input', 'classname', 'classof', 'number', 'real',
                 'bytes', 'compile', 'map', 'list', 'int', 'isinstance', 'print',
                 'range', 'str', 'super', 'module', 'size', 'issubclass', 'open',
-                'file', 'type', 'call'), 
+                'file', 'type', 'call'),
                 suffix=r'\b'), Name.Builtin)
         ],
         'numbers': [

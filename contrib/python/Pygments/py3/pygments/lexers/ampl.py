@@ -59,7 +59,8 @@ class AmplLexer(RegexLexer):
              bygroups(Keyword.Declaration, Whitespace, Punctuation, Whitespace,
                       Name.Variable, Whitespace, Punctuation, Whitespace, Name.Variable)),
             (r'(let|fix|unfix)(\s*)((?:\{.*\})?)(\s*)(\w+)',
-             bygroups(Keyword.Declaration, Whitespace, using(this), Whitespace, Name.Variable)),
+             bygroups(Keyword.Declaration, Whitespace, using(this), Whitespace,
+                      Name.Variable)),
             (words((
                 'abs', 'acos', 'acosh', 'alias', 'asin', 'asinh', 'atan', 'atan2',
                 'atanh', 'ceil', 'ctime', 'cos', 'exp', 'floor', 'log', 'log10',

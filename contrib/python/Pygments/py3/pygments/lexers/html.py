@@ -13,7 +13,7 @@ import re
 from pygments.lexer import RegexLexer, ExtendedRegexLexer, include, bygroups, \
     default, using
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Punctuation
+    Punctuation, Whitespace
 from pygments.util import looks_like_xml, html_doctype_matches
 
 from pygments.lexers.javascript import JavascriptLexer
@@ -207,7 +207,8 @@ class XmlLexer(RegexLexer):
 
     tokens = {
         'root': [
-            ('[^<&]+', Text),
+            (r'[^<&\s]+', Text),
+            (r'[^<&\S]+', Whitespace),
             (r'&\S*?;', Name.Entity),
             (r'\<\!\[CDATA\[.*?\]\]\>', Comment.Preproc),
             (r'<!--.*?-->', Comment.Multiline),
@@ -217,12 +218,12 @@ class XmlLexer(RegexLexer):
             (r'<\s*/\s*[\w:.-]+\s*>', Name.Tag),
         ],
         'tag': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'[\w.:-]+\s*=', Name.Attribute, 'attr'),
             (r'/?\s*>', Name.Tag, '#pop'),
         ],
         'attr': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             ('".*?"', String, '#pop'),
             ("'.*?'", String, '#pop'),
             (r'[^\s>]+', String, '#pop'),

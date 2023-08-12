@@ -2,7 +2,7 @@
     pygments.lexers.bdd
     ~~~~~~~~~~~~~~~~~~~
 
-    Lexer for BDD(Behavior-driven development). 
+    Lexer for BDD(Behavior-driven development).
     More information: https://en.wikipedia.org/wiki/Behavior-driven_development
 
     :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
@@ -10,14 +10,15 @@
 """
 
 from pygments.lexer import RegexLexer, include
-from pygments.token import Comment, Keyword, Name, String, Number, Text, Punctuation, Whitespace
+from pygments.token import Comment, Keyword, Name, String, Number, Text, \
+    Punctuation, Whitespace
 
 __all__ = ['BddLexer']
 
 class BddLexer(RegexLexer):
     """
-    Lexer for BDD(Behavior-driven development), which highlights not only keywords, 
-    but also comments, punctuations, strings, numbers, and variables.
+    Lexer for BDD(Behavior-driven development), which highlights not only
+    keywords, but also comments, punctuations, strings, numbers, and variables.
 
     .. versionadded:: 2.11
     """
@@ -27,7 +28,8 @@ class BddLexer(RegexLexer):
     filenames = ['*.feature']
     mimetypes = ['text/x-bdd']
 
-    step_keywords = r'Given|When|Then|Add|And|Feature|Scenario Outline|Scenario|Background|Examples|But'
+    step_keywords = (r'Given|When|Then|Add|And|Feature|Scenario Outline|'
+                     r'Scenario|Background|Examples|But')
 
     tokens = {
         'comments': [
@@ -47,7 +49,7 @@ class BddLexer(RegexLexer):
             (step_keywords, Keyword),
             include('comments'),
             include('miscellaneous'),
-            include('numbers'),            
+            include('numbers'),
             (r'\S+', Text),
         ]
     }

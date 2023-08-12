@@ -64,9 +64,12 @@ class CFamilyLexer(RegexLexer):
             ('^(' + _ws1 + ')(#)',
              bygroups(using(this), Comment.Preproc), 'macro'),
             # Labels:
-            (r'(^[ \t]*)'                                  # Line start and possible indentation.
-             r'(?!(?:public|private|protected|default)\b)' # Not followed by keywords which can be mistaken as labels.
-             r'(' + _ident + r')(\s*)(:)(?!:)',            # Actual label, followed by a single colon.
+            # Line start and possible indentation.
+            (r'(^[ \t]*)'
+             # Not followed by keywords which can be mistaken as labels.
+             r'(?!(?:public|private|protected|default)\b)'
+             # Actual label, followed by a single colon.
+             r'(' + _ident + r')(\s*)(:)(?!:)',
              bygroups(Whitespace, Name.Label, Whitespace, Punctuation)),
             (r'\n', Whitespace),
             (r'[^\S\n]+', Whitespace),
@@ -84,10 +87,13 @@ class CFamilyLexer(RegexLexer):
              bygroups(String.Affix, String.Char, String.Char, String.Char)),
 
              # Hexadecimal floating-point literals (C11, C++17)
-            (r'0[xX](' + _hexpart + r'\.' + _hexpart + r'|\.' + _hexpart + r'|' + _hexpart + r')[pP][+-]?' + _hexpart + r'[lL]?', Number.Float),
+            (r'0[xX](' + _hexpart + r'\.' + _hexpart + r'|\.' + _hexpart +
+             r'|' + _hexpart + r')[pP][+-]?' + _hexpart + r'[lL]?', Number.Float),
 
-            (r'(-)?(' + _decpart + r'\.' + _decpart + r'|\.' + _decpart + r'|' + _decpart + r')[eE][+-]?' + _decpart + r'[fFlL]?', Number.Float),
-            (r'(-)?((' + _decpart + r'\.(' + _decpart + r')?|\.' + _decpart + r')[fFlL]?)|(' + _decpart + r'[fFlL])', Number.Float),
+            (r'(-)?(' + _decpart + r'\.' + _decpart + r'|\.' + _decpart + r'|' +
+             _decpart + r')[eE][+-]?' + _decpart + r'[fFlL]?', Number.Float),
+            (r'(-)?((' + _decpart + r'\.(' + _decpart + r')?|\.' +
+             _decpart + r')[fFlL]?)|(' + _decpart + r'[fFlL])', Number.Float),
             (r'(-)?0[xX]' + _hexpart + _intsuffix, Number.Hex),
             (r'(-)?0[bB][01](\'?[01])*' + _intsuffix, Number.Bin),
             (r'(-)?0(\'?[0-7])+' + _intsuffix, Number.Oct),
@@ -106,7 +112,7 @@ class CFamilyLexer(RegexLexer):
         'keywords': [
             (r'(struct|union)(\s+)', bygroups(Keyword, Whitespace), 'classname'),
             (r'case\b', Keyword, 'case-value'),
-            (words(('asm', 'auto', 'break', 'const', 'continue', 'default', 
+            (words(('asm', 'auto', 'break', 'const', 'continue', 'default',
                     'do', 'else', 'enum', 'extern', 'for', 'goto', 'if',
                     'register', 'restricted', 'return', 'sizeof', 'struct',
                     'static', 'switch', 'typedef', 'volatile', 'while', 'union',
@@ -129,25 +135,29 @@ class CFamilyLexer(RegexLexer):
             include('keywords'),
             # functions
             (r'(' + _namespaced_ident + r'(?:[&*\s])+)'  # return arguments
-             r'(' + _possible_comments + r')'    # possible comments
+             r'(' + _possible_comments + r')'
              r'(' + _namespaced_ident + r')'             # method name
-             r'(' + _possible_comments + r')'    # possible comments
-             r'(\([^;"\']*?\))'                          # signature
-             r'(' + _possible_comments + r')'    # possible comments
+             r'(' + _possible_comments + r')'
+             r'(\([^;"\')]*?\))'                         # signature
+             r'(' + _possible_comments + r')'
              r'([^;{/"\']*)(\{)',
-             bygroups(using(this), using(this, state='whitespace'), Name.Function, using(this, state='whitespace'),
-                      using(this), using(this, state='whitespace'), using(this), Punctuation),
+             bygroups(using(this), using(this, state='whitespace'),
+                      Name.Function, using(this, state='whitespace'),
+                      using(this), using(this, state='whitespace'),
+                      using(this), Punctuation),
              'function'),
             # function declarations
             (r'(' + _namespaced_ident + r'(?:[&*\s])+)'  # return arguments
-             r'(' + _possible_comments + r')'    # possible comments
+             r'(' + _possible_comments + r')'
              r'(' + _namespaced_ident + r')'             # method name
-             r'(' + _possible_comments + r')'    # possible comments
-             r'(\([^;"\']*?\))'                          # signature
-             r'(' + _possible_comments + r')'    # possible comments
+             r'(' + _possible_comments + r')'
+             r'(\([^;"\')]*?\))'                         # signature
+             r'(' + _possible_comments + r')'
              r'([^;/"\']*)(;)',
-             bygroups(using(this), using(this, state='whitespace'), Name.Function, using(this, state='whitespace'),
-                      using(this), using(this, state='whitespace'), using(this), Punctuation)),
+             bygroups(using(this), using(this, state='whitespace'),
+                      Name.Function, using(this, state='whitespace'),
+                      using(this), using(this, state='whitespace'),
+                      using(this), Punctuation)),
             include('types'),
             default('statement'),
         ],
@@ -174,9 +184,11 @@ class CFamilyLexer(RegexLexer):
         ],
         'macro': [
             (r'('+_ws1+r')(include)('+_ws1+r')("[^"]+")([^\n]*)',
-                bygroups(using(this), Comment.Preproc, using(this), Comment.PreprocFile, Comment.Single)),
+                bygroups(using(this), Comment.Preproc, using(this),
+                         Comment.PreprocFile, Comment.Single)),
             (r'('+_ws1+r')(include)('+_ws1+r')(<[^>]+>)([^\n]*)',
-                bygroups(using(this), Comment.Preproc, using(this), Comment.PreprocFile, Comment.Single)),
+                bygroups(using(this), Comment.Preproc, using(this),
+                         Comment.PreprocFile, Comment.Single)),
             (r'[^/\n]+', Comment.Preproc),
             (r'/[*](.|\n)*?[*]/', Comment.Multiline),
             (r'//.*?\n', Comment.Single, '#pop'),
@@ -221,12 +233,12 @@ class CFamilyLexer(RegexLexer):
         'mode_t', 'nfds_t', 'pid_t', 'rlim_t', 'sig_t', 'sighandler_t', 'siginfo_t',
         'sigset_t', 'sigval_t', 'socklen_t', 'timer_t', 'uid_t'}
     c11_atomic_types = {
-        'atomic_bool', 'atomic_char', 'atomic_schar', 'atomic_uchar', 'atomic_short', 
+        'atomic_bool', 'atomic_char', 'atomic_schar', 'atomic_uchar', 'atomic_short',
         'atomic_ushort', 'atomic_int', 'atomic_uint', 'atomic_long', 'atomic_ulong',
-        'atomic_llong', 'atomic_ullong', 'atomic_char16_t', 'atomic_char32_t', 'atomic_wchar_t', 
-        'atomic_int_least8_t', 'atomic_uint_least8_t', 'atomic_int_least16_t', 
+        'atomic_llong', 'atomic_ullong', 'atomic_char16_t', 'atomic_char32_t', 'atomic_wchar_t',
+        'atomic_int_least8_t', 'atomic_uint_least8_t', 'atomic_int_least16_t',
         'atomic_uint_least16_t', 'atomic_int_least32_t', 'atomic_uint_least32_t',
-        'atomic_int_least64_t', 'atomic_uint_least64_t', 'atomic_int_fast8_t', 
+        'atomic_int_least64_t', 'atomic_uint_least64_t', 'atomic_int_fast8_t',
         'atomic_uint_fast8_t', 'atomic_int_fast16_t', 'atomic_uint_fast16_t',
         'atomic_int_fast32_t', 'atomic_uint_fast32_t', 'atomic_int_fast64_t',
         'atomic_uint_fast64_t', 'atomic_intptr_t', 'atomic_uintptr_t', 'atomic_size_t',
@@ -286,7 +298,7 @@ class CLexer(CFamilyLexer):
     tokens = {
         'keywords': [
             (words((
-                '_Alignas', '_Alignof', '_Noreturn', '_Generic', '_Thread_local', 
+                '_Alignas', '_Alignof', '_Noreturn', '_Generic', '_Thread_local',
                 '_Static_assert', '_Imaginary', 'noreturn', 'imaginary', 'complex'),
                 suffix=r'\b'), Keyword),
             inherit
@@ -370,7 +382,7 @@ class CppLexer(CFamilyLexer):
                 'private', 'protected', 'public', 'reinterpret_cast', 'class',
                 'restrict', 'static_cast', 'template', 'this', 'throw', 'throws',
                 'try', 'typeid', 'using', 'virtual', 'constexpr', 'nullptr', 'concept',
-                'decltype', 'noexcept', 'override', 'final', 'constinit', 'consteval', 
+                'decltype', 'noexcept', 'override', 'final', 'constinit', 'consteval',
                 'co_await', 'co_return', 'co_yield', 'requires', 'import', 'module',
                 'typename'),
                suffix=r'\b'), Keyword),

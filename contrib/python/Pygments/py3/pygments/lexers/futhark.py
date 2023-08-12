@@ -8,17 +8,12 @@
     :license: BSD, see LICENSE for details.
 """
 
-import re
-
 from pygments.lexer import RegexLexer, bygroups
-from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
+from pygments.token import Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Whitespace
 from pygments import unistring as uni
 
 __all__ = ['FutharkLexer']
-
-
-line_re = re.compile('.*?\n')
 
 
 class FutharkLexer(RegexLexer):

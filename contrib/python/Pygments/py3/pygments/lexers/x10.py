@@ -13,11 +13,12 @@ from pygments.token import Text, Comment, Keyword, String
 
 __all__ = ['X10Lexer']
 
+
 class X10Lexer(RegexLexer):
     """
     For the X10 language.
 
-    .. versionadded:: 0.1
+    .. versionadded:: 2.2
     """
 
     name = 'X10'

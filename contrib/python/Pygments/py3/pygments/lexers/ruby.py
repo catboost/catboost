@@ -11,14 +11,12 @@
 import re
 
 from pygments.lexer import Lexer, RegexLexer, ExtendedRegexLexer, include, \
-    bygroups, default, LexerContext, do_insertions, words
+    bygroups, default, LexerContext, do_insertions, words, line_re
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Error, Generic
+    Number, Punctuation, Error, Generic, Whitespace
 from pygments.util import shebang_matches
 
 __all__ = ['RubyLexer', 'RubyConsoleLexer', 'FancyLexer']
-
-line_re = re.compile('.*?\n')
 
 
 RUBY_OPERATORS = (
@@ -179,11 +177,11 @@ class RubyLexer(ExtendedRegexLexer):
             # special forms of fancy strings after operators or
             # in method calls with braces
             (r'(?<=[-+/*%=<>&!^|~,(])(\s*)(%([\t ])(?:(?:\\\3|(?!\3).)*)\3)',
-             bygroups(Text, String.Other, None)),
+             bygroups(Whitespace, String.Other, None)),
             # and because of fixed width lookbehinds the whole thing a
             # second time for line startings...
             (r'^(\s*)(%([\t ])(?:(?:\\\3|(?!\3).)*)\3)',
-             bygroups(Text, String.Other, None)),
+             bygroups(Whitespace, String.Other, None)),
             # all regular fancy strings without qsw
             (r'(%([^a-zA-Z0-9\s]))((?:\\\2|(?!\2).)*)(\2)',
              intp_string_callback),
@@ -206,10 +204,10 @@ class RubyLexer(ExtendedRegexLexer):
             # start of function, class and module names
             (r'(module)(\s+)([a-zA-Z_]\w*'
              r'(?:::[a-zA-Z_]\w*)*)',
-             bygroups(Keyword, Text, Name.Namespace)),
-            (r'(def)(\s+)', bygroups(Keyword, Text), 'funcname'),
+             bygroups(Keyword, Whitespace, Name.Namespace)),
+            (r'(def)(\s+)', bygroups(Keyword, Whitespace), 'funcname'),
             (r'def(?=[*%&^`~+-/\[<>=])', Keyword, 'funcname'),
-            (r'(class)(\s+)', bygroups(Keyword, Text), 'classname'),
+            (r'(class)(\s+)', bygroups(Keyword, Whitespace), 'classname'),
             # special methods
             (words((
                 'initialize', 'new', 'loop', 'include', 'extend', 'raise', 'attr_reader',
@@ -283,7 +281,7 @@ class RubyLexer(ExtendedRegexLexer):
             # multiline regex (in method calls or subscripts)
             (r'(?<=\(|,|\[)/', String.Regex, 'multiline-regex'),
             # multiline regex (this time the funny no whitespace rule)
-            (r'(\s+)(/)(?![\s=])', bygroups(Text, String.Regex),
+            (r'(\s+)(/)(?![\s=])', bygroups(Whitespace, String.Regex),
              'multiline-regex'),
             # lex numbers and ignore following regular expressions which
             # are division operators in fact (grrrr. i hate that. any
@@ -294,13 +292,13 @@ class RubyLexer(ExtendedRegexLexer):
             # stupid example:
             #   x>=0?n[x]:""
             (r'(0_?[0-7]+(?:_[0-7]+)*)(\s*)([/?])?',
-             bygroups(Number.Oct, Text, Operator)),
+             bygroups(Number.Oct, Whitespace, Operator)),
             (r'(0x[0-9A-Fa-f]+(?:_[0-9A-Fa-f]+)*)(\s*)([/?])?',
-             bygroups(Number.Hex, Text, Operator)),
+             bygroups(Number.Hex, Whitespace, Operator)),
             (r'(0b[01]+(?:_[01]+)*)(\s*)([/?])?',
-             bygroups(Number.Bin, Text, Operator)),
+             bygroups(Number.Bin, Whitespace, Operator)),
             (r'([\d]+(?:_\d+)*)(\s*)([/?])?',
-             bygroups(Number.Integer, Text, Operator)),
+             bygroups(Number.Integer, Whitespace, Operator)),
             # Names
             (r'@@[a-zA-Z_]\w*', Name.Variable.Class),
             (r'@[a-zA-Z_]\w*', Name.Variable.Instance),
@@ -326,7 +324,7 @@ class RubyLexer(ExtendedRegexLexer):
              r'!~|&&?|\|\||\.{1,3})', Operator),
             (r'[-+/*%=<>&!^|~]=?', Operator),
             (r'[(){};,/?:\\]', Punctuation),
-            (r'\s+', Text)
+            (r'\s+', Whitespace)
         ],
         'funcname': [
             (r'\(', Punctuation, 'defexpr'),
@@ -469,7 +467,7 @@ class FancyLexer(RegexLexer):
             (r'\$(\\\\|\\[^\\]|[^$\\])*\$[egimosx]*', String.Regex, '#pop'),
         ],
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # balanced delimiters (copied from PerlLexer):
             (r's\{(\\\\|\\[^\\]|[^}\\])*\}\s*', String.Regex, 'balanced-regex'),
@@ -512,13 +510,13 @@ class FancyLexer(RegexLexer):
             # numbers - / checks are necessary to avoid mismarking regexes,
             # see comment in RubyLexer
             (r'(0[oO]?[0-7]+(?:_[0-7]+)*)(\s*)([/?])?',
-             bygroups(Number.Oct, Text, Operator)),
+             bygroups(Number.Oct, Whitespace, Operator)),
             (r'(0[xX][0-9A-Fa-f]+(?:_[0-9A-Fa-f]+)*)(\s*)([/?])?',
-             bygroups(Number.Hex, Text, Operator)),
+             bygroups(Number.Hex, Whitespace, Operator)),
             (r'(0[bB][01]+(?:_[01]+)*)(\s*)([/?])?',
-             bygroups(Number.Bin, Text, Operator)),
+             bygroups(Number.Bin, Whitespace, Operator)),
             (r'([\d]+(?:_\d+)*)(\s*)([/?])?',
-             bygroups(Number.Integer, Text, Operator)),
+             bygroups(Number.Integer, Whitespace, Operator)),
             (r'\d+([eE][+-]?[0-9]+)|\d+\.\d+([eE][+-]?[0-9]+)?', Number.Float),
             (r'\d+', Number.Integer)
         ]

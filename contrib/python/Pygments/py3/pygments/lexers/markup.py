@@ -17,7 +17,7 @@ from pygments.lexers.css import CssLexer
 from pygments.lexer import RegexLexer, DelegatingLexer, include, bygroups, \
     using, this, do_insertions, default, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Generic, Other
+    Number, Punctuation, Generic, Other, Whitespace
 from pygments.util import get_bool_opt, ClassNotFound
 
 __all__ = ['BBCodeLexer', 'MoinWikiLexer', 'RstLexer', 'TexLexer', 'GroffLexer',
@@ -549,13 +549,13 @@ class MarkdownLexer(RegexLexer):
             (r'^(.+)(\n)(-+)(\n)', bygroups(Generic.Subheading, Text, Generic.Subheading, Text)),
             # task list
             (r'^(\s*)([*-] )(\[[ xX]\])( .+\n)',
-            bygroups(Text, Keyword, Keyword, using(this, state='inline'))),
+            bygroups(Whitespace, Keyword, Keyword, using(this, state='inline'))),
             # bulleted list
             (r'^(\s*)([*-])(\s)(.+\n)',
-            bygroups(Text, Keyword, Text, using(this, state='inline'))),
+            bygroups(Whitespace, Keyword, Whitespace, using(this, state='inline'))),
             # numbered list
             (r'^(\s*)([0-9]+\.)( .+\n)',
-            bygroups(Text, Keyword, using(this, state='inline'))),
+            bygroups(Whitespace, Keyword, using(this, state='inline'))),
             # quote
             (r'^(\s*>\s)(.+\n)', bygroups(Keyword, Generic.Emph)),
             # code block fenced by 3 backticks

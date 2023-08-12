@@ -12,8 +12,8 @@ import re
 
 from pygments.lexer import RegexLexer, ExtendedRegexLexer, include, default, \
     words
-from pygments.token import Name, Comment, String, Error, Number, Text, \
-    Keyword, Punctuation, Whitespace
+from pygments.token import Name, Comment, String, Error, Number, Keyword, \
+    Punctuation, Whitespace
 
 __all__ = ['BibTeXLexer', 'BSTLexer']
 

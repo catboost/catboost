@@ -11,18 +11,15 @@
 import re
 
 from pygments.lexer import Lexer, RegexLexer, do_insertions, bygroups, \
-    include, default, this, using, words
-from pygments.token import Punctuation, \
+    include, default, this, using, words, line_re
+from pygments.token import Punctuation, Whitespace, \
     Text, Comment, Operator, Keyword, Name, String, Number, Generic
 from pygments.util import shebang_matches
-
 
 __all__ = ['BashLexer', 'BashSessionLexer', 'TcshLexer', 'BatchLexer',
            'SlurmBashLexer', 'MSDOSSessionLexer', 'PowerShellLexer',
            'PowerShellSessionLexer', 'TcshSessionLexer', 'FishShellLexer',
            'ExeclineLexer']
-
-line_re = re.compile('.*?\n')
 
 
 class BashLexer(RegexLexer):
@@ -59,7 +56,7 @@ class BashLexer(RegexLexer):
         'basic': [
             (r'\b(if|fi|else|while|in|do|done|for|then|return|function|case|'
              r'select|continue|until|esac|elif)(\s*)\b',
-             bygroups(Keyword, Text)),
+             bygroups(Keyword, Whitespace)),
             (r'\b(alias|bg|bind|break|builtin|caller|cd|command|compgen|'
              r'complete|declare|dirs|disown|echo|enable|eval|exec|exit|'
              r'export|false|fc|fg|getopts|hash|help|history|jobs|kill|let|'
@@ -70,7 +67,7 @@ class BashLexer(RegexLexer):
             (r'\A#!.+\n', Comment.Hashbang),
             (r'#.*\n', Comment.Single),
             (r'\\[\w\W]', String.Escape),
-            (r'(\b\w+)(\s*)(\+?=)', bygroups(Name.Variable, Text, Operator)),
+            (r'(\b\w+)(\s*)(\+?=)', bygroups(Name.Variable, Whitespace, Operator)),
             (r'[\[\]{}()=]', Operator),
             (r'<<<', Operator),  # here-string
             (r'<<-?\s*(\'?)\\?(\w+)[\w\W]+?\2', String),
@@ -84,7 +81,7 @@ class BashLexer(RegexLexer):
             (r';', Punctuation),
             (r'&', Punctuation),
             (r'\|', Punctuation),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'\d+\b', Number),
             (r'[^=\s\[\]{}()$"\'`\\<&|;]+', Text),
             (r'<', Text),
@@ -157,6 +154,7 @@ class ShellSessionBaseLexer(Lexer):
     .. versionadded:: 2.1
     """
 
+    _bare_continuation = False
     _venv = re.compile(r'^(\([^)]*\))(\s*)')
 
     def get_tokens_unprocessed(self, text):
@@ -175,10 +173,10 @@ class ShellSessionBaseLexer(Lexer):
                 venv = venv_match.group(1)
                 venv_whitespace = venv_match.group(2)
                 insertions.append((len(curcode),
-                    [(0, Generic.Prompt.VirtualEnv, venv)]))
+                                   [(0, Generic.Prompt.VirtualEnv, venv)]))
                 if venv_whitespace:
                     insertions.append((len(curcode),
-                        [(0, Text, venv_whitespace)]))
+                                       [(0, Text, venv_whitespace)]))
                 line = line[venv_match.end():]
 
             m = self._ps1rgx.match(line)
@@ -196,11 +194,17 @@ class ShellSessionBaseLexer(Lexer):
             elif backslash_continuation:
                 if line.startswith(self._ps2):
                     insertions.append((len(curcode),
-                                    [(0, Generic.Prompt, line[:len(self._ps2)])]))
+                                       [(0, Generic.Prompt,
+                                         line[:len(self._ps2)])]))
                     curcode += line[len(self._ps2):]
                 else:
                     curcode += line
                 backslash_continuation = curcode.endswith('\\\n')
+            elif self._bare_continuation and line.startswith(self._ps2):
+                insertions.append((len(curcode),
+                                   [(0, Generic.Prompt,
+                                     line[:len(self._ps2)])]))
+                curcode += line[len(self._ps2):]
             else:
                 if insertions:
                     toks = innerlexer.get_tokens_unprocessed(curcode)
@@ -665,7 +669,7 @@ class PowerShellLexer(RegexLexer):
     keywords = (
         'while validateset validaterange validatepattern validatelength '
         'validatecount until trap switch return ref process param parameter in '
-        'if global: function foreach for finally filter end elseif else '
+        'if global: local: function foreach for finally filter end elseif else '
         'dynamicparam do default continue cmdletbinding break begin alias \\? '
         '% #script #private #local #global mandatory parametersetname position '
         'valuefrompipeline valuefrompipelinebypropertyname '
@@ -777,8 +781,9 @@ class PowerShellSessionLexer(ShellSessionBaseLexer):
     mimetypes = []
 
     _innerLexerCls = PowerShellLexer
+    _bare_continuation = True
     _ps1rgx = re.compile(r'^((?:\[[^]]+\]: )?PS[^>]*> ?)(.*\n?)')
-    _ps2 = '>> '
+    _ps2 = '> '
 
 
 class FishShellLexer(RegexLexer):
@@ -819,7 +824,7 @@ class FishShellLexer(RegexLexer):
              Name.Builtin),
             (r'#.*\n', Comment),
             (r'\\[\w\W]', String.Escape),
-            (r'(\b\w+)(\s*)(=)', bygroups(Name.Variable, Text, Operator)),
+            (r'(\b\w+)(\s*)(=)', bygroups(Name.Variable, Whitespace, Operator)),
             (r'[\[\]()=]', Operator),
             (r'<<-?\s*(\'?)\\?(\w+)[\w\W]+?\2', String),
         ],

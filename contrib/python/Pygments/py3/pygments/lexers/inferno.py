@@ -11,7 +11,7 @@
 import re
 
 from pygments.lexer import RegexLexer, include, bygroups, default
-from pygments.token import Punctuation, Text, Comment, Operator, Keyword, \
+from pygments.token import Punctuation, Comment, Operator, Keyword, \
     Name, String, Number, Whitespace
 
 __all__ = ['LimboLexer']

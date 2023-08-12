@@ -8,8 +8,6 @@
     :license: BSD, see LICENSE for details.
 """
 
-import re
-
 from pygments.lexer import RegexLexer, bygroups, include, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Whitespace
@@ -61,8 +59,8 @@ class SolidityLexer(RegexLexer):
             (datatype, Keyword.Type),
             include('constants'),
             (r'[a-zA-Z_]\w*', Text),
-            (r'[!<=>+*/-]', Operator),
-            (r'[.;:{}(),\[\]]', Punctuation)
+            (r'[~!%^&*+=|?:<>/-]', Operator),
+            (r'[.;{}(),\[\]]', Punctuation)
         ],
         'comments': [
             (r'//(\n|[\w\W]*?[^\\]\n)', Comment.Single),

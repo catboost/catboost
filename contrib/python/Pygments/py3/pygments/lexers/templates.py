@@ -532,11 +532,11 @@ class MasonLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'(?s)(<%doc>)(.*?)(</%doc>)',
              bygroups(Name.Tag, Comment.Multiline, Name.Tag)),
             (r'(?s)(<%(?:def|method))(\s*)(.*?)(>)(.*?)(</%\2\s*>)',
-             bygroups(Name.Tag, Text, Name.Function, Name.Tag,
+             bygroups(Name.Tag, Whitespace, Name.Function, Name.Tag,
                       using(this), Name.Tag)),
             (r'(?s)(<%(\w+)(.*?)(>))(.*?)(</%\2\s*>)',
              bygroups(Name.Tag, None, None, None, using(PerlLexer), Name.Tag)),

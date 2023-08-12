@@ -9,7 +9,7 @@
 """
 
 from pygments.lexer import RegexLexer, bygroups, include
-from pygments.token import Text, Name, Number, String, Punctuation, Whitespace
+from pygments.token import Name, Number, String, Punctuation, Whitespace
 
 __all__ = ['HexdumpLexer']
 

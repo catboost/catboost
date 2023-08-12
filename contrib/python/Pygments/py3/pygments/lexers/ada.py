@@ -10,16 +10,11 @@
 
 import re
 
-from pygments.lexer import Lexer, RegexLexer, include, bygroups, words, \
-    using, this, default
-from pygments.util import get_bool_opt, get_list_opt
+from pygments.lexer import RegexLexer, include, bygroups, words, using, this, \
+    default
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Error
-from pygments.scanner import Scanner
+    Number, Punctuation
 from pygments.lexers._ada_builtins import KEYWORD_LIST, BUILTIN_LIST
-
-# compatibility import
-from pygments.lexers.modula2 import Modula2Lexer
 
 __all__ = ['AdaLexer']
 

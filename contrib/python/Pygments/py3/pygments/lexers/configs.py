@@ -11,7 +11,7 @@
 import re
 
 from pygments.lexer import ExtendedRegexLexer, RegexLexer, default, words, \
-    bygroups, include, using
+    bygroups, include, using, line_re
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Whitespace, Literal, Error, Generic
 from pygments.lexers.shell import BashLexer
@@ -45,11 +45,21 @@ class IniLexer(RegexLexer):
         'root': [
             (r'\s+', Whitespace),
             (r'[;#].*', Comment.Single),
-            (r'\[.*?\]$', Keyword),
-            (r'(.*?)([ \t]*)(=)([ \t]*)([^\t\n]*)',
+            (r'(\[.*?\])([ \t]*)$', bygroups(Keyword, Whitespace)),
+            (r'(.*?)([  \t]*)([=:])([ \t]*)([^;#\n]*)(\\)(\s+)',
+             bygroups(Name.Attribute, Whitespace, Operator, Whitespace, String,
+                      Text, Whitespace),
+             "value"),
+            (r'(.*?)([ \t]*)([=:])([  \t]*)([^ ;#\n]*(?: +[^ ;#\n]+)*)',
              bygroups(Name.Attribute, Whitespace, Operator, Whitespace, String)),
             # standalone option, supported by some INI parsers
             (r'(.+?)$', Name.Attribute),
+        ],
+        'value': [     # line continuation
+            (r'\s+', Whitespace),
+            (r'(\s*)(.*)(\\)([ \t]*)',
+             bygroups(Whitespace, String, Text, Whitespace)),
+            (r'.*$', String, "#pop"),
         ],
     }
 
@@ -119,14 +129,26 @@ class PropertiesLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'^(\w+)([ \t])(\w+\s*)$', bygroups(Name.Attribute, Whitespace, String)),
-            (r'^\w+(\\[ \t]\w*)*$', Name.Attribute),
-            (r'(^ *)([#!].*)', bygroups(Whitespace, Comment)),
-            # More controversial comments
-            (r'(^ *)((?:;|//).*)', bygroups(Whitespace, Comment)),
-            (r'(.*?)([ \t]*)([=:])([ \t]*)(.*(?:(?<=\\)\n.*)*)',
-             bygroups(Name.Attribute, Whitespace, Operator, Whitespace, String)),
-            (r'\s', Whitespace),
+            (r'\s+', Whitespace),
+            (r'[!#].*|/{2}.*', Comment.Single),
+            # search for first separator
+            (r'([^\\\n]|\\.)*?(?=[ \f\t=:])', Name.Attribute, "separator"),
+            # empty key
+            (r'.+?$', Name.Attribute),
+        ],
+        'separator': [
+            # search for line continuation escape
+            (r'([ \f\t]*)([=:]*)([ \f\t]*)(.*(?<!\\)(?:\\{2})*)(\\)(?!\\)$',
+             bygroups(Whitespace, Operator, Whitespace, String, Text), "value", "#pop"),
+            (r'([ \f\t]*)([=:]*)([ \f\t]*)(.*)',
+             bygroups(Whitespace, Operator, Whitespace, String), "#pop"),
+        ],
+        'value': [     # line continuation
+            (r'\s+', Whitespace),
+            # search for line continuation escape
+            (r'(\s*)(.*(?<!\\)(?:\\{2})*)(\\)(?!\\)([ \t]*)',
+             bygroups(Whitespace, String, Text, Whitespace)),
+            (r'.*$', String, "#pop"),
         ],
     }
 
@@ -653,7 +675,6 @@ class TerraformLexer(ExtendedRegexLexer):
         tolerant = True  # leading whitespace is always accepted
 
         lines = []
-        line_re = re.compile('.*?\n')
 
         for match in line_re.finditer(ctx.text, ctx.pos):
             if tolerant:
@@ -723,14 +744,12 @@ class TerraformLexer(ExtendedRegexLexer):
              bygroups(Keyword.Reserved, Whitespace, Name.Class, Whitespace, Name.Variable, Whitespace, Punctuation)),
 
             # here-doc style delimited strings
-            (
-                r'(<<-?)\s*([a-zA-Z_]\w*)(.*?\n)',
-                heredoc_callback,
-            )
+            (r'(<<-?)\s*([a-zA-Z_]\w*)(.*?\n)', heredoc_callback),
         ],
         'identifier': [
             (r'\b(var\.[0-9a-zA-Z-_\.\[\]]+)\b', bygroups(Name.Variable)),
-            (r'\b([0-9a-zA-Z-_\[\]]+\.[0-9a-zA-Z-_\.\[\]]+)\b', bygroups(Name.Variable)),
+            (r'\b([0-9a-zA-Z-_\[\]]+\.[0-9a-zA-Z-_\.\[\]]+)\b',
+             bygroups(Name.Variable)),
         ],
         'punctuation': [
             (r'[\[\]()\{\},.?:!=]', Punctuation),

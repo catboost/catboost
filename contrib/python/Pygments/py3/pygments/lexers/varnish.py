@@ -11,7 +11,7 @@
 from pygments.lexer import RegexLexer, include, bygroups, using, this, \
     inherit, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Literal
+    Number, Punctuation, Literal, Whitespace
 
 __all__ = ['VCLLexer', 'VCLSnippetLexer']
 
@@ -144,15 +144,15 @@ class VCLLexer(RegexLexer):
         'whitespace': [
             (r'L?"', String, 'string'),
             (r'\{"', String, 'multistring'),
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
             (r'\\\n', Text),  # line continuation
         ],
         'root': [
             include('whitespace'),
             include('comments'),
             include('statements'),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
     }
 

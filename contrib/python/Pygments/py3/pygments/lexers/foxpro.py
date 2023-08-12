@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer
 from pygments.token import Punctuation, Text, Comment, Operator, Keyword, \
-     Name, String
+    Name, String
 
 __all__ = ['FoxProLexer']
 

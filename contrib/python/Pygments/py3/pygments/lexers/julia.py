@@ -8,8 +8,6 @@
     :license: BSD, see LICENSE for details.
 """
 
-import re
-
 from pygments.lexer import Lexer, RegexLexer, bygroups, do_insertions, \
     words, include
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
@@ -56,7 +54,8 @@ class JuliaLexer(RegexLexer):
             (r'(?<![\]):<>\d.])(:' + allowed_variable + ')', String.Symbol),
 
             # type assertions - excludes expressions like ::typeof(sin) and ::avec[1]
-            (r'(?<=::)(\s*)(' + allowed_variable + r')\b(?![(\[])', bygroups(Whitespace, Keyword.Type)),
+            (r'(?<=::)(\s*)(' + allowed_variable + r')\b(?![(\[])',
+             bygroups(Whitespace, Keyword.Type)),
             # type comparisons
             # - MyType <: A or MyType >: A
             ('(' + allowed_variable + r')(\s*)([<>]:)(\s*)(' + allowed_variable + r')\b(?![(\[])',
@@ -71,8 +70,10 @@ class JuliaLexer(RegexLexer):
             # operators
             # Suffixes aren't actually allowed on all operators, but we'll ignore that
             # since those cases are invalid Julia code.
-            (words([*OPERATORS_LIST, *DOTTED_OPERATORS_LIST], suffix=operator_suffixes), Operator),
-            (words(['.' + o for o in DOTTED_OPERATORS_LIST], suffix=operator_suffixes), Operator),
+            (words([*OPERATORS_LIST, *DOTTED_OPERATORS_LIST],
+                   suffix=operator_suffixes), Operator),
+            (words(['.' + o for o in DOTTED_OPERATORS_LIST],
+                   suffix=operator_suffixes), Operator),
             (words(['...', '..']), Operator),
 
             # NOTE
@@ -96,12 +97,16 @@ class JuliaLexer(RegexLexer):
             (r'(r)(""")', bygroups(String.Affix, String.Regex), 'tqregex'),
             (r'(r)(")', bygroups(String.Affix, String.Regex), 'regex'),
             # other strings
-            (r'(' + allowed_variable + ')?(""")', bygroups(String.Affix, String), 'tqstring'),
-            (r'(' + allowed_variable + ')?(")', bygroups(String.Affix, String), 'string'),
+            (r'(' + allowed_variable + ')?(""")',
+             bygroups(String.Affix, String), 'tqstring'),
+            (r'(' + allowed_variable + ')?(")',
+             bygroups(String.Affix, String), 'string'),
 
             # backticks
-            (r'(' + allowed_variable + ')?(```)', bygroups(String.Affix, String.Backtick), 'tqcommand'),
-            (r'(' + allowed_variable + ')?(`)', bygroups(String.Affix, String.Backtick), 'command'),
+            (r'(' + allowed_variable + ')?(```)',
+             bygroups(String.Affix, String.Backtick), 'tqcommand'),
+            (r'(' + allowed_variable + ')?(`)',
+             bygroups(String.Affix, String.Backtick), 'command'),
 
             # type names
             # - names that begin a curly expression
@@ -172,9 +177,9 @@ class JuliaLexer(RegexLexer):
             (r'([^"\\]|\\[^"])+', String),
         ],
 
-        # Interpolation is defined as "$" followed by the shortest full expression, which is
-        # something we can't parse.
-        # Include the most common cases here: $word, and $(paren'd expr).
+        # Interpolation is defined as "$" followed by the shortest full
+        # expression, which is something we can't parse.  Include the most
+        # common cases here: $word, and $(paren'd expr).
         'interp': [
             (r'\$' + allowed_variable, String.Interpol),
             (r'(\$)(\()', bygroups(String.Interpol, Punctuation), 'in-intp'),
@@ -186,7 +191,8 @@ class JuliaLexer(RegexLexer):
         ],
 
         'string': [
-            (r'(")(' + allowed_variable + r'|\d+)?', bygroups(String, String.Affix), '#pop'),
+            (r'(")(' + allowed_variable + r'|\d+)?',
+             bygroups(String, String.Affix), '#pop'),
             # FIXME: This escape pattern is not perfect.
             (r'\\([\\"\'$nrbtfav]|(x|u|U)[a-fA-F0-9]+|\d+)', String.Escape),
             include('interp'),
@@ -197,7 +203,8 @@ class JuliaLexer(RegexLexer):
             (r'.', String),
         ],
         'tqstring': [
-            (r'(""")(' + allowed_variable + r'|\d+)?', bygroups(String, String.Affix), '#pop'),
+            (r'(""")(' + allowed_variable + r'|\d+)?',
+             bygroups(String, String.Affix), '#pop'),
             (r'\\([\\"\'$nrbtfav]|(x|u|U)[a-fA-F0-9]+|\d+)', String.Escape),
             include('interp'),
             (r'[^"$%\\]+', String),
@@ -216,14 +223,16 @@ class JuliaLexer(RegexLexer):
         ],
 
         'command': [
-            (r'(`)(' + allowed_variable + r'|\d+)?', bygroups(String.Backtick, String.Affix), '#pop'),
+            (r'(`)(' + allowed_variable + r'|\d+)?',
+             bygroups(String.Backtick, String.Affix), '#pop'),
             (r'\\[`$]', String.Escape),
             include('interp'),
             (r'[^\\`$]+', String.Backtick),
             (r'.', String.Backtick),
         ],
         'tqcommand': [
-            (r'(```)(' + allowed_variable + r'|\d+)?', bygroups(String.Backtick, String.Affix), '#pop'),
+            (r'(```)(' + allowed_variable + r'|\d+)?',
+             bygroups(String.Backtick, String.Affix), '#pop'),
             (r'\\\$', String.Escape),
             include('interp'),
             (r'[^\\`$]+', String.Backtick),
@@ -252,7 +261,7 @@ class JuliaConsoleLexer(Lexer):
         output = False
         error = False
 
-        for line in text.splitlines(True):
+        for line in text.splitlines(keepends=True):
             if line.startswith('julia>'):
                 insertions.append((len(curcode), [(0, Generic.Prompt, line[:6])]))
                 curcode += line[6:]

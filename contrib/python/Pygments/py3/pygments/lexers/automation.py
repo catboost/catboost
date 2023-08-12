@@ -50,8 +50,8 @@ class AutohotkeyLexer(RegexLexer):
         ],
         'incomment': [
             (r'^\s*\*/', Comment.Multiline, '#pop'),
-            (r'[^*/]', Comment.Multiline),
-            (r'[*/]', Comment.Multiline)
+            (r'[^*]+', Comment.Multiline),
+            (r'\*', Comment.Multiline)
         ],
         'incontinuation': [
             (r'^\s*\)', Generic, '#pop'),

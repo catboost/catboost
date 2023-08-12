@@ -24,21 +24,24 @@ class TclLexer(RegexLexer):
     """
 
     keyword_cmds_re = words((
-        'after', 'apply', 'array', 'break', 'catch', 'continue', 'elseif', 'else', 'error',
-        'eval', 'expr', 'for', 'foreach', 'global', 'if', 'namespace', 'proc', 'rename', 'return',
-        'set', 'switch', 'then', 'trace', 'unset', 'update', 'uplevel', 'upvar', 'variable',
-        'vwait', 'while'), prefix=r'\b', suffix=r'\b')
+        'after', 'apply', 'array', 'break', 'catch', 'continue', 'elseif',
+        'else', 'error', 'eval', 'expr', 'for', 'foreach', 'global', 'if',
+        'namespace', 'proc', 'rename', 'return', 'set', 'switch', 'then',
+        'trace', 'unset', 'update', 'uplevel', 'upvar', 'variable', 'vwait',
+        'while'), prefix=r'\b', suffix=r'\b')
 
     builtin_cmds_re = words((
-        'append', 'bgerror', 'binary', 'cd', 'chan', 'clock', 'close', 'concat', 'dde', 'dict',
-        'encoding', 'eof', 'exec', 'exit', 'fblocked', 'fconfigure', 'fcopy', 'file',
-        'fileevent', 'flush', 'format', 'gets', 'glob', 'history', 'http', 'incr', 'info', 'interp',
-        'join', 'lappend', 'lassign', 'lindex', 'linsert', 'list', 'llength', 'load', 'loadTk',
-        'lrange', 'lrepeat', 'lreplace', 'lreverse', 'lsearch', 'lset', 'lsort', 'mathfunc',
-        'mathop', 'memory', 'msgcat', 'open', 'package', 'pid', 'pkg::create', 'pkg_mkIndex',
-        'platform', 'platform::shell', 'puts', 'pwd', 're_syntax', 'read', 'refchan',
-        'regexp', 'registry', 'regsub', 'scan', 'seek', 'socket', 'source', 'split', 'string',
-        'subst', 'tell', 'time', 'tm', 'unknown', 'unload'), prefix=r'\b', suffix=r'\b')
+        'append', 'bgerror', 'binary', 'cd', 'chan', 'clock', 'close',
+        'concat', 'dde', 'dict', 'encoding', 'eof', 'exec', 'exit', 'fblocked',
+        'fconfigure', 'fcopy', 'file', 'fileevent', 'flush', 'format', 'gets',
+        'glob', 'history', 'http', 'incr', 'info', 'interp', 'join', 'lappend',
+        'lassign', 'lindex', 'linsert', 'list', 'llength', 'load', 'loadTk',
+        'lrange', 'lrepeat', 'lreplace', 'lreverse', 'lsearch', 'lset', 'lsort',
+        'mathfunc', 'mathop', 'memory', 'msgcat', 'open', 'package', 'pid',
+        'pkg::create', 'pkg_mkIndex', 'platform', 'platform::shell', 'puts',
+        'pwd', 're_syntax', 'read', 'refchan', 'regexp', 'registry', 'regsub',
+        'scan', 'seek', 'socket', 'source', 'split', 'string', 'subst', 'tell',
+        'time', 'tm', 'unknown', 'unload'), prefix=r'\b', suffix=r'\b')
 
     name = 'Tcl'
     url = 'https://www.tcl.tk/about/language.html'
