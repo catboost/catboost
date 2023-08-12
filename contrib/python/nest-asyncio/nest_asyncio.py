@@ -12,6 +12,7 @@ from heapq import heappop
 def apply(loop=None):
     """Patch asyncio to make its event loop reentrant."""
     _patch_asyncio()
+    _patch_policy()
     _patch_task()
     _patch_tornado()
 
@@ -23,12 +24,7 @@ def _patch_asyncio():
     """Patch asyncio module to use pure Python tasks and futures."""
 
     def run(main, *, debug=False):
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            _patch_loop(loop)
+        loop = asyncio.get_event_loop()
         loop.set_debug(debug)
         task = asyncio.ensure_future(main)
         try:
@@ -59,9 +55,22 @@ def _patch_asyncio():
     if sys.version_info >= (3, 9, 0):
         events._get_event_loop = events.get_event_loop = \
             asyncio.get_event_loop = _get_event_loop
-        _get_event_loop
     asyncio.run = run
     asyncio._nest_patched = True
+
+
+def _patch_policy():
+    """Patch the policy to always return a patched loop."""
+
+    def get_event_loop(self):
+        if self._local._loop is None:
+            loop = self.new_event_loop()
+            _patch_loop(loop)
+            self.set_event_loop(loop)
+        return self._local._loop
+
+    policy = events.get_event_loop_policy()
+    policy.__class__.get_event_loop = get_event_loop
 
 
 def _patch_loop(loop):

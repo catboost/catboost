@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: nest-asyncio
-Version: 1.5.6
+Version: 1.5.7
 Summary: Patch asyncio to allow nested event loops
 Home-page: https://github.com/erdewit/nest_asyncio
 Author: Ewald R. de Wit
