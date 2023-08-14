@@ -13,7 +13,7 @@
     https://tools.ietf.org/html/rfc5429
     https://tools.ietf.org/html/rfc8580
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

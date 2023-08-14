@@ -4,7 +4,7 @@
 
     Lexers for non-HTML markup languages.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -13,6 +13,8 @@ import re
 from pygments.lexers.html import XmlLexer
 from pygments.lexers.javascript import JavascriptLexer
 from pygments.lexers.css import CssLexer
+from pygments.lexers.lilypond import LilyPondLexer
+from pygments.lexers.data import JsonLexer
 
 from pygments.lexer import RegexLexer, DelegatingLexer, include, bygroups, \
     using, this, do_insertions, default, words
@@ -23,7 +25,7 @@ from pygments.util import get_bool_opt, ClassNotFound
 __all__ = ['BBCodeLexer', 'MoinWikiLexer', 'RstLexer', 'TexLexer', 'GroffLexer',
            'MozPreprocHashLexer', 'MozPreprocPercentLexer',
            'MozPreprocXulLexer', 'MozPreprocJavascriptLexer',
-           'MozPreprocCssLexer', 'MarkdownLexer', 'TiddlyWiki5Lexer']
+           'MozPreprocCssLexer', 'MarkdownLexer', 'TiddlyWiki5Lexer', 'WikitextLexer']
 
 
 class BBCodeLexer(RegexLexer):
@@ -763,3 +765,739 @@ class TiddlyWiki5Lexer(RegexLexer):
     def __init__(self, **options):
         self.handlecodeblocks = get_bool_opt(options, 'handlecodeblocks', True)
         RegexLexer.__init__(self, **options)
+
+
+class WikitextLexer(RegexLexer):
+    """
+    For MediaWiki Wikitext.
+
+    Parsing Wikitext is tricky, and results vary between different MediaWiki
+    installations, so we only highlight common syntaxes (built-in or from
+    popular extensions), and also assume templates produce no unbalanced
+    syntaxes.
+
+    .. versionadded:: 2.15
+    """
+    name = 'Wikitext'
+    url = 'https://www.mediawiki.org/wiki/Wikitext'
+    aliases = ['wikitext', 'mediawiki']
+    filenames = []
+    mimetypes = ['text/x-wiki']
+    flags = re.MULTILINE
+
+    def nowiki_tag_rules(tag_name):
+        return [
+            (r'(?i)(</)({})(\s*)(>)'.format(tag_name), bygroups(Punctuation,
+             Name.Tag, Whitespace, Punctuation), '#pop'),
+            include('entity'),
+            include('text'),
+        ]
+
+    def plaintext_tag_rules(tag_name):
+        return [
+            (r'(?si)(.*?)(</)({})(\s*)(>)'.format(tag_name), bygroups(Text,
+             Punctuation, Name.Tag, Whitespace, Punctuation), '#pop'),
+        ]
+
+    def delegate_tag_rules(tag_name, lexer):
+        return [
+            (r'(?i)(</)({})(\s*)(>)'.format(tag_name), bygroups(Punctuation,
+             Name.Tag, Whitespace, Punctuation), '#pop'),
+            (r'(?si).+?(?=</{}\s*>)'.format(tag_name), using(lexer)),
+        ]
+
+    def text_rules(token):
+        return [
+            (r'\w+', token),
+            (r'[^\S\n]+', token),
+            (r'(?s).', token),
+        ]
+
+    def handle_syntaxhighlight(self, match, ctx):
+        from pygments.lexers import get_lexer_by_name
+
+        attr_content = match.group()
+        start = 0
+        index = 0
+        while True:
+            index = attr_content.find('>', start)
+            # Exclude comment end (-->)
+            if attr_content[index-2:index] != '--':
+                break
+            start = index + 1
+
+        if index == -1:
+            # No tag end
+            yield from self.get_tokens_unprocessed(attr_content, stack=['root', 'attr'])
+            return
+        attr = attr_content[:index]
+        yield from self.get_tokens_unprocessed(attr, stack=['root', 'attr'])
+        yield match.start(3) + index, Punctuation, '>'
+
+        lexer = None
+        content = attr_content[index+1:]
+        lang_match = re.findall(r'\blang=("|\'|)(\w+)(\1)', attr)
+
+        if len(lang_match) >= 1:
+            # Pick the last match in case of multiple matches
+            lang = lang_match[-1][1]
+            try:
+                lexer = get_lexer_by_name(lang)
+            except ClassNotFound:
+                pass
+
+        if lexer is None:
+            yield match.start() + index + 1, Text, content
+        else:
+            yield from lexer.get_tokens_unprocessed(content)
+
+    def handle_score(self, match, ctx):
+        attr_content = match.group()
+        start = 0
+        index = 0
+        while True:
+            index = attr_content.find('>', start)
+            # Exclude comment end (-->)
+            if attr_content[index-2:index] != '--':
+                break
+            start = index + 1
+
+        if index == -1:
+            # No tag end
+            yield from self.get_tokens_unprocessed(attr_content, stack=['root', 'attr'])
+            return
+        attr = attr_content[:index]
+        content = attr_content[index+1:]
+        yield from self.get_tokens_unprocessed(attr, stack=['root', 'attr'])
+        yield match.start(3) + index, Punctuation, '>'
+
+        lang_match = re.findall(r'\blang=("|\'|)(\w+)(\1)', attr)
+        # Pick the last match in case of multiple matches
+        lang = lang_match[-1][1] if len(lang_match) >= 1 else 'lilypond'
+
+        if lang == 'lilypond':  # Case sensitive
+            yield from LilyPondLexer().get_tokens_unprocessed(content)
+        else:  # ABC
+            # FIXME: Use ABC lexer in the future
+            yield match.start() + index + 1, Text, content
+
+    # a-z removed to prevent linter from complaining, REMEMBER to use (?i)
+    title_char = r' %!"$&\'()*,\-./0-9:;=?@A-Z\\\^_`~+\u0080-\uFFFF'
+    nbsp_char = r'(?:\t|&nbsp;|&\#0*160;|&\#[Xx]0*[Aa]0;|[ \xA0\u1680\u2000-\u200A\u202F\u205F\u3000])'
+    link_address = r'(?:[0-9.]+|\[[0-9a-f:.]+\]|[^\x00-\x20"<>\[\]\x7F\xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFFD])'
+    link_char_class = r'[^\x00-\x20"<>\[\]\x7F\xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFFD]'
+    double_slashes_i = {
+        '__FORCETOC__', '__NOCONTENTCONVERT__', '__NOCC__', '__NOEDITSECTION__', '__NOGALLERY__',
+        '__NOTITLECONVERT__', '__NOTC__', '__NOTOC__', '__TOC__',
+    }
+    double_slashes = {
+        '__EXPECTUNUSEDCATEGORY__',  '__HIDDENCAT__', '__INDEX__',  '__NEWSECTIONLINK__',
+        '__NOINDEX__',  '__NONEWSECTIONLINK__',  '__STATICREDIRECT__', '__NOGLOBAL__',
+        '__DISAMBIG__', '__EXPECTED_UNCONNECTED_PAGE__',
+    }
+    protocols = {
+        'bitcoin:', 'ftp://', 'ftps://', 'geo:', 'git://', 'gopher://', 'http://', 'https://',
+        'irc://', 'ircs://', 'magnet:', 'mailto:', 'mms://', 'news:', 'nntp://', 'redis://',
+        'sftp://', 'sip:', 'sips:', 'sms:', 'ssh://', 'svn://', 'tel:', 'telnet://', 'urn:',
+        'worldwind://', 'xmpp:', '//',
+    }
+    non_relative_protocols = protocols - {'//'}
+    html_tags = {
+        'abbr', 'b', 'bdi', 'bdo', 'big', 'blockquote', 'br', 'caption', 'center', 'cite', 'code',
+        'data', 'dd', 'del', 'dfn', 'div', 'dl', 'dt', 'em', 'font', 'h1', 'h2', 'h3', 'h4', 'h5',
+        'h6', 'hr', 'i', 'ins', 'kbd', 'li', 'link', 'mark', 'meta', 'ol', 'p', 'q', 'rb', 'rp',
+        'rt', 'rtc', 'ruby', 's', 'samp', 'small', 'span', 'strike', 'strong', 'sub', 'sup',
+        'table', 'td', 'th', 'time', 'tr', 'tt', 'u', 'ul', 'var', 'wbr',
+    }
+    parser_tags = {
+        'graph', 'charinsert', 'rss', 'chem', 'categorytree', 'nowiki', 'inputbox', 'math',
+        'hiero', 'score', 'pre', 'ref', 'translate', 'imagemap', 'templatestyles', 'languages',
+        'noinclude', 'mapframe', 'section', 'poem', 'syntaxhighlight', 'includeonly', 'tvar',
+        'onlyinclude', 'templatedata', 'langconvert', 'timeline', 'dynamicpagelist', 'gallery',
+        'maplink', 'ce', 'references',
+    }
+    variant_langs = {
+        # ZhConverter.php
+        'zh', 'zh-hans', 'zh-hant', 'zh-cn', 'zh-hk', 'zh-mo', 'zh-my', 'zh-sg', 'zh-tw',
+        # UnConverter.php
+        'uz', 'uz-latn', 'uz-cyrl',
+        # TlyConverter.php
+        'tly', 'tly-cyrl',
+        # TgConverter.php
+        'tg', 'tg-latn',
+        # SrConverter.php
+        'sr', 'sr-ec', 'sr-el',
+        # ShiConverter.php
+        'shi', 'shi-tfng', 'shi-latn',
+        # ShConverter.php
+        'sh-latn', 'sh-cyrl',
+        # KuConverter.php
+        'ku', 'ku-arab', 'ku-latn',
+        # KkConverter.php
+        'kk', 'kk-cyrl', 'kk-latn', 'kk-arab', 'kk-kz', 'kk-tr', 'kk-cn',
+        # IuConverter.php
+        'iu', 'ike-cans', 'ike-latn',
+        # GanConverter.php
+        'gan', 'gan-hans', 'gan-hant',
+        # EnConverter.php
+        'en', 'en-x-piglatin',
+        # CrhConverter.php
+        'crh', 'crh-cyrl', 'crh-latn',
+        # BanConverter.php
+        'ban', 'ban-bali', 'ban-x-dharma', 'ban-x-palmleaf', 'ban-x-pku',
+    }
+    magic_vars_i = {
+        'ARTICLEPATH', 'INT', 'PAGEID', 'SCRIPTPATH', 'SERVER', 'SERVERNAME', 'STYLEPATH',
+    }
+    magic_vars = {
+        '!', '=', 'BASEPAGENAME', 'BASEPAGENAMEE', 'CASCADINGSOURCES', 'CONTENTLANGUAGE',
+        'CONTENTLANG', 'CURRENTDAY', 'CURRENTDAY2', 'CURRENTDAYNAME', 'CURRENTDOW', 'CURRENTHOUR',
+        'CURRENTMONTH', 'CURRENTMONTH2', 'CURRENTMONTH1', 'CURRENTMONTHABBREV', 'CURRENTMONTHNAME',
+        'CURRENTMONTHNAMEGEN', 'CURRENTTIME', 'CURRENTTIMESTAMP', 'CURRENTVERSION', 'CURRENTWEEK',
+        'CURRENTYEAR', 'DIRECTIONMARK', 'DIRMARK', 'FULLPAGENAME', 'FULLPAGENAMEE', 'LOCALDAY',
+        'LOCALDAY2', 'LOCALDAYNAME', 'LOCALDOW', 'LOCALHOUR', 'LOCALMONTH', 'LOCALMONTH2',
+        'LOCALMONTH1', 'LOCALMONTHABBREV', 'LOCALMONTHNAME', 'LOCALMONTHNAMEGEN', 'LOCALTIME',
+        'LOCALTIMESTAMP', 'LOCALWEEK', 'LOCALYEAR', 'NAMESPACE', 'NAMESPACEE', 'NAMESPACENUMBER',
+        'NUMBEROFACTIVEUSERS', 'NUMBEROFADMINS', 'NUMBEROFARTICLES', 'NUMBEROFEDITS',
+        'NUMBEROFFILES', 'NUMBEROFPAGES', 'NUMBEROFUSERS', 'PAGELANGUAGE', 'PAGENAME', 'PAGENAMEE',
+        'REVISIONDAY', 'REVISIONDAY2', 'REVISIONID', 'REVISIONMONTH', 'REVISIONMONTH1',
+        'REVISIONSIZE', 'REVISIONTIMESTAMP', 'REVISIONUSER', 'REVISIONYEAR', 'ROOTPAGENAME',
+        'ROOTPAGENAMEE', 'SITENAME', 'SUBJECTPAGENAME', 'ARTICLEPAGENAME', 'SUBJECTPAGENAMEE',
+        'ARTICLEPAGENAMEE', 'SUBJECTSPACE', 'ARTICLESPACE', 'SUBJECTSPACEE', 'ARTICLESPACEE',
+        'SUBPAGENAME', 'SUBPAGENAMEE', 'TALKPAGENAME', 'TALKPAGENAMEE', 'TALKSPACE', 'TALKSPACEE',
+    }
+    parser_functions_i = {
+        'ANCHORENCODE', 'BIDI', 'CANONICALURL', 'CANONICALURLE', 'FILEPATH', 'FORMATNUM',
+        'FULLURL', 'FULLURLE', 'GENDER', 'GRAMMAR', 'INT', r'\#LANGUAGE', 'LC', 'LCFIRST', 'LOCALURL',
+        'LOCALURLE', 'NS', 'NSE', 'PADLEFT', 'PADRIGHT', 'PAGEID', 'PLURAL', 'UC', 'UCFIRST',
+        'URLENCODE',
+    }
+    parser_functions = {
+        'BASEPAGENAME', 'BASEPAGENAMEE', 'CASCADINGSOURCES', 'DEFAULTSORT', 'DEFAULTSORTKEY',
+        'DEFAULTCATEGORYSORT', 'FULLPAGENAME', 'FULLPAGENAMEE', 'NAMESPACE', 'NAMESPACEE',
+        'NAMESPACENUMBER', 'NUMBERINGROUP', 'NUMINGROUP', 'NUMBEROFACTIVEUSERS', 'NUMBEROFADMINS',
+        'NUMBEROFARTICLES', 'NUMBEROFEDITS', 'NUMBEROFFILES', 'NUMBEROFPAGES', 'NUMBEROFUSERS',
+        'PAGENAME', 'PAGENAMEE', 'PAGESINCATEGORY', 'PAGESINCAT', 'PAGESIZE', 'PROTECTIONEXPIRY',
+        'PROTECTIONLEVEL', 'REVISIONDAY', 'REVISIONDAY2', 'REVISIONID', 'REVISIONMONTH',
+        'REVISIONMONTH1', 'REVISIONTIMESTAMP', 'REVISIONUSER', 'REVISIONYEAR', 'ROOTPAGENAME',
+        'ROOTPAGENAMEE', 'SUBJECTPAGENAME', 'ARTICLEPAGENAME', 'SUBJECTPAGENAMEE',
+        'ARTICLEPAGENAMEE', 'SUBJECTSPACE', 'ARTICLESPACE', 'SUBJECTSPACEE', 'ARTICLESPACEE',
+        'SUBPAGENAME', 'SUBPAGENAMEE', 'TALKPAGENAME', 'TALKPAGENAMEE', 'TALKSPACE', 'TALKSPACEE',
+        'INT', 'DISPLAYTITLE', 'PAGESINNAMESPACE', 'PAGESINNS',
+    }
+
+    tokens = {
+        'root': [
+            # Redirects
+            (r"""(?xi)
+                (\A\s*?)(\#REDIRECT:?) # may contain a colon
+                (\s+)(\[\[) (?=[^\]\n]* \]\]$)
+            """,
+             bygroups(Whitespace, Keyword, Whitespace, Punctuation), 'redirect-inner'),
+            # Subheadings
+            (r'^(={2,6})(.+?)(\1)(\s*$\n)',
+             bygroups(Generic.Subheading, Generic.Subheading, Generic.Subheading, Whitespace)),
+            # Headings
+            (r'^(=.+?=)(\s*$\n)',
+             bygroups(Generic.Heading, Whitespace)),
+            # Double-slashed magic words
+            (words(double_slashes_i, prefix=r'(?i)'), Name.Function.Magic),
+            (words(double_slashes), Name.Function.Magic),
+            # Raw URLs
+            (r'(?i)\b(?:{}){}{}*'.format('|'.join(protocols),
+             link_address, link_char_class), Name.Label),
+            # Magic links
+            (r'\b(?:RFC|PMID){}+[0-9]+\b'.format(nbsp_char),
+             Name.Function.Magic),
+            (r"""(?x)
+                \bISBN {nbsp_char}
+                (?: 97[89] {nbsp_dash}? )?
+                (?: [0-9] {nbsp_dash}? ){{9}} # escape format()
+                [0-9Xx]\b
+            """.format(nbsp_char=nbsp_char, nbsp_dash=f'(?:-|{nbsp_char})'), Name.Function.Magic),
+            include('list'),
+            include('inline'),
+            include('text'),
+        ],
+        'redirect-inner': [
+            (r'(\]\])(\s*?\n)', bygroups(Punctuation, Whitespace), '#pop'),
+            (r'(\#)([^#]*?)', bygroups(Punctuation, Name.Label)),
+            (r'(?i)[{}]+'.format(title_char), Name.Tag),
+        ],
+        'list': [
+            # Description lists
+            (r'^;', Keyword, 'dt'),
+            # Ordered lists, unordered lists and indents
+            (r'^[#:*]+', Keyword),
+            # Horizontal rules
+            (r'^-{4,}', Keyword),
+        ],
+        'inline': [
+            # Signatures
+            (r'~{3,5}', Keyword),
+            # Entities
+            include('entity'),
+            # Bold & italic
+            (r"('')(''')(?!')", bygroups(Generic.Emph,
+             Generic.Strong), 'inline-italic-bold'),
+            (r"'''(?!')", Generic.Strong, 'inline-bold'),
+            (r"''(?!')", Generic.Emph, 'inline-italic'),
+            # Comments & parameters & templates
+            include('replaceable'),
+            # Media links
+            (
+                r"""(?xi)
+                (\[\[)
+                    (File|Image) (:)
+                    ([{}]*)
+                    (?: (\#) ([{}]*?) )?
+                """.format(title_char, f'{title_char}#'),
+                bygroups(Punctuation, Name.Namespace,  Punctuation,
+                         Name.Tag, Punctuation, Name.Label),
+                'medialink-inner'
+            ),
+            # Wikilinks
+            (
+                r"""(?xi)
+                (\[\[)(?!{}) # Should not contain URLs
+                    (?: ([{}]*) (:))?
+                    ([{}]*?)
+                    (?: (\#) ([{}]*?) )?
+                (\]\])
+                """.format('|'.join(protocols), title_char.replace('/', ''),
+                           title_char, f'{title_char}#'),
+                bygroups(Punctuation, Name.Namespace,  Punctuation,
+                         Name.Tag, Punctuation, Name.Label, Punctuation)
+            ),
+            (
+                r"""(?xi)
+                (\[\[)(?!{})
+                    (?: ([{}]*) (:))?
+                    ([{}]*?)
+                    (?: (\#) ([{}]*?) )?
+                    (\|)
+                """.format('|'.join(protocols), title_char.replace('/', ''),
+                           title_char, f'{title_char}#'),
+                bygroups(Punctuation, Name.Namespace,  Punctuation,
+                         Name.Tag, Punctuation, Name.Label, Punctuation),
+                'wikilink-inner'
+            ),
+            # External links
+            (
+                r"""(?xi)
+                (\[)
+                    ((?:{}) {} {}*)
+                    (\s*)
+                """.format('|'.join(protocols), link_address, link_char_class),
+                bygroups(Punctuation, Name.Label, Whitespace),
+                'extlink-inner'
+            ),
+            # Tables
+            (r'^(:*)(\s*?)(\{\|)([^\n]*)$', bygroups(Keyword,
+             Whitespace, Punctuation, using(this, state=['root', 'attr'])), 'table'),
+            # HTML tags
+            (r'(?i)(<)({})\b'.format('|'.join(html_tags)),
+             bygroups(Punctuation, Name.Tag), 'tag-inner-ordinary'),
+            (r'(?i)(</)({})\b(\s*)(>)'.format('|'.join(html_tags)),
+             bygroups(Punctuation, Name.Tag, Whitespace, Punctuation)),
+            # <nowiki>
+            (r'(?i)(<)(nowiki)\b', bygroups(Punctuation,
+             Name.Tag), ('tag-nowiki', 'tag-inner')),
+            # <pre>
+            (r'(?i)(<)(pre)\b', bygroups(Punctuation,
+             Name.Tag), ('tag-pre', 'tag-inner')),
+            # <categorytree>
+            (r'(?i)(<)(categorytree)\b', bygroups(
+                Punctuation, Name.Tag), ('tag-categorytree', 'tag-inner')),
+            # <hiero>
+            (r'(?i)(<)(hiero)\b', bygroups(Punctuation,
+             Name.Tag), ('tag-hiero', 'tag-inner')),
+            # <math>
+            (r'(?i)(<)(math)\b', bygroups(Punctuation,
+             Name.Tag), ('tag-math', 'tag-inner')),
+            # <chem>
+            (r'(?i)(<)(chem)\b', bygroups(Punctuation,
+             Name.Tag), ('tag-chem', 'tag-inner')),
+            # <ce>
+            (r'(?i)(<)(ce)\b', bygroups(Punctuation,
+             Name.Tag), ('tag-ce', 'tag-inner')),
+            # <charinsert>
+            (r'(?i)(<)(charinsert)\b', bygroups(
+                Punctuation, Name.Tag), ('tag-charinsert', 'tag-inner')),
+            # <templatedata>
+            (r'(?i)(<)(templatedata)\b', bygroups(
+                Punctuation, Name.Tag), ('tag-templatedata', 'tag-inner')),
+            # <gallery>
+            (r'(?i)(<)(gallery)\b', bygroups(
+                Punctuation, Name.Tag), ('tag-gallery', 'tag-inner')),
+            # <graph>
+            (r'(?i)(<)(gallery)\b', bygroups(
+                Punctuation, Name.Tag), ('tag-graph', 'tag-inner')),
+            # <dynamicpagelist>
+            (r'(?i)(<)(dynamicpagelist)\b', bygroups(
+                Punctuation, Name.Tag), ('tag-dynamicpagelist', 'tag-inner')),
+            # <inputbox>
+            (r'(?i)(<)(inputbox)\b', bygroups(
+                Punctuation, Name.Tag), ('tag-inputbox', 'tag-inner')),
+            # <rss>
+            (r'(?i)(<)(rss)\b', bygroups(
+                Punctuation, Name.Tag), ('tag-rss', 'tag-inner')),
+            # <imagemap>
+            (r'(?i)(<)(imagemap)\b', bygroups(
+                Punctuation, Name.Tag), ('tag-imagemap', 'tag-inner')),
+            # <syntaxhighlight>
+            (r'(?i)(</)(syntaxhighlight)\b(\s*)(>)',
+             bygroups(Punctuation, Name.Tag, Whitespace, Punctuation)),
+            (r'(?si)(<)(syntaxhighlight)\b([^>]*?(?<!/)>.*?)(?=</\2\s*>)',
+             bygroups(Punctuation, Name.Tag, handle_syntaxhighlight)),
+            # <syntaxhighlight>: Fallback case for self-closing tags
+            (r'(?i)(<)(syntaxhighlight)\b(\s*?)((?:[^>]|-->)*?)(/\s*?(?<!--)>)', bygroups(
+                Punctuation, Name.Tag, Whitespace, using(this, state=['root', 'attr']), Punctuation)),
+            # <source>
+            (r'(?i)(</)(source)\b(\s*)(>)',
+             bygroups(Punctuation, Name.Tag, Whitespace, Punctuation)),
+            (r'(?si)(<)(source)\b([^>]*?(?<!/)>.*?)(?=</\2\s*>)',
+             bygroups(Punctuation, Name.Tag, handle_syntaxhighlight)),
+            # <source>: Fallback case for self-closing tags
+            (r'(?i)(<)(source)\b(\s*?)((?:[^>]|-->)*?)(/\s*?(?<!--)>)', bygroups(
+                Punctuation, Name.Tag, Whitespace, using(this, state=['root', 'attr']), Punctuation)),
+            # <score>
+            (r'(?i)(</)(score)\b(\s*)(>)',
+             bygroups(Punctuation, Name.Tag, Whitespace, Punctuation)),
+            (r'(?si)(<)(score)\b([^>]*?(?<!/)>.*?)(?=</\2\s*>)',
+             bygroups(Punctuation, Name.Tag, handle_score)),
+            # <score>: Fallback case for self-closing tags
+            (r'(?i)(<)(score)\b(\s*?)((?:[^>]|-->)*?)(/\s*?(?<!--)>)', bygroups(
+                Punctuation, Name.Tag, Whitespace, using(this, state=['root', 'attr']), Punctuation)),
+            # Other parser tags
+            (r'(?i)(<)({})\b'.format('|'.join(parser_tags)),
+             bygroups(Punctuation, Name.Tag), 'tag-inner-ordinary'),
+            (r'(?i)(</)({})\b(\s*)(>)'.format('|'.join(parser_tags)),
+             bygroups(Punctuation, Name.Tag, Whitespace, Punctuation)),
+            # LanguageConverter markups
+            (
+                r"""(?xi)
+                (-\{{) # Escape format()
+                    (?: ([^|]) (\|))?
+                    (?: (\s* (?:{variants}) \s*) (=>))?
+                    (\s* (?:{variants}) \s*) (:)
+                """.format(variants='|'.join(variant_langs)),
+                bygroups(Punctuation, Keyword, Punctuation,
+                         Name.Label, Operator, Name.Label, Punctuation),
+                'lc-inner'
+            ),
+            (r'-\{', Punctuation, 'lc-raw'),
+        ],
+        'wikilink-inner': [
+            # Quit in case of another wikilink
+            (r'(?=\[\[)', Punctuation, '#pop'),
+            (r'\]\]', Punctuation, '#pop'),
+            include('inline'),
+            include('text'),
+        ],
+        'medialink-inner': [
+            (r'\]\]', Punctuation, '#pop'),
+            (r'(\|)([^\n=|]*)(=)',
+             bygroups(Punctuation, Name.Attribute, Operator)),
+            (r'\|', Punctuation),
+            include('inline'),
+            include('text'),
+        ],
+        'quote-common': [
+            # Quit in case of link/template endings
+            (r'(?=\]\]|\{\{|\}\})', Punctuation, '#pop'),
+            (r'\n', Text, '#pop'),
+        ],
+        'inline-italic': [
+            include('quote-common'),
+            (r"('')(''')(?!')", bygroups(Generic.Emph,
+             Generic.Strong), ('#pop', 'inline-bold')),
+            (r"'''(?!')", Generic.Strong, ('#pop', 'inline-italic-bold')),
+            (r"''(?!')", Generic.Emph, '#pop'),
+            include('inline'),
+            include('text-italic'),
+        ],
+        'inline-bold': [
+            include('quote-common'),
+            (r"(''')('')(?!')", bygroups(
+                Generic.Strong, Generic.Emph), ('#pop', 'inline-italic')),
+            (r"'''(?!')", Generic.Strong, '#pop'),
+            (r"''(?!')", Generic.Emph, ('#pop', 'inline-bold-italic')),
+            include('inline'),
+            include('text-bold'),
+        ],
+        'inline-bold-italic': [
+            include('quote-common'),
+            (r"('')(''')(?!')", bygroups(Generic.Emph,
+             Generic.Strong), '#pop'),
+            (r"'''(?!')", Generic.Strong, ('#pop', 'inline-italic')),
+            (r"''(?!')", Generic.Emph, ('#pop', 'inline-bold')),
+            include('inline'),
+            include('text-italic'),
+        ],
+        'inline-italic-bold': [
+            include('quote-common'),
+            (r"(''')('')(?!')", bygroups(
+                Generic.Strong, Generic.Emph), '#pop'),
+            (r"'''(?!')", Generic.Strong, ('#pop', 'inline-italic')),
+            (r"''(?!')", Generic.Emph, ('#pop', 'inline-bold')),
+            include('text-bold'),
+        ],
+        'lc-inner': [
+            (
+                r"""(?xi)
+                (;)
+                (?: (\s* (?:{variants}) \s*) (=>))?
+                (\s* (?:{variants}) \s*) (:)
+                """.format(variants='|'.join(variant_langs)),
+                bygroups(Punctuation, Name.Label,
+                         Operator, Name.Label, Punctuation)
+            ),
+            (r';?\s*?\}-', Punctuation, '#pop'),
+            include('inline'),
+            include('text'),
+        ],
+        'lc-raw': [
+            (r'\}-', Punctuation, '#pop'),
+            include('inline'),
+            include('text'),
+        ],
+        'replaceable': [
+            # Comments
+            (r'<!--[\s\S]*?(?:-->|\Z)', Comment.Multiline),
+            # Parameters
+            (
+                r"""(?x)
+                (\{{3})
+                    ([^|]*?)
+                    (?=\}{3}|\|)
+                """,
+                bygroups(Punctuation, Name.Variable),
+                'parameter-inner',
+            ),
+            # Magic variables
+            (r'(?i)(\{\{)(\s*)(%s)(\s*)(\}\})' % '|'.join(magic_vars_i),
+             bygroups(Punctuation, Whitespace, Name.Function, Whitespace, Punctuation)),
+            (r'(\{\{)(\s*)(%s)(\s*)(\}\})' % '|'.join(magic_vars),
+                bygroups(Punctuation, Whitespace, Name.Function, Whitespace, Punctuation)),
+            # Parser functions & templates
+            (r'\{\{', Punctuation, 'template-begin-space'),
+            # <tvar> legacy syntax
+            (r'(?i)(<)(tvar)\b(\|)([^>]*?)(>)', bygroups(Punctuation,
+             Name.Tag, Punctuation, String, Punctuation)),
+            (r'</>', Punctuation, '#pop'),
+            # <tvar>
+            (r'(?i)(<)(tvar)\b', bygroups(Punctuation, Name.Tag), 'tag-inner-ordinary'),
+            (r'(?i)(</)(tvar)\b(\s*)(>)',
+             bygroups(Punctuation, Name.Tag, Whitespace, Punctuation)),
+        ],
+        'parameter-inner': [
+            (r'\}{3}', Punctuation, '#pop'),
+            (r'\|', Punctuation),
+            include('inline'),
+            include('text'),
+        ],
+        'template-begin-space': [
+            # Templates allow line breaks at the beginning, and due to how MediaWiki handles
+            # comments, an extra state is required to handle things like {{\n<!---->\n name}}
+            (r'<!--[\s\S]*?(?:-->|\Z)', Comment.Multiline),
+            (r'\s+', Whitespace),
+            # Parser functions
+            (
+                r'(?i)(\#[%s]*?|%s)(:)' % (title_char,
+                                           '|'.join(parser_functions_i)),
+                bygroups(Name.Function, Punctuation), ('#pop', 'template-inner')
+            ),
+            (
+                r'(%s)(:)' % ('|'.join(parser_functions)),
+                bygroups(Name.Function, Punctuation), ('#pop', 'template-inner')
+            ),
+            # Templates
+            (
+                r'(?i)([%s]*?)(:)' % title_char,
+                bygroups(Name.Namespace, Punctuation), ('#pop', 'template-name')
+            ),
+            default(('#pop', 'template-name'),),
+        ],
+        'template-name': [
+            (r'(\s*?)(\|)', bygroups(Text, Punctuation), ('#pop', 'template-inner')),
+            (r'\}\}', Punctuation, '#pop'),
+            (r'\n', Text, '#pop'),
+            include('replaceable'),
+            *text_rules(Name.Tag),
+        ],
+        'template-inner': [
+            (r'\}\}', Punctuation, '#pop'),
+            (r'\|', Punctuation),
+            (
+                r"""(?x)
+                    (?<=\|)
+                    ( (?: (?! \{\{ | \}\} )[^=\|<])*? ) # Exclude templates and tags
+                    (=)
+                """,
+                bygroups(Name.Label, Operator)
+            ),
+            include('inline'),
+            include('text'),
+        ],
+        'table': [
+            # Use [ \t\n\r\0\x0B] instead of \s to follow PHP trim() behavior
+            # Endings
+            (r'^([ \t\n\r\0\x0B]*?)(\|\})',
+             bygroups(Whitespace, Punctuation), '#pop'),
+            # Table rows
+            (r'^([ \t\n\r\0\x0B]*?)(\|-+)(.*)$', bygroups(Whitespace, Punctuation,
+             using(this, state=['root', 'attr']))),
+            # Captions
+            (
+                r"""(?x)
+                ^([ \t\n\r\0\x0B]*?)(\|\+)
+                # Exclude links, template and tags
+                (?: ( (?: (?! \[\[ | \{\{ )[^|\n<] )*? )(\|) )?
+                (.*?)$
+                """,
+                bygroups(Whitespace, Punctuation, using(this, state=[
+                         'root', 'attr']), Punctuation, Generic.Heading),
+            ),
+            # Table data
+            (
+                r"""(?x)
+                ( ^(?:[ \t\n\r\0\x0B]*?)\| | \|\| )
+                (?: ( (?: (?! \[\[ | \{\{ )[^|\n<] )*? )(\|)(?!\|) )?
+                """,
+                bygroups(Punctuation, using(this, state=[
+                         'root', 'attr']), Punctuation),
+            ),
+            # Table headers
+            (
+                r"""(?x)
+                ( ^(?:[ \t\n\r\0\x0B]*?)!  )
+                (?: ( (?: (?! \[\[ | \{\{ )[^|\n<] )*? )(\|)(?!\|) )?
+                """,
+                bygroups(Punctuation, using(this, state=[
+                         'root', 'attr']), Punctuation),
+                'table-header',
+            ),
+            include('list'),
+            include('inline'),
+            include('text'),
+        ],
+        'table-header': [
+            # Requires another state for || handling inside headers
+            (r'\n', Text, '#pop'),
+            (
+                r"""(?x)
+                (!!|\|\|)
+                (?:
+                    ( (?: (?! \[\[ | \{\{ )[^|\n<] )*? )
+                    (\|)(?!\|)
+                )?
+                """,
+                bygroups(Punctuation, using(this, state=[
+                         'root', 'attr']), Punctuation)
+            ),
+            *text_rules(Generic.Subheading),
+        ],
+        'entity': [
+            (r'&\S*?;', Name.Entity),
+        ],
+        'dt': [
+            (r'\n', Text, '#pop'),
+            include('inline'),
+            (r':', Keyword, '#pop'),
+            include('text'),
+        ],
+        'extlink-inner': [
+            (r'\]', Punctuation, '#pop'),
+            include('inline'),
+            include('text'),
+        ],
+        'nowiki-ish': [
+            include('entity'),
+            include('text'),
+        ],
+        'attr': [
+            include('replaceable'),
+            (r'\s+', Whitespace),
+            (r'(=)(\s*)(")', bygroups(Operator, Whitespace, String.Double), 'attr-val-2'),
+            (r"(=)(\s*)(')", bygroups(Operator, Whitespace, String.Single), 'attr-val-1'),
+            (r'(=)(\s*)', bygroups(Operator, Whitespace), 'attr-val-0'),
+            (r'[\w:-]+', Name.Attribute),
+
+        ],
+        'attr-val-0': [
+            (r'\s', Whitespace, '#pop'),
+            include('replaceable'),
+            *text_rules(String),
+        ],
+        'attr-val-1': [
+            (r"'", String.Single, '#pop'),
+            include('replaceable'),
+            *text_rules(String.Single),
+        ],
+        'attr-val-2': [
+            (r'"', String.Double, '#pop'),
+            include('replaceable'),
+            *text_rules(String.Double),
+        ],
+        'tag-inner-ordinary': [
+            (r'/?\s*>', Punctuation, '#pop'),
+            include('tag-attr'),
+        ],
+        'tag-inner': [
+            # Return to root state for self-closing tags
+            (r'/\s*>', Punctuation, '#pop:2'),
+            (r'\s*>', Punctuation, '#pop'),
+            include('tag-attr'),
+        ],
+        # There states below are just like their non-tag variants, the key difference is
+        # they forcibly quit when encountering tag closing markup
+        'tag-attr': [
+            include('replaceable'),
+            (r'\s+', Whitespace),
+            (r'(=)(\s*)(")', bygroups(Operator,
+             Whitespace, String.Double), 'tag-attr-val-2'),
+            (r"(=)(\s*)(')", bygroups(Operator,
+             Whitespace, String.Single), 'tag-attr-val-1'),
+            (r'(=)(\s*)', bygroups(Operator, Whitespace), 'tag-attr-val-0'),
+            (r'[\w:-]+', Name.Attribute),
+
+        ],
+        'tag-attr-val-0': [
+            (r'\s', Whitespace, '#pop'),
+            (r'/?>', Punctuation, '#pop:2'),
+            include('replaceable'),
+            *text_rules(String),
+        ],
+        'tag-attr-val-1': [
+            (r"'", String.Single, '#pop'),
+            (r'/?>', Punctuation, '#pop:2'),
+            include('replaceable'),
+            *text_rules(String.Single),
+        ],
+        'tag-attr-val-2': [
+            (r'"', String.Double, '#pop'),
+            (r'/?>', Punctuation, '#pop:2'),
+            include('replaceable'),
+            *text_rules(String.Double),
+        ],
+        'tag-nowiki': nowiki_tag_rules('nowiki'),
+        'tag-pre': nowiki_tag_rules('pre'),
+        'tag-categorytree': plaintext_tag_rules('categorytree'),
+        'tag-dynamicpagelist': plaintext_tag_rules('dynamicpagelist'),
+        'tag-hiero': plaintext_tag_rules('hiero'),
+        'tag-inputbox': plaintext_tag_rules('inputbox'),
+        'tag-imagemap': plaintext_tag_rules('imagemap'),
+        'tag-charinsert': plaintext_tag_rules('charinsert'),
+        'tag-timeline': plaintext_tag_rules('timeline'),
+        'tag-gallery': plaintext_tag_rules('gallery'),
+        'tag-graph': plaintext_tag_rules('graph'),
+        'tag-rss': plaintext_tag_rules('rss'),
+        'tag-math': delegate_tag_rules('math', TexLexer),
+        'tag-chem': delegate_tag_rules('chem', TexLexer),
+        'tag-ce': delegate_tag_rules('ce', TexLexer),
+        'tag-templatedata': delegate_tag_rules('templatedata', JsonLexer),
+        'text-italic': text_rules(Generic.Emph),
+        'text-bold': text_rules(Generic.Strong),
+        'text': text_rules(Text),
+    }

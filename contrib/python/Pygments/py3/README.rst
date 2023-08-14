@@ -9,20 +9,20 @@ Installing
 ----------
 
 ... works as usual, use ``pip install Pygments`` to get published versions,
-or ``python setup.py install`` to install from a checkout.
+or ``pip install -e .`` to install from a checkout in editable mode.
 
 Documentation
 -------------
 
 ... can be found online at https://pygments.org/ or created with Sphinx by ::
 
-   make docs
+   tox -e doc
 
 By default, the documentation does not include the demo page, as it requires
 having Docker installed for building Pyodide. To build the documentation with
 the demo page, use ::
 
-   WEBSITE_BUILD=1 make docs
+   tox -e web-doc
 
 The initial build might take some time, but subsequent ones should be instant
 because of Docker caching.
@@ -44,9 +44,7 @@ Continuous testing runs on GitHub workflows:
 .. image:: https://github.com/pygments/pygments/workflows/Pygments/badge.svg
    :target: https://github.com/pygments/pygments/actions?query=workflow%3APygments
 
-Contribution guidelines are found in Contributing.md_.
-
-.. _Contributing.md: https://github.com/pygments/pygments/blob/master/Contributing.md
+Please read our `Contributing instructions <https://pygments.org/docs/contributing>`_.
 
 Security considerations
 -----------------------
@@ -59,12 +57,12 @@ significant amounts of memory. This can subsequently be used to perform a
 remote denial-of-service attack on the server if the processes are not
 terminated quickly.
 
-Unfortunately, it's practically impossible to harden Pygments itself against 
-those issues: Some regular expressions can result in "catastrophic 
+Unfortunately, it's practically impossible to harden Pygments itself against
+those issues: Some regular expressions can result in "catastrophic
 backtracking", but other bugs like incorrect matchers can also
 cause similar problems, and there is no way to find them in an automated fashion
-(short of solving the halting problem.) Pygments has extensive unit tests, 
-automated randomized testing, and is also tested by `OSS-Fuzz <https://github.com/google/oss-fuzz/tree/master/projects/pygments>`_, 
+(short of solving the halting problem.) Pygments has extensive unit tests,
+automated randomized testing, and is also tested by `OSS-Fuzz <https://github.com/google/oss-fuzz/tree/master/projects/pygments>`_,
 but we will never be able to eliminate all bugs in this area.
 
 Our recommendations are:

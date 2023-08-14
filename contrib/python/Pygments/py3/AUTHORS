@@ -11,6 +11,7 @@ Other contributors, listed alphabetically, are:
 * Ali Afshar -- image formatter
 * Thomas Aglassinger -- Easytrieve, JCL, Rexx, Transact-SQL and VBScript
   lexers
+* Maxence Ahlouche -- PostgreSQL Explain lexer
 * Muthiah Annamalai -- Ezhil lexer
 * Kumar Appaiah -- Debian control lexer
 * Andreas Amann -- AppleScript lexer
@@ -162,7 +163,9 @@ Other contributors, listed alphabetically, are:
 * Paulo Moura -- Logtalk lexer
 * Mher Movsisyan -- DTD lexer
 * Dejan Muhamedagic -- Crmsh lexer
+* Adrien Nayrat -- PostgreSQL Explain lexer
 * Ana Nelson -- Ragel, ANTLR, R console lexers
+* David Neto, Google LLC -- WebGPU Shading Language lexer
 * Kurt Neufeld -- Markdown lexer
 * Nam T. Nguyen -- Monokai style
 * Jesper Noehr -- HTML formatter "anchorlinenos"
@@ -190,7 +193,7 @@ Other contributors, listed alphabetically, are:
 * Justin Reidy -- MXML lexer
 * Norman Richards -- JSON lexer
 * Corey Richardson -- Rust lexer updates
-* Fabrizio Riguzzi -- cplint leder 
+* Fabrizio Riguzzi -- cplint leder
 * Lubomir Rintel -- GoodData MAQL and CL lexers
 * Andre Roberge -- Tango style
 * Georg Rollinger -- HSAIL lexer
@@ -202,6 +205,7 @@ Other contributors, listed alphabetically, are:
 * Matteo Sasso -- Common Lisp lexer
 * Joe Schafer -- Ada lexer
 * Max Schillinger -- TiddlyWiki5 lexer
+* Andrew Schmidt -- X++ lexer
 * Ken Schutte -- Matlab lexers
 * René Schwaiger -- Rainbow Dash style
 * Sebastian Schweizer -- Whiley lexer
@@ -260,5 +264,7 @@ Other contributors, listed alphabetically, are:
 * Thomas Voss -- Sed lexer
 * Martin Fischer -- WCAG contrast testing
 * Marc Auberer -- Spice lexer
+* Amr Hesham -- Carbon lexer
+* diskdance -- Wikitext lexer
 
 Many thanks for all contributions!

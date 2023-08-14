@@ -4,7 +4,7 @@
 
     Lexers for CSS and related stylesheet formats.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -249,7 +249,7 @@ class CssLexer(RegexLexer):
         ],
         'function-start': [
             (r'\s+', Whitespace),
-            (r'[-]+([\w+]+[-]*)+', Name.Variable),
+            (r'[-]+([A-Za-z][\w+]*[-]*)+', Name.Variable),
             include('urls'),
             (words(_vendor_prefixes,), Keyword.Pseudo),
             (words(_keyword_values, suffix=r'\b'), Keyword.Constant),

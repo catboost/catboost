@@ -6,7 +6,7 @@
 
     Run with `python -I` to update itself.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -571,6 +571,61 @@ PLPGSQL_KEYWORDS = (
     'RETURN', 'REVERSE', 'SQLSTATE', 'WHILE',
 )
 
+# Most of these keywords are from ExplainNode function
+# in src/backend/commands/explain.c
+
+EXPLAIN_KEYWORDS = (
+    'Aggregate',
+    'Append',
+    'Bitmap Heap Scan',
+    'Bitmap Index Scan',
+    'BitmapAnd',
+    'BitmapOr',
+    'CTE Scan',
+    'Custom Scan',
+    'Delete',
+    'Foreign Scan',
+    'Function Scan',
+    'Gather Merge',
+    'Gather',
+    'Group',
+    'GroupAggregate',
+    'Hash Join',
+    'Hash',
+    'HashAggregate',
+    'Incremental Sort',
+    'Index Only Scan',
+    'Index Scan',
+    'Insert',
+    'Limit',
+    'LockRows',
+    'Materialize',
+    'Memoize',
+    'Merge Append',
+    'Merge Join',
+    'Merge',
+    'MixedAggregate',
+    'Named Tuplestore Scan',
+    'Nested Loop',
+    'ProjectSet',
+    'Recursive Union',
+    'Result',
+    'Sample Scan',
+    'Seq Scan',
+    'SetOp',
+    'Sort',
+    'SubPlan',
+    'Subquery Scan',
+    'Table Function Scan',
+    'Tid Range Scan',
+    'Tid Scan',
+    'Unique',
+    'Update',
+    'Values Scan',
+    'WindowAgg',
+    'WorkTable Scan',
+)
+
 
 if __name__ == '__main__':  # pragma: no cover
     import re
@@ -665,7 +720,7 @@ if __name__ == '__main__':  # pragma: no cover
         return dt
 
     def update_consts(filename, constname, content):
-        with open(filename) as f:
+        with open(filename, encoding='utf-8') as f:
             data = f.read()
 
         # Line to start/end inserting
@@ -678,7 +733,7 @@ if __name__ == '__main__':  # pragma: no cover
         new_block = format_lines(constname, content)
         data = data[:m.start()] + new_block + data[m.end():]
 
-        with open(filename, 'w', newline='\n') as f:
+        with open(filename, 'w', encoding='utf-8', newline='\n') as f:
             f.write(data)
 
     update_myself()

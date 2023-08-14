@@ -7,7 +7,7 @@
 
     Run with `python -I` to regenerate.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -3267,7 +3267,7 @@ if __name__ == '__main__':  # pragma: no cover
 
         for file in get_php_references():
             module = ''
-            with open(file) as f:
+            with open(file, encoding='utf-8') as f:
                 for line in f:
                     if not module:
                         search = module_re.search(line)
@@ -3303,13 +3303,13 @@ if __name__ == '__main__':  # pragma: no cover
         os.remove(download[0])
 
     def regenerate(filename, modules):
-        with open(filename) as fp:
+        with open(filename, encoding='utf-8') as fp:
             content = fp.read()
 
         header = content[:content.find('MODULES = {')]
         footer = content[content.find("if __name__ == '__main__':"):]
 
-        with open(filename, 'w') as fp:
+        with open(filename, 'w', encoding='utf-8') as fp:
             fp.write(header)
             fp.write('MODULES = %s\n\n' % pprint.pformat(modules))
             fp.write(footer)

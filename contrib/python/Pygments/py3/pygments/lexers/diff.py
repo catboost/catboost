@@ -4,7 +4,7 @@
 
     Lexers for diff/patch formats.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -30,13 +30,16 @@ class DiffLexer(RegexLexer):
     tokens = {
         'root': [
             (r'( )(.*)(\n)', bygroups(Whitespace, Text, Whitespace)),
-            (r'(\+.*)(\n)', bygroups(Generic.Inserted, Whitespace)),
-            (r'(-.*)(\n)', bygroups(Generic.Deleted, Whitespace)),
-            (r'(!.*)(\n)', bygroups(Generic.Strong, Whitespace)),
-            (r'(@.*)(\n)', bygroups(Generic.Subheading, Whitespace)),
+            (r'(!.*|---)(\n)', bygroups(Generic.Strong, Whitespace)),
+            (r'((?:< |-).*)(\n)', bygroups(Generic.Deleted, Whitespace)),
+            (r'((?:> |\+).*)(\n)', bygroups(Generic.Inserted, Whitespace)),
+            (
+                r'(@.*|\d(?:,\d+)?(?:a|c|d)\d+(?:,\d+)?)(\n)',
+                bygroups(Generic.Subheading, Whitespace),
+            ),
             (r'((?:[Ii]ndex|diff).*)(\n)', bygroups(Generic.Heading, Whitespace)),
             (r'(=.*)(\n)', bygroups(Generic.Heading, Whitespace)),
-            (r'(.*)(\n)', Whitespace),
+            (r'(.*)(\n)', bygroups(Text, Whitespace)),
         ]
     }
 

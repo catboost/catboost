@@ -4,7 +4,7 @@
 
     pygments version of my "native" vim theme.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -27,7 +27,7 @@ class NativeStyle(Style):
         Whitespace:         '#666666',
 
         Comment:            'italic #ababab',
-        Comment.Preproc:    'noitalic bold #cd2828',
+        Comment.Preproc:    'noitalic bold #ff3a3a',
         Comment.Special:    'noitalic bold #e50808 bg:#520000',
 
         Keyword:            'bold #6ebf26',

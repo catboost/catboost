@@ -4,7 +4,7 @@
 
     Lexers for configuration file formats.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -129,26 +129,42 @@ class PropertiesLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\s+', Whitespace),
+            # comments
             (r'[!#].*|/{2}.*', Comment.Single),
-            # search for first separator
-            (r'([^\\\n]|\\.)*?(?=[ \f\t=:])', Name.Attribute, "separator"),
-            # empty key
-            (r'.+?$', Name.Attribute),
+            # ending a comment or whitespace-only line
+            (r'\n', Whitespace),
+            # eat whitespace at the beginning of a line
+            (r'^[^\S\n]+', Whitespace),
+            # start lexing a key
+            default('key'),
         ],
-        'separator': [
-            # search for line continuation escape
-            (r'([ \f\t]*)([=:]*)([ \f\t]*)(.*(?<!\\)(?:\\{2})*)(\\)(?!\\)$',
-             bygroups(Whitespace, Operator, Whitespace, String, Text), "value", "#pop"),
-            (r'([ \f\t]*)([=:]*)([ \f\t]*)(.*)',
-             bygroups(Whitespace, Operator, Whitespace, String), "#pop"),
+        'key': [
+            # non-escaped key characters
+            (r'[^\\:=\s]+', Name.Attribute),
+            # escapes
+            include('escapes'),
+            # separator is the first non-escaped whitespace or colon or '=' on the line;
+            # if it's whitespace, = and : are gobbled after it
+            (r'([^\S\n]*)([:=])([^\S\n]*)',
+             bygroups(Whitespace, Operator, Whitespace),
+             ('#pop', 'value')),
+            (r'[^\S\n]+', Whitespace, ('#pop', 'value')),
+            # maybe we got no value after all
+            (r'\n', Whitespace, '#pop'),
         ],
-        'value': [     # line continuation
-            (r'\s+', Whitespace),
-            # search for line continuation escape
-            (r'(\s*)(.*(?<!\\)(?:\\{2})*)(\\)(?!\\)([ \t]*)',
-             bygroups(Whitespace, String, Text, Whitespace)),
-            (r'.*$', String, "#pop"),
+        'value': [
+            # non-escaped value characters
+            (r'[^\\\n]+', String),
+            # escapes
+            include('escapes'),
+            # end the value on an unescaped newline
+            (r'\n', Whitespace, '#pop'),
+        ],
+        'escapes': [
+            # line continuations; these gobble whitespace at the beginning of the next line
+            (r'(\\\n)([^\S\n]*)', bygroups(String.Escape, Whitespace)),
+            # other escapes
+            (r'\\(.|\n)', String.Escape),
         ],
     }
 
@@ -607,8 +623,8 @@ class TerraformLexer(ExtendedRegexLexer):
 
     name = 'Terraform'
     url = 'https://www.terraform.io/'
-    aliases = ['terraform', 'tf']
-    filenames = ['*.tf']
+    aliases = ['terraform', 'tf', 'hcl']
+    filenames = ['*.tf', '*.hcl']
     mimetypes = ['application/x-tf', 'application/x-terraform']
 
     classes = ('backend', 'data', 'module', 'output', 'provider',
@@ -1154,7 +1170,7 @@ class UnixConfigLexer(RegexLexer):
     * ``/etc/group``
     * ``/etc/passwd``
     * ``/etc/shadow``
-    
+
     .. versionadded:: 2.12
     """
 

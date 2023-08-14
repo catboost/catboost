@@ -6,7 +6,7 @@
 
     Run with `python -I` to update.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -1317,7 +1317,7 @@ if __name__ == '__main__':  # pragma: no cover
     def update_content(field_name, content):
         """Overwrite this file with content parsed from MySQL's source code."""
 
-        with open(__file__) as f:
+        with open(__file__, encoding="utf-8") as f:
             data = f.read()
 
         # Line to start/end inserting
@@ -1329,7 +1329,7 @@ if __name__ == '__main__':  # pragma: no cover
         new_block = format_lines(field_name, content)
         data = data[:m.start()] + new_block + data[m.end():]
 
-        with open(__file__, 'w', newline='\n') as f:
+        with open(__file__, 'w', encoding='utf-8', newline='\n') as f:
             f.write(data)
 
     update_myself()

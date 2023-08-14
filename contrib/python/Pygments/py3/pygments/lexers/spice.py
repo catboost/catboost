@@ -4,7 +4,7 @@
 
     Lexers for the Spice programming language.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -38,11 +38,11 @@ class SpiceLexer(RegexLexer):
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             # keywords
             (r'(import|as)\b', Keyword.Namespace),
-            (r'(f|p|type|struct|enum)\b', Keyword.Declaration),
-            (words(('if', 'else', 'for', 'foreach', 'while', 'break',
+            (r'(f|p|type|struct|interface|enum|alias|operator)\b', Keyword.Declaration),
+            (words(('if', 'else', 'for', 'foreach', 'do', 'while', 'break',
                     'continue', 'return', 'assert', 'thread', 'unsafe', 'ext',
                     'dll'), suffix=r'\b'), Keyword),
-            (words(('const', 'signed', 'unsigned', 'inline', 'public'),
+            (words(('const', 'signed', 'unsigned', 'inline', 'public', 'heap'),
                    suffix=r'\b'), Keyword.Pseudo),
             (words(('new', 'switch', 'case', 'yield', 'stash', 'pick', 'sync',
                     'class'), suffix=r'\b'), Keyword.Reserved),

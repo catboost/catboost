@@ -4,7 +4,7 @@
 
     Lexers for PHP and related languages.
 
-    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -192,6 +192,7 @@ class PhpLexer(RegexLexer):
              bygroups(String, String, String.Delimiter, String, String.Delimiter,
                       Punctuation, Text)),
             (r'\s+', Text),
+            (r'#\[', Punctuation, 'attribute'),
             (r'#.*?\n', Comment.Single),
             (r'//.*?\n', Comment.Single),
             # put the empty comment here, it is otherwise seen as
@@ -204,6 +205,7 @@ class PhpLexer(RegexLexer):
             (r'[~!%^&*+=|:.<>/@-]+', Operator),
             (r'\?', Operator),  # don't add to the charclass above!
             (r'[\[\]{}();,]+', Punctuation),
+            (r'(new)(\s+)(class)\b', bygroups(Keyword, Text, Keyword)),
             (r'(class)(\s+)', bygroups(Keyword, Text), 'classname'),
             (r'(function)(\s*)(?=\()', bygroups(Keyword, Text)),
             (r'(function)(\s+)(&?)(\s*)',
@@ -223,7 +225,7 @@ class PhpLexer(RegexLexer):
              r'finally|match)\b', Keyword),
             (r'(true|false|null)\b', Keyword.Constant),
             include('magicconstants'),
-            (r'\$\{\$+' + _ident_inner + r'\}', Name.Variable),
+            (r'\$\{', Name.Variable, 'variablevariable'),
             (r'\$+' + _ident_inner, Name.Variable),
             (_ident_inner, Name.Other),
             (r'(\d+\.\d*|\d*\.\d+)(e[+-]?[0-9]+)?', Number.Float),
@@ -235,6 +237,10 @@ class PhpLexer(RegexLexer):
             (r"'([^'\\]*(?:\\.[^'\\]*)*)'", String.Single),
             (r'`([^`\\]*(?:\\.[^`\\]*)*)`', String.Backtick),
             (r'"', String.Double, 'string'),
+        ],
+        'variablevariable': [
+            (r'\}', Name.Variable, '#pop'),
+            include('php')
         ],
         'magicfuncs': [
             # source: http://php.net/manual/en/language.oop5.magic.php
@@ -275,6 +281,16 @@ class PhpLexer(RegexLexer):
             (r'(\$\{)(\S+)(\})',
              bygroups(String.Interpol, Name.Variable, String.Interpol)),
             (r'[${\\]', String.Double)
+        ],
+        'attribute': [
+            (r'\]', Punctuation, '#pop'),
+            (r'\(', Punctuation, 'attributeparams'),
+            (_ident_inner, Name.Decorator),
+            include('php')
+        ],
+        'attributeparams': [
+            (r'\)', Punctuation, '#pop'),
+            include('php')
         ],
     }
 
