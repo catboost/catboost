@@ -771,6 +771,7 @@ class ParserElement(ABC):
             return loc
         exprsFound = True
         ignore_expr_fns = [e._parse for e in self.ignoreExprs]
+        last_loc = loc
         while exprsFound:
             exprsFound = False
             for ignore_fn in ignore_expr_fns:
@@ -780,6 +781,10 @@ class ParserElement(ABC):
                         exprsFound = True
                 except ParseException:
                     pass
+            # check if all ignore exprs matched but didn't actually advance the parse location
+            if loc == last_loc:
+                break
+            last_loc = loc
         return loc
 
     def preParse(self, instring: str, loc: int) -> int:
@@ -1079,7 +1084,9 @@ class ParserElement(ABC):
         ParserElement._left_recursion_enabled = True
 
     @staticmethod
-    def enable_packrat(cache_size_limit: int = 128, *, force: bool = False) -> None:
+    def enable_packrat(
+        cache_size_limit: Union[int, None] = 128, *, force: bool = False
+    ) -> None:
         """
         Enables "packrat" parsing, which adds memoizing to the parsing logic.
         Repeated parse attempts at the same string location (which happens
@@ -2879,7 +2886,7 @@ class Word(Token):
                 re_leading_fragment = f"[{_collapse_string_to_ranges(self.initChars)}]"
 
             if self.bodyChars == self.initChars:
-                if max == 0:
+                if max == 0 and self.minLen == 1:
                     repeat = "+"
                 elif max == 1:
                     repeat = ""
@@ -2895,19 +2902,17 @@ class Word(Token):
                     repeat = ""
                 else:
                     re_body_fragment = f"[{_collapse_string_to_ranges(self.bodyChars)}]"
-                    if max == 0:
+                    if max == 0 and self.minLen == 1:
                         repeat = "*"
                     elif max == 2:
                         repeat = "?" if min <= 1 else ""
                     else:
                         if min != max:
-                            repeat = f"{{{min - 1 if min > 0 else 0},{max - 1}}}"
+                            repeat = f"{{{min - 1 if min > 0 else ''},{max - 1 if max > 0 else ''}}}"
                         else:
-                            repeat = f"{{{min - 1 if min > 0 else 0}}}"
+                            repeat = f"{{{min - 1 if min > 0 else ''}}}"
 
-                self.reString = (
-                    f"{re_leading_fragment}" f"{re_body_fragment}" f"{repeat}"
-                )
+                self.reString = f"{re_leading_fragment}{re_body_fragment}{repeat}"
 
             if self.asKeyword:
                 self.reString = rf"\b{self.reString}\b"
@@ -3224,98 +3229,100 @@ class QuotedString(Token):
         convertWhitespaceEscapes: bool = True,
     ):
         super().__init__()
-        escChar = escChar or esc_char
-        escQuote = escQuote or esc_quote
-        unquoteResults = unquoteResults and unquote_results
-        endQuoteChar = endQuoteChar or end_quote_char
-        convertWhitespaceEscapes = (
+        esc_char = escChar or esc_char
+        esc_quote = escQuote or esc_quote
+        unquote_results = unquoteResults and unquote_results
+        end_quote_char = endQuoteChar or end_quote_char
+        convert_whitespace_escapes = (
             convertWhitespaceEscapes and convert_whitespace_escapes
         )
         quote_char = quoteChar or quote_char
 
-        # remove white space from quote chars - wont work anyway
+        # remove white space from quote chars
         quote_char = quote_char.strip()
         if not quote_char:
             raise ValueError("quote_char cannot be the empty string")
 
-        if endQuoteChar is None:
-            endQuoteChar = quote_char
+        if end_quote_char is None:
+            end_quote_char = quote_char
         else:
-            endQuoteChar = endQuoteChar.strip()
-            if not endQuoteChar:
+            end_quote_char = end_quote_char.strip()
+            if not end_quote_char:
                 raise ValueError("end_quote_char cannot be the empty string")
 
-        self.quoteChar: str = quote_char
-        self.quoteCharLen: int = len(quote_char)
-        self.firstQuoteChar: str = quote_char[0]
-        self.endQuoteChar: str = endQuoteChar
-        self.endQuoteCharLen: int = len(endQuoteChar)
-        self.escChar: str = escChar or ""
-        self.escQuote: str = escQuote or ""
-        self.unquoteResults: bool = unquoteResults
-        self.convertWhitespaceEscapes: bool = convertWhitespaceEscapes
+        self.quote_char: str = quote_char
+        self.quote_char_len: int = len(quote_char)
+        self.first_quote_char: str = quote_char[0]
+        self.end_quote_char: str = end_quote_char
+        self.end_quote_char_len: int = len(end_quote_char)
+        self.esc_char: str = esc_char or ""
+        self.has_esc_char: bool = esc_char is not None
+        self.esc_quote: str = esc_quote or ""
+        self.unquote_results: bool = unquote_results
+        self.convert_whitespace_escapes: bool = convert_whitespace_escapes
         self.multiline = multiline
+        self.re_flags = re.RegexFlag(0)
 
-        sep = ""
-        inner_pattern = ""
+        # fmt: off
+        # build up re pattern for the content between the quote delimiters
+        inner_pattern = []
 
-        if escQuote:
-            inner_pattern += rf"{sep}(?:{re.escape(escQuote)})"
-            sep = "|"
+        if esc_quote:
+            inner_pattern.append(rf"(?:{re.escape(esc_quote)})")
 
-        if escChar:
-            inner_pattern += rf"{sep}(?:{re.escape(escChar)}.)"
-            sep = "|"
-            self.escCharReplacePattern = re.escape(escChar) + "(.)"
+        if esc_char:
+            inner_pattern.append(rf"(?:{re.escape(esc_char)}.)")
 
-        if len(self.endQuoteChar) > 1:
-            inner_pattern += (
-                f"{sep}(?:"
+        if len(self.end_quote_char) > 1:
+            inner_pattern.append(
+                "(?:"
                 + "|".join(
-                    f"(?:{re.escape(self.endQuoteChar[:i])}(?!{re.escape(self.endQuoteChar[i:])}))"
-                    for i in range(len(self.endQuoteChar) - 1, 0, -1)
+                    f"(?:{re.escape(self.end_quote_char[:i])}(?!{re.escape(self.end_quote_char[i:])}))"
+                    for i in range(len(self.end_quote_char) - 1, 0, -1)
                 )
                 + ")"
             )
-            sep = "|"
 
-        self.flags = re.RegexFlag(0)
-
-        if multiline:
-            self.flags = re.MULTILINE | re.DOTALL
-            inner_pattern += (
-                rf"{sep}(?:[^{_escape_regex_range_chars(self.endQuoteChar[0])}"
-                rf"{(_escape_regex_range_chars(escChar) if escChar is not None else '')}])"
+        if self.multiline:
+            self.re_flags |= re.MULTILINE | re.DOTALL
+            inner_pattern.append(
+                rf"(?:[^{_escape_regex_range_chars(self.end_quote_char[0])}"
+                rf"{(_escape_regex_range_chars(esc_char) if self.has_esc_char else '')}])"
             )
         else:
-            inner_pattern += (
-                rf"{sep}(?:[^{_escape_regex_range_chars(self.endQuoteChar[0])}\n\r"
-                rf"{(_escape_regex_range_chars(escChar) if escChar is not None else '')}])"
+            inner_pattern.append(
+                rf"(?:[^{_escape_regex_range_chars(self.end_quote_char[0])}\n\r"
+                rf"{(_escape_regex_range_chars(esc_char) if self.has_esc_char else '')}])"
             )
 
         self.pattern = "".join(
             [
-                re.escape(self.quoteChar),
+                re.escape(self.quote_char),
                 "(?:",
-                inner_pattern,
+                '|'.join(inner_pattern),
                 ")*",
-                re.escape(self.endQuoteChar),
+                re.escape(self.end_quote_char),
             ]
         )
 
-        if self.unquoteResults:
-            if self.convertWhitespaceEscapes:
+        if self.unquote_results:
+            if self.convert_whitespace_escapes:
                 self.unquote_scan_re = re.compile(
-                    rf"({'|'.join(re.escape(k) for k in self.ws_map)})|({re.escape(self.escChar)}.)|(\n|.)",
-                    flags=self.flags,
+                    rf"({'|'.join(re.escape(k) for k in self.ws_map)})"
+                    rf"|({re.escape(self.esc_char)}.)"
+                    rf"|(\n|.)",
+                    flags=self.re_flags,
                 )
             else:
                 self.unquote_scan_re = re.compile(
-                    rf"({re.escape(self.escChar)}.)|(\n|.)", flags=self.flags
+                    rf"({re.escape(self.esc_char)}.)"
+                    rf"|(\n|.)",
+                    flags=self.re_flags
                 )
+        # fmt: on
 
         try:
-            self.re = re.compile(self.pattern, self.flags)
+            self.re = re.compile(self.pattern, self.re_flags)
             self.reString = self.pattern
             self.re_match = self.re.match
         except re.error:
@@ -3326,46 +3333,60 @@ class QuotedString(Token):
         self.mayReturnEmpty = True
 
     def _generateDefaultName(self) -> str:
-        if self.quoteChar == self.endQuoteChar and isinstance(self.quoteChar, str_type):
-            return f"string enclosed in {self.quoteChar!r}"
+        if self.quote_char == self.end_quote_char and isinstance(
+            self.quote_char, str_type
+        ):
+            return f"string enclosed in {self.quote_char!r}"
 
-        return f"quoted string, starting with {self.quoteChar} ending with {self.endQuoteChar}"
+        return f"quoted string, starting with {self.quote_char} ending with {self.end_quote_char}"
 
     def parseImpl(self, instring, loc, doActions=True):
+        # check first character of opening quote to see if that is a match
+        # before doing the more complicated regex match
         result = (
-            instring[loc] == self.firstQuoteChar
+            instring[loc] == self.first_quote_char
             and self.re_match(instring, loc)
             or None
         )
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)
 
+        # get ending loc and matched string from regex matching result
         loc = result.end()
         ret = result.group()
 
-        if self.unquoteResults:
+        if self.unquote_results:
             # strip off quotes
-            ret = ret[self.quoteCharLen : -self.endQuoteCharLen]
+            ret = ret[self.quote_char_len : -self.end_quote_char_len]
 
             if isinstance(ret, str_type):
-                if self.convertWhitespaceEscapes:
+                # fmt: off
+                if self.convert_whitespace_escapes:
+                    # as we iterate over matches in the input string,
+                    # collect from whichever match group of the unquote_scan_re
+                    # regex matches (only 1 group will match at any given time)
                     ret = "".join(
-                        self.ws_map[match.group(1)]
-                        if match.group(1)
-                        else match.group(2)[-1]
-                        if match.group(2)
+                        # match group 1 matches \t, \n, etc.
+                        self.ws_map[match.group(1)] if match.group(1)
+                        # match group 2 matches escaped characters
+                        else match.group(2)[-1] if match.group(2)
+                        # match group 3 matches any character
                         else match.group(3)
                         for match in self.unquote_scan_re.finditer(ret)
                     )
                 else:
                     ret = "".join(
-                        match.group(1)[-1] if match.group(1) else match.group(2)
+                        # match group 1 matches escaped characters
+                        match.group(1)[-1] if match.group(1)
+                        # match group 2 matches any character
+                        else match.group(2)
                         for match in self.unquote_scan_re.finditer(ret)
                     )
+                # fmt: on
 
                 # replace escaped quotes
-                if self.escQuote:
-                    ret = ret.replace(self.escQuote, self.endQuoteChar)
+                if self.esc_quote:
+                    ret = ret.replace(self.esc_quote, self.end_quote_char)
 
         return loc, ret
 
@@ -4547,7 +4568,8 @@ class ParseElementEnhance(ParserElement):
             try:
                 return self.expr._parse(instring, loc, doActions, callPreParse=False)
             except ParseBaseException as pbe:
-                pbe.msg = self.errmsg
+                if not isinstance(self, Forward) or self.customName is not None:
+                    pbe.msg = self.errmsg
                 raise
         else:
             raise ParseException(instring, loc, "No expression defined", self)
@@ -5308,8 +5330,7 @@ class SkipTo(ParseElementEnhance):
     ):
         super().__init__(other)
         failOn = failOn or fail_on
-        if ignore is not None:
-            self.ignore(ignore)
+        self.ignoreExpr = ignore
         self.mayReturnEmpty = True
         self.mayIndexError = False
         self.includeMatch = include
@@ -5319,6 +5340,20 @@ class SkipTo(ParseElementEnhance):
         else:
             self.failOn = failOn
         self.errmsg = "No match found for " + str(self.expr)
+        self.ignorer = Empty().leave_whitespace()
+        self._update_ignorer()
+
+    def _update_ignorer(self):
+        # rebuild internal ignore expr from current ignore exprs and assigned ignoreExpr
+        self.ignorer.ignoreExprs.clear()
+        for e in self.expr.ignoreExprs:
+            self.ignorer.ignore(e)
+        if self.ignoreExpr:
+            self.ignorer.ignore(self.ignoreExpr)
+
+    def ignore(self, expr):
+        super().ignore(expr)
+        self._update_ignorer()
 
     def parseImpl(self, instring, loc, doActions=True):
         startloc = loc
@@ -5327,7 +5362,7 @@ class SkipTo(ParseElementEnhance):
         self_failOn_canParseNext = (
             self.failOn.canParseNext if self.failOn is not None else None
         )
-        self_preParse = self.preParse if self.callPreparse else None
+        ignorer_try_parse = self.ignorer.try_parse if self.ignorer.ignoreExprs else None
 
         tmploc = loc
         while tmploc <= instrlen:
@@ -5336,9 +5371,18 @@ class SkipTo(ParseElementEnhance):
                 if self_failOn_canParseNext(instring, tmploc):
                     break
 
-            if self_preParse is not None:
-                # skip grammar-ignored expressions
-                tmploc = self_preParse(instring, tmploc)
+            if ignorer_try_parse is not None:
+                # advance past ignore expressions
+                prev_tmploc = tmploc
+                while 1:
+                    try:
+                        tmploc = ignorer_try_parse(instring, tmploc)
+                    except ParseBaseException:
+                        break
+                    # see if all ignorers matched, but didn't actually ignore anything
+                    if tmploc == prev_tmploc:
+                        break
+                    prev_tmploc = tmploc
 
             try:
                 self_expr_parse(instring, tmploc, doActions=False, callPreParse=False)
