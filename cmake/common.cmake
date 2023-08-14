@@ -257,16 +257,28 @@ function(add_yunittest)
     "${multival_args}"
     ${ARGN}
   )
-  get_property(SPLIT_FACTOR TARGET ${YUNITTEST_ARGS_TEST_TARGET} PROPERTY SPLIT_FACTOR)
+
+  get_property(SPLIT_FACTOR  TARGET ${YUNITTEST_ARGS_TEST_TARGET} PROPERTY SPLIT_FACTOR)
+  get_property(SPLIT_TYPE TARGET ${YUNITTEST_ARGS_TEST_TARGET} PROPERTY SPLIT_TYPE)
+
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/run_testpack")
+        add_test(NAME ${YUNITTEST_ARGS_NAME} COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/run_testpack" ${YUNITTEST_ARGS_TEST_ARG})
+        set_property(TEST ${YUNITTEST_ARGS_NAME} PROPERTY ENVIRONMENT "source_root=${CMAKE_SOURCE_DIR};build_root=${CMAKE_BINARY_DIR};test_split_factor=${SPLIT_FACTOR};test_split_type=${SPLIT_TYPE}")
+        return()
+  endif()
+
   if (${SPLIT_FACTOR} EQUAL 1)
   	add_test(NAME ${YUNITTEST_ARGS_NAME} COMMAND ${YUNITTEST_ARGS_TEST_TARGET} ${YUNITTEST_ARGS_TEST_ARG})
   	return()
   endif()
 
+  if ("${SPLIT_TYPE}")
+    set(FORK_MODE_ARG --fork-mode ${SPLIT_TYPE})
+  endif()
   math(EXPR LastIdx "${SPLIT_FACTOR} - 1")
   foreach(Idx RANGE ${LastIdx})
     add_test(NAME ${YUNITTEST_ARGS_NAME}_${Idx}
-      COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/split_unittest.py --split-factor ${SPLIT_FACTOR} --shard ${Idx}
+      COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/split_unittest.py --split-factor ${SPLIT_FACTOR} ${FORK_MODE_ARG} --shard ${Idx}
        $<TARGET_FILE:${YUNITTEST_ARGS_TEST_TARGET}> ${YUNITTEST_ARGS_TEST_ARG})
   endforeach()
 endfunction()
