@@ -520,12 +520,6 @@ private:
         return EnabledTests_.find(name) != EnabledTests_.end();
     }
 
-    void PushDownEnvVar(TShellCommandOptions* options, const TString& var) {
-        if (TString value = GetEnv(var)) {
-            options->Environment[var] = std::move(value);
-        }
-    }
-
     void Run(std::function<void()> f, const TString& suite, const char* name, const bool forceFork) override {
         if (!(GetForkTests() || forceFork) || GetIsForked()) {
             return f();
@@ -541,10 +535,6 @@ private:
             .SetCloseAllFdsOnExec(true)
             .SetAsync(false)
             .SetLatency(1);
-
-        PushDownEnvVar(&options, Y_UNITTEST_OUTPUT_CMDLINE_OPTION);
-        PushDownEnvVar(&options, Y_UNITTEST_TEST_FILTER_FILE_OPTION);
-        PushDownEnvVar(&options, "TMPDIR");
 
         TShellCommand cmd(AppName, args, options);
         cmd.Run();
