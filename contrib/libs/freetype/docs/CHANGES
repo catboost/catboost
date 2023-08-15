@@ -1,4 +1,128 @@
-CHANGES BETWEEN 2.12.0 and 2.12.1
+CHANGES BETWEEN 2.13.0 and 2.13.1 (2023-Jun-24)
+
+  I. MISCELLANEOUS
+
+  - New function  `FT_Get_Default_Named_Instance` to get the  index of
+    the default named instance of an OpenType Variation Font.
+
+  - A new load flag `FT_LOAD_NO_SVG` to make FreeType ignore glyphs in
+    an 'SVG ' table.
+
+  - New  function  `FT_GlyphSlot_AdjustWeight`  to  adjust  the  glyph
+    weight either  horizontally or  vertically.  This  is part  of the
+    `ftsynth.h` header file, which is  still considered to be in alpha
+    stage.
+
+  - TrueType interpreter  version 38 (also known  as 'Infinality') has
+    been deactivated; the value  of `TT_INTERPRETER_VERSION_38` is now
+    the same as `TT_INTERPRETER_VERSION_40`.
+
+  - Updated OpenVMS support.
+
+  - The  base  API  documentation  has  been  modularized  for  easier
+    handling.
+
+  - Switching named instances on and  off in Variation Fonts was buggy
+    if the design coordinates didn't change.
+
+  - `ftbench`  has a  new  command-line option  `-a`  to apply  design
+    coordinates.
+
+  - `ftview` can now flip SVG rendering on and off using the 'Z' key.
+
+  - In  `ftmulti` it  is  now possible  to toggle  the  fill rule  and
+    overlap flag  used for  rendering glyphs using  the 'F3'  and 'F4'
+    keys,  respectively.   Toggling  the anti-aliased  mode  has  been
+    changed to the 'TAB' key.
+
+
+======================================================================
+
+CHANGES BETWEEN 2.12.1 and 2.13.0 (2023-Feb-09)
+
+  I. IMPORTANT CHANGES
+
+  - The demo program `ftinspect` has  been completely updated and much
+    enhanced.  It now  combines the functionality of  almost all other
+    graphical FreeType  demo programs into a  single application based
+    on the Qt framework.  This was Charlie Jiang's GSoC 2022 project.
+
+  - The 'COLR' v1 API is now considered as stable.
+
+      https://learn.microsoft.com/en-us/typography/opentype/spec/colr
+
+
+  II. MISCELLANEOUS
+
+  - For  OpenType  Variable Fonts,  `avar`  table  format 2.0  is  now
+    supported.  The code was contributed by Behdad Esfahbod.
+
+    Note that this is an extension supported on recent Apple platforms
+    and by HarfBuzz, but not yet in the OpenType standard!  See
+
+      https://github.com/harfbuzz/boring-expansion-spec/blob/main/avar2.md
+
+    for the specification.  To deactivate it, define the configuration
+    macro 'TT_CONFIG_OPTION_NO_BORING_EXPANSION'.
+
+  - A new API  `FT_GlyphSlot_Slant` to slant a glyph by  a given angle
+    has been added.   Note that this function is  part of `ftsynth.h`,
+    which is still considered to be in alpha stage.
+
+  - TrueType interpreter version 38  (also known as 'Infinality') that
+    was first introduced about 10 years  ago in FreeType 2.4.11 is now
+    deprecated and slated to be removed in the next version.  TrueType
+    interpreter version 40 has been FreeType's default version for six
+    years now and provides an excellent alternative.  This is the last
+    FreeType     version     with    TT_INTERPRETER_VERSION_38     and
+    TT_INTERPRETER_VERSION_40 treated differently.
+
+  - The  only  referenced  but never  documented  configuration  macro
+    `FT_CONFIG_OPTION_NO_GLYPH_NAMES` has been removed.
+
+  - The `ftbench` demo  program got a new command line  option `-e` to
+    set a charmap index.
+
+  - Specifying  a point  size is  now optional  for the  demo programs
+    `ftgrid`, `ftmulti`,  `ftstring`, and  `ftview`.  If not  given, a
+    default size is used.
+
+  - For  `ftgrid`,  `ftstring`, and  `ftview`,  option  `-e` now  also
+    accepts a numeric value to set a charmap index.
+
+  - In  `ftstring`, it  is  now  possible to  set  the displayed  text
+    interactively by pressing the 'Enter' key.
+
+  - `ftmulti` can now handle up to 16 design axes.
+
+  - To  avoid  reserved identifiers  that  are  globally defined,  the
+    auto-hinter  debugging   macros  (which  are  only   available  if
+    `FT_DEBUG_AUTOFIT` is defined)
+
+    ```
+    _af_debug_disable_horz_hints
+    _af_debug_disable_vert_hints
+    _af_debug_disable_blue_hints
+    _af_debug_hints
+    ```
+
+    have been renamed to
+
+    ```
+    af_debug_disable_horz_hints_
+    af_debug_disable_vert_hints_
+    af_debug_disable_blue_hints_
+    af_debug_hints_
+    ```
+
+  - The internal  zlib library was  updated to version  1.2.13.  Note,
+    however, that  FreeType is *not* affected  by CVE-2022-37434 since
+    it doesn't use the `inflateGetHeader` function.
+
+
+======================================================================
+
+CHANGES BETWEEN 2.12.0 and 2.12.1 (2022-May-01)
 
   I. IMPORTANT BUG FIXES
 
@@ -28,7 +152,7 @@ CHANGES BETWEEN 2.12.0 and 2.12.1
 
 ======================================================================
 
-CHANGES BETWEEN 2.11.1 and 2.12.0
+CHANGES BETWEEN 2.11.1 and 2.12.0 (2022-Mar-30)
 
   I. IMPORTANT CHANGES
 
@@ -79,7 +203,7 @@ CHANGES BETWEEN 2.11.1 and 2.12.0
 
 ======================================================================
 
-CHANGES BETWEEN 2.11.0 and 2.11.1
+CHANGES BETWEEN 2.11.0 and 2.11.1 (2021-Dec-01)
 
   I. IMPORTANT CHANGES
 
@@ -111,7 +235,7 @@ CHANGES BETWEEN 2.11.0 and 2.11.1
 
 ======================================================================
 
-CHANGES BETWEEN 2.10.4 and 2.11.0
+CHANGES BETWEEN 2.10.4 and 2.11.0 (2021-Jul-18)
 
   I. IMPORTANT CHANGES
 
@@ -2340,7 +2464,7 @@ CHANGES BETWEEN 2.3.8 and 2.3.7
       is provided for x86 and ARM.  See FT_CONFIG_OPTION_INLINE_MULFIX
       and FT_CONFIG_OPTION_NO_ASSEMBLER (in ftoption.h) for more.
 
-    - The handling of `tricky' fonts  (this is, fonts which don't work
+    - The handling of `tricky' fonts  (that is, fonts which don't work
       with the  autohinter, needing the font  format's hinting engine)
       has been generalized and changed slightly:
 
@@ -2797,7 +2921,7 @@ CHANGES BETWEEN 2.2 and 2.1.10
 
   II. IMPORTANT CHANGES
 
-    - Version 2.2 no longer exposes its internals, this is, the header
+    - Version 2.2 no longer exposes its internals, that is, the header
       files  located in  the `include/freetype/internal'  directory of
       the source package are not  copied anymore by the `make install'
       command.  Consequently, a number of rogue clients which directly
@@ -5530,7 +5654,7 @@ Extensions support:
 
 ------------------------------------------------------------------------
 
-Copyright (C) 2000-2022 by
+Copyright (C) 2000-2023 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file  is  part  of the  FreeType  project, and may  only be  used,
