@@ -10,6 +10,7 @@
 #include <util/generic/vector.h>
 #include <util/string/cast.h>
 
+#include <optional>
 #include <stdarg.h>
 
 namespace NLastGetopt {
@@ -625,6 +626,11 @@ namespace NLastGetopt {
         // Uses TMaybe<T> to store FromString<T>(arg)
         template <typename T>
         TOpt& StoreResult(TMaybe<T>* target) {
+            return StoreResultT<T>(target);
+        }
+
+        template <typename T>
+        TOpt& StoreResult(std::optional<T>* target) {
             return StoreResultT<T>(target);
         }
 
