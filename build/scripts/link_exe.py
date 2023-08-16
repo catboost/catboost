@@ -167,7 +167,11 @@ if __name__ == '__main__':
     cmd = fix_sanitize_flag(cmd)
 
     if 'ld.lld' in str(cmd):
-        cmd.append('-Wl,-no-pie')
+        if '-fPIE' in str(cmd) or '-fPIC' in str(cmd):
+            # support explicit PIE
+            pass
+        else:
+            cmd.append('-Wl,-no-pie')
 
     if opts.dynamic_cuda:
         cmd = fix_cmd_for_dynamic_cuda(cmd)
