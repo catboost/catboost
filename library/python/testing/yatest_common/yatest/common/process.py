@@ -543,7 +543,7 @@ def execute(
     #     raise ValueError("Don't use pipe to obtain stream data - it may leads to the deadlock")
 
     def get_out_stream(stream, default_name):
-        mode = 'wt+' if text else 'wb+'
+        mode = 'w+t' if text else 'w+b'
         if stream is None:
             # No stream is supplied: open new temp file
             return _get_command_output_file(command, default_name, mode), False
