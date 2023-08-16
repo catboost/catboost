@@ -166,6 +166,9 @@ if __name__ == '__main__':
 
     cmd = fix_sanitize_flag(cmd)
 
+    if 'ld.lld' in str(cmd):
+        cmd.append('-Wl,-no-pie')
+
     if opts.dynamic_cuda:
         cmd = fix_cmd_for_dynamic_cuda(cmd)
     cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
