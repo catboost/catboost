@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: chardet
-Version: 5.1.0
+Version: 5.2.0
 Summary: Universal encoding detector for Python 3
 Home-page: https://github.com/chardet/chardet
 Author: Mark Pilgrim
