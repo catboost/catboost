@@ -1,3 +1,0 @@
-[entrypoints.test1]
-abc = foo:abc
-bad = this won't work

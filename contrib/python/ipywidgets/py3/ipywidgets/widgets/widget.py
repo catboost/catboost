@@ -6,6 +6,7 @@
 in the Jupyter notebook front-end.
 """
 import os
+import sys
 import typing
 from contextlib import contextmanager
 from collections.abc import Iterable
@@ -14,6 +15,7 @@ from traitlets import (
     Any, HasTraits, Unicode, Dict, Instance, List, Int, Set, Bytes, observe, default, Container,
     Undefined)
 from json import loads as jsonloads, dumps as jsondumps
+from .. import comm
 
 from base64 import standard_b64encode
 
@@ -524,15 +526,7 @@ class Widget(LoggingHasTraits):
             if self._model_id is not None:
                 args['comm_id'] = self._model_id
 
-            try:
-                from comm import create_comm
-            except ImportError:
-                def create_comm(**kwargs):
-                    from ipykernel.comm import Comm
-
-                    return Comm(**kwargs)
-
-            self.comm = create_comm(**args)
+            self.comm = comm.create_comm(**args)
 
     @observe('comm')
     def _comm_changed(self, change):

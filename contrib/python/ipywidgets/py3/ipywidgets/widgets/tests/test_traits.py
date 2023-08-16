@@ -52,6 +52,17 @@ class TestColor(TraitTestBase):
         'hsl(0.0, .0, 0)', # hsl
         'hsl( 0.5,0.3,0 )', # hsl with spaces
         'hsla(10,10,10, 0.5)', # rgba with float alpha
+        'var(--my-color)', # CSS variable without fallback
+        'var(--my-color-with_separators)', # CSS variable without fallback
+        'var(--my-color,)', # CSS variable with empty fallback
+        'var(--my-color-æ)', # CSS variable with non-ascii characters
+        'var(--my-color-\u1234)', # CSS variable with unicode characters
+        r'var(--my-color-\\1234)', # CSS variable escaped hex character
+        'var(--my-color-\.)', # CSS variable with escaped characters
+        'var(--my-color,black)', # CSS variable with named color fallback
+        'var(--my-color, black)', # CSS variable with named color fallback
+        'var(--my-color, rgb(20, 70, 50))', # CSS variable with rgb color fallback
+        'var(--my-color, #fff)', # CSS variable with rgb color fallback
     ]
     _bad_values = [
         "vanilla", "blues",  # Invalid color names
@@ -61,6 +72,12 @@ class TestColor(TraitTestBase):
         'hsl(0.4, 512, -40)',
         'rgba(0, 0, 0)',
         'hsla(0, 0, 0)',
+        'var(-my-color)', # wrong identifier
+        'var(--my-color-\u2041)', # invalid unicode codepoint
+        'var(my-color, black)', # wrong identifier
+        'var(my-color-., black)', # invalid character in identifier
+        'var(--my-color, vanilla)', # wrong fallback
+        'var(--my-color, rgba(0,0,0))', # wrong fallback
         None,
     ]
 

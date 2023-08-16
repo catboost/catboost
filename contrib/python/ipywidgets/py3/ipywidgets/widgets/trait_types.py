@@ -13,9 +13,11 @@ import datetime as dt
 _color_names = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beiae', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgrey', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkslategrey', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'grey', 'green', 'greenyellow', 'honeydew', 'hotpink', 'indianred ', 'indigo ', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgray', 'lightgrey', 'lightgreen', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightslategrey', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'magenta', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'rebeccapurple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'slategrey', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'transparent', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen']
 
 # Regex colors #fff and #ffffff
-_color_hex_re = re.compile(r'#[a-fA-F0-9]{3}(?:[a-fA-F0-9]{3})?$')
+_color_hex = r'#[a-fA-F0-9]{3}(?:[a-fA-F0-9]{3})?'
+_color_hex_re = re.compile(fr'^{_color_hex}$')
 # Regex colors #ffff and #ffffffff (includes alpha value)
-_color_hexa_re = re.compile(r'^#[a-fA-F0-9]{4}(?:[a-fA-F0-9]{4})?$')
+_color_hexa = r'#[a-fA-F0-9]{4}(?:[a-fA-F0-9]{4})?'
+_color_hexa_re = re.compile(fr'^{_color_hexa}$')
 
 # Helpers (float percent, int percent with optional surrounding whitespace)
 _color_frac_percent = r'\s*(\d+(\.\d*)?|\.\d+)?%?\s*'
@@ -28,9 +30,50 @@ _color_hsl = r'hsl\({fp},{fp},{fp}\)'
 _color_hsla = r'hsla\({fp},{fp},{fp},{fp}\)'
 
 # Regex colors rgb/rgba/hsl/hsla
-_color_rgbhsl_re = re.compile('({})|({})|({})|({})'.format(
+_color_rgbhsl = '({})|({})|({})|({})'.format(
     _color_rgb, _color_rgba, _color_hsl, _color_hsla
-).format(ip=_color_int_percent, fp=_color_frac_percent))
+).format(ip=_color_int_percent, fp=_color_frac_percent)
+_color_rgbhsl_re = re.compile(_color_rgbhsl)
+
+# Support for CSS variables.
+# For production rules, see: https://drafts.csswg.org/css-syntax-3/#tokenization
+
+_escape = r'\\([0-9a-fA-F]{1-6}\s?|[^0-9a-fA-F\s])'
+_non_ascii = r''.join(
+    (
+        r'\u00B7',
+        r'\u00C0-\u00D6',
+        r'\u00C0-\u00D6',
+        r'\u00D8-\u00F6',
+        r'\u00F8-\u037D',
+        r'\u037F-\u1FFF',
+        r'\u200C',
+        r'\u200D',
+        r'\u203F',
+        r'\u2040',
+        r'\u2070-\u218F',
+        r'\u2C00-\u2FEF',
+        r'\u3001-\uD7FF',
+        r'\uF900-\uFDCF',
+        r'\uFDF0-\uFFFD',
+        r'\u10000'
+    )
+)
+
+# Custom CSS identifier
+_custom_ident = fr'--([a-zA-Z0-9_\-{_non_ascii}]|{_escape})+'
+
+# Matching for CSS variables with valid color fallback declaration values.
+#
+# A CSS variable consists of a custom identifier starting with '--'.
+# The 'var()' function can be used for substituting the custom property into
+# the value of another property.
+#
+# Here we further restrict the fallback values to be valid colors.
+
+_css_color = fr'({"|".join(_color_names)}|({_color_rgbhsl})|({_color_hex})|({_color_hexa}))'
+_css_var_fallback_color = fr'var\({_custom_ident}(,\s*({_css_color}\s*)?)?\)'
+_color_var_re = re.compile(_css_var_fallback_color)
 
 
 class Color(traitlets.Unicode):
@@ -44,7 +87,8 @@ class Color(traitlets.Unicode):
             return value
         if isinstance(value, str):
             if (value.lower() in _color_names or _color_hex_re.match(value) or
-                _color_hexa_re.match(value) or _color_rgbhsl_re.match(value)):
+                _color_hexa_re.match(value) or _color_rgbhsl_re.match(value) or
+                _color_var_re.match(value)):
                 return value
 
         self.error(obj, value)
