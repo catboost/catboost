@@ -235,8 +235,6 @@
   #ifdef WITH_THREAD
   #define __Pyx_TraceLine(lineno, nogil, goto_error)                                       \
   if (likely(!__Pyx_use_tracing)); else {                                                  \
-      // mark error label as used to avoid compiler warnings                               \
-      if ((1)); else goto_error;                                                           \
       if (nogil) {                                                                         \
           if (CYTHON_TRACE_NOGIL) {                                                        \
               int ret = 0;                                                                 \
@@ -247,28 +245,23 @@
                   ret = __Pyx_call_line_trace_func(tstate, $frame_cname, lineno);          \
               }                                                                            \
               PyGILState_Release(state);                                                   \
-              // XXX https://github.com/cython/cython/issues/2274                          \
-              if (unlikely(ret)) { fprintf(stderr, "cython: line_trace_func returned %d\n", ret); } \
+              if (unlikely(ret)) goto_error;                                               \
           }                                                                                \
       } else {                                                                             \
           PyThreadState* tstate = __Pyx_PyThreadState_Current;                             \
           if (__Pyx_IsTracing(tstate, 0, 0) && tstate->c_tracefunc && $frame_cname->f_trace) { \
               int ret = __Pyx_call_line_trace_func(tstate, $frame_cname, lineno);          \
-              // XXX https://github.com/cython/cython/issues/2274                          \
-              if (unlikely(ret)) { fprintf(stderr, "cython: line_trace_func returned %d\n", ret); } \
+              if (unlikely(ret)) goto_error;                                               \
           }                                                                                \
       }                                                                                    \
   }
   #else
   #define __Pyx_TraceLine(lineno, nogil, goto_error)                                       \
   if (likely(!__Pyx_use_tracing)); else {                                                  \
-      // mark error label as used to avoid compiler warnings                               \
-      if ((1)); else goto_error;                                                           \
       PyThreadState* tstate = __Pyx_PyThreadState_Current;                                 \
       if (__Pyx_IsTracing(tstate, 0, 0) && tstate->c_tracefunc && $frame_cname->f_trace) { \
           int ret = __Pyx_call_line_trace_func(tstate, $frame_cname, lineno);              \
-          // XXX https://github.com/cython/cython/issues/2274                              \
-          if (unlikely(ret)) { fprintf(stderr, "cython: line_trace_func returned %d\n", ret); } \
+          if (unlikely(ret)) goto_error;                                                   \
       }                                                                                    \
   }
   #endif
