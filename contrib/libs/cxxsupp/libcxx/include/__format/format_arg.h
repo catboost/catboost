@@ -250,7 +250,7 @@ private:
   requires is_void_v<_Tp> _LIBCPP_HIDE_FROM_ABI explicit basic_format_arg(_Tp* __p) noexcept
       : __ptr(__p), __type_(__format::__arg_t::__ptr) {}
 
-  template <class _Tp>
+  template <__libcpp_not_integral _Tp>
   _LIBCPP_HIDE_FROM_ABI explicit basic_format_arg(const _Tp& __v) noexcept
       : __handle(__v), __type_(__format::__arg_t::__handle) {}
 };
