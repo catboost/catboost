@@ -350,10 +350,23 @@ def merge_region_fonts(varFont, model, ordered_fonts_list, glyphOrder):
     addCFFVarStore(varFont, model, cvData.varDataList, cvData.masterSupports)
 
 
-def _get_cs(charstrings, glyphName):
+def _get_cs(charstrings, glyphName, filterEmpty=False):
     if glyphName not in charstrings:
         return None
-    return charstrings[glyphName]
+    cs = charstrings[glyphName]
+
+    if filterEmpty:
+        cs.decompile()
+        if cs.program == []:  # CFF2 empty charstring
+            return None
+        elif (
+            len(cs.program) <= 2
+            and cs.program[-1] == "endchar"
+            and (len(cs.program) == 1 or type(cs.program[0]) in (int, float))
+        ):  # CFF1 empty charstring
+            return None
+
+    return cs
 
 
 def _add_new_vsindex(
@@ -373,16 +386,16 @@ def _add_new_vsindex(
 
 
 def merge_charstrings(glyphOrder, num_masters, top_dicts, masterModel):
-
     vsindex_dict = {}
     vsindex_by_key = {}
     varDataList = []
     masterSupports = []
     default_charstrings = top_dicts[0].CharStrings
     for gid, gname in enumerate(glyphOrder):
-        all_cs = [_get_cs(td.CharStrings, gname) for td in top_dicts]
-        if len([gs for gs in all_cs if gs is not None]) == 1:
-            continue
+        # interpret empty non-default masters as missing glyphs from a sparse master
+        all_cs = [
+            _get_cs(td.CharStrings, gname, i != 0) for i, td in enumerate(top_dicts)
+        ]
         model, model_cs = masterModel.getSubModel(all_cs)
         # create the first pass CFF2 charstring, from
         # the default charstring.
@@ -410,6 +423,9 @@ def merge_charstrings(glyphOrder, num_masters, top_dicts, masterModel):
             optimize=True,
         )
         default_charstrings[gname] = new_cs
+
+        if not region_cs:
+            continue
 
         if (not var_pen.seen_moveto) or ("blend" not in new_cs.program):
             # If this is not a marking glyph, or if there are no blend

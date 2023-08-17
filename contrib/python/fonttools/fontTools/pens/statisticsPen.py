@@ -38,7 +38,6 @@ class StatisticsPen(MomentsPen):
         self.slant = 0
 
     def __update(self):
-
         area = self.area
         if not area:
             self.__zero()
@@ -71,22 +70,33 @@ class StatisticsPen(MomentsPen):
         self.slant = slant if abs(slant) > 1e-3 else 0
 
 
-def _test(glyphset, upem, glyphs):
+def _test(glyphset, upem, glyphs, quiet=False):
     from fontTools.pens.transformPen import TransformPen
     from fontTools.misc.transform import Scale
 
-    print("upem", upem)
-
     wght_sum = 0
+    wght_sum_perceptual = 0
     wdth_sum = 0
     slnt_sum = 0
+    slnt_sum_perceptual = 0
     for glyph_name in glyphs:
-        print()
-        print("glyph:", glyph_name)
         glyph = glyphset[glyph_name]
         pen = StatisticsPen(glyphset=glyphset)
         transformer = TransformPen(pen, Scale(1.0 / upem))
         glyph.draw(transformer)
+
+        wght_sum += abs(pen.area)
+        wght_sum_perceptual += abs(pen.area) * glyph.width
+        wdth_sum += glyph.width
+        slnt_sum += pen.slant
+        slnt_sum_perceptual += pen.slant * glyph.width
+
+        if quiet:
+            continue
+
+        print()
+        print("glyph:", glyph_name)
+
         for item in [
             "area",
             "momentX",
@@ -106,26 +116,77 @@ def _test(glyphset, upem, glyphs):
         ]:
             print("%s: %g" % (item, getattr(pen, item)))
 
-        wght_sum += abs(pen.area)
-        wdth_sum += glyph.width
-        slnt_sum += pen.slant
+    if not quiet:
+        print()
+        print("font:")
 
-    print()
     print("weight: %g" % (wght_sum * upem / wdth_sum))
+    print("weight (perceptual): %g" % (wght_sum_perceptual / wdth_sum))
     print("width:  %g" % (wdth_sum / upem / len(glyphs)))
-    print("slant:  %g" % (slnt_sum / len(glyphs)))
+    slant = slnt_sum / len(glyphs)
+    print("slant:  %g" % slant)
+    print("slant angle:  %g" % -math.degrees(math.atan(slant)))
+    slant_perceptual = slnt_sum_perceptual / wdth_sum
+    print("slant (perceptual):  %g" % slant_perceptual)
+    print("slant (perceptual) angle:  %g" % -math.degrees(math.atan(slant_perceptual)))
 
 
 def main(args):
-    if not args:
-        return
-    filename, glyphs = args[0], args[1:]
+    """Report font glyph shape geometricsl statistics"""
+
+    if args is None:
+        import sys
+
+        args = sys.argv[1:]
+
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        "fonttools pens.statisticsPen",
+        description="Report font glyph shape geometricsl statistics",
+    )
+    parser.add_argument("font", metavar="font.ttf", help="Font file.")
+    parser.add_argument("glyphs", metavar="glyph-name", help="Glyph names.", nargs="*")
+    parser.add_argument(
+        "-y",
+        metavar="<number>",
+        help="Face index into a collection to open. Zero based.",
+    )
+    parser.add_argument(
+        "-q", "--quiet", action="store_true", help="Only report font-wide statistics."
+    )
+    parser.add_argument(
+        "--variations",
+        metavar="AXIS=LOC",
+        default="",
+        help="List of space separated locations. A location consist in "
+        "the name of a variation axis, followed by '=' and a number. E.g.: "
+        "wght=700 wdth=80. The default is the location of the base master.",
+    )
+
+    options = parser.parse_args(args)
+
+    glyphs = options.glyphs
+    fontNumber = int(options.y) if options.y is not None else 0
+
+    location = {}
+    for tag_v in options.variations.split():
+        fields = tag_v.split("=")
+        tag = fields[0].strip()
+        v = int(fields[1])
+        location[tag] = v
+
     from fontTools.ttLib import TTFont
 
-    font = TTFont(filename)
+    font = TTFont(options.font, fontNumber=fontNumber)
     if not glyphs:
         glyphs = font.getGlyphOrder()
-    _test(font.getGlyphSet(), font["head"].unitsPerEm, glyphs)
+    _test(
+        font.getGlyphSet(location=location),
+        font["head"].unitsPerEm,
+        glyphs,
+        quiet=options.quiet,
+    )
 
 
 if __name__ == "__main__":

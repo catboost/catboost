@@ -27,7 +27,7 @@ def main():
         except AttributeError as e:
             pass
     for pkg, description in descriptions.items():
-        print("fonttools %-12s %s" % (pkg, description), file=sys.stderr)
+        print("fonttools %-25s %s" % (pkg, description), file=sys.stderr)
 
 
 if __name__ == "__main__":
