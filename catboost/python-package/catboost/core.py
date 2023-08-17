@@ -4651,7 +4651,7 @@ class CatBoostClassifier(CatBoost):
     bootstrap_type : string, Bayesian, Bernoulli, Poisson, MVS.
         Default bootstrap is Bayesian for GPU and MVS for CPU.
         Poisson bootstrap is supported only on GPU.
-        MVS bootstrap is supported only on CPU.
+        MVS bootstrap is supported only on GPU.
 
     subsample : float, [default=None]
         Sample rate for bagging. This parameter can be used Poisson or Bernoully bootstrap types.
