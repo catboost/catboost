@@ -3,4 +3,4 @@
 from .more import *  # noqa
 from .recipes import *  # noqa
 
-__version__ = '10.0.0'
+__version__ = '10.1.0'

@@ -347,13 +347,9 @@ def _zip_equal(*iterables):
         for i, it in enumerate(iterables[1:], 1):
             size = len(it)
             if size != first_size:
-                break
-        else:
-            # If we didn't break out, we can use the built-in zip.
-            return zip(*iterables)
-
-        # If we did break out, there was a mismatch.
-        raise UnequalIterablesError(details=(first_size, i, size))
+                raise UnequalIterablesError(details=(first_size, i, size))
+        # All sizes are equal, we can use the built-in zip.
+        return zip(*iterables)
     # If any one of the iterables didn't have a length, start reading
     # them until one runs out.
     except TypeError:

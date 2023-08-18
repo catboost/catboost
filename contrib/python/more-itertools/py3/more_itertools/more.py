@@ -17,6 +17,7 @@ from itertools import (
     takewhile,
     tee,
     zip_longest,
+    product,
 )
 from math import exp, factorial, floor, log
 from queue import Empty, Queue
@@ -36,6 +37,7 @@ from .recipes import (
     take,
     unique_everseen,
     all_equal,
+    batched,
 )
 
 __all__ = [
@@ -98,6 +100,7 @@ __all__ = [
     'numeric_range',
     'one',
     'only',
+    'outer_product',
     'padded',
     'partial_product',
     'partitions',
@@ -128,6 +131,7 @@ __all__ = [
     'strictly_n',
     'substrings',
     'substrings_indexes',
+    'takewhile_inclusive',
     'time_limited',
     'unique_in_window',
     'unique_to_each',
@@ -4225,30 +4229,23 @@ def zip_broadcast(*objects, scalar_types=(str, bytes), strict=False):
     if not size:
         return
 
+    new_item = [None] * size
     iterables, iterable_positions = [], []
-    scalars, scalar_positions = [], []
     for i, obj in enumerate(objects):
         if is_scalar(obj):
-            scalars.append(obj)
-            scalar_positions.append(i)
+            new_item[i] = obj
         else:
             iterables.append(iter(obj))
             iterable_positions.append(i)
 
-    if len(scalars) == size:
+    if not iterables:
         yield tuple(objects)
         return
 
     zipper = _zip_equal if strict else zip
     for item in zipper(*iterables):
-        new_item = [None] * size
-
-        for i, elem in zip(iterable_positions, item):
-            new_item[i] = elem
-
-        for i, elem in zip(scalar_positions, scalars):
-            new_item[i] = elem
-
+        for i, new_item[i] in zip(iterable_positions, item):
+            pass
         yield tuple(new_item)
 
 
@@ -4521,3 +4518,52 @@ def partial_product(*iterables):
     for i, it in enumerate(iterators):
         for prod[i] in it:
             yield tuple(prod)
+
+
+def takewhile_inclusive(predicate, iterable):
+    """A variant of :func:`takewhile` that yields one additional element.
+
+        >>> list(takewhile_inclusive(lambda x: x < 5, [1, 4, 6, 4, 1]))
+        [1, 4, 6]
+
+    :func:`takewhile` would return ``[1, 4]``.
+    """
+    for x in iterable:
+        if predicate(x):
+            yield x
+        else:
+            yield x
+            break
+
+
+def outer_product(func, xs, ys, *args, **kwargs):
+    """A generalized outer product that applies a binary function to all
+    pairs of items. Returns a 2D matrix with ``len(xs)`` rows and ``len(ys)``
+    columns.
+    Also accepts ``*args`` and ``**kwargs`` that are passed to ``func``.
+
+    Multiplication table:
+
+    >>> list(outer_product(mul, range(1, 4), range(1, 6)))
+    [(1, 2, 3, 4, 5), (2, 4, 6, 8, 10), (3, 6, 9, 12, 15)]
+
+    Cross tabulation:
+
+    >>> xs = ['A', 'B', 'A', 'A', 'B', 'B', 'A', 'A', 'B', 'B']
+    >>> ys = ['X', 'X', 'X', 'Y', 'Z', 'Z', 'Y', 'Y', 'Z', 'Z']
+    >>> rows = list(zip(xs, ys))
+    >>> count_rows = lambda x, y: rows.count((x, y))
+    >>> list(outer_product(count_rows, sorted(set(xs)), sorted(set(ys))))
+    [(2, 3, 0), (1, 0, 4)]
+
+    Usage with ``*args`` and ``**kwargs``:
+
+    >>> animals = ['cat', 'wolf', 'mouse']
+    >>> list(outer_product(min, animals, animals, key=len))
+    [('cat', 'cat', 'cat'), ('cat', 'wolf', 'wolf'), ('cat', 'wolf', 'mouse')]
+    """
+    ys = tuple(ys)
+    return batched(
+        starmap(lambda x, y: func(x, y, *args, **kwargs), product(xs, ys)),
+        n=len(ys),
+    )
