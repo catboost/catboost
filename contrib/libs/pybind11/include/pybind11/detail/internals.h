@@ -12,6 +12,8 @@
 #include "../pytypes.h"
 
 #include <exception>
+#include <util/generic/yexception.h>
+#include <util/string/builder.h>
 
 /// Tracks the `internals` and `type_info` ABI version independent of the main library version.
 ///
@@ -384,7 +386,8 @@ inline void translate_exception(std::exception_ptr p) {
         return;
     } catch (const std::exception &e) {
         handle_nested_exception(e, p);
-        raise_err(PyExc_RuntimeError, e.what());
+        TString message = TStringBuilder() << TBackTrace::FromCurrentException().PrintToString() << Endl << e.what() << Endl;
+        raise_err(PyExc_RuntimeError, message.c_str());
         return;
     } catch (const std::nested_exception &e) {
         handle_nested_exception(e, p);
