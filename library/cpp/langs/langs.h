@@ -13,7 +13,7 @@
 // Language names are given according to ISO 639-2/B
 // Some languages are not present in ISO 639-2/B. Then ISO 639-3 is used.
 // http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-enum ELanguage {
+enum ELanguage: unsigned {
     LANG_UNK = 0,           // Unknown
     LANG_RUS = 1,           // Russian
     LANG_ENG = 2,           // English
