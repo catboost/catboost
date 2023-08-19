@@ -8,6 +8,8 @@
 #include <util/string/printf.h>
 #include <util/string/cast.h>
 
+#include <util/generic/cast.h>
+
 #include <algorithm>
 #include <stdexcept>
 
@@ -400,13 +402,6 @@ bool TEnumIndexedVector<E, T, Min, Max>::IsDomainValue(E value)
     ENUM__BIT_SHIFT_OPERATOR(enumType, >>=, >> )
 
 ////////////////////////////////////////////////////////////////////////////////
-
-template <typename E>
-    requires std::is_enum_v<E>
-constexpr std::underlying_type_t<E> ToUnderlying(E value) noexcept
-{
-    return static_cast<std::underlying_type_t<E>>(value);
-}
 
 template <typename E>
     requires TEnumTraits<E>::IsBitEnum

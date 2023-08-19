@@ -228,11 +228,6 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//! Replace with |std::to_underlying| in C++23.
-template <typename E>
-    requires std::is_enum_v<E>
-constexpr std::underlying_type_t<E> ToUnderlying(E value) noexcept;
-
 //! Returns |true| iff the enumeration value is not bitwise zero.
 template <typename E>
     requires TEnumTraits<E>::IsBitEnum
