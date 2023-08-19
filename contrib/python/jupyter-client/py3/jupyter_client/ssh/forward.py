@@ -62,8 +62,7 @@ class Handler(socketserver.BaseRequestHandler):
             return
 
         logger.debug(
-            "Connected!  Tunnel open %r -> %r -> %r"
-            % (
+            "Connected!  Tunnel open {!r} -> {!r} -> {!r}".format(
                 self.request.getpeername(),
                 chan.getpeername(),
                 (self.chain_host, self.chain_port),

@@ -36,7 +36,7 @@ def _get_output(cmd):
     if os.name == "nt":
         startupinfo = subprocess.STARTUPINFO()  # type:ignore[attr-defined]
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type:ignore[attr-defined]
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)  # noqa
     stdout, stderr = p.communicate()
     if p.returncode:
         msg = "Failed to run {}: {}".format(cmd, stderr.decode("utf8", "replace"))
@@ -261,7 +261,7 @@ def _load_ips(suppress_exceptions=True):
         if not suppress_exceptions:
             raise
         # unexpected error shouldn't crash, load dumb default values instead.
-        warn("Unexpected error discovering local network interfaces: %s" % e)
+        warn("Unexpected error discovering local network interfaces: %s" % e, stacklevel=2)
     _load_ips_dumb()
 
 

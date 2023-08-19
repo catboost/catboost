@@ -1,8 +1,10 @@
 Metadata-Version: 2.1
 Name: jupyter_client
-Version: 8.0.3
+Version: 8.3.0
 Summary: Jupyter protocol implementation and client libraries
 Project-URL: Homepage, https://jupyter.org
+Project-URL: Documentation, https://jupyter-client.readthedocs.io/
+Project-URL: Source, https://github.com/jupyter/jupyter_client
 Author-email: Jupyter Development Team <jupyter@googlegroups.com>
 License: BSD 3-Clause License
         
@@ -66,7 +68,6 @@ Requires-Dist: sphinx>=4; extra == 'docs'
 Requires-Dist: sphinxcontrib-github-alt; extra == 'docs'
 Requires-Dist: sphinxcontrib-spelling; extra == 'docs'
 Provides-Extra: test
-Requires-Dist: codecov; extra == 'test'
 Requires-Dist: coverage; extra == 'test'
 Requires-Dist: ipykernel>=6.14; extra == 'test'
 Requires-Dist: mypy; extra == 'test'
@@ -81,7 +82,6 @@ Description-Content-Type: text/markdown
 # Jupyter Client
 
 [![Build Status](https://github.com/jupyter/jupyter_client/workflows/CI/badge.svg)](https://github.com/jupyter/jupyter_client/actions)
-[![codecov](https://codecov.io/gh/jupyter/jupyter_client/branch/main/graph/badge.svg?token=kxoFu4KnhT)](https://codecov.io/gh/jupyter/jupyter_client)
 [![Documentation Status](https://readthedocs.org/projects/jupyter-client/badge/?version=latest)](http://jupyter-client.readthedocs.io/en/latest/?badge=latest)
 
 `jupyter_client` contains the reference implementation of the [Jupyter protocol].

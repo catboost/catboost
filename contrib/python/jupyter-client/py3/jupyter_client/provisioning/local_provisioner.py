@@ -186,8 +186,11 @@ class LocalProvisioner(KernelProvisionerBase):  # type:ignore[misc]
                 km.hb_port = lpc.find_available_port(km.ip)
                 km.control_port = lpc.find_available_port(km.ip)
                 self.ports_cached = True
-
-            km.write_connection_file()
+            if 'env' in kwargs:
+                jupyter_session = kwargs['env'].get("JPY_SESSION_NAME", "")
+                km.write_connection_file(jupyter_session=jupyter_session)
+            else:
+                km.write_connection_file()
             self.connection_info = km.get_connection_info()
 
             kernel_cmd = km.format_kernel_cmd(

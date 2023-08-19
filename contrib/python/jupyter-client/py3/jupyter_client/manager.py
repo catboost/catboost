@@ -178,7 +178,7 @@ class KernelManager(ConnectionFileMixin):
 
     @property
     def kernel_spec(self) -> t.Optional[kernelspec.KernelSpec]:
-        if self._kernel_spec is None and self.kernel_name != "":
+        if self._kernel_spec is None and self.kernel_name != "":  # noqa
             self._kernel_spec = self.kernel_spec_manager.get_kernel_spec(self.kernel_name)
         return self._kernel_spec
 

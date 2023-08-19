@@ -269,7 +269,7 @@ def openssh_tunnel(
                 return tunnel.pid
         else:
             if failed:
-                warnings.warn("Password rejected, try again")
+                warnings.warn("Password rejected, try again", stacklevel=2)
                 password = None
             if password is None:
                 password = getpass("%s's password: " % (server))
@@ -378,7 +378,7 @@ def _paramiko_tunnel(lport, rport, server, remoteip, keyfile=None, password=None
     #        else:
     #            raise
     except Exception as e:
-        warnings.warn("*** Failed to connect to %s:%d: %r" % (server, port, e))
+        warnings.warn("*** Failed to connect to %s:%d: %r" % (server, port, e), stacklevel=2)
         sys.exit(1)
 
     # Don't let SIGINT kill the tunnel subprocess
@@ -387,10 +387,10 @@ def _paramiko_tunnel(lport, rport, server, remoteip, keyfile=None, password=None
     try:
         forward_tunnel(lport, remoteip, rport, client.get_transport())
     except KeyboardInterrupt:
-        warnings.warn("SIGINT: Port forwarding stopped cleanly")
+        warnings.warn("SIGINT: Port forwarding stopped cleanly", stacklevel=2)
         sys.exit(0)
     except Exception as e:
-        warnings.warn("Port forwarding stopped uncleanly: %s" % e)
+        warnings.warn("Port forwarding stopped uncleanly: %s" % e, stacklevel=2)
         sys.exit(255)
 
 

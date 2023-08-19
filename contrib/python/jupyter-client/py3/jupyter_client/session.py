@@ -188,7 +188,7 @@ def default_secure(cfg: t.Any) -> None:  # pragma: no cover
     If Session.key/keyfile have not been set, set Session.key to
     a new random UUID.
     """
-    warnings.warn("default_secure is deprecated", DeprecationWarning)
+    warnings.warn("default_secure is deprecated", DeprecationWarning, stacklevel=2)
     if "Session" in cfg and ("key" in cfg.Session or "keyfile" in cfg.Session):
         return
     # key/keyfile not specified, generate new UUID:
@@ -249,7 +249,7 @@ class Message:
         dct = self.__dict__
         for k, v in dict(msg_dict).items():
             if isinstance(v, dict):
-                v = Message(v)
+                v = Message(v)  # noqa
             dct[k] = v
 
     # Having this iterator lets dict(msg_obj) work out of the box.
@@ -567,7 +567,7 @@ class Session(Configurable):
         self._check_packers()
         self.none = self.pack({})
         # ensure self._session_default() if necessary, so bsession is defined:
-        self.session
+        self.session  # noqa
         self.pid = os.getpid()
         self._new_auth()
         if not self.key:
@@ -1098,5 +1098,6 @@ class Session(Configurable):
         warnings.warn(
             "Session.unserialize is deprecated. Use Session.deserialize.",
             DeprecationWarning,
+            stacklevel=2,
         )
         return self.deserialize(*args, **kwargs)

@@ -371,5 +371,5 @@ class IPythonConsoleApp(JupyterConsoleApp):
 
     def __init__(self, *args, **kwargs):
         """Initialize the app."""
-        warnings.warn("IPythonConsoleApp is deprecated. Use JupyterConsoleApp")
+        warnings.warn("IPythonConsoleApp is deprecated. Use JupyterConsoleApp", stacklevel=2)
         super().__init__(*args, **kwargs)

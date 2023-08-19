@@ -40,6 +40,7 @@ def write_connection_file(
     transport: str = "tcp",
     signature_scheme: str = "hmac-sha256",
     kernel_name: str = "",
+    **kwargs: Any,
 ) -> Tuple[str, KernelConnectionInfo]:
     """Generates a JSON config file, including the selection of random ports.
 
@@ -140,6 +141,7 @@ def write_connection_file(
     cfg["transport"] = transport
     cfg["signature_scheme"] = signature_scheme
     cfg["kernel_name"] = kernel_name
+    cfg.update(kwargs)
 
     # Only ever write this file as user read/writeable
     # This would otherwise introduce a vulnerability as a file has secrets
@@ -191,7 +193,9 @@ def find_connection_file(
     str : The absolute path of the connection file.
     """
     if profile is not None:
-        warnings.warn("Jupyter has no profiles. profile=%s has been ignored." % profile)
+        warnings.warn(
+            "Jupyter has no profiles. profile=%s has been ignored." % profile, stacklevel=2
+        )
     if path is None:
         path = [".", jupyter_runtime_dir()]
     if isinstance(path, str):
@@ -481,7 +485,7 @@ class ConnectionFileMixin(LoggingConfigurable):
 
         self.cleanup_connection_file()
 
-    def write_connection_file(self) -> None:
+    def write_connection_file(self, **kwargs: Any) -> None:
         """Write connection info to JSON dict in self.connection_file."""
         if self._connection_file_written and os.path.exists(self.connection_file):
             return
@@ -498,6 +502,7 @@ class ConnectionFileMixin(LoggingConfigurable):
             control_port=self.control_port,
             signature_scheme=self.session.signature_scheme,
             kernel_name=self.kernel_name,
+            **kwargs,
         )
         # write_connection_file also sets default ports:
         self._record_random_port_names()
