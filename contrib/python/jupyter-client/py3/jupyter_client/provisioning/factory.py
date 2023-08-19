@@ -2,19 +2,17 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 import glob
-from os import getenv
-from os import path
-from typing import Any
-from typing import Dict
-from typing import List
+import sys
+from os import getenv, path
+from typing import Any, Dict, List
 
-from entrypoints import EntryPoint
-from entrypoints import get_group_all
-from entrypoints import get_single
-from entrypoints import NoSuchEntryPoint
-from traitlets.config import default
-from traitlets.config import SingletonConfigurable
-from traitlets.config import Unicode
+# See compatibility note on `group` keyword in https://docs.python.org/3/library/importlib.metadata.html#entry-points
+if sys.version_info < (3, 10):  # pragma: no cover
+    from importlib_metadata import EntryPoint, entry_points
+else:  # pragma: no cover
+    from importlib.metadata import EntryPoint, entry_points
+
+from traitlets.config import SingletonConfigurable, Unicode, default
 
 from .provisioner_base import KernelProvisionerBase
 
@@ -28,7 +26,7 @@ class KernelProvisionerFactory(SingletonConfigurable):
     availability (in cases where the kernel specification references a kernel provisioner that has
     not been installed into the current Python environment).
 
-    It's `default_provisioner_name` attribute can be used to specify the default provisioner
+    It's ``default_provisioner_name`` attribute can be used to specify the default provisioner
     to use when a kernel_spec is found to not reference a provisioner.  It's value defaults to
     `"local-provisioner"` which identifies the local provisioner implemented by
     :class:`LocalProvisioner`.
@@ -45,10 +43,12 @@ class KernelProvisionerFactory(SingletonConfigurable):
     )
 
     @default('default_provisioner_name')
-    def default_provisioner_name_default(self):
+    def _default_provisioner_name_default(self):
+        """The default provisioner name."""
         return getenv(self.default_provisioner_name_env, "local-provisioner")
 
     def __init__(self, **kwargs: Any) -> None:
+        """Initialize a kernel provisioner factory."""
         super().__init__(**kwargs)
 
         for ep in KernelProvisionerFactory._get_all_provisioners():
@@ -80,7 +80,7 @@ class KernelProvisionerFactory(SingletonConfigurable):
         Reads the associated ``kernel_spec`` to see if it has a `kernel_provisioner` stanza.
         If one exists, it instantiates an instance.  If a kernel provisioner is not
         specified in the kernel specification, a default provisioner stanza is fabricated
-        and instantiated corresponding to the current value of `default_provisioner_name` trait.
+        and instantiated corresponding to the current value of ``default_provisioner_name`` trait.
         The instantiated instance is returned.
 
         If the provisioner is found to not exist (not registered via entry_points),
@@ -89,9 +89,8 @@ class KernelProvisionerFactory(SingletonConfigurable):
         provisioner_cfg = self._get_provisioner_config(kernel_spec)
         provisioner_name = str(provisioner_cfg.get('provisioner_name'))
         if not self._check_availability(provisioner_name):
-            raise ModuleNotFoundError(
-                f"Kernel provisioner '{provisioner_name}' has not been registered."
-            )
+            msg = f"Kernel provisioner '{provisioner_name}' has not been registered."
+            raise ModuleNotFoundError(msg)
 
         self.log.debug(
             f"Instantiating kernel '{kernel_spec.display_name}' with "
@@ -119,7 +118,7 @@ class KernelProvisionerFactory(SingletonConfigurable):
             try:
                 ep = self._get_provisioner(provisioner_name)
                 self.provisioners[provisioner_name] = ep  # Update cache
-            except NoSuchEntryPoint:
+            except Exception:
                 is_available = False
         return is_available
 
@@ -161,41 +160,41 @@ class KernelProvisionerFactory(SingletonConfigurable):
         """
         entries = {}
         for name, ep in self.provisioners.items():
-            entries[name] = f"{ep.module_name}:{ep.object_name}"
+            entries[name] = ep.value
         return entries
 
     @staticmethod
     def _get_all_provisioners() -> List[EntryPoint]:
-        """Wrapper around entrypoints.get_group_all() - primarily to facilitate testing."""
-        return get_group_all(KernelProvisionerFactory.GROUP_NAME)
+        """Wrapper around entry_points (to fetch the set of provisioners) - primarily to facilitate testing."""
+        return entry_points(group=KernelProvisionerFactory.GROUP_NAME)
 
     def _get_provisioner(self, name: str) -> EntryPoint:
-        """Wrapper around entrypoints.get_single() - primarily to facilitate testing."""
-        try:
-            ep = get_single(KernelProvisionerFactory.GROUP_NAME, name)
-        except NoSuchEntryPoint:
-            # Check if the entrypoint name is 'local-provisioner'.  Although this should never
-            # happen, we have seen cases where the previous distribution of jupyter_client has
-            # remained which doesn't include kernel-provisioner entrypoints (so 'local-provisioner'
-            # is deemed not found even though its definition is in THIS package).  In such cass,
-            # the entrypoints package uses what it first finds - which is the older distribution
-            # resulting in a violation of a supposed invariant condition.  To address this scenario,
-            # we will log a warning message indicating this situation, then build the entrypoint
-            # instance ourselves - since we have that information.
-            if name == 'local-provisioner':
-                distros = glob.glob(f"{path.dirname(path.dirname(__file__))}-*")
-                self.log.warning(
-                    f"Kernel Provisioning: The 'local-provisioner' is not found.  This is likely "
-                    f"due to the presence of multiple jupyter_client distributions and a previous "
-                    f"distribution is being used as the source for entrypoints - which does not "
-                    f"include 'local-provisioner'.  That distribution should be removed such that "
-                    f"only the version-appropriate distribution remains (version >= 7).  Until "
-                    f"then, a 'local-provisioner' entrypoint will be automatically constructed "
-                    f"and used.\nThe candidate distribution locations are: {distros}"
-                )
-                ep = EntryPoint(
-                    'local-provisioner', 'jupyter_client.provisioning', 'LocalProvisioner'
-                )
-            else:
-                raise
-        return ep
+        """Wrapper around entry_points (to fetch a single provisioner) - primarily to facilitate testing."""
+        eps = entry_points(group=KernelProvisionerFactory.GROUP_NAME, name=name)
+        if eps:
+            return eps[0]
+
+        # Check if the entrypoint name is 'local-provisioner'.  Although this should never
+        # happen, we have seen cases where the previous distribution of jupyter_client has
+        # remained which doesn't include kernel-provisioner entrypoints (so 'local-provisioner'
+        # is deemed not found even though its definition is in THIS package).  In such cases,
+        # the entrypoints package uses what it first finds - which is the older distribution
+        # resulting in a violation of a supposed invariant condition.  To address this scenario,
+        # we will log a warning message indicating this situation, then build the entrypoint
+        # instance ourselves - since we have that information.
+        if name == 'local-provisioner':
+            distros = glob.glob(f"{path.dirname(path.dirname(__file__))}-*")
+            self.log.warning(
+                f"Kernel Provisioning: The 'local-provisioner' is not found.  This is likely "
+                f"due to the presence of multiple jupyter_client distributions and a previous "
+                f"distribution is being used as the source for entrypoints - which does not "
+                f"include 'local-provisioner'.  That distribution should be removed such that "
+                f"only the version-appropriate distribution remains (version >= 7).  Until "
+                f"then, a 'local-provisioner' entrypoint will be automatically constructed "
+                f"and used.\nThe candidate distribution locations are: {distros}"
+            )
+            return EntryPoint(
+                'local-provisioner', 'jupyter_client.provisioning', 'LocalProvisioner'
+            )
+
+        raise

@@ -3,39 +3,25 @@ replies.
 """
 import asyncio
 import atexit
-import errno
 import time
-from threading import Event
-from threading import Thread
-from typing import Any
-from typing import Awaitable
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
+from threading import Event, Thread
+from typing import Any, Dict, List, Optional
 
-import nest_asyncio  # type:ignore
 import zmq
-from traitlets import Instance
-from traitlets import Type
-from zmq import ZMQError
-from zmq.eventloop import ioloop
+from tornado.ioloop import IOLoop
+from traitlets import Instance, Type
 from zmq.eventloop import zmqstream
 
+from .channels import HBChannel
+from .client import KernelClient
 from .session import Session
-from jupyter_client import KernelClient
-from jupyter_client.channels import HBChannel
 
 # Local imports
 # import ZMQError in top-level namespace, to avoid ugly attribute-error messages
 # during garbage collection of threads at exit
 
 
-async def get_msg(msg: Awaitable) -> Union[List[bytes], List[zmq.Message]]:
-    return await msg
-
-
-class ThreadedZMQSocketChannel(object):
+class ThreadedZMQSocketChannel:
     """A ZMQ socket invoking a callback in the ioloop"""
 
     session = None
@@ -48,7 +34,7 @@ class ThreadedZMQSocketChannel(object):
         self,
         socket: Optional[zmq.Socket],
         session: Optional[Session],
-        loop: Optional[zmq.eventloop.ioloop.ZMQIOLoop],
+        loop: Optional[IOLoop],
     ) -> None:
         """Create a channel.
 
@@ -71,7 +57,7 @@ class ThreadedZMQSocketChannel(object):
         def setup_stream():
             assert self.socket is not None
             self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
-            self.stream.on_recv(self._handle_recv)  # type:ignore[arg-type]
+            self.stream.on_recv(self._handle_recv)
             evt.set()
 
         assert self.ioloop is not None
@@ -81,15 +67,19 @@ class ThreadedZMQSocketChannel(object):
     _is_alive = False
 
     def is_alive(self) -> bool:
+        """Whether the channel is alive."""
         return self._is_alive
 
     def start(self) -> None:
+        """Start the channel."""
         self._is_alive = True
 
     def stop(self) -> None:
+        """Stop the channel."""
         self._is_alive = False
 
     def close(self) -> None:
+        """ "Close the channel."""
         if self.socket is not None:
             try:
                 self.socket.close(linger=0)
@@ -115,13 +105,12 @@ class ThreadedZMQSocketChannel(object):
         assert self.ioloop is not None
         self.ioloop.add_callback(thread_send)
 
-    def _handle_recv(self, future_msg: Awaitable) -> None:
+    def _handle_recv(self, msg_list: List) -> None:
         """Callback for stream.on_recv.
 
         Unpacks message, and calls handlers with it.
         """
         assert self.ioloop is not None
-        msg_list = self.ioloop._asyncio_event_loop.run_until_complete(get_msg(future_msg))
         assert self.session is not None
         ident, smsg = self.session.feed_identities(msg_list)
         msg = self.session.deserialize(smsg)
@@ -187,6 +176,7 @@ class IOLoopThread(Thread):
     ioloop = None
 
     def __init__(self):
+        """Initialize an io loop thread."""
         super().__init__()
         self.daemon = True
 
@@ -212,25 +202,15 @@ class IOLoopThread(Thread):
         """Run my loop, ignoring EINTR events in the poller"""
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        nest_asyncio.apply(loop)
-        self.ioloop = ioloop.IOLoop()
-        self.ioloop._asyncio_event_loop = loop
+        loop.run_until_complete(self._async_run())
+
+    async def _async_run(self):
+        self.ioloop = IOLoop.current()
         # signal that self.ioloop is defined
         self._start_event.set()
         while True:
-            try:
-                self.ioloop.start()
-            except ZMQError as e:
-                if e.errno == errno.EINTR:
-                    continue
-                else:
-                    raise
-            except Exception:
-                if self._exiting:
-                    break
-                else:
-                    raise
-            else:
+            await asyncio.sleep(1)
+            if self._exiting:
                 break
 
     def stop(self) -> None:
@@ -240,8 +220,7 @@ class IOLoopThread(Thread):
         terminates. :class:`RuntimeError` will be raised if
         :meth:`~threading.Thread.start` is called again.
         """
-        if self.ioloop is not None:
-            self.ioloop.add_callback(self.ioloop.stop)
+        self._exiting = True
         self.join()
         self.close()
         self.ioloop = None
@@ -250,6 +229,7 @@ class IOLoopThread(Thread):
         self.close()
 
     def close(self) -> None:
+        """Close the io loop thread."""
         if self.ioloop is not None:
             try:
                 self.ioloop.close(all_fds=True)
@@ -274,6 +254,7 @@ class ThreadedKernelClient(KernelClient):
         hb: bool = True,
         control: bool = True,
     ) -> None:
+        """Start the channels on the client."""
         self.ioloop_thread = IOLoopThread()
         self.ioloop_thread.start()
 
@@ -289,6 +270,7 @@ class ThreadedKernelClient(KernelClient):
             self.shell_channel._inspect = None
 
     def stop_channels(self) -> None:
+        """Stop the channels on the client."""
         super().stop_channels()
         if self.ioloop_thread.is_alive():
             self.ioloop_thread.stop()

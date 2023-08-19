@@ -9,11 +9,10 @@ import warnings
 from binascii import b2a_base64
 from collections.abc import Iterable
 from datetime import datetime
-from typing import Optional
-from typing import Union
+from typing import Optional, Union
 
-from dateutil.parser import parse as _dateutil_parse  # type: ignore
-from dateutil.tz import tzlocal  # type: ignore
+from dateutil.parser import parse as _dateutil_parse
+from dateutil.tz import tzlocal
 
 next_attr_name = "__next__"  # Not sure what downstream library uses this, but left it to be safe
 
@@ -29,7 +28,7 @@ ISO8601_PAT = re.compile(
 
 # holy crap, strptime is not threadsafe.
 # Calling it once at import seems to help.
-datetime.strptime("1", "%d")
+datetime.strptime("1", "%d")  # noqa
 
 # -----------------------------------------------------------------------------
 # Classes and functions
@@ -112,7 +111,7 @@ def json_default(obj):
         return obj.isoformat().replace('+00:00', 'Z')
 
     if isinstance(obj, bytes):
-        return b2a_base64(obj).decode('ascii')
+        return b2a_base64(obj, newline=False).decode('ascii')
 
     if isinstance(obj, Iterable):
         return list(obj)
@@ -158,7 +157,7 @@ def json_clean(obj):
     if isinstance(obj, bytes):
         # unanmbiguous binary data is base64-encoded
         # (this probably should have happened upstream)
-        return b2a_base64(obj).decode('ascii')
+        return b2a_base64(obj, newline=False).decode('ascii')
 
     if isinstance(obj, container_to_list) or (
         hasattr(obj, '__iter__') and hasattr(obj, next_attr_name)
@@ -175,10 +174,11 @@ def json_clean(obj):
         nkeys = len(obj)
         nkeys_collapsed = len(set(map(str, obj)))
         if nkeys != nkeys_collapsed:
-            raise ValueError(
+            msg = (
                 'dict cannot be safely converted to JSON: '
                 'key collision would lead to dropped values'
             )
+            raise ValueError(msg)
         # If all OK, proceed by making the new dict that will be json-safe
         out = {}
         for k, v in obj.items():

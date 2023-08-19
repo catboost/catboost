@@ -3,40 +3,9 @@ utils:
 - provides utility wrappers to run asynchronous functions in a blocking environment.
 - vendor functions from ipython_genutils that should be retired at some point.
 """
-import asyncio
-import inspect
 import os
 
-
-def run_sync(coro):
-    def wrapped(*args, **kwargs):
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            # Workaround for bugs.python.org/issue39529.
-            try:
-                loop = asyncio.get_event_loop_policy().get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-        import nest_asyncio  # type: ignore
-
-        nest_asyncio.apply(loop)
-        future = asyncio.ensure_future(coro(*args, **kwargs), loop=loop)
-        try:
-            return loop.run_until_complete(future)
-        except BaseException as e:
-            future.cancel()
-            raise e
-
-    wrapped.__doc__ = coro.__doc__
-    return wrapped
-
-
-async def ensure_async(obj):
-    if inspect.isawaitable(obj):
-        return await obj
-    return obj
+from jupyter_core.utils import ensure_async, run_sync  # noqa: F401  # noqa: F401
 
 
 def _filefind(filename, path_dirs=None):
@@ -89,10 +58,8 @@ def _filefind(filename, path_dirs=None):
         testname = _expand_path(os.path.join(path, filename))
         if os.path.isfile(testname):
             return os.path.abspath(testname)
-
-    raise IOError(
-        "File {!r} does not exist in any of the search paths: {!r}".format(filename, path_dirs)
-    )
+    msg = f"File {filename!r} does not exist in any of the search paths: {path_dirs!r}"
+    raise OSError(msg)
 
 
 def _expand_path(s):

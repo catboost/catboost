@@ -1,3 +1,9 @@
+"""Sample script showing how to do local port forwarding over paramiko.
+
+This script connects to the requested SSH server and sets up local port
+forwarding (the openssh -L option) from a local port through a tunneled
+connection to a destination reachable from the SSH server machine.
+"""
 #
 # This file is adapted from a paramiko demo, and thus licensed under LGPL 2.1.
 # Original Copyright (C) 2003-2007  Robey Pointer <robeypointer@gmail.com>
@@ -16,13 +22,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Paramiko; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA.
-"""
-Sample script showing how to do local port forwarding over paramiko.
-
-This script connects to the requested SSH server and sets up local port
-forwarding (the openssh -L option) from a local port through a tunneled
-connection to a destination reachable from the SSH server machine.
-"""
 import logging
 import select
 import socketserver
@@ -32,13 +31,18 @@ logger = logging.getLogger("ssh")
 
 
 class ForwardServer(socketserver.ThreadingTCPServer):
+    """A server to use for ssh forwarding."""
+
     daemon_threads = True
     allow_reuse_address = True
 
 
 class Handler(socketserver.BaseRequestHandler):
+    """A handle for server requests."""
+
     @t.no_type_check
     def handle(self):
+        """Handle a request."""
         try:
             chan = self.ssh_transport.open_channel(
                 "direct-tcpip",
@@ -83,6 +87,8 @@ class Handler(socketserver.BaseRequestHandler):
 
 
 def forward_tunnel(local_port, remote_host, remote_port, transport):
+    """Forward an ssh tunnel."""
+
     # this is a little convoluted, but lets me configure things for the Handler
     # object.  (SocketServer doesn't give Handlers any way to access the outer
     # server normally.)

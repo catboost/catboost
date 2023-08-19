@@ -15,26 +15,29 @@ from contextlib import contextmanager
 from enum import Enum
 
 import zmq
-from traitlets import Any
-from traitlets import Bool
-from traitlets import default
-from traitlets import DottedObjectName
-from traitlets import Float
-from traitlets import Instance
-from traitlets import observe
-from traitlets import observe_compat
-from traitlets import Type
-from traitlets import Unicode
+from jupyter_core.utils import run_sync
+from traitlets import (
+    Any,
+    Bool,
+    DottedObjectName,
+    Float,
+    Instance,
+    Type,
+    Unicode,
+    default,
+    observe,
+    observe_compat,
+)
 from traitlets.utils.importstring import import_item
 
+from . import kernelspec
+from .asynchronous import AsyncKernelClient
+from .blocking import BlockingKernelClient
+from .client import KernelClient
 from .connect import ConnectionFileMixin
 from .managerabc import KernelManagerABC
 from .provisioning import KernelProvisionerBase
-from .provisioning import KernelProvisionerFactory as KPF
-from .utils import ensure_async
-from .utils import run_sync
-from jupyter_client import KernelClient
-from jupyter_client import kernelspec
+from .provisioning import KernelProvisionerFactory as KPF  # noqa
 
 
 class _ShutdownStatus(Enum):
@@ -74,7 +77,7 @@ def in_pending_state(method: F) -> F:
     @t.no_type_check
     @functools.wraps(method)
     async def wrapper(self, *args, **kwargs):
-        # Create a future for the decorated method
+        """Create a future for the decorated method."""
         if self._attempted_start or not self._ready:
             self._ready = _get_future()
         try:
@@ -101,6 +104,7 @@ class KernelManager(ConnectionFileMixin):
     _ready: t.Optional[t.Union[Future, CFuture]]
 
     def __init__(self, *args, **kwargs):
+        """Initialize a kernel manager."""
         super().__init__(**kwargs)
         self._shutdown_status = _ShutdownStatus.Unset
         self._attempted_start = False
@@ -120,7 +124,7 @@ class KernelManager(ConnectionFileMixin):
     client_class: DottedObjectName = DottedObjectName(
         "jupyter_client.blocking.BlockingKernelClient"
     )
-    client_factory: Type = Type(klass="jupyter_client.KernelClient")
+    client_factory: Type = Type(klass=KernelClient)
 
     @default("client_factory")  # type:ignore[misc]
     def _client_factory_default(self) -> Type:
@@ -130,7 +134,7 @@ class KernelManager(ConnectionFileMixin):
     def _client_class_changed(self, change: t.Dict[str, DottedObjectName]) -> None:
         self.client_factory = import_item(str(change["new"]))
 
-    kernel_id: str = Unicode(None, allow_none=True)
+    kernel_id: t.Union[str, Unicode] = Unicode(None, allow_none=True)
 
     # The kernel provisioner with which this KernelManager is communicating.
     # This will generally be a LocalProvisioner instance unless the kernelspec
@@ -162,10 +166,10 @@ class KernelManager(ConnectionFileMixin):
         "vary by provisioned environment.",
     )
 
-    kernel_name: Unicode = Unicode(kernelspec.NATIVE_KERNEL_NAME)
+    kernel_name: t.Union[str, Unicode] = Unicode(kernelspec.NATIVE_KERNEL_NAME)
 
     @observe("kernel_name")  # type:ignore[misc]
-    def _kernel_name_changed(self, change: t.Dict[str, Unicode]) -> None:
+    def _kernel_name_changed(self, change: t.Dict[str, str]) -> None:
         self._kernel_spec = None
         if change["new"] == "python":
             self.kernel_name = kernelspec.NATIVE_KERNEL_NAME
@@ -218,19 +222,21 @@ class KernelManager(ConnectionFileMixin):
     # --------------------------------------------------------------------------
 
     def start_restarter(self) -> None:
+        """Start the kernel restarter."""
         pass
 
     def stop_restarter(self) -> None:
+        """Stop the kernel restarter."""
         pass
 
     def add_restart_callback(self, callback: t.Callable, event: str = "restart") -> None:
-        """register a callback to be called when a kernel is restarted"""
+        """Register a callback to be called when a kernel is restarted"""
         if self._restarter is None:
             return
         self._restarter.add_callback(callback, event)
 
     def remove_restart_callback(self, callback: t.Callable, event: str = "restart") -> None:
-        """unregister a callback to be called when a kernel is restarted"""
+        """Unregister a callback to be called when a kernel is restarted"""
         if self._restarter is None:
             return
         self._restarter.remove_callback(callback, event)
@@ -239,15 +245,15 @@ class KernelManager(ConnectionFileMixin):
     # create a Client connected to our Kernel
     # --------------------------------------------------------------------------
 
-    def client(self, **kwargs: t.Any) -> KernelClient:
+    def client(self, **kwargs: t.Any) -> BlockingKernelClient:
         """Create a client configured to connect to our kernel"""
-        kw = {}
+        kw: dict = {}
         kw.update(self.get_connection_info(session=True))
         kw.update(
-            dict(
-                connection_file=self.connection_file,
-                parent=self,
-            )
+            {
+                "connection_file": self.connection_file,
+                "parent": self,
+            }
         )
 
         # add kwargs last, for manual overrides
@@ -259,7 +265,7 @@ class KernelManager(ConnectionFileMixin):
     # --------------------------------------------------------------------------
 
     def format_kernel_cmd(self, extra_arguments: t.Optional[t.List[str]] = None) -> t.List[str]:
-        """replace templated args (e.g. {connection_file})"""
+        """Replace templated args (e.g. {connection_file})"""
         extra_arguments = extra_arguments or []
         assert self.kernel_spec is not None
         cmd = self.kernel_spec.argv + extra_arguments
@@ -282,10 +288,10 @@ class KernelManager(ConnectionFileMixin):
         # is not usable by non python kernels because the path is being rerouted when
         # inside of a store app.
         # See this bug here: https://bugs.python.org/issue41196
-        ns = dict(
-            connection_file=os.path.realpath(self.connection_file),
-            prefix=sys.prefix,
-        )
+        ns = {
+            "connection_file": os.path.realpath(self.connection_file),
+            "prefix": sys.prefix,
+        }
 
         if self.kernel_spec:
             ns["resource_dir"] = self.kernel_spec.resource_dir
@@ -388,18 +394,18 @@ class KernelManager(ConnectionFileMixin):
              and launching the kernel (e.g. Popen kwargs).
         """
         self._attempted_start = True
-        kernel_cmd, kw = await ensure_async(self.pre_start_kernel(**kw))
+        kernel_cmd, kw = await self._async_pre_start_kernel(**kw)
 
         # launch the kernel subprocess
         self.log.debug("Starting kernel: %s", kernel_cmd)
-        await ensure_async(self._launch_kernel(kernel_cmd, **kw))
-        await ensure_async(self.post_start_kernel(**kw))
+        await self._async_launch_kernel(kernel_cmd, **kw)
+        await self._async_post_start_kernel(**kw)
 
     start_kernel = run_sync(_async_start_kernel)
 
     async def _async_request_shutdown(self, restart: bool = False) -> None:
         """Send a shutdown request via control channel"""
-        content = dict(restart=restart)
+        content = {"restart": restart}
         msg = self.session.msg("shutdown_request", content=content)
         # ensure control socket is connected
         self._connect_control_socket()
@@ -414,7 +420,7 @@ class KernelManager(ConnectionFileMixin):
         self,
         waittime: t.Optional[float] = None,
         pollinterval: float = 0.1,
-        restart: t.Optional[bool] = False,
+        restart: bool = False,
     ) -> None:
         """Wait for kernel shutdown, then kill process if it doesn't shutdown.
 
@@ -433,7 +439,7 @@ class KernelManager(ConnectionFileMixin):
         except asyncio.TimeoutError:
             self.log.debug("Kernel is taking too long to finish, terminating")
             self._shutdown_status = _ShutdownStatus.SigtermRequest
-            await ensure_async(self._send_kernel_sigterm())
+            await self._async_send_kernel_sigterm()
 
         try:
             await asyncio.wait_for(
@@ -442,7 +448,7 @@ class KernelManager(ConnectionFileMixin):
         except asyncio.TimeoutError:
             self.log.debug("Kernel is taking too long to finish, killing")
             self._shutdown_status = _ShutdownStatus.SigkillRequest
-            await ensure_async(self._kill_kernel(restart=restart))
+            await self._async_kill_kernel(restart=restart)
         else:
             # Process is no longer alive, wait and clear
             if self.has_kernel:
@@ -492,18 +498,18 @@ class KernelManager(ConnectionFileMixin):
         self.stop_restarter()
 
         if self.has_kernel:
-            await ensure_async(self.interrupt_kernel())
+            await self._async_interrupt_kernel()
 
         if now:
-            await ensure_async(self._kill_kernel())
+            await self._async_kill_kernel()
         else:
-            await ensure_async(self.request_shutdown(restart=restart))
+            await self._async_request_shutdown(restart=restart)
             # Don't send any additional kernel kill messages immediately, to give
             # the kernel a chance to properly execute shutdown actions. Wait for at
             # most 1s, checking every 0.1s.
-            await ensure_async(self.finish_shutdown(restart=restart))
+            await self._async_finish_shutdown(restart=restart)
 
-        await ensure_async(self.cleanup_resources(restart=restart))
+        await self._async_cleanup_resources(restart=restart)
 
     shutdown_kernel = run_sync(_async_shutdown_kernel)
 
@@ -535,17 +541,18 @@ class KernelManager(ConnectionFileMixin):
             kernel.
         """
         if self._launch_args is None:
-            raise RuntimeError("Cannot restart the kernel. No previous call to 'start_kernel'.")
+            msg = "Cannot restart the kernel. No previous call to 'start_kernel'."
+            raise RuntimeError(msg)
 
         # Stop currently running kernel.
-        await ensure_async(self.shutdown_kernel(now=now, restart=True))
+        await self._async_shutdown_kernel(now=now, restart=True)
 
         if newports:
             self.cleanup_random_ports()
 
         # Start new kernel.
         self._launch_args.update(kw)
-        await ensure_async(self.start_kernel(**self._launch_args))
+        await self._async_start_kernel(**self._launch_args)
 
     restart_kernel = run_sync(_async_restart_kernel)
 
@@ -591,18 +598,30 @@ class KernelManager(ConnectionFileMixin):
         Unlike ``signal_kernel``, this operation is well supported on all
         platforms.
         """
+        if not self.has_kernel and self._ready is not None:
+            if isinstance(self._ready, CFuture):
+                ready = asyncio.ensure_future(t.cast(Future[t.Any], self._ready))
+            else:
+                ready = self._ready
+            # Wait for a shutdown if one is in progress.
+            if self.shutting_down:
+                await ready
+            # Wait for a startup.
+            await ready
+
         if self.has_kernel:
             assert self.kernel_spec is not None
             interrupt_mode = self.kernel_spec.interrupt_mode
             if interrupt_mode == "signal":
-                await ensure_async(self.signal_kernel(signal.SIGINT))
+                await self._async_signal_kernel(signal.SIGINT)
 
             elif interrupt_mode == "message":
                 msg = self.session.msg("interrupt_request", content={})
                 self._connect_control_socket()
                 self.session.send(self._control_socket, msg)
         else:
-            raise RuntimeError("Cannot interrupt kernel. No kernel is running!")
+            msg = "Cannot interrupt kernel. No kernel is running!"
+            raise RuntimeError(msg)
 
     interrupt_kernel = run_sync(_async_interrupt_kernel)
 
@@ -618,7 +637,8 @@ class KernelManager(ConnectionFileMixin):
             assert self.provisioner is not None
             await self.provisioner.send_signal(signum)
         else:
-            raise RuntimeError("Cannot signal kernel. No kernel is running!")
+            msg = "Cannot signal kernel. No kernel is running!"
+            raise RuntimeError(msg)
 
     signal_kernel = run_sync(_async_signal_kernel)
 
@@ -638,31 +658,67 @@ class KernelManager(ConnectionFileMixin):
         # not alive.  If we find the process is no longer alive, complete
         # its cleanup via the blocking wait().  Callers are responsible for
         # issuing calls to wait() using a timeout (see _kill_kernel()).
-        while await ensure_async(self.is_alive()):
+        while await self._async_is_alive():
             await asyncio.sleep(pollinterval)
 
 
 class AsyncKernelManager(KernelManager):
+    """An async kernel manager."""
+
     # the class to create with our `client` method
     client_class: DottedObjectName = DottedObjectName(
         "jupyter_client.asynchronous.AsyncKernelClient"
     )
     client_factory: Type = Type(klass="jupyter_client.asynchronous.AsyncKernelClient")
 
-    _launch_kernel = KernelManager._async_launch_kernel
-    start_kernel = KernelManager._async_start_kernel
-    pre_start_kernel = KernelManager._async_pre_start_kernel
-    post_start_kernel = KernelManager._async_post_start_kernel
-    request_shutdown = KernelManager._async_request_shutdown
-    finish_shutdown = KernelManager._async_finish_shutdown
-    cleanup_resources = KernelManager._async_cleanup_resources
-    shutdown_kernel = KernelManager._async_shutdown_kernel
-    restart_kernel = KernelManager._async_restart_kernel
-    _send_kernel_sigterm = KernelManager._async_send_kernel_sigterm
-    _kill_kernel = KernelManager._async_kill_kernel
-    interrupt_kernel = KernelManager._async_interrupt_kernel
-    signal_kernel = KernelManager._async_signal_kernel
-    is_alive = KernelManager._async_is_alive
+    # The PyZMQ Context to use for communication with the kernel.
+    context: Instance = Instance(zmq.asyncio.Context)
+
+    @default("context")  # type:ignore[misc]
+    def _context_default(self) -> zmq.asyncio.Context:
+        self._created_context = True
+        return zmq.asyncio.Context()
+
+    def client(self, **kwargs: t.Any) -> AsyncKernelClient:  # type:ignore
+        """Get a client for the manager."""
+        return super().client(**kwargs)  # type:ignore
+
+    _launch_kernel = KernelManager._async_launch_kernel  # type:ignore[assignment]
+    start_kernel: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_start_kernel  # type:ignore[assignment]
+    pre_start_kernel: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_pre_start_kernel  # type:ignore[assignment]
+    post_start_kernel: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_post_start_kernel  # type:ignore[assignment]
+    request_shutdown: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_request_shutdown  # type:ignore[assignment]
+    finish_shutdown: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_finish_shutdown  # type:ignore[assignment]
+    cleanup_resources: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_cleanup_resources  # type:ignore[assignment]
+    shutdown_kernel: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_shutdown_kernel  # type:ignore[assignment]
+    restart_kernel: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_restart_kernel  # type:ignore[assignment]
+    _send_kernel_sigterm = KernelManager._async_send_kernel_sigterm  # type:ignore[assignment]
+    _kill_kernel = KernelManager._async_kill_kernel  # type:ignore[assignment]
+    interrupt_kernel: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_interrupt_kernel  # type:ignore[assignment]
+    signal_kernel: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_signal_kernel  # type:ignore[assignment]
+    is_alive: t.Callable[
+        ..., t.Awaitable
+    ] = KernelManager._async_is_alive  # type:ignore[assignment]
 
 
 KernelManagerABC.register(KernelManager)
@@ -670,7 +726,7 @@ KernelManagerABC.register(KernelManager)
 
 def start_new_kernel(
     startup_timeout: float = 60, kernel_name: str = "python", **kwargs: t.Any
-) -> t.Tuple[KernelManager, KernelClient]:
+) -> t.Tuple[KernelManager, BlockingKernelClient]:
     """Start a new kernel, and return its Manager and Client"""
     km = KernelManager(kernel_name=kernel_name)
     km.start_kernel(**kwargs)
@@ -688,7 +744,7 @@ def start_new_kernel(
 
 async def start_new_async_kernel(
     startup_timeout: float = 60, kernel_name: str = "python", **kwargs: t.Any
-) -> t.Tuple[AsyncKernelManager, KernelClient]:
+) -> t.Tuple[AsyncKernelManager, AsyncKernelClient]:
     """Start a new kernel, and return its Manager and Client"""
     km = AsyncKernelManager(kernel_name=kernel_name)
     await km.start_kernel(**kwargs)

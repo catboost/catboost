@@ -1,2 +1,0 @@
-[entrypoints.test1]
-njn = qux.extn:Njn.load

@@ -1,15 +1,14 @@
+"""An application to launch a kernel by name in a local subprocess."""
 import os
 import signal
 import uuid
 
-from jupyter_core.application import base_flags
-from jupyter_core.application import JupyterApp
+from jupyter_core.application import JupyterApp, base_flags
 from tornado.ioloop import IOLoop
 from traitlets import Unicode
 
 from . import __version__
-from .kernelspec import KernelSpecManager
-from .kernelspec import NATIVE_KERNEL_NAME
+from .kernelspec import NATIVE_KERNEL_NAME, KernelSpecManager
 from .manager import KernelManager
 
 
@@ -32,6 +31,7 @@ class KernelApp(JupyterApp):
     )
 
     def initialize(self, argv=None):
+        """Initialize the application."""
         super().initialize(argv)
 
         cf_basename = "kernel-%s.json" % uuid.uuid4()
@@ -55,11 +55,13 @@ class KernelApp(JupyterApp):
             signal.signal(sig, shutdown_handler)
 
     def shutdown(self, signo: int) -> None:
-        self.log.info("Shutting down on signal %d" % signo)
+        """Shut down the application."""
+        self.log.info("Shutting down on signal %d", signo)
         self.km.shutdown_kernel()
         self.loop.stop()
 
     def log_connection_info(self) -> None:
+        """Log the connection info for the kernel."""
         cf = self.km.connection_file
         self.log.info("Connection file: %s", cf)
         self.log.info("To connect a client: --existing %s", os.path.basename(cf))
@@ -75,6 +77,7 @@ class KernelApp(JupyterApp):
                 pass
 
     def start(self) -> None:
+        """Start the application."""
         self.log.info("Starting kernel %r", self.kernel_name)
         try:
             self.km.start_kernel()

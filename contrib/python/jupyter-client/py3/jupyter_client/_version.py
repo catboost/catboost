@@ -1,8 +1,8 @@
+"""The version information for jupyter client."""
 import re
-from typing import List
-from typing import Union
+from typing import List, Union
 
-__version__ = "7.4.8"
+__version__ = "8.0.3"
 
 # Build up version_info tuple for backwards compatibility
 pattern = r'(?P<major>\d+).(?P<minor>\d+).(?P<patch>\d+)(?P<rest>.*)'

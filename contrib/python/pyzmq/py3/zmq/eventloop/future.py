@@ -82,7 +82,6 @@ Poller._socket_class = Socket
 
 
 class Context(_zmq.Context[Socket]):
-
     # avoid sharing instance with base Context class
     _instance = None
 

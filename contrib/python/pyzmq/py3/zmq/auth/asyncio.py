@@ -21,12 +21,21 @@ class AsyncioAuthenticator(Authenticator):
 
     __poller: Optional[Poller]
     __task: Any
-    zap_socket: "zmq.asyncio.Socket"
 
-    def __init__(self, context: Optional["zmq.Context"] = None, loop: Any = None):
-        super().__init__(context)
+    def __init__(
+        self,
+        context: Optional["zmq.Context"] = None,
+        loop: Any = None,
+        encoding: str = 'utf-8',
+        log: Any = None,
+    ):
+        super().__init__(context, encoding, log)
         if loop is not None:
-            warnings.warn(f"{self.__class__.__name__}(loop) is deprecated and ignored")
+            warnings.warn(
+                f"{self.__class__.__name__}(loop) is deprecated and ignored",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.__poller = None
         self.__task = None
 
@@ -34,8 +43,8 @@ class AsyncioAuthenticator(Authenticator):
         while self.__poller is not None:
             events = await self.__poller.poll()
             if self.zap_socket in dict(events):
-                msg = await self.zap_socket.recv_multipart()
-                self.handle_zap_message(msg)
+                msg = self.zap_socket.recv_multipart()
+                await self.handle_zap_message(msg)
 
     def start(self) -> None:
         """Start ZAP authentication"""

@@ -24,7 +24,6 @@ def _relay(ins, outs, sides, prefix, swap_ids):
 def monitored_queue(
     in_socket, out_socket, mon_socket, in_prefix=b'in', out_prefix=b'out'
 ):
-
     swap_ids = in_socket.type == zmq.ROUTER and out_socket.type == zmq.ROUTER
 
     poller = zmq.Poller()

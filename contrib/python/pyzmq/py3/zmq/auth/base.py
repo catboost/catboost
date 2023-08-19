@@ -5,7 +5,7 @@
 
 import logging
 import os
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Awaitable, Dict, List, Optional, Set, Tuple, Union
 
 import zmq
 from zmq.error import _check_version
@@ -27,7 +27,7 @@ class Authenticator:
         auth.allow("127.0.0.1")
         auth.start()
         while True:
-            auth.handle_zap_msg(auth.zap_socket.recv_multipart())
+            await auth.handle_zap_msg(auth.zap_socket.recv_multipart())
 
     Alternatively, you can register `auth.zap_socket` with a poller.
 
@@ -49,8 +49,8 @@ class Authenticator:
     allow_any: bool
     credentials_providers: Dict[str, Any]
     zap_socket: "zmq.Socket"
-    whitelist: Set[str]
-    blacklist: Set[str]
+    _allowed: Set[str]
+    _denied: Set[str]
     passwords: Dict[str, Dict[str, str]]
     certs: Dict[str, Dict[bytes, Any]]
     log: Any
@@ -67,8 +67,8 @@ class Authenticator:
         self.allow_any = False
         self.credentials_providers = {}
         self.zap_socket = None  # type: ignore
-        self.whitelist = set()
-        self.blacklist = set()
+        self._allowed = set()
+        self._denied = set()
         # passwords is a dict keyed by domain and contains values
         # of dicts with username:password pairs.
         self.passwords = {}
@@ -79,7 +79,7 @@ class Authenticator:
 
     def start(self) -> None:
         """Create and bind the ZAP socket"""
-        self.zap_socket = self.context.socket(zmq.REP)
+        self.zap_socket = self.context.socket(zmq.REP, socket_class=zmq.Socket)
         self.zap_socket.linger = 1
         self.zap_socket.bind("inproc://zeromq.zap.01")
         self.log.debug("Starting")
@@ -91,34 +91,34 @@ class Authenticator:
         self.zap_socket = None  # type: ignore
 
     def allow(self, *addresses: str) -> None:
-        """Allow (whitelist) IP address(es).
+        """Allow IP address(es).
 
-        Connections from addresses not in the whitelist will be rejected.
+        Connections from addresses not explicitly allowed will be rejected.
 
         - For NULL, all clients from this address will be accepted.
         - For real auth setups, they will be allowed to continue with authentication.
 
-        whitelist is mutually exclusive with blacklist.
+        allow is mutually exclusive with deny.
         """
-        if self.blacklist:
-            raise ValueError("Only use a whitelist or a blacklist, not both")
+        if self._denied:
+            raise ValueError("Only use allow or deny, not both")
         self.log.debug("Allowing %s", ','.join(addresses))
-        self.whitelist.update(addresses)
+        self._allowed.update(addresses)
 
     def deny(self, *addresses: str) -> None:
-        """Deny (blacklist) IP address(es).
+        """Deny IP address(es).
 
-        Addresses not in the blacklist will be allowed to continue with authentication.
+        Addresses not explicitly denied will be allowed to continue with authentication.
 
-        Blacklist is mutually exclusive with whitelist.
+        deny is mutually exclusive with allow.
         """
-        if self.whitelist:
-            raise ValueError("Only use a whitelist or a blacklist, not both")
+        if self._allowed:
+            raise ValueError("Only use a allow or deny, not both")
         self.log.debug("Denying %s", ','.join(addresses))
-        self.blacklist.update(addresses)
+        self._denied.update(addresses)
 
     def configure_plain(
-        self, domain: str = '*', passwords: Dict[str, str] = None
+        self, domain: str = '*', passwords: Optional[Dict[str, str]] = None
     ) -> None:
         """Configure PLAIN authentication for a given domain.
 
@@ -182,8 +182,6 @@ class Authenticator:
                         return False
 
         To cover all domains, use "*".
-
-        To allow all client keys without checking, specify CURVE_ALLOW_ANY for the location.
         """
 
         self.allow_any = False
@@ -222,7 +220,7 @@ class Authenticator:
         Currently this is a no-op because there is nothing to configure with GSSAPI.
         """
 
-    def handle_zap_message(self, msg: List[bytes]):
+    async def handle_zap_message(self, msg: List[bytes]):
         """Perform ZAP authentication"""
         if len(msg) < 6:
             self.log.error("Invalid ZAP message, not enough frames: %r", msg)
@@ -254,40 +252,39 @@ class Authenticator:
             mechanism,
         )
 
-        # Is address is explicitly whitelisted or blacklisted?
+        # Is address is explicitly allowed or _denied?
         allowed = False
         denied = False
         reason = b"NO ACCESS"
 
-        if self.whitelist:
-            if address in self.whitelist:
+        if self._allowed:
+            if address in self._allowed:
                 allowed = True
-                self.log.debug("PASSED (whitelist) address=%s", address)
+                self.log.debug("PASSED (allowed) address=%s", address)
             else:
                 denied = True
-                reason = b"Address not in whitelist"
-                self.log.debug("DENIED (not in whitelist) address=%s", address)
+                reason = b"Address not allowed"
+                self.log.debug("DENIED (not allowed) address=%s", address)
 
-        elif self.blacklist:
-            if address in self.blacklist:
+        elif self._denied:
+            if address in self._denied:
                 denied = True
-                reason = b"Address is blacklisted"
-                self.log.debug("DENIED (blacklist) address=%s", address)
+                reason = b"Address denied"
+                self.log.debug("DENIED (denied) address=%s", address)
             else:
                 allowed = True
-                self.log.debug("PASSED (not in blacklist) address=%s", address)
+                self.log.debug("PASSED (not denied) address=%s", address)
 
         # Perform authentication mechanism-specific checks if necessary
         username = "anonymous"
         if not denied:
-
             if mechanism == b'NULL' and not allowed:
-                # For NULL, we allow if the address wasn't blacklisted
+                # For NULL, we allow if the address wasn't denied
                 self.log.debug("ALLOWED (NULL)")
                 allowed = True
 
             elif mechanism == b'PLAIN':
-                # For PLAIN, even a whitelisted address must authenticate
+                # For PLAIN, even a _alloweded address must authenticate
                 if len(credentials) != 2:
                     self.log.error("Invalid PLAIN credentials: %r", credentials)
                     self._send_zap_reply(request_id, b"400", b"Invalid credentials")
@@ -298,13 +295,13 @@ class Authenticator:
                 allowed, reason = self._authenticate_plain(domain, username, password)
 
             elif mechanism == b'CURVE':
-                # For CURVE, even a whitelisted address must authenticate
+                # For CURVE, even a _alloweded address must authenticate
                 if len(credentials) != 1:
                     self.log.error("Invalid CURVE credentials: %r", credentials)
                     self._send_zap_reply(request_id, b"400", b"Invalid credentials")
                     return
                 key = credentials[0]
-                allowed, reason = self._authenticate_curve(domain, key)
+                allowed, reason = await self._authenticate_curve(domain, key)
                 if allowed:
                     username = self.curve_user_id(key)
 
@@ -361,7 +358,9 @@ class Authenticator:
 
         return allowed, reason
 
-    def _authenticate_curve(self, domain: str, client_key: bytes) -> Tuple[bool, bytes]:
+    async def _authenticate_curve(
+        self, domain: str, client_key: bytes
+    ) -> Tuple[bool, bytes]:
         """CURVE ZAP authentication"""
         allowed = False
         reason = b""
@@ -377,7 +376,10 @@ class Authenticator:
             if domain in self.credentials_providers:
                 z85_client_key = z85.encode(client_key)
                 # Callback to check if key is Allowed
-                if self.credentials_providers[domain].callback(domain, z85_client_key):
+                r = self.credentials_providers[domain].callback(domain, z85_client_key)
+                if isinstance(r, Awaitable):
+                    r = await r
+                if r:
                     allowed = True
                     reason = b"OK"
                 else:

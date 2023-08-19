@@ -6,24 +6,16 @@ import os
 import socket
 import typing as t
 import uuid
+from functools import wraps
 
 import zmq
-from traitlets import Any
-from traitlets import Bool
-from traitlets import default
-from traitlets import Dict
-from traitlets import DottedObjectName
-from traitlets import Instance
-from traitlets import observe
-from traitlets import Unicode
+from traitlets import Any, Bool, Dict, DottedObjectName, Instance, Unicode, default, observe
 from traitlets.config.configurable import LoggingConfigurable
 from traitlets.utils.importstring import import_item
 
-from .kernelspec import KernelSpecManager
-from .kernelspec import NATIVE_KERNEL_NAME
+from .kernelspec import NATIVE_KERNEL_NAME, KernelSpecManager
 from .manager import KernelManager
-from .utils import ensure_async
-from .utils import run_sync
+from .utils import ensure_async, run_sync
 
 
 class DuplicateKernelError(Exception):
@@ -33,6 +25,7 @@ class DuplicateKernelError(Exception):
 def kernel_method(f: t.Callable) -> t.Callable:
     """decorator for proxying MKM.method(kernel_id) to individual KMs by ID"""
 
+    @wraps(f)
     def wrapped(
         self: t.Any, kernel_id: str, *args: t.Any, **kwargs: t.Any
     ) -> t.Union[t.Callable, t.Awaitable]:
@@ -122,7 +115,7 @@ class MultiKernelManager(LoggingConfigurable):
                 self.log.debug("Destroying zmq context for %s", self)
             self.context.destroy()
         try:
-            super_del = super().__del__
+            super_del = super().__del__  # type:ignore[misc]
         except AttributeError:
             pass
         else:
@@ -193,7 +186,7 @@ class MultiKernelManager(LoggingConfigurable):
         return getattr(self, 'use_pending_kernels', False)
 
     async def _async_start_kernel(
-        self, kernel_name: t.Optional[str] = None, **kwargs: t.Any
+        self, *, kernel_name: t.Optional[str] = None, **kwargs: t.Any
     ) -> str:
         """Start a new kernel.
 
@@ -246,7 +239,7 @@ class MultiKernelManager(LoggingConfigurable):
         restart : bool
             Will the kernel be restarted?
         """
-        self.log.info("Kernel shutdown: %s" % kernel_id)
+        self.log.info("Kernel shutdown: %s", kernel_id)
         # If the kernel is still starting, wait for it to be ready.
         if kernel_id in self._pending_kernels:
             task = self._pending_kernels[kernel_id]
@@ -288,7 +281,7 @@ class MultiKernelManager(LoggingConfigurable):
         pollinterval: t.Optional[float] = 0.1,
     ) -> None:
         """Wait for a kernel to finish shutting down, and kill it if it doesn't"""
-        self.log.info("Kernel shutdown: %s" % kernel_id)
+        self.log.info("Kernel shutdown: %s", kernel_id)
 
     @kernel_method
     def cleanup_resources(self, kernel_id: str, restart: bool = False) -> None:
@@ -309,7 +302,7 @@ class MultiKernelManager(LoggingConfigurable):
         kids = self.list_kernel_ids()
         kids += list(self._pending_kernels)
         kms = list(self._kernels.values())
-        futs = [ensure_async(self.shutdown_kernel(kid, now=now)) for kid in set(kids)]
+        futs = [self._async_shutdown_kernel(kid, now=now) for kid in set(kids)]
         await asyncio.gather(*futs)
         # If using pending kernels, the kernels will not have been fully shut down.
         if self._using_pending_kernels():
@@ -334,9 +327,10 @@ class MultiKernelManager(LoggingConfigurable):
         """
         kernel = self.get_kernel(kernel_id)
         if not kernel.ready.done():
-            raise RuntimeError("Kernel is in a pending state. Cannot interrupt.")
+            msg = "Kernel is in a pending state. Cannot interrupt."
+            raise RuntimeError(msg)
         out = kernel.interrupt_kernel()
-        self.log.info("Kernel interrupted: %s" % kernel_id)
+        self.log.info("Kernel interrupted: %s", kernel_id)
         return out
 
     @kernel_method
@@ -353,7 +347,7 @@ class MultiKernelManager(LoggingConfigurable):
         signum : int
             Signal number to send kernel.
         """
-        self.log.info("Signaled Kernel %s with %s" % (kernel_id, signum))
+        self.log.info("Signaled Kernel %s with %s", kernel_id, signum)
 
     async def _async_restart_kernel(self, kernel_id: str, now: bool = False) -> None:
         """Restart a kernel by its uuid, keeping the same ports.
@@ -371,17 +365,16 @@ class MultiKernelManager(LoggingConfigurable):
             it is given a chance to perform a clean shutdown or not.
         """
         kernel = self.get_kernel(kernel_id)
-        if self._using_pending_kernels():
-            if not kernel.ready.done():
-                raise RuntimeError("Kernel is in a pending state. Cannot restart.")
-        out = await ensure_async(kernel.restart_kernel(now=now))
-        self.log.info("Kernel restarted: %s" % kernel_id)
-        return out
+        if self._using_pending_kernels() and not kernel.ready.done():
+            msg = "Kernel is in a pending state. Cannot restart."
+            raise RuntimeError(msg)
+        await ensure_async(kernel.restart_kernel(now=now))
+        self.log.info("Kernel restarted: %s", kernel_id)
 
     restart_kernel = run_sync(_async_restart_kernel)
 
     @kernel_method
-    def is_alive(self, kernel_id: str) -> bool:
+    def is_alive(self, kernel_id: str) -> bool:  # type:ignore[empty-body]
         """Is the kernel alive.
 
         This calls KernelManager.is_alive() which calls Popen.poll on the
@@ -422,7 +415,7 @@ class MultiKernelManager(LoggingConfigurable):
         """remove a callback for the KernelRestarter"""
 
     @kernel_method
-    def get_connection_info(self, kernel_id: str) -> t.Dict[str, t.Any]:
+    def get_connection_info(self, kernel_id: str) -> t.Dict[str, t.Any]:  # type:ignore[empty-body]
         """Return a dictionary of connection data for a kernel.
 
         Parameters
@@ -440,7 +433,9 @@ class MultiKernelManager(LoggingConfigurable):
         """
 
     @kernel_method
-    def connect_iopub(self, kernel_id: str, identity: t.Optional[bytes] = None) -> socket.socket:
+    def connect_iopub(  # type:ignore[empty-body]
+        self, kernel_id: str, identity: t.Optional[bytes] = None
+    ) -> socket.socket:
         """Return a zmq Socket connected to the iopub channel.
 
         Parameters
@@ -456,7 +451,9 @@ class MultiKernelManager(LoggingConfigurable):
         """
 
     @kernel_method
-    def connect_shell(self, kernel_id: str, identity: t.Optional[bytes] = None) -> socket.socket:
+    def connect_shell(  # type:ignore[empty-body]
+        self, kernel_id: str, identity: t.Optional[bytes] = None
+    ) -> socket.socket:
         """Return a zmq Socket connected to the shell channel.
 
         Parameters
@@ -472,7 +469,9 @@ class MultiKernelManager(LoggingConfigurable):
         """
 
     @kernel_method
-    def connect_control(self, kernel_id: str, identity: t.Optional[bytes] = None) -> socket.socket:
+    def connect_control(  # type:ignore[empty-body]
+        self, kernel_id: str, identity: t.Optional[bytes] = None
+    ) -> socket.socket:
         """Return a zmq Socket connected to the control channel.
 
         Parameters
@@ -488,7 +487,9 @@ class MultiKernelManager(LoggingConfigurable):
         """
 
     @kernel_method
-    def connect_stdin(self, kernel_id: str, identity: t.Optional[bytes] = None) -> socket.socket:
+    def connect_stdin(  # type:ignore[empty-body]
+        self, kernel_id: str, identity: t.Optional[bytes] = None
+    ) -> socket.socket:
         """Return a zmq Socket connected to the stdin channel.
 
         Parameters
@@ -504,7 +505,9 @@ class MultiKernelManager(LoggingConfigurable):
         """
 
     @kernel_method
-    def connect_hb(self, kernel_id: str, identity: t.Optional[bytes] = None) -> socket.socket:
+    def connect_hb(  # type:ignore[empty-body]
+        self, kernel_id: str, identity: t.Optional[bytes] = None
+    ) -> socket.socket:
         """Return a zmq Socket connected to the hb channel.
 
         Parameters
@@ -530,7 +533,6 @@ class MultiKernelManager(LoggingConfigurable):
 
 
 class AsyncMultiKernelManager(MultiKernelManager):
-
     kernel_manager_class = DottedObjectName(
         "jupyter_client.ioloop.AsyncIOLoopKernelManager",
         config=True,
@@ -545,7 +547,22 @@ class AsyncMultiKernelManager(MultiKernelManager):
         kernel has a `.ready` future which can be awaited before connecting""",
     ).tag(config=True)
 
-    start_kernel = MultiKernelManager._async_start_kernel
-    restart_kernel = MultiKernelManager._async_restart_kernel
-    shutdown_kernel = MultiKernelManager._async_shutdown_kernel
-    shutdown_all = MultiKernelManager._async_shutdown_all
+    context = Instance("zmq.asyncio.Context")
+
+    @default("context")  # type:ignore[misc]
+    def _context_default(self) -> zmq.asyncio.Context:
+        self._created_context = True
+        return zmq.asyncio.Context()
+
+    start_kernel: t.Callable[
+        ..., t.Awaitable
+    ] = MultiKernelManager._async_start_kernel  # type:ignore[assignment]
+    restart_kernel: t.Callable[
+        ..., t.Awaitable
+    ] = MultiKernelManager._async_restart_kernel  # type:ignore[assignment]
+    shutdown_kernel: t.Callable[
+        ..., t.Awaitable
+    ] = MultiKernelManager._async_shutdown_kernel  # type:ignore[assignment]
+    shutdown_all: t.Callable[
+        ..., t.Awaitable
+    ] = MultiKernelManager._async_shutdown_all  # type:ignore[assignment]

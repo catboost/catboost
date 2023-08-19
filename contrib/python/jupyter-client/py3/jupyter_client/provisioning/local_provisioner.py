@@ -5,20 +5,15 @@ import asyncio
 import os
 import signal
 import sys
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
-from ..connect import KernelConnectionInfo
-from ..connect import LocalPortCache
+from ..connect import KernelConnectionInfo, LocalPortCache
 from ..launcher import launch_kernel
-from ..localinterfaces import is_local_ip
-from ..localinterfaces import local_ips
+from ..localinterfaces import is_local_ip, local_ips
 from .provisioner_base import KernelProvisionerBase
 
 
-class LocalProvisioner(KernelProvisionerBase):
+class LocalProvisioner(KernelProvisionerBase):  # type:ignore[misc]
     """
     :class:`LocalProvisioner` is a concrete class of ABC :py:class:`KernelProvisionerBase`
     and is the out-of-box default implementation used when no kernel provisioner is
@@ -42,13 +37,14 @@ class LocalProvisioner(KernelProvisionerBase):
         return self.process is not None
 
     async def poll(self) -> Optional[int]:
-
+        """Poll the provisioner."""
         ret = 0
         if self.process:
             ret = self.process.poll()
         return ret
 
     async def wait(self) -> Optional[int]:
+        """Wait for the provisioner process."""
         ret = 0
         if self.process:
             # Use busy loop at 100ms intervals, polling until the process is
@@ -97,6 +93,7 @@ class LocalProvisioner(KernelProvisionerBase):
             return
 
     async def kill(self, restart: bool = False) -> None:
+        """Kill the provisioner and optionally restart."""
         if self.process:
             if hasattr(signal, "SIGKILL"):
                 # If available, give preference to signalling the process-group over `kill()`.
@@ -111,6 +108,7 @@ class LocalProvisioner(KernelProvisionerBase):
                 LocalProvisioner._tolerate_no_process(e)
 
     async def terminate(self, restart: bool = False) -> None:
+        """Terminate the provisioner and optionally restart."""
         if self.process:
             if hasattr(signal, "SIGTERM"):
                 # If available, give preference to signalling the process group over `terminate()`.
@@ -140,6 +138,7 @@ class LocalProvisioner(KernelProvisionerBase):
                 raise
 
     async def cleanup(self, restart: bool = False) -> None:
+        """Clean up the resources used by the provisioner and optionally restart."""
         if self.ports_cached and not restart:
             # provisioner is about to be destroyed, return cached ports
             lpc = LocalPortCache.instance()
@@ -166,13 +165,14 @@ class LocalProvisioner(KernelProvisionerBase):
         km = self.parent
         if km:
             if km.transport == 'tcp' and not is_local_ip(km.ip):
-                raise RuntimeError(
+                msg = (
                     "Can only launch a kernel on a local interface. "
-                    "This one is not: %s."
+                    "This one is not: {}."
                     "Make sure that the '*_address' attributes are "
                     "configured properly. "
-                    "Currently valid addresses are: %s" % (km.ip, local_ips())
+                    "Currently valid addresses are: {}".format(km.ip, local_ips())
                 )
+                raise RuntimeError(msg)
             # build the Popen cmd
             extra_arguments = kwargs.pop('extra_arguments', [])
 
@@ -200,6 +200,7 @@ class LocalProvisioner(KernelProvisionerBase):
         return await super().pre_launch(cmd=kernel_cmd, **kwargs)
 
     async def launch_kernel(self, cmd: List[str], **kwargs: Any) -> KernelConnectionInfo:
+        """Launch a kernel with a command."""
         scrubbed_kwargs = LocalProvisioner._scrub_kwargs(kwargs)
         self.process = launch_kernel(cmd, **scrubbed_kwargs)
         pgid = None

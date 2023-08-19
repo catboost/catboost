@@ -14,29 +14,12 @@ import stat
 import tempfile
 import warnings
 from getpass import getpass
-from typing import Any
-from typing import cast
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Set
-from typing import Tuple
-from typing import Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 
 import zmq
-from jupyter_core.paths import jupyter_data_dir
-from jupyter_core.paths import jupyter_runtime_dir
-from jupyter_core.paths import secure_write
-from traitlets import Bool
-from traitlets import CaselessStrEnum
-from traitlets import Instance
-from traitlets import Int
-from traitlets import Integer
-from traitlets import observe
-from traitlets import Type
-from traitlets import Unicode
-from traitlets.config import LoggingConfigurable
-from traitlets.config import SingletonConfigurable
+from jupyter_core.paths import jupyter_data_dir, jupyter_runtime_dir, secure_write
+from traitlets import Bool, CaselessStrEnum, Instance, Integer, Type, Unicode, observe
+from traitlets.config import LoggingConfigurable, SingletonConfigurable
 
 from .localinterfaces import localhost
 from .utils import _filefind
@@ -47,11 +30,11 @@ KernelConnectionInfo = Dict[str, Union[int, str, bytes]]
 
 def write_connection_file(
     fname: Optional[str] = None,
-    shell_port: Union[Integer, Int, int] = 0,
-    iopub_port: Union[Integer, Int, int] = 0,
-    stdin_port: Union[Integer, Int, int] = 0,
-    hb_port: Union[Integer, Int, int] = 0,
-    control_port: Union[Integer, Int, int] = 0,
+    shell_port: int = 0,
+    iopub_port: int = 0,
+    stdin_port: int = 0,
+    hb_port: int = 0,
+    control_port: int = 0,
     ip: str = "",
     key: bytes = b"",
     transport: str = "tcp",
@@ -130,7 +113,7 @@ def write_connection_file(
     else:
         N = 1
         for _ in range(ports_needed):
-            while os.path.exists("%s-%s" % (ip, str(N))):
+            while os.path.exists(f"{ip}-{str(N)}"):
                 N += 1
             ports.append(N)
             N += 1
@@ -145,13 +128,13 @@ def write_connection_file(
     if hb_port <= 0:
         hb_port = ports.pop(0)
 
-    cfg: KernelConnectionInfo = dict(
-        shell_port=shell_port,
-        iopub_port=iopub_port,
-        stdin_port=stdin_port,
-        control_port=control_port,
-        hb_port=hb_port,
-    )
+    cfg: KernelConnectionInfo = {
+        "shell_port": shell_port,
+        "iopub_port": iopub_port,
+        "stdin_port": stdin_port,
+        "control_port": control_port,
+        "hb_port": hb_port,
+    }
     cfg["ip"] = ip
     cfg["key"] = key.decode()
     cfg["transport"] = transport
@@ -217,7 +200,7 @@ def find_connection_file(
     try:
         # first, try explicit name
         return _filefind(filename, path)
-    except IOError:
+    except OSError:
         pass
 
     # not found by full name
@@ -235,7 +218,8 @@ def find_connection_file(
 
     matches = [os.path.abspath(m) for m in matches]
     if not matches:
-        raise IOError("Could not find %r in %r" % (filename, path))
+        msg = f"Could not find {filename!r} in {path!r}"
+        raise OSError(msg)
     elif len(matches) == 1:
         return matches[0]
     else:
@@ -322,7 +306,7 @@ port_names = ["%s_port" % channel for channel in ("shell", "stdin", "iopub", "hb
 class ConnectionFileMixin(LoggingConfigurable):
     """Mixin for configurable classes that work with connection files"""
 
-    data_dir = Unicode()
+    data_dir: Union[str, Unicode] = Unicode()
 
     def _data_dir_default(self):
         return jupyter_data_dir()
@@ -341,7 +325,9 @@ class ConnectionFileMixin(LoggingConfigurable):
     _connection_file_written = Bool(False)
 
     transport = CaselessStrEnum(["tcp", "ipc"], default_value="tcp", config=True)
-    kernel_name = Unicode()
+    kernel_name: Union[str, Unicode] = Unicode()
+
+    context = Instance(zmq.Context)
 
     ip = Unicode(
         config=True,
@@ -363,7 +349,7 @@ class ConnectionFileMixin(LoggingConfigurable):
     @observe("ip")
     def _ip_changed(self, change):
         if change["new"] == "*":
-            self.ip = "0.0.0.0"
+            self.ip = "0.0.0.0"  # noqa
 
     # protected traits
 
@@ -384,7 +370,7 @@ class ConnectionFileMixin(LoggingConfigurable):
     session = Instance("jupyter_client.session.Session")
 
     def _session_default(self):
-        from jupyter_client.session import Session
+        from .session import Session
 
         return Session(parent=self)
 
@@ -407,15 +393,15 @@ class ConnectionFileMixin(LoggingConfigurable):
         connect_info : dict
             dictionary of connection information.
         """
-        info = dict(
-            transport=self.transport,
-            ip=self.ip,
-            shell_port=self.shell_port,
-            iopub_port=self.iopub_port,
-            stdin_port=self.stdin_port,
-            hb_port=self.hb_port,
-            control_port=self.control_port,
-        )
+        info = {
+            "transport": self.transport,
+            "ip": self.ip,
+            "shell_port": self.shell_port,
+            "iopub_port": self.iopub_port,
+            "stdin_port": self.stdin_port,
+            "hb_port": self.hb_port,
+            "control_port": self.control_port,
+        }
         if session:
             # add *clone* of my session,
             # so that state such as digest_history is not shared.
@@ -423,10 +409,10 @@ class ConnectionFileMixin(LoggingConfigurable):
         else:
             # add session info
             info.update(
-                dict(
-                    signature_scheme=self.session.signature_scheme,
-                    key=self.session.key,
-                )
+                {
+                    "signature_scheme": self.session.signature_scheme,
+                    "key": self.session.key,
+                }
             )
         return info
 
@@ -607,10 +593,11 @@ class ConnectionFileMixin(LoggingConfigurable):
         # Ensure what is in KernelManager is what we expect.
         km_info = self.get_connection_info()
         if not self._equal_connections(info, km_info):
-            raise ValueError(
+            msg = (
                 "KernelManager's connection information already exists and does not match "
                 "the expected values returned from provisioner!"
             )
+            raise ValueError(msg)
 
     @staticmethod
     def _equal_connections(conn1: KernelConnectionInfo, conn2: KernelConnectionInfo) -> bool:
@@ -628,10 +615,7 @@ class ConnectionFileMixin(LoggingConfigurable):
             "signature_scheme",
         ]
 
-        for key in pertinent_keys:
-            if conn1.get(key) != conn2.get(key):
-                return False
-        return True
+        return all(conn1.get(key) == conn2.get(key) for key in pertinent_keys)
 
     # --------------------------------------------------------------------------
     # Creating connected sockets
@@ -646,7 +630,7 @@ class ConnectionFileMixin(LoggingConfigurable):
         if transport == "tcp":
             return "tcp://%s:%i" % (ip, port)
         else:
-            return "%s://%s-%s" % (transport, ip, port)
+            return f"{transport}://{ip}-{port}"
 
     def _create_connected_socket(
         self, channel: str, identity: Optional[bytes] = None
@@ -654,7 +638,7 @@ class ConnectionFileMixin(LoggingConfigurable):
         """Create a zmq Socket and connect it to the kernel."""
         url = self._make_url(channel)
         socket_type = channel_socket_types[channel]
-        self.log.debug("Connecting to: %s" % url)
+        self.log.debug("Connecting to: %s", url)
         sock = self.context.socket(socket_type)
         # set linger to 1s to prevent hangs at exit
         sock.linger = 1000

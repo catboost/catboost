@@ -29,6 +29,7 @@ from zmq._typing import Literal
 from zmq.backend import Socket as SocketBase
 from zmq.error import ZMQBindError, ZMQError
 from zmq.utils import jsonapi
+from zmq.utils.interop import cast_int_addr
 
 from ..constants import SocketOption, SocketType, _OptType
 from .attrsettr import AttributeSetter
@@ -84,20 +85,86 @@ class Socket(SocketBase, AttributeSetter, Generic[ST]):
 
         s = ctx.socket(zmq.ROUTER)
 
+    .. versionadded:: 25
+
+        Sockets can now be shadowed by passing another Socket.
+        This helps in creating an async copy of a sync socket or vice versa::
+
+            s = zmq.Socket(async_socket)
+
+        Which previously had to be::
+
+            s = zmq.Socket.shadow(async_socket.underlying)
     """
 
     _shadow = False
+    _shadow_obj = None
     _monitor_socket = None
     _type_name = 'UNKNOWN'
 
-    def __init__(self: "Socket[bytes]", *a, **kw):
-        super().__init__(*a, **kw)
-        if 'shadow' in kw:
+    @overload
+    def __init__(
+        self: "Socket[bytes]",
+        ctx_or_socket: "zmq.Context",
+        socket_type: int,
+        *,
+        copy_threshold: Optional[int] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: "Socket[bytes]",
+        *,
+        shadow: Union["Socket", int],
+        copy_threshold: Optional[int] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: "Socket[bytes]",
+        ctx_or_socket: "Socket",
+    ):
+        ...
+
+    def __init__(
+        self: "Socket[bytes]",
+        ctx_or_socket: Optional[Union["zmq.Context", "Socket"]] = None,
+        socket_type: int = 0,
+        *,
+        shadow: Union["Socket", int] = 0,
+        copy_threshold: Optional[int] = None,
+    ):
+        if isinstance(ctx_or_socket, zmq.Socket):
+            # positional Socket(other_socket)
+            shadow = ctx_or_socket
+            ctx_or_socket = None
+
+        shadow_address: int = 0
+
+        if shadow:
             self._shadow = True
+            # hold a reference to the shadow object
+            self._shadow_obj = shadow
+            if not isinstance(shadow, int):
+                try:
+                    shadow = cast(int, shadow.underlying)
+                except AttributeError:
+                    pass
+            shadow_address = cast_int_addr(shadow)
         else:
             self._shadow = False
+
+        super().__init__(
+            ctx_or_socket,
+            socket_type,
+            shadow=shadow_address,
+            copy_threshold=copy_threshold,
+        )
+
         try:
-            socket_type: int = cast(int, self.get(zmq.TYPE))
+            socket_type = cast(int, self.get(zmq.TYPE))
         except Exception:
             pass
         else:
@@ -155,17 +222,18 @@ class Socket(SocketBase, AttributeSetter, Generic[ST]):
     __deepcopy__ = __copy__
 
     @classmethod
-    def shadow(cls: Type[T], address: int) -> T:
+    def shadow(cls: Type[T], address: Union[int, "zmq.Socket"]) -> T:
         """Shadow an existing libzmq socket
 
-        address is the integer address of the libzmq socket
-        or an FFI pointer to it.
+        address is a zmq.Socket or an integer (or FFI pointer)
+        representing the address of the libzmq socket.
 
         .. versionadded:: 14.1
-        """
-        from zmq.utils.interop import cast_int_addr
 
-        address = cast_int_addr(address)
+        .. versionadded:: 25
+            Support for shadowing `zmq.Socket` objects,
+            instead of just integer addresses.
+        """
         return cls(shadow=address)
 
     def close(self, linger=None) -> None:
@@ -182,7 +250,8 @@ class Socket(SocketBase, AttributeSetter, Generic[ST]):
 
         This can be called to close the socket by hand. If this is not
         called, the socket will automatically be closed when it is
-        garbage collected.
+        garbage collected,
+        in which case you may see a ResourceWarning about the unclosed socket.
         """
         if self.context:
             self.context._rm_socket(self)
@@ -229,7 +298,11 @@ class Socket(SocketBase, AttributeSetter, Generic[ST]):
             encoded to utf-8 first.
 
         """
-        super().bind(addr)
+        try:
+            super().bind(addr)
+        except ZMQError as e:
+            e.strerror += f" (addr={addr!r})"
+            raise
         return self._bind_cm(addr)
 
     def connect(self: T, addr: str) -> _SocketContext[T]:
@@ -251,7 +324,11 @@ class Socket(SocketBase, AttributeSetter, Generic[ST]):
             encoded to utf-8 first.
 
         """
-        super().connect(addr)
+        try:
+            super().connect(addr)
+        except ZMQError as e:
+            e.strerror += f" (addr={addr!r})"
+            raise
         return self._connect_cm(addr)
 
     # -------------------------------------------------------------------------
@@ -285,7 +362,6 @@ class Socket(SocketBase, AttributeSetter, Generic[ST]):
             return
         _key = key.lower()
         if _key in ('subscribe', 'unsubscribe'):
-
             if isinstance(value, str):
                 value = value.encode('utf8')
             if _key == 'subscribe':

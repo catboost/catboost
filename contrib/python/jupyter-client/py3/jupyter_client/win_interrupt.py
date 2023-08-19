@@ -16,10 +16,11 @@ def create_interrupt_event():
     this handle and use it with ``send_interrupt`` to interrupt the child
     process.
     """
+
     # Create a security attributes struct that permits inheritance of the
     # handle by new processes.
     # FIXME: We can clean up this mess by requiring pywin32 for IPython.
-    class SECURITY_ATTRIBUTES(ctypes.Structure):
+    class SECURITY_ATTRIBUTES(ctypes.Structure):  # noqa
         _fields_ = [
             ("nLength", ctypes.c_int),
             ("lpSecurityDescriptor", ctypes.c_void_p),

@@ -1,3 +1,4 @@
+"""Apps for managing kernel specs."""
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 import errno
@@ -6,15 +7,10 @@ import os.path
 import sys
 import typing as t
 
-from jupyter_core.application import base_aliases
-from jupyter_core.application import base_flags
-from jupyter_core.application import JupyterApp
-from traitlets import Bool
-from traitlets import Dict
-from traitlets import Instance
-from traitlets import List
-from traitlets import Unicode
+from jupyter_core.application import JupyterApp, base_aliases, base_flags
+from traitlets import Bool, Dict, Instance, List, Unicode
 from traitlets.config.application import Application
+from traitlets.config.loader import Config
 
 from . import __version__
 from .kernelspec import KernelSpecManager
@@ -22,6 +18,8 @@ from .provisioning.factory import KernelProvisionerFactory
 
 
 class ListKernelSpecs(JupyterApp):
+    """An app to list kernel specs."""
+
     version = __version__
     description = """List installed kernel specifications."""
     kernel_spec_manager = Instance(KernelSpecManager)
@@ -43,6 +41,7 @@ class ListKernelSpecs(JupyterApp):
         return KernelSpecManager(parent=self, data_dir=self.data_dir)
 
     def start(self):
+        """Start the application."""
         paths = self.kernel_spec_manager.find_kernel_specs()
         specs = self.kernel_spec_manager.get_all_specs()
         if not self.json_output:
@@ -63,12 +62,15 @@ class ListKernelSpecs(JupyterApp):
 
             print("Available kernels:")
             for kernelname, path in sorted(paths.items(), key=path_key):
-                print("  %s    %s" % (kernelname.ljust(name_len), path))
+                print(f"  {kernelname.ljust(name_len)}    {path}")
         else:
             print(json.dumps({"kernelspecs": specs}, indent=2))
+        return specs
 
 
 class InstallKernelSpec(JupyterApp):
+    """An app to install a kernel spec."""
+
     version = __version__
     description = """Install a kernel specification directory.
 
@@ -132,15 +134,17 @@ class InstallKernelSpec(JupyterApp):
     }
 
     def parse_command_line(self, argv):
+        """Parse the command line args."""
         super().parse_command_line(argv)
         # accept positional arg as profile name
         if self.extra_args:
             self.sourcedir = self.extra_args[0]
         else:
-            print("No source directory specified.")
+            print("No source directory specified.", file=sys.stderr)
             self.exit(1)
 
     def start(self):
+        """Start the application."""
         if self.user and self.prefix:
             self.exit("Can't specify both user and prefix. Please choose one or the other.")
         try:
@@ -155,21 +159,17 @@ class InstallKernelSpec(JupyterApp):
             if e.errno == errno.EACCES:
                 print(e, file=sys.stderr)
                 if not self.user:
-                    print(
-                        "Perhaps you want to install with `sudo` or `--user`?",
-                        file=sys.stderr,
-                    )
+                    print("Perhaps you want to install with `sudo` or `--user`?", file=sys.stderr)
                 self.exit(1)
             elif e.errno == errno.EEXIST:
-                print(
-                    "A kernel spec is already present at %s" % e.filename,
-                    file=sys.stderr,
-                )
+                print(f"A kernel spec is already present at {e.filename}", file=sys.stderr)
                 self.exit(1)
             raise
 
 
 class RemoveKernelSpec(JupyterApp):
+    """An app to remove a kernel spec."""
+
     version = __version__
     description = """Remove one or more Jupyter kernelspecs by name."""
     examples = """jupyter kernelspec remove python2 [my_kernel ...]"""
@@ -188,6 +188,7 @@ class RemoveKernelSpec(JupyterApp):
     flags.update(JupyterApp.flags)
 
     def parse_command_line(self, argv):
+        """Parse the command line args."""
         super().parse_command_line(argv)
         # accept positional arg as profile name
         if self.extra_args:
@@ -196,6 +197,7 @@ class RemoveKernelSpec(JupyterApp):
             self.exit("No kernelspec specified.")
 
     def start(self):
+        """Start the application."""
         self.kernel_spec_manager.ensure_native_kernel = False
         spec_paths = self.kernel_spec_manager.find_kernel_specs()
         missing = set(self.spec_names).difference(set(spec_paths))
@@ -205,7 +207,8 @@ class RemoveKernelSpec(JupyterApp):
         if not (self.force or self.answer_yes):
             print("Kernel specs to remove:")
             for name in self.spec_names:
-                print("  %s\t%s" % (name.ljust(20), spec_paths[name]))
+                path = spec_paths.get(name, name)
+                print(f"  {name.ljust(20)}\t{path.ljust(20)}")
             answer = input("Remove %i kernel specs [y/N]: " % len(self.spec_names))
             if not answer.lower().startswith("y"):
                 return
@@ -220,15 +223,17 @@ class RemoveKernelSpec(JupyterApp):
                     self.exit(1)
                 else:
                     raise
-            self.log.info("Removed %s", path)
+            print(f"Removed {path}")
 
 
 class InstallNativeKernelSpec(JupyterApp):
+    """An app to install the native kernel spec."""
+
     version = __version__
     description = """[DEPRECATED] Install the IPython kernel spec directory for this Python."""
     kernel_spec_manager = Instance(KernelSpecManager)
 
-    def _kernel_spec_manager_default(self):
+    def _kernel_spec_manager_default(self):  # pragma: no cover
         return KernelSpecManager(data_dir=self.data_dir)
 
     user = Bool(
@@ -248,14 +253,15 @@ class InstallNativeKernelSpec(JupyterApp):
         "debug": base_flags["debug"],
     }
 
-    def start(self):
+    def start(self):  # pragma: no cover
+        """Start the application."""
         self.log.warning(
             "`jupyter kernelspec install-self` is DEPRECATED as of 4.0."
             " You probably want `ipython kernel install` to install the IPython kernelspec."
         )
         try:
             from ipykernel import kernelspec
-        except ImportError:
+        except ModuleNotFoundError:
             print("ipykernel not available, can't install its spec.", file=sys.stderr)
             self.exit(1)
         try:
@@ -273,10 +279,13 @@ class InstallNativeKernelSpec(JupyterApp):
 
 
 class ListProvisioners(JupyterApp):
+    """An app to list provisioners."""
+
     version = __version__
     description = """List available provisioners for use in kernel specifications."""
 
     def start(self):
+        """Start the application."""
         kfp = KernelProvisionerFactory.instance(parent=self)
         print("Available kernel provisioners:")
         provisioners = kfp.get_provisioner_entries()
@@ -289,6 +298,8 @@ class ListProvisioners(JupyterApp):
 
 
 class KernelSpecApp(Application):
+    """An app to manage kernel specs."""
+
     version = __version__
     name = "jupyter kernelspec"
     description = """Manage Jupyter kernel specifications."""
@@ -310,10 +321,13 @@ class KernelSpecApp(Application):
         }
     )
 
-    aliases: t.Dict[str, object] = {}
-    flags: t.Dict[str, object] = {}
+    aliases: t.Dict[t.Union[str, t.Tuple[str, ...]], t.Union[str, t.Tuple[str, str]]] = {}
+    flags: t.Dict[
+        t.Union[str, t.Tuple[str, ...]], t.Tuple[t.Union[t.Dict[str, t.Any], Config], str]
+    ] = {}
 
     def start(self):
+        """Start the application."""
         if self.subapp is None:
             print("No subcommand specified. Must specify one of: %s" % list(self.subcommands))
             print()

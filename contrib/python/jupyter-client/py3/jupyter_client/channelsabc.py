@@ -4,19 +4,22 @@
 import abc
 
 
-class ChannelABC(object, metaclass=abc.ABCMeta):
+class ChannelABC(metaclass=abc.ABCMeta):
     """A base class for all channel ABCs."""
 
     @abc.abstractmethod
     def start(self):
+        """Start the channel."""
         pass
 
     @abc.abstractmethod
     def stop(self):
+        """Stop the channel."""
         pass
 
     @abc.abstractmethod
     def is_alive(self):
+        """Test whether the channel is alive."""
         pass
 
 
@@ -34,12 +37,15 @@ class HBChannelABC(ChannelABC):
 
     @abc.abstractmethod
     def pause(self):
+        """Pause the heartbeat channel."""
         pass
 
     @abc.abstractmethod
     def unpause(self):
+        """Unpause the heartbeat channel."""
         pass
 
     @abc.abstractmethod
     def is_beating(self):
+        """Test whether the channel is beating."""
         pass

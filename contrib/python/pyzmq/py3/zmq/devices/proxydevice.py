@@ -11,7 +11,6 @@ class ProxyBase:
     """Base class for overriding methods."""
 
     def __init__(self, in_type, out_type, mon_type=zmq.PUB):
-
         Device.__init__(self, in_type=in_type, out_type=out_type)
         self.mon_type = mon_type
         self._mon_binds = []

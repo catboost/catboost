@@ -6,21 +6,21 @@ Useful for test suites and blocking terminal interfaces.
 # Distributed under the terms of the Modified BSD License.
 from traitlets import Type
 
+from ..channels import HBChannel, ZMQSocketChannel
+from ..client import KernelClient, reqrep
 from ..utils import run_sync
-from jupyter_client.channels import HBChannel
-from jupyter_client.channels import ZMQSocketChannel
-from jupyter_client.client import KernelClient
-from jupyter_client.client import reqrep
 
 
 def wrapped(meth, channel):
+    """Wrap a method on a channel and handle replies."""
+
     def _(self, *args, **kwargs):
         reply = kwargs.pop("reply", False)
         timeout = kwargs.pop("timeout", None)
         msg_id = meth(self, *args, **kwargs)
         if not reply:
             return msg_id
-        return run_sync(self._async_recv_reply)(msg_id, timeout=timeout, channel=channel)
+        return self._recv_reply(msg_id, timeout=timeout, channel=channel)
 
     return _
 

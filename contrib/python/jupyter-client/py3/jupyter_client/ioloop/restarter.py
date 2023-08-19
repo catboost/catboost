@@ -10,7 +10,7 @@ import warnings
 
 from traitlets import Instance
 
-from jupyter_client.restarter import KernelRestarter
+from ..restarter import KernelRestarter
 
 
 class IOLoopKernelRestarter(KernelRestarter):
@@ -24,7 +24,7 @@ class IOLoopKernelRestarter(KernelRestarter):
             DeprecationWarning,
             stacklevel=4,
         )
-        from zmq.eventloop import ioloop
+        from tornado import ioloop
 
         return ioloop.IOLoop.current()
 
@@ -49,7 +49,10 @@ class IOLoopKernelRestarter(KernelRestarter):
 
 
 class AsyncIOLoopKernelRestarter(IOLoopKernelRestarter):
+    """An async io loop kernel restarter."""
+
     async def poll(self):
+        """Poll the kernel."""
         if self.debug:
             self.log.debug("Polling kernel...")
         is_alive = await self.kernel_manager.is_alive()

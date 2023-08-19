@@ -5,10 +5,8 @@ import os
 import re
 import socket
 import subprocess
-from subprocess import PIPE
-from subprocess import Popen
-from typing import Iterable
-from typing import List
+from subprocess import PIPE, Popen
+from typing import Iterable, List
 from warnings import warn
 
 LOCAL_IPS: List = []
@@ -41,7 +39,8 @@ def _get_output(cmd):
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
     stdout, stderr = p.communicate()
     if p.returncode:
-        raise IOError("Failed to run %s: %s" % (cmd, stderr.decode("utf8", "replace")))
+        msg = "Failed to run {}: {}".format(cmd, stderr.decode("utf8", "replace"))
+        raise OSError(msg)
     return stdout.decode("utf8", "replace")
 
 
@@ -70,7 +69,7 @@ def _requires_ips(f):
 
 
 # subprocess-parsing ip finders
-class NoIPAddresses(Exception):
+class NoIPAddresses(Exception):  # noqa
     pass
 
 
@@ -94,7 +93,7 @@ def _populate_from_list(addrs):
         LOCALHOST = "127.0.0.1"
         local_ips.insert(0, LOCALHOST)
 
-    local_ips.extend(["0.0.0.0", ""])
+    local_ips.extend(["0.0.0.0", ""])  # noqa
 
     LOCAL_IPS[:] = _uniq_stable(local_ips)
     PUBLIC_IPS[:] = _uniq_stable(public_ips)
@@ -175,7 +174,7 @@ def _load_ips_netifaces():
         # we never found a loopback interface (can this ever happen?), assume common default
         LOCALHOST = "127.0.0.1"
         local_ips.insert(0, LOCALHOST)
-    local_ips.extend(["0.0.0.0", ""])
+    local_ips.extend(["0.0.0.0", ""])  # noqa
     LOCAL_IPS[:] = _uniq_stable(local_ips)
     PUBLIC_IPS[:] = _uniq_stable(public_ips)
 
@@ -188,7 +187,7 @@ def _load_ips_gethostbyname():
     global LOCALHOST
     try:
         LOCAL_IPS[:] = socket.gethostbyname_ex("localhost")[2]
-    except socket.error:
+    except OSError:
         # assume common default
         LOCAL_IPS[:] = ["127.0.0.1"]
 
@@ -198,14 +197,14 @@ def _load_ips_gethostbyname():
         # try hostname.local, in case hostname has been short-circuited to loopback
         if not hostname.endswith(".local") and all(ip.startswith("127") for ip in PUBLIC_IPS):
             PUBLIC_IPS[:] = socket.gethostbyname_ex(socket.gethostname() + ".local")[2]
-    except socket.error:
+    except OSError:
         pass
     finally:
         PUBLIC_IPS[:] = _uniq_stable(PUBLIC_IPS)
         LOCAL_IPS.extend(PUBLIC_IPS)
 
     # include all-interface aliases: 0.0.0.0 and ''
-    LOCAL_IPS.extend(["0.0.0.0", ""])
+    LOCAL_IPS.extend(["0.0.0.0", ""])  # noqa
 
     LOCAL_IPS[:] = _uniq_stable(LOCAL_IPS)
 
@@ -216,7 +215,7 @@ def _load_ips_dumb():
     """Fallback in case of unexpected failure"""
     global LOCALHOST
     LOCALHOST = "127.0.0.1"
-    LOCAL_IPS[:] = [LOCALHOST, "0.0.0.0", ""]
+    LOCAL_IPS[:] = [LOCALHOST, "0.0.0.0", ""]  # noqa
     PUBLIC_IPS[:] = []
 
 

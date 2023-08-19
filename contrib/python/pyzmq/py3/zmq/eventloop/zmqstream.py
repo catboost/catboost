@@ -13,48 +13,44 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""A utility class to send to and recv from a non-blocking socket,
-using tornado.
+"""A utility class for event-based messaging on a zmq socket using tornado.
 
 .. seealso::
 
     - :mod:`zmq.asyncio`
     - :mod:`zmq.eventloop.future`
-
 """
 
+import asyncio
 import pickle
 import warnings
 from queue import Queue
-from typing import Any, Callable, List, Optional, Sequence, Union, cast, overload
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    List,
+    Optional,
+    Sequence,
+    Union,
+    cast,
+    overload,
+)
+
+from tornado.ioloop import IOLoop
+from tornado.log import gen_log
 
 import zmq
+import zmq._future
 from zmq import POLLIN, POLLOUT
 from zmq._typing import Literal
 from zmq.utils import jsonapi
-
-from .ioloop import gen_log
-
-try:
-    import tornado.ioloop
-    from tornado.ioloop import IOLoop  # type: ignore
-except ImportError as e:
-    # fallback on deprecated bundled IOLoop
-    from .ioloop import IOLoop
-
-try:
-    from tornado.stack_context import wrap as stack_context_wrap  # type: ignore
-except ImportError as e:
-    # tornado 5 deprecates stack_context,
-    # tornado 6 removes it
-    def stack_context_wrap(callback):
-        return callback
 
 
 class ZMQStream:
     """A utility class to register callbacks when a zmq socket sends and receives
 
-    For use with zmq.eventloop.ioloop
+    For use with tornado IOLoop.
 
     There are three main methods
 
@@ -64,7 +60,7 @@ class ZMQStream:
         register a callback to be run every time the socket has something to receive
     * **on_send(callback):**
         register a callback to be run every time you call send
-    * **send(self, msg, flags=0, copy=False, callback=None):**
+    * **send_multipart(self, msg, flags=0, copy=False, callback=None):**
         perform a send that will trigger the callback
         if callback is passed, on_send is also called.
 
@@ -86,24 +82,57 @@ class ZMQStream:
     >>> stream.bind is stream.socket.bind
     True
 
+
+    .. versionadded:: 25
+
+        send/recv callbacks can be coroutines.
+
+    .. versionchanged:: 25
+
+        ZMQStreams only support base zmq.Socket classes (this has always been true, but not enforced).
+        If ZMQStreams are created with e.g. async Socket subclasses,
+        a RuntimeWarning will be shown,
+        and the socket cast back to the default zmq.Socket
+        before connecting events.
+
+        Previously, using async sockets (or any zmq.Socket subclass) would result in undefined behavior for the
+        arguments passed to callback functions.
+        Now, the callback functions reliably get the return value of the base `zmq.Socket` send/recv_multipart methods
+        (the list of message frames).
     """
 
     socket: zmq.Socket
-    io_loop: "tornado.ioloop.IOLoop"
+    io_loop: IOLoop
     poller: zmq.Poller
     _send_queue: Queue
     _recv_callback: Optional[Callable]
     _send_callback: Optional[Callable]
-    _close_callback = Optional[Callable]
+    _close_callback: Optional[Callable]
     _state: int = 0
     _flushed: bool = False
     _recv_copy: bool = False
     _fd: int
 
-    def __init__(
-        self, socket: "zmq.Socket", io_loop: Optional["tornado.ioloop.IOLoop"] = None
-    ):
+    def __init__(self, socket: "zmq.Socket", io_loop: Optional[IOLoop] = None):
+        if isinstance(socket, zmq._future._AsyncSocket):
+            warnings.warn(
+                f"""ZMQStream only supports the base zmq.Socket class.
+
+                Use zmq.Socket(shadow=other_socket)
+                or `ctx.socket(zmq.{socket._type_name}, socket_class=zmq.Socket)`
+                to create a base zmq.Socket object,
+                no matter what other kind of socket your Context creates.
+                """,
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            # shadow back to base zmq.Socket,
+            # otherwise callbacks like `on_recv` will get the wrong types.
+            socket = zmq.Socket(shadow=socket)
         self.socket = socket
+
+        # IOLoop.current() is deprecated if called outside the event loop
+        # that means
         self.io_loop = io_loop or IOLoop.current()
         self.poller = zmq.Poller()
         self._fd = cast(int, self.socket.FD)
@@ -214,7 +243,7 @@ class ZMQStream:
 
         self._check_closed()
         assert callback is None or callable(callback)
-        self._recv_callback = stack_context_wrap(callback)
+        self._recv_callback = callback
         self._recv_copy = copy
         if callback is None:
             self._drop_io_state(zmq.POLLIN)
@@ -320,7 +349,7 @@ class ZMQStream:
 
         self._check_closed()
         assert callback is None or callable(callback)
-        self._send_callback = stack_context_wrap(callback)
+        self._send_callback = callback
 
     def on_send_stream(
         self,
@@ -355,8 +384,8 @@ class ZMQStream:
         flags: int = 0,
         copy: bool = True,
         track: bool = False,
-        callback: Callable = None,
-        **kwargs: Any
+        callback: Optional[Callable] = None,
+        **kwargs: Any,
     ) -> None:
         """Send a multipart message, optionally also register a new callback for sends.
         See zmq.socket.send_multipart for details.
@@ -377,7 +406,7 @@ class ZMQStream:
         flags: int = 0,
         encoding: str = 'utf-8',
         callback: Optional[Callable] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """Send a unicode message with an encoding.
         See zmq.socket.send_unicode for details.
@@ -393,7 +422,7 @@ class ZMQStream:
         obj: Any,
         flags: int = 0,
         callback: Optional[Callable] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """Send json-serialized version of an object.
         See zmq.socket.send_json for details.
@@ -407,7 +436,7 @@ class ZMQStream:
         flags: int = 0,
         protocol: int = -1,
         callback: Optional[Callable] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """Send a Python object as a message using pickle to serialize.
 
@@ -506,7 +535,7 @@ class ZMQStream:
 
     def set_close_callback(self, callback: Optional[Callable]):
         """Call the given callback when the stream is closed."""
-        self._close_callback = stack_context_wrap(callback)
+        self._close_callback = callback
 
     def close(self, linger: Optional[int] = None) -> None:
         """Close this stream."""
@@ -552,14 +581,28 @@ class ZMQStream:
         """Wrap running callbacks in try/except to allow us to
         close our socket."""
         try:
-            # Use a NullContext to ensure that all StackContexts are run
-            # inside our blanket exception handler rather than outside.
-            callback(*args, **kwargs)
+            f = callback(*args, **kwargs)
+            if isinstance(f, Awaitable):
+                f = asyncio.ensure_future(f)
+            else:
+                f = None
         except Exception:
             gen_log.error("Uncaught exception in ZMQStream callback", exc_info=True)
             # Re-raise the exception so that IOLoop.handle_callback_exception
             # can see it and log the error
             raise
+
+        if f is not None:
+            # handle async callbacks
+            def _log_error(f):
+                try:
+                    f.result()
+                except Exception:
+                    gen_log.error(
+                        "Uncaught exception in ZMQStream callback", exc_info=True
+                    )
+
+            f.add_done_callback(_log_error)
 
     def _handle_events(self, fd, events):
         """This method is the actual handler for IOLoop, that gets called whenever
@@ -571,6 +614,19 @@ class ZMQStream:
             zmq_events = self.socket.EVENTS
         except zmq.ContextTerminated:
             gen_log.warning("Got events for stream %s after terminating context", self)
+            # trigger close check, this will unregister callbacks
+            self.closed()
+            return
+        except zmq.ZMQError as e:
+            # run close check
+            # shadow sockets may have been closed elsewhere,
+            # which should show up as ENOTSOCK here
+            if self.closed():
+                gen_log.warning(
+                    "Got events for stream %s attached to closed socket: %s", self, e
+                )
+            else:
+                gen_log.error("Error getting events for %s: %s", self, e)
             return
         try:
             # dispatch events:

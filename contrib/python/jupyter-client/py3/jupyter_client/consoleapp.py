@@ -10,24 +10,15 @@ import atexit
 import os
 import signal
 import sys
+import typing as t
 import uuid
 import warnings
-from typing import cast
 
-from jupyter_core.application import base_aliases
-from jupyter_core.application import base_flags
-from traitlets import CBool
-from traitlets import CUnicode
-from traitlets import Dict
-from traitlets import List
-from traitlets import Type
-from traitlets import Unicode
+from jupyter_core.application import base_aliases, base_flags
+from traitlets import CBool, CUnicode, Dict, List, Type, Unicode
 from traitlets.config.application import boolean_flag
 
-from . import connect
-from . import find_connection_file
-from . import KernelManager
-from . import tunnel_to_kernel
+from . import KernelManager, connect, find_connection_file, tunnel_to_kernel
 from .blocking import BlockingKernelClient
 from .kernelspec import NoSuchKernel
 from .localinterfaces import localhost
@@ -41,12 +32,12 @@ ConnectionFileMixin = connect.ConnectionFileMixin
 # Aliases and Flags
 # -----------------------------------------------------------------------------
 
-flags = {}
+flags: dict = {}
 flags.update(base_flags)
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-app_flags = {
+app_flags: dict = {
     "existing": (
         {"JupyterConsoleApp": {"existing": "kernel*.json"}},
         "Connect to an existing kernel. If no argument specified, guess most recent",
@@ -70,37 +61,41 @@ app_flags.update(
 )
 flags.update(app_flags)
 
-aliases = {}
+aliases: dict = {}
 aliases.update(base_aliases)
 
 # also scrub aliases from the frontend
-app_aliases = dict(
-    ip="JupyterConsoleApp.ip",
-    transport="JupyterConsoleApp.transport",
-    hb="JupyterConsoleApp.hb_port",
-    shell="JupyterConsoleApp.shell_port",
-    iopub="JupyterConsoleApp.iopub_port",
-    stdin="JupyterConsoleApp.stdin_port",
-    control="JupyterConsoleApp.control_port",
-    existing="JupyterConsoleApp.existing",
-    f="JupyterConsoleApp.connection_file",
-    kernel="JupyterConsoleApp.kernel_name",
-    ssh="JupyterConsoleApp.sshserver",
-    sshkey="JupyterConsoleApp.sshkey",
-)
+app_aliases: dict = {
+    "ip": "JupyterConsoleApp.ip",
+    "transport": "JupyterConsoleApp.transport",
+    "hb": "JupyterConsoleApp.hb_port",
+    "shell": "JupyterConsoleApp.shell_port",
+    "iopub": "JupyterConsoleApp.iopub_port",
+    "stdin": "JupyterConsoleApp.stdin_port",
+    "control": "JupyterConsoleApp.control_port",
+    "existing": "JupyterConsoleApp.existing",
+    "f": "JupyterConsoleApp.connection_file",
+    "kernel": "JupyterConsoleApp.kernel_name",
+    "ssh": "JupyterConsoleApp.sshserver",
+    "sshkey": "JupyterConsoleApp.sshkey",
+}
 aliases.update(app_aliases)
 
 # -----------------------------------------------------------------------------
 # Classes
 # -----------------------------------------------------------------------------
 
-classes = [KernelManager, KernelRestarter, Session]
+classes: t.List[t.Type[t.Any]] = [KernelManager, KernelRestarter, Session]
 
 
 class JupyterConsoleApp(ConnectionFileMixin):
-    name = "jupyter-console-mixin"
+    """The base Jupyter console application."""
 
-    description = """
+    name: t.Union[str, Unicode] = "jupyter-console-mixin"
+
+    description: t.Union[
+        str, Unicode
+    ] = """
         The Jupyter Console Mixin.
 
         This class contains the common portions of console client (QtConsole,
@@ -160,7 +155,7 @@ class JupyterConsoleApp(ConnectionFileMixin):
 
         Override in subclasses if any args should be passed to the kernel
         """
-        self.kernel_argv = self.extra_args
+        self.kernel_argv = self.extra_args  # type:ignore[attr-defined]
 
     def init_connection_file(self) -> None:
         """find the connection file, and load the info if found.
@@ -177,32 +172,33 @@ class JupyterConsoleApp(ConnectionFileMixin):
         After this method is called, self.connection_file contains the *full path*
         to the connection file, never just its name.
         """
+        runtime_dir = self.runtime_dir  # type:ignore[attr-defined]
         if self.existing:
             try:
-                cf = find_connection_file(self.existing, [".", self.runtime_dir])
+                cf = find_connection_file(self.existing, [".", runtime_dir])
             except Exception:
                 self.log.critical(
                     "Could not find existing kernel connection file %s", self.existing
                 )
-                self.exit(1)
-            self.log.debug("Connecting to existing kernel: %s" % cf)
+                self.exit(1)  # type:ignore[attr-defined]
+            self.log.debug("Connecting to existing kernel: %s", cf)
             self.connection_file = cf
         else:
             # not existing, check if we are going to write the file
             # and ensure that self.connection_file is a full path, not just the shortname
             try:
-                cf = find_connection_file(self.connection_file, [self.runtime_dir])
+                cf = find_connection_file(self.connection_file, [runtime_dir])
             except Exception:
                 # file might not exist
                 if self.connection_file == os.path.basename(self.connection_file):
                     # just shortname, put it in security dir
-                    cf = os.path.join(self.runtime_dir, self.connection_file)
+                    cf = os.path.join(runtime_dir, self.connection_file)
                 else:
                     cf = self.connection_file
                 self.connection_file = cf
         try:
-            self.connection_file = _filefind(self.connection_file, [".", self.runtime_dir])
-        except IOError:
+            self.connection_file = _filefind(self.connection_file, [".", runtime_dir])
+        except OSError:
             self.log.debug("Connection File not found: %s", self.connection_file)
             return
 
@@ -217,7 +213,7 @@ class JupyterConsoleApp(ConnectionFileMixin):
                 self.connection_file,
                 exc_info=True,
             )
-            self.exit(1)
+            self.exit(1)  # type:ignore[attr-defined]
 
     def init_ssh(self) -> None:
         """set up ssh tunnels, if needed."""
@@ -238,16 +234,16 @@ class JupyterConsoleApp(ConnectionFileMixin):
             ip = localhost()
 
         # build connection dict for tunnels:
-        info = dict(
-            ip=ip,
-            shell_port=self.shell_port,
-            iopub_port=self.iopub_port,
-            stdin_port=self.stdin_port,
-            hb_port=self.hb_port,
-            control_port=self.control_port,
-        )
+        info = {
+            "ip": ip,
+            "shell_port": self.shell_port,
+            "iopub_port": self.iopub_port,
+            "stdin_port": self.stdin_port,
+            "hb_port": self.hb_port,
+            "control_port": self.control_port,
+        }
 
-        self.log.info("Forwarding connections to %s via %s" % (ip, self.sshserver))
+        self.log.info("Forwarding connections to %s via %s", ip, self.sshserver)
 
         # tunnels return a new set of ports, which will be on localhost:
         self.ip = localhost()
@@ -256,7 +252,7 @@ class JupyterConsoleApp(ConnectionFileMixin):
         except:  # noqa
             # even catch KeyboardInterrupt
             self.log.error("Could not setup tunnels", exc_info=True)
-            self.exit(1)
+            self.exit(1)  # type:ignore[attr-defined]
 
         (
             self.shell_port,
@@ -271,7 +267,7 @@ class JupyterConsoleApp(ConnectionFileMixin):
         self.connection_file = root + "-ssh" + ext
         self.write_connection_file()  # write the new connection file
         self.log.info("To connect another client via this tunnel, use:")
-        self.log.info("--existing %s" % os.path.basename(self.connection_file))
+        self.log.info("--existing %s", os.path.basename(self.connection_file))
 
     def _new_connection_file(self) -> str:
         cf = ""
@@ -280,13 +276,15 @@ class JupyterConsoleApp(ConnectionFileMixin):
             # 48b node segment (12 hex chars).  Users running more than 32k simultaneous
             # kernels can subclass.
             ident = str(uuid.uuid4()).split("-")[-1]
-            cf = os.path.join(self.runtime_dir, "kernel-%s.json" % ident)
+            runtime_dir = self.runtime_dir  # type:ignore[attr-defined]
+            cf = os.path.join(runtime_dir, "kernel-%s.json" % ident)
             # only keep if it's actually new.  Protect against unlikely collision
             # in 48b random search space
             cf = cf if not os.path.exists(cf) else ""
         return cf
 
     def init_kernel_manager(self) -> None:
+        """Initialize the kernel manager."""
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
         if self.existing:
             self.kernel_manager = None
@@ -311,9 +309,9 @@ class JupyterConsoleApp(ConnectionFileMixin):
             )
         except NoSuchKernel:
             self.log.critical("Could not find kernel %s", self.kernel_name)
-            self.exit(1)
+            self.exit(1)  # type:ignore[attr-defined]
 
-        self.kernel_manager = cast(KernelManager, self.kernel_manager)
+        self.kernel_manager = t.cast(KernelManager, self.kernel_manager)
         self.kernel_manager.client_factory = self.kernel_client_class
         kwargs = {}
         kwargs["extra_arguments"] = self.kernel_argv
@@ -336,6 +334,7 @@ class JupyterConsoleApp(ConnectionFileMixin):
         atexit.register(self.kernel_manager.cleanup_connection_file)
 
     def init_kernel_client(self) -> None:
+        """Initialize the kernel client."""
         if self.kernel_manager is not None:
             self.kernel_client = self.kernel_manager.client()
         else:
@@ -359,7 +358,7 @@ class JupyterConsoleApp(ConnectionFileMixin):
         Classes which mix this class in should call:
                JupyterConsoleApp.initialize(self,argv)
         """
-        if self._dispatching:
+        if getattr(self, "_dispatching", False):
             return
         self.init_connection_file()
         self.init_ssh()
@@ -368,6 +367,9 @@ class JupyterConsoleApp(ConnectionFileMixin):
 
 
 class IPythonConsoleApp(JupyterConsoleApp):
+    """An app to manage an ipython console."""
+
     def __init__(self, *args, **kwargs):
+        """Initialize the app."""
         warnings.warn("IPythonConsoleApp is deprecated. Use JupyterConsoleApp")
         super().__init__(*args, **kwargs)

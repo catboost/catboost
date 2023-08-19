@@ -12,8 +12,7 @@ import signal
 import socket
 import sys
 import warnings
-from getpass import getpass
-from getpass import getuser
+from getpass import getpass, getuser
 from multiprocessing import Process
 
 try:
@@ -25,7 +24,7 @@ try:
 except ImportError:
     paramiko = None  # type:ignore[assignment]
 
-    class SSHException(Exception):  # type: ignore
+    class SSHException(Exception):  # type: ignore  # noqa
         pass
 
 else:
@@ -54,7 +53,7 @@ def select_random_ports(n):
 # -----------------------------------------------------------------------------
 # Check for passwordless login
 # -----------------------------------------------------------------------------
-_password_pat = re.compile((r"pass(word|phrase):".encode("utf8")), re.IGNORECASE)
+_password_pat = re.compile((br"pass(word|phrase):"), re.IGNORECASE)
 
 
 def try_passwordless_ssh(server, keyfile, paramiko=None):
@@ -66,17 +65,15 @@ def try_passwordless_ssh(server, keyfile, paramiko=None):
     """
     if paramiko is None:
         paramiko = sys.platform == "win32"
-    if not paramiko:
-        f = _try_passwordless_openssh
-    else:
-        f = _try_passwordless_paramiko
+    f = _try_passwordless_paramiko if paramiko else _try_passwordless_openssh
     return f(server, keyfile)
 
 
 def _try_passwordless_openssh(server, keyfile):
     """Try passwordless login with shell ssh command."""
     if pexpect is None:
-        raise ImportError("pexpect unavailable, use paramiko")
+        msg = "pexpect unavailable, use paramiko"
+        raise ImportError(msg)
     cmd = "ssh -f " + server
     if keyfile:
         cmd += " -i " + keyfile
@@ -92,7 +89,8 @@ def _try_passwordless_openssh(server, keyfile):
         try:
             i = p.expect([ssh_newkey, _password_pat], timeout=0.1)
             if i == 0:
-                raise SSHException("The authenticity of the host can't be established.")
+                msg = "The authenticity of the host can't be established."
+                raise SSHException(msg)
         except pexpect.TIMEOUT:
             continue
         except pexpect.EOF:
@@ -157,15 +155,11 @@ def open_tunnel(addr, server, keyfile=None, password=None, paramiko=None, timeou
     """
 
     lport = select_random_ports(1)[0]
-    transport, addr = addr.split("://")
+    _, addr = addr.split("://")
     ip, rport = addr.split(":")
     rport = int(rport)
-    if paramiko is None:
-        paramiko = sys.platform == "win32"
-    if paramiko:
-        tunnelf = paramiko_tunnel
-    else:
-        tunnelf = openssh_tunnel
+    paramiko = sys.platform == "win32" if paramiko is None else paramiko_tunnel
+    tunnelf = paramiko_tunnel if paramiko else openssh_tunnel
 
     tunnel = tunnelf(
         lport,
@@ -218,7 +212,8 @@ def openssh_tunnel(
         closing.  This prevents orphaned tunnels from running forever.
     """
     if pexpect is None:
-        raise ImportError("pexpect unavailable, use paramiko_tunnel")
+        msg = "pexpect unavailable, use paramiko_tunnel"
+        raise ImportError(msg)
     ssh = "ssh "
     if keyfile:
         ssh += "-i " + keyfile
@@ -227,10 +222,10 @@ def openssh_tunnel(
         server, port = server.split(":")
         ssh += " -p %s" % port
 
-    cmd = "%s -O check %s" % (ssh, server)
+    cmd = f"{ssh} -O check {server}"
     (output, exitstatus) = pexpect.run(cmd, withexitstatus=True)
     if not exitstatus:
-        pid = int(output[output.find(b"(pid=") + 5 : output.find(b")")])  # noqa
+        pid = int(output[output.find(b"(pid=") + 5 : output.find(b")")])
         cmd = "%s -O forward -L 127.0.0.1:%i:%s:%i %s" % (
             ssh,
             lport,
@@ -262,20 +257,19 @@ def openssh_tunnel(
         try:
             i = tunnel.expect([ssh_newkey, _password_pat], timeout=0.1)
             if i == 0:
-                raise SSHException("The authenticity of the host can't be established.")
+                msg = "The authenticity of the host can't be established."
+                raise SSHException(msg)
         except pexpect.TIMEOUT:
             continue
         except pexpect.EOF as e:
+            tunnel.wait()
             if tunnel.exitstatus:
-                print(tunnel.exitstatus)
-                print(tunnel.before)
-                print(tunnel.after)
                 raise RuntimeError("tunnel '%s' failed to start" % (cmd)) from e
             else:
                 return tunnel.pid
         else:
             if failed:
-                print("Password rejected, try again")
+                warnings.warn("Password rejected, try again")
                 password = None
             if password is None:
                 password = getpass("%s's password: " % (server))
@@ -343,16 +337,16 @@ def paramiko_tunnel(
 
     """
     if paramiko is None:
-        raise ImportError("Paramiko not available")
+        msg = "Paramiko not available"
+        raise ImportError(msg)
 
-    if password is None:
-        if not _try_passwordless_paramiko(server, keyfile):
-            password = getpass("%s's password: " % (server))
+    if password is None and not _try_passwordless_paramiko(server, keyfile):
+        password = getpass("%s's password: " % (server))
 
     p = Process(
         target=_paramiko_tunnel,
         args=(lport, rport, server, remoteip),
-        kwargs=dict(keyfile=keyfile, password=password),
+        kwargs={"keyfile": keyfile, "password": password},
     )
     p.daemon = True
     p.start()
@@ -384,7 +378,7 @@ def _paramiko_tunnel(lport, rport, server, remoteip, keyfile=None, password=None
     #        else:
     #            raise
     except Exception as e:
-        print("*** Failed to connect to %s:%d: %r" % (server, port, e))
+        warnings.warn("*** Failed to connect to %s:%d: %r" % (server, port, e))
         sys.exit(1)
 
     # Don't let SIGINT kill the tunnel subprocess
@@ -393,10 +387,10 @@ def _paramiko_tunnel(lport, rport, server, remoteip, keyfile=None, password=None
     try:
         forward_tunnel(lport, remoteip, rport, client.get_transport())
     except KeyboardInterrupt:
-        print("SIGINT: Port forwarding stopped cleanly")
+        warnings.warn("SIGINT: Port forwarding stopped cleanly")
         sys.exit(0)
     except Exception as e:
-        print("Port forwarding stopped uncleanly: %s" % e)
+        warnings.warn("Port forwarding stopped uncleanly: %s" % e)
         sys.exit(255)
 
 

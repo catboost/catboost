@@ -6,14 +6,14 @@ import atexit
 import time
 import typing as t
 from queue import Empty
-from threading import Event
-from threading import Thread
+from threading import Event, Thread
 
 import zmq.asyncio
+from jupyter_core.utils import ensure_async
 
+from ._version import protocol_version_info
 from .channelsabc import HBChannelABC
 from .session import Session
-from jupyter_client import protocol_version_info
 
 # import ZMQError in top-level namespace, to avoid ugly attribute-error messages
 # during garbage collection of threads at exit
@@ -25,7 +25,9 @@ from jupyter_client import protocol_version_info
 major_protocol_version = protocol_version_info[0]
 
 
-class InvalidPortNumber(Exception):
+class InvalidPortNumber(Exception):  # noqa
+    """An exception raised for an invalid port number."""
+
     pass
 
 
@@ -49,7 +51,7 @@ class HBChannel(Thread):
 
     def __init__(
         self,
-        context: t.Optional[zmq.asyncio.Context] = None,
+        context: t.Optional[zmq.Context] = None,
         session: t.Optional[Session] = None,
         address: t.Union[t.Tuple[str, int], str] = "",
     ):
@@ -57,7 +59,7 @@ class HBChannel(Thread):
 
         Parameters
         ----------
-        context : :class:`zmq.asyncio.Context`
+        context : :class:`zmq.Context`
             The ZMQ context to use.
         session : :class:`session.Session`
             The session to use.
@@ -106,12 +108,6 @@ class HBChannel(Thread):
 
         self.poller.register(self.socket, zmq.POLLIN)
 
-    def run(self) -> None:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(self._async_run())
-        loop.close()
-
     async def _async_run(self) -> None:
         """The thread's main activity.  Call start() instead."""
         self._create_socket()
@@ -127,8 +123,8 @@ class HBChannel(Thread):
 
             since_last_heartbeat = 0.0
             # no need to catch EFSM here, because the previous event was
-            # either a recv or connect, which cannot be followed by EFSM
-            await self.socket.send(b"ping")
+            # either a recv or connect, which cannot be followed by EFSM)
+            await ensure_async(self.socket.send(b"ping"))
             request_time = time.time()
             # Wait until timeout
             self._exit.wait(self.time_to_dead)
@@ -136,7 +132,7 @@ class HBChannel(Thread):
             self._beating = bool(self.poller.poll(0))
             if self._beating:
                 # the poll above guarantees we have something to recv
-                await self.socket.recv()
+                await ensure_async(self.socket.recv())
                 continue
             elif self._running:
                 # nothing was received within the time limit, signal heart failure
@@ -145,6 +141,13 @@ class HBChannel(Thread):
                 # and close/reopen the socket, because the REQ/REP cycle has been broken
                 self._create_socket()
                 continue
+
+    def run(self) -> None:
+        """Run the heartbeat thread."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self._async_run())
+        loop.close()
 
     def pause(self) -> None:
         """Pause the heartbeat."""
@@ -156,7 +159,7 @@ class HBChannel(Thread):
 
     def is_beating(self) -> bool:
         """Is the heartbeat running and responsive (and not paused)."""
-        if self.is_alive() and not self._pause and self._beating:
+        if self.is_alive() and not self._pause and self._beating:  # noqa
             return True
         else:
             return False
@@ -169,6 +172,7 @@ class HBChannel(Thread):
         self.close()
 
     def close(self) -> None:
+        """Close the heartbeat thread."""
         if self.socket is not None:
             try:
                 self.socket.close(linger=0)
@@ -190,8 +194,88 @@ class HBChannel(Thread):
 HBChannelABC.register(HBChannel)
 
 
-class ZMQSocketChannel(object):
+class ZMQSocketChannel:
+    """A ZMQ socket wrapper"""
+
+    def __init__(self, socket: zmq.Socket, session: Session, loop: t.Any = None) -> None:
+        """Create a channel.
+
+        Parameters
+        ----------
+        socket : :class:`zmq.Socket`
+            The ZMQ socket to use.
+        session : :class:`session.Session`
+            The session to use.
+        loop
+            Unused here, for other implementations
+        """
+        super().__init__()
+
+        self.socket: t.Optional[zmq.Socket] = socket
+        self.session = session
+
+    def _recv(self, **kwargs: t.Any) -> t.Dict[str, t.Any]:
+        assert self.socket is not None
+        msg = self.socket.recv_multipart(**kwargs)
+        ident, smsg = self.session.feed_identities(msg)
+        return self.session.deserialize(smsg)
+
+    def get_msg(self, timeout: t.Optional[float] = None) -> t.Dict[str, t.Any]:
+        """Gets a message if there is one that is ready."""
+        assert self.socket is not None
+        if timeout is not None:
+            timeout *= 1000  # seconds to ms
+        ready = self.socket.poll(timeout)
+        if ready:
+            res = self._recv()
+            return res
+        else:
+            raise Empty
+
+    def get_msgs(self) -> t.List[t.Dict[str, t.Any]]:
+        """Get all messages that are currently ready."""
+        msgs = []
+        while True:
+            try:
+                msgs.append(self.get_msg())
+            except Empty:
+                break
+        return msgs
+
+    def msg_ready(self) -> bool:
+        """Is there a message that has been received?"""
+        assert self.socket is not None
+        return bool(self.socket.poll(timeout=0))
+
+    def close(self) -> None:
+        """Close the socket channel."""
+        if self.socket is not None:
+            try:
+                self.socket.close(linger=0)
+            except Exception:
+                pass
+            self.socket = None
+
+    stop = close
+
+    def is_alive(self) -> bool:
+        """Test whether the channel is alive."""
+        return self.socket is not None
+
+    def send(self, msg: t.Dict[str, t.Any]) -> None:
+        """Pass a message to the ZMQ socket to send"""
+        assert self.socket is not None
+        self.session.send(self.socket, msg)
+
+    def start(self) -> None:
+        """Start the socket channel."""
+        pass
+
+
+class AsyncZMQSocketChannel(ZMQSocketChannel):
     """A ZMQ socket in an async API"""
+
+    socket: zmq.asyncio.Socket
 
     def __init__(self, socket: zmq.asyncio.Socket, session: Session, loop: t.Any = None) -> None:
         """Create a channel.
@@ -205,31 +289,32 @@ class ZMQSocketChannel(object):
         loop
             Unused here, for other implementations
         """
-        super().__init__()
+        if not isinstance(socket, zmq.asyncio.Socket):
+            msg = 'Socket must be asyncio'
+            raise ValueError(msg)
+        super().__init__(socket, session)
 
-        self.socket: t.Optional[zmq.asyncio.Socket] = socket
-        self.session = session
-
-    async def _recv(self, **kwargs: t.Any) -> t.Dict[str, t.Any]:
+    async def _recv(self, **kwargs: t.Any) -> t.Dict[str, t.Any]:  # type:ignore[override]
         assert self.socket is not None
         msg = await self.socket.recv_multipart(**kwargs)
-        ident, smsg = self.session.feed_identities(msg)
+        _, smsg = self.session.feed_identities(msg)
         return self.session.deserialize(smsg)
 
-    async def get_msg(self, timeout: t.Optional[float] = None) -> t.Dict[str, t.Any]:
+    async def get_msg(  # type:ignore[override]
+        self, timeout: t.Optional[float] = None
+    ) -> t.Dict[str, t.Any]:
         """Gets a message if there is one that is ready."""
         assert self.socket is not None
         if timeout is not None:
             timeout *= 1000  # seconds to ms
         ready = await self.socket.poll(timeout)
-
         if ready:
             res = await self._recv()
             return res
         else:
             raise Empty
 
-    async def get_msgs(self) -> t.List[t.Dict[str, t.Any]]:
+    async def get_msgs(self) -> t.List[t.Dict[str, t.Any]]:  # type:ignore[override]
         """Get all messages that are currently ready."""
         msgs = []
         while True:
@@ -239,28 +324,7 @@ class ZMQSocketChannel(object):
                 break
         return msgs
 
-    async def msg_ready(self) -> bool:
+    async def msg_ready(self) -> bool:  # type:ignore[override]
         """Is there a message that has been received?"""
         assert self.socket is not None
         return bool(await self.socket.poll(timeout=0))
-
-    def close(self) -> None:
-        if self.socket is not None:
-            try:
-                self.socket.close(linger=0)
-            except Exception:
-                pass
-            self.socket = None
-
-    stop = close
-
-    def is_alive(self) -> bool:
-        return self.socket is not None
-
-    def send(self, msg: t.Dict[str, t.Any]) -> None:
-        """Pass a message to the ZMQ socket to send"""
-        assert self.socket is not None
-        self.session.send(self.socket, msg)
-
-    def start(self) -> None:
-        pass

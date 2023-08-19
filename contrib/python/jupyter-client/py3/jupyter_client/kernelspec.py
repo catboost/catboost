@@ -1,28 +1,17 @@
 """Tools for managing kernel specs"""
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
-import io
 import json
 import os
 import re
 import shutil
 import warnings
 
-from jupyter_core.paths import jupyter_data_dir
-from jupyter_core.paths import jupyter_path
-from jupyter_core.paths import SYSTEM_JUPYTER_PATH
-from traitlets import Bool
-from traitlets import CaselessStrEnum
-from traitlets import Dict
-from traitlets import HasTraits
-from traitlets import List
-from traitlets import observe
-from traitlets import Set
-from traitlets import Type
-from traitlets import Unicode
+from jupyter_core.paths import SYSTEM_JUPYTER_PATH, jupyter_data_dir, jupyter_path
+from traitlets import Bool, CaselessStrEnum, Dict, HasTraits, List, Set, Type, Unicode, observe
 from traitlets.config import LoggingConfigurable
 
-from .provisioning import KernelProvisionerFactory as KPF
+from .provisioning import KernelProvisionerFactory as KPF  # noqa
 
 pjoin = os.path.join
 
@@ -30,6 +19,8 @@ NATIVE_KERNEL_NAME = "python3"
 
 
 class KernelSpec(HasTraits):
+    """A kernel spec model object."""
+
     argv = List()
     name = Unicode()
     mimetype = Unicode()
@@ -47,19 +38,20 @@ class KernelSpec(HasTraits):
         Pass the path to the *directory* containing kernel.json.
         """
         kernel_file = pjoin(resource_dir, "kernel.json")
-        with io.open(kernel_file, "r", encoding="utf-8") as f:
+        with open(kernel_file, encoding="utf-8") as f:
             kernel_dict = json.load(f)
         return cls(resource_dir=resource_dir, **kernel_dict)
 
     def to_dict(self):
-        d = dict(
-            argv=self.argv,
-            env=self.env,
-            display_name=self.display_name,
-            language=self.language,
-            interrupt_mode=self.interrupt_mode,
-            metadata=self.metadata,
-        )
+        """Convert the kernel spec to a dict."""
+        d = {
+            "argv": self.argv,
+            "env": self.env,
+            "display_name": self.display_name,
+            "language": self.language,
+            "interrupt_mode": self.interrupt_mode,
+            "metadata": self.metadata,
+        }
 
         return d
 
@@ -106,22 +98,26 @@ def _list_kernels_in(dir):
         key = f.lower()
         if not _is_valid_kernel_name(key):
             warnings.warn(
-                "Invalid kernelspec directory name (%s): %s" % (_kernel_name_description, path),
+                f"Invalid kernelspec directory name ({_kernel_name_description}): {path}",
                 stacklevel=3,
             )
         kernels[key] = path
     return kernels
 
 
-class NoSuchKernel(KeyError):
+class NoSuchKernel(KeyError):  # noqa
+    """An error raised when there is no kernel of a give name."""
+
     def __init__(self, name):
+        """Initialize the error."""
         self.name = name
 
     def __str__(self):
-        return "No such kernel named {}".format(self.name)
+        return f"No such kernel named {self.name}"
 
 
 class KernelSpecManager(LoggingConfigurable):
+    """A manager for kernel specs."""
 
     kernel_spec_class = Type(
         KernelSpec,
@@ -199,15 +195,12 @@ class KernelSpecManager(LoggingConfigurable):
         # At some point, we should stop adding .ipython/kernels to the path,
         # but the cost to keeping it is very small.
         try:
-            from IPython.paths import get_ipython_dir  # type: ignore
-        except ImportError:
-            try:
-                from IPython.utils.path import get_ipython_dir  # type: ignore
-            except ImportError:
-                # no IPython, no ipython dir
-                get_ipython_dir = None
-        if get_ipython_dir is not None:
+            # this should always be valid on IPython 3+
+            from IPython.paths import get_ipython_dir
+
             dirs.append(os.path.join(get_ipython_dir(), "kernels"))
+        except ModuleNotFoundError:
+            pass
         return dirs
 
     def find_kernel_specs(self):
@@ -222,7 +215,7 @@ class KernelSpecManager(LoggingConfigurable):
 
         if self.ensure_native_kernel and NATIVE_KERNEL_NAME not in d:
             try:
-                from ipykernel.kernelspec import RESOURCES  # type: ignore
+                from ipykernel.kernelspec import RESOURCES
 
                 self.log.debug(
                     "Native kernel (%s) available from %s",
@@ -290,7 +283,7 @@ class KernelSpecManager(LoggingConfigurable):
 
         resource_dir = self._find_spec_directory(kernel_name.lower())
         if resource_dir is None:
-            self.log.warning(f"Kernelspec name {kernel_name} cannot be found!")
+            self.log.warning("Kernelspec name %s cannot be found!", kernel_name)
             raise NoSuchKernel(kernel_name)
 
         return self._get_kernel_spec_by_name(kernel_name, resource_dir)
@@ -375,12 +368,12 @@ class KernelSpecManager(LoggingConfigurable):
             kernel_name = os.path.basename(source_dir)
         kernel_name = kernel_name.lower()
         if not _is_valid_kernel_name(kernel_name):
-            raise ValueError(
-                "Invalid kernel name %r.  %s" % (kernel_name, _kernel_name_description)
-            )
+            msg = f"Invalid kernel name {kernel_name!r}.  {_kernel_name_description}"
+            raise ValueError(msg)
 
         if user and prefix:
-            raise ValueError("Can't specify both user and prefix. Please choose one or the other.")
+            msg = "Can't specify both user and prefix. Please choose one or the other."
+            raise ValueError(msg)
 
         if replace is not None:
             warnings.warn(
@@ -434,6 +427,7 @@ def get_kernel_spec(kernel_name):
 
 
 def install_kernel_spec(source_dir, kernel_name=None, user=False, replace=False, prefix=None):
+    """Install a kernel spec in a given directory."""
     return KernelSpecManager().install_kernel_spec(source_dir, kernel_name, user, replace, prefix)
 
 
@@ -441,6 +435,7 @@ install_kernel_spec.__doc__ = KernelSpecManager.install_kernel_spec.__doc__
 
 
 def install_native_kernel_spec(user=False):
+    """Install the native kernel spec."""
     return KernelSpecManager().install_native_kernel_spec(user=user)
 
 

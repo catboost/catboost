@@ -11,6 +11,28 @@ The PUBHandler can be used with the regular logging module, as in::
     >>> logger = logging.getLogger('foobar')
     >>> logger.setLevel(logging.DEBUG)
     >>> logger.addHandler(handler)
+    
+Or using ``dictConfig``, as in::
+
+    >>> from logging.config import dictConfig
+    >>> socket = Context.instance().socket(PUB)
+    >>> socket.connect('tcp://127.0.0.1:12345')
+    >>> dictConfig({
+    >>>     'version': 1,
+    >>>     'handlers': {
+    >>>         'zmq': {
+    >>>             'class': 'zmq.log.handlers.PUBHandler',
+    >>>             'level': logging.DEBUG,
+    >>>             'root_topic': 'foo',
+    >>>             'interface_or_socket': socket
+    >>>         }
+    >>>     },
+    >>>     'root': {
+    >>>         'level': 'DEBUG',
+    >>>         'handlers': ['zmq'],
+    >>>     }
+    >>> })
+        
 
 After this point, all messages logged by ``logger`` will be published on the
 PUB socket.
@@ -21,6 +43,7 @@ Code adapted from StarCluster:
 """
 
 import logging
+from copy import copy
 
 # Copyright (C) PyZMQ Developers
 # Distributed under the terms of the Modified BSD License.
@@ -132,10 +155,16 @@ class PUBHandler(logging.Handler):
     def emit(self, record):
         """Emit a log message on my socket."""
 
+        # LogRecord.getMessage explicitly allows msg to be anything _castable_ to a str
         try:
-            topic, record.msg = record.msg.split(TOPIC_DELIM, 1)
+            topic, msg = str(record.msg).split(TOPIC_DELIM, 1)
         except ValueError:
             topic = ""
+        else:
+            # copy to avoid mutating LogRecord in-place
+            record = copy(record)
+            record.msg = msg
+
         try:
             bmsg = self.format(record).encode("utf8")
         except Exception:
@@ -152,7 +181,7 @@ class PUBHandler(logging.Handler):
         if topic:
             topic_list.append(topic)
 
-        btopic = '.'.join(topic_list).encode("utf8")
+        btopic = '.'.join(topic_list).encode("utf8", "replace")
 
         self.socket.send_multipart([btopic, bmsg])
 
@@ -181,7 +210,7 @@ class TopicLogger(logging.Logger):
             logger.log(level, "zmq.fun", "We have a %s",
                     "mysterious problem", exc_info=1)
         """
-        logging.Logger.log(self, level, f'{topic}::{msg}', *args, **kwargs)
+        logging.Logger.log(self, level, f'{topic}{TOPIC_DELIM}{msg}', *args, **kwargs)
 
 
 # Generate the methods of TopicLogger, since they are just adding a

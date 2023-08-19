@@ -67,10 +67,12 @@ class AttributeSetter:
         return self.get(opt)
 
     def get(self, opt: int) -> OptValT:
-        pass
+        """Override in subclass"""
+        raise NotImplementedError("override in subclass")
 
     def set(self, opt: int, val: OptValT) -> None:
-        pass
+        """Override in subclass"""
+        raise NotImplementedError("override in subclass")
 
 
 __all__ = ['AttributeSetter']

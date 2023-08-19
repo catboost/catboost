@@ -11,18 +11,14 @@ from getpass import getpass
 from queue import Empty
 
 import zmq.asyncio
-from traitlets import Any
-from traitlets import Bool
-from traitlets import Instance
-from traitlets import Type
+from jupyter_core.utils import ensure_async
+from traitlets import Any, Bool, Instance, Type
 
-from .channelsabc import ChannelABC
-from .channelsabc import HBChannelABC
+from .channels import major_protocol_version
+from .channelsabc import ChannelABC, HBChannelABC
 from .clientabc import KernelClientABC
 from .connect import ConnectionFileMixin
 from .session import Session
-from .utils import ensure_async
-from jupyter_client.channels import major_protocol_version
 
 # some utilities to validate message structure, these might get moved elsewhere
 # if they prove to have more generic utility
@@ -92,13 +88,13 @@ class KernelClient(ConnectionFileMixin):
     """
 
     # The PyZMQ Context to use for communication with the kernel.
-    context = Instance(zmq.asyncio.Context)
+    context = Instance(zmq.Context)
 
     _created_context = Bool(False)
 
-    def _context_default(self) -> zmq.asyncio.Context:
+    def _context_default(self) -> zmq.Context:
         self._created_context = True
-        return zmq.asyncio.Context()
+        return zmq.Context()
 
     # The classes to use for the various channels
     shell_channel_class = Type(ChannelABC)
@@ -128,7 +124,7 @@ class KernelClient(ConnectionFileMixin):
                     self.log.debug("Destroying zmq context for %s", self)
                 self.context.destroy()
         try:
-            super_del = super().__del__
+            super_del = super().__del__  # type:ignore[misc]
         except AttributeError:
             pass
         else:
@@ -140,19 +136,19 @@ class KernelClient(ConnectionFileMixin):
 
     async def _async_get_shell_msg(self, *args: t.Any, **kwargs: t.Any) -> t.Dict[str, t.Any]:
         """Get a message from the shell channel"""
-        return await self.shell_channel.get_msg(*args, **kwargs)
+        return await ensure_async(self.shell_channel.get_msg(*args, **kwargs))
 
     async def _async_get_iopub_msg(self, *args: t.Any, **kwargs: t.Any) -> t.Dict[str, t.Any]:
         """Get a message from the iopub channel"""
-        return await self.iopub_channel.get_msg(*args, **kwargs)
+        return await ensure_async(self.iopub_channel.get_msg(*args, **kwargs))
 
     async def _async_get_stdin_msg(self, *args: t.Any, **kwargs: t.Any) -> t.Dict[str, t.Any]:
         """Get a message from the stdin channel"""
-        return await self.stdin_channel.get_msg(*args, **kwargs)
+        return await ensure_async(self.stdin_channel.get_msg(*args, **kwargs))
 
     async def _async_get_control_msg(self, *args: t.Any, **kwargs: t.Any) -> t.Dict[str, t.Any]:
         """Get a message from the control channel"""
-        return await self.control_channel.get_msg(*args, **kwargs)
+        return await ensure_async(self.control_channel.get_msg(*args, **kwargs))
 
     async def _async_wait_for_ready(self, timeout: t.Optional[float] = None) -> None:
         """Waits for a response when a client is blocked
@@ -173,7 +169,7 @@ class KernelClient(ConnectionFileMixin):
             # This Client was not created by a KernelManager,
             # so wait for kernel to become responsive to heartbeats
             # before checking for kernel_info reply
-            while not await ensure_async(self.is_alive()):
+            while not await self._async_is_alive():
                 if time.time() > abs_timeout:
                     raise RuntimeError(
                         "Kernel didn't respond to heartbeats in %d seconds and timed out" % timeout
@@ -184,22 +180,23 @@ class KernelClient(ConnectionFileMixin):
         while True:
             self.kernel_info()
             try:
-                msg = await self.shell_channel.get_msg(timeout=1)
+                msg = await ensure_async(self.shell_channel.get_msg(timeout=1))
             except Empty:
                 pass
             else:
                 if msg["msg_type"] == "kernel_info_reply":
                     # Checking that IOPub is connected. If it is not connected, start over.
                     try:
-                        await self.iopub_channel.get_msg(timeout=0.2)
+                        await ensure_async(self.iopub_channel.get_msg(timeout=0.2))
                     except Empty:
                         pass
                     else:
                         self._handle_kernel_info_reply(msg)
                         break
 
-            if not await ensure_async(self.is_alive()):
-                raise RuntimeError("Kernel died before replying to kernel_info")
+            if not await self._async_is_alive():
+                msg = "Kernel died before replying to kernel_info"
+                raise RuntimeError(msg)
 
             # Check if current time is ready check time plus timeout
             if time.time() > abs_timeout:
@@ -208,7 +205,7 @@ class KernelClient(ConnectionFileMixin):
         # Flush IOPub channel
         while True:
             try:
-                msg = await self.iopub_channel.get_msg(timeout=0.2)
+                msg = await ensure_async(self.iopub_channel.get_msg(timeout=0.2))
             except Empty:
                 break
 
@@ -227,7 +224,8 @@ class KernelClient(ConnectionFileMixin):
                 else:
                     reply = await self._async_get_shell_msg(timeout=timeout)
             except Empty as e:
-                raise TimeoutError("Timeout waiting for reply") from e
+                msg = "Timeout waiting for reply"
+                raise TimeoutError(msg) from e
             if reply["parent_header"].get("msg_id") != msg_id:
                 # not my reply, someone may have forgotten to retrieve theirs
                 continue
@@ -236,13 +234,10 @@ class KernelClient(ConnectionFileMixin):
     async def _stdin_hook_default(self, msg: t.Dict[str, t.Any]) -> None:
         """Handle an input request"""
         content = msg["content"]
-        if content.get("password", False):
-            prompt = getpass
-        else:
-            prompt = input  # type: ignore
+        prompt = getpass if content.get("password", False) else input
 
         try:
-            raw_data = prompt(content["prompt"])
+            raw_data = prompt(content["prompt"])  # type:ignore[operator]
         except EOFError:
             # turn EOFError into EOF character
             raw_data = "\x04"
@@ -265,7 +260,7 @@ class KernelClient(ConnectionFileMixin):
         elif msg_type in ("display_data", "execute_result"):
             sys.stdout.write(content["data"].get("text/plain", ""))
         elif msg_type == "error":
-            print("\n".join(content["traceback"]), file=sys.stderr)
+            sys.stderr.write("\n".join(content["traceback"]))
 
     def _output_hook_kernel(
         self,
@@ -403,7 +398,7 @@ class KernelClient(ConnectionFileMixin):
         if isinstance(self.parent, KernelManager):
             # This KernelClient was created by a KernelManager,
             # we can ask the parent KernelManager:
-            return await ensure_async(self.parent.is_alive())
+            return await self.parent._async_is_alive()
         if self._hb_channel is not None:
             # We don't have access to the KernelManager,
             # so we use the heartbeat.
@@ -479,35 +474,38 @@ class KernelClient(ConnectionFileMixin):
             The reply message for this request
         """
         if not self.iopub_channel.is_alive():
-            raise RuntimeError("IOPub channel must be running to receive output")
+            emsg = "IOPub channel must be running to receive output"
+            raise RuntimeError(emsg)
         if allow_stdin is None:
             allow_stdin = self.allow_stdin
         if allow_stdin and not self.stdin_channel.is_alive():
-            raise RuntimeError("stdin channel must be running to allow input")
-        msg_id = self.execute(
-            code,
-            silent=silent,
-            store_history=store_history,
-            user_expressions=user_expressions,
-            allow_stdin=allow_stdin,
-            stop_on_error=stop_on_error,
+            emsg = "stdin channel must be running to allow input"
+            raise RuntimeError(emsg)
+        msg_id = await ensure_async(
+            self.execute(
+                code,
+                silent=silent,
+                store_history=store_history,
+                user_expressions=user_expressions,
+                allow_stdin=allow_stdin,
+                stop_on_error=stop_on_error,
+            )
         )
         if stdin_hook is None:
             stdin_hook = self._stdin_hook_default
-        if output_hook is None:
-            # detect IPython kernel
-            if "IPython" in sys.modules:
-                from IPython import get_ipython  # type: ignore
+        # detect IPython kernel
+        if output_hook is None and "IPython" in sys.modules:
+            from IPython import get_ipython
 
-                ip = get_ipython()
-                in_kernel = getattr(ip, "kernel", False)
-                if in_kernel:
-                    output_hook = partial(
-                        self._output_hook_kernel,
-                        ip.display_pub.session,
-                        ip.display_pub.pub_socket,
-                        ip.display_pub.parent_header,
-                    )
+            ip = get_ipython()
+            in_kernel = getattr(ip, "kernel", False)
+            if in_kernel:
+                output_hook = partial(
+                    self._output_hook_kernel,
+                    ip.display_pub.session,
+                    ip.display_pub.pub_socket,
+                    ip.display_pub.parent_header,
+                )
         if output_hook is None:
             # default: redisplay plain-text outputs
             output_hook = self._output_hook_default
@@ -534,9 +532,10 @@ class KernelClient(ConnectionFileMixin):
                 timeout_ms = int(1000 * timeout)
             events = dict(poller.poll(timeout_ms))
             if not events:
-                raise TimeoutError("Timeout waiting for output")
+                emsg = "Timeout waiting for output"
+                raise TimeoutError(emsg)
             if stdin_socket in events:
-                req = await self.stdin_channel.get_msg(timeout=0)
+                req = await ensure_async(self.stdin_channel.get_msg(timeout=0))
                 res = stdin_hook(req)
                 if inspect.isawaitable(res):
                     await res
@@ -544,7 +543,7 @@ class KernelClient(ConnectionFileMixin):
             if iopub_socket not in events:
                 continue
 
-            msg = await self.iopub_channel.get_msg(timeout=0)
+            msg = await ensure_async(self.iopub_channel.get_msg(timeout=0))
 
             if msg["parent_header"].get("msg_id") != msg_id:
                 # not from my request
@@ -619,14 +618,14 @@ class KernelClient(ConnectionFileMixin):
 
         # Create class for content/msg creation. Related to, but possibly
         # not in Session.
-        content = dict(
-            code=code,
-            silent=silent,
-            store_history=store_history,
-            user_expressions=user_expressions,
-            allow_stdin=allow_stdin,
-            stop_on_error=stop_on_error,
-        )
+        content = {
+            "code": code,
+            "silent": silent,
+            "store_history": store_history,
+            "user_expressions": user_expressions,
+            "allow_stdin": allow_stdin,
+            "stop_on_error": stop_on_error,
+        }
         msg = self.session.msg("execute_request", content)
         self.shell_channel.send(msg)
         return msg["header"]["msg_id"]
@@ -649,7 +648,7 @@ class KernelClient(ConnectionFileMixin):
         """
         if cursor_pos is None:
             cursor_pos = len(code)
-        content = dict(code=code, cursor_pos=cursor_pos)
+        content = {"code": code, "cursor_pos": cursor_pos}
         msg = self.session.msg("complete_request", content)
         self.shell_channel.send(msg)
         return msg["header"]["msg_id"]
@@ -676,11 +675,11 @@ class KernelClient(ConnectionFileMixin):
         """
         if cursor_pos is None:
             cursor_pos = len(code)
-        content = dict(
-            code=code,
-            cursor_pos=cursor_pos,
-            detail_level=detail_level,
-        )
+        content = {
+            "code": code,
+            "cursor_pos": cursor_pos,
+            "detail_level": detail_level,
+        }
         msg = self.session.msg("inspect_request", content)
         self.shell_channel.send(msg)
         return msg["header"]["msg_id"]
@@ -749,10 +748,7 @@ class KernelClient(ConnectionFileMixin):
         -------
         The msg_id of the message sent
         """
-        if target_name is None:
-            content = {}
-        else:
-            content = dict(target_name=target_name)
+        content = {} if target_name is None else {"target_name": target_name}
         msg = self.session.msg("comm_info_request", content)
         self.shell_channel.send(msg)
         return msg["header"]["msg_id"]
@@ -768,7 +764,12 @@ class KernelClient(ConnectionFileMixin):
             self.session.adapt_version = adapt_version
 
     def is_complete(self, code: str) -> str:
-        """Ask the kernel whether some code is complete and ready to execute."""
+        """Ask the kernel whether some code is complete and ready to execute.
+
+        Returns
+        -------
+        The ID of the message sent.
+        """
         msg = self.session.msg("is_complete_request", {"code": code})
         self.shell_channel.send(msg)
         return msg["header"]["msg_id"]
@@ -778,8 +779,12 @@ class KernelClient(ConnectionFileMixin):
 
         This should only be called in response to the kernel sending an
         ``input_request`` message on the stdin channel.
+
+        Returns
+        -------
+        The ID of the message sent.
         """
-        content = dict(value=string)
+        content = {"value": string}
         msg = self.session.msg("input_reply", content)
         self.stdin_channel.send(msg)
 

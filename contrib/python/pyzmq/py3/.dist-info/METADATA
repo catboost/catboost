@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pyzmq
-Version: 24.0.1
+Version: 25.1.0
 Summary: Python bindings for 0MQ
 Home-page: https://pyzmq.readthedocs.org
 Author: Brian E. Granger, Min Ragan-Kelley
@@ -25,10 +25,9 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Requires-Python: >=3.6
 Description-Content-Type: text/markdown
-License-File: COPYING.BSD
-License-File: COPYING.LESSER
+License-File: LICENSE.BSD
+License-File: LICENSE.LESSER
 License-File: AUTHORS.md
-Requires-Dist: py ; implementation_name == "pypy"
 Requires-Dist: cffi ; implementation_name == "pypy"
 
 # PyZMQ: Python bindings for ØMQ

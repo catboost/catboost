@@ -2,17 +2,10 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 import os
-from abc import ABC
-from abc import ABCMeta
-from abc import abstractmethod
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from abc import ABC, ABCMeta, abstractmethod
+from typing import Any, Dict, List, Optional, Union
 
-from traitlets.config import Instance
-from traitlets.config import LoggingConfigurable
-from traitlets.config import Unicode
+from traitlets.config import Instance, LoggingConfigurable, Unicode
 
 from ..connect import KernelConnectionInfo
 
@@ -21,7 +14,9 @@ class KernelProvisionerMeta(ABCMeta, type(LoggingConfigurable)):  # type: ignore
     pass
 
 
-class KernelProvisionerBase(ABC, LoggingConfigurable, metaclass=KernelProvisionerMeta):
+class KernelProvisionerBase(  # type:ignore[misc]
+    ABC, LoggingConfigurable, metaclass=KernelProvisionerMeta
+):
     """
     Abstract base class defining methods for KernelProvisioner classes.
 
@@ -35,7 +30,7 @@ class KernelProvisionerBase(ABC, LoggingConfigurable, metaclass=KernelProvisione
 
     # The kernel specification associated with this provisioner
     kernel_spec: Any = Instance('jupyter_client.kernelspec.KernelSpec', allow_none=True)
-    kernel_id: str = Unicode(None, allow_none=True)
+    kernel_id: Union[str, Unicode] = Unicode(None, allow_none=True)
     connection_info: KernelConnectionInfo = {}
 
     @property
