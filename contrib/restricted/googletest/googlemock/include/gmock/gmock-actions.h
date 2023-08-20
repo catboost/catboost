@@ -146,10 +146,7 @@
 #include "gmock/internal/gmock-port.h"
 #include "gmock/internal/gmock-pp.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4100)
-#endif
+GTEST_DISABLE_MSC_WARNINGS_PUSH_(4100)
 
 namespace testing {
 
@@ -614,7 +611,7 @@ class DefaultValue {
  private:
   class ValueProducer {
    public:
-    virtual ~ValueProducer() {}
+    virtual ~ValueProducer() = default;
     virtual T Produce() = 0;
   };
 
@@ -702,8 +699,8 @@ class ActionInterface {
   typedef typename internal::Function<F>::Result Result;
   typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
 
-  ActionInterface() {}
-  virtual ~ActionInterface() {}
+  ActionInterface() = default;
+  virtual ~ActionInterface() = default;
 
   // Performs the action.  This method is not const, as in general an
   // action can have side effects and be stateful.  For example, a
@@ -752,7 +749,7 @@ class Action<R(Args...)> {
 
   // Constructs a null Action.  Needed for storing Action objects in
   // STL containers.
-  Action() {}
+  Action() = default;
 
   // Construct an Action from a specified callable.
   // This cannot take std::function directly, because then Action would not be
@@ -1276,7 +1273,7 @@ class AssignAction {
   const T2 value_;
 };
 
-#if !GTEST_OS_WINDOWS_MOBILE
+#ifndef GTEST_OS_WINDOWS_MOBILE
 
 // Implements the SetErrnoAndReturn action to simulate return from
 // various system calls and libc functions.
@@ -1420,19 +1417,19 @@ struct WithArgsAction {
   // providing a call operator because even with a particular set of arguments
   // they don't have a fixed return type.
 
-  template <typename R, typename... Args,
-            typename std::enable_if<
-                std::is_convertible<
-                    InnerAction,
-                    // Unfortunately we can't use the InnerSignature alias here;
-                    // MSVC complains about the I parameter pack not being
-                    // expanded (error C3520) despite it being expanded in the
-                    // type alias.
-                    // TupleElement is also an MSVC workaround.
-                    // See its definition for details.
-                    OnceAction<R(internal::TupleElement<
-                                 I, std::tuple<Args...>>...)>>::value,
-                int>::type = 0>
+  template <
+      typename R, typename... Args,
+      typename std::enable_if<
+          std::is_convertible<InnerAction,
+                              // Unfortunately we can't use the InnerSignature
+                              // alias here; MSVC complains about the I
+                              // parameter pack not being expanded (error C3520)
+                              // despite it being expanded in the type alias.
+                              // TupleElement is also an MSVC workaround.
+                              // See its definition for details.
+                              OnceAction<R(internal::TupleElement<
+                                           I, std::tuple<Args...>>...)>>::value,
+          int>::type = 0>
   operator OnceAction<R(Args...)>() && {  // NOLINT
     struct OA {
       OnceAction<InnerSignature<R, Args...>> inner_action;
@@ -1447,19 +1444,19 @@ struct WithArgsAction {
     return OA{std::move(inner_action)};
   }
 
-  template <typename R, typename... Args,
-            typename std::enable_if<
-                std::is_convertible<
-                    const InnerAction&,
-                    // Unfortunately we can't use the InnerSignature alias here;
-                    // MSVC complains about the I parameter pack not being
-                    // expanded (error C3520) despite it being expanded in the
-                    // type alias.
-                    // TupleElement is also an MSVC workaround.
-                    // See its definition for details.
-                    Action<R(internal::TupleElement<
-                             I, std::tuple<Args...>>...)>>::value,
-                int>::type = 0>
+  template <
+      typename R, typename... Args,
+      typename std::enable_if<
+          std::is_convertible<const InnerAction&,
+                              // Unfortunately we can't use the InnerSignature
+                              // alias here; MSVC complains about the I
+                              // parameter pack not being expanded (error C3520)
+                              // despite it being expanded in the type alias.
+                              // TupleElement is also an MSVC workaround.
+                              // See its definition for details.
+                              Action<R(internal::TupleElement<
+                                       I, std::tuple<Args...>>...)>>::value,
+          int>::type = 0>
   operator Action<R(Args...)>() const {  // NOLINT
     Action<InnerSignature<R, Args...>> converted(inner_action);
 
@@ -1929,7 +1926,7 @@ PolymorphicAction<internal::AssignAction<T1, T2>> Assign(T1* ptr, T2 val) {
   return MakePolymorphicAction(internal::AssignAction<T1, T2>(ptr, val));
 }
 
-#if !GTEST_OS_WINDOWS_MOBILE
+#ifndef GTEST_OS_WINDOWS_MOBILE
 
 // Creates an action that sets errno and returns the appropriate error.
 template <typename T>
@@ -2295,8 +2292,6 @@ template <typename F, typename Impl>
 
 }  // namespace testing
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+GTEST_DISABLE_MSC_WARNINGS_POP_()  // 4100
 
 #endif  // GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_ACTIONS_H_
