@@ -26,6 +26,7 @@
 #include "absl/strings/internal/cordz_statistics.h"
 #include "absl/strings/internal/cordz_update_tracker.h"
 #include "absl/synchronization/mutex.h"
+#include "absl/time/clock.h"
 #include "absl/types/span.h"
 
 namespace absl {
@@ -53,7 +54,7 @@ namespace {
 // The top level node is treated specially: we assume the current thread
 // (typically called from the CordzHandler) to hold a reference purely to
 // perform a safe analysis, and not being part of the application. So we
-// substract 1 from the reference count of the top node to compute the
+// subtract 1 from the reference count of the top node to compute the
 // 'application fair share' excluding the reference of the current thread.
 //
 // An example of fair sharing, and why we multiply reference counts:

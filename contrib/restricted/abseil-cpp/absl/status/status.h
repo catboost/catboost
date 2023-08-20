@@ -398,7 +398,7 @@ inline StatusToStringMode& operator^=(StatusToStringMode& lhs,
 //
 //   * It may provide more fine-grained semantic information about the error to
 //     facilitate actionable remedies.
-//   * It may provide human-readable contexual information that is more
+//   * It may provide human-readable contextual information that is more
 //     appropriate to display to an end user.
 //
 // Example:
@@ -538,7 +538,7 @@ class Status final {
   //
   //   * It may provide more fine-grained semantic information about the error
   //     to facilitate actionable remedies.
-  //   * It may provide human-readable contexual information that is more
+  //   * It may provide human-readable contextual information that is more
   //     appropriate to display to an end user.
   //
   // A payload consists of a [key,value] pair, where the key is a string
@@ -885,6 +885,15 @@ inline Status OkStatus() { return Status(); }
 // and an empty message. It is provided only for efficiency, given that
 // message-less kCancelled errors are common in the infrastructure.
 inline Status CancelledError() { return Status(absl::StatusCode::kCancelled); }
+
+// Retrieves a message's status as a null terminated C string. The lifetime of
+// this string is tied to the lifetime of the status object itself.
+//
+// If the status's message is empty, the empty string is returned.
+//
+// StatusMessageAsCStr exists for C support. Use `status.message()` in C++.
+const char* StatusMessageAsCStr(
+    const Status& status ABSL_ATTRIBUTE_LIFETIME_BOUND);
 
 ABSL_NAMESPACE_END
 }  // namespace absl

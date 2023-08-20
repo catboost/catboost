@@ -84,6 +84,7 @@ struct timeval;
 #include <type_traits>
 #include <utility>
 
+#include "absl/base/config.h"
 #include "absl/base/macros.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/civil_time.h"
@@ -187,7 +188,12 @@ class Duration {
   Duration& operator%=(Duration rhs);
 
   // Overloads that forward to either the int64_t or double overloads above.
-  // Integer operands must be representable as int64_t.
+  // Integer operands must be representable as int64_t. Integer division is
+  // truncating, so values less than the resolution will be returned as zero.
+  // Floating-point multiplication and division is rounding (halfway cases
+  // rounding away from zero), so values less than the resolution may be
+  // returned as either the resolution or zero.  In particular, `d / 2.0`
+  // can produce `d` when it is the resolution and "even".
   template <typename T, time_internal::EnableIfIntegral<T> = 0>
   Duration& operator*=(T r) {
     int64_t x = r;
@@ -214,7 +220,7 @@ class Duration {
 
   template <typename H>
   friend H AbslHashValue(H h, Duration d) {
-    return H::combine(std::move(h), d.rep_hi_, d.rep_lo_);
+    return H::combine(std::move(h), d.rep_hi_.Get(), d.rep_lo_);
   }
 
  private:
@@ -223,7 +229,79 @@ class Duration {
   friend constexpr Duration time_internal::MakeDuration(int64_t hi,
                                                         uint32_t lo);
   constexpr Duration(int64_t hi, uint32_t lo) : rep_hi_(hi), rep_lo_(lo) {}
-  int64_t rep_hi_;
+
+  // We store `rep_hi_` 4-byte rather than 8-byte aligned to avoid 4 bytes of
+  // tail padding.
+  class HiRep {
+   public:
+    // Default constructor default-initializes `hi_`, which has the same
+    // semantics as default-initializing an `int64_t` (undetermined value).
+    HiRep() = default;
+
+    HiRep(const HiRep&) = default;
+    HiRep& operator=(const HiRep&) = default;
+
+    explicit constexpr HiRep(const int64_t value)
+        :  // C++17 forbids default-initialization in constexpr contexts. We can
+           // remove this in C++20.
+#if defined(ABSL_IS_BIG_ENDIAN) && ABSL_IS_BIG_ENDIAN
+          hi_(0),
+          lo_(0)
+#else
+          lo_(0),
+          hi_(0)
+#endif
+    {
+      *this = value;
+    }
+
+    constexpr int64_t Get() const {
+      const uint64_t unsigned_value =
+          (static_cast<uint64_t>(hi_) << 32) | static_cast<uint64_t>(lo_);
+      // `static_cast<int64_t>(unsigned_value)` is implementation-defined
+      // before c++20. On all supported platforms the behaviour is that mandated
+      // by c++20, i.e. "If the destination type is signed, [...] the result is
+      // the unique value of the destination type equal to the source value
+      // modulo 2^n, where n is the number of bits used to represent the
+      // destination type."
+      static_assert(
+          (static_cast<int64_t>((std::numeric_limits<uint64_t>::max)()) ==
+           int64_t{-1}) &&
+              (static_cast<int64_t>(static_cast<uint64_t>(
+                                        (std::numeric_limits<int64_t>::max)()) +
+                                    1) ==
+               (std::numeric_limits<int64_t>::min)()),
+          "static_cast<int64_t>(uint64_t) does not have c++20 semantics");
+      return static_cast<int64_t>(unsigned_value);
+    }
+
+    constexpr HiRep& operator=(const int64_t value) {
+      // "If the destination type is unsigned, the resulting value is the
+      // smallest unsigned value equal to the source value modulo 2^n
+      // where `n` is the number of bits used to represent the destination
+      // type".
+      const auto unsigned_value = static_cast<uint64_t>(value);
+      hi_ = static_cast<uint32_t>(unsigned_value >> 32);
+      lo_ = static_cast<uint32_t>(unsigned_value);
+      return *this;
+    }
+
+   private:
+    // Notes:
+    //  - Ideally we would use a `char[]` and `std::bitcast`, but the latter
+    //    does not exist (and is not constexpr in `absl`) before c++20.
+    //  - Order is optimized depending on endianness so that the compiler can
+    //    turn `Get()` (resp. `operator=()`) into a single 8-byte load (resp.
+    //    store).
+#if defined(ABSL_IS_BIG_ENDIAN) && ABSL_IS_BIG_ENDIAN
+    uint32_t hi_;
+    uint32_t lo_;
+#else
+    uint32_t lo_;
+    uint32_t hi_;
+#endif
+  };
+  HiRep rep_hi_;
   uint32_t rep_lo_;
 };
 
@@ -609,6 +687,12 @@ inline std::ostream& operator<<(std::ostream& os, Duration d) {
   return os << FormatDuration(d);
 }
 
+// Support for StrFormat(), StrCat() etc.
+template <typename Sink>
+void AbslStringify(Sink& sink, Duration d) {
+  sink.Append(FormatDuration(d));
+}
+
 // ParseDuration()
 //
 // Parses a duration string consisting of a possibly signed sequence of
@@ -718,8 +802,7 @@ class Time {
   // `absl::TimeZone`.
   //
   // Deprecated. Use `absl::TimeZone::CivilInfo`.
-  struct
-      Breakdown {
+  struct ABSL_DEPRECATED("Use `absl::TimeZone::CivilInfo`.") Breakdown {
     int64_t year;        // year (e.g., 2013)
     int month;           // month of year [1:12]
     int day;             // day of month [1:31]
@@ -745,7 +828,10 @@ class Time {
   // Returns the breakdown of this instant in the given TimeZone.
   //
   // Deprecated. Use `absl::TimeZone::At(Time)`.
+  ABSL_INTERNAL_DISABLE_DEPRECATED_DECLARATION_WARNING
+  ABSL_DEPRECATED("Use `absl::TimeZone::At(Time)`.")
   Breakdown In(TimeZone tz) const;
+  ABSL_INTERNAL_RESTORE_DEPRECATED_DECLARATION_WARNING
 
   template <typename H>
   friend H AbslHashValue(H h, Time t) {
@@ -839,7 +925,8 @@ ABSL_ATTRIBUTE_CONST_FUNCTION constexpr Time InfinitePast() {
 // FromUDate()
 // FromUniversal()
 //
-// Creates an `absl::Time` from a variety of other representations.
+// Creates an `absl::Time` from a variety of other representations.  See
+// https://unicode-org.github.io/icu/userguide/datetime/universaltimescale.html
 ABSL_ATTRIBUTE_CONST_FUNCTION constexpr Time FromUnixNanos(int64_t ns);
 ABSL_ATTRIBUTE_CONST_FUNCTION constexpr Time FromUnixMicros(int64_t us);
 ABSL_ATTRIBUTE_CONST_FUNCTION constexpr Time FromUnixMillis(int64_t ms);
@@ -856,10 +943,12 @@ ABSL_ATTRIBUTE_CONST_FUNCTION Time FromUniversal(int64_t universal);
 // ToUDate()
 // ToUniversal()
 //
-// Converts an `absl::Time` to a variety of other representations.  Note that
-// these operations round down toward negative infinity where necessary to
-// adjust to the resolution of the result type.  Beware of possible time_t
-// over/underflow in ToTime{T,val,spec}() on 32-bit platforms.
+// Converts an `absl::Time` to a variety of other representations.  See
+// https://unicode-org.github.io/icu/userguide/datetime/universaltimescale.html
+//
+// Note that these operations round down toward negative infinity where
+// necessary to adjust to the resolution of the result type.  Beware of
+// possible time_t over/underflow in ToTime{T,val,spec}() on 32-bit platforms.
 ABSL_ATTRIBUTE_CONST_FUNCTION int64_t ToUnixNanos(Time t);
 ABSL_ATTRIBUTE_CONST_FUNCTION int64_t ToUnixMicros(Time t);
 ABSL_ATTRIBUTE_CONST_FUNCTION int64_t ToUnixMillis(Time t);
@@ -1236,8 +1325,7 @@ ABSL_ATTRIBUTE_PURE_FUNCTION inline Time FromCivil(CivilSecond ct,
 // `absl::ConvertDateTime()`. Legacy version of `absl::TimeZone::TimeInfo`.
 //
 // Deprecated. Use `absl::TimeZone::TimeInfo`.
-struct
-    TimeConversion {
+struct ABSL_DEPRECATED("Use `absl::TimeZone::TimeInfo`.") TimeConversion {
   Time pre;    // time calculated using the pre-transition offset
   Time trans;  // when the civil-time discontinuity occurred
   Time post;   // time calculated using the post-transition offset
@@ -1271,8 +1359,11 @@ struct
 //   // absl::ToCivilDay(tc.pre, tz).day() == 1
 //
 // Deprecated. Use `absl::TimeZone::At(CivilSecond)`.
+ABSL_INTERNAL_DISABLE_DEPRECATED_DECLARATION_WARNING
+ABSL_DEPRECATED("Use `absl::TimeZone::At(CivilSecond)`.")
 TimeConversion ConvertDateTime(int64_t year, int mon, int day, int hour,
                                int min, int sec, TimeZone tz);
+ABSL_INTERNAL_RESTORE_DEPRECATED_DECLARATION_WARNING
 
 // FromDateTime()
 //
@@ -1289,9 +1380,12 @@ TimeConversion ConvertDateTime(int64_t year, int mon, int day, int hour,
 // Deprecated. Use `absl::FromCivil(CivilSecond, TimeZone)`. Note that the
 // behavior of `FromCivil()` differs from `FromDateTime()` for skipped civil
 // times. If you care about that see `absl::TimeZone::At(absl::CivilSecond)`.
-inline Time FromDateTime(int64_t year, int mon, int day, int hour,
-                         int min, int sec, TimeZone tz) {
+ABSL_DEPRECATED("Use `absl::FromCivil(CivilSecond, TimeZone)`.")
+inline Time FromDateTime(int64_t year, int mon, int day, int hour, int min,
+                         int sec, TimeZone tz) {
+  ABSL_INTERNAL_DISABLE_DEPRECATED_DECLARATION_WARNING
   return ConvertDateTime(year, mon, day, hour, min, sec, tz).pre;
+  ABSL_INTERNAL_RESTORE_DEPRECATED_DECLARATION_WARNING
 }
 
 // FromTM()
@@ -1384,6 +1478,12 @@ ABSL_ATTRIBUTE_PURE_FUNCTION std::string FormatTime(Time t);
 // Output stream operator.
 inline std::ostream& operator<<(std::ostream& os, Time t) {
   return os << FormatTime(t);
+}
+
+// Support for StrFormat(), StrCat() etc.
+template <typename Sink>
+void AbslStringify(Sink& sink, Time t) {
+  sink.Append(FormatTime(t));
 }
 
 // ParseTime()
@@ -1491,7 +1591,7 @@ ABSL_ATTRIBUTE_CONST_FUNCTION constexpr Duration MakeNormalizedDuration(
 
 // Provide access to the Duration representation.
 ABSL_ATTRIBUTE_CONST_FUNCTION constexpr int64_t GetRepHi(Duration d) {
-  return d.rep_hi_;
+  return d.rep_hi_.Get();
 }
 ABSL_ATTRIBUTE_CONST_FUNCTION constexpr uint32_t GetRepLo(Duration d) {
   return d.rep_lo_;

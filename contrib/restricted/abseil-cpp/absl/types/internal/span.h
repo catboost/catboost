@@ -88,7 +88,7 @@ using EnableIfMutable =
 template <template <typename> class SpanT, typename T>
 bool EqualImpl(SpanT<T> a, SpanT<T> b) {
   static_assert(std::is_const<T>::value, "");
-  return absl::equal(a.begin(), a.end(), b.begin(), b.end());
+  return std::equal(a.begin(), a.end(), b.begin(), b.end());
 }
 
 template <template <typename> class SpanT, typename T>
@@ -125,7 +125,7 @@ struct IsView<
 };
 
 // These enablers result in 'int' so they can be used as typenames or defaults
-// in template paramters lists.
+// in template parameters lists.
 template <typename T>
 using EnableIfIsView = std::enable_if_t<IsView<T>::value, int>;
 

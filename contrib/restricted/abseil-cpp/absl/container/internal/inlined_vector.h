@@ -77,13 +77,6 @@ using IsAtLeastForwardIterator = std::is_convertible<
     std::forward_iterator_tag>;
 
 template <typename A>
-using IsMemcpyOk =
-    absl::conjunction<std::is_same<A, std::allocator<ValueType<A>>>,
-                      absl::is_trivially_copy_constructible<ValueType<A>>,
-                      absl::is_trivially_copy_assignable<ValueType<A>>,
-                      absl::is_trivially_destructible<ValueType<A>>>;
-
-template <typename A>
 using IsMoveAssignOk = std::is_move_assignable<ValueType<A>>;
 template <typename A>
 using IsSwapOk = absl::type_traits_internal::IsSwappable<ValueType<A>>;
@@ -308,11 +301,36 @@ class Storage {
   struct ElementwiseConstructPolicy {};
 
   using MoveAssignmentPolicy = absl::conditional_t<
-      IsMemcpyOk<A>::value, MemcpyPolicy,
+      // Fast path: if the value type can be trivially move assigned and
+      // destroyed, and we know the allocator doesn't do anything fancy, then
+      // it's safe for us to simply adopt the contents of the storage for
+      // `other` and remove its own reference to them. It's as if we had
+      // individually move-assigned each value and then destroyed the original.
+      absl::conjunction<absl::is_trivially_move_assignable<ValueType<A>>,
+                        absl::is_trivially_destructible<ValueType<A>>,
+                        std::is_same<A, std::allocator<ValueType<A>>>>::value,
+      MemcpyPolicy,
+      // Otherwise we use move assignment if possible. If not, we simulate
+      // move assignment using move construction.
+      //
+      // Note that this is in contrast to e.g. std::vector and std::optional,
+      // which are themselves not move-assignable when their contained type is
+      // not.
       absl::conditional_t<IsMoveAssignOk<A>::value, ElementwiseAssignPolicy,
                           ElementwiseConstructPolicy>>;
-  using SwapPolicy = absl::conditional_t<
-      IsMemcpyOk<A>::value, MemcpyPolicy,
+
+  // The policy to be used specifically when swapping inlined elements.
+  using SwapInlinedElementsPolicy = absl::conditional_t<
+      // Fast path: if the value type can be trivially move constructed/assigned
+      // and destroyed, and we know the allocator doesn't do anything fancy,
+      // then it's safe for us to simply swap the bytes in the inline storage.
+      // It's as if we had move-constructed a temporary vector, move-assigned
+      // one to the other, then move-assigned the first from the temporary.
+      absl::conjunction<absl::is_trivially_move_constructible<ValueType<A>>,
+                        absl::is_trivially_move_assignable<ValueType<A>>,
+                        absl::is_trivially_destructible<ValueType<A>>,
+                        std::is_same<A, std::allocator<ValueType<A>>>>::value,
+      MemcpyPolicy,
       absl::conditional_t<IsSwapOk<A>::value, ElementwiseSwapPolicy,
                           ElementwiseConstructPolicy>>;
 
@@ -335,14 +353,21 @@ class Storage {
       : metadata_(allocator, /* size and is_allocated */ 0u) {}
 
   ~Storage() {
+    // Fast path: if we are empty and not allocated, there's nothing to do.
     if (GetSizeAndIsAllocated() == 0) {
-      // Empty and not allocated; nothing to do.
-    } else if (IsMemcpyOk<A>::value) {
-      // No destructors need to be run; just deallocate if necessary.
-      DeallocateIfAllocated();
-    } else {
-      DestroyContents();
+      return;
     }
+
+    // Fast path: if no destructors need to be run and we know the allocator
+    // doesn't do anything fancy, then all we need to do is deallocate (and
+    // maybe not even that).
+    if (absl::is_trivially_destructible<ValueType<A>>::value &&
+        std::is_same<A, std::allocator<ValueType<A>>>::value) {
+      DeallocateIfAllocated();
+      return;
+    }
+
+    DestroyContents();
   }
 
   // ---------------------------------------------------------------------------
@@ -365,14 +390,18 @@ class Storage {
     return data_.allocated.allocated_data;
   }
 
-  Pointer<A> GetInlinedData() {
-    return reinterpret_cast<Pointer<A>>(
-        std::addressof(data_.inlined.inlined_data[0]));
+  // ABSL_ATTRIBUTE_NO_SANITIZE_CFI is used because the memory pointed to may be
+  // uninitialized, a common pattern in allocate()+construct() APIs.
+  // https://clang.llvm.org/docs/ControlFlowIntegrity.html#bad-cast-checking
+  // NOTE: When this was written, LLVM documentation did not explicitly
+  // mention that casting `char*` and using `reinterpret_cast` qualifies
+  // as a bad cast.
+  ABSL_ATTRIBUTE_NO_SANITIZE_CFI Pointer<A> GetInlinedData() {
+    return reinterpret_cast<Pointer<A>>(data_.inlined.inlined_data);
   }
 
-  ConstPointer<A> GetInlinedData() const {
-    return reinterpret_cast<ConstPointer<A>>(
-        std::addressof(data_.inlined.inlined_data[0]));
+  ABSL_ATTRIBUTE_NO_SANITIZE_CFI ConstPointer<A> GetInlinedData() const {
+    return reinterpret_cast<ConstPointer<A>>(data_.inlined.inlined_data);
   }
 
   SizeType<A> GetAllocatedCapacity() const {
@@ -461,8 +490,32 @@ class Storage {
   }
 
   void MemcpyFrom(const Storage& other_storage) {
-    ABSL_HARDENING_ASSERT(IsMemcpyOk<A>::value ||
-                          other_storage.GetIsAllocated());
+    // Assumption check: it doesn't make sense to memcpy inlined elements unless
+    // we know the allocator doesn't do anything fancy, and one of the following
+    // holds:
+    //
+    //  *  The elements are trivially relocatable.
+    //
+    //  *  It's possible to trivially assign the elements and then destroy the
+    //     source.
+    //
+    //  *  It's possible to trivially copy construct/assign the elements.
+    //
+    {
+      using V = ValueType<A>;
+      ABSL_HARDENING_ASSERT(
+          other_storage.GetIsAllocated() ||
+          (std::is_same<A, std::allocator<V>>::value &&
+           (
+               // First case above
+               absl::is_trivially_relocatable<V>::value ||
+               // Second case above
+               (absl::is_trivially_move_assignable<V>::value &&
+                absl::is_trivially_destructible<V>::value) ||
+               // Third case above
+               (absl::is_trivially_copy_constructible<V>::value ||
+                absl::is_trivially_copy_assignable<V>::value))));
+    }
 
     GetSizeAndIsAllocated() = other_storage.GetSizeAndIsAllocated();
     data_ = other_storage.data_;
@@ -542,13 +595,19 @@ void Storage<T, N, A>::InitFrom(const Storage& other) {
     dst = allocation.data;
     src = other.GetAllocatedData();
   }
-  if (IsMemcpyOk<A>::value) {
+
+  // Fast path: if the value type is trivially copy constructible and we know
+  // the allocator doesn't do anything fancy, then we know it is legal for us to
+  // simply memcpy the other vector's elements.
+  if (absl::is_trivially_copy_constructible<ValueType<A>>::value &&
+      std::is_same<A, std::allocator<ValueType<A>>>::value) {
     std::memcpy(reinterpret_cast<char*>(dst),
                 reinterpret_cast<const char*>(src), n * sizeof(ValueType<A>));
   } else {
     auto values = IteratorValueAdapter<A, ConstPointer<A>>(src);
     ConstructElements<A>(GetAllocator(), dst, values, n);
   }
+
   GetSizeAndIsAllocated() = other.GetSizeAndIsAllocated();
 }
 
@@ -921,7 +980,7 @@ auto Storage<T, N, A>::Swap(Storage* other_storage_ptr) -> void {
   if (GetIsAllocated() && other_storage_ptr->GetIsAllocated()) {
     swap(data_.allocated, other_storage_ptr->data_.allocated);
   } else if (!GetIsAllocated() && !other_storage_ptr->GetIsAllocated()) {
-    SwapInlinedElements(SwapPolicy{}, other_storage_ptr);
+    SwapInlinedElements(SwapInlinedElementsPolicy{}, other_storage_ptr);
   } else {
     Storage* allocated_ptr = this;
     Storage* inlined_ptr = other_storage_ptr;
@@ -995,7 +1054,7 @@ template <typename NotMemcpyPolicy>
 void Storage<T, N, A>::SwapInlinedElements(NotMemcpyPolicy policy,
                                            Storage* other) {
   // Note: `destroy` needs to use pre-swap allocator while `construct` -
-  // post-swap allocator. Allocators will be swaped later on outside of
+  // post-swap allocator. Allocators will be swapped later on outside of
   // `SwapInlinedElements`.
   Storage* small_ptr = this;
   Storage* large_ptr = other;

@@ -55,8 +55,6 @@ ABSL_NAMESPACE_END
 
 #else  // ABSL_USES_STD_STRING_VIEW
 
-#error "std::string_view should be used in all configurations"
-
 #if ABSL_HAVE_BUILTIN(__builtin_memcmp) ||        \
     (defined(__GNUC__) && !defined(__clang__)) || \
     (defined(_MSC_VER) && _MSC_VER >= 1928)
