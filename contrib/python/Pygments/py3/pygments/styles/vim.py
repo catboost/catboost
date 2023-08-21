@@ -53,6 +53,7 @@ class VimStyle(Style):
         Generic.Error:             "#FF0000",
         Generic.Emph:              "italic",
         Generic.Strong:            "bold",
+        Generic.EmphStrong:        "bold italic",
         Generic.Prompt:            "bold #000080",
         Generic.Output:            "#888",
         Generic.Traceback:         "#04D",

@@ -63,6 +63,7 @@ class DefaultStyle(Style):
         Generic.Error:             "#E40000",
         Generic.Emph:              "italic",
         Generic.Strong:            "bold",
+        Generic.EmphStrong:        "bold italic",
         Generic.Prompt:            "bold #000080",
         Generic.Output:            "#717171",
         Generic.Traceback:         "#04D",

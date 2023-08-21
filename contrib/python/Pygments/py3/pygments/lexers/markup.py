@@ -512,32 +512,31 @@ class MarkdownLexer(RegexLexer):
     flags = re.MULTILINE
 
     def _handle_codeblock(self, match):
-        """
-        match args: 1:backticks, 2:lang_name, 3:newline, 4:code, 5:backticks
-        """
         from pygments.lexers import get_lexer_by_name
 
-        # section header
-        yield match.start(1), String.Backtick, match.group(1)
-        yield match.start(2), String.Backtick, match.group(2)
-        yield match.start(3), Text           , match.group(3)
+        yield match.start('initial'), String.Backtick, match.group('initial')
+        yield match.start('lang'), String.Backtick, match.group('lang')
+        if match.group('afterlang') is not None:
+            yield match.start('whitespace'), Whitespace, match.group('whitespace')
+            yield match.start('extra'), Text, match.group('extra')
+        yield match.start('newline'), Whitespace, match.group('newline')
 
         # lookup lexer if wanted and existing
         lexer = None
         if self.handlecodeblocks:
             try:
-                lexer = get_lexer_by_name( match.group(2).strip() )
+                lexer = get_lexer_by_name(match.group('lang').strip())
             except ClassNotFound:
                 pass
-        code = match.group(4)
-
+        code = match.group('code')
         # no lexer for this language. handle it like it was a code block
         if lexer is None:
-            yield match.start(4), String, code
+            yield match.start('code'), String, code
         else:
+            # FIXME: aren't the offsets wrong?
             yield from do_insertions([], lexer.get_tokens_unprocessed(code))
 
-        yield match.start(5), String.Backtick, match.group(5)
+        yield match.start('terminator'), String.Backtick, match.group('terminator')
 
     tokens = {
         'root': [
@@ -563,7 +562,19 @@ class MarkdownLexer(RegexLexer):
             # code block fenced by 3 backticks
             (r'^(\s*```\n[\w\W]*?^\s*```$\n)', String.Backtick),
             # code block with language
-            (r'^(\s*```)(\w+)(\n)([\w\W]*?)(^\s*```$\n)', _handle_codeblock),
+            # Some tools include extra stuff after the language name, just
+            # highlight that as text. For example: https://docs.enola.dev/use/execmd
+            (r'''(?x)
+              ^(?P<initial>\s*```)
+              (?P<lang>[\w\-]+)
+              (?P<afterlang>
+                 (?P<whitespace>[^\S\n]+)
+                 (?P<extra>.*))?
+              (?P<newline>\n)
+              (?P<code>(.|\n)*?)
+              (?P<terminator>^\s*```$\n)
+              ''',
+             _handle_codeblock),
 
             include('inline'),
         ],
@@ -1039,7 +1050,7 @@ class WikitextLexer(RegexLexer):
             include('entity'),
             # Bold & italic
             (r"('')(''')(?!')", bygroups(Generic.Emph,
-             Generic.Strong), 'inline-italic-bold'),
+             Generic.EmphStrong), 'inline-italic-bold'),
             (r"'''(?!')", Generic.Strong, 'inline-bold'),
             (r"''(?!')", Generic.Emph, 'inline-italic'),
             # Comments & parameters & templates
@@ -1049,37 +1060,37 @@ class WikitextLexer(RegexLexer):
                 r"""(?xi)
                 (\[\[)
                     (File|Image) (:)
-                    ([{}]*)
-                    (?: (\#) ([{}]*?) )?
-                """.format(title_char, f'{title_char}#'),
+                    ((?: [%s] | \{{2,3}[^{}]*?\}{2,3} | <!--[\s\S]*?--> )*)
+                    (?: (\#) ([%s]*?) )?
+                """ % (title_char, f'{title_char}#'),
                 bygroups(Punctuation, Name.Namespace,  Punctuation,
-                         Name.Tag, Punctuation, Name.Label),
+                         using(this, state=['wikilink-name']), Punctuation, Name.Label),
                 'medialink-inner'
             ),
             # Wikilinks
             (
                 r"""(?xi)
-                (\[\[)(?!{}) # Should not contain URLs
-                    (?: ([{}]*) (:))?
-                    ([{}]*?)
-                    (?: (\#) ([{}]*?) )?
+                (\[\[)(?!%s) # Should not contain URLs
+                    (?: ([%s]*) (:))?
+                    ((?: [%s] | \{{2,3}[^{}]*?\}{2,3} | <!--[\s\S]*?--> )*?)
+                    (?: (\#) ([%s]*?) )?
                 (\]\])
-                """.format('|'.join(protocols), title_char.replace('/', ''),
+                """ % ('|'.join(protocols), title_char.replace('/', ''),
                            title_char, f'{title_char}#'),
                 bygroups(Punctuation, Name.Namespace,  Punctuation,
-                         Name.Tag, Punctuation, Name.Label, Punctuation)
+                         using(this, state=['wikilink-name']), Punctuation, Name.Label, Punctuation)
             ),
             (
                 r"""(?xi)
-                (\[\[)(?!{})
-                    (?: ([{}]*) (:))?
-                    ([{}]*?)
-                    (?: (\#) ([{}]*?) )?
+                (\[\[)(?!%s)
+                    (?: ([%s]*) (:))?
+                    ((?: [%s] | \{{2,3}[^{}]*?\}{2,3} | <!--[\s\S]*?--> )*?)
+                    (?: (\#) ([%s]*?) )?
                     (\|)
-                """.format('|'.join(protocols), title_char.replace('/', ''),
+                """ % ('|'.join(protocols), title_char.replace('/', ''),
                            title_char, f'{title_char}#'),
                 bygroups(Punctuation, Name.Namespace,  Punctuation,
-                         Name.Tag, Punctuation, Name.Label, Punctuation),
+                         using(this, state=['wikilink-name']), Punctuation, Name.Label, Punctuation),
                 'wikilink-inner'
             ),
             # External links
@@ -1186,7 +1197,12 @@ class WikitextLexer(RegexLexer):
                          Name.Label, Operator, Name.Label, Punctuation),
                 'lc-inner'
             ),
-            (r'-\{', Punctuation, 'lc-raw'),
+            (r'-\{(?!\{)', Punctuation, 'lc-raw'),
+        ],
+        'wikilink-name': [
+            include('replaceable'),
+            (r'[^{<]+', Name.Tag),
+            (r'(?s).', Name.Tag),
         ],
         'wikilink-inner': [
             # Quit in case of another wikilink
@@ -1212,7 +1228,7 @@ class WikitextLexer(RegexLexer):
             include('quote-common'),
             (r"('')(''')(?!')", bygroups(Generic.Emph,
              Generic.Strong), ('#pop', 'inline-bold')),
-            (r"'''(?!')", Generic.Strong, ('#pop', 'inline-italic-bold')),
+            (r"'''(?!')", Generic.EmphStrong, ('#pop', 'inline-italic-bold')),
             (r"''(?!')", Generic.Emph, '#pop'),
             include('inline'),
             include('text-italic'),
@@ -1222,26 +1238,27 @@ class WikitextLexer(RegexLexer):
             (r"(''')('')(?!')", bygroups(
                 Generic.Strong, Generic.Emph), ('#pop', 'inline-italic')),
             (r"'''(?!')", Generic.Strong, '#pop'),
-            (r"''(?!')", Generic.Emph, ('#pop', 'inline-bold-italic')),
+            (r"''(?!')", Generic.EmphStrong, ('#pop', 'inline-bold-italic')),
             include('inline'),
             include('text-bold'),
         ],
         'inline-bold-italic': [
             include('quote-common'),
-            (r"('')(''')(?!')", bygroups(Generic.Emph,
+            (r"('')(''')(?!')", bygroups(Generic.EmphStrong,
              Generic.Strong), '#pop'),
-            (r"'''(?!')", Generic.Strong, ('#pop', 'inline-italic')),
-            (r"''(?!')", Generic.Emph, ('#pop', 'inline-bold')),
+            (r"'''(?!')", Generic.EmphStrong, ('#pop', 'inline-italic')),
+            (r"''(?!')", Generic.EmphStrong, ('#pop', 'inline-bold')),
             include('inline'),
-            include('text-italic'),
+            include('text-bold-italic'),
         ],
         'inline-italic-bold': [
             include('quote-common'),
             (r"(''')('')(?!')", bygroups(
-                Generic.Strong, Generic.Emph), '#pop'),
-            (r"'''(?!')", Generic.Strong, ('#pop', 'inline-italic')),
-            (r"''(?!')", Generic.Emph, ('#pop', 'inline-bold')),
-            include('text-bold'),
+                Generic.EmphStrong, Generic.Emph), '#pop'),
+            (r"'''(?!')", Generic.EmphStrong, ('#pop', 'inline-italic')),
+            (r"''(?!')", Generic.EmphStrong, ('#pop', 'inline-bold')),
+            include('inline'),
+            include('text-bold-italic'),
         ],
         'lc-inner': [
             (
@@ -1499,5 +1516,6 @@ class WikitextLexer(RegexLexer):
         'tag-templatedata': delegate_tag_rules('templatedata', JsonLexer),
         'text-italic': text_rules(Generic.Emph),
         'text-bold': text_rules(Generic.Strong),
+        'text-bold-italic': text_rules(Generic.EmphStrong),
         'text': text_rules(Text),
     }

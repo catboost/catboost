@@ -54,6 +54,7 @@ class RainbowDashStyle(Style):
         Generic.Output: GREY,
         Generic.Prompt: 'bold {}'.format(BLUE),
         Generic.Strong: 'bold',
+        Generic.EmphStrong: 'bold italic',
         Generic.Subheading: 'bold {}'.format(BLUE),
         Generic.Traceback: RED_DARK,
 

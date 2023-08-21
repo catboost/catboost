@@ -73,6 +73,7 @@ class NordStyle(Style):
         Generic.Error:              '#bf616a',
         Generic.Emph:               'italic',
         Generic.Strong:             'bold',
+        Generic.EmphStrong:         'bold italic',
         Generic.Prompt:             'bold #616e88',
         Generic.Output:             '#d8dee9',
         Generic.Traceback:          '#bf616a',

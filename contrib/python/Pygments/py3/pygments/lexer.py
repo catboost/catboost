@@ -72,6 +72,11 @@ class Lexer(metaclass=LexerMeta):
     .. autoattribute:: url
        :no-value:
 
+    Lexers included in Pygments may have additional attributes:
+
+    .. autoattribute:: _example
+       :no-value:
+
     You can pass options to the constructor. The basic options recognized
     by all lexers and processed by the base `Lexer` class are:
 
@@ -127,6 +132,10 @@ class Lexer(metaclass=LexerMeta):
     #: URL of the language specification/definition. Used in the Pygments
     #: documentation.
     url = None
+
+    #: Example file name. Relative to the ``tests/examplefiles`` directory.
+    #: This is used by the documentation generator to show an example.
+    _example = None
 
     def __init__(self, **options):
         """

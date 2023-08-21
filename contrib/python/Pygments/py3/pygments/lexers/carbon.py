@@ -37,7 +37,7 @@ class CarbonLexer(RegexLexer):
             (r'\\\n', Text),
             # comments
             (r'//(.*?)\n', Comment.Single),
-            (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
+            (r'/(\\\n)?[*].*?[*](\\\n)?/', Comment.Multiline),
             # Declaration
             (r'(package|import|api|namespace|library)\b', Keyword.Namespace),
             (r'(abstract|alias|fn|class|interface|let|var|virtual|external|'
@@ -53,11 +53,11 @@ class CarbonLexer(RegexLexer):
             (r'(auto|bool|string|i8|i16|i32|i64|u8|u16|u32|u64|'
              r'f8|f16|f32|f64)\b', Keyword.Type),
             # numeric literals
-            (r'[0-9]*[.][0-9]+?', Number.Double),
-            (r'0b[01]+?', Number.Bin),
-            (r'0o[0-7]+?', Number.Oct),
-            (r'0x[0-9a-fA-F]+?', Number.Hex),
-            (r'[0-9]+?', Number.Integer),
+            (r'[0-9]*[.][0-9]+', Number.Double),
+            (r'0b[01]+', Number.Bin),
+            (r'0o[0-7]+', Number.Oct),
+            (r'0x[0-9a-fA-F]+', Number.Hex),
+            (r'[0-9]+', Number.Integer),
             # string literal
             (r'"(\\.|[^"\\])*"', String),
             # char literal

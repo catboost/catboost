@@ -66,6 +66,7 @@ class ManniStyle(Style):
         Generic.Error:      '#FF0000',
         Generic.Emph:       'italic',
         Generic.Strong:     'bold',
+        Generic.EmphStrong: 'bold italic',
         Generic.Prompt:     'bold #000099',
         Generic.Output:     '#AAAAAA',
         Generic.Traceback:  '#99CC66',

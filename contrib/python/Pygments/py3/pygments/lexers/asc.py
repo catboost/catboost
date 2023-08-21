@@ -31,7 +31,7 @@ class AscLexer(RegexLexer):
         'id_rsa',  # SSH private keys
     ]
     mimetypes = ['application/pgp-keys', 'application/pgp-encrypted',
-                 'application/pgp-signature']
+                 'application/pgp-signature', 'application/pem-certificate-chain']
 
     flags = re.MULTILINE
 

@@ -26,10 +26,10 @@ class MonokaiStyle(Style):
         # No corresponding class for the following:
         Token:                     "#f8f8f2", # class:  ''
         Whitespace:                "",        # class: 'w'
-        Error:                     "#960050 bg:#1e0010", # class: 'err'
+        Error:                     "#ed007e bg:#1e0010", # class: 'err'
         Other:                     "",        # class 'x'
 
-        Comment:                   "#75715e", # class: 'c'
+        Comment:                   "#959077", # class: 'c'
         Comment.Multiline:         "",        # class: 'cm'
         Comment.Preproc:           "",        # class: 'cp'
         Comment.Single:            "",        # class: 'c1'
@@ -38,12 +38,12 @@ class MonokaiStyle(Style):
         Keyword:                   "#66d9ef", # class: 'k'
         Keyword.Constant:          "",        # class: 'kc'
         Keyword.Declaration:       "",        # class: 'kd'
-        Keyword.Namespace:         "#f92672", # class: 'kn'
+        Keyword.Namespace:         "#ff4689", # class: 'kn'
         Keyword.Pseudo:            "",        # class: 'kp'
         Keyword.Reserved:          "",        # class: 'kr'
         Keyword.Type:              "",        # class: 'kt'
 
-        Operator:                  "#f92672", # class: 'o'
+        Operator:                  "#ff4689", # class: 'o'
         Operator.Word:             "",        # class: 'ow' - like keywords
 
         Punctuation:               "#f8f8f2", # class: 'p'
@@ -62,7 +62,7 @@ class MonokaiStyle(Style):
         Name.Label:                "",        # class: 'nl'
         Name.Namespace:            "",        # class: 'nn' - to be revised
         Name.Other:                "#a6e22e", # class: 'nx'
-        Name.Tag:                  "#f92672", # class: 'nt' - like a keyword
+        Name.Tag:                  "#ff4689", # class: 'nt' - like a keyword
         Name.Variable:             "",        # class: 'nv' - to be revised
         Name.Variable.Class:       "",        # class: 'vc' - to be revised
         Name.Variable.Global:      "",        # class: 'vg' - to be revised
@@ -93,14 +93,15 @@ class MonokaiStyle(Style):
 
 
         Generic:                   "",        # class: 'g'
-        Generic.Deleted:           "#f92672", # class: 'gd',
+        Generic.Deleted:           "#ff4689", # class: 'gd',
         Generic.Emph:              "italic",  # class: 'ge'
         Generic.Error:             "",        # class: 'gr'
         Generic.Heading:           "",        # class: 'gh'
         Generic.Inserted:          "#a6e22e", # class: 'gi'
         Generic.Output:            "#66d9ef", # class: 'go'
-        Generic.Prompt:            "bold #f92672", # class: 'gp'
+        Generic.Prompt:            "bold #ff4689", # class: 'gp'
         Generic.Strong:            "bold",    # class: 'gs'
-        Generic.Subheading:        "#75715e", # class: 'gu'
+        Generic.EmphStrong:        "bold italic",  # class: 'ges'
+        Generic.Subheading:        "#959077", # class: 'gu'
         Generic.Traceback:         "",        # class: 'gt'
     }

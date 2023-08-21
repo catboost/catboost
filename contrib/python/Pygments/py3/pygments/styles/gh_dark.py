@@ -99,6 +99,7 @@ class GhDarkStyle(Style):
         Generic.Output:             GRAY_3,
         Generic.Prompt:             GRAY_3,
         Generic.Strong:             "bold",
+        Generic.EmphStrong:         "bold italic",
         Generic.Subheading:         BLUE_2,
         Generic.Traceback:          RED_3,
         Generic.Underline:          "underline",

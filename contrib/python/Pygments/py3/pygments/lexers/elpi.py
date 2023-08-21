@@ -10,7 +10,7 @@
 
 from pygments.lexer import RegexLexer, bygroups, include
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number
+    Number, Punctuation
 
 __all__ = ['ElpiLexer']
 
@@ -88,6 +88,7 @@ class ElpiLexer(RegexLexer):
             (r'"', String.Double, 'elpi-string'),
             (r'`', String.Double, 'elpi-btick'),
             (r'\'', String.Double, 'elpi-tick'),
+            (r'\{\{', Punctuation, 'elpi-quote'),
             (r'\{[^\{]', Text, 'elpi-spill'),
             (r"\(", Text, 'elpi-in-parens'),
             (r'\d[\d_]*', Number.Integer),
@@ -150,6 +151,13 @@ class ElpiLexer(RegexLexer):
         'elpi-string': [
             (r'[^\"]+', String.Double),
             (r'"', String.Double, '#pop'),
+        ],
+        'elpi-quote': [
+            (r'\{\{', Punctuation, '#push'),
+            (r'\}\}', Punctuation, '#pop'),
+            (r"(lp:)((?=[A-Z_]){})".format(constant_re), bygroups(Keyword, Name.Variable)),
+            (r"[^l\}]+", Text),
+            (r"l|\}", Text),
         ],
         'elpi-spill': [
             (r'\{[^\{]', Text, '#push'),

@@ -22,7 +22,7 @@ from pygments.lexers.css import CssLexer, _indentation, _starts_block
 from pygments.lexers.ruby import RubyLexer
 
 __all__ = ['HtmlLexer', 'DtdLexer', 'XmlLexer', 'XsltLexer', 'HamlLexer',
-           'ScamlLexer', 'PugLexer']
+           'ScamlLexer', 'PugLexer', 'UrlEncodedLexer']
 
 
 class HtmlLexer(RegexLexer):
@@ -603,3 +603,21 @@ class PugLexer(ExtendedRegexLexer):
         ],
     }
 JadeLexer = PugLexer  # compat
+
+
+class UrlEncodedLexer(RegexLexer):
+    """
+    Lexer for urlencoded data
+
+    .. versionadded:: 2.16
+    """
+
+    name = 'urlencoded'
+    aliases = ['urlencoded']
+    mimetypes = ['application/x-www-form-urlencoded']
+
+    tokens = {
+        'root': [
+            ('([^&=]*)(=)([^=&]*)(&?)', bygroups(Name.Tag, Operator, String, Punctuation)),
+        ],
+    }

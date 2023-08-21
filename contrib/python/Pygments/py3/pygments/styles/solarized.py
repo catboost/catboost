@@ -67,6 +67,7 @@ def make_style(colors):
         Generic.Output:      colors['base0'],
         Generic.Prompt:      'bold ' + colors['blue'],
         Generic.Strong:      'bold',
+        Generic.EmphStrong:  'bold italic',
         Generic.Traceback:   colors['blue'],
 
         Error:               'bg:' + colors['red'],

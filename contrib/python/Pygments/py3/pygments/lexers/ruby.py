@@ -394,19 +394,12 @@ class RubyLexer(ExtendedRegexLexer):
 
 class RubyConsoleLexer(Lexer):
     """
-    For Ruby interactive console (**irb**) output like:
-
-    .. sourcecode:: rbcon
-
-        irb(main):001:0> a = 1
-        => 1
-        irb(main):002:0> puts a
-        1
-        => nil
+    For Ruby interactive console (**irb**) output.
     """
     name = 'Ruby irb session'
     aliases = ['rbcon', 'irb']
     mimetypes = ['text/x-ruby-shellsession']
+    _example = 'rbcon/console'
 
     _prompt_re = re.compile(r'irb\([a-zA-Z_]\w*\):\d{3}:\d+[>*"\'] '
                             r'|>> |\?> ')

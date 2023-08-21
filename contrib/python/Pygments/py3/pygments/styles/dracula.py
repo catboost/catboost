@@ -44,6 +44,7 @@ class DraculaStyle(Style):
         Generic.Output: "#44475a",
         Generic.Prompt: "#f8f8f2",
         Generic.Strong: "#f8f8f2",
+        Generic.EmphStrong: "#f8f8f2 underline",
         Generic.Subheading: "#f8f8f2 bold",
         Generic.Traceback: "#f8f8f2",
 

@@ -134,6 +134,7 @@ class TangoStyle(Style):
         Generic.Output:            "italic #000000", # class: 'go'
         Generic.Prompt:            "#8f5902",        # class: 'gp'
         Generic.Strong:            "bold #000000",   # class: 'gs'
+        Generic.EmphStrong:        "bold italic #000000",  # class: 'ges'
         Generic.Subheading:        "bold #800080",   # class: 'gu'
         Generic.Traceback:         "bold #a40000",   # class: 'gt'
     }

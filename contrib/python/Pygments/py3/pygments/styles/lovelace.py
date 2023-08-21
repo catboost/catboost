@@ -88,6 +88,7 @@ class LovelaceStyle(Style):
         Generic.Output:      '#666666',
         Generic.Prompt:      '#444444',
         Generic.Strong:      'bold',
+        Generic.EmphStrong:  'bold italic',
         Generic.Traceback:   _KW_BLUE,
 
         Error:               'bg:'+_OW_PURPLE,

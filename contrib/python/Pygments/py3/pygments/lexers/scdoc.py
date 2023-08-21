@@ -66,14 +66,21 @@ class ScdocLexer(RegexLexer):
     }
 
     def analyse_text(text):
-        """This is very similar to markdown, save for the escape characters
-        needed for * and _."""
+        """We checks for bold and underline text with * and _. Also
+        every scdoc file must start with a strictly defined first line."""
         result = 0
 
-        if '\\*' in text:
+        if '*' in text:
             result += 0.01
 
-        if '\\_' in text:
+        if '_' in text:
             result += 0.01
+
+        # name(section) ["left_footer" ["center_header"]]
+        first_line = text.partition('\n')[0]
+        scdoc_preamble_pattern = r'^.*\([1-7]\)( "[^"]+"){0,2}$'
+
+        if re.search(scdoc_preamble_pattern, first_line):
+            result += 0.5
 
         return result

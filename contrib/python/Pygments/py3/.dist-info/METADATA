@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: Pygments
-Version: 2.15.1
+Version: 2.16.1
 Summary: Pygments is a syntax highlighting package written in Python.
 Author-email: Georg Brandl <georg@python.org>
 Maintainer: Matthäus G. Chajdas

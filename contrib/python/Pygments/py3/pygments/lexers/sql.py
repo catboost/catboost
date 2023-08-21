@@ -431,7 +431,7 @@ class PostgresExplainLexer(RegexLexer):
                     'Planning Time', 'Execution time', 'Execution Time',
                     'Workers Planned', 'Workers Launched', 'Buffers',
                     'Planning', 'Worker', 'Query Identifier', 'Time',
-                    'Full-sort Groups'), suffix=r'\b'), Comment.Preproc),
+                    'Full-sort Groups', 'Pre-sorted Groups'), suffix=r'\b'), Comment.Preproc),
 
             # Emphasize these keywords
 

@@ -53,7 +53,7 @@ class GoLexer(RegexLexer):
                 'string', 'bool', 'error', 'uintptr', 'any', 'comparable',
                 'print', 'println', 'panic', 'recover', 'close', 'complex',
                 'real', 'imag', 'len', 'cap', 'append', 'copy', 'delete',
-                'new', 'make'), suffix=r'\b(\()'),
+                'new', 'make', 'min', 'max', 'clear'), suffix=r'\b(\()'),
              bygroups(Name.Builtin, Punctuation)),
             (words((
                 'uint', 'uint8', 'uint16', 'uint32', 'uint64',

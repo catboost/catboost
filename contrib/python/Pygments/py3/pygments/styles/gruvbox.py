@@ -55,6 +55,7 @@ class GruvboxDarkStyle(Style):
         Generic.Error:      '#fb4934',
         Generic.Emph:       'italic',
         Generic.Strong:     'bold',
+        Generic.EmphStrong: 'bold italic',
         Generic.Prompt:     '#a89984',
         Generic.Output:     '#f2e5bc',
         Generic.Traceback:  '#fb4934',

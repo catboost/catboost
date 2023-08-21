@@ -114,6 +114,7 @@ class ParaisoLightStyle(Style):
         Generic.Output:            "",                    # class: 'go'
         Generic.Prompt:            "bold " + COMMENT,     # class: 'gp'
         Generic.Strong:            "bold",                # class: 'gs'
+        Generic.EmphStrong:        "bold italic",         # class: 'ges'
         Generic.Subheading:        "bold " + AQUA,        # class: 'gu'
         Generic.Traceback:         "",                    # class: 'gt'
     }

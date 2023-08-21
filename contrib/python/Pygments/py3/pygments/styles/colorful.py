@@ -70,6 +70,7 @@ class ColorfulStyle(Style):
         Generic.Error:             "#FF0000",
         Generic.Emph:              "italic",
         Generic.Strong:            "bold",
+        Generic.EmphStrong:        "bold italic",
         Generic.Prompt:            "bold #c65d09",
         Generic.Output:            "#888",
         Generic.Traceback:         "#04D",

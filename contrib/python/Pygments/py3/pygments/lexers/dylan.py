@@ -242,14 +242,7 @@ class DylanLidLexer(RegexLexer):
 
 class DylanConsoleLexer(Lexer):
     """
-    For Dylan interactive console output like:
-
-    .. sourcecode:: dylan-console
-
-        ? let a = 1;
-        => 1
-        ? a
-        => 1
+    For Dylan interactive console output.
 
     This is based on a copy of the RubyConsoleLexer.
 
@@ -259,6 +252,7 @@ class DylanConsoleLexer(Lexer):
     aliases = ['dylan-console', 'dylan-repl']
     filenames = ['*.dylan-console']
     mimetypes = ['text/x-dylan-console']
+    _example = 'dylan-console/console'
 
     _prompt_re = re.compile(r'\?| ')
 

@@ -57,6 +57,7 @@ class NativeStyle(Style):
         Generic.Error:      '#d22323',
         Generic.Emph:       'italic',
         Generic.Strong:     'bold',
+        Generic.EmphStrong: 'bold italic',
         Generic.Prompt:     '#aaaaaa',
         Generic.Output:     '#cccccc',
         Generic.Traceback:  '#d22323',

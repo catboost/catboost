@@ -40,6 +40,7 @@ class BorlandStyle(Style):
         Generic.Error:          '#aa0000',
         Generic.Emph:           'italic',
         Generic.Strong:         'bold',
+        Generic.EmphStrong:     'bold italic',
         Generic.Prompt:         '#555555',
         Generic.Output:         '#888888',
         Generic.Traceback:      '#aa0000',

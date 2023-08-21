@@ -112,6 +112,7 @@ class MaterialStyle(Style):
         Generic.Output:                faded,
         Generic.Prompt:                yellow,
         Generic.Strong:                red,
+        Generic.EmphStrong:            yellow,
         Generic.Subheading:            cyan,
         Generic.Traceback:             red,
     }

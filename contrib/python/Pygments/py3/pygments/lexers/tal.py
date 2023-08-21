@@ -54,19 +54,22 @@ class TalLexer(RegexLexer):
             (r'[][{}](?!\S)', Punctuation), # delimiters
             (r'#([0-9a-f]{2}){1,2}(?!\S)', Number.Hex), # integer
             (r'"\S+', String), # raw string
-            (r"'\S(?!\S)", String.Char), # raw char
             (r'([0-9a-f]{2}){1,2}(?!\S)', Literal), # raw integer
             (r'[|$][0-9a-f]{1,4}(?!\S)', Keyword.Declaration), # abs/rel pad
             (r'%\S+', Name.Decorator), # macro
             (r'@\S+', Name.Function), # label
             (r'&\S+', Name.Label), # sublabel
             (r'/\S+', Name.Tag), # spacer
-            (r'\.\S+', Name.Variable.Magic), # zero page addr
-            (r',\S+', Name.Variable.Instance), # rel addr
-            (r';\S+', Name.Variable.Global), # abs addr
-            (r':\S+', Literal), # raw addr
+            (r'\.\S+', Name.Variable.Magic), # literal zero page addr
+            (r',\S+', Name.Variable.Instance), # literal rel addr
+            (r';\S+', Name.Variable.Global), # literal abs addr
+            (r'-\S+', Literal), # raw zero page addr
+            (r'_\S+', Literal), # raw relative addr
+            (r'=\S+', Literal), # raw absolute addr
+            (r'!\S+', Name.Function), # immediate jump
+            (r'\?\S+', Name.Function), # conditional immediate jump
             (r'~\S+', Keyword.Namespace), # include
-            (r'\S+', Name),
+            (r'\S+', Name.Function), # macro invocation, immediate subroutine
         ]
     }
 

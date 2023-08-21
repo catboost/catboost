@@ -17,8 +17,8 @@ from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
 from pygments.lexers.shell import BashLexer
 from pygments.lexers.data import JsonLexer
 
-__all__ = ['IniLexer', 'RegeditLexer', 'PropertiesLexer', 'KconfigLexer',
-           'Cfengine3Lexer', 'ApacheConfLexer', 'SquidConfLexer',
+__all__ = ['IniLexer', 'SystemdLexer', 'DesktopLexer', 'RegeditLexer', 'PropertiesLexer',
+           'KconfigLexer', 'Cfengine3Lexer', 'ApacheConfLexer', 'SquidConfLexer',
            'NginxConfLexer', 'LighttpdConfLexer', 'DockerLexer',
            'TerraformLexer', 'TermcapLexer', 'TerminfoLexer',
            'PkgConfigLexer', 'PacmanConfLexer', 'AugeasLexer', 'TOMLLexer',
@@ -34,10 +34,6 @@ class IniLexer(RegexLexer):
     aliases = ['ini', 'cfg', 'dosini']
     filenames = [
         '*.ini', '*.cfg', '*.inf', '.editorconfig',
-        # systemd unit files
-        # https://www.freedesktop.org/software/systemd/man/systemd.unit.html
-        '*.service', '*.socket', '*.device', '*.mount', '*.automount',
-        '*.swap', '*.target', '*.path', '*.timer', '*.slice', '*.scope',
     ]
     mimetypes = ['text/x-ini', 'text/inf']
 
@@ -67,7 +63,84 @@ class IniLexer(RegexLexer):
         npos = text.find('\n')
         if npos < 3:
             return False
-        return text[0] == '[' and text[npos-1] == ']'
+        if text[0] == '[' and text[npos-1] == ']':
+            return 0.8
+        return False
+
+
+class DesktopLexer(RegexLexer):
+    """
+    Lexer for .desktop files.
+
+    .. versionadded:: 2.16
+    """
+
+    name = 'Desktop file'
+    url = "https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html"
+    aliases = ['desktop']
+    filenames = ['*.desktop']
+
+    tokens = {
+        'root': [
+            (r'^[ \t]*\n', Whitespace),
+            (r'^(#.*)(\n)', bygroups(Comment.Single, Whitespace)),
+            (r'(\[[^\]\n]+\])(\n)', bygroups(Keyword, Whitespace)),
+            (r'([-A-Za-z0-9]+)(\[[^\] \t=]+\])?([ \t]*)(=)([ \t]*)([^\n]*)([ \t\n]*\n)',
+             bygroups(Name.Attribute, Name.Namespace, Whitespace, Operator, Whitespace, String, Whitespace)),
+        ],
+    }
+
+    def analyse_text(text):
+        if text.startswith("[Desktop Entry]"):
+            return 1.0
+        if re.search(r"^\[Desktop Entry\][ \t]*$", text[:500], re.MULTILINE) is not None:
+            return 0.9
+        return 0.0
+
+
+class SystemdLexer(RegexLexer):
+    """
+    Lexer for systemd unit files.
+
+    .. versionadded:: 2.16
+    """
+
+    name = 'Systemd'
+    url = "https://www.freedesktop.org/software/systemd/man/systemd.syntax.html"
+    aliases = ['systemd']
+    filenames = [
+        '*.service', '*.socket', '*.device', '*.mount', '*.automount',
+        '*.swap', '*.target', '*.path', '*.timer', '*.slice', '*.scope',
+    ]
+
+    tokens = {
+        'root': [
+            (r'^[ \t]*\n', Whitespace),
+            (r'^([;#].*)(\n)', bygroups(Comment.Single, Whitespace)),
+            (r'(\[[^\]\n]+\])(\n)', bygroups(Keyword, Whitespace)),
+            (r'([^=]+)([ \t]*)(=)([ \t]*)([^\n]*)(\\)(\n)',
+             bygroups(Name.Attribute, Whitespace, Operator, Whitespace, String,
+                      Text, Whitespace),
+             "value"),
+            (r'([^=]+)([ \t]*)(=)([ \t]*)([^\n]*)(\n)',
+             bygroups(Name.Attribute, Whitespace, Operator, Whitespace, String, Whitespace)),
+        ],
+        'value': [
+            # line continuation
+            (r'^([;#].*)(\n)', bygroups(Comment.Single, Whitespace)),
+            (r'([ \t]*)([^\n]*)(\\)(\n)',
+             bygroups(Whitespace, String, Text, Whitespace)),
+            (r'([ \t]*)([^\n]*)(\n)',
+             bygroups(Whitespace, String, Whitespace), "#pop"),
+        ],
+    }
+
+    def analyse_text(text):
+        if text.startswith("[Unit]"):
+            return 1.0
+        if re.search(r"^\[Unit\][ \t]*$", text[:500], re.MULTILINE) is not None:
+            return 0.9
+        return 0.0
 
 
 class RegeditLexer(RegexLexer):
@@ -1093,10 +1166,12 @@ class TOMLLexer(RegexLexer):
 
 class NestedTextLexer(RegexLexer):
     """
-    Lexer for NextedText, a human-friendly data
-    format.
+    Lexer for *NextedText*, a human-friendly data format.
 
     .. versionadded:: 2.9
+
+    .. versionchanged:: 2.16
+        Added support for *NextedText* v3.0.
     """
 
     name = 'NestedText'
@@ -1104,16 +1179,70 @@ class NestedTextLexer(RegexLexer):
     aliases = ['nestedtext', 'nt']
     filenames = ['*.nt']
 
-    _quoted_dict_item = r'^(\s*)({0})(.*?)({0}: ?)(.*?)(\s*)$'
-
     tokens = {
         'root': [
-            (r'^(\s*)(#.*?)$', bygroups(Whitespace, Comment)),
-            (r'^(\s*)(>)( ?)(.*?)(\s*)$', bygroups(Whitespace, Punctuation, Whitespace, String, Whitespace)),
-            (r'^(\s*)(-)( ?)(.*?)(\s*)$', bygroups(Whitespace, Punctuation, Whitespace, String, Whitespace)),
-            (_quoted_dict_item.format("'"), bygroups(Whitespace, Punctuation, Name, Punctuation, String, Whitespace)),
-            (_quoted_dict_item.format('"'), bygroups(Whitespace, Punctuation, Name, Punctuation, String, Whitespace)),
-            (r'^(\s*)(.*?)(:)( ?)(.*?)(\s*)$', bygroups(Whitespace, Name, Punctuation, Whitespace, String, Whitespace)),
+            # Comment: # ...
+            (r'^([ ]*)(#.*)$', bygroups(Whitespace, Comment)),
+
+            # Inline dictionary: {...}
+            (r'^([ ]*)(\{)', bygroups(Whitespace, Punctuation), 'inline_dict'),
+
+            # Inline list: [...]
+            (r'^([ ]*)(\[)', bygroups(Whitespace, Punctuation), 'inline_list'),
+
+            # empty multiline string item: >
+            (r'^([ ]*)(>)$', bygroups(Whitespace, Punctuation)),
+
+            # multiline string item: > ...
+            (r'^([ ]*)(>)( )(.*?)([ \t]*)$', bygroups(Whitespace, Punctuation, Whitespace, Text, Whitespace)),
+
+            # empty list item: -
+            (r'^([ ]*)(-)$', bygroups(Whitespace, Punctuation)),
+
+            # list item: - ...
+            (r'^([ ]*)(-)( )(.*?)([ \t]*)$', bygroups(Whitespace, Punctuation, Whitespace, Text, Whitespace)),
+
+            # empty multiline key item: :
+            (r'^([ ]*)(:)$', bygroups(Whitespace, Punctuation)),
+
+            # multiline key item: : ...
+            (r'^([ ]*)(:)( )([^\n]*?)([ \t]*)$', bygroups(Whitespace, Punctuation, Whitespace, Name.Tag, Whitespace)),
+
+            # empty dict key item: ...:
+            (r'^([ ]*)([^\{\[\s].*?)(:)$', bygroups(Whitespace, Name.Tag, Punctuation)),
+
+            # dict key item: ...: ...
+            (r'^([ ]*)([^\{\[\s].*?)(:)( )(.*?)([ \t]*)$', bygroups(Whitespace, Name.Tag, Punctuation, Whitespace, Text, Whitespace)),
+        ],
+        'inline_list': [
+            include('whitespace'),
+            (r'[^\{\}\[\],\s]+', Text),
+            include('inline_value'),
+            (r',', Punctuation),
+            (r'\]', Punctuation, '#pop'),
+            (r'\n', Error, '#pop'),
+        ],
+        'inline_dict': [
+            include('whitespace'),
+            (r'[^\{\}\[\],:\s]+', Name.Tag),
+            (r':', Punctuation, 'inline_dict_value'),
+            (r'\}', Punctuation, '#pop'),
+            (r'\n', Error, '#pop'),
+        ],
+        'inline_dict_value': [
+            include('whitespace'),
+            (r'[^\{\}\[\],:\s]+', Text),
+            include('inline_value'),
+            (r',', Punctuation, '#pop'),
+            (r'\}', Punctuation, '#pop:2'),
+        ],
+        'inline_value': [
+            include('whitespace'),
+            (r'\{', Punctuation, 'inline_dict'),
+            (r'\[', Punctuation, 'inline_list'),
+        ],
+        'whitespace': [
+            (r'[ \t]+', Whitespace),
         ],
     }
 

@@ -41,6 +41,7 @@ class BlackWhiteStyle(Style):
         Generic.Subheading:        "bold",
         Generic.Emph:              "italic",
         Generic.Strong:            "bold",
+        Generic.EmphStrong:        "bold italic",
         Generic.Prompt:            "bold",
 
         Error:                     "border:#FF0000"

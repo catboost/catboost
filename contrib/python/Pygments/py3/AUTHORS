@@ -13,6 +13,7 @@ Other contributors, listed alphabetically, are:
   lexers
 * Maxence Ahlouche -- PostgreSQL Explain lexer
 * Muthiah Annamalai -- Ezhil lexer
+* Nikolay Antipov -- OpenSCAD lexer
 * Kumar Appaiah -- Debian control lexer
 * Andreas Amann -- AppleScript lexer
 * Timothy Armstrong -- Dart lexer fixes
@@ -30,6 +31,7 @@ Other contributors, listed alphabetically, are:
 * Michael Bayer -- Myghty lexers
 * Thomas Beale -- Archetype lexers
 * John Benediktsson -- Factor lexer
+* David Benjamin, Google LLC -- TLS lexer
 * Trevor Bergeron -- mIRC formatter
 * Vincent Bernat -- LessCSS lexer
 * Christopher Bertels -- Fancy lexer
@@ -47,6 +49,7 @@ Other contributors, listed alphabetically, are:
 * Ian Cooper -- VGL lexer
 * David Corbett -- Inform, Jasmin, JSGF, Snowball, and TADS 3 lexers
 * Leaf Corcoran -- MoonScript lexer
+* Gabriel Corona -- ASN.1 lexer
 * Christopher Creutzig -- MuPAD lexer
 * Daniël W. Crompton -- Pike lexer
 * Pete Curry -- bugfixes
@@ -237,6 +240,7 @@ Other contributors, listed alphabetically, are:
 * Erick Tryzelaar -- Felix lexer
 * Alexander Udalov -- Kotlin lexer improvements
 * Thomas Van Doren -- Chapel lexer
+* Dave Van Ee -- Uxntal lexer updates
 * Daniele Varrazzo -- PostgreSQL lexers
 * Abe Voelker -- OpenEdge ABL lexer
 * Pepijn de Vos -- HTML formatter CTags support
@@ -266,5 +270,8 @@ Other contributors, listed alphabetically, are:
 * Marc Auberer -- Spice lexer
 * Amr Hesham -- Carbon lexer
 * diskdance -- Wikitext lexer
+* Nikolay Antipov -- OpenSCAD lexer
+* Markus Meyer, Nextron Systems -- YARA lexer
+
 
 Many thanks for all contributions!

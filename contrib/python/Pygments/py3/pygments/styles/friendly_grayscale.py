@@ -67,6 +67,7 @@ class FriendlyGrayscaleStyle(Style):
         Generic.Error:             "#898989",
         Generic.Emph:              "italic",
         Generic.Strong:            "bold",
+        Generic.EmphStrong:        "bold italic",
         Generic.Prompt:            "bold #7E7E7E",
         Generic.Output:            "#888888",
         Generic.Traceback:         "#6D6D6D",
