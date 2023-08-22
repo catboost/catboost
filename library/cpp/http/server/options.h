@@ -139,6 +139,12 @@ public:
         return *this;
     }
 
+    inline THttpServerOptions& SetOneShotPoll(bool v) {
+        OneShotPoll = v;
+
+        return *this;
+    }
+
     struct TAddr {
         TString Addr;
         ui16 Port;
@@ -174,4 +180,6 @@ public:
     TString ListenThreadName = "HttpListen";
     TString RequestsThreadName = "HttpServer";
     TString FailRequestsThreadName = "HttpServer";
+
+    bool OneShotPoll = false;
 };

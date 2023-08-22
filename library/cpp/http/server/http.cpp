@@ -83,12 +83,17 @@ public:
             TGuard<TMutex> g(Mutex_);
 
             Conns_.PushBack(c);
-            Poller_->WaitRead(c->Socket_, (void*)static_cast<const IPollAble*>(c));
+            if (Options.OneShotPoll) {
+                Poller_->WaitReadOneShot(c->Socket_, (void*)static_cast<const IPollAble*>(c));
+            } else {
+                Poller_->WaitRead(c->Socket_, (void*)static_cast<const IPollAble*>(c));
+            }
         }
+
 
         inline void Erase(TClientConnection* c, TInstant now) noexcept {
             TGuard<TMutex> g(Mutex_);
-            EraseUnsafe(c);
+            EraseUnsafe(c, /*removeFromPoller*/!Options.OneShotPoll);
             if (Options.ExpirationTimeout > TDuration::Zero()) {
                 TryRemovingUnsafe(now - Options.ExpirationTimeout);
             }
@@ -118,8 +123,10 @@ public:
             return true;
         }
 
-        void EraseUnsafe(TClientConnection* c) noexcept {
-            Poller_->Unwait(c->Socket_);
+        void EraseUnsafe(TClientConnection* c, bool removeFromPoller = true) noexcept {
+            if (removeFromPoller) {
+                Poller_->Unwait(c->Socket_);
+            }
             c->Unlink();
         }
 
