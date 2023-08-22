@@ -6360,7 +6360,7 @@ def _convert_to_catboost(models):
 
 def sample_gaussian_process(X, y, eval_set=None,
                             cat_features=None, text_features=None, embedding_features=None,
-                            seed=0, samples=10, posterior_iterations=900, prior_iterations=100, learning_rate=0.1,
+                            random_seed=None, samples=10, posterior_iterations=900, prior_iterations=100, learning_rate=0.1,
                             depth=6, sigma=0.1, delta=0, random_strength=0.1, eps=1e-4, verbose=False):
     """
     Implementation of Gaussian process sampling (Kernel Gradient Boosting/Algorithm 4) from "Gradient Boosting Performs Gaussian Process Inference" https://arxiv.org/abs/2206.05608
@@ -6368,6 +6368,26 @@ def sample_gaussian_process(X, y, eval_set=None,
 
     Parameters
     ----------
+    X : list or numpy.ndarray or pandas.DataFrame or pandas.Series or catboost.FeaturesData
+        If catboost.FeaturesData it must be 2 dimensional Feature matrix
+        Must be non-empty (contain > 0 objects)
+    y : list or numpy.ndarray or pandas.DataFrame or pandas.Series
+        Labels, 1 dimensional array like.
+    eval_set : catboost.Pool, or list of catboost.Pool, or list of (X, y) tuples, optional (default=None)
+        Used as a validation set for early-stopping.
+    cat_features : list or numpy.ndarray, optional (default=None)
+        If not None, giving the list of Categ columns indices.
+        Use only if X is not catboost.FeaturesData
+    text_features : list or numpy.ndarray, optional (default=None)
+        If not none, giving the list of Text columns indices.
+        Use only if X is not catboost.FeaturesData
+    embedding_features : list or numpy.ndarray, optional (default=None)
+        If not none, giving the list of Embedding columns indices.
+        Use only if X is not catboost.FeaturesData
+    random_seed : int, [default=None]
+        Random number seed.
+        If None, 0 is used.
+        range: [0,+inf]
     samples : int, [default=10]
         Number of Monte-Carlo samples from GP posterior. Controls how many models this function will return.
         range: [1, +inf]
@@ -6395,13 +6415,26 @@ def sample_gaussian_process(X, y, eval_set=None,
     eps : float, [default=1e-4]
         Technical parameter that controls precision of prior estimation.
         range: (0, 1]
+    verbose : bool or int
+        Verbosity of posterior model training output
+        If verbose is bool, then if set to True, logging_level is set to Verbose,
+        if set to False, logging_level is set to Silent.
+        If verbose is int, it determines the frequency of writing metrics to output and
+        logging_level is set to Verbose.
+
+    Returns
+    -------
+    models : list of CatBoost models (size = samples)
     """
     assert(sigma > 0)
     assert(samples > 0)
     assert(random_strength > 0)
     assert(eps > 0)
 
-    random_generator = np.random.default_rng(seed)
+    if random_seed is None:
+        random_seed = 0
+
+    random_generator = np.random.default_rng(random_seed)
     prior_seeds = random_generator.integers(low=0, high=2**63-1, size=samples)
     posterior_seeds = random_generator.integers(low=0, high=2**63-1, size=samples)
 
