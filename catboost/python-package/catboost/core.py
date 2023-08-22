@@ -6358,7 +6358,7 @@ def _convert_to_catboost(models):
     return output_models
 
 
-def sample_gaussian_process(X, y, eval_set=None, column_description=None,
+def sample_gaussian_process(X, y, eval_set=None,
                             cat_features=None, text_features=None, embedding_features=None,
                             seed=0, samples=10, posterior_iterations=900, prior_iterations=100, learning_rate=0.1,
                             depth=6, sigma=0.1, delta=0, random_strength=0.1, eps=1e-4, verbose=False):
@@ -6432,7 +6432,6 @@ def sample_gaussian_process(X, y, eval_set=None, column_description=None,
         prior.fit(
             X,
             prior_y,
-            column_description=column_description,
             cat_features=cat_features,
             text_features=text_features,
             embedding_features=embedding_features,
@@ -6473,7 +6472,6 @@ def sample_gaussian_process(X, y, eval_set=None, column_description=None,
             X,
             posterior_y,
             eval_set=eval_set,
-            column_description=column_description,
             cat_features=cat_features,
             text_features=text_features,
             embedding_features=embedding_features,
