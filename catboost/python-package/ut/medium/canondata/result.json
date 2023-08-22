@@ -811,6 +811,38 @@
             "uri": "file://test.test_roc_with_target_border/bounds"
         }
     ],
+    "test.test_sample_gaussian_process": [
+        {
+            "uri": "file://test.test_sample_gaussian_process/model_0.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process/model_1.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process/model_2.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process/model_3.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process/model_4.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process/model_5.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process/model_6.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process/model_7.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process/model_8.cbm"
+        },
+        {
+            "uri": "file://test.test_sample_gaussian_process/model_9.cbm"
+        }
+    ],
     "test.test_save_border_file": [
         {
             "uri": "file://test.test_save_border_file/save_borders_file.dat"

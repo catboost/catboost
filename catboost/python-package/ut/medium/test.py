@@ -27,6 +27,7 @@ from catboost import (
     metrics,
     sum_models,
     train,
+    sample_gaussian_process,
     _have_equal_features,
     to_regressor,
     to_classifier,
@@ -11049,3 +11050,34 @@ def test_github_issue_2378_numpy_int_is_deprecated():
                               depth=2)
     model.fit(train_data, train_labels)
     model.calc_feature_statistics(train_data, train_labels, plot=False)
+
+
+def test_sample_gaussian_process():
+    samples = 10
+
+    columns_metadata = read_cd(
+        QUERYWISE_CD_FILE,
+        data_file=QUERYWISE_TRAIN_FILE,
+        canonize_column_types=True
+    )
+
+    learn_data = load_dataset_as_dataframe(QUERYWISE_TRAIN_FILE, columns_metadata)
+    test_data = load_dataset_as_dataframe(QUERYWISE_TEST_FILE, columns_metadata)
+
+    output_models = sample_gaussian_process(
+        learn_data['features'],
+        learn_data['target'],
+        eval_set=(test_data['features'], test_data['target']),
+        cat_features=columns_metadata['cat_feature_indices'],
+        samples=samples,
+        prior_iterations=10,
+        posterior_iterations=90
+    )
+
+    canonical_models = []
+    for i in range(samples):
+        output_model_path = test_output_path("model_%i.cbm" % i)
+        output_models[i].save_model(output_model_path)
+        canonical_models.append(compare_canonical_models(output_model_path))
+
+    return canonical_models
