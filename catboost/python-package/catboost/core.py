@@ -6358,7 +6358,10 @@ def _convert_to_catboost(models):
     return output_models
 
 
-def sample_gaussian_process(X, y, eval_set=None, column_description=None, cat_features=None, seed=0, samples=10, posterior_iterations=900, prior_iterations=100, learning_rate=0.1, depth=6, sigma=0.1, delta=0, random_strength=0.1, eps=1e-4, verbose=False):
+def sample_gaussian_process(X, y, eval_set=None, column_description=None,
+                            cat_features=None, text_features=None, embedding_features=None,
+                            seed=0, samples=10, posterior_iterations=900, prior_iterations=100, learning_rate=0.1,
+                            depth=6, sigma=0.1, delta=0, random_strength=0.1, eps=1e-4, verbose=False):
     """
     Implementation of Gaussian process sampling (Kernel Gradient Boosting/Algorithm 4) from "Gradient Boosting Performs Gaussian Process Inference" https://arxiv.org/abs/2206.05608
     Produces samples from posterior GP with prior assumption f ~ GP(0, sigma ** 2 K + delta ** 2 I)
@@ -6431,6 +6434,8 @@ def sample_gaussian_process(X, y, eval_set=None, column_description=None, cat_fe
             prior_y,
             column_description=column_description,
             cat_features=cat_features,
+            text_features=text_features,
+            embedding_features=embedding_features,
             use_best_model=False
         )
 
@@ -6470,6 +6475,8 @@ def sample_gaussian_process(X, y, eval_set=None, column_description=None, cat_fe
             eval_set=eval_set,
             column_description=column_description,
             cat_features=cat_features,
+            text_features=text_features,
+            embedding_features=embedding_features,
             use_best_model=False
         )
 
