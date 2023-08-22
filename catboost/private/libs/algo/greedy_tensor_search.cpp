@@ -635,6 +635,8 @@ static void CalcBestScore(
     TFold* fold,
     TLearnContext* ctx) {
 
+    auto scoreDistribution = GetScoreDistribution(ctx->Params.ObliviousTreeOptions->RandomScoreType);
+
     const TFlatPairsInfo pairs = UnpackPairsFromQueries(fold->LearnQueriesInfo);
     const auto& monotonicConstraints = ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get();
     const TVector<int> currTreeMonotonicConstraints = (
@@ -711,6 +713,7 @@ static void CalcBestScore(
             SetBestScore(
                 randSeed + taskIdx,
                 allScores,
+                scoreDistribution,
                 scoreStDev,
                 candidatesContext,
                 &candidate.Candidates);
@@ -773,6 +776,8 @@ static void CalcBestScoreLeafwise(
     TFold* fold,
     TLearnContext* ctx) {
 
+    auto scoreDistribution = GetScoreDistribution(ctx->Params.ObliviousTreeOptions->RandomScoreType);
+
     TVector<std::pair<size_t, size_t>> tasks; // vector of (contextIdx, candId)
 
     for (auto contextIdx : xrange(candidatesContexts->size())) {
@@ -815,6 +820,7 @@ static void CalcBestScoreLeafwise(
             SetBestScore(
                 randSeed + taskIdx,
                 candidateScores,
+                scoreDistribution,
                 scoreStDev,
                 candidatesContext,
                 &candidate.Candidates);
@@ -846,9 +852,13 @@ static double CalcScoreStDev(
     const double derivativesStDevFromZero = ctx->Params.SystemOptions->IsSingleHost()
         ? CalcDerivativesStDevFromZero(fold, ctx->Params.BoostingOptions->BoostingType, ctx->LocalExecutor)
         : MapCalcDerivativesStDevFromZero(learnSampleCount, ctx);
+
     return ctx->Params.ObliviousTreeOptions->RandomStrength
         * derivativesStDevFromZero
-        * CalcDerivativesStDevFromZeroMultiplier(learnSampleCount, modelLength);
+        * (ctx->Params.ObliviousTreeOptions->RandomScoreType == ERandomScoreType::NormalWithModelSizeDecrease ?
+            CalcDerivativesStDevFromZeroMultiplier(learnSampleCount, modelLength)
+            : 1.0
+        );
 }
 
 static void CalcScores(

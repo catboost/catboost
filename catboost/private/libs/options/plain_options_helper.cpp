@@ -359,6 +359,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "dev_efb_max_buckets", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "sparse_features_conflict_fraction", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "random_strength", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "random_score_type", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "leaf_estimation_method", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "grow_policy", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "max_leaves", &treeOptions, &seenKeys);
@@ -700,6 +701,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(treeOptions, "random_strength", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "random_strength");
+
+        CopyOption(treeOptions, "random_score_type", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "random_score_type");
 
         CopyOption(treeOptions, "leaf_estimation_method", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "leaf_estimation_method");
@@ -1085,4 +1089,3 @@ void NCatboostOptions::CleanPlainJson(
         DeleteSeenOption(plainOptionsJsonEfficient, key);
     }
 }
-

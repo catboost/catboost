@@ -255,6 +255,8 @@ void MapGenericCalcScore(
 
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
 
+    auto scoreDistribution = GetScoreDistribution(ctx->Params.ObliviousTreeOptions->RandomScoreType);
+
     auto& candidateList = candidatesContext->CandidateList;
 
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
@@ -289,7 +291,13 @@ void MapGenericCalcScore(
                 const auto& splitInfo = subCandidates[subcandidateIdx];
                 allScores[subcandidateIdx] = getScore(reducedStats, splitInfo);
             }
-            SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, *candidatesContext, &subCandidates);
+            SetBestScore(
+                randSeed + candidateIdx,
+                allScores,
+                scoreDistribution,
+                scoreStDev,
+                *candidatesContext,
+                &subCandidates);
         });
 }
 
@@ -321,6 +329,8 @@ void MapGenericRemoteCalcScore(
 
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
 
+    auto scoreDistribution = GetScoreDistribution(ctx->Params.ObliviousTreeOptions->RandomScoreType);
+
     // Flatten candidateLists from all contexts to ensure even parallelization
     TCandidateList allCandidatesList;
     for (auto& candidatesContext : *candidatesContexts) {
@@ -351,6 +361,7 @@ void MapGenericRemoteCalcScore(
                 SetBestScore(
                     randSeed + candidateIdx,
                     allScores[allScoresOffset + candidateIdx],
+                    scoreDistribution,
                     scoreStDev,
                     candidatesContext,
                     &candidates);

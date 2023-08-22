@@ -79,6 +79,11 @@ enum class EScoreFunction {
     L2
 };
 
+enum class ERandomScoreType {
+    NormalWithModelSizeDecrease,
+    Gumbel
+};
+
 enum class EModelShrinkMode {
     Constant,
     Decreasing

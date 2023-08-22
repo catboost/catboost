@@ -11052,7 +11052,12 @@ def test_github_issue_2378_numpy_int_is_deprecated():
     model.calc_feature_statistics(train_data, train_labels, plot=False)
 
 
-def test_sample_gaussian_process():
+@pytest.mark.parametrize(
+    'random_score_type',
+    ['Gumbel', 'NormalWithModelSizeDecrease'],
+    ids=['random_score_type=Gumbel', 'random_score_type=NormalWithModelSizeDecrease']
+)
+def test_sample_gaussian_process(random_score_type):
     samples = 10
 
     columns_metadata = read_cd(
@@ -11071,7 +11076,8 @@ def test_sample_gaussian_process():
         cat_features=columns_metadata['cat_feature_indices'],
         samples=samples,
         prior_iterations=10,
-        posterior_iterations=90
+        posterior_iterations=90,
+        random_score_type=random_score_type
     )
 
     canonical_models = []

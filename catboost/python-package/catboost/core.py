@@ -4592,6 +4592,12 @@ class CatBoostClassifier(CatBoost):
         Ctrs are not calculated for such features.
     random_strength : float, [default=1]
         Score standard deviation multiplier.
+    random_score_type : string [default=None]
+        Type of random noise added to scores.
+        Possible values:
+            - 'Gumbel' - Gumbel-distributed
+            - 'NormalWithModelSizeDecrease' - Normally-distributed with deviation decreasing with model iteration count
+        If None than 'NormalWithModelSizeDecrease' will be used by default.
     name : string, [default='experiment']
         The name that should be displayed in the visualization tools.
     ignored_features : list, [default=None]
@@ -4899,6 +4905,7 @@ class CatBoostClassifier(CatBoost):
         class_names=None,
         one_hot_max_size=None,
         random_strength=None,
+        random_score_type=None,
         name=None,
         ignored_features=None,
         train_dir=None,
@@ -5503,6 +5510,7 @@ class CatBoostRegressor(CatBoost):
         target_border=None,
         one_hot_max_size=None,
         random_strength=None,
+        random_score_type=None,
         name=None,
         ignored_features=None,
         train_dir=None,
@@ -5899,6 +5907,7 @@ class CatBoostRanker(CatBoost):
         target_border=None,
         one_hot_max_size=None,
         random_strength=None,
+        random_score_type=None,
         name=None,
         ignored_features=None,
         train_dir=None,
@@ -6361,7 +6370,7 @@ def _convert_to_catboost(models):
 def sample_gaussian_process(X, y, eval_set=None,
                             cat_features=None, text_features=None, embedding_features=None,
                             random_seed=None, samples=10, posterior_iterations=900, prior_iterations=100, learning_rate=0.1,
-                            depth=6, sigma=0.1, delta=0, random_strength=0.1, eps=1e-4, verbose=False):
+                            depth=6, sigma=0.1, delta=0, random_strength=0.1, random_score_type='Gumbel', eps=1e-4, verbose=False):
     """
     Implementation of Gaussian process sampling (Kernel Gradient Boosting/Algorithm 4) from "Gradient Boosting Performs Gaussian Process Inference" https://arxiv.org/abs/2206.05608
     Produces samples from posterior GP with prior assumption f ~ GP(0, sigma ** 2 K + delta ** 2 I)
@@ -6412,6 +6421,11 @@ def sample_gaussian_process(X, y, eval_set=None,
     random_strength : float, [default=0.1]
         Corresponds to parameter beta in the paper. Higher values lead to faster convergence to GP posterior.
         range: (0, +infty]
+    random_score_type : string [default='Gumbel']
+        Type of random noise added to scores.
+        Possible values:
+            - 'Gumbel' - Gumbel-distributed (as in paper)
+            - 'NormalWithModelSizeDecrease' - Normally-distributed with deviation decreasing with model iteration count (default in CatBoost)
     eps : float, [default=1e-4]
         Technical parameter that controls precision of prior estimation.
         range: (0, 1]
@@ -6458,6 +6472,7 @@ def sample_gaussian_process(X, y, eval_set=None,
             leaf_estimation_backtracking="No",
             boost_from_average=False,
             random_strength=1/eps,
+            random_score_type=random_score_type,
             l2_leaf_reg=0,
             score_function="L2",
             boosting_type='Plain'
@@ -6497,6 +6512,7 @@ def sample_gaussian_process(X, y, eval_set=None,
             leaf_estimation_backtracking="No",
             boost_from_average=False,
             random_strength=random_strength,
+            random_score_type=random_score_type,
             l2_leaf_reg=0,
             score_function="L2",
             boosting_type='Plain'

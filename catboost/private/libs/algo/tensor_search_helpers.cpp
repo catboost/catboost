@@ -705,6 +705,7 @@ void CalcWeightedDerivatives(
 void SetBestScore(
     ui64 randSeed,
     const TVector<TVector<double>>& allScores,
+    ERandomScoreDistribution scoreDistribution,
     double scoreStDev,
     const TCandidatesContext& candidatesContext,
     TVector<TCandidateInfo>* subcandidates
@@ -717,11 +718,12 @@ void SetBestScore(
         const auto& scores = allScores[subcandidateIdx];
 
         auto scoreUpdateFunction = [&] (auto binFeatureIdx) {
-            const double score = scores[binFeatureIdx];
-            const double scoreInstance = TRandomScore(score, scoreStDev).GetInstance(rand);
+            const double scoreWoNoise = scores[binFeatureIdx];
+            TRandomScore randomScore(scoreDistribution, scoreWoNoise, scoreStDev);
+            const double scoreInstance = randomScore.GetInstance(rand);
             if (scoreInstance > bestScoreInstance) {
                 bestScoreInstance = scoreInstance;
-                subcandidateInfo.BestScore = TRandomScore(score, scoreStDev);
+                subcandidateInfo.BestScore = std::move(randomScore);
                 subcandidateInfo.BestBinId = binFeatureIdx;
             }
         };
