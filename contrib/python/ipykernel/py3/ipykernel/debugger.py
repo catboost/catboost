@@ -473,7 +473,15 @@ class Debugger:
         """Handle a set breakpoints message."""
         source = message["arguments"]["source"]["path"]
         self.breakpoint_list[source] = message["arguments"]["breakpoints"]
-        return await self._forward_message(message)
+        message_response = await self._forward_message(message)
+        # debugpy can set breakpoints on different lines than the ones requested,
+        # so we want to record the breakpoints that were actually added
+        if "success" in message_response and message_response["success"]:
+            self.breakpoint_list[source] = [
+                {"line": breakpoint["line"]}
+                for breakpoint in message_response["body"]["breakpoints"]
+            ]
+        return message_response
 
     async def source(self, message):
         """Handle a source message."""
@@ -657,7 +665,7 @@ class Debugger:
                 }
             )
             if reply["success"]:
-                repr_data, repr_metadata = eval(reply["body"]["result"], {}, {})  # noqa[S307]
+                repr_data, repr_metadata = eval(reply["body"]["result"], {}, {})  # noqa: S307
 
         body = {
             "data": repr_data,

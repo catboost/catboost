@@ -179,7 +179,7 @@ class Reference(CannedObject):
         if g is None:
             g = {}
 
-        return eval(self.name, g)  # noqa[S307]
+        return eval(self.name, g)  # noqa: S307
 
 
 class CannedCell(CannedObject):
@@ -278,9 +278,9 @@ class CannedArray(CannedObject):
         self.shape = obj.shape
         self.dtype = obj.dtype.descr if obj.dtype.fields else obj.dtype.str
         self.pickled = False
-        if sum(obj.shape) == 0:  # noqa
+        if sum(obj.shape) == 0:
             self.pickled = True
-        elif obj.dtype == "O":  # noqa
+        elif obj.dtype == "O":
             # can't handle object dtype with buffer approach
             self.pickled = True
         elif obj.dtype.fields and any(dt == "O" for dt, sz in obj.dtype.fields.values()):
