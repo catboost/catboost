@@ -31,7 +31,6 @@
 #include <stdlib.h>
 
 #include <windows.h>
-#include <stdlib.h>
 
 /*
   CreateFileA/CreateFileW return type 'HANDLE' while TIFFFdOpen() takes 'int',
