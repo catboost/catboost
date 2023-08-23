@@ -39,6 +39,7 @@ class Ya(object):
         valgrind_path=None,
         gdb_path=None,
         data_root=None,
+        env_file=None,
     ):
         context_file_path = os.environ.get("YA_TEST_CONTEXT_FILE", None)
         if context_file_path:
@@ -101,7 +102,7 @@ class Ya(object):
         self._context["sanitize"] = context_build.get("sanitizer")
         self._context["ya_trace_path"] = context_internal.get("trace_file")
 
-        self._env_file = context_internal.get("env_file")
+        self._env_file = context_internal.get("env_file") or env_file
 
         if context:
             for k, v in context.items():
