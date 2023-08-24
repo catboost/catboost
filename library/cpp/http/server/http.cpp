@@ -186,9 +186,6 @@ public:
         Poller.Reset(new TSocketPoller());
         Connections.Reset(new TConnections(Poller.Get(), Options_));
 
-        // Start the listener thread
-        ListenerRunningOK = false;
-
         // throws on error
         TPipeHandle::Pipe(ListenWakeupReadFd, ListenWakeupWriteFd);
 
@@ -197,7 +194,24 @@ public:
 
         Poller->WaitRead(ListenWakeupReadFd, &WakeupPollAble);
 
-        ListenStartEvent.Reset();
+        ErrorCode = 0;
+
+        std::function<void(TSocket)> callback = [&](TSocket socket) {
+            THolder<TListenSocket> ls(new TListenSocket(socket, this));
+            Poller->WaitRead(socket, static_cast<IPollAble*>(ls.Get()));
+            Reqs.PushBack(ls.Release());
+        };
+
+        bool addressesBound = TryToBindAddresses(Options_, &callback);
+        if (!addressesBound) {
+            SaveErrorCode();
+            return false;
+        }
+
+        Requests->Start(Options_.nThreads, Options_.MaxQueueSize);
+        FailRequests->Start(Options_.nFThreads, Options_.MaxFQueueSize);
+        Cb_->OnListenStart();
+
         try {
             ListenThread.Reset(new TThread(ListenSocketFunction, this));
             ListenThread->Start();
@@ -206,10 +220,7 @@ public:
             return false;
         }
 
-        // Wait until the thread has completely started and return the success indicator
-        ListenStartEvent.Wait();
-
-        return ListenerRunningOK;
+        return true;
     }
 
     void Wait() {
@@ -325,28 +336,6 @@ public:
     void ListenSocket() {
         TThread::SetCurrentThreadName(Options_.ListenThreadName.c_str());
 
-        ErrorCode = 0;
-        TIntrusiveListWithAutoDelete<TListenSocket, TDelete> Reqs;
-
-        std::function<void(TSocket)> callback = [&](TSocket socket) {
-            THolder<TListenSocket> ls(new TListenSocket(socket, this));
-            Poller->WaitRead(socket, static_cast<IPollAble*>(ls.Get()));
-            Reqs.PushBack(ls.Release());
-        };
-        bool addressesBound = TryToBindAddresses(Options_, &callback);
-        if (!addressesBound) {
-            SaveErrorCode();
-            ListenStartEvent.Signal();
-
-            return;
-        }
-
-        Requests->Start(Options_.nThreads, Options_.MaxQueueSize);
-        FailRequests->Start(Options_.nFThreads, Options_.MaxFQueueSize);
-        Cb_->OnListenStart();
-        ListenerRunningOK = true;
-        ListenStartEvent.Signal();
-
         TVector<void*> events;
         events.resize(Options_.EpollMaxEvents);
 
@@ -445,15 +434,14 @@ public:
     }
 
     THolder<TThread> ListenThread;
+    TIntrusiveListWithAutoDelete<TListenSocket, TDelete> Reqs;
     TPipeHandle ListenWakeupReadFd;
     TPipeHandle ListenWakeupWriteFd;
-    TSystemEvent ListenStartEvent;
     TMtpQueueRef Requests;
     TMtpQueueRef FailRequests;
     TAtomic ConnectionCount = 0;
     THolder<TSocketPoller> Poller;
     THolder<TConnections> Connections;
-    bool ListenerRunningOK = false;
     int ErrorCode = 0;
     TOptions Options_;
     ICallBack* Cb_ = nullptr;
