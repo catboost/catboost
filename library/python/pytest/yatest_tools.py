@@ -16,7 +16,19 @@ TEST_MOD_PREFIX = '__tests__.'
 
 
 class Subtest(object):
-    def __init__(self, name, test_name, status, comment, elapsed, result=None, test_type=None, logs=None, cwd=None, metrics=None):
+    def __init__(
+        self,
+        name,
+        test_name,
+        status,
+        comment,
+        elapsed,
+        result=None,
+        test_type=None,
+        logs=None,
+        cwd=None,
+        metrics=None,
+    ):
         self._name = name
         self._test_name = test_name
         self.status = status
@@ -48,20 +60,21 @@ class Subtest(object):
         return yatest_lib.tools.to_utf8(self._test_name)
 
     def __repr__(self):
-        return "Subtest [{}::{} - {}[{}]: {}]".format(self.name, self.test_name, self.status, self.elapsed, self.comment)
+        return "Subtest [{}::{} - {}[{}]: {}]".format(
+            self.name, self.test_name, self.status, self.elapsed, self.comment
+        )
 
     def __hash__(self):
         return hash(str(self))
 
 
 class SubtestInfo(object):
-
     skipped_prefix = '[SKIPPED] '
 
     @classmethod
     def from_str(cls, s):
         if s.startswith(SubtestInfo.skipped_prefix):
-            s = s[len(SubtestInfo.skipped_prefix):]
+            s = s[len(SubtestInfo.skipped_prefix) :]
             skipped = True
 
         else:
@@ -94,10 +107,32 @@ class Status(object):
     NOT_LAUNCHED = -200
     CANON_DIFF = -300
     FLAKY = -1
-    BY_NAME = {'good': GOOD, 'fail': FAIL, 'xfail': XFAIL, 'xpass': XPASS, 'missing': MISSING, 'crashed': CRASHED,
-               'skipped': SKIPPED, 'flaky': FLAKY, 'not_launched': NOT_LAUNCHED, 'timeout': TIMEOUT, 'diff': CANON_DIFF}
-    TO_STR = {GOOD: 'good', FAIL: 'fail', XFAIL: 'xfail', XPASS: 'xpass', MISSING: 'missing', CRASHED: 'crashed',
-              SKIPPED: 'skipped', FLAKY: 'flaky', NOT_LAUNCHED: 'not_launched', TIMEOUT: 'timeout', CANON_DIFF: 'diff'}
+    BY_NAME = {
+        'good': GOOD,
+        'fail': FAIL,
+        'xfail': XFAIL,
+        'xpass': XPASS,
+        'missing': MISSING,
+        'crashed': CRASHED,
+        'skipped': SKIPPED,
+        'flaky': FLAKY,
+        'not_launched': NOT_LAUNCHED,
+        'timeout': TIMEOUT,
+        'diff': CANON_DIFF,
+    }
+    TO_STR = {
+        GOOD: 'good',
+        FAIL: 'fail',
+        XFAIL: 'xfail',
+        XPASS: 'xpass',
+        MISSING: 'missing',
+        CRASHED: 'crashed',
+        SKIPPED: 'skipped',
+        FLAKY: 'flaky',
+        NOT_LAUNCHED: 'not_launched',
+        TIMEOUT: 'timeout',
+        CANON_DIFF: 'diff',
+    }
 
 
 class Test(object):
@@ -151,6 +186,7 @@ COLOR_THEME = {
 # XXX: remove me
 class YaCtx(object):
     pass
+
 
 ya_ctx = YaCtx()
 
@@ -223,11 +259,21 @@ def get_unique_file_path(dir_path, filename, cache=collections.defaultdict(set))
         filename_len = len(dir_path) + len(extension) + tail_length + len(os.sep)
         if filename_len < max_path:
             filename = yatest_lib.tools.trim_string(filename, max_path - filename_len)
-    filename = yatest_lib.tools.trim_string(filename, get_max_filename_length(dir_path) - tail_length - len(extension)) + extension
+    filename = (
+        yatest_lib.tools.trim_string(filename, get_max_filename_length(dir_path) - tail_length - len(extension))
+        + extension
+    )
     candidate = os.path.join(dir_path, filename)
 
     key = dir_path + filename
-    counter = sorted(cache.get(key, {0, }))[-1]
+    counter = sorted(
+        cache.get(
+            key,
+            {
+                0,
+            },
+        )
+    )[-1]
     while os.path.exists(candidate):
         cache[key].add(counter)
         counter += 1
@@ -258,8 +304,8 @@ def normalize_name(name):
         ("\t", "\\t"),
         ("\r", "\\r"),
     ]
-    for l, r in replacements:
-        name = name.replace(l, r)
+    for from_, to in replacements:
+        name = name.replace(from_, to)
     return name
 
 
@@ -328,7 +374,7 @@ def _suffix_test_modules_tree():
         if not module.startswith(TEST_MOD_PREFIX):
             continue
 
-        module = module[len(TEST_MOD_PREFIX):]
+        module = module[len(TEST_MOD_PREFIX) :]
         node = root
 
         for name in reversed(module.split('.')):
@@ -364,7 +410,7 @@ def _unify_path(path):
         node, res = suff_tree, []
 
         assert path.endswith(py_ext), path
-        parts = path[:-len(py_ext)].split(SEP)
+        parts = path[: -len(py_ext)].split(SEP)
 
         # Use SEP as trailing terminator to make an extra step
         # and find a proper match when parts is a full matching path
@@ -400,7 +446,7 @@ def colorize_pytest_error(text):
 
         for pos in range(err_start + 1, len(text) - 1):
             if text[pos] == '\n':
-                if not text[pos + 1:].startswith(error_prefix):
+                if not text[pos + 1 :].startswith(error_prefix):
                     err_end = pos + 1
                     break
         else:
@@ -410,8 +456,10 @@ def colorize_pytest_error(text):
 
         filters = [
             # File path, line number and function name
-            (re.compile(r"^(.*?):(\d+): in (\S+)", flags=re.MULTILINE),
-             r"[[unimp]]\1[[rst]]:[[alt2]]\2[[rst]]: in [[alt1]]\3[[rst]]"),
+            (
+                re.compile(r"^(.*?):(\d+): in (\S+)", flags=re.MULTILINE),
+                r"[[unimp]]\1[[rst]]:[[alt2]]\2[[rst]]: in [[alt1]]\3[[rst]]",
+            ),
         ]
         for regex, substitution in filters:
             bt = regex.sub(substitution, bt)
