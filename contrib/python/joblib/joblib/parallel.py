@@ -450,9 +450,10 @@ class parallel_config:
 class parallel_backend(parallel_config):
     """Change the default backend used by Parallel inside a with block.
 
-    It is advised to use the :class:`~joblib.parallel_config` context manager
-    instead, which allows more fine-grained control over the backend
-    configuration.
+    .. warning::
+        It is advised to use the :class:`~joblib.parallel_config` context
+        manager instead, which allows more fine-grained control over the
+        backend configuration.
 
     If ``backend`` is a string it must match a previously registered
     implementation using the :func:`~register_parallel_backend` function.
@@ -1187,6 +1188,13 @@ class Parallel(Logger):
         prefer=default_parallel_config["prefer"],
         require=default_parallel_config["require"],
     ):
+        # Initiate parent Logger class state
+        super().__init__()
+
+        # Interpret n_jobs=None as 'unset'
+        if n_jobs is None:
+            n_jobs = default_parallel_config["n_jobs"]
+
         active_backend, context_config = _get_active_backend(
             prefer=prefer, require=require, verbose=verbose
         )
