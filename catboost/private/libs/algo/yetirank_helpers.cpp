@@ -294,7 +294,6 @@ static void GenerateYetiRankPairsForQuery(
     float queryWeight,
     ui32 querySize,
     int permutationCount,
-    double /*decaySpeed*/,
     ui64 randomSeed,
     TVector<TVector<TCompetitor>>* competitors,
     TYetiRankPairWeightsCalcer* weightsCalcer
@@ -343,7 +342,6 @@ void UpdatePairsForYetiRank(
     NPar::ILocalExecutor* localExecutor
 ) {
     const int permutationCount = NCatboostOptions::GetYetiRankPermutations(lossDescription);
-    const double decaySpeed = NCatboostOptions::GetYetiRankDecay(lossDescription);
 
     NPar::ILocalExecutor::TExecRangeParams blockParams(queryBegin, queryEnd);
     blockParams.SetBlockCount(CB_THREAD_LIMIT);
@@ -371,7 +369,6 @@ void UpdatePairsForYetiRank(
                     queryInfoRef.Weight,
                     queryInfoRef.End - queryInfoRef.Begin,
                     permutationCount,
-                    decaySpeed,
                     rand.GenRand(),
                     &queryInfoRef.Competitors,
                     &weightsCalcer
