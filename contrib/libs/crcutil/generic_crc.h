@@ -188,7 +188,7 @@ template<typename _Crc, typename _TableEntry, typename _Word, int kStride>
 
   // Default CRC implementation
   Crc CrcDefault(const void *data, size_t bytes, const Crc &start) const {
-#if HAVE_AMD64 || HAVE_I386
+#if HAVE_AMD64 || HAVE_I386 || defined(__aarch64__)
     return CrcMultiword(data, bytes, start);
 #else
     // Very few CPUs have multiple ALUs and speculative execution
