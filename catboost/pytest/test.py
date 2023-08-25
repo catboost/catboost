@@ -875,11 +875,11 @@ def test_lambda_mart_with_params(metric, top, dcg_type, denominator, sigma, norm
             local_canonical_file(test_error_path)]
 
 
-@pytest.mark.parametrize('metric', ['DCG', 'NDCG'])
+@pytest.mark.parametrize('metric', ['DCG', 'NDCG', 'FilteredDCG'])
 @pytest.mark.parametrize('top', [-1, 1, 10])
 @pytest.mark.parametrize('dcg_type', ['Base', 'Exp'])
 @pytest.mark.parametrize('denominator', ['Position', 'LogPosition'])
-def test_stochastic_rank(metric, top, dcg_type, denominator):
+def test_stochastic_rank_dcgs(metric, top, dcg_type, denominator):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
 
