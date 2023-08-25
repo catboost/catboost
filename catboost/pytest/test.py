@@ -958,6 +958,7 @@ def test_stochastic_rank_pfound_with_many_ones(top, decay):
 
     return [local_canonical_file(learn_error_path)]
 
+
 @pytest.mark.parametrize('top', [-1, 1, 10], ids=['top=%i' % i for i in [-1, 1, 10]])
 def test_stochastic_rank_err(top):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
