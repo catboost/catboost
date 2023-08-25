@@ -958,6 +958,27 @@ def test_stochastic_rank_pfound_with_many_ones(top, decay):
 
     return [local_canonical_file(learn_error_path)]
 
+@pytest.mark.parametrize('top', [-1, 1, 10], ids=['top=%i' % i for i in [-1, 1, 10]])
+def test_stochastic_rank_err(top):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    loss = 'StochasticRank:metric=ERR;top={};hints=skip_train~false'.format(top)
+
+    cmd = (
+        '--loss-function', loss,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--cd', data_file('querywise', 'train.cd.query_id'),
+        '-i', '10',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path)]
+
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('top', [2, 100])

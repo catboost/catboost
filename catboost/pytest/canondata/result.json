@@ -9220,6 +9220,30 @@
             "uri": "file://test.test_stochastic_rank_dcgs_Position-Exp-10-NDCG_/test_error.tsv"
         }
     ],
+    "test.test_stochastic_rank_err[top=-1]": [
+        {
+            "uri": "file://test.test_stochastic_rank_err_top=-1_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_stochastic_rank_err_top=-1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_err[top=10]": [
+        {
+            "uri": "file://test.test_stochastic_rank_err_top=10_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_stochastic_rank_err_top=10_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_err[top=1]": [
+        {
+            "uri": "file://test.test_stochastic_rank_err_top=1_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_stochastic_rank_err_top=1_/test_error.tsv"
+        }
+    ],
     "test.test_stochastic_rank_pfound[0.0--1]": [
         {
             "uri": "file://test.test_stochastic_rank_pfound_0.0--1_/learn_error.tsv"
