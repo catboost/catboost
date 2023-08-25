@@ -383,14 +383,14 @@ class _AsyncSocket(_Async, _zmq.Socket[Future]):
 
         p = self._poller_class()
         p.register(self, flags)
-        f = cast(Future, p.poll(timeout))
+        poll_future = cast(Future, p.poll(timeout))
 
         future = self._Future()
 
         def unwrap_result(f):
             if future.done():
                 return
-            if f.cancelled():
+            if poll_future.cancelled():
                 try:
                     future.cancel()
                 except RuntimeError:
@@ -398,16 +398,28 @@ class _AsyncSocket(_Async, _zmq.Socket[Future]):
                     pass
                 return
             if f.exception():
-                future.set_exception(f.exception())
+                future.set_exception(poll_future.exception())
             else:
-                evts = dict(f.result())
+                evts = dict(poll_future.result())
                 future.set_result(evts.get(self, 0))
 
-        if f.done():
-            # hook up result if
-            unwrap_result(f)
+        if poll_future.done():
+            # hook up result if already done
+            unwrap_result(poll_future)
         else:
-            f.add_done_callback(unwrap_result)
+            poll_future.add_done_callback(unwrap_result)
+
+        def cancel_poll(future):
+            """Cancel underlying poll if request has been cancelled"""
+            if not poll_future.done():
+                try:
+                    poll_future.cancel()
+                except RuntimeError:
+                    # RuntimeError may be called during teardown
+                    pass
+
+        future.add_done_callback(cancel_poll)
+
         return future
 
     # overrides only necessary for updated types
