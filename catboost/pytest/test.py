@@ -853,7 +853,7 @@ def test_lambda_mart():
 @pytest.mark.parametrize('denominator', ['Position', 'LogPosition'])
 @pytest.mark.parametrize('sigma', ['2.0', '0.5'])
 @pytest.mark.parametrize('norm', ['true', 'false'])
-def test_lambda_mart_with_params(metric, top, dcg_type, denominator, sigma, norm):
+def test_lambda_mart_dcgs(metric, top, dcg_type, denominator, sigma, norm):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
 
