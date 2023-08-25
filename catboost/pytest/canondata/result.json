@@ -9244,6 +9244,14 @@
             "uri": "file://test.test_stochastic_rank_err_top=1_/test_error.tsv"
         }
     ],
+    "test.test_stochastic_rank_mrr": [
+        {
+            "uri": "file://test.test_stochastic_rank_mrr/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_stochastic_rank_mrr/test_error.tsv"
+        }
+    ],
     "test.test_stochastic_rank_pfound[0.0--1]": [
         {
             "uri": "file://test.test_stochastic_rank_pfound_0.0--1_/learn_error.tsv"

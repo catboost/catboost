@@ -980,6 +980,27 @@ def test_stochastic_rank_err(top):
             local_canonical_file(test_error_path)]
 
 
+def test_stochastic_rank_mrr():
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    loss = 'StochasticRank:metric=MRR;hints=skip_train~false'
+
+    cmd = (
+        '--loss-function', loss,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--cd', data_file('querywise', 'train.cd.query_id'),
+        '-i', '10',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('top', [2, 100])
 def test_averagegain_with_query_weights(boosting_type, top):
