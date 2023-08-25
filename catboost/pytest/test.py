@@ -875,6 +875,30 @@ def test_lambda_mart_dcgs(metric, top, dcg_type, denominator, sigma, norm):
             local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('metric', ['MRR', 'ERR', 'MAP'], ids=['metric=%s' % metric for metric in ['MRR', 'ERR', 'MAP']])
+@pytest.mark.parametrize('sigma', ['2.0', '0.5'], ids=['sigma=2.0', 'sigma=0.5'])
+@pytest.mark.parametrize('norm', ['true', 'false'], ids=['norm=true', 'norm=false'])
+def test_lambda_mart_non_dcgs(metric, sigma, norm):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    loss = 'LambdaMart:metric={};sigma={};norm={};hints=skip_train~false'.format(metric, sigma, norm)
+
+    cmd = (
+        '--loss-function', loss,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--cd', data_file('querywise', 'train.cd.query_id'),
+        '-i', '10',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path)]
+
+
 @pytest.mark.parametrize('metric', ['DCG', 'NDCG', 'FilteredDCG'])
 @pytest.mark.parametrize('top', [-1, 1, 10])
 @pytest.mark.parametrize('dcg_type', ['Base', 'Exp'])

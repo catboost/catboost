@@ -5609,6 +5609,102 @@
             "uri": "file://test.test_lambda_mart_dcgs_true-2.0-Position-Exp-10-NDCG_/test_error.tsv"
         }
     ],
+    "test.test_lambda_mart_non_dcgs[norm=false-sigma=0.5-metric=ERR]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=0.5-metric=ERR_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=0.5-metric=ERR_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=false-sigma=0.5-metric=MAP]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=0.5-metric=MAP_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=0.5-metric=MAP_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=false-sigma=0.5-metric=MRR]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=0.5-metric=MRR_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=0.5-metric=MRR_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=false-sigma=2.0-metric=ERR]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=2.0-metric=ERR_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=2.0-metric=ERR_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=false-sigma=2.0-metric=MAP]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=2.0-metric=MAP_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=2.0-metric=MAP_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=false-sigma=2.0-metric=MRR]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=2.0-metric=MRR_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=false-sigma=2.0-metric=MRR_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=true-sigma=0.5-metric=ERR]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=0.5-metric=ERR_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=0.5-metric=ERR_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=true-sigma=0.5-metric=MAP]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=0.5-metric=MAP_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=0.5-metric=MAP_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=true-sigma=0.5-metric=MRR]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=0.5-metric=MRR_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=0.5-metric=MRR_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=true-sigma=2.0-metric=ERR]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=2.0-metric=ERR_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=2.0-metric=ERR_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=true-sigma=2.0-metric=MAP]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=2.0-metric=MAP_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=2.0-metric=MAP_/test_error.tsv"
+        }
+    ],
+    "test.test_lambda_mart_non_dcgs[norm=true-sigma=2.0-metric=MRR]": [
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=2.0-metric=MRR_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_lambda_mart_non_dcgs_norm=true-sigma=2.0-metric=MRR_/test_error.tsv"
+        }
+    ],
     "test.test_learning_rate_auto_set[false-Ordered]": [
         {
             "uri": "file://test.test_learning_rate_auto_set_false-Ordered_/test.eval"
