@@ -384,12 +384,10 @@ void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* c
         } else {
             const bool isMultiTarget = dynamic_cast<const TMultiDerCalcer*>(error.Get()) != nullptr;
 
-            if (isMultiTarget) {
+            if (isMultiTarget || (ctx->LearnProgress->ApproxDimension != 1)) {
                 MapSetApproxesMulti(*error, bestTree, &treeValues, &sumLeafWeights, ctx);
-            } else if (ctx->LearnProgress->ApproxDimension == 1) {
-                MapSetApproxesSimple(*error, bestTree, &treeValues, &sumLeafWeights, ctx);
             } else {
-                MapSetApproxesMulti(*error, bestTree, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesSimple(*error, bestTree, &treeValues, &sumLeafWeights, ctx);
             }
         }
 
