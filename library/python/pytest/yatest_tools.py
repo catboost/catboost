@@ -15,59 +15,6 @@ SEP = '/'
 TEST_MOD_PREFIX = '__tests__.'
 
 
-class Subtest(object):
-    def __init__(
-        self,
-        name,
-        test_name,
-        status,
-        comment,
-        elapsed,
-        result=None,
-        test_type=None,
-        logs=None,
-        cwd=None,
-        metrics=None,
-    ):
-        self._name = name
-        self._test_name = test_name
-        self.status = status
-        self.elapsed = elapsed
-        self.comment = comment
-        self.result = result
-        self.test_type = test_type
-        self.logs = logs or {}
-        self.cwd = cwd
-        self.metrics = metrics
-
-    def __eq__(self, other):
-        if not isinstance(other, Subtest):
-            return False
-        return self.name == other.name and self.test_name == other.test_name
-
-    def __str__(self):
-        return yatest_lib.tools.to_utf8(unicode(self))
-
-    def __unicode__(self):
-        return u"{}::{}".format(self.test_name, self.test_name)
-
-    @property
-    def name(self):
-        return yatest_lib.tools.to_utf8(self._name)
-
-    @property
-    def test_name(self):
-        return yatest_lib.tools.to_utf8(self._test_name)
-
-    def __repr__(self):
-        return "Subtest [{}::{} - {}[{}]: {}]".format(
-            self.name, self.test_name, self.status, self.elapsed, self.comment
-        )
-
-    def __hash__(self):
-        return hash(str(self))
-
-
 class SubtestInfo(object):
     skipped_prefix = '[SKIPPED] '
 
@@ -165,10 +112,6 @@ class Test(object):
 
     def subtests_by_status(self, status):
         return [x.status for x in self.subtests].count(status)
-
-
-class NoMd5FileException(Exception):
-    pass
 
 
 TEST_SUBTEST_SEPARATOR = '::'
