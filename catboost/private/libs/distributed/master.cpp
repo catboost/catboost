@@ -701,14 +701,13 @@ void MapSetApproxes(
                     continue;
                 }
                 for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
-                    if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
+                    if (estimationMethod == ELeavesEstimation::Gradient) {
                         buckets[leafIdx].AddDerWeight(
                             singleBuckets[leafIdx].SumDer,
                             singleBuckets[leafIdx].SumWeights,
                             recalcLeafWeights);
                     } else {
-                        Y_ASSERT(
-                            ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton);
+                        Y_ASSERT(estimationMethod == ELeavesEstimation::Newton);
                         buckets[leafIdx].AddDerDer2(singleBuckets[leafIdx].SumDer, singleBuckets[leafIdx].SumDer2);
                     }
                 }
