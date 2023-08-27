@@ -1635,6 +1635,108 @@ def test_reciprocal_rank_metrics(eval_metric):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize(
+    'main_loss_function',
+    ['YetiRank', 'YetiRankPairwise'],
+    ids=['main_loss_function=%s' % main_loss_function for main_loss_function in ['YetiRank', 'YetiRankPairwise']]
+)
+@pytest.mark.parametrize('mode', ['DCG', 'NDCG'], ids=['mode=%s' % mode for mode in ['DCG', 'NDCG']])
+@pytest.mark.parametrize('top', [-1, 1, 10], ids=['top=%i' % top for top in [-1, 1, 10]])
+@pytest.mark.parametrize('dcg_type', ['Base', 'Exp'], ids=['dcg_type=%s' % dcg_type for dcg_type in ['Base', 'Exp']])
+@pytest.mark.parametrize(
+    'dcg_denominator',
+    ['Position', 'LogPosition'],
+    ids=['dcg_denominator=%s' % dcg_denominator for dcg_denominator in ['Position', 'LogPosition']]
+)
+@pytest.mark.parametrize(
+    'noise',
+    ['Gumbel', 'Gauss', 'No'],
+    ids=['noise=%s' % noise for noise in ['Gumbel', 'Gauss', 'No']]
+)
+@pytest.mark.parametrize(
+    'noise_power',
+    ['0.5', '2.0'],
+    ids=['noise_power=%s' % noise_power for noise_power in ['0.5', '2.0']]
+)
+@pytest.mark.parametrize(
+    'num_neighbors',
+    [1, 3, 8],
+    ids=['num_neighbors=%s' % num_neighbors for num_neighbors in [1, 3, 8]]
+)
+def test_yetiloss_dcgs(main_loss_function, mode, top, dcg_type, dcg_denominator, noise, noise_power, num_neighbors):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    loss = '{}:mode={};top={};dcg_type={};dcg_denominator={};noise={};noise_power={};num_neighbors={};hints=skip_train~false'.format(
+        main_loss_function,
+        mode,
+        top,
+        dcg_type,
+        dcg_denominator,
+        noise,
+        noise_power,
+        num_neighbors
+    )
+
+    cmd = (
+        '--loss-function', loss,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('mode', ['MRR', 'ERR', 'MAP'], ids=['mode=%s' % mode for mode in ['MRR', 'ERR', 'MAP']])
+@pytest.mark.parametrize('top', [-1, 1, 10], ids=['top=%i' % top for top in [-1, 1, 10]])
+@pytest.mark.parametrize(
+    'noise',
+    ['Gumbel', 'Gauss', 'No'],
+    ids=['noise=%s' % noise for noise in ['Gumbel', 'Gauss', 'No']]
+)
+@pytest.mark.parametrize(
+    'noise_power',
+    ['0.5', '2.0'],
+    ids=['noise_power=%s' % noise_power for noise_power in ['0.5', '2.0']]
+)
+@pytest.mark.parametrize(
+    'num_neighbors',
+    [1, 3, 8],
+    ids=['num_neighbors=%s' % num_neighbors for num_neighbors in [1, 3, 8]]
+)
+def test_yetiloss_non_dcgs(mode, top, noise, noise_power, num_neighbors):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    loss = 'YetiRank:mode={};top={};noise={};noise_power={};num_neighbors={};hints=skip_train~false'.format(
+        mode,
+        top,
+        noise,
+        noise_power,
+        num_neighbors
+    )
+
+    cmd = (
+        '--loss-function', loss,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 NAN_MODE = ['Min', 'Max']
 
 
