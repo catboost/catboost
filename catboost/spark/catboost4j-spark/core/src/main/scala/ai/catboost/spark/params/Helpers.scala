@@ -268,6 +268,8 @@ private[spark] object Helpers {
       result
     } else if (params.contains("classWeightsList")) {
       JObject() ~ ("class_weights" -> params("classWeightsList").asInstanceOf[Array[Double]].toSeq)
+    } else if (params.contains("scalePosWeight")) {
+      JObject() ~ ("class_weights" -> Seq(1.0, params("scalePosWeight").asInstanceOf[Float].toDouble))
     } else {
       JObject()
     }
@@ -351,6 +353,7 @@ private[spark] object Helpers {
     // processed in separate functions
     "class_weights_map" -> null,
     "class_weights_list" -> null,
+    "scale_pos_weight" -> null,
     "early_stopping_rounds" -> null,
     "od_pval" -> null,
     "od_type" -> null,

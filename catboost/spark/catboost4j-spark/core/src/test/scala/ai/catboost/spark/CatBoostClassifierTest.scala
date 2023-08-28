@@ -690,6 +690,106 @@ class CatBoostClassifierTest {
 
   @Test
   @throws(classOf[Exception])
+  def testBinaryClassificationWithScalePosWeight() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+
+    val featureNames = Array[String]("f1", "f2", "f3")
+
+    val pool = PoolTestHelpers.createRawPool(
+        TestHelpers.getCurrentMethodName,
+        PoolTestHelpers.createSchema(
+          Seq(
+            ("features", SQLDataTypes.VectorType),
+            ("label", IntegerType)
+          ),
+          featureNames,
+          /*addFeatureNamesMetadata*/ true
+        ),
+        Seq(
+          Row(Vectors.dense(0.1, 0.2, 0.11), 0),
+          Row(Vectors.dense(0.97, 0.82, 0.33), 1),
+          Row(Vectors.dense(0.13, 0.22, 0.23), 1),
+          Row(Vectors.dense(0.14, 0.18, 0.1), 0),
+          Row(Vectors.dense(0.9, 0.67, 0.17), 0),
+          Row(Vectors.dense(0.66, 0.1, 0.31), 0)
+        ),
+        Map[String,String]()
+    )
+
+    val classifier = new CatBoostClassifier()
+      .setIterations(20)
+      .setScalePosWeight(2.0f)
+      .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
+    val model = classifier.fit(pool)
+    val predictions = model.transform(pool.data)
+
+    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
+      Seq(
+        ("features", SQLDataTypes.VectorType),
+        ("label", IntegerType),
+        ("rawPrediction", SQLDataTypes.VectorType),
+        ("probability", SQLDataTypes.VectorType),
+        ("prediction", DoubleType)
+      ),
+      featureNames,
+      /*addFeatureNamesMetadata*/ true,
+      /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
+    )
+
+    val expectedPredictionsData = Seq(
+      Row(
+        Vectors.dense(0.1, 0.2, 0.11),
+        0,
+        Vectors.dense(0.061542387422523895, -0.061542387422523895),
+        Vectors.dense(0.5307324041981032, 0.46926759580189686),
+        0.0
+      ),
+      Row(
+        Vectors.dense(0.97, 0.82, 0.33),
+        1,
+        Vectors.dense(-0.10732143550400228,0.10732143550400228),
+        Vectors.dense(0.4465443569128503,0.5534556430871497),
+        1.0
+      ),
+      Row(
+        Vectors.dense(0.13, 0.22, 0.23),
+        1,
+        Vectors.dense(-0.09010562508687871,0.09010562508687871),
+        Vectors.dense(0.45506872106197505,0.544931278938025),
+        1.0
+      ),
+      Row(
+        Vectors.dense(0.14, 0.18, 0.1),
+        0,
+        Vectors.dense(0.0660650934240398,-0.0660650934240398),
+        Vectors.dense(0.5329845725520714,0.46701542744792857),
+        0.0
+      ),
+      Row(
+        Vectors.dense(0.9, 0.67, 0.17),
+        0,
+        Vectors.dense(0.057555746416403084,-0.057555746416403084),
+        Vectors.dense(0.5287461381176124,0.4712538618823876),
+        0.0
+      ),
+      Row(
+        Vectors.dense(0.66, 0.1, 0.31),
+        0,
+        Vectors.dense(0.03719023254887147,-0.03719023254887147),
+        Vectors.dense(0.5185865479633033,0.4814134520366967),
+        0.0
+      )
+    )
+    val expectedPredictions = spark.createDataFrame(
+      spark.sparkContext.parallelize(expectedPredictionsData),
+      StructType(expectedPredictionsSchema)
+    )
+
+    TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
+  }
+
+  @Test
+  @throws(classOf[Exception])
   def testBinaryClassificationWithWeights() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
 

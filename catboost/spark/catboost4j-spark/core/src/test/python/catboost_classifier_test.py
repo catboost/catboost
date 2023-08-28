@@ -228,6 +228,47 @@ def testBinaryClassificationWithClassWeightsMap():
     predictions.show(truncate=False)
 
 
+def testBinaryClassificationWithScalePosWeight():
+    spark = test_helpers.getOrCreateSparkSession(test_helpers.getCurrentMethodName())
+    import catboost_spark
+
+    featureNames = ["f1", "f2", "f3"]
+
+    srcSchemaData = [
+        ("features", VectorUDT()),
+        ("label", IntegerType())
+    ]
+
+    srcData = [
+          Row(Vectors.dense(0.1, 0.2, 0.11), 0),
+          Row(Vectors.dense(0.97, 0.82, 0.33), 1),
+          Row(Vectors.dense(0.13, 0.22, 0.23), 1),
+          Row(Vectors.dense(0.14, 0.18, 0.1), 0),
+          Row(Vectors.dense(0.9, 0.67, 0.17), 0),
+          Row(Vectors.dense(0.66, 0.1, 0.31), 0)
+    ]
+    pool = pool_test_helpers.createRawPool(
+        test_helpers.getCurrentMethodName,
+        pool_test_helpers.createSchema(
+          srcSchemaData,
+          featureNames,
+          addFeatureNamesMetadata=True
+        ),
+        srcData,
+        {}
+    )
+
+    classifier = (catboost_spark.CatBoostClassifier()
+      .setIterations(20)
+      .setScalePosWeight(2.0)
+      .setLoggingLevel(catboost_spark.ELoggingLevel.Debug)
+      .setTrainDir(tempfile.mkdtemp(prefix=test_helpers.getCurrentMethodName())))
+
+    model = classifier.fit(pool)
+    predictions = model.transform(pool.data)
+    predictions.show(truncate=False)
+
+
 def testClassifierSerialization():
     spark = test_helpers.getOrCreateSparkSession(test_helpers.getCurrentMethodName())
     import catboost_spark
