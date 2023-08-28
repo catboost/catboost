@@ -62,7 +62,7 @@ def prepare_R_package(src_dir: str, dst_dir: str, release_version: str, tmp_dir:
             extract_file_from_tgz(
                 dst_tgz,
                 so_path_in_tgz,
-                os.path.join(dst_dir, f'libcatboostr-{system}-{arch}-{release_version}{dst_suffix}'),
+                os.path.join(dst_dir, f'libcatboostr-{system}-{arch}-v{release_version}{dst_suffix}'),
                 tmp_dir
             )
 
@@ -82,7 +82,7 @@ def prepare_R_package(src_dir: str, dst_dir: str, release_version: str, tmp_dir:
     )
 
     shutil.copy2(
-        os.path.join(dst_dir, f'libcatboostr-darwin-universal2-{release_version}.dylib'),
+        os.path.join(dst_dir, f'libcatboostr-darwin-universal2-v{release_version}.dylib'),
         os.path.join(dst_dir, f'libcatboostr-darwin.dylib')
     )
     # copy with different suffix for compatibility
@@ -92,11 +92,11 @@ def prepare_R_package(src_dir: str, dst_dir: str, release_version: str, tmp_dir:
     )
 
     shutil.copy2(
-        os.path.join(dst_dir, f'libcatboostr-linux-x86_64-{release_version}.so'),
+        os.path.join(dst_dir, f'libcatboostr-linux-x86_64-v{release_version}.so'),
         os.path.join(dst_dir, f'libcatboostr-linux.so')
     )
     shutil.copy2(
-        os.path.join(dst_dir, f'libcatboostr-windows-x86_64-{release_version}.dll'),
+        os.path.join(dst_dir, f'libcatboostr-windows-x86_64-v{release_version}.dll'),
         os.path.join(dst_dir, f'libcatboostr.dll')
     )
 
