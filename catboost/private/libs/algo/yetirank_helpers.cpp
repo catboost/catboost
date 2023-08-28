@@ -27,6 +27,8 @@ namespace {
     };
 
     EYetiRankWeightsMode ModeFromString(const TString& mode) {
+        if (mode == "Classic")
+            return EYetiRankWeightsMode::Classic;
         if (mode == "NDCG")
             return EYetiRankWeightsMode::NDCG;
         if (mode == "DCG")
