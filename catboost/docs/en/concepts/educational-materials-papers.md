@@ -42,3 +42,8 @@ _Andrey Gulin, Igor Kuralenok, Dimitry Pavlov. PMLR 14:63-76_
 
 The theory underlying the {{ error-function__YetiRank }} and {{ error-function__YetiRankPairwise }} modes in {{ product }}.
 
+#### [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500)
+
+_Ivan Lyzhin, Aleksei Ustimenko, Andrey Gulin, Liudmila Prokhorenkova. arXiv:2204.01500_
+
+A paper comparing previously introduced LambdaMART, YetiRank and StochasticRank and proposing an improvement to the {{ error-function__YetiRank }} approach to allow for optimizing specific ranking loss functions.

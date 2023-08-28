@@ -88,13 +88,15 @@ This metric gives less accurate results on big datasets compared to {{ error-fun
 
 **{{ optimization }}** See [more](#usage-information).
 
+Since CatBoost 1.2.1 YetiRank meaning has been expanded to allow for optimizing specific ranking loss functions by specifying `mode` loss function parameter. Default YetiRank can now also be referred as `mode=Classic`.
+
 **{{ title__loss-functions__text__user-defined-params }}**
 
-{% cut "{{ loss-functions__params__decay }}" %}
+{% cut "{{ loss-functions__params__mode }}" %}
 
-The probability of search continuation after reaching the current object.
+The mode of operation. Either `Classic` - the traditional YetiRank as described in [Winning The Transfer Learning Track of Yahoo!’s Learning To Rank Challenge with YetiRank](http://proceedings.mlr.press/v14/gulin11a.html) or a specific ranking loss function to optimize as described in [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500) paper. Possible loss function values are `DCG`, `NDCG`, `MRR`, `ERR`, `MAP`.
 
-_Default:_  {{ fit__decay__yetirank }}
+_Default:_  `Classic`
 
 {% endcut %}
 
@@ -103,6 +105,74 @@ _Default:_  {{ fit__decay__yetirank }}
 The number of permutations.
 
 _Default:_ {{ fit__permutations }}
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__decay }}" %}
+
+Used only in `Classic` mode.
+The probability of search continuation after reaching the current object.
+
+_Default:_  {{ fit__decay__yetirank }}
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__top }}" %}
+
+Used in all modes except `Classic`.
+
+The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+
+Unlimited by default.
+
+{% endcut %}
+
+{% cut "dcg_type" %}
+
+Used in modes `DCG` and `NDCG`.
+
+Principle of calculation of \*DCG metrics.
+
+_Default_: {{ error-function__filtereddcg__type__default }}.
+_Possible values_: `{{ error-function__ndcg__type__Base }}`, `{{ error-function__ndcg__type__Exp }}`.
+
+{% endcut %}
+
+{% cut "dcg_denominator" %}
+
+Used in modes `DCG` and `NDCG`.
+
+Principle of calculation of the denominator in \*DCG metrics.
+
+_Default_: {{ error-function__filtereddcg__denominator__default }}.
+_Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ error-function__ndcg__denominator__Position }}`.
+
+{% endcut %}
+
+{% cut "noise" %}
+
+Type of noise to add to approxes.
+
+_Default_: `Gumbel`.
+_Possible values_: `Gumbel`, `Gaussian`, `No`.
+
+{% endcut %}
+
+{% cut "noise_power" %}
+
+Power of noise to add (multiplier). Used only for `Gaussian` noise for now.
+
+_Default_: 1.
+
+{% endcut %}
+
+{% cut "num_neighbors" %}
+
+Used in all modes except `Classic`.
+
+Number of neighbors used in the metric calculation.
+
+_Default_: 1.
 
 {% endcut %}
 
@@ -124,13 +194,15 @@ This technique is described in the [Winning The Transfer Learning Track of Yaho
 
 **{{ optimization }}** See [more](#usage-information).
 
+Since CatBoost 1.2.1 YetiRankPairwise meaning has been expanded to allow for optimizing specific ranking loss functions by specifying `mode` loss function parameter. Default YetiRankPairwise can now also be referred as `mode=Classic`.
+
 **{{ title__loss-functions__text__user-defined-params }}**
 
-{% cut "{{ loss-functions__params__decay }}" %}
+{% cut "{{ loss-functions__params__mode }}" %}
 
-The probability of search continuation after reaching the current object.
+The mode of operation. Either `Classic` - the traditional YetiRankPairwise as described in [Winning The Transfer Learning Track of Yahoo!’s Learning To Rank Challenge with YetiRank](http://proceedings.mlr.press/v14/gulin11a.html) or a specific ranking loss function to optimize as described in [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500) paper. Possible loss function values are `DCG`, `NDCG`, `MRR`, `ERR`, `MAP`.
 
-_Default:_ {{ fit__decay__yetirank }}
+_Default:_  `Classic`
 
 {% endcut %}
 
@@ -139,6 +211,74 @@ _Default:_ {{ fit__decay__yetirank }}
 The number of permutations.
 
 _Default:_ {{ fit__permutations }}
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__decay }}" %}
+
+Used only in `Classic` mode.
+The probability of search continuation after reaching the current object.
+
+_Default:_  {{ fit__decay__yetirank }}
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__top }}" %}
+
+Used in all modes except `Classic`.
+
+The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+
+Unlimited by default.
+
+{% endcut %}
+
+{% cut "dcg_type" %}
+
+Used in modes `DCG` and `NDCG`.
+
+Principle of calculation of \*DCG metrics.
+
+_Default_: {{ error-function__filtereddcg__type__default }}.
+_Possible values_: `{{ error-function__ndcg__type__Base }}`, `{{ error-function__ndcg__type__Exp }}`.
+
+{% endcut %}
+
+{% cut "dcg_denominator" %}
+
+Used in modes `DCG` and `NDCG`.
+
+Principle of calculation of the denominator in \*DCG metrics.
+
+_Default_: {{ error-function__filtereddcg__denominator__default }}.
+_Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ error-function__ndcg__denominator__Position }}`.
+
+{% endcut %}
+
+{% cut "noise" %}
+
+Type of noise to add to approxes.
+
+_Default_: `Gumbel`.
+_Possible values_: `Gumbel`, `Gaussian`, `No`.
+
+{% endcut %}
+
+{% cut "noise_power" %}
+
+Power of noise to add (multiplier). Used only for `Gaussian` noise for now.
+
+_Default_: 1.
+
+{% endcut %}
+
+{% cut "num_neighbors" %}
+
+Used in all modes except `Classic`.
+
+Number of neighbors used in the metric calculation.
+
+_Default_: 1.
 
 {% endcut %}
 

@@ -553,6 +553,7 @@ default:
   loss-functions__params__max_pairs: max_pairs
   loss-functions__params__max_pairs_default: All possible pairs are generated in each group
   loss-functions__params__q__default: Obligatory parameter
+  loss-functions__params__mode: mode
   loss-functions__obligatory-text: This parameter is obligatory (the default value is not defined)
   loss-functions__params__default: 'true'
   ctr-types__TargetBorderCount: TargetBorderCount
