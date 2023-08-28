@@ -1,3 +1,31 @@
+# Release 1.2.1
+
+## New features
+* Allow to optimize specific ranking loss functions with YetiRank and YetiRankPairwise by specifying `mode` parameter. See [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500) paper for details (this family of losses is called `YetiLoss` there). CPU-only for now.
+* Add Kernel Gradient Boosting support (use `catboost.sample_gaussian_process` function). #2408, thanks to @TakeOver. See [Gradient Boosting Performs Gaussian Process Inference](https://arxiv.org/abs/2206.05608) paper for details.
+* LambdaMart loss: support new target metrics MRR, ERR and MAP.
+* StochasticRank loss: support new target metrics ERR and MRR.
+* Support MultiRMSE on GPU. #2264, #2390
+* Load JSON model format in Java Client. #1627, thanks to @timotta
+* Implement exporting of Multiclass models to C++ and Python. #2284, thanks to @antoninkriz
+
+## Improvements
+* Speedup BM25 feature calcers 3x
+* Use `int` instead of deprecated `numpy.int`. #2378
+* Add `ModelCalcerWrapper::CalcFlatTransposed`, #2413 thanks to @faucct
+* Update dependencies to avoid known vulnerabilities
+
+## Bugfixes
+* Fix __shfl_up_sync mask. #2339
+* TFocalMetric negative values fix. #2386, thanks to @diditforlulz273
+* Focal loss: Use user-defined alpha and gamma
+* Fix exception propagation: Rethrow exceptions caused by user's python code as C++ exceptions
+* CatBoost trained with user defined objective was incompatible with ShapValues calculation
+* Avoid nan's in Newton step calculation for RMSEWithUncertainty
+* Fix score method for y with shape (N, 1). #2405
+* Fix scalePosWeight support for Spark. #2470
+
+
 # Release 1.2
 ## Major changes
 CatBoost's build system has been switched from Ya Make (Yandex's build system) to [CMake](https://cmake.org/). This means more transparency in the build process and more familiar tools for Open Source developers.
