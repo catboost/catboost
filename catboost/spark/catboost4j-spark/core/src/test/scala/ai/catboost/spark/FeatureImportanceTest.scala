@@ -26,7 +26,7 @@ class FeatureImportanceTest {
 
   @Rule
   def temporaryFolder = _temporaryFolder
-  
+
   def assertPrettifiedEquals(
     expectedFeatureImportancesPrettified: List[Map[String,Any]],
     featureImportancesPrettified: Array[FeatureImportance]
@@ -54,7 +54,7 @@ class FeatureImportanceTest {
       dataPathWithScheme = dataDir.resolve("train_small").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
-    
+
     val regressor = new CatBoostRegressor()
       .setIterations(20)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
@@ -77,11 +77,11 @@ class FeatureImportanceTest {
         calcType=calcType
       )
       Assert.assertArrayEquals(expectedFeatureImportances, featureImportancesPredictionValuesChange, 1.0e-6)
-      
+
       val featureImportancesDefault = model.getFeatureImportance(calcType=calcType)
       Assert.assertArrayEquals(expectedFeatureImportances, featureImportancesDefault, 1.0e-6)
 
-      
+
       val expectedFeatureImportancesPrettified = expectedFeatureImportancesJson
         .values(s"calc_type_${calcType}_prettified")
         .asInstanceOf[List[Map[String,Any]]]
@@ -113,7 +113,7 @@ class FeatureImportanceTest {
       dataPathWithScheme = dataDir.resolve("train").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
-    
+
     val regressor = new CatBoostRegressor()
       .setIterations(20)
       .setLossFunction("QueryRMSE")
@@ -138,11 +138,11 @@ class FeatureImportanceTest {
         calcType=calcType
       )
       Assert.assertArrayEquals(expectedFeatureImportances, featureImportancesLossFunctionChange, 1.0e-6)
-      
+
       val featureImportancesDefault = model.getFeatureImportance(data=trainPool, calcType=calcType)
       Assert.assertArrayEquals(expectedFeatureImportances, featureImportancesDefault, 1.0e-6)
 
-      
+
       val expectedFeatureImportancesPrettified = expectedFeatureImportancesJson
         .values(s"calc_type_${calcType}_prettified")
         .asInstanceOf[List[Map[String,Any]]]
@@ -164,7 +164,7 @@ class FeatureImportanceTest {
       assertPrettifiedEquals(expectedFeatureImportancesPrettified, featureImportancesDefaultPrettified)
     }
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testInteraction() {
@@ -178,7 +178,7 @@ class FeatureImportanceTest {
       dataPathWithScheme = dataDir.resolve("train").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
-    
+
     val regressor = new CatBoostRegressor()
       .setIterations(20)
       .setLossFunction("QueryRMSE")
@@ -190,7 +190,7 @@ class FeatureImportanceTest {
     val expectedFeatureImportances = parse(
       Source.fromFile(expectedFeatureImportancesFile.toString).getLines.mkString
     ).values.asInstanceOf[List[Map[String,Any]]]
-    
+
     val expectedFeatureImportancesMap = new mutable.HashMap[(Int, Int), Double]()
     for (item <- expectedFeatureImportances) {
       expectedFeatureImportancesMap.put(
@@ -201,16 +201,16 @@ class FeatureImportanceTest {
         item("score").asInstanceOf[Double]
       )
     }
-    
+
     val featureImportancesInteraction = model.getFeatureImportanceInteraction()
-    
+
     val featureImportancesMap = new mutable.HashMap[(Int, Int), Double]()
     for (item <- featureImportancesInteraction) {
       featureImportancesMap.put((item.firstFeatureIdx -> item.secondFeatureIdx), item.score)
     }
-    
+
     Assert.assertEquals(expectedFeatureImportancesMap.size, featureImportancesMap.size)
-    
+
     for (((firstFeatureIdx, secondFeatureIdx), expectedScore) <- expectedFeatureImportancesMap) {
       featureImportancesMap.get(firstFeatureIdx -> secondFeatureIdx) match {
         case Some(score) => Assert.assertEquals(expectedScore, score, 1.0e-6)
@@ -220,8 +220,8 @@ class FeatureImportanceTest {
       }
     }
   }
-  
-  
+
+
   def testShapValuesCase[Model <: org.apache.spark.ml.PredictionModel[Vector, Model]](
     problemType: String,
     model : CatBoostModelTrait[Model],
@@ -237,8 +237,8 @@ class FeatureImportanceTest {
     ).values.asInstanceOf[Map[String,Any]]
 
     val shapModes = Seq(
-      EPreCalcShapValues.Auto, 
-      EPreCalcShapValues.UsePreCalc, 
+      EPreCalcShapValues.Auto,
+      EPreCalcShapValues.UsePreCalc,
       EPreCalcShapValues.NoPreCalc
     )
     val calcTypes = Seq(
@@ -251,7 +251,7 @@ class FeatureImportanceTest {
         val resultName = s"problem_type=$problemType,shap_mode=$shapMode,shap_calc_type=$calcType"
         val expectedShapValues = expectedFeatureImportances(resultName)
           .asInstanceOf[scala.collection.immutable.$colon$colon[_]]
-        
+
         val shapValuesDf = model.getFeatureImportanceShapValues(
           data=data,
           preCalcMode=shapMode,
@@ -282,7 +282,7 @@ class FeatureImportanceTest {
       }
     }
   }
-    
+
   @Test
   @throws(classOf[Exception])
   def testShapValuesForBinClass() {
@@ -296,7 +296,7 @@ class FeatureImportanceTest {
       dataPathWithScheme = dataDir.resolve("train_small").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
-    
+
     val classifier = new CatBoostClassifier()
       .setIterations(20)
       .setLossFunction("Logloss")
@@ -305,7 +305,7 @@ class FeatureImportanceTest {
     val model = classifier.fit(trainPool)
     testShapValuesCase("BinClass", model, canonicalDataDir, trainPool)
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testShapValuesForMultiClass() {
@@ -319,7 +319,7 @@ class FeatureImportanceTest {
       dataPathWithScheme = dataDir.resolve("train_small").toString,
       columnDescription = dataDir.resolve("train_float.cd")
     )
-    
+
 //    val classifier = new CatBoostClassifier()
 //      .setIterations(20)
 //      .setLossFunction("MultiClass")
@@ -329,10 +329,10 @@ class FeatureImportanceTest {
     val model = CatBoostClassificationModel.loadNativeModel(
       canonicalDataDir.resolve(s"feature_importance_shap_values.problem_type=MultiClass.cbm").toString()
     )
-    
+
     testShapValuesCase("MultiClass", model, canonicalDataDir, trainPool)
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testShapValuesForRegression() {
@@ -346,7 +346,7 @@ class FeatureImportanceTest {
       dataPathWithScheme = dataDir.resolve("train").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
-    
+
     val regressor = new CatBoostRegressor()
       .setIterations(20)
       .setLossFunction("QueryRMSE")
@@ -355,7 +355,7 @@ class FeatureImportanceTest {
     val model = regressor.fit(trainPool)
     testShapValuesCase("Regression", model, canonicalDataDir, trainPool)
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testPredictionDiff() {
@@ -369,9 +369,9 @@ class FeatureImportanceTest {
       dataPathWithScheme = dataDir.resolve("train_small").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
-    
+
     val dataForPredictionDiff = new Pool(trainPool.data.limit(2))
-    
+
     val regressor = new CatBoostRegressor()
       .setIterations(20)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
@@ -394,7 +394,7 @@ class FeatureImportanceTest {
     )
     Assert.assertArrayEquals(expectedFeatureImportances, featureImportances, 1.0e-6)
 
-    
+
     val expectedFeatureImportancesPrettified = expectedFeatureImportancesJson
       .values("prettified")
       .asInstanceOf[List[Map[String,Any]]]
@@ -405,7 +405,7 @@ class FeatureImportanceTest {
     )
     assertPrettifiedEquals(expectedFeatureImportancesPrettified, featureImportancesPrettified)
   }
-  
+
   def testShapInteractionValuesCase[Model <: org.apache.spark.ml.PredictionModel[Vector, Model]](
     problemType: String,
     model : CatBoostModelTrait[Model],
@@ -413,19 +413,19 @@ class FeatureImportanceTest {
     data: Pool
   ) {
     val dataForFeatureImportance = new Pool(TestHelpers.addIndexColumn(data.data.limit(5)))
-    
+
     val expectedFeaturesImportancesZipFile = canonicalDataDir.resolve("feature_importance_shap_interaction_values.json.zip")
     val tmpDir = temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath
     TestHelpers.unzip(expectedFeaturesImportancesZipFile, Paths.get(tmpDir))
     val expectedFeatureImportancesFile = Paths.get(tmpDir, "feature_importance_shap_interaction_values.json")
-    
+
     val expectedFeatureImportances = parse(
       Source.fromFile(expectedFeatureImportancesFile.toString).getLines.mkString
     ).values.asInstanceOf[Map[String,Any]]
 
     val shapModes = Seq(
-      EPreCalcShapValues.Auto, 
-      EPreCalcShapValues.UsePreCalc, 
+      EPreCalcShapValues.Auto,
+      EPreCalcShapValues.UsePreCalc,
       EPreCalcShapValues.NoPreCalc
     )
     val calcTypes = Seq(
@@ -436,11 +436,11 @@ class FeatureImportanceTest {
         val resultName = s"problem_type=$problemType,shap_mode=$shapMode,shap_calc_type=$calcType"
         val expectedShapInteractionValues = expectedFeatureImportances(resultName)
           .asInstanceOf[scala.collection.immutable.$colon$colon[_]]
-        
+
         // binclass, regression: 'objectIdx,featureIdx1,featureIdx2' -> score
         // multiclass: 'objectIdx,classIdx,featureIdx1,featureIdx2' -> score
         val expectedShapInteractionValuesMap = new mutable.HashMap[String,Double]()
-        
+
         for ((expectedValuesForObject, objectIdx) <- expectedShapInteractionValues.zipWithIndex) {
           val typedValuesForObject = expectedValuesForObject
             .asInstanceOf[scala.collection.immutable.$colon$colon[_]]
@@ -468,13 +468,13 @@ class FeatureImportanceTest {
             }
           }
         }
-        
+
         val shapInteractionValuesDf = model.getFeatureImportanceShapInteractionValues(
           data=dataForFeatureImportance,
           preCalcMode=shapMode,
           calcType=calcType
         )
-        
+
         for (row <- shapInteractionValuesDf.toLocalIterator.asScala) {
           val objectIdx = row.getAs[Long]("index")
           val featureIdx1 = row.getAs[Int]("featureIdx1")
@@ -491,7 +491,7 @@ class FeatureImportanceTest {
       }
     }
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testShapInteractionValuesForBinClass() {
@@ -505,7 +505,7 @@ class FeatureImportanceTest {
       dataPathWithScheme = dataDir.resolve("train_small").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
-    
+
     val classifier = new CatBoostClassifier()
       .setIterations(20)
       .setLossFunction("Logloss")
@@ -514,7 +514,7 @@ class FeatureImportanceTest {
     val model = classifier.fit(trainPool)
     testShapInteractionValuesCase("BinClass", model, canonicalDataDir, trainPool)
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testShapInteractionValuesForMultiClass() {
@@ -528,7 +528,7 @@ class FeatureImportanceTest {
       dataPathWithScheme = dataDir.resolve("train_small").toString,
       columnDescription = dataDir.resolve("train_float.cd")
     )
-    
+
 //    val classifier = new CatBoostClassifier()
 //      .setIterations(20)
 //      .setLossFunction("MultiClass")
@@ -538,10 +538,10 @@ class FeatureImportanceTest {
     val model = CatBoostClassificationModel.loadNativeModel(
       canonicalDataDir.resolve(s"feature_importance_shap_interaction_values.problem_type=MultiClass.cbm").toString()
     )
-    
+
     testShapInteractionValuesCase("MultiClass", model, canonicalDataDir, trainPool)
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testShapInteractionValuesForRegression() {
@@ -555,7 +555,7 @@ class FeatureImportanceTest {
       dataPathWithScheme = dataDir.resolve("train_small").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
-    
+
     val regressor = new CatBoostRegressor()
       .setIterations(20)
       .setLossFunction("RMSE")

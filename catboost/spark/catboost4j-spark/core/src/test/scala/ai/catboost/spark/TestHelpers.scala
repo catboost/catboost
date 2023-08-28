@@ -15,18 +15,18 @@ import org.junit.Assert
 
 object TestHelpers {
   def getCurrentMethodName:String = Thread.currentThread.getStackTrace()(2).getMethodName
-  
+
   def appendToRow(src: Row, value: Any) : Row = {
     Row.fromSeq(src.toSeq :+ value)
   }
-  
+
   def getOrCreateSparkSession(appName: String) : SparkSession = {
     SparkSession.builder()
         .master("local[4]")
         .appName(appName)
         .getOrCreate()
   }
-  
+
   def getDataForComparison(data: DataFrame, sortByFields: Seq[String]) : Array[Row] = {
     (if (sortByFields.isEmpty) {
       data
@@ -98,7 +98,7 @@ object TestHelpers {
     }
     ()
   }
-  
+
   def addIndexColumn(df: DataFrame) : DataFrame = {
     df.sparkSession.createDataFrame(
       df.rdd.zipWithIndex.map {
@@ -107,7 +107,7 @@ object TestHelpers {
       StructType(df.schema.fields :+ StructField("index", LongType, false))
     )
   }
-  
+
   def unzip(zipPath: Path, outputPath: Path): Unit = {
     val zipFile = new ZipFile(zipPath.toFile)
     for (entry <- zipFile.entries.asScala) {

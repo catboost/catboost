@@ -29,15 +29,15 @@ class CatBoostRegressorTest {
 
   @Rule
   def temporaryFolder = _temporaryFolder
-  
-  
-  @Test 
+
+
+  @Test
   @throws(classOf[Exception])
   def testSimple1() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
-    
+
     val srcSchemaData = Seq(
       ("features", SQLDataTypes.VectorType),
       ("label", StringType),
@@ -64,7 +64,7 @@ class CatBoostRegressorTest {
         srcData,
         Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
     )
-    
+
     val expectedPrediction = Seq(
       0.29847920816267565,
       0.1573237146313061,
@@ -98,11 +98,11 @@ class CatBoostRegressorTest {
     val predictions = model.transform(pool.data)
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
-    
+
     // check apply on quantized
     val quantizedPool = pool.quantize()
     val quantizedPredictions = model.transformPool(quantizedPool)
-    
+
     TestHelpers.assertEqualsWithPrecision(
       expectedPredictions.drop("features"),
       quantizedPredictions.drop("features")
@@ -113,7 +113,7 @@ class CatBoostRegressorTest {
   @throws(classOf[Exception])
   def testSimpleOnDataFrame() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
     val srcDataSchema = PoolTestHelpers.createSchema(
       Seq(
@@ -123,7 +123,7 @@ class CatBoostRegressorTest {
       featureNames,
       /*addFeatureNamesMetadata*/ true
     )
-    
+
     val srcData = Seq(
       Row(Vectors.dense(0.1, 0.2, 0.11), 0.12f),
       Row(Vectors.dense(0.97, 0.82, 0.33), 1.1f),
@@ -132,9 +132,9 @@ class CatBoostRegressorTest {
       Row(Vectors.dense(0.9, 0.67, 0.17), -1.0f),
       Row(Vectors.dense(0.66, 0.1, 0.31), 0.62f)
     )
-    
+
     val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema))
-    
+
     val expectedPrediction = Seq(
       0.05222253481760597,
       0.9310698268032307,
@@ -169,7 +169,7 @@ class CatBoostRegressorTest {
       .setIterations(20)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
     val model = regressor.fit(df)
-    
+
     val predictions = model.transform(df)
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
@@ -266,13 +266,13 @@ class CatBoostRegressorTest {
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
 
-  @Test 
+  @Test
   @throws(classOf[Exception])
   def testFeaturesRenamed() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
-    
+
     val srcSchemaData = Seq(
       ("f1", SQLDataTypes.VectorType),
       ("label", StringType),
@@ -299,7 +299,7 @@ class CatBoostRegressorTest {
         srcData,
         Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight", "features" -> "f1")
     )
-    
+
     val expectedPrediction = Seq(
       0.29847920816267565,
       0.1573237146313061,
@@ -332,17 +332,17 @@ class CatBoostRegressorTest {
       .setFeaturesCol("f1")
     val model = regressor.fit(pool).setFeaturesCol("f1")
     val predictions = model.transform(pool.data)
-    
+
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testWithEvalSet() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
-    
+
     val srcSchemaData = Seq(
       ("features", SQLDataTypes.VectorType),
       ("label", StringType),
@@ -363,7 +363,7 @@ class CatBoostRegressorTest {
       Row(Vectors.dense(0.02, 0.0, 0.38), "0.11", 0x686726738873ABCDL, 0x23D794E9, 1.0f),
       Row(Vectors.dense(0.86, 0.54, 0.9), "0.48", 0x7652786FF37ABBEDL, 0x19CE5B0A, 0.17f)
     )
-    
+
     val trainPool = PoolTestHelpers.createRawPool(
       TestHelpers.getCurrentMethodName,
       PoolTestHelpers.createSchema(
@@ -384,7 +384,7 @@ class CatBoostRegressorTest {
       srcTestData,
       Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
     )
-    
+
     val expectedPrediction = Seq(
       0.1422439696582127,
       0.08192678811528119,
@@ -407,7 +407,7 @@ class CatBoostRegressorTest {
       spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
-    
+
     val regressor = new CatBoostRegressor()
       .setIterations(20)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
@@ -416,14 +416,14 @@ class CatBoostRegressorTest {
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
-  
-  @Test 
+
+  @Test
   @throws(classOf[Exception])
   def testWithEvalSets() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
-    
+
     val srcSchemaData = Seq(
       ("features", SQLDataTypes.VectorType),
       ("label", StringType),
@@ -452,7 +452,7 @@ class CatBoostRegressorTest {
         Row(Vectors.dense(0.17, 0.11, 0.0), "0.0", 0xADD57787677BBA22L, 0x19CE5B0A, 1.0f)
       )
     )
-    
+
     val trainPool = PoolTestHelpers.createRawPool(
       TestHelpers.getCurrentMethodName,
       PoolTestHelpers.createSchema(
@@ -524,14 +524,14 @@ class CatBoostRegressorTest {
       }
     }
   }
-  
-  @Test 
+
+  @Test
   @throws(classOf[Exception])
   def testDurationParam() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
-    
+
     val srcSchemaData = Seq(
       ("features", SQLDataTypes.VectorType),
       ("label", StringType),
@@ -558,7 +558,7 @@ class CatBoostRegressorTest {
         srcData,
         Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
     )
-    
+
     val expectedPrediction = Seq(
       0.29847920816267565,
       0.1573237146313061,
@@ -584,19 +584,19 @@ class CatBoostRegressorTest {
       spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
-    
+
     val regressor = new CatBoostRegressor()
       .setIterations(20)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
       .setSnapshotInterval(java.time.Duration.ofHours(1))
-    
+
     val model = regressor.fit(pool)
     val predictions = model.transform(pool.data)
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
 
-  @Test 
+  @Test
   @throws(classOf[Exception])
   def testOverfittingDetectorIncToDec() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
@@ -622,7 +622,7 @@ class CatBoostRegressorTest {
       .asInstanceOf[JObject].values("prediction_IncToDec")
       .asInstanceOf[scala.collection.immutable.$colon$colon[Double]]
       .toSeq
-      
+
     val expectedPredictionsData = mutable.Seq.concat(evalPool.data.toLocalIterator.asScala.toTraversable)
     for (i <- 0 until expectedPredictionsData.length) {
       expectedPredictionsData(i) = TestHelpers.appendToRow(
@@ -648,7 +648,7 @@ class CatBoostRegressorTest {
         .setOdPval(1.0e-2f)
       val model = regressor.fit(trainPool, Array[Pool](evalPool))
       val predictions = model.transform(evalPool.data)
-  
+
       TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
     }
     {
@@ -659,12 +659,12 @@ class CatBoostRegressorTest {
         .setOdPval(1.0e-2f)
       val model = regressor.fit(trainPool, Array[Pool](evalPool))
       val predictions = model.transform(evalPool.data)
-  
+
       TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
     }
   }
 
-  @Test 
+  @Test
   @throws(classOf[Exception])
   def testOverfittingDetectorIter() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
@@ -690,7 +690,7 @@ class CatBoostRegressorTest {
       .asInstanceOf[JObject].values("prediction_Iter")
       .asInstanceOf[scala.collection.immutable.$colon$colon[Double]]
       .toSeq
-      
+
     val expectedPredictionsData = mutable.Seq.concat(evalPool.data.toLocalIterator.asScala.toTraversable)
     for (i <- 0 until expectedPredictionsData.length) {
       expectedPredictionsData(i) = TestHelpers.appendToRow(
@@ -716,7 +716,7 @@ class CatBoostRegressorTest {
         .setEarlyStoppingRounds(20)
       val model = regressor.fit(trainPool, Array[Pool](evalPool))
       val predictions = model.transform(evalPool.data)
-  
+
       TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
     }
     {
@@ -726,18 +726,18 @@ class CatBoostRegressorTest {
         .setOdType(EOverfittingDetectorType.Iter)
       val model = regressor.fit(trainPool, Array[Pool](evalPool))
       val predictions = model.transform(evalPool.data)
-  
+
       TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
     }
   }
 
-  @Test 
+  @Test
   @throws(classOf[Exception])
   def testParams() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3")
-    
+
     val srcSchemaData = Seq(
       ("features", SQLDataTypes.VectorType),
       ("label", StringType),
@@ -764,7 +764,7 @@ class CatBoostRegressorTest {
         srcData,
         Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
     )
-    
+
     val expectedPrediction = Seq(
       0.14155830428540508,
       0.08871561519254367,
@@ -790,19 +790,19 @@ class CatBoostRegressorTest {
       spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
-    
+
     val firstFeatureUsePenaltiesMap = new java.util.LinkedHashMap[String, Double]
     firstFeatureUsePenaltiesMap.put("f1", 0.0)
     firstFeatureUsePenaltiesMap.put("f2", 1.1)
     firstFeatureUsePenaltiesMap.put("f3", 2.0)
-   
+
     val regressor = new CatBoostRegressor()
       .setIterations(20)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
       .setLeafEstimationIterations(10)
       .setFirstFeatureUsePenaltiesMap(firstFeatureUsePenaltiesMap)
       .setFeatureWeightsList(Array[Double](1.0, 2.0, 3.0))
-      
+
     val model = regressor.fit(pool)
     val predictions = model.transform(pool.data)
 
@@ -810,11 +810,11 @@ class CatBoostRegressorTest {
   }
 
 
-  @Test 
+  @Test
   @throws(classOf[Exception])
   def testOneHotCatFeatures() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("c1", "c2", "c3")
     val catFeaturesNumValues = Map("c1" -> 2, "c2" -> 4, "c3" -> 6)
 
@@ -846,7 +846,7 @@ class CatBoostRegressorTest {
         srcData,
         Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
     )
-    
+
     val expectedPrediction = Seq(
       0.3094933770071123,
       0.06869861198568002,
@@ -885,12 +885,12 @@ class CatBoostRegressorTest {
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
-  
-  @Test 
+
+  @Test
   @throws(classOf[Exception])
   def testNumAndOneHotCatFeatures() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3", "f4", "c1", "c2", "c3")
     val catFeaturesNumValues = Map("c1" -> 2, "c2" -> 4, "c3" -> 6)
 
@@ -922,7 +922,7 @@ class CatBoostRegressorTest {
         srcData,
         Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
     )
-    
+
     val expectedPrediction = Seq(
       0.2997162131753886,
       0.0647881241157201,
@@ -961,12 +961,12 @@ class CatBoostRegressorTest {
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
-  
-  @Test 
+
+  @Test
   @throws(classOf[Exception])
   def testNumAndOneHotCatFeaturesWithEvalSets() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3", "f4", "c1", "c2", "c3")
     val catFeaturesNumValues = Map("c1" -> 2, "c2" -> 4, "c3" -> 6)
 
@@ -1076,12 +1076,12 @@ class CatBoostRegressorTest {
       }
     }
   }
-  
-  @Test 
+
+  @Test
   @throws(classOf[Exception])
   def testOneHotAndCtrCatFeatures() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("c1", "c2", "c3")
     val catFeaturesNumValues = Map("c1" -> 2, "c2" -> 4, "c3" -> 6)
 
@@ -1113,7 +1113,7 @@ class CatBoostRegressorTest {
         srcData,
         Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
     )
-    
+
     val expectedPrediction = Seq(
       0.0,
       0.008366046215306795,
@@ -1155,12 +1155,12 @@ class CatBoostRegressorTest {
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
-  
-  @Test 
+
+  @Test
   @throws(classOf[Exception])
   def testNumAndOneHotAndCtrCatFeaturesWithEvalSets() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("f1", "f2", "f3", "f4", "c1", "c2", "c3")
     val catFeaturesNumValues = Map("c1" -> 2, "c2" -> 4, "c3" -> 6)
 
@@ -1270,19 +1270,19 @@ class CatBoostRegressorTest {
       .setLearningRate(0.3f)
     val model = regressor.fit(trainPool, Array[Pool](testPools(0), testPools(1)))
     val predictionsSeq = testPools.map(testPool => model.transform(testPool.data))
-  
+
     (predictionsSeq zip expectedPredictionDfs).map{
       case (predictions, expectedPredictionsDf) => {
         TestHelpers.assertEqualsWithPrecision(expectedPredictionsDf, predictions)
       }
     }
   }
-  
-  @Test 
+
+  @Test
   @throws(classOf[Exception])
   def testConstantAndCtrCatFeatures() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val featureNames = Array[String]("c1", "c2", "c3")
     val catFeaturesNumValues = Map("c1" -> 1, "c2" -> 4, "c3" -> 6)
 
@@ -1314,7 +1314,7 @@ class CatBoostRegressorTest {
         srcData,
         Map("groupId" -> "groupId", "subgroupId" -> "subgroupId", "weight" -> "weight")
     )
-    
+
     val expectedPrediction = Seq(
       0.00032436494635064477,
       0.0013906723810840284,
@@ -1352,19 +1352,19 @@ class CatBoostRegressorTest {
       .setLearningRate(0.3f)
     val model = regressor.fit(pool)
     val predictions = model.transform(pool.data)
-    
+
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
 
 
-  @Test 
+  @Test
   @throws(classOf[Exception])
   def testWithPairs() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
-    
+
     val dataDir = Paths.get(System.getProperty("catboost.test.data.path"), "querywise")
     val canonicalDataDir = Paths.get(System.getProperty("canonical.data.path"))
-    
+
     val pool = Pool.load(
       spark,
       dataPathWithScheme = dataDir.resolve("train").toString,
@@ -1379,7 +1379,7 @@ class CatBoostRegressorTest {
       .asInstanceOf[JObject].values("prediction")
       .asInstanceOf[scala.collection.immutable.$colon$colon[Double]]
       .toSeq
-      
+
     val expectedPredictionsData = mutable.Seq.concat(pool.data.toLocalIterator.asScala.toTraversable)
     for (i <- 0 until expectedPredictionsData.length) {
       expectedPredictionsData(i) = TestHelpers.appendToRow(
@@ -1438,7 +1438,7 @@ class CatBoostRegressorTest {
       .asInstanceOf[JObject].values("prediction")
       .asInstanceOf[scala.collection.immutable.$colon$colon[Double]]
       .toSeq
-      
+
     val expectedPredictionsData = mutable.Seq.concat(evalPool.data.toLocalIterator.asScala.toTraversable)
     for (i <- 0 until expectedPredictionsData.length) {
       expectedPredictionsData(i) = TestHelpers.appendToRow(
@@ -1469,11 +1469,11 @@ class CatBoostRegressorTest {
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions, Seq("groupId", "sampleId"))
   }
 
-  @Test 
+  @Test
   @throws(classOf[Exception])
   def testModelSerializationInPipeline() {
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName);
-    
+
     val srcData = Seq(
       Row(0.12, "query0", 0.1, "Male", 0.2, "Germany", 0.11),
       Row(0.22, "query0", 0.97, "Female", 0.82, "Russia", 0.33),
@@ -1534,7 +1534,7 @@ class CatBoostRegressorTest {
       featureNames,
       /*addFeatureNamesMetadata*/ true
     )
-    
+
     val srcData1 = Seq(
       Row(Vectors.dense(0.1, 0.2, 0.11), 0.1),
       Row(Vectors.dense(0.97, 0.82, 0.33), 0.12),
@@ -1545,7 +1545,7 @@ class CatBoostRegressorTest {
     )
 
     val df1 = spark.createDataFrame(spark.sparkContext.parallelize(srcData1), StructType(srcDataSchema))
-    
+
     val srcData2 = Seq(
       Row(Vectors.dense(0.12, 0.3, 0.0), 0.56),
       Row(Vectors.dense(0.21, 0.77, 0.1), 0.11),

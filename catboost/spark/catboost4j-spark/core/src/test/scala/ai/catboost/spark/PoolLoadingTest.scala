@@ -353,7 +353,7 @@ class PoolLoadingTest {
         featureNames
       )
     }
-    
+
     @Test
     @throws(classOf[Exception])
     def testLoadDSVWithPairs() = {
@@ -377,7 +377,7 @@ class PoolLoadingTest {
       )
       val pairsFile = PoolTestHelpers.writeToTempFile(
         "query0\t0\t1\n" +
-        "Query 2\t0\t2\n" + 
+        "Query 2\t0\t2\n" +
         "Query 2\t1\t2\n"
       )
 
@@ -438,7 +438,7 @@ class PoolLoadingTest {
         compareByIds = true
       )
     }
-    
+
     @Test
     @throws(classOf[Exception])
     def testLoadDSVWithPairsWithWeights() = {
