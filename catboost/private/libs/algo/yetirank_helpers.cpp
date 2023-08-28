@@ -66,41 +66,62 @@ namespace {
 
     class TYetiRankPairWeightsCalcer {
     public:
+        struct TConfig {
+            explicit TConfig(const NCatboostOptions::TLossDescription& lossDescription)
+            {
+                CB_ENSURE(
+                    EqualToOneOf(lossDescription.GetLossFunction(), ELossFunction::YetiRank, ELossFunction::YetiRankPairwise),
+                    "Loss should be YetiRank or YetiRankPairwise"
+                );
+                const auto& params = lossDescription.GetLossParamsMap();
+                if (auto it = params.find("mode"); it != params.end()) {
+                    Mode = ModeFromString(it->second);
+                }
+                Decay = NCatboostOptions::GetYetiRankDecay(lossDescription);
+                if (auto it = params.find("top"); it != params.end()) {
+                    TopSize = FromString<int>(it->second);
+                }
+                if (auto it = params.find("dcg_type"); it != params.end()) {
+                    DcgType = FromString<ENdcgMetricType>(it->second);
+                }
+                if (auto it = params.find("dcg_denominator"); it != params.end()) {
+                    DcgDenominator = FromString<ENdcgDenominatorType>(it->second);
+                }
+                if (auto it = params.find("noise"); it != params.end()) {
+                    NoiseType = NoiseFromString(it->second);
+                }
+                if (auto it = params.find("noise_power"); it != params.end()) {
+                    NoisePower = FromString<double>(it->second);
+                }
+                NumNeighbors = NCatboostOptions::GetParamOrDefault(params, "num_neighbors", 1);
+            }
+
+        public:
+            EYetiRankWeightsMode Mode = EYetiRankWeightsMode::Classic;
+            double Decay = 0.99;
+            ui32 TopSize = Max<ui32>();
+            ENdcgMetricType DcgType = ENdcgMetricType::Base;
+            ENdcgDenominatorType DcgDenominator = ENdcgDenominatorType::LogPosition;
+
+            EYetiRankNoiseType NoiseType = EYetiRankNoiseType::Gumbel;
+            double NoisePower = 1.0;
+
+            int NumNeighbors = 1;
+        };
+
+    public:
         TYetiRankPairWeightsCalcer(
-            const NCatboostOptions::TLossDescription& lossDescription,
+            const TConfig& config,
             const float* relevs,
             ui32 querySize
-        ) : Relevs(relevs), QuerySize(querySize)
-        {
-            CB_ENSURE(
-                EqualToOneOf(lossDescription.GetLossFunction(), ELossFunction::YetiRank, ELossFunction::YetiRankPairwise),
-                "Loss should be YetiRank or YetiRankPairwise"
-            );
-            const auto& params = lossDescription.GetLossParamsMap();
-            if (auto it = params.find("mode"); it != params.end()) {
-                Mode = ModeFromString(it->second);
-            }
-            Decay = NCatboostOptions::GetYetiRankDecay(lossDescription);
-            if (auto it = params.find("top"); it != params.end()) {
-                TopSize = FromString<int>(it->second);
-            }
-            if (auto it = params.find("dcg_type"); it != params.end()) {
-                DcgType = FromString<ENdcgMetricType>(it->second);
-            }
-            if (auto it = params.find("dcg_denominator"); it != params.end()) {
-                DcgDenominator = FromString<ENdcgDenominatorType>(it->second);
-            }
-            if (auto it = params.find("noise"); it != params.end()) {
-                NoiseType = NoiseFromString(it->second);
-            }
-            if (auto it = params.find("noise_power"); it != params.end()) {
-                NoisePower = FromString<double>(it->second);
-            }
-            NumNeighbors = NCatboostOptions::GetParamOrDefault(params, "num_neighbors", 1);
-        }
+        )
+            : Config(config)
+            , Relevs(relevs)
+            , QuerySize(querySize)
+        {}
 
         void CalcWeights(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights) {
-            switch (Mode) {
+            switch (Config.Mode) {
                 case EYetiRankWeightsMode::Classic:
                     CalcWeightsClassic(permutation, competitorsWeights);
                     return;
@@ -123,7 +144,7 @@ namespace {
         }
 
         void AddNoise(TArrayRef<double> expApproxes, TFastRng64& rand) {
-            switch (NoiseType) {
+            switch (Config.NoiseType) {
                 case EYetiRankNoiseType::Gumbel:
                     for (ui32 docId = 0; docId < QuerySize; ++docId) {
                         const float uniformValue = rand.GenRandReal1();
@@ -132,7 +153,7 @@ namespace {
                     return;
                 case EYetiRankNoiseType::Gauss:
                     for (ui32 docId = 0; docId < QuerySize; ++docId) {
-                        const double gaussNoise = NormalDistribution<double>(rand, 0, NoisePower);
+                        const double gaussNoise = NormalDistribution<double>(rand, 0, Config.NoisePower);
                         expApproxes[docId] *= exp(gaussNoise);
                     }
                     return;
@@ -142,19 +163,10 @@ namespace {
         }
 
     private:
+        const TConfig& Config;
+
         const float* Relevs;
         const ui32 QuerySize;
-
-        EYetiRankWeightsMode Mode = EYetiRankWeightsMode::Classic;
-        double Decay = 0.99;
-        ui32 TopSize = Max<ui32>();
-        ENdcgMetricType DcgType = ENdcgMetricType::Base;
-        ENdcgDenominatorType DcgDenominator = ENdcgDenominatorType::LogPosition;
-
-        EYetiRankNoiseType NoiseType = EYetiRankNoiseType::Gumbel;
-        double NoisePower = 1.0;
-
-        int NumNeighbors = 1;
 
         TMaybe<double> IDcg = Nothing();
 
@@ -165,7 +177,7 @@ namespace {
                 for (ui32 i = 0; i < QuerySize; ++i) {
                     samples[i] = NMetrics::TSample(Relevs[i], 0.0);
                 }
-                IDcg = CalcIDcg(samples, DcgType, Nothing(), TopSize, DcgDenominator);
+                IDcg = CalcIDcg(samples, Config.DcgType, Nothing(), Config.TopSize, Config.DcgDenominator);
             }
             return *IDcg;
         }
@@ -188,20 +200,20 @@ namespace {
                 const float pairWeight = magicConst * decayCoefficient
                     * Abs(Relevs[firstCandidate] - Relevs[secondCandidate]);
                 AddWeight(firstCandidate, secondCandidate, pairWeight, competitorsWeights);
-                decayCoefficient *= Decay;
+                decayCoefficient *= Config.Decay;
             }
         }
 
         double CalcDcgValue(float relevance, ui32 position) {
-            const double numerator = DcgType == ENdcgMetricType::Base ? relevance : Exp2(relevance) - 1;
-            const double denominator = DcgDenominator == ENdcgDenominatorType::Position ? position + 1 : Log2(position + 2);
-            return position < TopSize ? numerator / denominator : 0.0;
+            const double numerator = Config.DcgType == ENdcgMetricType::Base ? relevance : Exp2(relevance) - 1;
+            const double denominator = Config.DcgDenominator == ENdcgDenominatorType::Position ? position + 1 : Log2(position + 2);
+            return position < Config.TopSize ? numerator / denominator : 0.0;
         }
 
         void CalcWeightsDCG(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights, double coef) {
-            const ui32 topSize = Min(TopSize, QuerySize);
+            const ui32 topSize = Min(Config.TopSize, QuerySize);
             for (ui32 docId = 1; docId <= topSize; ++docId) {
-                const ui32 bound = NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + NumNeighbors);
+                const ui32 bound = Config.NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + Config.NumNeighbors);
                 for (ui32 neighborId = docId + 1; neighborId <= bound; ++neighborId) {
                     const int firstCandidate = permutation[docId - 1];
                     const int secondCandidate = permutation[neighborId - 1];
@@ -216,12 +228,12 @@ namespace {
         }
 
         void CalcWeightsMRR(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights) {
-            const ui32 topSize = Min(TopSize, QuerySize);
+            const ui32 topSize = Min(Config.TopSize, QuerySize);
             bool wasRelevant = false;
             for (ui32 docId = 1; docId <= topSize && !wasRelevant; ++docId) {
                 const int firstCandidate = permutation[docId - 1];
                 const bool isFirstRelevant = Relevs[firstCandidate] > 0;
-                const ui32 bound = NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + NumNeighbors);
+                const ui32 bound = Config.NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + Config.NumNeighbors);
                 for (ui32 neighborId = docId + 1; neighborId <= bound; ++neighborId) {
                     const int secondCandidate = permutation[neighborId - 1];
                     const bool isSecondRelevant = Relevs[secondCandidate] > 0;
@@ -236,14 +248,14 @@ namespace {
         }
 
         void CalcWeightsERR(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights) {
-            const ui32 topSize = Min(TopSize, QuerySize);
+            const ui32 topSize = Min(Config.TopSize, QuerySize);
             double pFirstLook = 1.0;
             for (ui32 docId = 1; docId <= topSize; ++docId) {
                 const int firstCandidate = permutation[docId - 1];
 
                 double pMiddleLook = 1.0;
                 double middleRR = 0.0;
-                const ui32 bound = NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + NumNeighbors);
+                const ui32 bound = Config.NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + Config.NumNeighbors);
                 for (ui32 neighborId = docId + 1; neighborId <= bound; ++neighborId) {
                     const int secondCandidate = permutation[neighborId - 1];
 
@@ -263,13 +275,13 @@ namespace {
         }
 
         void CalcWeightsMAP(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights) {
-            const ui32 topSize = Min(TopSize, QuerySize);
+            const ui32 topSize = Min(Config.TopSize, QuerySize);
             for (ui32 docId = 1; docId <= topSize; ++docId) {
                 const int firstCandidate = permutation[docId - 1];
                 const bool isFirstRelevant = Relevs[firstCandidate] > 0;
 
                 double sumRR = 1.0 / docId;
-                const ui32 bound = NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + NumNeighbors);
+                const ui32 bound = Config.NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + Config.NumNeighbors);
                 for (ui32 neighborId = docId + 1; neighborId <= bound; ++neighborId) {
                     const int secondCandidate = permutation[neighborId - 1];
                     const bool isSecondRelevant = Relevs[secondCandidate] > 0;
@@ -343,6 +355,8 @@ void UpdatePairsForYetiRank(
     TVector<TQueryInfo>* queriesInfo,
     NPar::ILocalExecutor* localExecutor
 ) {
+    const TYetiRankPairWeightsCalcer::TConfig config(lossDescription);
+
     const int permutationCount = NCatboostOptions::GetYetiRankPermutations(lossDescription);
 
     NPar::ILocalExecutor::TExecRangeParams blockParams(queryBegin, queryEnd);
@@ -361,7 +375,7 @@ void UpdatePairsForYetiRank(
             for (int queryIndex = from; queryIndex < to; ++queryIndex) {
                 TQueryInfo& queryInfoRef = (*queriesInfo)[queryIndex];
                 TYetiRankPairWeightsCalcer weightsCalcer(
-                    lossDescription,
+                    config,
                     relevances.data() + queryInfoRef.Begin,
                     queryInfoRef.End - queryInfoRef.Begin
                 );
