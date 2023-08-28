@@ -427,10 +427,12 @@ class GNUTranslations(NullTranslations):
         missing = object()
         tmsg = self._catalog.get(message, missing)
         if tmsg is missing:
-            if self._fallback:
-                return self._fallback.gettext(message)
-            return message
-        return tmsg
+            tmsg = self._catalog.get((message, self.plural(1)), missing)
+        if tmsg is not missing:
+            return tmsg
+        if self._fallback:
+            return self._fallback.gettext(message)
+        return message
 
     def ngettext(self, msgid1, msgid2, n):
         try:
@@ -449,10 +451,12 @@ class GNUTranslations(NullTranslations):
         missing = object()
         tmsg = self._catalog.get(ctxt_msg_id, missing)
         if tmsg is missing:
-            if self._fallback:
-                return self._fallback.pgettext(context, message)
-            return message
-        return tmsg
+            tmsg = self._catalog.get((ctxt_msg_id, self.plural(1)), missing)
+        if tmsg is not missing:
+            return tmsg
+        if self._fallback:
+            return self._fallback.pgettext(context, message)
+        return message
 
     def npgettext(self, context, msgid1, msgid2, n):
         ctxt_msg_id = self.CONTEXT % (context, msgid1)
