@@ -12,7 +12,7 @@ template <class T>
 class TWeakPtr
 {
 public:
-    typedef T TUnderlying;
+    using TUnderlying = T;
 
     //! Empty constructor.
     TWeakPtr() = default;

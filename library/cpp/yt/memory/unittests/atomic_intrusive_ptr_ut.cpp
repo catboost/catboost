@@ -42,8 +42,8 @@ struct TIntricateObject
     }
 };
 
-typedef TIntrusivePtr<TIntricateObject> TIntricateObjectPtr;
-typedef TIntrusivePtr<const TIntricateObject> TConstIntricateObjectPtr;
+using TIntricateObjectPtr = TIntrusivePtr<TIntricateObject>;
+using TConstIntricateObjectPtr = TIntrusivePtr<const TIntricateObject>;
 
 void Ref(TIntricateObject* obj, int n = 1)
 {

@@ -16,7 +16,7 @@ template <class T>
 class TIntrusivePtr
 {
 public:
-    typedef T TUnderlying;
+    using TUnderlying = T;
 
     constexpr TIntrusivePtr() noexcept
     { }

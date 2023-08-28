@@ -28,7 +28,7 @@ namespace NYT {
  *         TFoo();
  *     };
  *
- *     typedef TIntrusivePtr<TFoo> TFooPtr;
+ *     using TFooPtr = TIntrusivePtr<TFoo>;
  *
  *     void RegisterObject(TFooPtr foo)
  *     {
