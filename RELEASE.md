@@ -7,7 +7,7 @@
 * StochasticRank loss: support new target metrics ERR and MRR.
 * Support MultiRMSE on GPU. #2264, #2390
 * Load JSON model format in Java Client. #1627, thanks to @timotta
-* Implement exporting of Multiclass models to C++ and Python. #2284, thanks to @antoninkriz
+* Implement exporting of Multiclass models to C++ and Python. #2283, thanks to @antoninkriz
 
 ## Improvements
 * Speedup BM25 feature calcers 3x
