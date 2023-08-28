@@ -303,7 +303,6 @@ namespace {
 
 
 static void GenerateYetiRankPairsForQuery(
-    const float* /*relevs*/,
     const double* expApproxes,
     float queryWeight,
     ui32 querySize,
@@ -380,7 +379,6 @@ void UpdatePairsForYetiRank(
                     queryInfoRef.End - queryInfoRef.Begin
                 );
                 GenerateYetiRankPairsForQuery(
-                    relevances.data() + queryInfoRef.Begin,
                     approxes.data() + queryInfoRef.Begin,
                     queryInfoRef.Weight,
                     queryInfoRef.End - queryInfoRef.Begin,
