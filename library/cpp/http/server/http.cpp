@@ -137,16 +137,6 @@ public:
         const THttpServerOptions& Options;
     };
 
-    static void* ListenSocketFunction(void* param) {
-        try {
-            ((TImpl*)param)->ListenSocket();
-        } catch (...) {
-
-        }
-
-        return nullptr;
-    }
-
     TAutoPtr<TClientRequest> CreateRequest(TAutoPtr<TClientConnection> c) {
         THolder<TClientRequest> obj(Cb_->CreateClient());
 
@@ -198,7 +188,11 @@ public:
 
         std::function<void(TSocket)> callback = [&](TSocket socket) {
             THolder<TListenSocket> ls(new TListenSocket(socket, this));
-            Poller->WaitRead(socket, static_cast<IPollAble*>(ls.Get()));
+            if (Options_.OneShotPoll) {
+                Poller->WaitReadOneShot(socket, static_cast<IPollAble*>(ls.Get()));
+            } else {
+                Poller->WaitRead(socket, static_cast<IPollAble*>(ls.Get()));
+            }
             Reqs.PushBack(ls.Release());
         };
 
@@ -213,7 +207,9 @@ public:
         Cb_->OnListenStart();
 
         try {
-            ListenThread.Reset(new TThread(ListenSocketFunction, this));
+            ListenThread.Reset(new TThread([this]() {
+                ListenSocket();
+            }));
             ListenThread->Start();
         } catch (const yexception&) {
             SaveErrorCode();
@@ -223,23 +219,24 @@ public:
         return true;
     }
 
-    void Wait() {
-        Cb_->OnWait();
-        TGuard<TMutex> g(StopMutex);
+    void JoinListenerThread() {
         if (ListenThread) {
             ListenThread->Join();
             ListenThread.Reset(nullptr);
         }
     }
 
+    void Wait() {
+        Cb_->OnWait();
+        TGuard<TMutex> g(StopMutex);
+        JoinListenerThread();
+    }
+
     void Stop() {
         Shutdown();
 
         TGuard<TMutex> g(StopMutex);
-        if (ListenThread) {
-            ListenThread->Join();
-            ListenThread.Reset(nullptr);
-        }
+        JoinListenerThread();
 
         while (ConnectionCount) {
             usleep(10000);
@@ -315,6 +312,10 @@ public:
 
         void OnPollEvent(TInstant) override {
             SOCKET s = ::accept(S_, nullptr, nullptr);
+
+            if (Server_->Options_.OneShotPoll) {
+                Server_->Poller->WaitReadOneShot(S_, this);
+            }
 
             if (s == INVALID_SOCKET) {
                 ythrow yexception() << "accept: " << LastSystemErrorText();
