@@ -10,6 +10,8 @@ Tenacity
    :target: https://mergify.io
    :alt: Mergify Status
 
+**Please refer to the** `tenacity documentation <https://tenacity.readthedocs.io/en/latest/>`_ **for a better experience.**
+
 Tenacity is an Apache 2.0 licensed general-purpose retrying library, written in
 Python, to simplify the task of adding retry behavior to just about anything.
 It originates from `a fork of retrying
@@ -622,7 +624,7 @@ Contribute
 #. Check for open issues or open a fresh issue to start a discussion around a
    feature idea or a bug.
 #. Fork `the repository`_ on GitHub to start making your changes to the
-   **master** branch (or branch off of it).
+   **main** branch (or branch off of it).
 #. Write a test which shows that the bug was fixed or that the feature works as
    expected.
 #. Add a `changelog <#Changelogs>`_
