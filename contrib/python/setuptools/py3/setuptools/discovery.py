@@ -51,7 +51,7 @@ from typing import (
     Mapping,
     Optional,
     Tuple,
-    Union
+    Union,
 )
 
 import _distutils_hack.override  # noqa: F401
@@ -100,7 +100,7 @@ class _Finder:
         cls,
         where: _Path = '.',
         exclude: Iterable[str] = (),
-        include: Iterable[str] = ('*',)
+        include: Iterable[str] = ('*',),
     ) -> List[str]:
         """Return a list of all Python items (packages or modules, depending on
         the finder implementation) found within directory 'where'.
@@ -213,11 +213,13 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
     _EXCLUDE = (
         "ci",
         "bin",
+        "debian",
         "doc",
         "docs",
         "documentation",
         "manpages",
         "news",
+        "newsfragments",
         "changelog",
         "test",
         "tests",
@@ -362,7 +364,8 @@ class ConfigDiscovery:
             self.dist.packages is not None
             or self.dist.py_modules is not None
             or ext_modules
-            or hasattr(self.dist, "configuration") and self.dist.configuration
+            or hasattr(self.dist, "configuration")
+            and self.dist.configuration
             # ^ Some projects use numpy.distutils.misc_util.Configuration
         )
 
@@ -554,7 +557,7 @@ def find_parent_package(
     packages = sorted(packages, key=len)
     common_ancestors = []
     for i, name in enumerate(packages):
-        if not all(n.startswith(f"{name}.") for n in packages[i+1:]):
+        if not all(n.startswith(f"{name}.") for n in packages[i + 1 :]):
             # Since packages are sorted by length, this condition is able
             # to find a list of all common ancestors.
             # When there is divergence (e.g. multiple root packages)

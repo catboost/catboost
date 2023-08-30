@@ -49,7 +49,7 @@ class alias(option_base):
             return
 
         elif len(self.args) == 1:
-            alias, = self.args
+            (alias,) = self.args
             if self.remove:
                 command = None
             elif alias in aliases:

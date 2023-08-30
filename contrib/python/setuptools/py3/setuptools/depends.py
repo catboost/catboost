@@ -9,18 +9,15 @@ from ._imp import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
 from . import _imp
 
 
-__all__ = [
-    'Require', 'find_module', 'get_module_constant', 'extract_constant'
-]
+__all__ = ['Require', 'find_module', 'get_module_constant', 'extract_constant']
 
 
 class Require:
     """A prerequisite to building or installing a distribution"""
 
     def __init__(
-            self, name, requested_version, module, homepage='',
-            attribute=None, format=None):
-
+        self, name, requested_version, module, homepage='', attribute=None, format=None
+    ):
         if format is None and requested_version is not None:
             format = version.Version
 
@@ -40,8 +37,12 @@ class Require:
 
     def version_ok(self, version):
         """Is 'version' sufficiently up-to-date?"""
-        return self.attribute is None or self.format is None or \
-            str(version) != "unknown" and self.format(version) >= self.requested_version
+        return (
+            self.attribute is None
+            or self.format is None
+            or str(version) != "unknown"
+            and self.format(version) >= self.requested_version
+        )
 
     def get_version(self, paths=None, default="unknown"):
         """Get version number of installed module, 'None', or 'default'
@@ -87,6 +88,7 @@ def maybe_close(f):
     def empty():
         yield
         return
+
     if not f:
         return empty()
 

@@ -23,10 +23,10 @@ WHEEL_NAME = re.compile(
     r"""^(?P<project_name>.+?)-(?P<version>\d.*?)
     ((-(?P<build>\d.*?))?-(?P<py_version>.+?)-(?P<abi>.+?)-(?P<platform>.+?)
     )\.whl$""",
-    re.VERBOSE).match
+    re.VERBOSE,
+).match
 
-NAMESPACE_PACKAGE_INIT = \
-    "__import__('pkg_resources').declare_namespace(__name__)\n"
+NAMESPACE_PACKAGE_INIT = "__import__('pkg_resources').declare_namespace(__name__)\n"
 
 
 @functools.lru_cache(maxsize=None)
@@ -65,6 +65,7 @@ def disable_info_traces():
     Temporarily disable info traces.
     """
     from distutils import log
+
     saved = log.set_threshold(log.WARN)
     try:
         yield
@@ -73,7 +74,6 @@ def disable_info_traces():
 
 
 class Wheel:
-
     def __init__(self, filename):
         match = WHEEL_NAME(os.path.basename(filename))
         if match is None:
@@ -95,19 +95,22 @@ class Wheel:
         return next((True for t in self.tags() if t in _get_supported_tags()), False)
 
     def egg_name(self):
-        return _egg_basename(
-            self.project_name,
-            self.version,
-            platform=(None if self.platform == 'any' else get_platform()),
-        ) + ".egg"
+        return (
+            _egg_basename(
+                self.project_name,
+                self.version,
+                platform=(None if self.platform == 'any' else get_platform()),
+            )
+            + ".egg"
+        )
 
     def get_dist_info(self, zf):
         # find the correct name of the .dist-info dir in the wheel file
         for member in zf.namelist():
             dirname = posixpath.dirname(member)
-            if (dirname.endswith('.dist-info') and
-                    canonicalize_name(dirname).startswith(
-                        canonicalize_name(self.project_name))):
+            if dirname.endswith('.dist-info') and canonicalize_name(dirname).startswith(
+                canonicalize_name(self.project_name)
+            ):
                 return dirname
         raise ValueError("unsupported wheel format. .dist-info not found")
 
@@ -138,18 +141,16 @@ class Wheel:
         wheel_metadata = get_metadata('WHEEL')
         # Check wheel format version is supported.
         wheel_version = parse_version(wheel_metadata.get('Wheel-Version'))
-        wheel_v1 = (
-            parse_version('1.0') <= wheel_version < parse_version('2.0dev0')
-        )
+        wheel_v1 = parse_version('1.0') <= wheel_version < parse_version('2.0dev0')
         if not wheel_v1:
-            raise ValueError(
-                'unsupported wheel format version: %s' % wheel_version)
+            raise ValueError('unsupported wheel format version: %s' % wheel_version)
         # Extract to target directory.
         _unpack_zipfile_obj(zf, destination_eggdir)
         # Convert metadata.
         dist_info = os.path.join(destination_eggdir, dist_info)
         dist = pkg_resources.Distribution.from_location(
-            destination_eggdir, dist_info,
+            destination_eggdir,
+            dist_info,
             metadata=pkg_resources.PathMetadata(destination_eggdir, dist_info),
         )
 
@@ -159,6 +160,7 @@ class Wheel:
         def raw_req(req):
             req.marker = None
             return str(req)
+
         install_requires = list(map(raw_req, dist.requires()))
         extras_require = {
             extra: [
@@ -192,8 +194,7 @@ class Wheel:
         dist_data = os.path.join(destination_eggdir, dist_data)
         dist_data_scripts = os.path.join(dist_data, 'scripts')
         if os.path.exists(dist_data_scripts):
-            egg_info_scripts = os.path.join(
-                destination_eggdir, 'EGG-INFO', 'scripts')
+            egg_info_scripts = os.path.join(destination_eggdir, 'EGG-INFO', 'scripts')
             os.mkdir(egg_info_scripts)
             for entry in os.listdir(dist_data_scripts):
                 # Remove bytecode, as it's not properly handled
@@ -206,18 +207,20 @@ class Wheel:
                         os.path.join(egg_info_scripts, entry),
                     )
             os.rmdir(dist_data_scripts)
-        for subdir in filter(os.path.exists, (
-            os.path.join(dist_data, d)
-            for d in ('data', 'headers', 'purelib', 'platlib')
-        )):
+        for subdir in filter(
+            os.path.exists,
+            (
+                os.path.join(dist_data, d)
+                for d in ('data', 'headers', 'purelib', 'platlib')
+            ),
+        ):
             unpack(subdir, destination_eggdir)
         if os.path.exists(dist_data):
             os.rmdir(dist_data)
 
     @staticmethod
     def _fix_namespace_packages(egg_info, destination_eggdir):
-        namespace_packages = os.path.join(
-            egg_info, 'namespace_packages.txt')
+        namespace_packages = os.path.join(egg_info, 'namespace_packages.txt')
         if os.path.exists(namespace_packages):
             with open(namespace_packages) as fp:
                 namespace_packages = fp.read().split()

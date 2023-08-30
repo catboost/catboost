@@ -90,9 +90,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         path_to_setup = egg_base.replace(os.sep, '/').rstrip('/')
         if path_to_setup != os.curdir:
             path_to_setup = '../' * (path_to_setup.count('/') + 1)
-        resolved = _path.normpath(
-            os.path.join(install_dir, egg_path, path_to_setup)
-        )
+        resolved = _path.normpath(os.path.join(install_dir, egg_path, path_to_setup))
         curdir = _path.normpath(os.curdir)
         if resolved != curdir:
             raise DistutilsOptionError(

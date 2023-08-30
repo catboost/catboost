@@ -17,11 +17,15 @@ class install(orig.install):
 
     user_options = orig.install.user_options + [
         ('old-and-unmanageable', None, "Try not to use this!"),
-        ('single-version-externally-managed', None,
-         "used by system package builders to create 'flat' eggs"),
+        (
+            'single-version-externally-managed',
+            None,
+            "used by system package builders to create 'flat' eggs",
+        ),
     ]
     boolean_options = orig.install.boolean_options + [
-        'old-and-unmanageable', 'single-version-externally-managed',
+        'old-and-unmanageable',
+        'single-version-externally-managed',
     ]
     new_commands = [
         ('install_egg_info', lambda self: True),
@@ -100,7 +104,7 @@ class install(orig.install):
 
         frames = inspect.getouterframes(run_frame)
         for frame in frames[2:4]:
-            caller, = frame[:1]
+            (caller,) = frame[:1]
             info = inspect.getframeinfo(caller)
             caller_module = caller.f_globals.get('__name__', '')
 
@@ -108,17 +112,16 @@ class install(orig.install):
                 # Starting from v61.0.0 setuptools overwrites dist.run_command
                 continue
 
-            return (
-                caller_module == 'distutils.dist'
-                and info.function == 'run_commands'
-            )
+            return caller_module == 'distutils.dist' and info.function == 'run_commands'
 
     def do_egg_install(self):
-
         easy_install = self.distribution.get_command_class('easy_install')
 
         cmd = easy_install(
-            self.distribution, args="x", root=self.root, record=self.record,
+            self.distribution,
+            args="x",
+            root=self.root,
+            record=self.record,
         )
         cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
         cmd.always_copy_from = '.'  # make sure local-dir eggs get installed
@@ -139,7 +142,6 @@ class install(orig.install):
 
 
 # XXX Python 3.1 doesn't see _nc if this is inside the class
-install.sub_commands = (
-    [cmd for cmd in orig.install.sub_commands if cmd[0] not in install._nc] +
-    install.new_commands
-)
+install.sub_commands = [
+    cmd for cmd in orig.install.sub_commands if cmd[0] not in install._nc
+] + install.new_commands

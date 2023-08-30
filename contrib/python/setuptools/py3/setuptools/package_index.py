@@ -195,7 +195,7 @@ def interpret_distro_name(
         '-'.join(parts[p:]),
         py_version=py_version,
         precedence=precedence,
-        platform=platform
+        platform=platform,
     )
 
 
@@ -305,7 +305,7 @@ class PackageIndex(Environment):
         ca_bundle=None,
         verify_ssl=True,
         *args,
-        **kw
+        **kw,
     ):
         super().__init__(*args, **kw)
         self.index_url = index_url + "/"[: not index_url.endswith('/')]
@@ -634,7 +634,6 @@ class PackageIndex(Environment):
             # Find a matching distribution; may be called more than once
 
             for dist in env[req.key]:
-
                 if dist.precedence == DEVELOP_DIST and not develop_ok:
                     if dist not in skipped:
                         self.warn(

@@ -29,6 +29,7 @@ class build_py(orig.build_py):
     Also, this version of the 'build_py' command allows you to specify both
     'py_modules' and 'packages' in the same setup operation.
     """
+
     editable_mode: bool = False
     existing_egg_info_dir: Optional[str] = None  #: Private API, internal use only.
 
@@ -40,14 +41,16 @@ class build_py(orig.build_py):
             del self.__dict__['data_files']
         self.__updated_files = []
 
-    def copy_file(self, infile, outfile, preserve_mode=1, preserve_times=1,
-                  link=None, level=1):
+    def copy_file(
+        self, infile, outfile, preserve_mode=1, preserve_times=1, link=None, level=1
+    ):
         # Overwrite base class to allow using links
         if link:
             infile = str(Path(infile).resolve())
             outfile = str(Path(outfile).resolve())
-        return super().copy_file(infile, outfile, preserve_mode, preserve_times,
-                                 link, level)
+        return super().copy_file(
+            infile, outfile, preserve_mode, preserve_times, link, level
+        )
 
     def run(self):
         """Build modules, packages, and copy data files to build directory"""
@@ -140,7 +143,7 @@ class build_py(orig.build_py):
 
     def _get_module_mapping(self) -> Iterator[Tuple[str, str]]:
         """Iterate over all modules producing (dest, src) pairs."""
-        for (package, module, module_file) in self.find_all_modules():
+        for package, module, module_file in self.find_all_modules():
             package = package.split('.')
             filename = self.get_module_outfile(self.build_lib, package, module)
             yield (filename, module_file)
@@ -371,7 +374,7 @@ class _IncludePackageDataAbuse:
         self._already_warned = set()
 
     def is_module(self, file):
-        return file.endswith(".py") and file[:-len(".py")].isidentifier()
+        return file.endswith(".py") and file[: -len(".py")].isidentifier()
 
     def importable_subpackage(self, parent, file):
         pkg = Path(file).parent

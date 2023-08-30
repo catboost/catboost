@@ -24,11 +24,19 @@ class dist_info(Command):
     description = "DO NOT CALL DIRECTLY, INTERNAL ONLY: create .dist-info directory"
 
     user_options = [
-        ('egg-base=', 'e', "directory containing .egg-info directories"
-                           " (default: top of the source tree)"
-                           " DEPRECATED: use --output-dir."),
-        ('output-dir=', 'o', "directory inside of which the .dist-info will be"
-                             "created (default: top of the source tree)"),
+        (
+            'egg-base=',
+            'e',
+            "directory containing .egg-info directories"
+            " (default: top of the source tree)"
+            " DEPRECATED: use --output-dir.",
+        ),
+        (
+            'output-dir=',
+            'o',
+            "directory inside of which the .dist-info will be"
+            "created (default: top of the source tree)",
+        ),
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
         ('no-date', 'D', "Don't include date stamp [default]"),

@@ -4,6 +4,7 @@ import itertools
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
 from typing import Dict, Iterator, List, Tuple
+from pathlib import Path
 
 from distutils.command.build_ext import build_ext as _du_build_ext
 from distutils.ccompiler import new_compiler
@@ -16,6 +17,7 @@ from setuptools.extension import Extension, Library
 try:
     # Attempt to use Cython for building extensions, if available
     from Cython.Distutils.build_ext import build_ext as _build_ext
+
     # Additionally, assert that the compiler module will load
     # also. Ref #1229.
     __import__('Cython.Compiler.Main')
@@ -35,8 +37,9 @@ def _customize_compiler_for_shlib(compiler):
         tmp = _CONFIG_VARS.copy()
         try:
             # XXX Help!  I don't have any idea whether these are right...
-            _CONFIG_VARS['LDSHARED'] = (
-                "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup")
+            _CONFIG_VARS[
+                'LDSHARED'
+            ] = "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
             _CONFIG_VARS['CCSHARED'] = " -dynamiclib"
             _CONFIG_VARS['SO'] = ".dylib"
             customize_compiler(compiler)
@@ -56,6 +59,7 @@ if sys.platform == "darwin":
 elif os.name != 'nt':
     try:
         import dl
+
         use_stubs = have_rtld = hasattr(dl, 'RTLD_NOW')
     except ImportError:
         pass
@@ -155,7 +159,7 @@ class build_ext(_build_ext):
             ext = self.ext_map[fullname]
             use_abi3 = getattr(ext, 'py_limited_api') and get_abi3_suffix()
             if use_abi3:
-                filename = filename[:-len(so_ext)]
+                filename = filename[: -len(so_ext)]
                 so_ext = get_abi3_suffix()
                 filename = filename + so_ext
             if isinstance(ext, Library):
@@ -177,8 +181,7 @@ class build_ext(_build_ext):
         _build_ext.finalize_options(self)
         self.extensions = self.extensions or []
         self.check_extensions_list(self.extensions)
-        self.shlibs = [ext for ext in self.extensions
-                       if isinstance(ext, Library)]
+        self.shlibs = [ext for ext in self.extensions if isinstance(ext, Library)]
         if self.shlibs:
             self.setup_shlib_compiler()
         for ext in self.extensions:
@@ -215,7 +218,7 @@ class build_ext(_build_ext):
             compiler.set_include_dirs(self.include_dirs)
         if self.define is not None:
             # 'define' option is a list of (name,value) tuples
-            for (name, value) in self.define:
+            for name, value in self.define:
                 compiler.define_macro(name, value)
         if self.undef is not None:
             for macro in self.undef:
@@ -259,6 +262,47 @@ class build_ext(_build_ext):
         pkg = '.'.join(ext._full_name.split('.')[:-1] + [''])
         return any(pkg + libname in libnames for libname in ext.libraries)
 
+    def get_source_files(self) -> List[str]:
+        return [*_build_ext.get_source_files(self), *self._get_internal_depends()]
+
+    def _get_internal_depends(self) -> Iterator[str]:
+        """Yield ``ext.depends`` that are contained by the project directory"""
+        project_root = Path(self.distribution.src_root or os.curdir).resolve()
+        depends = (dep for ext in self.extensions for dep in ext.depends)
+
+        def skip(orig_path: str, reason: str) -> None:
+            log.info(
+                "dependency %s won't be automatically "
+                "included in the manifest: the path %s",
+                orig_path,
+                reason,
+            )
+
+        for dep in depends:
+            path = Path(dep)
+
+            if path.is_absolute():
+                skip(dep, "must be relative")
+                continue
+
+            if ".." in path.parts:
+                skip(dep, "can't have `..` segments")
+                continue
+
+            try:
+                resolved = (project_root / path).resolve(strict=True)
+            except OSError:
+                skip(dep, "doesn't exist")
+                continue
+
+            try:
+                resolved.relative_to(project_root)
+            except ValueError:
+                skip(dep, "must be inside the project root")
+                continue
+
+            yield path.as_posix()
+
     def get_outputs(self) -> List[str]:
         if self.inplace:
             return list(self.get_output_mapping().keys())
@@ -297,32 +341,33 @@ class build_ext(_build_ext):
         if not self.dry_run:
             f = open(stub_file, 'w')
             f.write(
-                '\n'.join([
-                    "def __bootstrap__():",
-                    "   global __bootstrap__, __file__, __loader__",
-                    "   import sys, os, pkg_resources, importlib.util" +
-                    if_dl(", dl"),
-                    "   __file__ = pkg_resources.resource_filename"
-                    "(__name__,%r)"
-                    % os.path.basename(ext._file_name),
-                    "   del __bootstrap__",
-                    "   if '__loader__' in globals():",
-                    "       del __loader__",
-                    if_dl("   old_flags = sys.getdlopenflags()"),
-                    "   old_dir = os.getcwd()",
-                    "   try:",
-                    "     os.chdir(os.path.dirname(__file__))",
-                    if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
-                    "     spec = importlib.util.spec_from_file_location(",
-                    "                __name__, __file__)",
-                    "     mod = importlib.util.module_from_spec(spec)",
-                    "     spec.loader.exec_module(mod)",
-                    "   finally:",
-                    if_dl("     sys.setdlopenflags(old_flags)"),
-                    "     os.chdir(old_dir)",
-                    "__bootstrap__()",
-                    ""  # terminal \n
-                ])
+                '\n'.join(
+                    [
+                        "def __bootstrap__():",
+                        "   global __bootstrap__, __file__, __loader__",
+                        "   import sys, os, pkg_resources, importlib.util"
+                        + if_dl(", dl"),
+                        "   __file__ = pkg_resources.resource_filename"
+                        "(__name__,%r)" % os.path.basename(ext._file_name),
+                        "   del __bootstrap__",
+                        "   if '__loader__' in globals():",
+                        "       del __loader__",
+                        if_dl("   old_flags = sys.getdlopenflags()"),
+                        "   old_dir = os.getcwd()",
+                        "   try:",
+                        "     os.chdir(os.path.dirname(__file__))",
+                        if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
+                        "     spec = importlib.util.spec_from_file_location(",
+                        "                __name__, __file__)",
+                        "     mod = importlib.util.module_from_spec(spec)",
+                        "     spec.loader.exec_module(mod)",
+                        "   finally:",
+                        if_dl("     sys.setdlopenflags(old_flags)"),
+                        "     os.chdir(old_dir)",
+                        "__bootstrap__()",
+                        "",  # terminal \n
+                    ]
+                )
             )
             f.close()
         if compile:
@@ -331,12 +376,12 @@ class build_ext(_build_ext):
     def _compile_and_remove_stub(self, stub_file: str):
         from distutils.util import byte_compile
 
-        byte_compile([stub_file], optimize=0,
-                     force=True, dry_run=self.dry_run)
+        byte_compile([stub_file], optimize=0, force=True, dry_run=self.dry_run)
         optimize = self.get_finalized_command('install_lib').optimize
         if optimize > 0:
-            byte_compile([stub_file], optimize=optimize,
-                         force=True, dry_run=self.dry_run)
+            byte_compile(
+                [stub_file], optimize=optimize, force=True, dry_run=self.dry_run
+            )
         if os.path.exists(stub_file) and not self.dry_run:
             os.unlink(stub_file)
 
@@ -345,25 +390,55 @@ if use_stubs or os.name == 'nt':
     # Build shared libraries
     #
     def link_shared_object(
-            self, objects, output_libname, output_dir=None, libraries=None,
-            library_dirs=None, runtime_library_dirs=None, export_symbols=None,
-            debug=0, extra_preargs=None, extra_postargs=None, build_temp=None,
-            target_lang=None):
+        self,
+        objects,
+        output_libname,
+        output_dir=None,
+        libraries=None,
+        library_dirs=None,
+        runtime_library_dirs=None,
+        export_symbols=None,
+        debug=0,
+        extra_preargs=None,
+        extra_postargs=None,
+        build_temp=None,
+        target_lang=None,
+    ):
         self.link(
-            self.SHARED_LIBRARY, objects, output_libname,
-            output_dir, libraries, library_dirs, runtime_library_dirs,
-            export_symbols, debug, extra_preargs, extra_postargs,
-            build_temp, target_lang
+            self.SHARED_LIBRARY,
+            objects,
+            output_libname,
+            output_dir,
+            libraries,
+            library_dirs,
+            runtime_library_dirs,
+            export_symbols,
+            debug,
+            extra_preargs,
+            extra_postargs,
+            build_temp,
+            target_lang,
         )
+
 else:
     # Build static libraries everywhere else
     libtype = 'static'
 
     def link_shared_object(
-            self, objects, output_libname, output_dir=None, libraries=None,
-            library_dirs=None, runtime_library_dirs=None, export_symbols=None,
-            debug=0, extra_preargs=None, extra_postargs=None, build_temp=None,
-            target_lang=None):
+        self,
+        objects,
+        output_libname,
+        output_dir=None,
+        libraries=None,
+        library_dirs=None,
+        runtime_library_dirs=None,
+        export_symbols=None,
+        debug=0,
+        extra_preargs=None,
+        extra_postargs=None,
+        build_temp=None,
+        target_lang=None,
+    ):
         # XXX we need to either disallow these attrs on Library instances,
         # or warn/abort here if set, or something...
         # libraries=None, library_dirs=None, runtime_library_dirs=None,
@@ -378,6 +453,4 @@ else:
             # a different prefix
             basename = basename[3:]
 
-        self.create_static_lib(
-            objects, basename, output_dir, debug, target_lang
-        )
+        self.create_static_lib(objects, basename, output_dir, debug, target_lang)

@@ -20,8 +20,8 @@ PY_FROZEN = 7
 def find_spec(module, paths):
     finder = (
         importlib.machinery.PathFinder().find_spec
-        if isinstance(paths, list) else
-        importlib.util.find_spec
+        if isinstance(paths, list)
+        else importlib.util.find_spec
     )
     return finder(module, paths)
 
@@ -37,13 +37,19 @@ def find_module(module, paths=None):
     kind = -1
     file = None
     static = isinstance(spec.loader, type)
-    if spec.origin == 'frozen' or static and issubclass(
-            spec.loader, importlib.machinery.FrozenImporter):
+    if (
+        spec.origin == 'frozen'
+        or static
+        and issubclass(spec.loader, importlib.machinery.FrozenImporter)
+    ):
         kind = PY_FROZEN
         path = None  # imp compabilty
         suffix = mode = ''  # imp compatibility
-    elif spec.origin == 'built-in' or static and issubclass(
-            spec.loader, importlib.machinery.BuiltinImporter):
+    elif (
+        spec.origin == 'built-in'
+        or static
+        and issubclass(spec.loader, importlib.machinery.BuiltinImporter)
+    ):
         kind = C_BUILTIN
         path = None  # imp compabilty
         suffix = mode = ''  # imp compatibility

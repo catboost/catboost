@@ -257,7 +257,7 @@ def convert_path(pathname):
         Its direct usage by 3rd-party packages is considered improper and the function
         may be removed in the future.
         """,
-        due_date=(2023, 12, 13)  # initial deprecation 2022-03-25, see #3201
+        due_date=(2023, 12, 13),  # initial deprecation 2022-03-25, see #3201
     )
     return _convert_path(pathname)
 

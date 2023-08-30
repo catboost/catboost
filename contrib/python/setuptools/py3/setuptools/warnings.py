@@ -29,7 +29,7 @@ class SetuptoolsWarning(UserWarning):
         see_docs: Optional[str] = None,
         see_url: Optional[str] = None,
         stacklevel: int = 2,
-        **kwargs
+        **kwargs,
     ):
         """Private: reserved for ``setuptools`` internal use only"""
         # Default values:
@@ -63,15 +63,16 @@ class SetuptoolsWarning(UserWarning):
             (
                 f"\nBy {due_date:%Y-%b-%d}, you need to update your project and remove "
                 "deprecated calls\nor your builds will no longer be supported."
-                if due_date and due_date > today else None
+                if due_date and due_date > today
+                else None
             ),
             (
                 "\nThis deprecation is overdue, please update your project and remove "
                 "deprecated\ncalls to avoid build errors in the future."
-                if due_date and due_date < today else None
+                if due_date and due_date < today
+                else None
             ),
-            (f"\nSee {see_url} for details." if see_url else None)
-
+            (f"\nSee {see_url} for details." if see_url else None),
         ]
         parts = [x for x in possible_parts if x]
         if parts:

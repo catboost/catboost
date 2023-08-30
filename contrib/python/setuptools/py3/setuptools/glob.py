@@ -155,8 +155,7 @@ def _isrecursive(pattern):
 
 
 def escape(pathname):
-    """Escape all special characters.
-    """
+    """Escape all special characters."""
     # Escaping is done by wrapping any of "*?[" between square brackets.
     # Metacharacters do not work in the drive part and shouldn't be escaped.
     drive, pathname = os.path.splitdrive(pathname)

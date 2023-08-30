@@ -116,9 +116,8 @@ def read_pkg_file(self, file):
     self.license = _read_field_unescaped_from_msg(msg, 'license')
 
     self.long_description = _read_field_unescaped_from_msg(msg, 'description')
-    if (
-        self.long_description is None and
-        self.metadata_version >= version.Version('2.1')
+    if self.long_description is None and self.metadata_version >= version.Version(
+        '2.1'
     ):
         self.long_description = _read_payload_from_msg(msg)
     self.description = _read_field_from_msg(msg, 'summary')
@@ -756,7 +755,7 @@ class Distribution(_Distribution):
         # If there was a "global" section in the config file, use it
         # to set Distribution options.
 
-        for (opt, (src, val)) in self.command_options['global'].items():
+        for opt, (src, val) in self.command_options['global'].items():
             alias = self.negative_opt.get(opt)
             if alias:
                 val = not strtobool(val)
@@ -776,10 +775,12 @@ class Distribution(_Distribution):
             return opt
 
         underscore_opt = opt.replace('-', '_')
-        commands = list(itertools.chain(
-            distutils.command.__all__,
-            self._setuptools_commands(),
-        ))
+        commands = list(
+            itertools.chain(
+                distutils.command.__all__,
+                self._setuptools_commands(),
+            )
+        )
         if (
             not section.startswith('options')
             and section != 'metadata'
@@ -843,7 +844,7 @@ class Distribution(_Distribution):
 
         if DEBUG:
             self.announce("  setting options for '%s' command:" % command_name)
-        for (option, (source, value)) in option_dict.items():
+        for option, (source, value) in option_dict.items():
             if DEBUG:
                 self.announce("    %s = %s (from %s)" % (option, value, source))
             try:
@@ -1153,9 +1154,7 @@ class Distribution(_Distribution):
         d = {}
 
         for cmd, opts in self.command_options.items():
-
             for opt, (src, val) in opts.items():
-
                 if src != "command line":
                     continue
 

@@ -35,10 +35,12 @@ class upload_docs(upload):
     description = 'Upload documentation to sites other than PyPi such as devpi'
 
     user_options = [
-        ('repository=', 'r',
-         "url of repository [default: %s]" % upload.DEFAULT_REPOSITORY),
-        ('show-response', None,
-         'display full response text from server'),
+        (
+            'repository=',
+            'r',
+            "url of repository [default: %s]" % upload.DEFAULT_REPOSITORY,
+        ),
+        ('show-response', None, 'display full response text from server'),
         ('upload-dir=', None, 'directory to upload'),
     ]
     boolean_options = upload.boolean_options
@@ -59,7 +61,8 @@ class upload_docs(upload):
     def finalize_options(self):
         log.warn(
             "Upload_docs command is deprecated. Use Read the Docs "
-            "(https://readthedocs.org) instead.")
+            "(https://readthedocs.org) instead."
+        )
         upload.finalize_options(self)
         if self.upload_dir is None:
             if self.has_sphinx():
@@ -83,7 +86,7 @@ class upload_docs(upload):
                     raise DistutilsOptionError(tmpl % self.target_dir)
                 for name in files:
                     full = os.path.join(root, name)
-                    relative = root[len(self.target_dir):].lstrip(os.path.sep)
+                    relative = root[len(self.target_dir) :].lstrip(os.path.sep)
                     dest = os.path.join(relative, name)
                     zip_file.write(full, dest)
         finally:
@@ -141,7 +144,10 @@ class upload_docs(upload):
         boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
         sep_boundary = b'\n--' + boundary.encode('ascii')
         end_boundary = sep_boundary + b'--'
-        end_items = end_boundary, b"\n",
+        end_items = (
+            end_boundary,
+            b"\n",
+        )
         builder = functools.partial(
             cls._build_part,
             sep_boundary=sep_boundary,
@@ -174,8 +180,9 @@ class upload_docs(upload):
         # build the Request
         # We can't use urllib2 since we need to send the Basic
         # auth right with the first request
-        schema, netloc, url, params, query, fragments = \
-            urllib.parse.urlparse(self.repository)
+        schema, netloc, url, params, query, fragments = urllib.parse.urlparse(
+            self.repository
+        )
         assert not params and not query and not fragments
         if schema == 'http':
             conn = http.client.HTTPConnection(netloc)

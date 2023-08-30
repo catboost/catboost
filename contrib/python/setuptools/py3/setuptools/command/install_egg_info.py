@@ -20,8 +20,7 @@ class install_egg_info(namespaces.Installer, Command):
         self.install_dir = None
 
     def finalize_options(self):
-        self.set_undefined_options('install_lib',
-                                   ('install_dir', 'install_dir'))
+        self.set_undefined_options('install_lib', ('install_dir', 'install_dir'))
         ei_cmd = self.get_finalized_command("egg_info")
         basename = f"{ei_cmd._get_egg_basename()}.egg-info"
         self.source = ei_cmd.egg_info
@@ -36,9 +35,7 @@ class install_egg_info(namespaces.Installer, Command):
             self.execute(os.unlink, (self.target,), "Removing " + self.target)
         if not self.dry_run:
             ensure_directory(self.target)
-        self.execute(
-            self.copytree, (), "Copying %s to %s" % (self.source, self.target)
-        )
+        self.execute(self.copytree, (), "Copying %s to %s" % (self.source, self.target))
         self.install_namespaces()
 
     def get_outputs(self):

@@ -11,7 +11,6 @@ class saveopts(option_base):
         settings = {}
 
         for cmd in dist.command_options:
-
             if cmd == 'saveopts':
                 continue  # don't save our own options!
 

@@ -95,7 +95,7 @@ def pep508_versionspec(value: str) -> bool:
         # versionspec
         return False
     # Let's pretend we have a dependency called `requirement` with the given
-    # version spec, then we can re-use the pep508 function for validation:
+    # version spec, then we can reuse the pep508 function for validation:
     return pep508(f"requirement{value}")
 
 

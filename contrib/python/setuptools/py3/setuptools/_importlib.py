@@ -22,7 +22,7 @@ def disable_importlib_metadata_finder(metadata):
             This problem is likely to be solved by installing an updated version of
             `importlib-metadata`.
             """,
-            see_url="https://github.com/python/importlib_metadata/issues/396"
+            see_url="https://github.com/python/importlib_metadata/issues/396",
         )  # Ensure a descriptive message is shown.
         raise  # This exception can be suppressed by _distutils_hack
 
@@ -39,6 +39,7 @@ def disable_importlib_metadata_finder(metadata):
 
 if sys.version_info < (3, 10):
     from setuptools.extern import importlib_metadata as metadata
+
     disable_importlib_metadata_finder(metadata)
 else:
     import importlib.metadata as metadata  # noqa: F401

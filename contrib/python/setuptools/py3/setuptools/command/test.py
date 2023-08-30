@@ -95,7 +95,6 @@ class test(Command):
         self.test_runner = None
 
     def finalize_options(self):
-
         if self.test_suite and self.test_module:
             msg = "You may specify a module or a suite, but not both"
             raise DistutilsOptionError(msg)

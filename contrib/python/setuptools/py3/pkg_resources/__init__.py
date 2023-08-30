@@ -119,7 +119,7 @@ warnings.warn(
     "pkg_resources is deprecated as an API. "
     "See https://setuptools.pypa.io/en/latest/pkg_resources.html",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 
@@ -1418,7 +1418,7 @@ def _forgiving_version(version):
     match = _PEP440_FALLBACK.search(version)
     if match:
         safe = match["safe"]
-        rest = version[len(safe):]
+        rest = version[len(safe) :]
     else:
         safe = "0"
         rest = version

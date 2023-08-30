@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 68.0.0
+Version: 68.1.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -17,57 +17,57 @@ Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: System :: Archiving :: Packaging
 Classifier: Topic :: System :: Systems Administration
 Classifier: Topic :: Utilities
-Requires-Python: >=3.7
+Requires-Python: >=3.8
 License-File: LICENSE
 Provides-Extra: certs
 Provides-Extra: docs
-Requires-Dist: sphinx (>=3.5) ; extra == 'docs'
-Requires-Dist: jaraco.packaging (>=9) ; extra == 'docs'
-Requires-Dist: rst.linker (>=1.9) ; extra == 'docs'
+Requires-Dist: sphinx >=3.5 ; extra == 'docs'
+Requires-Dist: jaraco.packaging >=9.3 ; extra == 'docs'
+Requires-Dist: rst.linker >=1.9 ; extra == 'docs'
 Requires-Dist: furo ; extra == 'docs'
 Requires-Dist: sphinx-lint ; extra == 'docs'
-Requires-Dist: jaraco.tidelift (>=1.4) ; extra == 'docs'
-Requires-Dist: pygments-github-lexers (==0.0.5) ; extra == 'docs'
+Requires-Dist: jaraco.tidelift >=1.4 ; extra == 'docs'
+Requires-Dist: pygments-github-lexers ==0.0.5 ; extra == 'docs'
 Requires-Dist: sphinx-favicon ; extra == 'docs'
 Requires-Dist: sphinx-inline-tabs ; extra == 'docs'
 Requires-Dist: sphinx-reredirects ; extra == 'docs'
 Requires-Dist: sphinxcontrib-towncrier ; extra == 'docs'
-Requires-Dist: sphinx-notfound-page (==0.8.3) ; extra == 'docs'
-Requires-Dist: sphinx-hoverxref (<2) ; extra == 'docs'
+Requires-Dist: sphinx-notfound-page ==0.8.3 ; extra == 'docs'
+Requires-Dist: sphinx-hoverxref <2 ; extra == 'docs'
 Provides-Extra: ssl
 Provides-Extra: testing
-Requires-Dist: pytest (>=6) ; extra == 'testing'
-Requires-Dist: pytest-checkdocs (>=2.4) ; extra == 'testing'
-Requires-Dist: pytest-enabler (>=1.3) ; extra == 'testing'
+Requires-Dist: pytest >=6 ; extra == 'testing'
+Requires-Dist: pytest-checkdocs >=2.4 ; extra == 'testing'
+Requires-Dist: pytest-enabler >=2.2 ; extra == 'testing'
 Requires-Dist: flake8-2020 ; extra == 'testing'
-Requires-Dist: virtualenv (>=13.0.0) ; extra == 'testing'
+Requires-Dist: virtualenv >=13.0.0 ; extra == 'testing'
 Requires-Dist: wheel ; extra == 'testing'
-Requires-Dist: pip (>=19.1) ; extra == 'testing'
-Requires-Dist: jaraco.envs (>=2.2) ; extra == 'testing'
+Requires-Dist: pip >=19.1 ; extra == 'testing'
+Requires-Dist: jaraco.envs >=2.2 ; extra == 'testing'
 Requires-Dist: pytest-xdist ; extra == 'testing'
-Requires-Dist: jaraco.path (>=3.2.0) ; extra == 'testing'
+Requires-Dist: jaraco.path >=3.2.0 ; extra == 'testing'
 Requires-Dist: build[virtualenv] ; extra == 'testing'
-Requires-Dist: filelock (>=3.4.0) ; extra == 'testing'
-Requires-Dist: pip-run (>=8.8) ; extra == 'testing'
-Requires-Dist: ini2toml[lite] (>=0.9) ; extra == 'testing'
-Requires-Dist: tomli-w (>=1.0.0) ; extra == 'testing'
+Requires-Dist: filelock >=3.4.0 ; extra == 'testing'
+Requires-Dist: ini2toml[lite] >=0.9 ; extra == 'testing'
+Requires-Dist: tomli-w >=1.0.0 ; extra == 'testing'
 Requires-Dist: pytest-timeout ; extra == 'testing'
-Requires-Dist: pytest-perf ; extra == 'testing'
 Provides-Extra: testing-integration
 Requires-Dist: pytest ; extra == 'testing-integration'
 Requires-Dist: pytest-xdist ; extra == 'testing-integration'
 Requires-Dist: pytest-enabler ; extra == 'testing-integration'
-Requires-Dist: virtualenv (>=13.0.0) ; extra == 'testing-integration'
+Requires-Dist: virtualenv >=13.0.0 ; extra == 'testing-integration'
 Requires-Dist: tomli ; extra == 'testing-integration'
 Requires-Dist: wheel ; extra == 'testing-integration'
-Requires-Dist: jaraco.path (>=3.2.0) ; extra == 'testing-integration'
-Requires-Dist: jaraco.envs (>=2.2) ; extra == 'testing-integration'
+Requires-Dist: jaraco.path >=3.2.0 ; extra == 'testing-integration'
+Requires-Dist: jaraco.envs >=2.2 ; extra == 'testing-integration'
 Requires-Dist: build[virtualenv] ; extra == 'testing-integration'
-Requires-Dist: filelock (>=3.4.0) ; extra == 'testing-integration'
-Requires-Dist: pytest-black (>=0.3.7) ; (platform_python_implementation != "PyPy") and extra == 'testing'
+Requires-Dist: filelock >=3.4.0 ; extra == 'testing-integration'
+Requires-Dist: pytest-black >=0.3.7 ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: pytest-cov ; (platform_python_implementation != "PyPy") and extra == 'testing'
-Requires-Dist: pytest-mypy (>=0.9.1) ; (platform_python_implementation != "PyPy") and extra == 'testing'
+Requires-Dist: pytest-mypy >=0.9.1 ; (platform_python_implementation != "PyPy") and extra == 'testing'
+Requires-Dist: jaraco.develop >=7.21 ; (python_version >= "3.9" and sys_platform != "cygwin") and extra == 'testing'
 Requires-Dist: pytest-ruff ; (sys_platform != "cygwin") and extra == 'testing'
+Requires-Dist: pytest-perf ; (sys_platform != "cygwin") and extra == 'testing'
 
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: https://pypi.org/project/setuptools
@@ -130,11 +130,3 @@ Available as part of the Tidelift Subscription.
 Setuptools and the maintainers of thousands of other packages are working with Tidelift to deliver one enterprise subscription that covers all of the open source you use.
 
 `Learn more <https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=referral&utm_campaign=github>`_.
-
-
-Security Contact
-================
-
-To report a security vulnerability, please use the
-`Tidelift security contact <https://tidelift.com/security>`_.
-Tidelift will coordinate the fix and disclosure.

@@ -14,8 +14,10 @@ from glob import glob
 from distutils.util import get_platform
 from distutils.util import convert_path, subst_vars
 from distutils.errors import (
-    DistutilsArgError, DistutilsOptionError,
-    DistutilsError, DistutilsPlatformError,
+    DistutilsArgError,
+    DistutilsOptionError,
+    DistutilsError,
+    DistutilsPlatformError,
 )
 from distutils import log, dir_util
 from distutils.command.build_scripts import first_line_re
@@ -49,16 +51,27 @@ from setuptools.sandbox import run_setup
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import (
-    PackageIndex, parse_requirement_arg, URL_SCHEME,
+    PackageIndex,
+    parse_requirement_arg,
+    URL_SCHEME,
 )
 from setuptools.command import bdist_egg, egg_info
 from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 from setuptools.wheel import Wheel
 from pkg_resources import (
-    normalize_path, resource_string,
-    get_distribution, find_distributions, Environment, Requirement,
-    Distribution, PathMetadata, EggMetadata, WorkingSet, DistributionNotFound,
-    VersionConflict, DEVELOP_DIST,
+    normalize_path,
+    resource_string,
+    get_distribution,
+    find_distributions,
+    Environment,
+    Requirement,
+    Distribution,
+    PathMetadata,
+    EggMetadata,
+    WorkingSet,
+    DistributionNotFound,
+    VersionConflict,
+    DEVELOP_DIST,
 )
 import pkg_resources
 from .. import py312compat
@@ -70,7 +83,9 @@ from ..extern.jaraco.text import yield_lines
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
 
 __all__ = [
-    'easy_install', 'PthDistributions', 'extract_wininst_cfg',
+    'easy_install',
+    'PthDistributions',
+    'extract_wininst_cfg',
     'get_exe_prefixes',
 ]
 
@@ -97,6 +112,7 @@ def _one_liner(text):
 
 class easy_install(Command):
     """Manage a download/build/install process"""
+
     description = "Find/get/install Python packages"
     command_consumes_arguments = True
 
@@ -111,30 +127,39 @@ class easy_install(Command):
         ("always-copy", "a", "Copy all needed packages to install dir"),
         ("index-url=", "i", "base URL of Python Package Index"),
         ("find-links=", "f", "additional URL(s) to search for packages"),
-        ("build-directory=", "b",
-         "download/extract/build in DIR; keep the results"),
-        ('optimize=', 'O',
-         "also compile with optimization: -O1 for \"python -O\", "
-         "-O2 for \"python -OO\", and -O0 to disable [default: -O0]"),
-        ('record=', None,
-         "filename in which to record list of installed files"),
+        ("build-directory=", "b", "download/extract/build in DIR; keep the results"),
+        (
+            'optimize=',
+            'O',
+            "also compile with optimization: -O1 for \"python -O\", "
+            "-O2 for \"python -OO\", and -O0 to disable [default: -O0]",
+        ),
+        ('record=', None, "filename in which to record list of installed files"),
         ('always-unzip', 'Z', "don't install as a zipfile, no matter what"),
         ('site-dirs=', 'S', "list of directories where .pth files work"),
         ('editable', 'e', "Install specified packages in editable form"),
         ('no-deps', 'N', "don't install dependencies"),
         ('allow-hosts=', 'H', "pattern(s) that hostnames must match"),
-        ('local-snapshots-ok', 'l',
-         "allow building eggs from local checkouts"),
+        ('local-snapshots-ok', 'l', "allow building eggs from local checkouts"),
         ('version', None, "print version information and exit"),
-        ('no-find-links', None,
-         "Don't load find-links defined in packages being installed"),
-        ('user', None, "install in user site-package '%s'" % site.USER_SITE)
+        (
+            'no-find-links',
+            None,
+            "Don't load find-links defined in packages being installed",
+        ),
+        ('user', None, "install in user site-package '%s'" % site.USER_SITE),
     ]
     boolean_options = [
-        'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
+        'zip-ok',
+        'multi-version',
+        'exclude-scripts',
+        'upgrade',
+        'always-copy',
         'editable',
-        'no-deps', 'local-snapshots-ok', 'version',
-        'user'
+        'no-deps',
+        'local-snapshots-ok',
+        'version',
+        'user',
     ]
 
     negative_opt = {'always-unzip': 'zip-ok'}
@@ -187,7 +212,8 @@ class easy_install(Command):
 
     def delete_blockers(self, blockers):
         extant_blockers = (
-            filename for filename in blockers
+            filename
+            for filename in blockers
             if os.path.exists(filename) or os.path.islink(filename)
         )
         list(map(self._delete_path, extant_blockers))
@@ -219,25 +245,31 @@ class easy_install(Command):
 
         self.config_vars = dict(sysconfig.get_config_vars())
 
-        self.config_vars.update({
-            'dist_name': self.distribution.get_name(),
-            'dist_version': self.distribution.get_version(),
-            'dist_fullname': self.distribution.get_fullname(),
-            'py_version': py_version,
-            'py_version_short': f'{sys.version_info.major}.{sys.version_info.minor}',
-            'py_version_nodot': f'{sys.version_info.major}{sys.version_info.minor}',
-            'sys_prefix': self.config_vars['prefix'],
-            'sys_exec_prefix': self.config_vars['exec_prefix'],
-            # Only python 3.2+ has abiflags
-            'abiflags': getattr(sys, 'abiflags', ''),
-            'platlibdir': getattr(sys, 'platlibdir', 'lib'),
-        })
+        self.config_vars.update(
+            {
+                'dist_name': self.distribution.get_name(),
+                'dist_version': self.distribution.get_version(),
+                'dist_fullname': self.distribution.get_fullname(),
+                'py_version': py_version,
+                'py_version_short': (
+                    f'{sys.version_info.major}.{sys.version_info.minor}'
+                ),
+                'py_version_nodot': f'{sys.version_info.major}{sys.version_info.minor}',
+                'sys_prefix': self.config_vars['prefix'],
+                'sys_exec_prefix': self.config_vars['exec_prefix'],
+                # Only python 3.2+ has abiflags
+                'abiflags': getattr(sys, 'abiflags', ''),
+                'platlibdir': getattr(sys, 'platlibdir', 'lib'),
+            }
+        )
         with contextlib.suppress(AttributeError):
             # only for distutils outside stdlib
-            self.config_vars.update({
-                'implementation_lower': install._get_implementation().lower(),
-                'implementation': install._get_implementation(),
-            })
+            self.config_vars.update(
+                {
+                    'implementation_lower': install._get_implementation().lower(),
+                    'implementation': install._get_implementation(),
+                }
+            )
 
         # pypa/distutils#113 Python 3.9 compat
         self.config_vars.setdefault(
@@ -256,7 +288,9 @@ class easy_install(Command):
         self.expand_dirs()
 
         self._expand(
-            'install_dir', 'script_dir', 'build_directory',
+            'install_dir',
+            'script_dir',
+            'build_directory',
             'site_dirs',
         )
         # If a non-default installation directory was specified, default the
@@ -270,13 +304,9 @@ class easy_install(Command):
         # Let install_dir get set by install_lib command, which in turn
         # gets its info from the install command, and takes into account
         # --prefix and --home and all that other crud.
-        self.set_undefined_options(
-            'install_lib', ('install_dir', 'install_dir')
-        )
+        self.set_undefined_options('install_lib', ('install_dir', 'install_dir'))
         # Likewise, set default script_dir from 'install_scripts.install_dir'
-        self.set_undefined_options(
-            'install_scripts', ('install_dir', 'script_dir')
-        )
+        self.set_undefined_options('install_scripts', ('install_dir', 'script_dir'))
 
         if self.user and self.install_purelib:
             self.install_dir = self.install_purelib
@@ -302,7 +332,9 @@ class easy_install(Command):
             hosts = ['*']
         if self.package_index is None:
             self.package_index = self.create_index(
-                self.index_url, search_path=self.shadow_path, hosts=hosts,
+                self.index_url,
+                search_path=self.shadow_path,
+                hosts=hosts,
             )
         self.local_index = Environment(self.shadow_path + sys.path)
 
@@ -324,7 +356,8 @@ class easy_install(Command):
             )
         if not self.args:
             raise DistutilsArgError(
-                "No urls, filenames, or requirements specified (see --help)")
+                "No urls, filenames, or requirements specified (see --help)"
+            )
 
         self.outputs = []
 
@@ -334,17 +367,12 @@ class easy_install(Command):
             return
 
         normpath = map(normalize_path, sys.path)
-        site_dirs = [
-            os.path.expanduser(s.strip()) for s in
-            site_dirs.split(',')
-        ]
+        site_dirs = [os.path.expanduser(s.strip()) for s in site_dirs.split(',')]
         for d in site_dirs:
             if not os.path.isdir(d):
                 log.warn("%s (in --site-dirs) does not exist", d)
             elif normalize_path(d) not in normpath:
-                raise DistutilsOptionError(
-                    d + " (in --site-dirs) is not on sys.path"
-                )
+                raise DistutilsOptionError(d + " (in --site-dirs) is not on sys.path")
             else:
                 yield normalize_path(d)
 
@@ -355,9 +383,7 @@ class easy_install(Command):
             if value not in range(3):
                 raise ValueError
         except ValueError as e:
-            raise DistutilsOptionError(
-                "--optimize must be 0, 1, or 2"
-            ) from e
+            raise DistutilsOptionError("--optimize must be 0, 1, or 2") from e
 
         return value
 
@@ -423,9 +449,9 @@ class easy_install(Command):
                 from distutils import file_util
 
                 self.execute(
-                    file_util.write_file, (self.record, outputs),
-                    "writing list of installed files to '%s'" %
-                    self.record
+                    file_util.write_file,
+                    (self.record, outputs),
+                    "writing list of installed files to '%s'" % self.record,
                 )
             self.warn_deprecated_options()
         finally:
@@ -490,7 +516,8 @@ class easy_install(Command):
             self.pth_file = None  # don't create a .pth file
         self.install_dir = instdir
 
-    __cant_write_msg = textwrap.dedent("""
+    __cant_write_msg = textwrap.dedent(
+        """
         can't create or remove files in install directory
 
         The following error occurred while trying to add or remove files in the
@@ -502,15 +529,19 @@ class easy_install(Command):
         the distutils default setting) was:
 
             %s
-        """).lstrip()  # noqa
+        """
+    ).lstrip()  # noqa
 
-    __not_exists_id = textwrap.dedent("""
+    __not_exists_id = textwrap.dedent(
+        """
         This directory does not currently exist.  Please create it and try again, or
         choose a different installation directory (using the -d or --install-dir
         option).
-        """).lstrip()  # noqa
+        """
+    ).lstrip()  # noqa
 
-    __access_msg = textwrap.dedent("""
+    __access_msg = textwrap.dedent(
+        """
         Perhaps your account does not have write access to this directory?  If the
         installation directory is a system-owned directory, you may need to sign in
         as the administrator or "root" account.  If you do not have administrative
@@ -524,10 +555,14 @@ class easy_install(Command):
           https://setuptools.pypa.io/en/latest/deprecated/easy_install.html
 
         Please make the appropriate changes for your system and try again.
-        """).lstrip()  # noqa
+        """
+    ).lstrip()  # noqa
 
     def cant_write_to_target(self):
-        msg = self.__cant_write_msg % (sys.exc_info()[1], self.install_dir,)
+        msg = self.__cant_write_msg % (
+            sys.exc_info()[1],
+            self.install_dir,
+        )
 
         if not os.path.exists(self.install_dir):
             msg += '\n' + self.__not_exists_id
@@ -542,12 +577,17 @@ class easy_install(Command):
         pth_file = self.pseudo_tempname() + ".pth"
         ok_file = pth_file + '.ok'
         ok_exists = os.path.exists(ok_file)
-        tmpl = _one_liner("""
+        tmpl = (
+            _one_liner(
+                """
             import os
             f = open({ok_file!r}, 'w')
             f.write('OK')
             f.close()
-            """) + '\n'
+            """
+            )
+            + '\n'
+        )
         try:
             if ok_exists:
                 os.unlink(ok_file)
@@ -565,10 +605,7 @@ class easy_install(Command):
                 if os.name == 'nt':
                     dirname, basename = os.path.split(executable)
                     alt = os.path.join(dirname, 'pythonw.exe')
-                    use_alt = (
-                        basename.lower() == 'python.exe' and
-                        os.path.exists(alt)
-                    )
+                    use_alt = basename.lower() == 'python.exe' and os.path.exists(alt)
                     if use_alt:
                         # use pythonw.exe to avoid opening a console window
                         executable = alt
@@ -578,10 +615,7 @@ class easy_install(Command):
                 spawn([executable, '-E', '-c', 'pass'], 0)
 
                 if os.path.exists(ok_file):
-                    log.info(
-                        "TEST PASSED: %s appears to support .pth files",
-                        instdir
-                    )
+                    log.info("TEST PASSED: %s appears to support .pth files", instdir)
                     return True
             finally:
                 if f:
@@ -603,8 +637,7 @@ class easy_install(Command):
                     # __pycache__ directory, so skip it.
                     continue
                 self.install_script(
-                    dist, script_name,
-                    dist.get_metadata('scripts/' + script_name)
+                    dist, script_name, dist.get_metadata('scripts/' + script_name)
                 )
         self.install_wrapper_scripts(dist)
 
@@ -620,8 +653,7 @@ class easy_install(Command):
         if self.editable:
             raise DistutilsArgError(
                 "Invalid argument %r: you can't use filenames or URLs "
-                "with --editable (except via the --find-links option)."
-                % (spec,)
+                "with --editable (except via the --find-links option)." % (spec,)
             )
 
     def check_editable(self, spec):
@@ -630,8 +662,8 @@ class easy_install(Command):
 
         if os.path.exists(os.path.join(self.build_directory, spec.key)):
             raise DistutilsArgError(
-                "%r already exists in %s; can't do a checkout there" %
-                (spec.key, self.build_directory)
+                "%r already exists in %s; can't do a checkout there"
+                % (spec.key, self.build_directory)
             )
 
     @contextlib.contextmanager
@@ -661,8 +693,12 @@ class easy_install(Command):
 
             self.check_editable(spec)
             dist = self.package_index.fetch_distribution(
-                spec, tmpdir, self.upgrade, self.editable,
-                not self.always_copy, self.local_index
+                spec,
+                tmpdir,
+                self.upgrade,
+                self.editable,
+                not self.always_copy,
+                self.local_index,
             )
             if dist is None:
                 msg = "Could not find suitable distribution for %r" % spec
@@ -677,15 +713,14 @@ class easy_install(Command):
                 return self.install_item(spec, dist.location, tmpdir, deps)
 
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
-
         # Installation is also needed if file in tmpdir or is not an egg
         install_needed = install_needed or self.always_copy
         install_needed = install_needed or os.path.dirname(download) == tmpdir
         install_needed = install_needed or not download.endswith('.egg')
         install_needed = install_needed or (
-            self.always_copy_from is not None and
-            os.path.dirname(normalize_path(download)) ==
-            normalize_path(self.always_copy_from)
+            self.always_copy_from is not None
+            and os.path.dirname(normalize_path(download))
+            == normalize_path(self.always_copy_from)
         )
 
         if spec and not install_needed:
@@ -721,7 +756,11 @@ class easy_install(Command):
 
     # FIXME: 'easy_install.process_distribution' is too complex (12)
     def process_distribution(  # noqa: C901
-            self, requirement, dist, deps=True, *info,
+        self,
+        requirement,
+        dist,
+        deps=True,
+        *info,
     ):
         self.update_pth(dist)
         self.package_index.add(dist)
@@ -731,8 +770,7 @@ class easy_install(Command):
         self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
         log.info(self.installation_report(requirement, dist, *info))
-        if (dist.has_metadata('dependency_links.txt') and
-                not self.no_find_links):
+        if dist.has_metadata('dependency_links.txt') and not self.no_find_links:
             self.package_index.add_find_links(
                 dist.get_metadata_lines('dependency_links.txt')
             )
@@ -773,9 +811,7 @@ class easy_install(Command):
     def maybe_move(self, spec, dist_filename, setup_base):
         dst = os.path.join(self.build_directory, spec.key)
         if os.path.exists(dst):
-            msg = (
-                "%r already exists in %s; build directory %s will not be kept"
-            )
+            msg = "%r already exists in %s; build directory %s will not be kept"
             log.warn(msg, spec.key, self.build_directory, setup_base)
             return setup_base
         if os.path.isdir(dist_filename):
@@ -852,9 +888,7 @@ class easy_install(Command):
             '.whl': self.install_wheel,
         }
         try:
-            install_dist = installer_map[
-                dist_filename.lower()[-4:]
-            ]
+            install_dist = installer_map[dist_filename.lower()[-4:]]
         except KeyError:
             pass
         else:
@@ -867,8 +901,11 @@ class easy_install(Command):
         elif os.path.isdir(dist_filename):
             setup_base = os.path.abspath(dist_filename)
 
-        if (setup_base.startswith(tmpdir)  # something we downloaded
-                and self.build_directory and spec is not None):
+        if (
+            setup_base.startswith(tmpdir)  # something we downloaded
+            and self.build_directory
+            and spec is not None
+        ):
             setup_base = self.maybe_move(spec, dist_filename, setup_base)
 
         # Find the setup.py file
@@ -878,13 +915,12 @@ class easy_install(Command):
             setups = glob(os.path.join(setup_base, '*', 'setup.py'))
             if not setups:
                 raise DistutilsError(
-                    "Couldn't find a setup script in %s" %
-                    os.path.abspath(dist_filename)
+                    "Couldn't find a setup script in %s"
+                    % os.path.abspath(dist_filename)
                 )
             if len(setups) > 1:
                 raise DistutilsError(
-                    "Multiple setup scripts in %s" %
-                    os.path.abspath(dist_filename)
+                    "Multiple setup scripts in %s" % os.path.abspath(dist_filename)
                 )
             setup_script = setups[0]
 
@@ -897,8 +933,7 @@ class easy_install(Command):
 
     def egg_distribution(self, egg_path):
         if os.path.isdir(egg_path):
-            metadata = PathMetadata(egg_path, os.path.join(egg_path,
-                                                           'EGG-INFO'))
+            metadata = PathMetadata(egg_path, os.path.join(egg_path, 'EGG-INFO'))
         else:
             metadata = EggMetadata(zipimport.zipimporter(egg_path))
         return Distribution.from_filename(egg_path, metadata=metadata)
@@ -944,10 +979,8 @@ class easy_install(Command):
                 self.execute(
                     f,
                     (egg_path, destination),
-                    (m + " %s to %s") % (
-                        os.path.basename(egg_path),
-                        os.path.dirname(destination)
-                    ),
+                    (m + " %s to %s")
+                    % (os.path.basename(egg_path), os.path.dirname(destination)),
                 )
                 update_dist_caches(
                     destination,
@@ -971,7 +1004,8 @@ class easy_install(Command):
         dist = Distribution(
             None,
             project_name=cfg.get('metadata', 'name'),
-            version=cfg.get('metadata', 'version'), platform=get_platform(),
+            version=cfg.get('metadata', 'version'),
+            platform=get_platform(),
         )
 
         # Convert the .exe to an unpacked egg
@@ -994,13 +1028,15 @@ class easy_install(Command):
             f.close()
         script_dir = os.path.join(_egg_info, 'scripts')
         # delete entry-point scripts to avoid duping
-        self.delete_blockers([
-            os.path.join(script_dir, args[0])
-            for args in ScriptWriter.get_args(dist)
-        ])
+        self.delete_blockers(
+            [os.path.join(script_dir, args[0]) for args in ScriptWriter.get_args(dist)]
+        )
         # Build .egg file from tmpdir
         bdist_egg.make_zipfile(
-            egg_path, egg_tmp, verbose=self.verbose, dry_run=self.dry_run,
+            egg_path,
+            egg_tmp,
+            verbose=self.verbose,
+            dry_run=self.dry_run,
         )
         # install the .egg
         return self.install_egg(egg_path, tmpdir)
@@ -1018,7 +1054,7 @@ class easy_install(Command):
             s = src.lower()
             for old, new in prefixes:
                 if s.startswith(old):
-                    src = new + src[len(old):]
+                    src = new + src[len(old) :]
                     parts = src.split('/')
                     dst = os.path.join(egg_tmp, *parts)
                     dl = dst.lower()
@@ -1048,8 +1084,8 @@ class easy_install(Command):
                 bdist_egg.write_stub(resource, pyfile)
         self.byte_compile(to_compile)  # compile .py's
         bdist_egg.write_safety_flag(
-            os.path.join(egg_tmp, 'EGG-INFO'),
-            bdist_egg.analyze_egg(egg_tmp, stubs))  # write zip-safety flag
+            os.path.join(egg_tmp, 'EGG-INFO'), bdist_egg.analyze_egg(egg_tmp, stubs)
+        )  # write zip-safety flag
 
         for name in 'top_level', 'native_libs':
             if locals()[name]:
@@ -1078,17 +1114,16 @@ class easy_install(Command):
             self.execute(
                 wheel.install_as_egg,
                 (destination,),
-                ("Installing %s to %s") % (
-                    os.path.basename(wheel_path),
-                    os.path.dirname(destination)
-                ),
+                ("Installing %s to %s")
+                % (os.path.basename(wheel_path), os.path.dirname(destination)),
             )
         finally:
             update_dist_caches(destination, fix_zipimporter_caches=False)
         self.add_output(destination)
         return self.egg_distribution(destination)
 
-    __mv_warning = textwrap.dedent("""
+    __mv_warning = textwrap.dedent(
+        """
         Because this distribution was installed --multi-version, before you can
         import modules from this package in an application, you will need to
         'import pkg_resources' and then use a 'require()' call similar to one of
@@ -1097,13 +1132,16 @@ class easy_install(Command):
             pkg_resources.require("%(name)s")  # latest installed version
             pkg_resources.require("%(name)s==%(version)s")  # this exact version
             pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
-        """).lstrip()  # noqa
+        """
+    ).lstrip()  # noqa
 
-    __id_warning = textwrap.dedent("""
+    __id_warning = textwrap.dedent(
+        """
         Note also that the installation directory must be on sys.path at runtime for
         this to work.  (e.g. by being the application's script directory, by being on
         PYTHONPATH, or by being added to sys.path by your code.)
-        """)  # noqa
+        """
+    )  # noqa
 
     def installation_report(self, req, dist, what="Installed"):
         """Helpful installation message for display to package users"""
@@ -1119,7 +1157,8 @@ class easy_install(Command):
         extras = ''  # TODO: self.report_extras(req, dist)
         return msg % locals()
 
-    __editable_msg = textwrap.dedent("""
+    __editable_msg = textwrap.dedent(
+        """
         Extracted editable version of %(spec)s to %(dirname)s
 
         If it uses setuptools in its setup script, you can activate it in
@@ -1128,7 +1167,8 @@ class easy_install(Command):
             %(python)s setup.py develop
 
         See the setuptools documentation for the "develop" command for more info.
-        """).lstrip()  # noqa
+        """
+    ).lstrip()  # noqa
 
     def report_editable(self, spec, setup_script):
         dirname = os.path.dirname(setup_script)
@@ -1147,15 +1187,11 @@ class easy_install(Command):
             args.insert(0, '-q')
         if self.dry_run:
             args.insert(0, '-n')
-        log.info(
-            "Running %s %s", setup_script[len(setup_base) + 1:], ' '.join(args)
-        )
+        log.info("Running %s %s", setup_script[len(setup_base) + 1 :], ' '.join(args))
         try:
             run_setup(setup_script, args)
         except SystemExit as v:
-            raise DistutilsError(
-                "Setup script exited with %s" % (v.args[0],)
-            ) from v
+            raise DistutilsError("Setup script exited with %s" % (v.args[0],)) from v
 
     def build_and_install(self, setup_script, setup_base):
         args = ['bdist_egg', '--dist-dir']
@@ -1174,8 +1210,7 @@ class easy_install(Command):
                 for dist in all_eggs[key]:
                     eggs.append(self.install_egg(dist.location, setup_base))
             if not eggs and not self.dry_run:
-                log.warn("No eggs found in %s (setup script problem?)",
-                         dist_dir)
+                log.warn("No eggs found in %s (setup script problem?)", dist_dir)
             return eggs
         finally:
             _rmtree(dist_dir)
@@ -1192,7 +1227,11 @@ class easy_install(Command):
         # to the setup.cfg file.
         ei_opts = self.distribution.get_option_dict('easy_install').copy()
         fetch_directives = (
-            'find_links', 'site_dirs', 'index_url', 'optimize', 'allow_hosts',
+            'find_links',
+            'site_dirs',
+            'index_url',
+            'optimize',
+            'allow_hosts',
         )
         fetch_options = {}
         for key, val in ei_opts.items():
@@ -1282,13 +1321,16 @@ class easy_install(Command):
             byte_compile(to_compile, optimize=0, force=1, dry_run=self.dry_run)
             if self.optimize:
                 byte_compile(
-                    to_compile, optimize=self.optimize, force=1,
+                    to_compile,
+                    optimize=self.optimize,
+                    force=1,
                     dry_run=self.dry_run,
                 )
         finally:
             log.set_verbosity(self.verbose)  # restore original verbosity
 
-    __no_default_msg = textwrap.dedent("""
+    __no_default_msg = textwrap.dedent(
+        """
         bad install directory or PYTHONPATH
 
         You are attempting to install a package to a directory that is not
@@ -1318,7 +1360,8 @@ class easy_install(Command):
 
 
         Please make the appropriate changes for your system and try again.
-        """).strip()
+        """
+    ).strip()
 
     def create_home_path(self):
         """Create directories under ~."""
@@ -1390,20 +1433,24 @@ def get_site_dirs():
         if sys.platform in ('os2emx', 'riscos'):
             sitedirs.append(os.path.join(prefix, "Lib", "site-packages"))
         elif os.sep == '/':
-            sitedirs.extend([
-                os.path.join(
-                    prefix,
-                    "lib",
-                    "python{}.{}".format(*sys.version_info),
-                    "site-packages",
-                ),
-                os.path.join(prefix, "lib", "site-python"),
-            ])
+            sitedirs.extend(
+                [
+                    os.path.join(
+                        prefix,
+                        "lib",
+                        "python{}.{}".format(*sys.version_info),
+                        "site-packages",
+                    ),
+                    os.path.join(prefix, "lib", "site-python"),
+                ]
+            )
         else:
-            sitedirs.extend([
-                prefix,
-                os.path.join(prefix, "lib", "site-packages"),
-            ])
+            sitedirs.extend(
+                [
+                    prefix,
+                    os.path.join(prefix, "lib", "site-packages"),
+                ]
+            )
         if sys.platform != 'darwin':
             continue
 
@@ -1631,8 +1678,9 @@ class PthDistributions(Environment):
                 last_paths.remove(path)
         # also, re-check that all paths are still valid before saving them
         for path in self.paths[:]:
-            if path not in last_paths \
-                    and not path.startswith(('import ', 'from ', '#')):
+            if path not in last_paths and not path.startswith(
+                ('import ', 'from ', '#')
+            ):
                 absolute_path = os.path.join(self.basedir, path)
                 if not os.path.exists(absolute_path):
                     self.paths.remove(path)
@@ -1665,12 +1713,11 @@ class PthDistributions(Environment):
 
     def add(self, dist):
         """Add `dist` to the distribution map"""
-        new_path = (
-            dist.location not in self.paths and (
-                dist.location not in self.sitedirs or
-                # account for '.' being in PYTHONPATH
-                dist.location == os.getcwd()
-            )
+        new_path = dist.location not in self.paths and (
+            dist.location not in self.sitedirs
+            or
+            # account for '.' being in PYTHONPATH
+            dist.location == os.getcwd()
         )
         if new_path:
             self.paths.append(dist.location)
@@ -1708,18 +1755,22 @@ class RewritePthDistributions(PthDistributions):
             yield line
         yield cls.postlude
 
-    prelude = _one_liner("""
+    prelude = _one_liner(
+        """
         import sys
         sys.__plen = len(sys.path)
-        """)
-    postlude = _one_liner("""
+        """
+    )
+    postlude = _one_liner(
+        """
         import sys
         new = sys.path[sys.__plen:]
         del sys.path[sys.__plen:]
         p = getattr(sys, '__egginsert', 0)
         sys.path[p:p] = new
         sys.__egginsert = p + len(new)
-        """)
+        """
+    )
 
 
 if os.environ.get('SETUPTOOLS_SYS_PATH_TECHNIQUE', 'raw') == 'rewrite':
@@ -1843,8 +1894,10 @@ def _collect_zipimporter_cache_entries(normalized_path, cache):
     prefix_len = len(normalized_path)
     for p in cache:
         np = normalize_path(p)
-        if (np.startswith(normalized_path) and
-                np[prefix_len:prefix_len + 1] in (os.sep, '')):
+        if np.startswith(normalized_path) and np[prefix_len : prefix_len + 1] in (
+            os.sep,
+            '',
+        ):
             result.append(p)
     return result
 
@@ -1890,8 +1943,10 @@ def _remove_and_clear_zip_directory_cache_data(normalized_path):
         old_entry.clear()
 
     _update_zipimporter_cache(
-        normalized_path, zipimport._zip_directory_cache,
-        updater=clear_and_remove_cached_zip_archive_directory_data)
+        normalized_path,
+        zipimport._zip_directory_cache,
+        updater=clear_and_remove_cached_zip_archive_directory_data,
+    )
 
 
 # PyPy Python implementation does not allow directly writing to the
@@ -1903,8 +1958,7 @@ def _remove_and_clear_zip_directory_cache_data(normalized_path):
 # instead of being automatically corrected to use the new correct zip archive
 # directory information.
 if '__pypy__' in sys.builtin_module_names:
-    _replace_zip_directory_cache_data = \
-        _remove_and_clear_zip_directory_cache_data
+    _replace_zip_directory_cache_data = _remove_and_clear_zip_directory_cache_data
 else:
 
     def _replace_zip_directory_cache_data(normalized_path):
@@ -1922,8 +1976,10 @@ else:
             return old_entry
 
         _update_zipimporter_cache(
-            normalized_path, zipimport._zip_directory_cache,
-            updater=replace_cached_zip_archive_directory_data)
+            normalized_path,
+            zipimport._zip_directory_cache,
+            updater=replace_cached_zip_archive_directory_data,
+        )
 
 
 def is_python(text, filename='<string>'):
@@ -1952,8 +2008,7 @@ def nt_quote_arg(arg):
 
 
 def is_python_script(script_text, filename):
-    """Is this text, as a whole, a Python script? (as opposed to shell/bat/etc.
-    """
+    """Is this text, as a whole, a Python script? (as opposed to shell/bat/etc."""
     if filename.endswith('.py') or filename.endswith('.pyw'):
         return True  # extension says it's Python
     if is_python(script_text, filename):
@@ -2060,7 +2115,8 @@ class CommandSpec(list):
     @staticmethod
     def _render(items):
         cmdline = subprocess.list2cmdline(
-            CommandSpec._strip_quotes(item.strip()) for item in items)
+            CommandSpec._strip_quotes(item.strip()) for item in items
+        )
         return '#!' + cmdline + '\n'
 
 
@@ -2078,7 +2134,8 @@ class ScriptWriter:
     gui apps.
     """
 
-    template = textwrap.dedent(r"""
+    template = textwrap.dedent(
+        r"""
         # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
         import re
         import sys
@@ -2111,7 +2168,8 @@ class ScriptWriter:
         if __name__ == '__main__':
             sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
             sys.exit(load_entry_point(%(spec)r, %(group)r, %(name)r)())
-        """).lstrip()
+        """
+    ).lstrip()
 
     command_spec_class = CommandSpec
 
@@ -2242,8 +2300,9 @@ class WindowsExecutableLauncherWriter(WindowsScriptWriter):
         blockers = [name + x for x in old]
         yield (name + ext, hdr + script_text, 't', blockers)
         yield (
-            name + '.exe', get_win_launcher(launcher_type),
-            'b'  # write in binary mode
+            name + '.exe',
+            get_win_launcher(launcher_type),
+            'b',  # write in binary mode
         )
         if not is_64bit():
             # install a manifest for the launcher to prevent Windows

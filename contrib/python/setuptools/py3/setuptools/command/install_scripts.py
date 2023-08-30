@@ -1,6 +1,5 @@
 from distutils import log
 import distutils.command.install_scripts as orig
-from distutils.errors import DistutilsModuleError
 import os
 import sys
 
@@ -32,20 +31,14 @@ class install_scripts(orig.install_scripts):
 
         ei_cmd = self.get_finalized_command("egg_info")
         dist = Distribution(
-            ei_cmd.egg_base, PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
-            ei_cmd.egg_name, ei_cmd.egg_version,
+            ei_cmd.egg_base,
+            PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
+            ei_cmd.egg_name,
+            ei_cmd.egg_version,
         )
         bs_cmd = self.get_finalized_command('build_scripts')
         exec_param = getattr(bs_cmd, 'executable', None)
-        try:
-            bw_cmd = self.get_finalized_command("bdist_wininst")
-            is_wininst = getattr(bw_cmd, '_is_running', False)
-        except (ImportError, DistutilsModuleError):
-            is_wininst = False
         writer = ei.ScriptWriter
-        if is_wininst:
-            exec_param = "python.exe"
-            writer = ei.WindowsScriptWriter
         if exec_param == sys.executable:
             # In case the path to the Python executable contains a space, wrap
             # it so it's not split up.

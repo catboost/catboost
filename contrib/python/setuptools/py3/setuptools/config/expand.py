@@ -39,7 +39,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    cast
+    cast,
 )
 from pathlib import Path
 from types import ModuleType
@@ -101,14 +101,16 @@ def glob_relative(
     expanded_values = []
     root_dir = root_dir or os.getcwd()
     for value in patterns:
-
         # Has globby characters?
         if any(char in value for char in glob_characters):
             # then expand the glob pattern while keeping paths *relative*:
             glob_path = os.path.abspath(os.path.join(root_dir, value))
-            expanded_values.extend(sorted(
-                os.path.relpath(path, root_dir).replace(os.sep, "/")
-                for path in iglob(glob_path, recursive=True)))
+            expanded_values.extend(
+                sorted(
+                    os.path.relpath(path, root_dir).replace(os.sep, "/")
+                    for path in iglob(glob_path, recursive=True)
+                )
+            )
 
         else:
             # take the value as-is
@@ -160,7 +162,7 @@ def _assert_local(filepath: _Path, root_dir: str):
 def read_attr(
     attr_desc: str,
     package_dir: Optional[Mapping[str, str]] = None,
-    root_dir: Optional[_Path] = None
+    root_dir: Optional[_Path] = None,
 ):
     """Reads the value of an attribute from a module.
 
@@ -243,7 +245,7 @@ def _find_module(
     path_start = os.path.join(parent_path, *module_name.split("."))
     candidates = chain(
         (f"{path_start}.py", os.path.join(path_start, "__init__.py")),
-        iglob(f"{path_start}.*")
+        iglob(f"{path_start}.*"),
     )
     module_path = next((x for x in candidates if os.path.isfile(x)), None)
     return parent_path, module_path, module_name
@@ -252,7 +254,7 @@ def _find_module(
 def resolve_class(
     qualified_class_name: str,
     package_dir: Optional[Mapping[str, str]] = None,
-    root_dir: Optional[_Path] = None
+    root_dir: Optional[_Path] = None,
 ) -> Callable:
     """Given a qualified class name, return the associated class object"""
     root_dir = root_dir or os.getcwd()
@@ -268,7 +270,7 @@ def resolve_class(
 def cmdclass(
     values: Dict[str, str],
     package_dir: Optional[Mapping[str, str]] = None,
-    root_dir: Optional[_Path] = None
+    root_dir: Optional[_Path] = None,
 ) -> Dict[str, Callable]:
     """Given a dictionary mapping command names to strings for qualified class
     names, apply :func:`resolve_class` to the dict values.
@@ -281,7 +283,7 @@ def find_packages(
     namespaces=True,
     fill_package_dir: Optional[Dict[str, str]] = None,
     root_dir: Optional[_Path] = None,
-    **kwargs
+    **kwargs,
 ) -> List[str]:
     """Works similarly to :func:`setuptools.find_packages`, but with all
     arguments given as keyword arguments. Moreover, ``where`` can be given
@@ -322,8 +324,7 @@ def find_packages(
         pkgs = PackageFinder.find(package_path, **kwargs)
         packages.extend(pkgs)
         if pkgs and not (
-            fill_package_dir.get("") == path
-            or os.path.samefile(package_path, root_dir)
+            fill_package_dir.get("") == path or os.path.samefile(package_path, root_dir)
         ):
             fill_package_dir.update(construct_package_dir(pkgs, path))
 
