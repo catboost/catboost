@@ -1,5 +1,8 @@
 #ifndef UFUNCS_PROTO_H
 #define UFUNCS_PROTO_H 1
+#include "_cosine.h"
+npy_double cosine_cdf(npy_double);
+npy_double cosine_invcdf(npy_double);
 #include "cephes.h"
 npy_double cospi(npy_double);
 npy_double igam_fac(npy_double, npy_double);
@@ -69,10 +72,6 @@ npy_double exp10(npy_double);
 npy_double exp2(npy_double);
 npy_cdouble cexpi_wrap(npy_cdouble);
 npy_double expi_wrap(npy_double);
-#include "_logit.h"
-npy_double expit(npy_double);
-npy_float expitf(npy_float);
-npy_longdouble expitl(npy_longdouble);
 npy_double expm1(npy_double);
 npy_double expn(npy_int, npy_double);
 npy_double fdtr(npy_double, npy_double, npy_double);
@@ -140,9 +139,6 @@ npy_cdouble cbesk_wrap_e(npy_double, npy_cdouble);
 npy_double cbesk_wrap_e_real(npy_double, npy_double);
 npy_double log1p(npy_double);
 npy_double log_ndtr(npy_double);
-npy_double logit(npy_double);
-npy_float logitf(npy_float);
-npy_longdouble logitl(npy_longdouble);
 npy_double pmv_wrap(npy_double, npy_double, npy_double);
 npy_double cem_cva_wrap(npy_double, npy_double);
 npy_double sem_cva_wrap(npy_double, npy_double);

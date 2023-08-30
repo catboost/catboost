@@ -1,7 +1,8 @@
 # distutils: language=c++
 # cython: language_level=3
 
-
+import numpy as np
+cimport numpy as np
 from scipy.optimize import OptimizeWarning
 from warnings import warn
 import numbers
@@ -15,22 +16,6 @@ from .HighsIO cimport (
     ML_NONE,
 )
 from .HConst cimport (
-    PrimalDualStatusSTATUS_FEASIBLE_POINT,
-    HighsOptionTypeBOOL,
-    HighsOptionTypeINT,
-    HighsOptionTypeDOUBLE,
-    HighsOptionTypeSTRING,
-)
-from .Highs cimport Highs
-from .HighsStatus cimport (
-    HighsStatus,
-    HighsStatusError,
-    HighsStatusWarning,
-    HighsStatusOK,
-)
-from .HighsLp cimport (
-    HighsLp,
-    HighsSolution,
     HighsModelStatus,
     HighsModelStatusNOTSET,
     HighsModelStatusLOAD_ERROR,
@@ -45,6 +30,28 @@ from .HighsLp cimport (
     HighsModelStatusREACHED_DUAL_OBJECTIVE_VALUE_UPPER_BOUND,
     HighsModelStatusREACHED_TIME_LIMIT,
     HighsModelStatusREACHED_ITERATION_LIMIT,
+
+    PrimalDualStatusSTATUS_FEASIBLE_POINT,
+    HighsOptionTypeBOOL,
+    HighsOptionTypeINT,
+    HighsOptionTypeDOUBLE,
+    HighsOptionTypeSTRING,
+
+    HighsBasisStatusLOWER,
+    HighsBasisStatusUPPER,
+)
+from .Highs cimport Highs
+from .HighsStatus cimport (
+    HighsStatus,
+    HighsStatusToString,
+    HighsStatusError,
+    HighsStatusWarning,
+    HighsStatusOK,
+)
+from .HighsLp cimport (
+    HighsLp,
+    HighsSolution,
+    HighsBasis,
 )
 from .HighsInfo cimport HighsInfo
 from .HighsOptions cimport (
@@ -55,6 +62,9 @@ from .HighsOptions cimport (
     OptionRecordDouble,
     OptionRecordString,
 )
+from .HighsModelUtils cimport utilPrimalDualStatusToString
+
+np.import_array()
 
 # options to reference for default values and bounds;
 # make a map to quickly lookup
@@ -168,6 +178,7 @@ cdef apply_options(dict options, Highs & highs):
             'primal_feasibility_tolerance',
             'simplex_initial_condition_tolerance',
             'small_matrix_value',
+            'start_crossover_tolerance',
             'time_limit'
     ]):
         val = options.get(opt, None)
@@ -471,6 +482,10 @@ def _highs_wrapper(
                 Choose which solver to use.  If ``solver='simplex'``
                 and ``parallel=True`` then PAMI will be used.
 
+            - start_crossover_tolerance : double
+                Tolerance to be satisfied before IPM crossover will
+                start.
+
             - time_limit : double
                 Max number of seconds to run the solver for.
 
@@ -631,31 +646,40 @@ def _highs_wrapper(
             }
 
     # Solve the LP
+    highs.setBasis()
     cdef HighsStatus run_status = highs.run()
+    if run_status == HighsStatusError:
+        return {
+            'status': <int> highs.getModelStatus(),
+            'message': HighsStatusToString(run_status).decode(),
+        }
 
     # Extract what we need from the solution
     cdef HighsModelStatus model_status = highs.getModelStatus()
     cdef HighsModelStatus scaled_model_status = highs.getModelStatus(True)
+    cdef HighsModelStatus unscaled_model_status = model_status
     if model_status != scaled_model_status:
         if scaled_model_status == HighsModelStatusOPTIMAL:
             # The scaled model has been solved to optimality, but not the
             # unscaled model, flag this up, but report the scaled model
             # status
-            warn('model_status is not optimal, using scaled_model_status instead.', OptimizeWarning)
             model_status = scaled_model_status
 
     # We might need an info object if we can look up the solution and a place to put solution
     cdef HighsInfo info = highs.getHighsInfo() # it should always be safe to get the info object
     cdef HighsSolution solution
+    cdef HighsBasis basis
+    cdef double[:, ::1] marg_bnds = np.zeros((2, numcol))  # marg_bnds[0, :]: lower
+                                                           # marg_bnds[1, :]: upper
 
     # If the status is bad, don't look up the solution
-    if info.primal_status != PrimalDualStatusSTATUS_FEASIBLE_POINT:
+    if model_status != HighsModelStatusOPTIMAL:
         return {
             'status': <int> model_status,
-            'message': highs.highsModelStatusToString(model_status).decode(),
+            'message': f'model_status is {highs.highsModelStatusToString(model_status).decode()}; '
+                       f'primal_status is {utilPrimalDualStatusToString(<int> info.primal_status)}',
             'simplex_nit': info.simplex_iteration_count,
             'ipm_nit': info.ipm_iteration_count,
-            #'fun': info.objective_function_value,
             'fun': None,
             'crossover_nit': info.crossover_iteration_count,
         }
@@ -663,9 +687,19 @@ def _highs_wrapper(
     else:
         # Should be safe to read the solution:
         solution = highs.getSolution()
+        basis = highs.getBasis()
+
+        # lagrangians for bounds based on column statuses
+        for ii in range(numcol):
+            if HighsBasisStatusLOWER == basis.col_status[ii]:
+                marg_bnds[0, ii] = solution.col_dual[ii]
+            elif HighsBasisStatusUPPER == basis.col_status[ii]:
+                marg_bnds[1, ii] = solution.col_dual[ii]
+
         return {
             'status': <int> model_status,
             'message': highs.highsModelStatusToString(model_status).decode(),
+            'unscaled_status': <int> unscaled_model_status,
 
             # Primal solution
             'x': [solution.col_value[ii] for ii in range(numcol)],
@@ -677,9 +711,7 @@ def _highs_wrapper(
             # slacks in HiGHS appear as Ax - s, not Ax + s, so lambda is negated;
             # lambda are the lagrange multipliers associated with Ax=b
             'lambda': [-1*solution.row_dual[ii] for ii in range(numrow)],
-
-            # s are the lagrange multipliers associated with bound conditions
-            's': [solution.col_dual[ii] for ii in range(numcol) if solution.col_dual[ii]],
+            'marg_bnds': marg_bnds,
 
             'fun': info.objective_function_value,
             'simplex_nit': info.simplex_iteration_count,

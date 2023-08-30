@@ -244,3 +244,5 @@ cpdef double yn(dl_number_t x0, double x1) nogil
 cpdef Dd_number_t yv(double x0, Dd_number_t x1) nogil
 cpdef Dd_number_t yve(double x0, Dd_number_t x1) nogil
 cpdef double zetac(double x0) nogil
+cpdef double wright_bessel(double x0, double x1, double x2) nogil
+cpdef double ndtri_exp(double x0) nogil

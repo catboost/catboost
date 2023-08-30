@@ -2,7 +2,7 @@ import numpy as np
 import scipy.fft
 from scipy.fft import set_backend
 from scipy.fft import _pocketfft
-from . import mock_backend
+from . import mock_backend  # type: ignore[import]
 
 from numpy.testing import assert_allclose, assert_equal
 import pytest

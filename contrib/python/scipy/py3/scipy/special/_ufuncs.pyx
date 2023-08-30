@@ -3,7 +3,7 @@
 
 include "_ufuncs_extra_code_common.pxi"
 include "_ufuncs_extra_code.pxi"
-__all__ = ['agm', 'airy', 'airye', 'bdtr', 'bdtrc', 'bdtri', 'bdtrik', 'bdtrin', 'bei', 'beip', 'ber', 'berp', 'besselpoly', 'beta', 'betainc', 'betaincinv', 'betaln', 'binom', 'boxcox', 'boxcox1p', 'btdtr', 'btdtri', 'btdtria', 'btdtrib', 'cbrt', 'chdtr', 'chdtrc', 'chdtri', 'chdtriv', 'chndtr', 'chndtridf', 'chndtrinc', 'chndtrix', 'cosdg', 'cosm1', 'cotdg', 'dawsn', 'ellipe', 'ellipeinc', 'ellipj', 'ellipk', 'ellipkinc', 'ellipkm1', 'entr', 'erf', 'erfc', 'erfcinv', 'erfcx', 'erfi', 'erfinv', 'eval_chebyc', 'eval_chebys', 'eval_chebyt', 'eval_chebyu', 'eval_gegenbauer', 'eval_genlaguerre', 'eval_hermite', 'eval_hermitenorm', 'eval_jacobi', 'eval_laguerre', 'eval_legendre', 'eval_sh_chebyt', 'eval_sh_chebyu', 'eval_sh_jacobi', 'eval_sh_legendre', 'exp1', 'exp10', 'exp2', 'expi', 'expit', 'expm1', 'expn', 'exprel', 'fdtr', 'fdtrc', 'fdtri', 'fdtridfd', 'fresnel', 'gamma', 'gammainc', 'gammaincc', 'gammainccinv', 'gammaincinv', 'gammaln', 'gammasgn', 'gdtr', 'gdtrc', 'gdtria', 'gdtrib', 'gdtrix', 'hankel1', 'hankel1e', 'hankel2', 'hankel2e', 'huber', 'hyp0f1', 'hyp1f1', 'hyp2f1', 'hyperu', 'i0', 'i0e', 'i1', 'i1e', 'inv_boxcox', 'inv_boxcox1p', 'it2i0k0', 'it2j0y0', 'it2struve0', 'itairy', 'iti0k0', 'itj0y0', 'itmodstruve0', 'itstruve0', 'iv', 'ive', 'j0', 'j1', 'jv', 'jve', 'k0', 'k0e', 'k1', 'k1e', 'kei', 'keip', 'kelvin', 'ker', 'kerp', 'kl_div', 'kn', 'kolmogi', 'kolmogorov', 'kv', 'kve', 'log1p', 'log_ndtr', 'loggamma', 'logit', 'lpmv', 'mathieu_a', 'mathieu_b', 'mathieu_cem', 'mathieu_modcem1', 'mathieu_modcem2', 'mathieu_modsem1', 'mathieu_modsem2', 'mathieu_sem', 'modfresnelm', 'modfresnelp', 'modstruve', 'nbdtr', 'nbdtrc', 'nbdtri', 'nbdtrik', 'nbdtrin', 'ncfdtr', 'ncfdtri', 'ncfdtridfd', 'ncfdtridfn', 'ncfdtrinc', 'nctdtr', 'nctdtridf', 'nctdtrinc', 'nctdtrit', 'ndtr', 'ndtri', 'nrdtrimn', 'nrdtrisd', 'obl_ang1', 'obl_ang1_cv', 'obl_cv', 'obl_rad1', 'obl_rad1_cv', 'obl_rad2', 'obl_rad2_cv', 'owens_t', 'pbdv', 'pbvv', 'pbwa', 'pdtr', 'pdtrc', 'pdtri', 'pdtrik', 'poch', 'pro_ang1', 'pro_ang1_cv', 'pro_cv', 'pro_rad1', 'pro_rad1_cv', 'pro_rad2', 'pro_rad2_cv', 'pseudo_huber', 'psi', 'radian', 'rel_entr', 'rgamma', 'round', 'shichi', 'sici', 'sindg', 'smirnov', 'smirnovi', 'spence', 'sph_harm', 'stdtr', 'stdtridf', 'stdtrit', 'struve', 'tandg', 'tklmbda', 'voigt_profile', 'wofz', 'wrightomega', 'xlog1py', 'xlogy', 'y0', 'y1', 'yn', 'yv', 'yve', 'zetac', 'geterr', 'seterr', 'errstate', 'jn']
+__all__ = ['agm', 'airy', 'airye', 'bdtr', 'bdtrc', 'bdtri', 'bdtrik', 'bdtrin', 'bei', 'beip', 'ber', 'berp', 'besselpoly', 'beta', 'betainc', 'betaincinv', 'betaln', 'binom', 'boxcox', 'boxcox1p', 'btdtr', 'btdtri', 'btdtria', 'btdtrib', 'cbrt', 'chdtr', 'chdtrc', 'chdtri', 'chdtriv', 'chndtr', 'chndtridf', 'chndtrinc', 'chndtrix', 'cosdg', 'cosm1', 'cotdg', 'dawsn', 'ellipe', 'ellipeinc', 'ellipj', 'ellipk', 'ellipkinc', 'ellipkm1', 'entr', 'erf', 'erfc', 'erfcinv', 'erfcx', 'erfi', 'erfinv', 'eval_chebyc', 'eval_chebys', 'eval_chebyt', 'eval_chebyu', 'eval_gegenbauer', 'eval_genlaguerre', 'eval_hermite', 'eval_hermitenorm', 'eval_jacobi', 'eval_laguerre', 'eval_legendre', 'eval_sh_chebyt', 'eval_sh_chebyu', 'eval_sh_jacobi', 'eval_sh_legendre', 'exp1', 'exp10', 'exp2', 'expi', 'expit', 'expm1', 'expn', 'exprel', 'fdtr', 'fdtrc', 'fdtri', 'fdtridfd', 'fresnel', 'gamma', 'gammainc', 'gammaincc', 'gammainccinv', 'gammaincinv', 'gammaln', 'gammasgn', 'gdtr', 'gdtrc', 'gdtria', 'gdtrib', 'gdtrix', 'hankel1', 'hankel1e', 'hankel2', 'hankel2e', 'huber', 'hyp0f1', 'hyp1f1', 'hyp2f1', 'hyperu', 'i0', 'i0e', 'i1', 'i1e', 'inv_boxcox', 'inv_boxcox1p', 'it2i0k0', 'it2j0y0', 'it2struve0', 'itairy', 'iti0k0', 'itj0y0', 'itmodstruve0', 'itstruve0', 'iv', 'ive', 'j0', 'j1', 'jv', 'jve', 'k0', 'k0e', 'k1', 'k1e', 'kei', 'keip', 'kelvin', 'ker', 'kerp', 'kl_div', 'kn', 'kolmogi', 'kolmogorov', 'kv', 'kve', 'log1p', 'log_ndtr', 'loggamma', 'logit', 'lpmv', 'mathieu_a', 'mathieu_b', 'mathieu_cem', 'mathieu_modcem1', 'mathieu_modcem2', 'mathieu_modsem1', 'mathieu_modsem2', 'mathieu_sem', 'modfresnelm', 'modfresnelp', 'modstruve', 'nbdtr', 'nbdtrc', 'nbdtri', 'nbdtrik', 'nbdtrin', 'ncfdtr', 'ncfdtri', 'ncfdtridfd', 'ncfdtridfn', 'ncfdtrinc', 'nctdtr', 'nctdtridf', 'nctdtrinc', 'nctdtrit', 'ndtr', 'ndtri', 'ndtri_exp', 'nrdtrimn', 'nrdtrisd', 'obl_ang1', 'obl_ang1_cv', 'obl_cv', 'obl_rad1', 'obl_rad1_cv', 'obl_rad2', 'obl_rad2_cv', 'owens_t', 'pbdv', 'pbvv', 'pbwa', 'pdtr', 'pdtrc', 'pdtri', 'pdtrik', 'poch', 'pro_ang1', 'pro_ang1_cv', 'pro_cv', 'pro_rad1', 'pro_rad1_cv', 'pro_rad2', 'pro_rad2_cv', 'pseudo_huber', 'psi', 'radian', 'rel_entr', 'rgamma', 'round', 'shichi', 'sici', 'sindg', 'smirnov', 'smirnovi', 'spence', 'sph_harm', 'stdtr', 'stdtridf', 'stdtrit', 'struve', 'tandg', 'tklmbda', 'voigt_profile', 'wofz', 'wright_bessel', 'wrightomega', 'xlog1py', 'xlogy', 'y0', 'y1', 'yn', 'yv', 'yve', 'zetac', 'geterr', 'seterr', 'errstate', 'jn']
 cdef void loop_D_DD__As_DD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
@@ -1184,6 +1184,10 @@ cdef void loop_i_i__As_l_l(char **args, np.npy_intp *dims, np.npy_intp *steps, v
     sf_error.check_fpe(func_name)
 
 cdef extern from "_ufuncs_defs.h":
+    cdef double _func_cosine_cdf "cosine_cdf"(double) nogil
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_cosine_invcdf "cosine_invcdf"(double) nogil
+cdef extern from "_ufuncs_defs.h":
     cdef double _func_cospi "cospi"(double) nogil
 from ._trig cimport ccospi as _func_ccospi
 ctypedef double complex _proto_ccospi_t(double complex) nogil
@@ -1543,12 +1547,6 @@ cdef extern from "_ufuncs_defs.h":
     cdef double complex _func_cexpi_wrap "cexpi_wrap"(double complex) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_expi_wrap "expi_wrap"(double) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef double _func_expit "expit"(double) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef float _func_expitf "expitf"(float) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef long double _func_expitl "expitl"(long double) nogil
 from ._cunity cimport cexpm1 as _func_cexpm1
 ctypedef double complex _proto_cexpm1_t(double complex) nogil
 cdef _proto_cexpm1_t *_proto_cexpm1_t_var = &_func_cexpm1
@@ -1732,12 +1730,6 @@ from ._loggamma cimport loggamma as _func_loggamma
 ctypedef double complex _proto_loggamma_t(double complex) nogil
 cdef _proto_loggamma_t *_proto_loggamma_t_var = &_func_loggamma
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_logit "logit"(double) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef float _func_logitf "logitf"(float) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef long double _func_logitl "logitl"(long double) nogil
-cdef extern from "_ufuncs_defs.h":
     cdef double _func_pmv_wrap "pmv_wrap"(double, double, double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_cem_cva_wrap "cem_cva_wrap"(double, double) nogil
@@ -1802,6 +1794,9 @@ cdef extern from "_ufuncs_defs.h":
     cdef double _func_ndtr "ndtr"(double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_ndtri "ndtri"(double) nogil
+from ._ndtri_exp cimport ndtri_exp as _func_ndtri_exp
+ctypedef double _proto_ndtri_exp_t(double) nogil
+cdef _proto_ndtri_exp_t *_proto_ndtri_exp_t_var = &_func_ndtri_exp
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_cdfnor3_wrap "cdfnor3_wrap"(double, double, double) nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1921,6 +1916,9 @@ cdef extern from "_ufuncs_defs.h":
     cdef double _func_tandg "tandg"(double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_tukeylambdacdf "tukeylambdacdf"(double, double) nogil
+from ._wright_bessel cimport wright_bessel_scalar as _func_wright_bessel_scalar
+ctypedef double _proto_wright_bessel_scalar_t(double, double, double) nogil
+cdef _proto_wright_bessel_scalar_t *_proto_wright_bessel_scalar_t_var = &_func_wright_bessel_scalar
 from ._xlogy cimport xlog1py as _func_xlog1py
 ctypedef double _proto_xlog1py_double__t(double, double) nogil
 cdef _proto_xlog1py_double__t *_proto_xlog1py_double__t_var = &_func_xlog1py[double]
@@ -1952,6 +1950,82 @@ cdef extern from "_ufuncs_defs.h":
     cdef double _func_cbesy_wrap_e_real "cbesy_wrap_e_real"(double, double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_zetac "zetac"(double) nogil
+cdef np.PyUFuncGenericFunction ufunc__cosine_cdf_loops[2]
+cdef void *ufunc__cosine_cdf_ptr[4]
+cdef void *ufunc__cosine_cdf_data[2]
+cdef char ufunc__cosine_cdf_types[4]
+cdef char *ufunc__cosine_cdf_doc = (
+    "_cosine_cdf(x)\n"
+    "\n"
+    "Cumulative distribution function (CDF) of the cosine distribution::\n"
+    "\n"
+    "             {             0,              x < -pi\n"
+    "    cdf(x) = { (pi + x + sin(x))/(2*pi),   -pi <= x <= pi\n"
+    "             {             1,              x > pi\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "x : array_like\n"
+    "    `x` must contain real numbers.\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "float\n"
+    "    The cosine distribution CDF evaluated at `x`.")
+ufunc__cosine_cdf_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
+ufunc__cosine_cdf_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
+ufunc__cosine_cdf_types[0] = <char>NPY_FLOAT
+ufunc__cosine_cdf_types[1] = <char>NPY_FLOAT
+ufunc__cosine_cdf_types[2] = <char>NPY_DOUBLE
+ufunc__cosine_cdf_types[3] = <char>NPY_DOUBLE
+ufunc__cosine_cdf_ptr[2*0] = <void*>_func_cosine_cdf
+ufunc__cosine_cdf_ptr[2*0+1] = <void*>(<char*>"_cosine_cdf")
+ufunc__cosine_cdf_ptr[2*1] = <void*>_func_cosine_cdf
+ufunc__cosine_cdf_ptr[2*1+1] = <void*>(<char*>"_cosine_cdf")
+ufunc__cosine_cdf_data[0] = &ufunc__cosine_cdf_ptr[2*0]
+ufunc__cosine_cdf_data[1] = &ufunc__cosine_cdf_ptr[2*1]
+_cosine_cdf = np.PyUFunc_FromFuncAndData(ufunc__cosine_cdf_loops, ufunc__cosine_cdf_data, ufunc__cosine_cdf_types, 2, 1, 1, 0, "_cosine_cdf", ufunc__cosine_cdf_doc, 0)
+
+cdef np.PyUFuncGenericFunction ufunc__cosine_invcdf_loops[2]
+cdef void *ufunc__cosine_invcdf_ptr[4]
+cdef void *ufunc__cosine_invcdf_data[2]
+cdef char ufunc__cosine_invcdf_types[4]
+cdef char *ufunc__cosine_invcdf_doc = (
+    "_cosine_invcdf(p)\n"
+    "\n"
+    "Inverse of the cumulative distribution function (CDF) of the cosine\n"
+    "distribution.\n"
+    "\n"
+    "The CDF of the cosine distribution is::\n"
+    "\n"
+    "    cdf(x) = (pi + x + sin(x))/(2*pi)\n"
+    "\n"
+    "This function computes the inverse of cdf(x).\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "p : array_like\n"
+    "    `p` must contain real numbers in the interval ``0 <= p <= 1``.\n"
+    "    `nan` is returned for values of `p` outside the interval [0, 1].\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "float\n"
+    "    The inverse of the cosine distribution CDF evaluated at `p`.")
+ufunc__cosine_invcdf_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
+ufunc__cosine_invcdf_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
+ufunc__cosine_invcdf_types[0] = <char>NPY_FLOAT
+ufunc__cosine_invcdf_types[1] = <char>NPY_FLOAT
+ufunc__cosine_invcdf_types[2] = <char>NPY_DOUBLE
+ufunc__cosine_invcdf_types[3] = <char>NPY_DOUBLE
+ufunc__cosine_invcdf_ptr[2*0] = <void*>_func_cosine_invcdf
+ufunc__cosine_invcdf_ptr[2*0+1] = <void*>(<char*>"_cosine_invcdf")
+ufunc__cosine_invcdf_ptr[2*1] = <void*>_func_cosine_invcdf
+ufunc__cosine_invcdf_ptr[2*1+1] = <void*>(<char*>"_cosine_invcdf")
+ufunc__cosine_invcdf_data[0] = &ufunc__cosine_invcdf_ptr[2*0]
+ufunc__cosine_invcdf_data[1] = &ufunc__cosine_invcdf_ptr[2*1]
+_cosine_invcdf = np.PyUFunc_FromFuncAndData(ufunc__cosine_invcdf_loops, ufunc__cosine_invcdf_data, ufunc__cosine_invcdf_types, 2, 1, 1, 0, "_cosine_invcdf", ufunc__cosine_invcdf_doc, 0)
+
 cdef np.PyUFuncGenericFunction ufunc__cospi_loops[4]
 cdef void *ufunc__cospi_ptr[8]
 cdef void *ufunc__cospi_data[4]
@@ -2843,7 +2917,7 @@ cdef char *ufunc_airye_doc = (
     "Returns\n"
     "-------\n"
     "eAi, eAip, eBi, eBip : array_like\n"
-    "    Exponentially scaled Airy functions eAi and eBi, and their derivatives \n"
+    "    Exponentially scaled Airy functions eAi and eBi, and their derivatives\n"
     "    eAip and eBip\n"
     "\n"
     "Notes\n"
@@ -2889,7 +2963,7 @@ cdef char *ufunc_airye_doc = (
     ">>> np.allclose(eBip, Bip * np.exp(-abs(np.real(2.0 / 3.0 * z * np.sqrt(z)))))\n"
     "True\n"
     "\n"
-    "Comparing non-scaled and exponentially scaled ones, the usual non-scaled \n"
+    "Comparing non-scaled and exponentially scaled ones, the usual non-scaled\n"
     "function quickly underflows for large values, whereas the exponentially\n"
     "scaled function does not.\n"
     "\n"
@@ -6649,7 +6723,6 @@ cdef char *ufunc_eval_legendre_doc = (
     "\n"
     "Evaluate the first-order Legendre polynomial between -1 and 1\n"
     "\n"
-    ">>> import numpy as np\n"
     ">>> X = np.linspace(-1, 1, 5)  # Domain of Legendre polynomials\n"
     ">>> eval_legendre(1, X)\n"
     "array([-1. , -0.5,  0. ,  0.5,  1. ])\n"
@@ -7422,11 +7495,11 @@ ufunc_expit_types[2] = <char>NPY_DOUBLE
 ufunc_expit_types[3] = <char>NPY_DOUBLE
 ufunc_expit_types[4] = <char>NPY_LONGDOUBLE
 ufunc_expit_types[5] = <char>NPY_LONGDOUBLE
-ufunc_expit_ptr[2*0] = <void*>_func_expitf
+ufunc_expit_ptr[2*0] = <void*>scipy.special._ufuncs_cxx._export_expitf
 ufunc_expit_ptr[2*0+1] = <void*>(<char*>"expit")
-ufunc_expit_ptr[2*1] = <void*>_func_expit
+ufunc_expit_ptr[2*1] = <void*>scipy.special._ufuncs_cxx._export_expit
 ufunc_expit_ptr[2*1+1] = <void*>(<char*>"expit")
-ufunc_expit_ptr[2*2] = <void*>_func_expitl
+ufunc_expit_ptr[2*2] = <void*>scipy.special._ufuncs_cxx._export_expitl
 ufunc_expit_ptr[2*2+1] = <void*>(<char*>"expit")
 ufunc_expit_data[0] = &ufunc_expit_ptr[2*0]
 ufunc_expit_data[1] = &ufunc_expit_ptr[2*1]
@@ -11570,12 +11643,12 @@ cdef char *ufunc_kolmogorov_doc = (
     "the target distribution, a Normal(0, 1) distribution.\n"
     "\n"
     ">>> from scipy.stats import norm, laplace\n"
+    ">>> rng = np.random.default_rng()\n"
     ">>> n = 1000\n"
-    ">>> np.random.seed(seed=233423)\n"
     ">>> lap01 = laplace(0, 1)\n"
-    ">>> x = np.sort(lap01.rvs(n))\n"
+    ">>> x = np.sort(lap01.rvs(n, random_state=rng))\n"
     ">>> np.mean(x), np.std(x)\n"
-    "(-0.083073685397609842, 1.3676426568399822)\n"
+    "(-0.05841730131499543, 1.3968109101997568)\n"
     "\n"
     "Construct the Empirical CDF and the K-S statistic Dn.\n"
     "\n"
@@ -11586,13 +11659,13 @@ cdef char *ufunc_kolmogorov_doc = (
     ">>> Dn = np.max(gaps)\n"
     ">>> Kn = np.sqrt(n) * Dn\n"
     ">>> print('Dn=%f, sqrt(n)*Dn=%f' % (Dn, Kn))\n"
-    "Dn=0.058286, sqrt(n)*Dn=1.843153\n"
+    "Dn=0.043363, sqrt(n)*Dn=1.371265\n"
     ">>> print(chr(10).join(['For a sample of size n drawn from a N(0, 1) distribution:',\n"
     "...   ' the approximate Kolmogorov probability that sqrt(n)*Dn>=%f is %f' %  (Kn, kolmogorov(Kn)),\n"
     "...   ' the approximate Kolmogorov probability that sqrt(n)*Dn<=%f is %f' %  (Kn, kstwobign.cdf(Kn))]))\n"
     "For a sample of size n drawn from a N(0, 1) distribution:\n"
-    " the approximate Kolmogorov probability that sqrt(n)*Dn>=1.843153 is 0.002240\n"
-    " the approximate Kolmogorov probability that sqrt(n)*Dn<=1.843153 is 0.997760\n"
+    " the approximate Kolmogorov probability that sqrt(n)*Dn>=1.371265 is 0.046533\n"
+    " the approximate Kolmogorov probability that sqrt(n)*Dn<=1.371265 is 0.953467\n"
     "\n"
     "Plot the Empirical CDF against the target N(0, 1) CDF.\n"
     "\n"
@@ -12066,11 +12139,11 @@ ufunc_logit_types[2] = <char>NPY_DOUBLE
 ufunc_logit_types[3] = <char>NPY_DOUBLE
 ufunc_logit_types[4] = <char>NPY_LONGDOUBLE
 ufunc_logit_types[5] = <char>NPY_LONGDOUBLE
-ufunc_logit_ptr[2*0] = <void*>_func_logitf
+ufunc_logit_ptr[2*0] = <void*>scipy.special._ufuncs_cxx._export_logitf
 ufunc_logit_ptr[2*0+1] = <void*>(<char*>"logit")
-ufunc_logit_ptr[2*1] = <void*>_func_logit
+ufunc_logit_ptr[2*1] = <void*>scipy.special._ufuncs_cxx._export_logit
 ufunc_logit_ptr[2*1+1] = <void*>(<char*>"logit")
-ufunc_logit_ptr[2*2] = <void*>_func_logitl
+ufunc_logit_ptr[2*2] = <void*>scipy.special._ufuncs_cxx._export_logitl
 ufunc_logit_ptr[2*2+1] = <void*>(<char*>"logit")
 ufunc_logit_data[0] = &ufunc_logit_ptr[2*0]
 ufunc_logit_data[1] = &ufunc_logit_ptr[2*1]
@@ -13628,6 +13701,70 @@ ufunc_ndtri_data[0] = &ufunc_ndtri_ptr[2*0]
 ufunc_ndtri_data[1] = &ufunc_ndtri_ptr[2*1]
 ndtri = np.PyUFunc_FromFuncAndData(ufunc_ndtri_loops, ufunc_ndtri_data, ufunc_ndtri_types, 2, 1, 1, 0, "ndtri", ufunc_ndtri_doc, 0)
 
+cdef np.PyUFuncGenericFunction ufunc_ndtri_exp_loops[2]
+cdef void *ufunc_ndtri_exp_ptr[4]
+cdef void *ufunc_ndtri_exp_data[2]
+cdef char ufunc_ndtri_exp_types[4]
+cdef char *ufunc_ndtri_exp_doc = (
+    "ndtri_exp(y)\n"
+    "\n"
+    "Inverse of `log_ndtr` vs x. Allows for greater precision than\n"
+    "`ndtri` composed with `numpy.exp` for very small values of y and for\n"
+    "y close to 0.\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "y : array_like of float\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "scalar or ndarray\n"
+    "    Inverse of the log CDF of the standard normal distribution, evaluated\n"
+    "    at y.\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    ">>> import scipy.special as sc\n"
+    "\n"
+    "`ndtri_exp` agrees with the naive implementation when the latter does\n"
+    "not suffer from underflow.\n"
+    "\n"
+    ">>> sc.ndtri_exp(-1)\n"
+    "-0.33747496376420244\n"
+    ">>> sc.ndtri(np.exp(-1))\n"
+    "-0.33747496376420244\n"
+    "\n"
+    "For extreme values of y, the naive approach fails\n"
+    "\n"
+    ">>> sc.ndtri(np.exp(-800))\n"
+    "-inf\n"
+    ">>> sc.ndtri(np.exp(-1e-20))\n"
+    "inf\n"
+    "\n"
+    "whereas `ndtri_exp` is still able to compute the result to high precision.\n"
+    "\n"
+    ">>> sc.ndtri_exp(-800)\n"
+    "-39.88469483825668\n"
+    ">>> sc.ndtri_exp(-1e-20)\n"
+    "9.262340089798409\n"
+    "\n"
+    "See Also\n"
+    "--------\n"
+    "log_ndtr, ndtri, ndtr")
+ufunc_ndtri_exp_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
+ufunc_ndtri_exp_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
+ufunc_ndtri_exp_types[0] = <char>NPY_FLOAT
+ufunc_ndtri_exp_types[1] = <char>NPY_FLOAT
+ufunc_ndtri_exp_types[2] = <char>NPY_DOUBLE
+ufunc_ndtri_exp_types[3] = <char>NPY_DOUBLE
+ufunc_ndtri_exp_ptr[2*0] = <void*>_func_ndtri_exp
+ufunc_ndtri_exp_ptr[2*0+1] = <void*>(<char*>"ndtri_exp")
+ufunc_ndtri_exp_ptr[2*1] = <void*>_func_ndtri_exp
+ufunc_ndtri_exp_ptr[2*1+1] = <void*>(<char*>"ndtri_exp")
+ufunc_ndtri_exp_data[0] = &ufunc_ndtri_exp_ptr[2*0]
+ufunc_ndtri_exp_data[1] = &ufunc_ndtri_exp_ptr[2*1]
+ndtri_exp = np.PyUFunc_FromFuncAndData(ufunc_ndtri_exp_loops, ufunc_ndtri_exp_data, ufunc_ndtri_exp_types, 2, 1, 1, 0, "ndtri_exp", ufunc_ndtri_exp_doc, 0)
+
 cdef np.PyUFuncGenericFunction ufunc_nrdtrimn_loops[2]
 cdef void *ufunc_nrdtrimn_ptr[4]
 cdef void *ufunc_nrdtrimn_data[2]
@@ -14799,7 +14936,19 @@ cdef char *ufunc_psi_doc = (
     "       https://dlmf.nist.gov/5\n"
     ".. [2] Fredrik Johansson and others.\n"
     "       \"mpmath: a Python library for arbitrary-precision floating-point arithmetic\"\n"
-    "       (Version 0.19) http://mpmath.org/")
+    "       (Version 0.19) http://mpmath.org/\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    ">>> from scipy.special import psi\n"
+    ">>> z = 3 + 4j\n"
+    ">>> psi(z)\n"
+    "(1.55035981733341+1.0105022091860445j)\n"
+    "\n"
+    "Verify psi(z) = psi(z + 1) - 1/z:\n"
+    "\n"
+    ">>> psi(z + 1) - 1/z\n"
+    "(1.55035981733341+1.0105022091860445j)")
 ufunc_psi_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
 ufunc_psi_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
 ufunc_psi_loops[2] = <np.PyUFuncGenericFunction>loop_D_D__As_F_F
@@ -15370,37 +15519,37 @@ cdef char *ufunc_smirnov_doc = (
     "a target N(0, 1) CDF.\n"
     "\n"
     ">>> from scipy.stats import norm\n"
+    ">>> rng = np.random.default_rng()\n"
     ">>> n = 5\n"
     ">>> gendist = norm(0.5, 1)       # Normal distribution, mean 0.5, stddev 1\n"
-    ">>> np.random.seed(seed=233423)  # Set the seed for reproducibility\n"
-    ">>> x = np.sort(gendist.rvs(size=n))\n"
+    ">>> x = np.sort(gendist.rvs(size=n, random_state=rng))\n"
     ">>> x\n"
-    "array([-0.20946287,  0.71688765,  0.95164151,  1.44590852,  3.08880533])\n"
+    "array([-1.3922078 , -0.13526532,  0.1371477 ,  0.18981686,  1.81948167])\n"
     ">>> target = norm(0, 1)\n"
     ">>> cdfs = target.cdf(x)\n"
     ">>> cdfs\n"
-    "array([ 0.41704346,  0.76327829,  0.82936059,  0.92589857,  0.99899518])\n"
+    "array([0.08192974, 0.44620105, 0.55454297, 0.57527368, 0.96558101])\n"
     "# Construct the Empirical CDF and the K-S statistics (Dn+, Dn-, Dn)\n"
     ">>> ecdfs = np.arange(n+1, dtype=float)/n\n"
     ">>> cols = np.column_stack([x, ecdfs[1:], cdfs, cdfs - ecdfs[:n], ecdfs[1:] - cdfs])\n"
     ">>> np.set_printoptions(precision=3)\n"
     ">>> cols\n"
-    "array([[ -2.095e-01,   2.000e-01,   4.170e-01,   4.170e-01,  -2.170e-01],\n"
-    "       [  7.169e-01,   4.000e-01,   7.633e-01,   5.633e-01,  -3.633e-01],\n"
-    "       [  9.516e-01,   6.000e-01,   8.294e-01,   4.294e-01,  -2.294e-01],\n"
-    "       [  1.446e+00,   8.000e-01,   9.259e-01,   3.259e-01,  -1.259e-01],\n"
-    "       [  3.089e+00,   1.000e+00,   9.990e-01,   1.990e-01,   1.005e-03]])\n"
+    "array([[-1.392,  0.2  ,  0.082,  0.082,  0.118],\n"
+    "       [-0.135,  0.4  ,  0.446,  0.246, -0.046],\n"
+    "       [ 0.137,  0.6  ,  0.555,  0.155,  0.045],\n"
+    "       [ 0.19 ,  0.8  ,  0.575, -0.025,  0.225],\n"
+    "       [ 1.819,  1.   ,  0.966,  0.166,  0.034]])\n"
     ">>> gaps = cols[:, -2:]\n"
     ">>> Dnpm = np.max(gaps, axis=0)\n"
     ">>> print('Dn-=%f, Dn+=%f' % (Dnpm[0], Dnpm[1]))\n"
-    "Dn-=0.563278, Dn+=0.001005\n"
+    "Dn-=0.246201, Dn+=0.224726\n"
     ">>> probs = smirnov(n, Dnpm)\n"
     ">>> print(chr(10).join(['For a sample of size %d drawn from a N(0, 1) distribution:' % n,\n"
     "...      ' Smirnov n=%d: Prob(Dn- >= %f) = %.4f' % (n, Dnpm[0], probs[0]),\n"
     "...      ' Smirnov n=%d: Prob(Dn+ >= %f) = %.4f' % (n, Dnpm[1], probs[1])]))\n"
     "For a sample of size 5 drawn from a N(0, 1) distribution:\n"
-    " Smirnov n=5: Prob(Dn- >= 0.563278) = 0.0250\n"
-    " Smirnov n=5: Prob(Dn+ >= 0.001005) = 0.9990\n"
+    " Smirnov n=5: Prob(Dn- >= 0.246201) = 0.4713\n"
+    " Smirnov n=5: Prob(Dn+ >= 0.224726) = 0.5243\n"
     "\n"
     "Plot the Empirical CDF against the target N(0, 1) CDF\n"
     "\n"
@@ -15509,7 +15658,7 @@ cdef char *ufunc_spence_doc = (
     "It is defined to be\n"
     "\n"
     ".. math::\n"
-    "  \\int_0^z \\frac{\\log(t)}{1 - t}dt\n"
+    "  \\int_1^z \\frac{\\log(t)}{1 - t}dt\n"
     "\n"
     "for complex :math:`z`, where the contour of integration is taken\n"
     "to avoid the branch cut of the logarithm. Spence's function is\n"
@@ -15992,6 +16141,71 @@ ufunc_wofz_ptr[2*1+1] = <void*>(<char*>"wofz")
 ufunc_wofz_data[0] = &ufunc_wofz_ptr[2*0]
 ufunc_wofz_data[1] = &ufunc_wofz_ptr[2*1]
 wofz = np.PyUFunc_FromFuncAndData(ufunc_wofz_loops, ufunc_wofz_data, ufunc_wofz_types, 2, 1, 1, 0, "wofz", ufunc_wofz_doc, 0)
+
+cdef np.PyUFuncGenericFunction ufunc_wright_bessel_loops[2]
+cdef void *ufunc_wright_bessel_ptr[4]
+cdef void *ufunc_wright_bessel_data[2]
+cdef char ufunc_wright_bessel_types[8]
+cdef char *ufunc_wright_bessel_doc = (
+    "wright_bessel(a, b, x)\n"
+    "\n"
+    "Wright's generalized Bessel function.\n"
+    "\n"
+    "Wright's generalized Bessel function is an entire function and defined as\n"
+    "\n"
+    ".. math:: \\Phi(a, b; x) = \\sum_{k=0}^\\infty \\frac{x^k}{k! \\Gamma(a k + b)}\n"
+    "\n"
+    "See also [1].\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "a : array_like of float\n"
+    "    a >= 0\n"
+    "b : array_like of float\n"
+    "    b >= 0\n"
+    "x : array_like of float\n"
+    "    x >= 0\n"
+    "\n"
+    "Notes\n"
+    "-----\n"
+    "Due to the compexity of the function with its three parameters, only\n"
+    "non-negative arguments are implemented.\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    ">>> from scipy.special import wright_bessel\n"
+    ">>> a, b, x = 1.5, 1.1, 2.5\n"
+    ">>> wright_bessel(a, b-1, x)\n"
+    "4.5314465939443025\n"
+    "\n"
+    "Now, let us verify the relation\n"
+    "\n"
+    ".. math:: \\Phi(a, b-1; x) = a x \\Phi(a, b+a; x) + (b-1) \\Phi(a, b; x)\n"
+    "\n"
+    ">>> a * x * wright_bessel(a, b+a, x) + (b-1) * wright_bessel(a, b, x)\n"
+    "4.5314465939443025\n"
+    "\n"
+    "References\n"
+    "----------\n"
+    ".. [1] Digital Library of Mathematical Functions, 10.46.\n"
+    "       https://dlmf.nist.gov/10.46.E1")
+ufunc_wright_bessel_loops[0] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
+ufunc_wright_bessel_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
+ufunc_wright_bessel_types[0] = <char>NPY_FLOAT
+ufunc_wright_bessel_types[1] = <char>NPY_FLOAT
+ufunc_wright_bessel_types[2] = <char>NPY_FLOAT
+ufunc_wright_bessel_types[3] = <char>NPY_FLOAT
+ufunc_wright_bessel_types[4] = <char>NPY_DOUBLE
+ufunc_wright_bessel_types[5] = <char>NPY_DOUBLE
+ufunc_wright_bessel_types[6] = <char>NPY_DOUBLE
+ufunc_wright_bessel_types[7] = <char>NPY_DOUBLE
+ufunc_wright_bessel_ptr[2*0] = <void*>_func_wright_bessel_scalar
+ufunc_wright_bessel_ptr[2*0+1] = <void*>(<char*>"wright_bessel")
+ufunc_wright_bessel_ptr[2*1] = <void*>_func_wright_bessel_scalar
+ufunc_wright_bessel_ptr[2*1+1] = <void*>(<char*>"wright_bessel")
+ufunc_wright_bessel_data[0] = &ufunc_wright_bessel_ptr[2*0]
+ufunc_wright_bessel_data[1] = &ufunc_wright_bessel_ptr[2*1]
+wright_bessel = np.PyUFunc_FromFuncAndData(ufunc_wright_bessel_loops, ufunc_wright_bessel_data, ufunc_wright_bessel_types, 2, 3, 1, 0, "wright_bessel", ufunc_wright_bessel_doc, 0)
 
 cdef np.PyUFuncGenericFunction ufunc_wrightomega_loops[4]
 cdef void *ufunc_wrightomega_ptr[8]

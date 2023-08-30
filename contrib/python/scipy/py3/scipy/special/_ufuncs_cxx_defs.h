@@ -9,7 +9,14 @@ npy_double faddeeva_erfcx(npy_double);
 npy_cdouble faddeeva_erfcx_complex(npy_cdouble);
 npy_double faddeeva_erfi(npy_double);
 npy_cdouble faddeeva_erfi_complex(npy_cdouble);
+#include "_logit.h"
+npy_double expit(npy_double);
+npy_float expitf(npy_float);
+npy_longdouble expitl(npy_longdouble);
 npy_cdouble faddeeva_log_ndtr(npy_cdouble);
+npy_double logit(npy_double);
+npy_float logitf(npy_float);
+npy_longdouble logitl(npy_longdouble);
 npy_cdouble faddeeva_ndtr(npy_cdouble);
 npy_double faddeeva_voigt_profile(npy_double, npy_double, npy_double);
 npy_cdouble faddeeva_w(npy_cdouble);

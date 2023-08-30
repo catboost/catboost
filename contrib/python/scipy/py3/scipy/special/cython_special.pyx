@@ -992,6 +992,14 @@ Available functions
 
         double zetac(double)
 
+- :py:func:`~scipy.special.wright_bessel`::
+
+        double wright_bessel(double, double, double)
+
+- :py:func:`~scipy.special.ndtri_exp`::
+
+        double ndtri_exp(double)
+
 
 Custom functions
 ----------------
@@ -1286,12 +1294,6 @@ cdef extern from "_ufuncs_defs.h":
     cdef npy_cdouble _func_cexpi_wrap "cexpi_wrap"(npy_cdouble)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_expi_wrap "expi_wrap"(npy_double)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_expit "expit"(npy_double)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_float _func_expitf "expitf"(npy_float)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_longdouble _func_expitl "expitl"(npy_longdouble)nogil
 from ._cunity cimport cexpm1 as _func_cexpm1
 ctypedef double complex _proto_cexpm1_t(double complex) nogil
 cdef _proto_cexpm1_t *_proto_cexpm1_t_var = &_func_cexpm1
@@ -1474,12 +1476,6 @@ cdef _proto_loggamma_real_t *_proto_loggamma_real_t_var = &_func_loggamma_real
 from ._loggamma cimport loggamma as _func_loggamma
 ctypedef double complex _proto_loggamma_t(double complex) nogil
 cdef _proto_loggamma_t *_proto_loggamma_t_var = &_func_loggamma
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_logit "logit"(npy_double)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_float _func_logitf "logitf"(npy_float)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_longdouble _func_logitl "logitl"(npy_longdouble)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_pmv_wrap "pmv_wrap"(npy_double, npy_double, npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1695,6 +1691,12 @@ cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_cbesy_wrap_e_real "cbesy_wrap_e_real"(npy_double, npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_zetac "zetac"(npy_double)nogil
+from ._wright_bessel cimport wright_bessel_scalar as _func_wright_bessel_scalar
+ctypedef double _proto_wright_bessel_scalar_t(double, double, double) nogil
+cdef _proto_wright_bessel_scalar_t *_proto_wright_bessel_scalar_t_var = &_func_wright_bessel_scalar
+from ._ndtri_exp cimport ndtri_exp as _func_ndtri_exp
+ctypedef double _proto_ndtri_exp_t(double) nogil
+cdef _proto_ndtri_exp_t *_proto_ndtri_exp_t_var = &_func_ndtri_exp
 
 cpdef double voigt_profile(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.voigt_profile"""
@@ -2248,11 +2250,11 @@ cpdef Dd_number_t expi(Dd_number_t x0) nogil:
 cpdef dfg_number_t expit(dfg_number_t x0) nogil:
     """See the documentation for scipy.special.expit"""
     if dfg_number_t is double:
-        return _func_expit(x0)
+        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_expit)(x0)
     elif dfg_number_t is float:
-        return _func_expitf(x0)
+        return (<float(*)(float) nogil>scipy.special._ufuncs_cxx._export_expitf)(x0)
     elif dfg_number_t is long_double:
-        return _func_expitl(x0)
+        return (<long double(*)(long double) nogil>scipy.special._ufuncs_cxx._export_expitl)(x0)
     else:
         if dfg_number_t is double:
             return NPY_NAN
@@ -2722,11 +2724,11 @@ cpdef Dd_number_t loggamma(Dd_number_t x0) nogil:
 cpdef dfg_number_t logit(dfg_number_t x0) nogil:
     """See the documentation for scipy.special.logit"""
     if dfg_number_t is double:
-        return _func_logit(x0)
+        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_logit)(x0)
     elif dfg_number_t is float:
-        return _func_logitf(x0)
+        return (<float(*)(float) nogil>scipy.special._ufuncs_cxx._export_logitf)(x0)
     elif dfg_number_t is long_double:
-        return _func_logitl(x0)
+        return (<long double(*)(long double) nogil>scipy.special._ufuncs_cxx._export_logitl)(x0)
     else:
         if dfg_number_t is double:
             return NPY_NAN
@@ -3352,6 +3354,14 @@ cpdef Dd_number_t yve(double x0, Dd_number_t x1) nogil:
 cpdef double zetac(double x0) nogil:
     """See the documentation for scipy.special.zetac"""
     return _func_zetac(x0)
+
+cpdef double wright_bessel(double x0, double x1, double x2) nogil:
+    """See the documentation for scipy.special.wright_bessel"""
+    return _func_wright_bessel_scalar(x0, x1, x2)
+
+cpdef double ndtri_exp(double x0) nogil:
+    """See the documentation for scipy.special.ndtri_exp"""
+    return _func_ndtri_exp(x0)
 
 def _bench_airy_d_py(int N, double x0):
     cdef int n

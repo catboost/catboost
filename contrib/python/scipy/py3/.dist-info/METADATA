@@ -1,15 +1,244 @@
 Metadata-Version: 2.1
-Name: scipy
-Version: 1.6.3
+Name: SciPy
+Version: 1.7.3
 Summary: SciPy: Scientific Library for Python
 Home-page: https://www.scipy.org
 Download-URL: https://github.com/scipy/scipy/releases
 Maintainer: SciPy Developers
-Maintainer-email: scipy-dev@python.org
-License: BSD
-Project-URL: Bug Tracker, https://github.com/scipy/scipy/issues
-Project-URL: Documentation, https://docs.scipy.org/doc/scipy/reference/
-Project-URL: Source Code, https://github.com/scipy/scipy
+Maintainer-email: SciPy Developers <scipy-dev@python.org>
+License: Copyright (c) 2001-2002 Enthought, Inc.  2003-2019, SciPy Developers.
+        All rights reserved.        
+        Redistribution and use in source and binary forms, with or without
+        modification, are permitted provided that the following conditions
+        are met:        
+        1. Redistributions of source code must retain the above copyright
+           notice, this list of conditions and the following disclaimer.        
+        2. Redistributions in binary form must reproduce the above
+           copyright notice, this list of conditions and the following
+           disclaimer in the documentation and/or other materials provided
+           with the distribution.        
+        3. Neither the name of the copyright holder nor the names of its
+           contributors may be used to endorse or promote products derived
+           from this software without specific prior written permission.        
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+        "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+        LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+        A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+        OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+        SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+        LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+        DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+        THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+        (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+        OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                
+        The SciPy repository and source distributions bundle a number of libraries that
+        are compatibly licensed.  We list these here.        
+        Name: Numpydoc
+        Files: doc/sphinxext/numpydoc/*
+        License: 2-clause BSD
+          For details, see doc/sphinxext/LICENSE.txt        
+        Name: scipy-sphinx-theme
+        Files: doc/scipy-sphinx-theme/*
+        License: 3-clause BSD, PSF and Apache 2.0
+          For details, see doc/sphinxext/LICENSE.txt        
+        Name: Decorator
+        Files: scipy/_lib/decorator.py
+        License: 2-clause BSD
+          For details, see the header inside scipy/_lib/decorator.py        
+        Name: ID
+        Files: scipy/linalg/src/id_dist/*
+        License: 3-clause BSD
+          For details, see scipy/linalg/src/id_dist/doc/doc.tex        
+        Name: L-BFGS-B
+        Files: scipy/optimize/lbfgsb/*
+        License: BSD license
+          For details, see scipy/optimize/lbfgsb/README        
+        Name: LAPJVsp
+        Files: scipy/sparse/csgraph/_matching.pyx
+        License: 3-clause BSD
+        Copyright 1987-, A. Volgenant/Amsterdam School of Economics,
+                         University of Amsterdam        
+          Distributed under 3-clause BSD license with permission from
+          University of Amsterdam.        
+          Redistribution and use in source and binary forms, with or without
+          modification, are permitted provided that the following conditions are met:        
+          1. Redistributions of source code must retain the above copyright notice,
+             this list of conditions and the following disclaimer.        
+          2. Redistributions in binary form must reproduce the above copyright notice,
+             this list of conditions and the following disclaimer in the documentation
+            and/or other materials provided with the distribution.        
+          3. Neither the name of the copyright holder nor the names of its contributors
+             may be used to endorse or promote products derived from this software
+            without specific prior written permission.        
+          THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+          AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+          IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+          ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+          LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+          CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+          SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+          INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+          CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+          ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+          POSSIBILITY OF SUCH DAMAGE.                
+        Name: SuperLU
+        Files: scipy/sparse/linalg/dsolve/SuperLU/*
+        License: 3-clause BSD
+          For details, see scipy/sparse/linalg/dsolve/SuperLU/License.txt        
+        Name: ARPACK
+        Files: scipy/sparse/linalg/eigen/arpack/ARPACK/*
+        License: 3-clause BSD
+          For details, see scipy/sparse/linalg/eigen/arpack/ARPACK/COPYING        
+        Name: Qhull
+        Files: scipy/spatial/qhull/*
+        License: Qhull license (BSD-like)
+          For details, see scipy/spatial/qhull/COPYING.txt        
+        Name: Cephes
+        Files: scipy/special/cephes/*
+        License: 3-clause BSD
+          Distributed under 3-clause BSD license with permission from the author,
+          see https://lists.debian.org/debian-legal/2004/12/msg00295.html        
+          Cephes Math Library Release 2.8:  June, 2000
+          Copyright 1984, 1995, 2000 by Stephen L. Moshier        
+          This software is derived from the Cephes Math Library and is
+          incorporated herein by permission of the author.        
+          All rights reserved.        
+          Redistribution and use in source and binary forms, with or without
+          modification, are permitted provided that the following conditions are met:
+              * Redistributions of source code must retain the above copyright
+                notice, this list of conditions and the following disclaimer.
+              * Redistributions in binary form must reproduce the above copyright
+                notice, this list of conditions and the following disclaimer in the
+                documentation and/or other materials provided with the distribution.
+              * Neither the name of the <organization> nor the
+                names of its contributors may be used to endorse or promote products
+                derived from this software without specific prior written permission.        
+          THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+          ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+          WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+          DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+          DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+          (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+          LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+          ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+          (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+          SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.        
+        Name: Faddeeva
+        Files: scipy/special/Faddeeva.*
+        License: MIT
+          Copyright (c) 2012 Massachusetts Institute of Technology        
+          Permission is hereby granted, free of charge, to any person obtaining
+          a copy of this software and associated documentation files (the
+          "Software"), to deal in the Software without restriction, including
+          without limitation the rights to use, copy, modify, merge, publish,
+          distribute, sublicense, and/or sell copies of the Software, and to
+          permit persons to whom the Software is furnished to do so, subject to
+          the following conditions:        
+          The above copyright notice and this permission notice shall be
+          included in all copies or substantial portions of the Software.        
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+          EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+          MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+          NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+          LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+          OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+          WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.        
+        Name: qd
+        Files: scipy/special/cephes/dd_*.[ch]
+        License: modified BSD license ("BSD-LBNL-License.doc")
+          This work was supported by the Director, Office of Science, Division
+          of Mathematical, Information, and Computational Sciences of the
+          U.S. Department of Energy under contract numbers DE-AC03-76SF00098 and
+          DE-AC02-05CH11231.        
+          Copyright (c) 2003-2009, The Regents of the University of California,
+          through Lawrence Berkeley National Laboratory (subject to receipt of
+          any required approvals from U.S. Dept. of Energy) All rights reserved.        
+          1. Redistribution and use in source and binary forms, with or
+          without modification, are permitted provided that the following
+          conditions are met:        
+          (1) Redistributions of source code must retain the copyright
+          notice, this list of conditions and the following disclaimer.        
+          (2) Redistributions in binary form must reproduce the copyright
+          notice, this list of conditions and the following disclaimer in
+          the documentation and/or other materials provided with the
+          distribution.        
+          (3) Neither the name of the University of California, Lawrence
+          Berkeley National Laboratory, U.S. Dept. of Energy nor the names
+          of its contributors may be used to endorse or promote products
+          derived from this software without specific prior written
+          permission.        
+          2. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+          "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+          LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+          A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+          OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+          SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+          LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+          DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+          THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+          (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+          OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.        
+          3. You are under no obligation whatsoever to provide any bug fixes,
+          patches, or upgrades to the features, functionality or performance of
+          the source code ("Enhancements") to anyone; however, if you choose to
+          make your Enhancements available either publicly, or directly to
+          Lawrence Berkeley National Laboratory, without imposing a separate
+          written license agreement for such Enhancements, then you hereby grant
+          the following license: a non-exclusive, royalty-free perpetual license
+          to install, use, modify, prepare derivative works, incorporate into
+          other computer software, distribute, and sublicense such enhancements
+          or derivative works thereof, in binary and source code form.        
+        Name: pypocketfft
+        Files: scipy/fft/_pocketfft/[pocketfft.h, pypocketfft.cxx]
+        License: 3-Clause BSD
+          For details, see scipy/fft/_pocketfft/LICENSE.md        
+        Name: uarray
+        Files: scipy/_lib/uarray/*
+        License: 3-Clause BSD
+          For details, see scipy/_lib/uarray/LICENSE        
+        Name: ampgo
+        Files: benchmarks/benchmarks/go_benchmark_functions/*.py
+        License: MIT
+          Functions for testing global optimizers, forked from the AMPGO project,
+          https://code.google.com/archive/p/ampgo        
+        Name: pybind11
+        Files: no source files are included, however pybind11 binary artifacts are
+          included with every binary build of SciPy.
+        License:
+          Copyright (c) 2016 Wenzel Jakob <wenzel.jakob@epfl.ch>, All rights reserved.        
+          Redistribution and use in source and binary forms, with or without
+          modification, are permitted provided that the following conditions are met:        
+          1. Redistributions of source code must retain the above copyright notice, this
+             list of conditions and the following disclaimer.        
+          2. Redistributions in binary form must reproduce the above copyright notice,
+             this list of conditions and the following disclaimer in the documentation
+             and/or other materials provided with the distribution.        
+          3. Neither the name of the copyright holder nor the names of its contributors
+             may be used to endorse or promote products derived from this software
+             without specific prior written permission.        
+          THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+          ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+          WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+          DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+          FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+          DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+          SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+          CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+          OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+          OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.        
+        Name: HiGHS
+        Files: scipy/optimize/_highs/*
+        License: MIT
+          For details, see scipy/optimize/_highs/LICENCE        
+        Name: Boost
+        Files: scipy/_lib/boost/*
+        License: Boost Software License - Version 1.0
+          For details, see scipy/_lib/boost/LICENSE_1_0.txt        
+Project-URL: homepage, https://scipy.org/
+Project-URL: documentation, https://docs.scipy.org/doc/scipy/
+Project-URL: source, https://github.com/scipy/scipy
+Project-URL: download, https://github.com/scipy/scipy/releases
+Project-URL: tracker, https://github.com/scipy/scipy/issues
 Platform: Windows
 Platform: Linux
 Platform: Solaris
@@ -25,26 +254,123 @@ Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
-Classifier: Topic :: Software Development
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Scientific/Engineering
 Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX :: Linux
 Classifier: Operating System :: POSIX
 Classifier: Operating System :: Unix
 Classifier: Operating System :: MacOS
 Requires-Python: >=3.7,<3.11
+Description-Content-Type: text/x-rst
 License-File: LICENSE.txt
 Requires-Dist: numpy (<1.25.0,>=1.16.5)
+Provides-Extra: dev
+Requires-Dist: mypy ; extra == 'dev'
+Requires-Dist: typing-extensions ; extra == 'dev'
+Requires-Dist: pycodestyle ; extra == 'dev'
+Requires-Dist: flake8 ; extra == 'dev'
+Provides-Extra: doc
+Requires-Dist: sphinx (!=3.1.0,!=4.1.0) ; extra == 'doc'
+Requires-Dist: pydata-sphinx-theme (>=0.6.1) ; extra == 'doc'
+Requires-Dist: sphinx-panels (>=0.5.2) ; extra == 'doc'
+Requires-Dist: matplotlib (>2) ; extra == 'doc'
+Requires-Dist: numpydoc (==1.1.0) ; extra == 'doc'
+Provides-Extra: test
+Requires-Dist: pytest ; extra == 'test'
+Requires-Dist: pytest-cov ; extra == 'test'
+Requires-Dist: pytest-xdist ; extra == 'test'
+Requires-Dist: asv ; extra == 'test'
+Requires-Dist: mpmath ; extra == 'test'
+Requires-Dist: gmpy2 ; extra == 'test'
+Requires-Dist: scikit-umfpack ; extra == 'test'
 
-SciPy (pronounced "Sigh Pie") is open-source software for mathematics,
-science, and engineering. The SciPy library
-depends on NumPy, which provides convenient and fast N-dimensional
-array manipulation. The SciPy library is built to work with NumPy
-arrays, and provides many user-friendly and efficient numerical
-routines such as routines for numerical integration and optimization.
-Together, they run on all popular operating systems, are quick to
-install, and are free of charge.  NumPy and SciPy are easy to use,
-but powerful enough to be depended upon by some of the world's
-leading scientists and engineers. If you need to manipulate
-numbers on a computer and display or publish the results,
-give SciPy a try!
+.. raw:: html
 
+    <p>
+      <h1>
+        <a href="https://docs.scipy.org/doc/scipy/reference/"><img valign="middle" src="doc/source/_static/scipyshiny_small.png" height="50" height="50" alt="SciPy logo"/></a>
+        SciPy
+      </h1>
+    </p>
+
+.. image:: https://img.shields.io/circleci/project/github/scipy/scipy/master.svg?label=CircleCI
+  :target: https://circleci.com/gh/scipy/scipy
+
+.. image:: https://dev.azure.com/scipy-org/SciPy/_apis/build/status/scipy.scipy?branchName=master
+  :target: https://dev.azure.com/scipy-org/SciPy/_build/latest?definitionId=1?branchName=master
+
+.. image:: https://github.com/scipy/scipy/workflows/macOS%20tests/badge.svg?branch=master
+  :target: https://github.com/scipy/scipy/actions?query=workflow%3A%22macOS+tests%22
+
+.. image:: https://img.shields.io/pypi/dm/scipy.svg?label=Pypi%20downloads
+  :target: https://pypi.org/project/scipy/
+
+.. image:: https://img.shields.io/conda/dn/conda-forge/scipy.svg?label=Conda%20downloads
+  :target: https://anaconda.org/conda-forge/scipy
+
+.. image:: https://codecov.io/gh/scipy/scipy/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/scipy/scipy
+
+.. image:: https://img.shields.io/badge/stackoverflow-Ask%20questions-blue.svg
+  :target: https://stackoverflow.com/questions/tagged/scipy
+
+.. image:: https://img.shields.io/badge/DOI-10.1038%2Fs41592--019--0686--2-blue
+  :target: https://www.nature.com/articles/s41592-019-0686-2
+
+SciPy (pronounced "Sigh Pie") is an open-source software for mathematics,
+science, and engineering. It includes modules for statistics, optimization,
+integration, linear algebra, Fourier transforms, signal and image processing,
+ODE solvers, and more.
+
+- **Website:** https://docs.scipy.org/doc/scipy/reference/
+- **Documentation:** https://docs.scipy.org/
+- **Mailing list:** https://scipy.org/scipylib/mailing-lists.html
+- **Source code:** https://github.com/scipy/scipy
+- **Contributing:** https://scipy.github.io/devdocs/dev/index.html
+- **Bug reports:** https://github.com/scipy/scipy/issues
+- **Code of Conduct:** https://scipy.github.io/devdocs/dev/conduct/code_of_conduct.html
+- **Report a security vulnerability:** https://tidelift.com/docs/security
+- **Citing in your work:** https://www.scipy.org/citing.html
+
+SciPy is built to work with
+NumPy arrays, and provides many user-friendly and efficient numerical routines,
+such as routines for numerical integration and optimization. Together, they
+run on all popular operating systems, are quick to install, and are free of
+charge. NumPy and SciPy are easy to use, but powerful enough to be depended
+upon by some of the world's leading scientists and engineers. If you need to
+manipulate numbers on a computer and display or publish the results, give
+SciPy a try!
+
+For the installation instructions, see `our install
+guide <https://scipy.github.io/devdocs/getting_started.html#installation>`__.
+
+
+Call for Contributions
+----------------------
+
+We appreciate and welcome contributions. Small improvements or fixes are always appreciated; issues labeled as "good
+first issue" may be a good starting point. Have a look at `our contributing
+guide <http://scipy.github.io/devdocs/dev/hacking.html>`__.
+
+Writing code isn’t the only way to contribute to SciPy. You can also:
+
+- review pull requests
+- triage issues
+- develop tutorials, presentations, and other educational materials
+- maintain and improve `our website <https://github.com/scipy/scipy.org>`__
+- develop graphic design for our brand assets and promotional materials
+- help with outreach and onboard new contributors
+- write grant proposals and help with other fundraising efforts
+
+If you’re unsure where to start or how your skills fit in, reach out! You can
+ask on the mailing list or here, on GitHub, by leaving a
+comment on a relevant issue that is already open.
+
+If you are new to contributing to open source, `this
+guide <https://opensource.guide/how-to-contribute/>`__ helps explain why, what,
+and how to get involved.
+
+.. image:: https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A
+  :target: https://numfocus.org

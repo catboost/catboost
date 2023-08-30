@@ -28,8 +28,26 @@ cdef extern from "_ufuncs_cxx_defs.h":
     cdef double complex _func_faddeeva_erfi_complex "faddeeva_erfi_complex"(double complex) nogil
 cdef void *_export_faddeeva_erfi_complex = <void*>_func_faddeeva_erfi_complex
 cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double _func_expit "expit"(double) nogil
+cdef void *_export_expit = <void*>_func_expit
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef float _func_expitf "expitf"(float) nogil
+cdef void *_export_expitf = <void*>_func_expitf
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef long double _func_expitl "expitl"(long double) nogil
+cdef void *_export_expitl = <void*>_func_expitl
+cdef extern from "_ufuncs_cxx_defs.h":
     cdef double complex _func_faddeeva_log_ndtr "faddeeva_log_ndtr"(double complex) nogil
 cdef void *_export_faddeeva_log_ndtr = <void*>_func_faddeeva_log_ndtr
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double _func_logit "logit"(double) nogil
+cdef void *_export_logit = <void*>_func_logit
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef float _func_logitf "logitf"(float) nogil
+cdef void *_export_logitf = <void*>_func_logitf
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef long double _func_logitl "logitl"(long double) nogil
+cdef void *_export_logitl = <void*>_func_logitl
 cdef extern from "_ufuncs_cxx_defs.h":
     cdef double complex _func_faddeeva_ndtr "faddeeva_ndtr"(double complex) nogil
 cdef void *_export_faddeeva_ndtr = <void*>_func_faddeeva_ndtr

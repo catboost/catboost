@@ -56,7 +56,13 @@ Utility tools
  __numpy_version__ --- Numpy version string
 
 """
-__all__ = ['test']
+
+
+def __dir__():
+    return ['test']
+
+
+__all__ = __dir__()
 
 from numpy import show_config as show_numpy_config
 if show_numpy_config is None:
@@ -130,13 +136,16 @@ else:
     from . import _distributor_init
 
     from scipy._lib import _pep440
+    # In maintenance branch, change to np_maxversion N+3 if numpy is at N
+    # See setup.py for more details
     np_minversion = '1.16.5'
     np_maxversion = '1.25.0'
     if (_pep440.parse(__numpy_version__) < _pep440.Version(np_minversion) or
             _pep440.parse(__numpy_version__) >= _pep440.Version(np_maxversion)):
         import warnings
-        warnings.warn(f"A NumPy version >={np_minversion} and <{np_maxversion} is required for this version of "
-                      f"SciPy (detected version {__numpy_version__})",
+        warnings.warn(f"A NumPy version >={np_minversion} and <{np_maxversion}"
+                      f" is required for this version of SciPy (detected "
+                      f"version {__numpy_version__}",
                       UserWarning)
 
     del _pep440

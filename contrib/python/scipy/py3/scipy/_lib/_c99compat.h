@@ -10,7 +10,7 @@
     #define SCIPY_C99_COMPAT
     #include <float.h>
 
-    #if defined(_MSC_VER) && _MSC_VER <= 1600
+    #if defined(_MSC_VER) && _MSC_VER <= 1600 && !defined(__cplusplus)
             /* MSVC 2008 and MSVC 2010 */
             #ifndef isnan
                 #define isnan(x) _isnan((x))
@@ -116,7 +116,7 @@
             #endif
     #endif
 
-    #if (__STDC_VERSION__ < 199901L)
+    #if (__STDC_VERSION__ < 199901L) && !defined(__cplusplus)
         /* Hopefully fail in fewer cases */
 
         /* For compilers which aren't MSVC and haven't defined isnan */
