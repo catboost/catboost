@@ -145,6 +145,12 @@ public:
         return *this;
     }
 
+    inline THttpServerOptions& SetListenerThreads(ui32 val) {
+        nListenerThreads = val;
+
+        return *this;
+    }
+
     struct TAddr {
         TString Addr;
         ui16 Port;
@@ -182,4 +188,5 @@ public:
     TString FailRequestsThreadName = "HttpServer";
 
     bool OneShotPoll = false;
+    ui32 nListenerThreads = 1;
 };
