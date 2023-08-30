@@ -179,10 +179,6 @@ namespace NJson {
         /// Non-robust comparison.
         bool operator==(const TJsonValue& rhs) const;
 
-        bool operator!=(const TJsonValue& rhs) const {
-            return !(*this == rhs);
-        }
-
         void Swap(TJsonValue& rhs) noexcept;
 
         // save using util/ysaveload.h serialization (not to JSON stream)

@@ -7,6 +7,13 @@
 using namespace NJson;
 
 Y_UNIT_TEST_SUITE(TJsonValueTest) {
+    Y_UNIT_TEST(Equal) {
+         UNIT_ASSERT(1 == TJsonValue(1));
+         UNIT_ASSERT(TJsonValue(1) == 1);
+         UNIT_ASSERT(2 != TJsonValue(1));
+         UNIT_ASSERT(TJsonValue(1) != 2);
+    }
+
     Y_UNIT_TEST(UndefTest) {
         TJsonValue undef;
         TJsonValue null(JSON_NULL);
