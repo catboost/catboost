@@ -1,0 +1,25 @@
+40.42866791	{publisher} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+17.68206671	{publisher} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+13.73919016	{rating} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+9.70478034	{rating} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+5.166900714	date
+3.393154965	{rating} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+2.420747507	{embedding_genre} local_id=0 calcer_type=KNN
+1.771026712	{embedding_review} local_id=0 calcer_type=LDA
+1.190839722	{embedding_synopsis} local_id=0 calcer_type=LDA
+1.088166123	dvd_date
+0.8936515172	mpaa_film_rating
+0.7398567673	theater_date
+0.3494751978	{embedding_review} local_id=1 calcer_type=KNN
+0.2673522083	{publisher} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.2609494992	{embedding_genre} local_id=1 calcer_type=KNN
+0.2487911617	{director} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+0.180167006	{embedding_genre} local_id=0 calcer_type=LDA
+0.1543553349	{embedding_review} local_id=0 calcer_type=KNN
+0.1413824976	{writer} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.05613997981	{writer} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.04268303227	{embedding_synopsis} local_id=0 calcer_type=KNN
+0.03603881213	{writer} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.03523938489	9
+0.00837674656	{rating} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0	{embedding_synopsis} local_id=1 calcer_type=KNN
