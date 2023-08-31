@@ -2,11 +2,16 @@
 
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/loss_description.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
+
+
+struct TModelEstimatedFeature;
+
 
 TVector<double> CollectLeavesStatistics(
     const NCB::TDataProvider& dataset,
@@ -25,3 +30,7 @@ TVector<int> GetBinFeatureCombinationClassByDepth(
     size_t treeIdx
 );
 
+EFeatureCalcerType GetEstimatedFeatureCalcerType(
+    const TFullModel& model,
+    const TModelEstimatedFeature& estimatedFeature
+);

@@ -55,7 +55,7 @@ TCombinationClassFeatures GetCombinationClassFeatures(const TFullModel& model) {
         };
         featuresCombinations.back().second = TFeature(
             estimatedFeature.ModelEstimatedFeature,
-            model.TextProcessingCollection->GetCalcer(estimatedFeature.ModelEstimatedFeature.CalcerId)->Type()
+            GetEstimatedFeatureCalcerType(model, estimatedFeature.ModelEstimatedFeature)
         );
     }
     TVector<int> sortedBinFeatures(featuresCombinations.size());

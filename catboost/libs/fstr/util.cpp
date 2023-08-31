@@ -5,6 +5,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/model/cpu/evaluator.h>
+#include <catboost/libs/model/model_estimated_features.h>
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/target/data_providers.h>
 
@@ -140,3 +141,17 @@ TVector<int> GetBinFeatureCombinationClassByDepth(
     return binFeatureCombinationClassByDepth;
 }
 
+EFeatureCalcerType GetEstimatedFeatureCalcerType(
+    const TFullModel& model,
+    const TModelEstimatedFeature& estimatedFeature
+) {
+    if (estimatedFeature.SourceFeatureType == EEstimatedSourceFeatureType::Text) {
+        return model.TextProcessingCollection->GetCalcer(estimatedFeature.CalcerId)->Type();
+    } else {
+        CB_ENSURE_INTERNAL(
+            estimatedFeature.SourceFeatureType == EEstimatedSourceFeatureType::Embedding,
+            "Unexpected EEstimatedSourceFeatureType: " << estimatedFeature.SourceFeatureType
+        );
+        return model.EmbeddingProcessingCollection->GetCalcer(estimatedFeature.CalcerId)->Type();
+    }
+}
