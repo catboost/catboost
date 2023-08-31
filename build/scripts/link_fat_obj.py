@@ -67,7 +67,7 @@ def main():
     linker = groups['linker']
     archiver = groups['archiver']
 
-    do_link = linker + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles'] + global_srcs + auto_input
+    do_link = linker + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles', '-Wl,-no-pie'] + global_srcs + auto_input
     do_archive = archiver + [lib_output] + peers
     do_globals = None
     if args.globals_lib:
