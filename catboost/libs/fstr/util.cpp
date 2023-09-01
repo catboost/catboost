@@ -5,6 +5,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/model/cpu/evaluator.h>
+#include <catboost/libs/model/model.h>
 #include <catboost/libs/model/model_estimated_features.h>
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/target/data_providers.h>

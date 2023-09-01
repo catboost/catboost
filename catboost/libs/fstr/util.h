@@ -1,16 +1,22 @@
 #pragma once
 
 #include <catboost/libs/data/data_provider.h>
-#include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/enums.h>
-#include <catboost/private/libs/options/loss_description.h>
-
-#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 
 
+namespace NPar {
+    class ILocalExecutor;
+}
+
+class TFullModel;
 struct TModelEstimatedFeature;
+struct TModelTrees;
+
+namespace NCatboostOptions {
+    class TLossDescription;
+}
 
 
 TVector<double> CollectLeavesStatistics(
