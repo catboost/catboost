@@ -36,6 +36,10 @@ public:
         GzipAllowMultipleStreams_ = allow;
     }
 
+    inline void DisableDecodeContent() noexcept {
+        DecodeContent_ = false;
+    }
+
     /// @return true on end parsing (GetExtraDataSize() return amount not used bytes)
     /// throw exception on bad http format (unsupported encoding, etc)
     /// sz == 0 signaling end of input stream
@@ -132,6 +136,7 @@ private:
     TMessageType MessageType_ = Response;
     bool CollectHeaders_ = true;
     bool GzipAllowMultipleStreams_ = true;
+    bool DecodeContent_ = true;
 
     // parsed data
     const char* Data_ = nullptr;

@@ -336,6 +336,18 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             TString msg = MakeEncodedResponse("br", brTestLine);
             UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
         }
+        {
+            // test disable decode content
+            THttpParser p(THttpParser::Response);
+            p.DisableDecodeContent();
+            TString gzipTestLine(
+                "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
+                "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09\x00\x00\x00"sv);
+            TString msg = MakeEncodedResponse("gzip", gzipTestLine);
+            UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
+            UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), "");
+            UNIT_ASSERT_VALUES_EQUAL(p.Content(), gzipTestLine);
+        }
     }
 
     Y_UNIT_TEST(TParsingMultilineHeaders) {
