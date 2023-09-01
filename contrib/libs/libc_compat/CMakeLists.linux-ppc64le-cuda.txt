@@ -18,6 +18,7 @@ target_include_directories(contrib-libs-libc_compat PUBLIC
 )
 target_link_libraries(contrib-libs-libc_compat PUBLIC
   contrib-libs-linux-headers
+  cpp-sanitizer-include
 )
 target_sources(contrib-libs-libc_compat PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/string.c
