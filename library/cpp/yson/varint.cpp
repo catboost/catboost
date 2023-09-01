@@ -41,7 +41,7 @@ namespace NYson {
                 ythrow yexception() << "The data is too long to read ui64";
             }
             if (input->Read(&byte, 1) != 1) {
-                ythrow yexception() << "The data is too long to read ui64";
+                ythrow yexception() << "The data is too short to read ui64";
             }
             result |= (static_cast<ui64>(byte & 0x7F)) << (7 * count);
             ++count;
@@ -55,7 +55,7 @@ namespace NYson {
         ui64 varInt;
         int bytesRead = ReadVarUInt64(input, &varInt);
         if (varInt > Max<ui32>()) {
-            ythrow yexception() << "The data is too long to read ui64";
+            ythrow yexception() << "The data is too long to read i32";
         }
         *value = ZigZagDecode32(static_cast<ui32>(varInt));
         return bytesRead;
