@@ -841,6 +841,9 @@ def backtrace_to_html(bt_filename, output):
     try:
         from library.python import coredump_filter
 
+        # XXX reduce noise from core_dumpfilter
+        logging.getLogger("sandbox.sdk2.helpers.coredump_filter").setLevel(logging.ERROR)
+
         with open(output, "w") as afile:
             coredump_filter.filter_stackdump(bt_filename, stream=afile)
     except ImportError as e:
