@@ -1,5 +1,7 @@
 #include "utils.h"
 
+#include "model.h"
+
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 

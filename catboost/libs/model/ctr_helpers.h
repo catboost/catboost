@@ -1,6 +1,13 @@
 #pragma once
 
-#include <catboost/libs/model/model.h>
+#include "online_ctr.h"
+
+#include <util/generic/array_ref.h>
+#include <util/generic/vector.h>
+
+
+struct TFeatureCombination;
+
 
 namespace NCB {
     struct TCompressedModelCtr {

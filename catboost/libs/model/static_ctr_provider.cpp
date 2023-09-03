@@ -1,7 +1,9 @@
 #include "static_ctr_provider.h"
 
 #include "ctr_helpers.h"
+#include "model.h"
 
+#include <util/generic/hash_set.h>
 #include <util/generic/xrange.h>
 #include <util/string/cast.h>
 
