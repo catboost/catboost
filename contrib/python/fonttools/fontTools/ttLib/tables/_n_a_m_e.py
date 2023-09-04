@@ -258,7 +258,9 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
             raise ValueError("nameID must be less than 32768")
         return nameID
 
-    def findMultilingualName(self, names, windows=True, mac=True, minNameID=0):
+    def findMultilingualName(
+        self, names, windows=True, mac=True, minNameID=0, ttFont=None
+    ):
         """Return the name ID of an existing multilingual name that
         matches the 'names' dictionary, or None if not found.
 
@@ -293,7 +295,7 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
                         )
                     )
             if mac:
-                macName = _makeMacName(name, None, lang)
+                macName = _makeMacName(name, None, lang, ttFont)
                 if macName is not None:
                     reqNameSet.add(
                         (
@@ -352,7 +354,7 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
         if nameID is None:
             # Reuse nameID if possible
             nameID = self.findMultilingualName(
-                names, windows=windows, mac=mac, minNameID=minNameID
+                names, windows=windows, mac=mac, minNameID=minNameID, ttFont=ttFont
             )
             if nameID is not None:
                 return nameID

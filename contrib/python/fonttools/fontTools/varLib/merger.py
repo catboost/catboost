@@ -936,6 +936,15 @@ def merge(merger, self, lst):
     self.EntryExitCount = len(self.EntryExitRecord)
 
 
+@AligningMerger.merger(ot.EntryExitRecord)
+def merge(merger, self, lst):
+    if all(master.EntryAnchor is None for master in lst):
+        self.EntryAnchor = None
+    if all(master.ExitAnchor is None for master in lst):
+        self.ExitAnchor = None
+    merger.mergeObjects(self, lst)
+
+
 @AligningMerger.merger(ot.Lookup)
 def merge(merger, self, lst):
     subtables = merger.lookup_subtables = [l.SubTable for l in lst]

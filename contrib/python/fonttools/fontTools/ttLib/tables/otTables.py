@@ -1532,7 +1532,7 @@ class CompositeMode(IntEnum):
 class PaintFormat(IntEnum):
     PaintColrLayers = 1
     PaintSolid = 2
-    PaintVarSolid = (3,)
+    PaintVarSolid = 3
     PaintLinearGradient = 4
     PaintVarLinearGradient = 5
     PaintRadialGradient = 6

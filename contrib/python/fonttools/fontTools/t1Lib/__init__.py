@@ -1,4 +1,4 @@
-"""fontTools.t1Lib.py -- Tools for PostScript Type 1 fonts (Python2 only)
+"""fontTools.t1Lib.py -- Tools for PostScript Type 1 fonts.
 
 Functions for reading and writing raw Type 1 data:
 
@@ -170,8 +170,13 @@ class T1Font(object):
 
         # '-|', '|-', '|'
         RD_key, ND_key, NP_key = None, None, None
+        lenIV = 4
+        subrs = std_subrs
 
-        for key, value in eexec_dict.items():
+        # Ensure we look at Private first, because we need RD_key, ND_key, NP_key and lenIV
+        sortedItems = sorted(eexec_dict.items(), key=lambda item: item[0] != "Private")
+
+        for key, value in sortedItems:
             if key == "Private":
                 pr = eexec_dict["Private"]
                 # follow t1write.c:writePrivateDict
@@ -183,20 +188,25 @@ class T1Font(object):
                 for subkey, subvalue in pr.items():
                     if not RD_key and subvalue == RD_value:
                         RD_key = subkey
-                    elif not ND_key and subvalue == ND_value:
+                    elif not ND_key and subvalue in ND_values:
                         ND_key = subkey
-                    elif not NP_key and subvalue == PD_value:
+                    elif not NP_key and subvalue in PD_values:
                         NP_key = subkey
+
+                    if subkey == "lenIV":
+                        lenIV = subvalue
 
                     if subkey == "OtherSubrs":
                         # XXX: assert that no flex hint is used
                         lines.append(self._tobytes(hintothers))
                     elif subkey == "Subrs":
-                        # XXX: standard Subrs only
-                        lines.append(b"/Subrs 5 array")
-                        for i, subr_bin in enumerate(std_subrs):
+                        for subr_bin in subvalue:
+                            subr_bin.compile()
+                        subrs = [subr_bin.bytecode for subr_bin in subvalue]
+                        lines.append(f"/Subrs {len(subrs)} array".encode("ascii"))
+                        for i, subr_bin in enumerate(subrs):
                             encrypted_subr, R = eexec.encrypt(
-                                bytesjoin([char_IV, subr_bin]), 4330
+                                bytesjoin([char_IV[:lenIV], subr_bin]), 4330
                             )
                             lines.append(
                                 bytesjoin(
@@ -222,7 +232,7 @@ class T1Font(object):
                 for glyph_name, char_bin in eexec_dict["CharStrings"].items():
                     char_bin.compile()
                     encrypted_char, R = eexec.encrypt(
-                        bytesjoin([char_IV, char_bin.bytecode]), 4330
+                        bytesjoin([char_IV[:lenIV], char_bin.bytecode]), 4330
                     )
                     lines.append(
                         bytesjoin(
@@ -634,5 +644,5 @@ std_subrs = [
 eexec_IV = b"cccc"
 char_IV = b"\x0c\x0c\x0c\x0c"
 RD_value = ("string", "currentfile", "exch", "readstring", "pop")
-ND_value = ("def",)
-PD_value = ("put",)
+ND_values = [("def",), ("noaccess", "def")]
+PD_values = [("put",), ("noaccess", "put")]
