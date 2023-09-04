@@ -782,11 +782,15 @@ class _EditableFinder:  # MetaPathFinder
             pkg_path = MAPPING[fullname]
             return cls._find_spec(fullname, Path(pkg_path))
 
-        # Nested modules (apparently required for namespaces to work)
-        for pkg, pkg_path in reversed(list(MAPPING.items())):
-            if fullname.startswith(f"{{pkg}}."):
-                return cls._find_nested_spec(fullname, pkg, pkg_path)
+        # Handle immediate children modules (required for namespaces to work)
+        # To avoid problems with case sensitivity in the file system we delegate
+        # to the importlib.machinery implementation.
+        parent, _, child = fullname.rpartition(".")
+        if parent and parent in MAPPING:
+            return PathFinder.find_spec(fullname, path=[MAPPING[parent]])
 
+        # Other levels of nesting should be handled automatically by importlib
+        # using the parent path.
         return None
 
     @classmethod
@@ -796,20 +800,6 @@ class _EditableFinder:  # MetaPathFinder
         for candidate in chain([init], candidates):
             if candidate.exists():
                 return spec_from_file_location(fullname, candidate)
-
-    @classmethod
-    def _find_nested_spec(cls, fullname, parent, parent_path):
-        '''
-        To avoid problems with case sensitivity in the file system we delegate to the
-        importlib.machinery implementation.
-        '''
-        rest = fullname.replace(parent, "", 1).strip(".")
-        nested = PathFinder.find_spec(rest, path=[parent_path])
-        return nested and spec_from_file_location(
-            fullname,
-            nested.origin,
-            submodule_search_locations=nested.submodule_search_locations
-        )
 
 
 class _EditableNamespaceFinder:  # PathEntryFinder

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 68.1.0
+Version: 68.1.2
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -21,7 +21,7 @@ Requires-Python: >=3.8
 License-File: LICENSE
 Provides-Extra: certs
 Provides-Extra: docs
-Requires-Dist: sphinx >=3.5 ; extra == 'docs'
+Requires-Dist: sphinx <=7.1.2,>=3.5 ; extra == 'docs'
 Requires-Dist: jaraco.packaging >=9.3 ; extra == 'docs'
 Requires-Dist: rst.linker >=1.9 ; extra == 'docs'
 Requires-Dist: furo ; extra == 'docs'
