@@ -126,22 +126,25 @@ Y_UNIT_TEST_SUITE(Neh) {
 
         //check receiving responses
         for (size_t i = 0; i < svsInfo.size(); ++i) {
-            TResponseRef res = Request(TMessage(svsInfo[i].Addr.Str(), request))->Wait(TDuration::Seconds(3));
-            UNIT_ASSERT_C(!!res, svsInfo[i].Addr.Str());
-            UNIT_ASSERT_C(!res->IsError(), svsInfo[i].Addr.Str() + ": " + res->GetErrorText());
-            UNIT_ASSERT_VALUES_EQUAL(res->Data, response);
+            // check connection limits and other state-depended checks
+            for (size_t j = 0; j < 32; ++j) {
+                TResponseRef res = Request(TMessage(svsInfo[i].Addr.Str(), request))->Wait(TDuration::Seconds(3));
+                UNIT_ASSERT_C(!!res, svsInfo[i].Addr.Str());
+                UNIT_ASSERT_C(!res->IsError(), svsInfo[i].Addr.Str() + ": " + res->GetErrorText());
+                UNIT_ASSERT_VALUES_EQUAL(res->Data, response);
 
-            if (svsInfo[i].Protocol == "http") {
-                UNIT_ASSERT(res->Headers.Count());
-                THashSet<TStringBuf> requiredHeaders = {
-                    "Content-Length",
-                    "Connection",
-                };
-                for (const auto& header : res->Headers) {
-                    requiredHeaders.erase(header.Name());
-                    Cdbg << header.Name() << Endl;
+                if (svsInfo[i].Protocol == "http") {
+                    UNIT_ASSERT(res->Headers.Count());
+                    THashSet<TStringBuf> requiredHeaders = {
+                        "Content-Length",
+                        "Connection",
+                    };
+                    for (const auto& header : res->Headers) {
+                        requiredHeaders.erase(header.Name());
+                        Cdbg << header.Name() << Endl;
+                    }
+                    UNIT_ASSERT(requiredHeaders.empty());
                 }
-                UNIT_ASSERT(requiredHeaders.empty());
             }
         }
 
