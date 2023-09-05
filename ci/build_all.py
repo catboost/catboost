@@ -200,6 +200,14 @@ def build_r_package(src_root_dir: str, build_native_root_dir: str, platform_name
     else:
         distutils.file_util.copy_file(full_src, full_dst, verbose=verbose, dry_run=dry_run)
 
+    # some R versions on macOS use 'dylib' extension
+    if system == 'darwin':
+        full_dst = os.path.join(binary_dst_dir, 'libcatboostr.dylib')
+        if dry_run:
+            logging.info(f'making a symlink {dst} -> {full_dst}')
+        else:
+            os.symlink(dst, full_dst)
+
     r_package_file_name = f'catboost-R-{platform_name}.tgz'
     logging.info(f'creating {r_package_file_name}')
     if not dry_run:
