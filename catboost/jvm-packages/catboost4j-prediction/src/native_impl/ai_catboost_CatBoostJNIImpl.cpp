@@ -269,9 +269,6 @@ static void GetEmbeddingFeatures(
         // `_jobject` is not a polymorphic type
         const auto jembeddingFeature = (jfloatArray)jenv->GetObjectArrayElement(jembeddingFeatures, i);
         CB_ENSURE(jenv->IsSameObject(jembeddingFeature, NULL) == JNI_FALSE, "got null array element");
-        Y_SCOPE_EXIT(jenv, jembeddingFeature) {
-            jenv->DeleteLocalRef(jembeddingFeature);
-        };
         embeddingFeaturesStorage->push_back(TJVMFloatArrayAsArrayRef(jenv, jembeddingFeature));
         embeddingFeatures->push_back(embeddingFeaturesStorage->back().Get());
     }
