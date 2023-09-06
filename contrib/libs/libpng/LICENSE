@@ -3,15 +3,15 @@ COPYRIGHT NOTICE, DISCLAIMER, and LICENSE
 
 This modified version of libpng code adds animated PNG support and is
 released under the libpng license described below. The modifications are
-Copyright (c) 2006-2007 Andrew Smith, Copyright (c) 2008-2019 Max Stepin,
+Copyright (c) 2006-2007 Andrew Smith, Copyright (c) 2008-2023 Max Stepin,
 and are delimited by "#ifdef PNG_APNG_SUPPORTED / #endif" directives
 surrounding them in the modified libpng source files.
 
 PNG Reference Library License version 2
 ---------------------------------------
 
- * Copyright (c) 1995-2022 The PNG Reference Library Authors.
- * Copyright (c) 2018-2022 Cosmin Truta.
+ * Copyright (c) 1995-2023 The PNG Reference Library Authors.
+ * Copyright (c) 2018-2023 Cosmin Truta.
  * Copyright (c) 2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson.
  * Copyright (c) 1996-1997 Andreas Dilger.
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.

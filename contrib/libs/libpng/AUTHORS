@@ -22,6 +22,7 @@ Authors, for copyright and licensing purposes.
  * Mike Klein
  * Pascal Massimino
  * Paul Schmidt
+ * Philippe Antoine
  * Qiang Zhou
  * Sam Bushell
  * Samuel Williams
@@ -35,10 +36,12 @@ Authors, for copyright and licensing purposes.
  * Arm Holdings
    - Richard Townsend
  * Google Inc.
+   - Dan Field
+   - Leon Scroggins III
    - Matt Sarett
    - Mike Klein
-   - Dan Field
    - Sami Boukortt
+   - Wan-Teh Chang
 
 The build projects, the build scripts, the test scripts, and other
 files in the "ci", "projects", "scripts" and "tests" directories, have
