@@ -6,7 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-find_package(ZLIB REQUIRED)
 
 add_library(contrib-libs-libxml)
 target_compile_options(contrib-libs-libxml PUBLIC
@@ -26,7 +25,7 @@ target_link_libraries(contrib-libs-libxml PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  ZLIB::ZLIB
+  contrib-libs-zlib
   library-cpp-charset
 )
 target_sources(contrib-libs-libxml PRIVATE

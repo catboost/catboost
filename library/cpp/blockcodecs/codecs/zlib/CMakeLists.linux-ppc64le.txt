@@ -6,14 +6,13 @@
 # original buildsystem will not be accepted.
 
 
-find_package(ZLIB REQUIRED)
 
 add_library(blockcodecs-codecs-zlib INTERFACE)
 target_link_libraries(blockcodecs-codecs-zlib INTERFACE
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  ZLIB::ZLIB
+  contrib-libs-zlib
   cpp-blockcodecs-core
 )
 
@@ -22,7 +21,7 @@ target_link_libraries(blockcodecs-codecs-zlib.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  ZLIB::ZLIB
+  contrib-libs-zlib
   cpp-blockcodecs-core
 )
 target_sources(blockcodecs-codecs-zlib.global PRIVATE

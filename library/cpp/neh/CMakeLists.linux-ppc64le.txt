@@ -6,7 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-find_package(OpenSSL REQUIRED)
 add_subdirectory(asio)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -20,7 +19,7 @@ target_link_libraries(library-cpp-neh PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  OpenSSL::OpenSSL
+  contrib-libs-openssl
   cpp-containers-intrusive_rb_tree
   cpp-coroutine-engine
   cpp-coroutine-listener
