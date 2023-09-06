@@ -48,7 +48,6 @@ target_sources(libs-flatbuffers-flatc PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_json_schema.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_kotlin.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_lobster.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_lua.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_php.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_python.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_rust.cpp

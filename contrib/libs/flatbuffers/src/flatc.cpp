@@ -866,8 +866,11 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
 
         // Prefer bfbs generators if present.
         if (code_generator->SupportsBfbsGeneration()) {
-          const CodeGenerator::Status status =
-              code_generator->GenerateCode(bfbs_buffer, bfbs_length);
+          CodeGenOptions code_gen_options;
+          code_gen_options.output_path = options.output_path;
+
+          const CodeGenerator::Status status = code_generator->GenerateCode(
+              bfbs_buffer, bfbs_length, code_gen_options);
           if (status != CodeGenerator::Status::OK) {
             Error("Unable to generate " + code_generator->LanguageName() +
                   " for " + filebase + code_generator->status_detail +
@@ -968,7 +971,7 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
     return 0;
   }
 
-  if (options.generators.empty()) {
+  if (options.generators.empty() && options.conform_to_schema.empty()) {
     Error("No generator registered");
     return -1;
   }

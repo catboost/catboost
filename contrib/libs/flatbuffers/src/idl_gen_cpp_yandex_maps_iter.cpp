@@ -748,9 +748,11 @@ class CppIterCodeGenerator : public CodeGenerator {
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *buffer, int64_t length) override {
-    (void)buffer;
-    (void)length;
+  Status GenerateCode(
+  	const uint8_t* /* buffer */, 
+	int64_t /* length */,
+	const CodeGenOptions& /* options */
+  ) override {
     return Status::NOT_IMPLEMENTED;
   }
 
