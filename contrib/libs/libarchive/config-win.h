@@ -1,0 +1,121 @@
+#include "config-linux.h"
+
+#define HAVE___INT64
+#define HAVE_UNSIGNED___INT64
+
+#undef SIZEOF_LONG
+#define SIZEOF_LONG 4
+
+#undef SIZEOF_UNSIGNED_LONG
+#define SIZEOF_UNSIGNED_LONG 4
+
+#define ARCHIVE_CRYPTO_MD5_WIN 1
+#define ARCHIVE_CRYPTO_SHA1_WIN 1
+#define ARCHIVE_CRYPTO_SHA256_WIN 1
+#define ARCHIVE_CRYPTO_SHA384_WIN 1
+#define ARCHIVE_CRYPTO_SHA512_WIN 1
+
+#define HAVE_BCRYPT_H 1
+#define HAVE_DIRECT_H 1
+#define HAVE__GET_TIMEZONE 1 
+#define HAVE_IO_H 1
+#define HAVE_PROCESS_H 1
+#define HAVE_SYS_UTIME_H 1
+#define HAVE_WINCRYPT_H 1
+
+#undef HAVE_CHOWN
+#undef HAVE_CHROOT
+#undef HAVE_CTIME_R
+#undef HAVE_DECL_SSIZE_MAX 
+#undef HAVE_DECL_STRERROR_R
+#undef HAVE_DIRENT_H
+#undef HAVE_DIRFD
+#undef HAVE_DLFCN_H
+#undef HAVE_FCHDIR
+#undef HAVE_FCHMOD
+#undef HAVE_FCHOWN
+#undef HAVE_FCNTL
+#undef HAVE_FDOPENDIR
+#undef HAVE_FORK
+#undef HAVE_FSEEK
+#undef HAVE_FSTATAT 
+#undef HAVE_FSTATFS
+#undef HAVE_FSTATVFS
+#undef HAVE_FTRUNCATE
+#undef HAVE_FUTIMENS
+#undef HAVE_FUTIMES
+#undef HAVE_FUTIMESAT
+#undef HAVE_GETEUID
+#undef HAVE_GETGRGID_R
+#undef HAVE_GETGRNAM_R
+#undef HAVE_GETPWNAM_R
+#undef HAVE_GETPWUID_R
+#undef HAVE_GMTIME_R
+#undef HAVE_GRP_H
+#undef HAVE_LANGINFO_H
+#undef HAVE_LCHMOD
+#undef HAVE_LCHOW
+#undef HAVE_LINK
+#undef HAVE_LINUX_FIEMAP_H
+#undef HAVE_LINUX_FS_H
+#undef HAVE_LINUX_MAGIC_H
+#undef HAVE_LINUX_TYPES_H
+#undef HAVE_LOCALTIME_R 
+#undef HAVE_LSTAT
+#undef HAVE_LUTIMES
+#undef HAVE_MKFIFO
+#undef HAVE_MKNOD
+#undef HAVE_MKSTEMP
+#undef HAVE_NL_LANGINFO
+#undef HAVE_OPENAT
+#undef HAVE_PATHS_H
+#undef HAVE_PIPE
+#undef HAVE_POLL
+#undef HAVE_POLL_H
+#undef HAVE_POSIX_SPAWN
+#undef HAVE_PTHREAD_H
+#undef HAVE_PWD_H
+#undef HAVE_READDIR_R
+#undef HAVE_READLINK
+#undef HAVE_READLINKAT
+#undef HAVE_REGEX_H
+#undef HAVE_SELECT
+#undef HAVE_SETENV
+#undef HAVE_SIGACTION
+#undef HAVE_SPAWN_H
+#undef HAVE_STATFS
+#undef HAVE_STATVFS
+#undef HAVE_STRERROR_R
+#undef HAVE_STRINGS_H
+#undef HAVE_STRUCT_STAT_ST_BLKSIZE
+#undef HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC
+#undef HAVE_STRUCT_TM_TM_GMTOFF
+#undef HAVE_SYMLINK
+#undef HAVE_SYS_CDEFS_H
+#undef HAVE_SYS_IOCTL_H
+#undef HAVE_SYS_PARAM_H
+#undef HAVE_SYS_POLL_H 
+#undef HAVE_SYS_SELECT_H
+#undef HAVE_SYS_STATFS_H 
+#undef HAVE_SYS_STATVFS_H
+#undef HAVE_SYS_SYSMACROS_H
+#undef HAVE_SYS_TIME_H
+#undef HAVE_SYS_UTSNAME_H
+#undef HAVE_SYS_VFS_H
+#undef HAVE_SYS_VFS_H
+#undef HAVE_SYS_WAIT_H 
+#undef HAVE_SYS_XATTR_H
+#undef HAVE_TIMEGM
+#undef HAVE_UNISTD_H 
+#undef HAVE_UNSETENV
+#undef HAVE_UTIMENSAT
+#undef HAVE_UTIMES
+#undef HAVE_UTIME_H
+#undef MAJOR_IN_SYSMACROS
+
+typedef __int64 ssize_t;
+typedef int pid_t;
+typedef short uid_t;
+typedef short gid_t;
+typedef short id_t;
+typedef unsigned short mode_t;
