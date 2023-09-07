@@ -882,10 +882,14 @@ class TraceReportGenerator(object):
             self._test_duration[test_item.nodeid] = test_item._duration
 
     @staticmethod
-    def _get_comment(test_item):
+    def _get_comment(test_item, limit=8*1024):
         msg = yatest_lib.tools.to_utf8(test_item.error)
         if not msg:
             return ""
+
+        if len(msg) > limit:
+            msg = msg[:limit - 3] + "..."
+
         return msg + "[[rst]]"
 
     def _dump_trace(self, name, value):
