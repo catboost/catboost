@@ -143,7 +143,7 @@ if on_win():
             winerrors = (winerrors,)
 
         ei = None
-        for t in xrange(tries):
+        for t in range(tries):
             if t:
                 logger.debug('Diehard [errs %s]: try #%d in %s', ','.join(str(x) for x in winerrors), t, f)
             try:
