@@ -7,13 +7,13 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Y_WEAK extern "C" size_t nallocx(size_t size, int /*flags*/) noexcept
+extern "C" Y_WEAK size_t nallocx(size_t size, int /*flags*/) noexcept
 {
     return size;
 }
 
 #ifndef _win_
-Y_WEAK extern "C" size_t malloc_usable_size(void* /*ptr*/) noexcept
+extern "C" Y_WEAK size_t malloc_usable_size(void* /*ptr*/) noexcept
 {
     return 0;
 }
