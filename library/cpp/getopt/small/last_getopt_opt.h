@@ -4,11 +4,13 @@
 #include "last_getopt_handlers.h"
 
 #include <util/string/split.h>
+#include <util/generic/hash_set.h>
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/string/cast.h>
+#include <util/string/join.h>
 
 #include <optional>
 #include <stdarg.h>
@@ -80,6 +82,7 @@ namespace NLastGetopt {
         TdOptVal OptionalValue_;
         TdOptVal DefaultValue_;
         TOptHandlers Handlers_;
+        THashSet<TString> Choices_;
 
     public:
         /**
@@ -396,6 +399,10 @@ namespace NLastGetopt {
          */
         const TString& GetHelp() const {
             return Help_;
+        }
+
+        TString GetChoicesHelp() const {
+            return JoinSeq(", ", Choices_);
         }
 
         /**
@@ -727,6 +734,41 @@ namespace NLastGetopt {
         template <class TpFunc>
         TOpt& KVHandler(TpFunc func, const char kvdelim = '=') {
             return Handler(new NLastGetopt::TOptKVHandler<TpFunc>(func, kvdelim));
+        }
+
+        template <typename TIterator>
+        TOpt& Choices(TIterator begin, TIterator end) {
+            return Choices(THashSet<typename TIterator::value_type>{begin, end});
+        }
+
+        template <typename TValue>
+        TOpt& Choices(THashSet<TValue> choices) {
+            Choices_ = std::move(choices);
+            return Handler1T<TValue>(
+                [this] (const TValue& arg) {
+                    if (!Choices_.contains(arg)) {
+                        throw TUsageException() << " value '" << arg
+                                                << "' is not allowed for option '" << GetName() << "'";
+                    }
+                });
+        }
+
+        TOpt& Choices(TVector<TString> choices) {
+            return Choices(
+                THashSet<TString>{
+                    std::make_move_iterator(choices.begin()),
+                    std::make_move_iterator(choices.end())
+                });
+        }
+
+        TOpt& ChoicesWithCompletion(TVector<NComp::TChoice> choices) {
+            Completer(NComp::Choice(choices));
+            THashSet<TString> choicesSet;
+            choicesSet.reserve(choices.size());
+            for (const auto& choice : choices) {
+                choicesSet.insert(choice.Choice);
+            }
+            return Choices(std::move(choicesSet));
         }
     };
 

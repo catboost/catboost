@@ -427,6 +427,14 @@ namespace NLastGetopt {
                     os << Wrap(Wrap_, help, SPad + leftPadding + " ", &lastLineLength, &helpHasParagraphs);
                 }
 
+                auto choicesHelp = opt->GetChoicesHelp();
+                if (!choicesHelp.empty()) {
+                    if (help) {
+                        os << Endl << SPad << leftPadding << " ";
+                    }
+                    os << "(values: " << choicesHelp << ")";
+                }
+
                 if (opt->HasDefaultValue()) {
                     auto quotedDef = QuoteForHelp(opt->GetDefaultValue());
                     if (helpHasParagraphs) {
