@@ -3159,7 +3159,7 @@ def test_fstr_with_text_features_shap(fstr_type, boosting_type, grow_policy):
     )
 
 
-@pytest.mark.parametrize('fstr_type', ['PredictionValuesChange', 'InternalFeatureImportance', 'Interaction'])
+@pytest.mark.parametrize('fstr_type', ['PredictionValuesChange', 'InternalFeatureImportance', 'Interaction', 'ShapValues'])
 @pytest.mark.parametrize('boosting_type, grow_policy', BOOSTING_TYPE_WITH_GROW_POLICIES)
 @pytest.mark.parametrize('columns', list(ROTTEN_TOMATOES_CD.keys()))
 def test_fstr_with_embedding_features(fstr_type, boosting_type, grow_policy, columns):
