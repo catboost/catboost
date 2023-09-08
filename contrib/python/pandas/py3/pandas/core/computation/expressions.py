@@ -39,7 +39,7 @@ _ALLOWED_DTYPES = {
 _MIN_ELEMENTS = 1_000_000
 
 
-def set_use_numexpr(v=True) -> None:
+def set_use_numexpr(v: bool = True) -> None:
     # set/unset to use numexpr
     global USE_NUMEXPR
     if NUMEXPR_INSTALLED:
@@ -70,10 +70,9 @@ def _evaluate_standard(op, op_str, a, b):
     return op(a, b)
 
 
-def _can_use_numexpr(op, op_str, a, b, dtype_check):
+def _can_use_numexpr(op, op_str, a, b, dtype_check) -> bool:
     """return a boolean if we WILL be using numexpr"""
     if op_str is not None:
-
         # required min elements (otherwise we are adding overhead)
         if a.size > _MIN_ELEMENTS:
             # check for dtype compatibility
@@ -177,7 +176,6 @@ def _where_numexpr(cond, a, b):
     result = None
 
     if _can_use_numexpr(None, "where", a, b, "where"):
-
         result = ne.evaluate(
             "where(cond_value, a_value, b_value)",
             local_dict={"cond_value": cond, "a_value": a, "b_value": b},
@@ -204,7 +202,7 @@ def _has_bool_dtype(x):
 _BOOL_OP_UNSUPPORTED = {"+": "|", "*": "&", "-": "^"}
 
 
-def _bool_arith_fallback(op_str, a, b):
+def _bool_arith_fallback(op_str, a, b) -> bool:
     """
     Check if we should fallback to the python `_evaluate_standard` in case
     of an unsupported operation by numexpr, which is the case for some
@@ -242,7 +240,7 @@ def evaluate(op, a, b, use_numexpr: bool = True):
     return _evaluate_standard(op, op_str, a, b)
 
 
-def where(cond, a, b, use_numexpr=True):
+def where(cond, a, b, use_numexpr: bool = True):
     """
     Evaluate the where condition cond on a and b.
 
@@ -271,7 +269,6 @@ def set_test_mode(v: bool = True) -> None:
 
 
 def _store_test_result(used_numexpr: bool) -> None:
-    global _TEST_RESULT
     if used_numexpr:
         _TEST_RESULT.append(used_numexpr)
 

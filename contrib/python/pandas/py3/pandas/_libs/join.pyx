@@ -275,7 +275,7 @@ def left_join_indexer_unique(
     cdef:
         Py_ssize_t i, j, nleft, nright
         ndarray[intp_t] indexer
-        numeric_object_t lval, rval
+        numeric_object_t rval
 
     i = 0
     j = 0
@@ -298,7 +298,7 @@ def left_join_indexer_unique(
             indexer[i] = j
             i += 1
 
-        if left[i] == right[j]:
+        if left[i] == rval:
             indexer[i] = j
             i += 1
             while i < nleft - 1 and left[i] == rval:
@@ -324,7 +324,7 @@ def left_join_indexer(ndarray[numeric_object_t] left, ndarray[numeric_object_t] 
     is non-unique (if both were unique we'd use left_join_indexer_unique).
     """
     cdef:
-        Py_ssize_t i, j, k, nright, nleft, count
+        Py_ssize_t i, j, nright, nleft, count
         numeric_object_t lval, rval
         ndarray[intp_t] lindexer, rindexer
         ndarray[numeric_object_t] result
@@ -434,7 +434,7 @@ def inner_join_indexer(ndarray[numeric_object_t] left, ndarray[numeric_object_t]
     Both left and right are monotonic increasing but not necessarily unique.
     """
     cdef:
-        Py_ssize_t i, j, k, nright, nleft, count
+        Py_ssize_t i, j, nright, nleft, count
         numeric_object_t lval, rval
         ndarray[intp_t] lindexer, rindexer
         ndarray[numeric_object_t] result
@@ -834,10 +834,10 @@ def asof_join_forward_on_X_by_Y(numeric_t[:] left_values,
     return left_indexer, right_indexer
 
 
-def asof_join_nearest_on_X_by_Y(numeric_t[:] left_values,
-                                numeric_t[:] right_values,
-                                by_t[:] left_by_values,
-                                by_t[:] right_by_values,
+def asof_join_nearest_on_X_by_Y(ndarray[numeric_t] left_values,
+                                ndarray[numeric_t] right_values,
+                                ndarray[by_t] left_by_values,
+                                ndarray[by_t] right_by_values,
                                 bint allow_exact_matches=True,
                                 tolerance=None,
                                 bint use_hashtable=True):
@@ -850,7 +850,17 @@ def asof_join_nearest_on_X_by_Y(numeric_t[:] left_values,
         numeric_t bdiff, fdiff
 
     # search both forward and backward
-    bli, bri = asof_join_backward_on_X_by_Y(
+    # TODO(cython3):
+    # Bug in beta1 preventing Cython from choosing
+    # right specialization when one fused memview is None
+    # Doesn't matter what type we choose
+    # (nothing happens anyways since it is None)
+    # GH 51640
+    if left_by_values is not None and left_by_values.dtype != object:
+        by_dtype = f"{left_by_values.dtype}_t"
+    else:
+        by_dtype = object
+    bli, bri = asof_join_backward_on_X_by_Y[f"{left_values.dtype}_t", by_dtype](
         left_values,
         right_values,
         left_by_values,
@@ -859,7 +869,7 @@ def asof_join_nearest_on_X_by_Y(numeric_t[:] left_values,
         tolerance,
         use_hashtable
     )
-    fli, fri = asof_join_forward_on_X_by_Y(
+    fli, fri = asof_join_forward_on_X_by_Y[f"{left_values.dtype}_t", by_dtype](
         left_values,
         right_values,
         left_by_values,

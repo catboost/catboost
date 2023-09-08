@@ -94,7 +94,7 @@ groups.
 
 Parameters
 ----------
-by : mapping, function, label, or list of labels
+by : mapping, function, label, pd.Grouper or list of such
     Used to determine the groups for the groupby.
     If ``by`` is a function, it's called on each value of the object's
     index. If a dict or Series is passed, the Series or dict VALUES
@@ -119,25 +119,29 @@ sort : bool, default True
     Sort group keys. Get better performance by turning this off.
     Note this does not influence the order of observations within each
     group. Groupby preserves the order of rows within each group.
-group_keys : bool, optional
+
+    .. versionchanged:: 2.0.0
+
+        Specifying ``sort=False`` with an ordered categorical grouper will no
+        longer sort the values.
+
+group_keys : bool, default True
     When calling apply and the ``by`` argument produces a like-indexed
     (i.e. :ref:`a transform <groupby.transform>`) result, add group keys to
     index to identify pieces. By default group keys are not included
     when the result's index (and column) labels match the inputs, and
-    are included otherwise. This argument has no effect if the result produced
-    is not like-indexed with respect to the input.
+    are included otherwise.
 
     .. versionchanged:: 1.5.0
 
-       Warns that `group_keys` will no longer be ignored when the
+       Warns that ``group_keys`` will no longer be ignored when the
        result from ``apply`` is a like-indexed Series or DataFrame.
        Specify ``group_keys`` explicitly to include the group keys or
        not.
-squeeze : bool, default False
-    Reduce the dimensionality of the return type if possible,
-    otherwise return a consistent type.
 
-    .. deprecated:: 1.1.0
+    .. versionchanged:: 2.0.0
+
+       ``group_keys`` now defaults to ``True``.
 
 observed : bool, default False
     This only applies if any of the groupers are Categoricals.
@@ -443,8 +447,8 @@ _shared_docs[
     a reproducible gzip archive:
     ``compression={'method': 'gzip', 'compresslevel': 1, 'mtime': 1}``.
 
-        .. versionadded:: 1.5.0
-            Added support for `.tar` files."""
+    .. versionadded:: 1.5.0
+        Added support for `.tar` files."""
 
 _shared_docs[
     "decompression_options"
@@ -465,8 +469,8 @@ _shared_docs[
     custom compression dictionary:
     ``compression={'method': 'zstd', 'dict_data': my_compression_dict}``.
 
-        .. versionadded:: 1.5.0
-            Added support for `.tar` files."""
+    .. versionadded:: 1.5.0
+        Added support for `.tar` files."""
 
 _shared_docs[
     "replace"
@@ -549,9 +553,6 @@ _shared_docs[
     method : {{'pad', 'ffill', 'bfill'}}
         The method to use when for replacement, when `to_replace` is a
         scalar, list or tuple and `value` is ``None``.
-
-        .. versionchanged:: 0.23.0
-            Added to DataFrame.
 
     Returns
     -------
@@ -800,8 +801,8 @@ _shared_docs[
     Consider a dataset containing food consumption in Argentina.
 
     >>> df = pd.DataFrame({{'consumption': [10.51, 103.11, 55.48],
-    ...                    'co2_emissions': [37.2, 19.66, 1712]}},
-    ...                    index=['Pork', 'Wheat Products', 'Beef'])
+    ...                     'co2_emissions': [37.2, 19.66, 1712]}},
+    ...                   index=['Pork', 'Wheat Products', 'Beef'])
 
     >>> df
                     consumption  co2_emissions
@@ -867,8 +868,8 @@ _shared_docs[
     Consider a dataset containing food consumption in Argentina.
 
     >>> df = pd.DataFrame({{'consumption': [10.51, 103.11, 55.48],
-    ...                    'co2_emissions': [37.2, 19.66, 1712]}},
-    ...                    index=['Pork', 'Wheat Products', 'Beef'])
+    ...                     'co2_emissions': [37.2, 19.66, 1712]}},
+    ...                   index=['Pork', 'Wheat Products', 'Beef'])
 
     >>> df
                     consumption  co2_emissions

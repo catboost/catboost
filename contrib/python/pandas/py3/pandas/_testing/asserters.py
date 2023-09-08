@@ -1,26 +1,23 @@
 from __future__ import annotations
 
+import operator
 from typing import (
     Literal,
     cast,
 )
-import warnings
 
 import numpy as np
 
-from pandas._libs.lib import (
-    NoDefault,
-    no_default,
-)
 from pandas._libs.missing import is_matching_na
 from pandas._libs.sparse import SparseIndex
 import pandas._libs.testing as _testing
-from pandas.util._exceptions import find_stack_level
+from pandas._libs.tslibs.np_datetime import compare_mismatched_resolutions
 
 from pandas.core.dtypes.common import (
     is_bool,
     is_categorical_dtype,
     is_extension_array_dtype,
+    is_integer_dtype,
     is_interval_dtype,
     is_number,
     is_numeric_dtype,
@@ -28,6 +25,7 @@ from pandas.core.dtypes.common import (
 )
 from pandas.core.dtypes.dtypes import (
     CategoricalDtype,
+    DatetimeTZDtype,
     PandasDtype,
 )
 from pandas.core.dtypes.missing import array_equivalent
@@ -64,7 +62,6 @@ def assert_almost_equal(
     left,
     right,
     check_dtype: bool | Literal["equiv"] = "equiv",
-    check_less_precise: bool | int | NoDefault = no_default,
     rtol: float = 1.0e-5,
     atol: float = 1.0e-8,
     **kwargs,
@@ -81,22 +78,8 @@ def assert_almost_equal(
     right : object
     check_dtype : bool or {'equiv'}, default 'equiv'
         Check dtype if both a and b are the same type. If 'equiv' is passed in,
-        then `RangeIndex` and `Int64Index` are also considered equivalent
-        when doing type checking.
-    check_less_precise : bool or int, default False
-        Specify comparison precision. 5 digits (False) or 3 digits (True)
-        after decimal points are compared. If int, then specify the number
-        of digits to compare.
-
-        When comparing two numbers, if the first number has magnitude less
-        than 1e-5, we compare the two numbers directly and check whether
-        they are equivalent within the specified precision. Otherwise, we
-        compare the **ratio** of the second number to the first number and
-        check whether it is equivalent to 1 within the specified precision.
-
-        .. deprecated:: 1.1.0
-           Use `rtol` and `atol` instead to define relative/absolute
-           tolerance, respectively. Similar to :func:`math.isclose`.
+        then `RangeIndex` and `Index` with int64 dtype are also considered
+        equivalent when doing type checking.
     rtol : float, default 1e-5
         Relative tolerance.
 
@@ -106,16 +89,6 @@ def assert_almost_equal(
 
         .. versionadded:: 1.1.0
     """
-    if check_less_precise is not no_default:
-        warnings.warn(
-            "The 'check_less_precise' keyword in testing.assert_*_equal "
-            "is deprecated and will be removed in a future version. "
-            "You can stop passing 'check_less_precise' to silence this warning.",
-            FutureWarning,
-            stacklevel=find_stack_level(),
-        )
-        rtol = atol = _get_tol_from_less_precise(check_less_precise)
-
     if isinstance(left, Index):
         assert_index_equal(
             left,
@@ -171,46 +144,6 @@ def assert_almost_equal(
         )
 
 
-def _get_tol_from_less_precise(check_less_precise: bool | int) -> float:
-    """
-    Return the tolerance equivalent to the deprecated `check_less_precise`
-    parameter.
-
-    Parameters
-    ----------
-    check_less_precise : bool or int
-
-    Returns
-    -------
-    float
-        Tolerance to be used as relative/absolute tolerance.
-
-    Examples
-    --------
-    >>> # Using check_less_precise as a bool:
-    >>> _get_tol_from_less_precise(False)
-    5e-06
-    >>> _get_tol_from_less_precise(True)
-    0.0005
-    >>> # Using check_less_precise as an int representing the decimal
-    >>> # tolerance intended:
-    >>> _get_tol_from_less_precise(2)
-    0.005
-    >>> _get_tol_from_less_precise(8)
-    5e-09
-    """
-    if isinstance(check_less_precise, bool):
-        if check_less_precise:
-            # 3-digit tolerance
-            return 0.5e-3
-        else:
-            # 5-digit tolerance
-            return 0.5e-5
-    else:
-        # Equivalent to setting checking_less_precise=<decimals>
-        return 0.5 * 10**-check_less_precise
-
-
 def _check_isinstance(left, right, cls):
     """
     Helper method for our assert_* methods that ensures that
@@ -240,7 +173,6 @@ def _check_isinstance(left, right, cls):
 
 
 def assert_dict_equal(left, right, compare_keys: bool = True) -> None:
-
     _check_isinstance(left, right, dict)
     _testing.assert_dict_equal(left, right, compare_keys=compare_keys)
 
@@ -250,7 +182,6 @@ def assert_index_equal(
     right: Index,
     exact: bool | str = "equiv",
     check_names: bool = True,
-    check_less_precise: bool | int | NoDefault = no_default,
     check_exact: bool = True,
     check_categorical: bool = True,
     check_order: bool = True,
@@ -268,17 +199,9 @@ def assert_index_equal(
     exact : bool or {'equiv'}, default 'equiv'
         Whether to check the Index class, dtype and inferred_type
         are identical. If 'equiv', then RangeIndex can be substituted for
-        Int64Index as well.
+        Index with an int64 dtype as well.
     check_names : bool, default True
         Whether to check the names attribute.
-    check_less_precise : bool or int, default False
-        Specify comparison precision. Only used when check_exact is False.
-        5 digits (False) or 3 digits (True) after decimal points are compared.
-        If int, then specify the digits to compare.
-
-        .. deprecated:: 1.1.0
-           Use `rtol` and `atol` instead to define relative/absolute
-           tolerance, respectively. Similar to :func:`math.isclose`.
     check_exact : bool, default True
         Whether to compare number exactly.
     check_categorical : bool, default True
@@ -310,7 +233,7 @@ def assert_index_equal(
     """
     __tracebackhide__ = True
 
-    def _check_types(left, right, obj="Index") -> None:
+    def _check_types(left, right, obj: str = "Index") -> None:
         if not exact:
             return
 
@@ -332,16 +255,6 @@ def assert_index_equal(
         level_codes = index.codes[level]
         filled = take_nd(unique._values, level_codes, fill_value=unique._na_value)
         return unique._shallow_copy(filled, name=index.names[level])
-
-    if check_less_precise is not no_default:
-        warnings.warn(
-            "The 'check_less_precise' keyword in testing.assert_*_equal "
-            "is deprecated and will be removed in a future version. "
-            "You can stop passing 'check_less_precise' to silence this warning.",
-            FutureWarning,
-            stacklevel=find_stack_level(),
-        )
-        rtol = atol = _get_tol_from_less_precise(check_less_precise)
 
     # instance validation
     _check_isinstance(left, right, Index)
@@ -404,7 +317,6 @@ def assert_index_equal(
             msg = f"{obj} values are different ({np.round(diff, 5)} %)"
             raise_assert_detail(obj, msg, left, right)
     else:
-
         # if we have "equiv", this becomes True
         exact_bool = bool(exact)
         _testing.assert_almost_equal(
@@ -431,12 +343,12 @@ def assert_index_equal(
             assert_categorical_equal(left._values, right._values, obj=f"{obj} category")
 
 
-def assert_class_equal(left, right, exact: bool | str = True, obj="Input") -> None:
+def assert_class_equal(
+    left, right, exact: bool | str = True, obj: str = "Input"
+) -> None:
     """
     Checks classes are equal.
     """
-    from pandas.core.indexes.numeric import NumericIndex
-
     __tracebackhide__ = True
 
     def repr_class(x):
@@ -446,12 +358,19 @@ def assert_class_equal(left, right, exact: bool | str = True, obj="Input") -> No
 
         return type(x).__name__
 
+    def is_class_equiv(idx: Index) -> bool:
+        """Classes that are a RangeIndex (sub-)instance or exactly an `Index` .
+
+        This only checks class equivalence. There is a separate check that the
+        dtype is int64.
+        """
+        return type(idx) is Index or isinstance(idx, RangeIndex)
+
     if type(left) == type(right):
         return
 
     if exact == "equiv":
-        # accept equivalence of NumericIndex (sub-)classes
-        if isinstance(left, NumericIndex) and isinstance(right, NumericIndex):
+        if is_class_equiv(left) and is_class_equiv(right):
             return
 
     msg = f"{obj} classes are different"
@@ -525,7 +444,11 @@ def assert_is_sorted(seq) -> None:
 
 
 def assert_categorical_equal(
-    left, right, check_dtype=True, check_category_order=True, obj="Categorical"
+    left,
+    right,
+    check_dtype: bool = True,
+    check_category_order: bool = True,
+    obj: str = "Categorical",
 ) -> None:
     """
     Test that Categoricals are equivalent.
@@ -553,7 +476,7 @@ def assert_categorical_equal(
     ):
         exact = "equiv"
     else:
-        # We still want to require exact matches for NumericIndex
+        # We still want to require exact matches for Index
         exact = True
 
     if check_category_order:
@@ -582,7 +505,7 @@ def assert_categorical_equal(
 
 
 def assert_interval_array_equal(
-    left, right, exact="equiv", obj="IntervalArray"
+    left, right, exact: bool | Literal["equiv"] = "equiv", obj: str = "IntervalArray"
 ) -> None:
     """
     Test that two IntervalArrays are equivalent.
@@ -594,7 +517,7 @@ def assert_interval_array_equal(
     exact : bool or {'equiv'}, default 'equiv'
         Whether to check the Index class, dtype and inferred_type
         are identical. If 'equiv', then RangeIndex can be substituted for
-        Int64Index as well.
+        Index with an int64 dtype as well.
     obj : str, default 'IntervalArray'
         Specify object name being compared, internally used to show appropriate
         assertion message
@@ -612,36 +535,38 @@ def assert_interval_array_equal(
     assert_attr_equal("closed", left, right, obj=obj)
 
 
-def assert_period_array_equal(left, right, obj="PeriodArray") -> None:
+def assert_period_array_equal(left, right, obj: str = "PeriodArray") -> None:
     _check_isinstance(left, right, PeriodArray)
 
-    assert_numpy_array_equal(left._data, right._data, obj=f"{obj}._data")
+    assert_numpy_array_equal(left._ndarray, right._ndarray, obj=f"{obj}._ndarray")
     assert_attr_equal("freq", left, right, obj=obj)
 
 
 def assert_datetime_array_equal(
-    left, right, obj="DatetimeArray", check_freq=True
+    left, right, obj: str = "DatetimeArray", check_freq: bool = True
 ) -> None:
     __tracebackhide__ = True
     _check_isinstance(left, right, DatetimeArray)
 
-    assert_numpy_array_equal(left._data, right._data, obj=f"{obj}._data")
+    assert_numpy_array_equal(left._ndarray, right._ndarray, obj=f"{obj}._ndarray")
     if check_freq:
         assert_attr_equal("freq", left, right, obj=obj)
     assert_attr_equal("tz", left, right, obj=obj)
 
 
 def assert_timedelta_array_equal(
-    left, right, obj="TimedeltaArray", check_freq=True
+    left, right, obj: str = "TimedeltaArray", check_freq: bool = True
 ) -> None:
     __tracebackhide__ = True
     _check_isinstance(left, right, TimedeltaArray)
-    assert_numpy_array_equal(left._data, right._data, obj=f"{obj}._data")
+    assert_numpy_array_equal(left._ndarray, right._ndarray, obj=f"{obj}._ndarray")
     if check_freq:
         assert_attr_equal("freq", left, right, obj=obj)
 
 
-def raise_assert_detail(obj, message, left, right, diff=None, index_values=None):
+def raise_assert_detail(
+    obj, message, left, right, diff=None, first_diff=None, index_values=None
+):
     __tracebackhide__ = True
 
     msg = f"""{obj} are different
@@ -653,20 +578,12 @@ def raise_assert_detail(obj, message, left, right, diff=None, index_values=None)
 
     if isinstance(left, np.ndarray):
         left = pprint_thing(left)
-    elif (
-        isinstance(left, CategoricalDtype)
-        or isinstance(left, PandasDtype)
-        or isinstance(left, StringDtype)
-    ):
+    elif isinstance(left, (CategoricalDtype, PandasDtype, StringDtype)):
         left = repr(left)
 
     if isinstance(right, np.ndarray):
         right = pprint_thing(right)
-    elif (
-        isinstance(right, CategoricalDtype)
-        or isinstance(right, PandasDtype)
-        or isinstance(right, StringDtype)
-    ):
+    elif isinstance(right, (CategoricalDtype, PandasDtype, StringDtype)):
         right = repr(right)
 
     msg += f"""
@@ -676,17 +593,20 @@ def raise_assert_detail(obj, message, left, right, diff=None, index_values=None)
     if diff is not None:
         msg += f"\n[diff]: {diff}"
 
+    if first_diff is not None:
+        msg += f"\n{first_diff}"
+
     raise AssertionError(msg)
 
 
 def assert_numpy_array_equal(
     left,
     right,
-    strict_nan=False,
+    strict_nan: bool = False,
     check_dtype: bool | Literal["equiv"] = True,
     err_msg=None,
     check_same=None,
-    obj="numpy array",
+    obj: str = "numpy array",
     index_values=None,
 ) -> None:
     """
@@ -764,10 +684,10 @@ def assert_extension_array_equal(
     right,
     check_dtype: bool | Literal["equiv"] = True,
     index_values=None,
-    check_less_precise=no_default,
-    check_exact=False,
+    check_exact: bool = False,
     rtol: float = 1.0e-5,
     atol: float = 1.0e-8,
+    obj: str = "ExtensionArray",
 ) -> None:
     """
     Check that left and right ExtensionArrays are equal.
@@ -780,14 +700,6 @@ def assert_extension_array_equal(
         Whether to check if the ExtensionArray dtypes are identical.
     index_values : numpy.ndarray, default None
         Optional index (shared by both left and right), used in output.
-    check_less_precise : bool or int, default False
-        Specify comparison precision. Only used when check_exact is False.
-        5 digits (False) or 3 digits (True) after decimal points are compared.
-        If int, then specify the digits to compare.
-
-        .. deprecated:: 1.1.0
-           Use `rtol` and `atol` instead to define relative/absolute
-           tolerance, respectively. Similar to :func:`math.isclose`.
     check_exact : bool, default False
         Whether to compare number exactly.
     rtol : float, default 1e-5
@@ -798,6 +710,11 @@ def assert_extension_array_equal(
         Absolute tolerance. Only used when check_exact is False.
 
         .. versionadded:: 1.1.0
+    obj : str, default 'ExtensionArray'
+        Specify object name being compared, internally used to show appropriate
+        assertion message.
+
+        .. versionadded:: 2.0.0
 
     Notes
     -----
@@ -812,44 +729,54 @@ def assert_extension_array_equal(
     >>> b, c = a.array, a.array
     >>> tm.assert_extension_array_equal(b, c)
     """
-    if check_less_precise is not no_default:
-        warnings.warn(
-            "The 'check_less_precise' keyword in testing.assert_*_equal "
-            "is deprecated and will be removed in a future version. "
-            "You can stop passing 'check_less_precise' to silence this warning.",
-            FutureWarning,
-            stacklevel=find_stack_level(),
-        )
-        rtol = atol = _get_tol_from_less_precise(check_less_precise)
-
     assert isinstance(left, ExtensionArray), "left is not an ExtensionArray"
     assert isinstance(right, ExtensionArray), "right is not an ExtensionArray"
     if check_dtype:
-        assert_attr_equal("dtype", left, right, obj="ExtensionArray")
+        assert_attr_equal("dtype", left, right, obj=f"Attributes of {obj}")
 
     if (
         isinstance(left, DatetimeLikeArrayMixin)
         and isinstance(right, DatetimeLikeArrayMixin)
         and type(right) == type(left)
     ):
+        # GH 52449
+        if not check_dtype and left.dtype.kind in "mM":
+            if not isinstance(left.dtype, np.dtype):
+                l_unit = cast(DatetimeTZDtype, left.dtype).unit
+            else:
+                l_unit = np.datetime_data(left.dtype)[0]
+            if not isinstance(right.dtype, np.dtype):
+                r_unit = cast(DatetimeTZDtype, left.dtype).unit
+            else:
+                r_unit = np.datetime_data(right.dtype)[0]
+            if (
+                l_unit != r_unit
+                and compare_mismatched_resolutions(
+                    left._ndarray, right._ndarray, operator.eq
+                ).all()
+            ):
+                return
         # Avoid slow object-dtype comparisons
         # np.asarray for case where we have a np.MaskedArray
         assert_numpy_array_equal(
-            np.asarray(left.asi8), np.asarray(right.asi8), index_values=index_values
+            np.asarray(left.asi8),
+            np.asarray(right.asi8),
+            index_values=index_values,
+            obj=obj,
         )
         return
 
     left_na = np.asarray(left.isna())
     right_na = np.asarray(right.isna())
     assert_numpy_array_equal(
-        left_na, right_na, obj="ExtensionArray NA mask", index_values=index_values
+        left_na, right_na, obj=f"{obj} NA mask", index_values=index_values
     )
 
     left_valid = left[~left_na].to_numpy(dtype=object)
     right_valid = right[~right_na].to_numpy(dtype=object)
     if check_exact:
         assert_numpy_array_equal(
-            left_valid, right_valid, obj="ExtensionArray", index_values=index_values
+            left_valid, right_valid, obj=obj, index_values=index_values
         )
     else:
         _testing.assert_almost_equal(
@@ -858,7 +785,7 @@ def assert_extension_array_equal(
             check_dtype=bool(check_dtype),
             rtol=rtol,
             atol=atol,
-            obj="ExtensionArray",
+            obj=obj,
             index_values=index_values,
         )
 
@@ -869,21 +796,20 @@ def assert_series_equal(
     right,
     check_dtype: bool | Literal["equiv"] = True,
     check_index_type: bool | Literal["equiv"] = "equiv",
-    check_series_type=True,
-    check_less_precise: bool | int | NoDefault = no_default,
-    check_names=True,
-    check_exact=False,
-    check_datetimelike_compat=False,
-    check_categorical=True,
-    check_category_order=True,
-    check_freq=True,
-    check_flags=True,
-    rtol=1.0e-5,
-    atol=1.0e-8,
-    obj="Series",
+    check_series_type: bool = True,
+    check_names: bool = True,
+    check_exact: bool = False,
+    check_datetimelike_compat: bool = False,
+    check_categorical: bool = True,
+    check_category_order: bool = True,
+    check_freq: bool = True,
+    check_flags: bool = True,
+    rtol: float = 1.0e-5,
+    atol: float = 1.0e-8,
+    obj: str = "Series",
     *,
-    check_index=True,
-    check_like=False,
+    check_index: bool = True,
+    check_like: bool = False,
 ) -> None:
     """
     Check that left and right Series are equal.
@@ -899,20 +825,6 @@ def assert_series_equal(
         are identical.
     check_series_type : bool, default True
          Whether to check the Series class is identical.
-    check_less_precise : bool or int, default False
-        Specify comparison precision. Only used when check_exact is False.
-        5 digits (False) or 3 digits (True) after decimal points are compared.
-        If int, then specify the digits to compare.
-
-        When comparing two numbers, if the first number has magnitude less
-        than 1e-5, we compare the two numbers directly and check whether
-        they are equivalent within the specified precision. Otherwise, we
-        compare the **ratio** of the second number to the first number and
-        check whether it is equivalent to 1 within the specified precision.
-
-        .. deprecated:: 1.1.0
-           Use `rtol` and `atol` instead to define relative/absolute
-           tolerance, respectively. Similar to :func:`math.isclose`.
     check_names : bool, default True
         Whether to check the Series and Index names attribute.
     check_exact : bool, default False
@@ -967,16 +879,6 @@ def assert_series_equal(
     if not check_index and check_like:
         raise ValueError("check_like must be False if check_index is False")
 
-    if check_less_precise is not no_default:
-        warnings.warn(
-            "The 'check_less_precise' keyword in testing.assert_*_equal "
-            "is deprecated and will be removed in a future version. "
-            "You can stop passing 'check_less_precise' to silence this warning.",
-            FutureWarning,
-            stacklevel=find_stack_level(),
-        )
-        rtol = atol = _get_tol_from_less_precise(check_less_precise)
-
     # instance validation
     _check_isinstance(left, right, Series)
 
@@ -1008,7 +910,7 @@ def assert_series_equal(
         )
 
     if check_like:
-        left, right = left.reindex_like(right), right
+        left = left.reindex_like(right)
 
     if check_freq and isinstance(left.index, (DatetimeIndex, TimedeltaIndex)):
         lidx = left.index
@@ -1040,6 +942,7 @@ def assert_series_equal(
                 right_values,
                 check_dtype=check_dtype,
                 index_values=np.asarray(left.index),
+                obj=str(obj),
             )
         else:
             assert_numpy_array_equal(
@@ -1086,6 +989,7 @@ def assert_series_equal(
             atol=atol,
             check_dtype=check_dtype,
             index_values=np.asarray(left.index),
+            obj=str(obj),
         )
     elif is_extension_array_dtype_and_needs_i8_conversion(
         left.dtype, right.dtype
@@ -1095,6 +999,7 @@ def assert_series_equal(
             right._values,
             check_dtype=check_dtype,
             index_values=np.asarray(left.index),
+            obj=str(obj),
         )
     elif needs_i8_conversion(left.dtype) and needs_i8_conversion(right.dtype):
         # DatetimeArray or TimedeltaArray
@@ -1103,6 +1008,7 @@ def assert_series_equal(
             right._values,
             check_dtype=check_dtype,
             index_values=np.asarray(left.index),
+            obj=str(obj),
         )
     else:
         _testing.assert_almost_equal(
@@ -1137,20 +1043,19 @@ def assert_frame_equal(
     right,
     check_dtype: bool | Literal["equiv"] = True,
     check_index_type: bool | Literal["equiv"] = "equiv",
-    check_column_type="equiv",
-    check_frame_type=True,
-    check_less_precise=no_default,
-    check_names=True,
-    by_blocks=False,
-    check_exact=False,
-    check_datetimelike_compat=False,
-    check_categorical=True,
-    check_like=False,
-    check_freq=True,
-    check_flags=True,
-    rtol=1.0e-5,
-    atol=1.0e-8,
-    obj="DataFrame",
+    check_column_type: bool | Literal["equiv"] = "equiv",
+    check_frame_type: bool = True,
+    check_names: bool = True,
+    by_blocks: bool = False,
+    check_exact: bool = False,
+    check_datetimelike_compat: bool = False,
+    check_categorical: bool = True,
+    check_like: bool = False,
+    check_freq: bool = True,
+    check_flags: bool = True,
+    rtol: float = 1.0e-5,
+    atol: float = 1.0e-8,
+    obj: str = "DataFrame",
 ) -> None:
     """
     Check that left and right DataFrame are equal.
@@ -1177,20 +1082,6 @@ def assert_frame_equal(
         :func:`assert_index_equal`.
     check_frame_type : bool, default True
         Whether to check the DataFrame class is identical.
-    check_less_precise : bool or int, default False
-        Specify comparison precision. Only used when check_exact is False.
-        5 digits (False) or 3 digits (True) after decimal points are compared.
-        If int, then specify the digits to compare.
-
-        When comparing two numbers, if the first number has magnitude less
-        than 1e-5, we compare the two numbers directly and check whether
-        they are equivalent within the specified precision. Otherwise, we
-        compare the **ratio** of the second number to the first number and
-        check whether it is equivalent to 1 within the specified precision.
-
-        .. deprecated:: 1.1.0
-           Use `rtol` and `atol` instead to define relative/absolute
-           tolerance, respectively. Similar to :func:`math.isclose`.
     check_names : bool, default True
         Whether to check that the `names` attribute for both the `index`
         and `column` attributes of the DataFrame is identical.
@@ -1260,16 +1151,6 @@ def assert_frame_equal(
     """
     __tracebackhide__ = True
 
-    if check_less_precise is not no_default:
-        warnings.warn(
-            "The 'check_less_precise' keyword in testing.assert_*_equal "
-            "is deprecated and will be removed in a future version. "
-            "You can stop passing 'check_less_precise' to silence this warning.",
-            FutureWarning,
-            stacklevel=find_stack_level(),
-        )
-        rtol = atol = _get_tol_from_less_precise(check_less_precise)
-
     # instance validation
     _check_isinstance(left, right, DataFrame)
 
@@ -1315,7 +1196,7 @@ def assert_frame_equal(
     )
 
     if check_like:
-        left, right = left.reindex_like(right), right
+        left = left.reindex_like(right)
 
     # compare by blocks
     if by_blocks:
@@ -1478,12 +1359,14 @@ def assert_indexing_slices_equivalent(ser: Series, l_slc: slice, i_slc: slice) -
 
     assert_series_equal(ser.loc[l_slc], expected)
 
-    if not ser.index.is_integer():
+    if not is_integer_dtype(ser.index):
         # For integer indices, .loc and plain getitem are position-based.
         assert_series_equal(ser[l_slc], expected)
 
 
-def assert_metadata_equivalent(left, right) -> None:
+def assert_metadata_equivalent(
+    left: DataFrame | Series, right: DataFrame | Series | None = None
+) -> None:
     """
     Check that ._metadata attributes are equivalent.
     """

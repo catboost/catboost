@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 import importlib
-import itertools
 import types
 from typing import (
     TYPE_CHECKING,
     Sequence,
 )
-import warnings
 
 from pandas._config import get_option
 
@@ -16,7 +14,6 @@ from pandas.util._decorators import (
     Appender,
     Substitution,
 )
-from pandas.util._exceptions import find_stack_level
 
 from pandas.core.dtypes.common import (
     is_integer,
@@ -81,9 +78,6 @@ def hist_series(
         ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to
         specify the ``plotting.backend`` for the whole session, set
         ``pd.options.plotting.backend``.
-
-        .. versionadded:: 1.0.0
-
     legend : bool, default False
         Whether to show the legend.
 
@@ -194,8 +188,6 @@ def hist_frame(
         specify the ``plotting.backend`` for the whole session, set
         ``pd.options.plotting.backend``.
 
-        .. versionadded:: 1.0.0
-
     legend : bool, default False
         Whether to show the legend.
 
@@ -265,6 +257,7 @@ Wikipedia's entry for `boxplot <https://en.wikipedia.org/wiki/Box_plot>`_.
 
 Parameters
 ----------
+%(data)s\
 column : str or list of str, optional
     Column name or list of names, or vector.
     Can be any valid input to :meth:`pandas.DataFrame.groupby`.
@@ -275,7 +268,7 @@ ax : object of class matplotlib.axes.Axes, optional
     The matplotlib axes to be used by boxplot.
 fontsize : float or str
     Tick label font size in points or as a string (e.g., `large`).
-rot : int or float, default 0
+rot : float, default 0
     The rotation angle of labels (in degrees)
     with respect to the screen coordinate system.
 grid : bool, default True
@@ -284,7 +277,7 @@ figsize : A tuple (width, height) in inches
     The size of the figure to create in matplotlib.
 layout : tuple (rows, columns), optional
     For example, (3, 5) will display the subplots
-    using 3 columns and 5 rows, starting from the top-left.
+    using 3 rows and 5 columns, starting from the top-left.
 return_type : {'axes', 'dict', 'both'} or None, default 'axes'
     The kind of object to return. The default is ``axes``.
 
@@ -310,7 +303,7 @@ result
 
 See Also
 --------
-Series.plot.hist: Make a histogram.
+pandas.Series.plot.hist: Make a histogram.
 matplotlib.pyplot.boxplot : Matplotlib equivalent plot.
 
 Notes
@@ -419,8 +412,6 @@ backend : str, default None
     ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to
     specify the ``plotting.backend`` for the whole session, set
     ``pd.options.plotting.backend``.
-
-    .. versionadded:: 1.0.0
 """
 
 
@@ -465,7 +456,7 @@ _bar_or_line_doc = """
 """
 
 
-@Substitution(backend="")
+@Substitution(data="data : DataFrame\n    The data to visualize.\n", backend="")
 @Appender(_boxplot_doc)
 def boxplot(
     data: DataFrame,
@@ -496,7 +487,7 @@ def boxplot(
     )
 
 
-@Substitution(backend=_backend_doc)
+@Substitution(data="", backend=_backend_doc)
 @Appender(_boxplot_doc)
 def boxplot_frame(
     self,
@@ -555,7 +546,7 @@ def boxplot_frame_groupby(
 
     column : column name or list of names, or vector
         Can be any valid input to groupby.
-    fontsize : int or str
+    fontsize : float or str
     rot : label rotation angle
     grid : Setting this to True will show the grid
     ax : Matplotlib axis object, default None
@@ -571,9 +562,6 @@ def boxplot_frame_groupby(
         ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to
         specify the ``plotting.backend`` for the whole session, set
         ``pd.options.plotting.backend``.
-
-        .. versionadded:: 1.0.0
-
     **kwargs
         All other plotting keyword arguments to be passed to
         matplotlib's boxplot function.
@@ -664,6 +652,7 @@ class PlotAccessor(PandasObject):
           create 2 subplots: one with columns 'a' and 'c', and one
           with columns 'b' and 'd'. Remaining columns that aren't specified
           will be plotted in additional subplots (one per column).
+
           .. versionadded:: 1.5.0
 
     sharex : bool, default True if ax is None else False
@@ -691,15 +680,12 @@ class PlotAccessor(PandasObject):
         The matplotlib line style per column.
     logx : bool or 'sym', default False
         Use log scaling or symlog scaling on x axis.
-        .. versionchanged:: 0.25.0
 
     logy : bool or 'sym' default False
         Use log scaling or symlog scaling on y axis.
-        .. versionchanged:: 0.25.0
 
     loglog : bool or 'sym', default False
         Use log scaling or symlog scaling on both x and y axes.
-        .. versionchanged:: 0.25.0
 
     xticks : sequence
         Values to use for the xticks.
@@ -719,6 +705,10 @@ class PlotAccessor(PandasObject):
 
            Now applicable to planar plots (`scatter`, `hexbin`).
 
+        .. versionchanged:: 2.0.0
+
+            Now applicable to histograms.
+
     ylabel : label, optional
         Name to use for the ylabel on y-axis. Default will show no ylabel, or the
         y-column name for planar plots.
@@ -729,10 +719,14 @@ class PlotAccessor(PandasObject):
 
            Now applicable to planar plots (`scatter`, `hexbin`).
 
-    rot : int, default None
+        .. versionchanged:: 2.0.0
+
+            Now applicable to histograms.
+
+    rot : float, default None
         Rotation for ticks (xticks for vertical, yticks for horizontal
         plots).
-    fontsize : int, default None
+    fontsize : float, default None
         Font size for xticks and yticks.
     colormap : str or matplotlib colormap object, default None
         Colormap to select colors from. If string, load colormap with that
@@ -756,13 +750,6 @@ class PlotAccessor(PandasObject):
         Equivalent to yerr.
     stacked : bool, default False in line and bar plots, and True in area plot
         If True, create stacked plot.
-    sort_columns : bool, default False
-        Sort column names to determine plot ordering.
-
-        .. deprecated:: 1.5.0
-            The `sort_columns` arguments is deprecated and will be removed in a
-            future version.
-
     secondary_y : bool or sequence, default False
         Whether to plot on the secondary y-axis if a list/tuple, which
         columns to plot on secondary y-axis.
@@ -776,9 +763,6 @@ class PlotAccessor(PandasObject):
         ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to
         specify the ``plotting.backend`` for the whole session, set
         ``pd.options.plotting.backend``.
-
-        .. versionadded:: 1.0.0
-
     **kwargs
         Options to pass to matplotlib plotting method.
 
@@ -873,7 +857,6 @@ class PlotAccessor(PandasObject):
                 ("yerr", None),
                 ("xerr", None),
                 ("secondary_y", False),
-                ("sort_columns", False),
                 ("xlabel", None),
                 ("ylabel", None),
             ]
@@ -881,14 +864,6 @@ class PlotAccessor(PandasObject):
             raise TypeError(
                 f"Called plot accessor for type {type(data).__name__}, "
                 "expected Series or DataFrame"
-            )
-
-        if "sort_columns" in itertools.chain(args, kwargs.keys()):
-            warnings.warn(
-                "`sort_columns` is deprecated and will be removed in a future "
-                "version.",
-                FutureWarning,
-                stacklevel=find_stack_level(),
             )
 
         if args and isinstance(data, ABCSeries):
@@ -951,8 +926,8 @@ class PlotAccessor(PandasObject):
                     raise ValueError(
                         f"{kind} requires either y column or 'subplots=True'"
                     )
-                elif y is not None:
-                    if is_integer(y) and not data.columns.holds_integer():
+                if y is not None:
+                    if is_integer(y) and not data.columns._holds_integer():
                         y = data.columns[y]
                     # converted to series actually. copy to not modify
                     data = data[y].copy()
@@ -960,7 +935,7 @@ class PlotAccessor(PandasObject):
         elif isinstance(data, ABCDataFrame):
             data_cols = data.columns
             if x is not None:
-                if is_integer(x) and not data.columns.holds_integer():
+                if is_integer(x) and not data.columns._holds_integer():
                     x = data_cols[x]
                 elif not isinstance(data[x], ABCSeries):
                     raise ValueError("x must be a label or position")
@@ -969,7 +944,7 @@ class PlotAccessor(PandasObject):
                 # check if we have y as int or list of ints
                 int_ylist = is_list_like(y) and all(is_integer(c) for c in y)
                 int_y_arg = is_integer(y) or int_ylist
-                if int_y_arg and not data.columns.holds_integer():
+                if int_y_arg and not data.columns._holds_integer():
                     y = data_cols[y]
 
                 label_kw = kwargs["label"] if "label" in kwargs else False
@@ -1146,7 +1121,9 @@ class PlotAccessor(PandasObject):
     )
     @Substitution(kind="bar")
     @Appender(_bar_or_line_doc)
-    def bar(self, x=None, y=None, **kwargs) -> PlotAccessor:
+    def bar(  # pylint: disable=disallowed-name
+        self, x=None, y=None, **kwargs
+    ) -> PlotAccessor:
         """
         Vertical bar plot.
 
@@ -1483,7 +1460,7 @@ class PlotAccessor(PandasObject):
 
     density = kde
 
-    def area(self, x=None, y=None, **kwargs) -> PlotAccessor:
+    def area(self, x=None, y=None, stacked: bool = True, **kwargs) -> PlotAccessor:
         """
         Draw a stacked area plot.
 
@@ -1554,7 +1531,7 @@ class PlotAccessor(PandasObject):
             ... })
             >>> ax = df.plot.area(x='day')
         """
-        return self(kind="area", x=x, y=y, **kwargs)
+        return self(kind="area", x=x, y=y, stacked=stacked, **kwargs)
 
     def pie(self, **kwargs) -> PlotAccessor:
         """
@@ -1827,8 +1804,7 @@ def _load_backend(backend: str) -> types.ModuleType:
     # entry_points lost dict API ~ PY 3.10
     # https://github.com/python/importlib_metadata/issues/298
     if hasattr(eps, "select"):
-        # error: "Dict[str, Tuple[EntryPoint, ...]]" has no attribute "select"
-        entry = eps.select(group=key)  # type: ignore[attr-defined]
+        entry = eps.select(group=key)  # pyright: ignore[reportGeneralTypeIssues]
     else:
         entry = eps.get(key, ())
     for entry_point in entry:

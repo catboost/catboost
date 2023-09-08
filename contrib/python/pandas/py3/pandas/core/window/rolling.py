@@ -14,9 +14,10 @@ from typing import (
     Any,
     Callable,
     Hashable,
+    Iterator,
     Sized,
+    cast,
 )
-import warnings
 
 import numpy as np
 
@@ -33,10 +34,8 @@ from pandas._typing import (
     WindowingRankType,
 )
 from pandas.compat._optional import import_optional_dependency
-from pandas.compat.numpy import function as nv
 from pandas.errors import DataError
 from pandas.util._decorators import doc
-from pandas.util._exceptions import find_stack_level
 
 from pandas.core.dtypes.common import (
     ensure_float64,
@@ -79,14 +78,11 @@ from pandas.core.util.numba_ import (
 )
 from pandas.core.window.common import (
     flex_binary_moment,
-    maybe_warn_args_and_kwargs,
     zsqrt,
 )
 from pandas.core.window.doc import (
     _shared_docs,
-    args_compat,
     create_section_header,
-    kwargs_compat,
     kwargs_numeric_only,
     kwargs_scipy,
     numba_notes,
@@ -140,8 +136,7 @@ class BaseWindow(SelectionMixin):
         self.window = window
         self.min_periods = min_periods
         self.center = center
-        # TODO(2.0): Change this back to self.win_type once deprecation is enforced
-        self._win_type = win_type
+        self.win_type = win_type
         self.axis = obj._get_axis_number(axis) if axis is not None else None
         self.method = method
         self._win_freq_i8: int | None = None
@@ -164,44 +159,15 @@ class BaseWindow(SelectionMixin):
         self._selection = selection
         self._validate()
 
-    @property
-    def win_type(self):
-        if self._win_freq_i8 is not None:
-            warnings.warn(
-                "win_type will no longer return 'freq' in a future version. "
-                "Check the type of self.window instead.",
-                FutureWarning,
-                stacklevel=find_stack_level(),
-            )
-            return "freq"
-        return self._win_type
-
-    @property
-    def is_datetimelike(self) -> bool:
-        warnings.warn(
-            "is_datetimelike is deprecated and will be removed in a future version.",
-            FutureWarning,
-            stacklevel=find_stack_level(),
-        )
-        return self._win_freq_i8 is not None
-
-    def validate(self) -> None:
-        warnings.warn(
-            "validate is deprecated and will be removed in a future version.",
-            FutureWarning,
-            stacklevel=find_stack_level(),
-        )
-        return self._validate()
-
     def _validate(self) -> None:
         if self.center is not None and not is_bool(self.center):
             raise ValueError("center must be a boolean")
         if self.min_periods is not None:
             if not is_integer(self.min_periods):
                 raise ValueError("min_periods must be an integer")
-            elif self.min_periods < 0:
+            if self.min_periods < 0:
                 raise ValueError("min_periods must be >= 0")
-            elif is_integer(self.window) and self.min_periods > self.window:
+            if is_integer(self.window) and self.min_periods > self.window:
                 raise ValueError(
                     f"min_periods {self.min_periods} must be <= window {self.window}"
                 )
@@ -233,7 +199,7 @@ class BaseWindow(SelectionMixin):
         if self.step is not None:
             if not is_integer(self.step):
                 raise ValueError("step must be an integer")
-            elif self.step < 0:
+            if self.step < 0:
                 raise ValueError("step must be >= 0")
 
     def _check_window_bounds(
@@ -244,7 +210,7 @@ class BaseWindow(SelectionMixin):
                 f"start ({len(start)}) and end ({len(end)}) bounds must be the "
                 f"same length"
             )
-        elif len(start) != (num_vals + (self.step or 1) - 1) // (self.step or 1):
+        if len(start) != (num_vals + (self.step or 1) - 1) // (self.step or 1):
             raise ValueError(
                 f"start and end bounds ({len(start)}) must be the same length "
                 f"as the object ({num_vals}) divided by the step ({self.step}) "
@@ -330,15 +296,14 @@ class BaseWindow(SelectionMixin):
 
         # we need to make a shallow copy of ourselves
         # with the same groupby
-        with warnings.catch_warnings():
-            # TODO(2.0): Remove once win_type deprecation is enforced
-            warnings.filterwarnings("ignore", "win_type", FutureWarning)
-            kwargs = {attr: getattr(self, attr) for attr in self._attributes}
+        kwargs = {attr: getattr(self, attr) for attr in self._attributes}
 
         selection = None
         if subset.ndim == 2 and (
             (is_scalar(key) and key in subset) or is_list_like(key)
         ):
+            selection = key
+        elif subset.ndim == 1 and is_scalar(key) and key == subset.name:
             selection = key
 
         new_win = type(self)(subset, selection=selection, **kwargs)
@@ -369,7 +334,7 @@ class BaseWindow(SelectionMixin):
         attrs = ",".join(attrs_list)
         return f"{type(self).__name__} [{attrs}]"
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         obj = self._selected_obj.set_axis(self._on)
         obj = self._create_data(obj)
         indexer = self._get_window_indexer()
@@ -394,16 +359,15 @@ class BaseWindow(SelectionMixin):
                 f"ops for {type(self).__name__} for this "
                 f"dtype {values.dtype} are not implemented"
             )
-        else:
-            # GH #12373 : rolling functions error on float32 data
-            # make sure the data is coerced to float64
-            try:
-                if isinstance(values, ExtensionArray):
-                    values = values.to_numpy(np.float64, na_value=np.nan)
-                else:
-                    values = ensure_float64(values)
-            except (ValueError, TypeError) as err:
-                raise TypeError(f"cannot handle this type -> {values.dtype}") from err
+        # GH #12373 : rolling functions error on float32 data
+        # make sure the data is coerced to float64
+        try:
+            if isinstance(values, ExtensionArray):
+                values = values.to_numpy(np.float64, na_value=np.nan)
+            else:
+                values = ensure_float64(values)
+        except (ValueError, TypeError) as err:
+            raise TypeError(f"cannot handle this type -> {values.dtype}") from err
 
         # Convert inf to nan for C funcs
         inf = np.isinf(values)
@@ -419,7 +383,7 @@ class BaseWindow(SelectionMixin):
 
         if self.on is not None and not self._on.equals(obj.index):
             name = self._on.name
-            extra_col = Series(self._on, index=self.obj.index, name=name)
+            extra_col = Series(self._on, index=self.obj.index, name=name, copy=False)
             if name in result.columns:
                 # TODO: sure we want to overwrite results?
                 result[name] = extra_col
@@ -441,14 +405,15 @@ class BaseWindow(SelectionMixin):
     def _index_array(self):
         # TODO: why do we get here with e.g. MultiIndex?
         if needs_i8_conversion(self._on.dtype):
-            return self._on.asi8
+            idx = cast("PeriodIndex | DatetimeIndex | TimedeltaIndex", self._on)
+            return idx.asi8
         return None
 
     def _resolve_output(self, out: DataFrame, obj: DataFrame) -> DataFrame:
         """Validate and finalize result."""
         if out.shape[1] == 0 and obj.shape[1] > 0:
             raise DataError("No numeric types to aggregate")
-        elif out.shape[1] == 0:
+        if out.shape[1] == 0:
             return obj.astype("float64")
 
         self._insert_on_column(out, obj)
@@ -508,10 +473,6 @@ class BaseWindow(SelectionMixin):
             obj = notna(obj).astype(int)
             obj._mgr = obj._mgr.consolidate()
 
-        def hfunc(values: ArrayLike) -> ArrayLike:
-            values = self._prep_values(values)
-            return homogeneous_func(values)
-
         if self.axis == 1:
             obj = obj.T
 
@@ -519,13 +480,16 @@ class BaseWindow(SelectionMixin):
         res_values = []
         for i, arr in enumerate(obj._iter_column_arrays()):
             # GH#42736 operate column-wise instead of block-wise
+            # As of 2.0, hfunc will raise for nuisance columns
             try:
-                res = hfunc(arr)
-            except (TypeError, NotImplementedError):
-                pass
-            else:
-                res_values.append(res)
-                taker.append(i)
+                arr = self._prep_values(arr)
+            except (TypeError, NotImplementedError) as err:
+                raise DataError(
+                    f"Cannot aggregate non-numeric type: {arr.dtype}"
+                ) from err
+            res = homogeneous_func(arr)
+            res_values.append(res)
+            taker.append(i)
 
         index = self._slice_axis_for_step(
             obj.index, res_values[0] if len(res_values) > 0 else None
@@ -539,18 +503,6 @@ class BaseWindow(SelectionMixin):
 
         if self.axis == 1:
             df = df.T
-
-        if 0 != len(res_values) != len(obj.columns):
-            # GH#42738 ignore_failures dropped nuisance columns
-            dropped = obj.columns.difference(obj.columns.take(taker))
-            warnings.warn(
-                "Dropping of nuisance columns in rolling operations "
-                "is deprecated; in a future version this will raise TypeError. "
-                "Select only valid columns before calling the operation. "
-                f"Dropped columns were {dropped}",
-                FutureWarning,
-                stacklevel=find_stack_level(),
-            )
 
         return self._resolve_output(df, obj)
 
@@ -921,13 +873,13 @@ class Window(BaseWindow):
 
     Parameters
     ----------
-    window : int, offset, or BaseIndexer subclass
+    window : int, timedelta, str, offset, or BaseIndexer subclass
         Size of the moving window.
 
         If an integer, the fixed number of observations used for
         each window.
 
-        If an offset, the time period of each window. Each
+        If a timedelta, str, or offset, the time period of each window. Each
         window will be a variable sized based on the observations included in
         the time-period. This is only valid for datetimelike indexes.
         To learn more about the offsets & frequency strings, please see `this link
@@ -1141,6 +1093,29 @@ class Window(BaseWindow):
     2  2.958621
     3       NaN
     4       NaN
+
+    **on**
+
+    Rolling sum with a window length of 2 days.
+
+    >>> df = pd.DataFrame({
+    ...     'A': [pd.to_datetime('2020-01-01'),
+    ...           pd.to_datetime('2020-01-01'),
+    ...           pd.to_datetime('2020-01-02'),],
+    ...     'B': [1, 2, 3], },
+    ...     index=pd.date_range('2020', periods=3))
+
+    >>> df
+                        A  B
+    2020-01-01 2020-01-01  1
+    2020-01-02 2020-01-01  2
+    2020-01-03 2020-01-02  3
+
+    >>> df.rolling('2D', on='A').sum()
+                        A    B
+    2020-01-01 2020-01-01  1.0
+    2020-01-02 2020-01-01  3.0
+    2020-01-03 2020-01-02  6.0
     """
 
     _attributes = [
@@ -1161,7 +1136,7 @@ class Window(BaseWindow):
         if not isinstance(self.win_type, str):
             raise ValueError(f"Invalid win_type {self.win_type}")
         signal = import_optional_dependency(
-            "scipy.signal", extra="Scipy is required to generate window weight."
+            "scipy.signal.windows", extra="Scipy is required to generate window weight."
         )
         self._scipy_weight_generator = getattr(signal, self.win_type, None)
         if self._scipy_weight_generator is None:
@@ -1171,7 +1146,7 @@ class Window(BaseWindow):
             raise NotImplementedError(
                 "BaseIndexer subclasses not implemented with win_types."
             )
-        elif not is_integer(self.window) or self.window < 0:
+        if not is_integer(self.window) or self.window < 0:
             raise ValueError("window must be an integer 0 or greater")
 
         if self.method != "single":
@@ -1276,7 +1251,6 @@ class Window(BaseWindow):
     def aggregate(self, func, *args, **kwargs):
         result = ResamplerWindowApply(self, func, args=args, kwargs=kwargs).agg()
         if result is None:
-
             # these must apply directly
             result = func(self)
 
@@ -1297,8 +1271,7 @@ class Window(BaseWindow):
         aggregation_description="weighted window sum",
         agg_method="sum",
     )
-    def sum(self, numeric_only: bool = False, *args, **kwargs):
-        nv.validate_window_func("sum", args, kwargs)
+    def sum(self, numeric_only: bool = False, **kwargs):
         window_func = window_aggregations.roll_weighted_sum
         # error: Argument 1 to "_apply" of "Window" has incompatible type
         # "Callable[[ndarray, ndarray, int], ndarray]"; expected
@@ -1323,8 +1296,7 @@ class Window(BaseWindow):
         aggregation_description="weighted window mean",
         agg_method="mean",
     )
-    def mean(self, numeric_only: bool = False, *args, **kwargs):
-        nv.validate_window_func("mean", args, kwargs)
+    def mean(self, numeric_only: bool = False, **kwargs):
         window_func = window_aggregations.roll_weighted_mean
         # error: Argument 1 to "_apply" of "Window" has incompatible type
         # "Callable[[ndarray, ndarray, int], ndarray]"; expected
@@ -1338,7 +1310,6 @@ class Window(BaseWindow):
 
     @doc(
         template_header,
-        ".. versionadded:: 1.0.0 \n\n",
         create_section_header("Parameters"),
         kwargs_numeric_only,
         kwargs_scipy,
@@ -1350,15 +1321,13 @@ class Window(BaseWindow):
         aggregation_description="weighted window variance",
         agg_method="var",
     )
-    def var(self, ddof: int = 1, numeric_only: bool = False, *args, **kwargs):
-        nv.validate_window_func("var", args, kwargs)
+    def var(self, ddof: int = 1, numeric_only: bool = False, **kwargs):
         window_func = partial(window_aggregations.roll_weighted_var, ddof=ddof)
         kwargs.pop("name", None)
         return self._apply(window_func, name="var", numeric_only=numeric_only, **kwargs)
 
     @doc(
         template_header,
-        ".. versionadded:: 1.0.0 \n\n",
         create_section_header("Parameters"),
         kwargs_numeric_only,
         kwargs_scipy,
@@ -1370,8 +1339,7 @@ class Window(BaseWindow):
         aggregation_description="weighted window standard deviation",
         agg_method="std",
     )
-    def std(self, ddof: int = 1, numeric_only: bool = False, *args, **kwargs):
-        nv.validate_window_func("std", args, kwargs)
+    def std(self, ddof: int = 1, numeric_only: bool = False, **kwargs):
         return zsqrt(
             self.var(ddof=ddof, name="std", numeric_only=numeric_only, **kwargs)
         )
@@ -1445,7 +1413,7 @@ class RollingAndExpandingMixin(BaseWindow):
         def apply_func(values, begin, end, min_periods, raw=raw):
             if not raw:
                 # GH 45912
-                values = Series(values, index=self._on)
+                values = Series(values, index=self._on, copy=False)
             return window_func(values, begin, end, min_periods)
 
         return apply_func
@@ -1453,12 +1421,9 @@ class RollingAndExpandingMixin(BaseWindow):
     def sum(
         self,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        nv.validate_window_func("sum", args, kwargs)
         if maybe_use_numba(engine):
             if self.method == "table":
                 func = generate_manual_numpy_nan_agg_with_axis(np.nansum)
@@ -1473,17 +1438,14 @@ class RollingAndExpandingMixin(BaseWindow):
 
                 return self._numba_apply(sliding_sum, engine_kwargs)
         window_func = window_aggregations.roll_sum
-        return self._apply(window_func, name="sum", numeric_only=numeric_only, **kwargs)
+        return self._apply(window_func, name="sum", numeric_only=numeric_only)
 
     def max(
         self,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        nv.validate_window_func("max", args, kwargs)
         if maybe_use_numba(engine):
             if self.method == "table":
                 func = generate_manual_numpy_nan_agg_with_axis(np.nanmax)
@@ -1498,17 +1460,14 @@ class RollingAndExpandingMixin(BaseWindow):
 
                 return self._numba_apply(sliding_min_max, engine_kwargs, True)
         window_func = window_aggregations.roll_max
-        return self._apply(window_func, name="max", numeric_only=numeric_only, **kwargs)
+        return self._apply(window_func, name="max", numeric_only=numeric_only)
 
     def min(
         self,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        nv.validate_window_func("min", args, kwargs)
         if maybe_use_numba(engine):
             if self.method == "table":
                 func = generate_manual_numpy_nan_agg_with_axis(np.nanmin)
@@ -1523,17 +1482,14 @@ class RollingAndExpandingMixin(BaseWindow):
 
                 return self._numba_apply(sliding_min_max, engine_kwargs, False)
         window_func = window_aggregations.roll_min
-        return self._apply(window_func, name="min", numeric_only=numeric_only, **kwargs)
+        return self._apply(window_func, name="min", numeric_only=numeric_only)
 
     def mean(
         self,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        nv.validate_window_func("mean", args, kwargs)
         if maybe_use_numba(engine):
             if self.method == "table":
                 func = generate_manual_numpy_nan_agg_with_axis(np.nanmean)
@@ -1548,16 +1504,13 @@ class RollingAndExpandingMixin(BaseWindow):
 
                 return self._numba_apply(sliding_mean, engine_kwargs)
         window_func = window_aggregations.roll_mean
-        return self._apply(
-            window_func, name="mean", numeric_only=numeric_only, **kwargs
-        )
+        return self._apply(window_func, name="mean", numeric_only=numeric_only)
 
     def median(
         self,
         numeric_only: bool = False,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
         if maybe_use_numba(engine):
             if self.method == "table":
@@ -1572,27 +1525,21 @@ class RollingAndExpandingMixin(BaseWindow):
                 engine_kwargs=engine_kwargs,
             )
         window_func = window_aggregations.roll_median_c
-        return self._apply(
-            window_func, name="median", numeric_only=numeric_only, **kwargs
-        )
+        return self._apply(window_func, name="median", numeric_only=numeric_only)
 
     def std(
         self,
         ddof: int = 1,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        nv.validate_window_func("std", args, kwargs)
         if maybe_use_numba(engine):
             if self.method == "table":
                 raise NotImplementedError("std not supported with method='table'")
-            else:
-                from pandas.core._numba.kernels import sliding_var
+            from pandas.core._numba.kernels import sliding_var
 
-                return zsqrt(self._numba_apply(sliding_var, engine_kwargs, ddof))
+            return zsqrt(self._numba_apply(sliding_var, engine_kwargs, ddof))
         window_func = window_aggregations.roll_var
 
         def zsqrt_func(values, begin, end, min_periods):
@@ -1602,58 +1549,49 @@ class RollingAndExpandingMixin(BaseWindow):
             zsqrt_func,
             name="std",
             numeric_only=numeric_only,
-            **kwargs,
         )
 
     def var(
         self,
         ddof: int = 1,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        nv.validate_window_func("var", args, kwargs)
         if maybe_use_numba(engine):
             if self.method == "table":
                 raise NotImplementedError("var not supported with method='table'")
-            else:
-                from pandas.core._numba.kernels import sliding_var
+            from pandas.core._numba.kernels import sliding_var
 
-                return self._numba_apply(sliding_var, engine_kwargs, ddof)
+            return self._numba_apply(sliding_var, engine_kwargs, ddof)
         window_func = partial(window_aggregations.roll_var, ddof=ddof)
         return self._apply(
             window_func,
             name="var",
             numeric_only=numeric_only,
-            **kwargs,
         )
 
-    def skew(self, numeric_only: bool = False, **kwargs):
+    def skew(self, numeric_only: bool = False):
         window_func = window_aggregations.roll_skew
         return self._apply(
             window_func,
             name="skew",
             numeric_only=numeric_only,
-            **kwargs,
         )
 
-    def sem(self, ddof: int = 1, numeric_only: bool = False, *args, **kwargs):
-        nv.validate_rolling_func("sem", args, kwargs)
+    def sem(self, ddof: int = 1, numeric_only: bool = False):
         # Raise here so error message says sem instead of std
         self._validate_numeric_only("sem", numeric_only)
-        return self.std(numeric_only=numeric_only, **kwargs) / (
+        return self.std(numeric_only=numeric_only) / (
             self.count(numeric_only=numeric_only) - ddof
         ).pow(0.5)
 
-    def kurt(self, numeric_only: bool = False, **kwargs):
+    def kurt(self, numeric_only: bool = False):
         window_func = window_aggregations.roll_kurt
         return self._apply(
             window_func,
             name="kurt",
             numeric_only=numeric_only,
-            **kwargs,
         )
 
     def quantile(
@@ -1661,7 +1599,6 @@ class RollingAndExpandingMixin(BaseWindow):
         quantile: float,
         interpolation: QuantileInterpolation = "linear",
         numeric_only: bool = False,
-        **kwargs,
     ):
         if quantile == 1.0:
             window_func = window_aggregations.roll_max
@@ -1674,9 +1611,7 @@ class RollingAndExpandingMixin(BaseWindow):
                 interpolation=interpolation,
             )
 
-        return self._apply(
-            window_func, name="quantile", numeric_only=numeric_only, **kwargs
-        )
+        return self._apply(window_func, name="quantile", numeric_only=numeric_only)
 
     def rank(
         self,
@@ -1684,7 +1619,6 @@ class RollingAndExpandingMixin(BaseWindow):
         ascending: bool = True,
         pct: bool = False,
         numeric_only: bool = False,
-        **kwargs,
     ):
         window_func = partial(
             window_aggregations.roll_rank,
@@ -1693,9 +1627,7 @@ class RollingAndExpandingMixin(BaseWindow):
             percentile=pct,
         )
 
-        return self._apply(
-            window_func, name="rank", numeric_only=numeric_only, **kwargs
-        )
+        return self._apply(window_func, name="rank", numeric_only=numeric_only)
 
     def cov(
         self,
@@ -1703,7 +1635,6 @@ class RollingAndExpandingMixin(BaseWindow):
         pairwise: bool | None = None,
         ddof: int = 1,
         numeric_only: bool = False,
-        **kwargs,
     ):
         if self.step is not None:
             raise NotImplementedError("step not implemented for cov")
@@ -1739,7 +1670,7 @@ class RollingAndExpandingMixin(BaseWindow):
                     notna(x_array + y_array).astype(np.float64), start, end, 0
                 )
                 result = (mean_x_y - mean_x * mean_y) * (count_x_y / (count_x_y - ddof))
-            return Series(result, index=x.index, name=x.name)
+            return Series(result, index=x.index, name=x.name, copy=False)
 
         return self._apply_pairwise(
             self._selected_obj, other, pairwise, cov_func, numeric_only
@@ -1751,7 +1682,6 @@ class RollingAndExpandingMixin(BaseWindow):
         pairwise: bool | None = None,
         ddof: int = 1,
         numeric_only: bool = False,
-        **kwargs,
     ):
         if self.step is not None:
             raise NotImplementedError("step not implemented for corr")
@@ -1797,7 +1727,7 @@ class RollingAndExpandingMixin(BaseWindow):
                 )
                 denominator = (x_var * y_var) ** 0.5
                 result = numerator / denominator
-            return Series(result, index=x.index, name=x.name)
+            return Series(result, index=x.index, name=x.name, copy=False)
 
         return self._apply_pairwise(
             self._selected_obj, other, pairwise, corr_func, numeric_only
@@ -1805,7 +1735,6 @@ class RollingAndExpandingMixin(BaseWindow):
 
 
 class Rolling(RollingAndExpandingMixin):
-
     _attributes: list[str] = [
         "window",
         "min_periods",
@@ -1826,7 +1755,6 @@ class Rolling(RollingAndExpandingMixin):
             self.obj.empty
             or isinstance(self._on, (DatetimeIndex, TimedeltaIndex, PeriodIndex))
         ) and isinstance(self.window, (str, BaseOffset, timedelta)):
-
             self._validate_datetimelike_monotonic()
 
             # this will raise ValueError on non-fixed freqs
@@ -1861,7 +1789,7 @@ class Rolling(RollingAndExpandingMixin):
         elif not is_integer(self.window) or self.window < 0:
             raise ValueError("window must be an integer 0 or greater")
 
-    def _validate_datetimelike_monotonic(self):
+    def _validate_datetimelike_monotonic(self) -> None:
         """
         Validate self._on is monotonic (increasing or decreasing) and has
         no NaT values for frequency windows.
@@ -1935,21 +1863,21 @@ class Rolling(RollingAndExpandingMixin):
             """
         >>> s = pd.Series([2, 3, np.nan, 10])
         >>> s.rolling(2).count()
-        0    1.0
+        0    NaN
         1    2.0
         2    1.0
         3    1.0
         dtype: float64
         >>> s.rolling(3).count()
-        0    1.0
-        1    2.0
+        0    NaN
+        1    NaN
         2    2.0
         3    2.0
         dtype: float64
         >>> s.rolling(4).count()
-        0    1.0
-        1    2.0
-        2    2.0
+        0    NaN
+        1    NaN
+        2    NaN
         3    3.0
         dtype: float64
         """
@@ -1959,22 +1887,7 @@ class Rolling(RollingAndExpandingMixin):
         agg_method="count",
     )
     def count(self, numeric_only: bool = False):
-        if self.min_periods is None:
-            warnings.warn(
-                (
-                    "min_periods=None will default to the size of window "
-                    "consistent with other methods in a future version. "
-                    "Specify min_periods=0 instead."
-                ),
-                FutureWarning,
-                stacklevel=find_stack_level(),
-            )
-            self.min_periods = 0
-            result = super().count()
-            self.min_periods = None
-        else:
-            result = super().count(numeric_only)
-        return result
+        return super().count(numeric_only)
 
     @doc(
         template_header,
@@ -2010,9 +1923,7 @@ class Rolling(RollingAndExpandingMixin):
         template_header,
         create_section_header("Parameters"),
         kwargs_numeric_only,
-        args_compat,
         window_agg_numba_parameters(),
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2074,27 +1985,20 @@ class Rolling(RollingAndExpandingMixin):
     def sum(
         self,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "sum", args, kwargs)
-        nv.validate_rolling_func("sum", args, kwargs)
         return super().sum(
             numeric_only=numeric_only,
             engine=engine,
             engine_kwargs=engine_kwargs,
-            **kwargs,
         )
 
     @doc(
         template_header,
         create_section_header("Parameters"),
         kwargs_numeric_only,
-        args_compat,
         window_agg_numba_parameters(),
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2113,22 +2017,17 @@ class Rolling(RollingAndExpandingMixin):
         engine_kwargs: dict[str, bool] | None = None,
         **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "max", args, kwargs)
-        nv.validate_rolling_func("max", args, kwargs)
         return super().max(
             numeric_only=numeric_only,
             engine=engine,
             engine_kwargs=engine_kwargs,
-            **kwargs,
         )
 
     @doc(
         template_header,
         create_section_header("Parameters"),
         kwargs_numeric_only,
-        args_compat,
         window_agg_numba_parameters(),
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2157,27 +2056,20 @@ class Rolling(RollingAndExpandingMixin):
     def min(
         self,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "min", args, kwargs)
-        nv.validate_rolling_func("min", args, kwargs)
         return super().min(
             numeric_only=numeric_only,
             engine=engine,
             engine_kwargs=engine_kwargs,
-            **kwargs,
         )
 
     @doc(
         template_header,
         create_section_header("Parameters"),
         kwargs_numeric_only,
-        args_compat,
         window_agg_numba_parameters(),
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2213,18 +2105,13 @@ class Rolling(RollingAndExpandingMixin):
     def mean(
         self,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "mean", args, kwargs)
-        nv.validate_rolling_func("mean", args, kwargs)
         return super().mean(
             numeric_only=numeric_only,
             engine=engine,
             engine_kwargs=engine_kwargs,
-            **kwargs,
         )
 
     @doc(
@@ -2232,7 +2119,6 @@ class Rolling(RollingAndExpandingMixin):
         create_section_header("Parameters"),
         kwargs_numeric_only,
         window_agg_numba_parameters(),
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2263,14 +2149,11 @@ class Rolling(RollingAndExpandingMixin):
         numeric_only: bool = False,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "median", None, kwargs)
         return super().median(
             numeric_only=numeric_only,
             engine=engine,
             engine_kwargs=engine_kwargs,
-            **kwargs,
         )
 
     @doc(
@@ -2284,9 +2167,7 @@ class Rolling(RollingAndExpandingMixin):
         """
         ).replace("\n", "", 1),
         kwargs_numeric_only,
-        args_compat,
         window_agg_numba_parameters("1.4"),
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2324,19 +2205,14 @@ class Rolling(RollingAndExpandingMixin):
         self,
         ddof: int = 1,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "std", args, kwargs)
-        nv.validate_rolling_func("std", args, kwargs)
         return super().std(
             ddof=ddof,
             numeric_only=numeric_only,
             engine=engine,
             engine_kwargs=engine_kwargs,
-            **kwargs,
         )
 
     @doc(
@@ -2350,9 +2226,7 @@ class Rolling(RollingAndExpandingMixin):
         """
         ).replace("\n", "", 1),
         kwargs_numeric_only,
-        args_compat,
         window_agg_numba_parameters("1.4"),
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2390,26 +2264,20 @@ class Rolling(RollingAndExpandingMixin):
         self,
         ddof: int = 1,
         numeric_only: bool = False,
-        *args,
         engine: str | None = None,
         engine_kwargs: dict[str, bool] | None = None,
-        **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "var", args, kwargs)
-        nv.validate_rolling_func("var", args, kwargs)
         return super().var(
             ddof=ddof,
             numeric_only=numeric_only,
             engine=engine,
             engine_kwargs=engine_kwargs,
-            **kwargs,
         )
 
     @doc(
         template_header,
         create_section_header("Parameters"),
         kwargs_numeric_only,
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2421,9 +2289,8 @@ class Rolling(RollingAndExpandingMixin):
         aggregation_description="unbiased skewness",
         agg_method="skew",
     )
-    def skew(self, numeric_only: bool = False, **kwargs):
-        maybe_warn_args_and_kwargs(type(self), "skew", None, kwargs)
-        return super().skew(numeric_only=numeric_only, **kwargs)
+    def skew(self, numeric_only: bool = False):
+        return super().skew(numeric_only=numeric_only)
 
     @doc(
         template_header,
@@ -2436,8 +2303,6 @@ class Rolling(RollingAndExpandingMixin):
         """
         ).replace("\n", "", 1),
         kwargs_numeric_only,
-        args_compat,
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2460,12 +2325,10 @@ class Rolling(RollingAndExpandingMixin):
         aggregation_description="standard error of mean",
         agg_method="sem",
     )
-    def sem(self, ddof: int = 1, numeric_only: bool = False, *args, **kwargs):
-        maybe_warn_args_and_kwargs(type(self), "sem", args, kwargs)
-        nv.validate_rolling_func("sem", args, kwargs)
+    def sem(self, ddof: int = 1, numeric_only: bool = False):
         # Raise here so error message says sem instead of std
         self._validate_numeric_only("sem", numeric_only)
-        return self.std(numeric_only=numeric_only, **kwargs) / (
+        return self.std(numeric_only=numeric_only) / (
             self.count(numeric_only) - ddof
         ).pow(0.5)
 
@@ -2473,7 +2336,6 @@ class Rolling(RollingAndExpandingMixin):
         template_header,
         create_section_header("Parameters"),
         kwargs_numeric_only,
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2507,9 +2369,8 @@ class Rolling(RollingAndExpandingMixin):
         aggregation_description="Fisher's definition of kurtosis without bias",
         agg_method="kurt",
     )
-    def kurt(self, numeric_only: bool = False, **kwargs):
-        maybe_warn_args_and_kwargs(type(self), "kurt", None, kwargs)
-        return super().kurt(numeric_only=numeric_only, **kwargs)
+    def kurt(self, numeric_only: bool = False):
+        return super().kurt(numeric_only=numeric_only)
 
     @doc(
         template_header,
@@ -2531,7 +2392,6 @@ class Rolling(RollingAndExpandingMixin):
         """
         ).replace("\n", "", 1),
         kwargs_numeric_only,
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2564,14 +2424,11 @@ class Rolling(RollingAndExpandingMixin):
         quantile: float,
         interpolation: QuantileInterpolation = "linear",
         numeric_only: bool = False,
-        **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "quantile", None, kwargs)
         return super().quantile(
             quantile=quantile,
             interpolation=interpolation,
             numeric_only=numeric_only,
-            **kwargs,
         )
 
     @doc(
@@ -2595,7 +2452,6 @@ class Rolling(RollingAndExpandingMixin):
         """
         ).replace("\n", "", 1),
         kwargs_numeric_only,
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2642,15 +2498,12 @@ class Rolling(RollingAndExpandingMixin):
         ascending: bool = True,
         pct: bool = False,
         numeric_only: bool = False,
-        **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "rank", None, kwargs)
         return super().rank(
             method=method,
             ascending=ascending,
             pct=pct,
             numeric_only=numeric_only,
-            **kwargs,
         )
 
     @doc(
@@ -2674,7 +2527,6 @@ class Rolling(RollingAndExpandingMixin):
         """
         ).replace("\n", "", 1),
         kwargs_numeric_only,
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2689,15 +2541,12 @@ class Rolling(RollingAndExpandingMixin):
         pairwise: bool | None = None,
         ddof: int = 1,
         numeric_only: bool = False,
-        **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "cov", None, kwargs)
         return super().cov(
             other=other,
             pairwise=pairwise,
             ddof=ddof,
             numeric_only=numeric_only,
-            **kwargs,
         )
 
     @doc(
@@ -2721,7 +2570,6 @@ class Rolling(RollingAndExpandingMixin):
         """
         ).replace("\n", "", 1),
         kwargs_numeric_only,
-        kwargs_compat,
         create_section_header("Returns"),
         template_returns,
         create_section_header("See Also"),
@@ -2823,15 +2671,12 @@ class Rolling(RollingAndExpandingMixin):
         pairwise: bool | None = None,
         ddof: int = 1,
         numeric_only: bool = False,
-        **kwargs,
     ):
-        maybe_warn_args_and_kwargs(type(self), "corr", None, kwargs)
         return super().corr(
             other=other,
             pairwise=pairwise,
             ddof=ddof,
             numeric_only=numeric_only,
-            **kwargs,
         )
 
 

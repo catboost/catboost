@@ -44,6 +44,7 @@ from pandas.core.dtypes.cast import (
     infer_dtype_from_scalar,
     maybe_box_datetimelike,
     maybe_downcast_numeric,
+    maybe_upcast_numeric_to_64bit,
 )
 from pandas.core.dtypes.common import (
     ensure_platform_int,
@@ -217,7 +218,6 @@ class IntervalIndex(ExtensionIndex):
         name: Hashable = None,
         verify_integrity: bool = True,
     ) -> IntervalIndex:
-
         name = maybe_extract_name(name, data, cls)
 
         with rewrite_exception("IntervalArray", cls.__name__):
@@ -326,7 +326,7 @@ class IntervalIndex(ExtensionIndex):
     def from_tuples(
         cls,
         data,
-        closed: str = "right",
+        closed: IntervalClosedType = "right",
         name: Hashable = None,
         copy: bool = False,
         dtype: Dtype | None = None,
@@ -340,8 +340,11 @@ class IntervalIndex(ExtensionIndex):
     # "Union[IndexEngine, ExtensionEngine]" in supertype "Index"
     @cache_readonly
     def _engine(self) -> IntervalTree:  # type: ignore[override]
+        # IntervalTree does not supports numpy array unless they are 64 bit
         left = self._maybe_convert_i8(self.left)
+        left = maybe_upcast_numeric_to_64bit(left)
         right = self._maybe_convert_i8(self.right)
+        right = maybe_upcast_numeric_to_64bit(right)
         return IntervalTree(left, right, closed=self.closed)
 
     def __contains__(self, key: Any) -> bool:
@@ -387,7 +390,8 @@ class IntervalIndex(ExtensionIndex):
         """Return a string of the type inferred from the values"""
         return "interval"
 
-    @Appender(Index.memory_usage.__doc__)
+    # Cannot determine type of "memory_usage"
+    @Appender(Index.memory_usage.__doc__)  # type: ignore[has-type]
     def memory_usage(self, deep: bool = False) -> int:
         # we don't use an explicit engine
         # so return the bytes here
@@ -516,14 +520,14 @@ class IntervalIndex(ExtensionIndex):
         -------
         scalar or list-like
             The original key if no conversion occurred, int if converted scalar,
-            Int64Index if converted list-like.
+            Index with an int64 dtype if converted list-like.
         """
-        original = key
         if is_list_like(key):
             key = ensure_index(key)
+            key = maybe_upcast_numeric_to_64bit(key)
 
         if not self._needs_i8_conversion(key):
-            return original
+            return key
 
         scalar = is_scalar(key)
         if is_interval_dtype(key) or isinstance(key, Interval):
@@ -542,7 +546,7 @@ class IntervalIndex(ExtensionIndex):
             if lib.is_period(key):
                 key_i8 = key.ordinal
             elif isinstance(key_i8, Timestamp):
-                key_i8 = key_i8.value
+                key_i8 = key_i8._value
             elif isinstance(key_i8, (np.datetime64, np.timedelta64)):
                 key_i8 = key_i8.view("i8")
         else:
@@ -595,19 +599,13 @@ class IntervalIndex(ExtensionIndex):
     # --------------------------------------------------------------------
     # Indexing Methods
 
-    def get_loc(
-        self, key, method: str | None = None, tolerance=None
-    ) -> int | slice | np.ndarray:
+    def get_loc(self, key) -> int | slice | np.ndarray:
         """
         Get integer location, slice or boolean mask for requested label.
 
         Parameters
         ----------
         key : label
-        method : {None}, optional
-            * default: matches where the label is within an interval only.
-
-            .. deprecated:: 1.4
 
         Returns
         -------
@@ -638,7 +636,6 @@ class IntervalIndex(ExtensionIndex):
         >>> index.get_loc(pd.Interval(0, 1))
         0
         """
-        self._check_indexing_method(method)
         self._check_indexing_error(key)
 
         if isinstance(key, Interval):
@@ -660,7 +657,7 @@ class IntervalIndex(ExtensionIndex):
         matches = mask.sum()
         if matches == 0:
             raise KeyError(key)
-        elif matches == 1:
+        if matches == 1:
             return mask.argmax()
 
         res = lib.maybe_booleans_to_slice(mask.view("u1"))
@@ -676,7 +673,6 @@ class IntervalIndex(ExtensionIndex):
         limit: int | None = None,
         tolerance: Any | None = None,
     ) -> npt.NDArray[np.intp]:
-
         if isinstance(target, IntervalIndex):
             # We only get here with not self.is_overlapping
             # -> at most one match per interval in target
@@ -786,7 +782,7 @@ class IntervalIndex(ExtensionIndex):
             msg = "label-based slicing with step!=1 is not supported for IntervalIndex"
             if kind == "loc":
                 raise ValueError(msg)
-            elif kind == "getitem":
+            if kind == "getitem":
                 if not is_valid_positional_slice(key):
                     # i.e. this cannot be interpreted as a positional slice
                     raise ValueError(msg)
@@ -801,8 +797,7 @@ class IntervalIndex(ExtensionIndex):
         # ExtensionDtype]" has no attribute "subtype"
         return self.dtype.subtype.kind in ["m", "M"]  # type: ignore[union-attr]
 
-    def _maybe_cast_slice_bound(self, label, side: str, kind=lib.no_default):
-        self._deprecated_arg(kind, "kind", "_maybe_cast_slice_bound")
+    def _maybe_cast_slice_bound(self, label, side: str):
         return getattr(self, side)._maybe_cast_slice_bound(label, side)
 
     def _is_comparable_dtype(self, dtype: DtypeObj) -> bool:
@@ -838,7 +833,7 @@ class IntervalIndex(ExtensionIndex):
         return header + list(self._format_native_types(na_rep=na_rep))
 
     def _format_native_types(
-        self, *, na_rep="NaN", quoting=None, **kwargs
+        self, *, na_rep: str = "NaN", quoting=None, **kwargs
     ) -> npt.NDArray[np.object_]:
         # GH 28210: use base method but with different default na_rep
         return super()._format_native_types(na_rep=na_rep, quoting=quoting, **kwargs)
@@ -846,7 +841,7 @@ class IntervalIndex(ExtensionIndex):
     def _format_data(self, name=None) -> str:
         # TODO: integrate with categorical and make generic
         # name argument is unused here; just for compat with base / categorical
-        return self._data._format_data() + "," + self._format_space()
+        return f"{self._data._format_data()},{self._format_space()}"
 
     # --------------------------------------------------------------------
     # Set Operations
@@ -986,7 +981,7 @@ def interval_range(
         Right bound for generating intervals.
     periods : int, default None
         Number of periods to generate.
-    freq : numeric, str, or DateOffset, default None
+    freq : numeric, str, datetime.timedelta, or DateOffset, default None
         The length of each interval. Must be consistent with the type of start
         and end, e.g. 2 for numeric, or '5H' for datetime-like.  Default is 1
         for numeric and 'D' for datetime-like.
@@ -1076,7 +1071,7 @@ def interval_range(
 
     if not _is_valid_endpoint(start):
         raise ValueError(f"start must be numeric or datetime-like, got {start}")
-    elif not _is_valid_endpoint(end):
+    if not _is_valid_endpoint(end):
         raise ValueError(f"end must be numeric or datetime-like, got {end}")
 
     if is_float(periods):

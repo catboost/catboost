@@ -3,12 +3,12 @@ datetimelike delegation
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-import warnings
+from typing import (
+    TYPE_CHECKING,
+    cast,
+)
 
 import numpy as np
-
-from pandas.util._exceptions import find_stack_level
 
 from pandas.core.dtypes.common import (
     is_categorical_dtype,
@@ -30,6 +30,8 @@ from pandas.core.arrays import (
     PeriodArray,
     TimedeltaArray,
 )
+from pandas.core.arrays.arrow.array import ArrowExtensionArray
+from pandas.core.arrays.arrow.dtype import ArrowDtype
 from pandas.core.base import (
     NoNewAttributesMixin,
     PandasObject,
@@ -99,7 +101,7 @@ class Properties(PandasDelegate, PandasObject, NoNewAttributesMixin):
             index = self.orig.index
         else:
             index = self._parent.index
-        # return the result as a Series, which is by definition a copy
+        # return the result as a Series
         result = Series(result, index=index, name=self.name).__finalize__(self._parent)
 
         # setting this object will show a SettingWithCopyWarning/Error
@@ -143,10 +145,99 @@ class Properties(PandasDelegate, PandasObject, NoNewAttributesMixin):
 
 
 @delegate_names(
-    delegate=DatetimeArray, accessors=DatetimeArray._datetimelike_ops, typ="property"
+    delegate=ArrowExtensionArray,
+    accessors=DatetimeArray._datetimelike_ops,
+    typ="property",
+    accessor_mapping=lambda x: f"_dt_{x}",
+    raise_on_missing=False,
 )
 @delegate_names(
-    delegate=DatetimeArray, accessors=DatetimeArray._datetimelike_methods, typ="method"
+    delegate=ArrowExtensionArray,
+    accessors=DatetimeArray._datetimelike_methods,
+    typ="method",
+    accessor_mapping=lambda x: f"_dt_{x}",
+    raise_on_missing=False,
+)
+class ArrowTemporalProperties(PandasDelegate, PandasObject, NoNewAttributesMixin):
+    def __init__(self, data: Series, orig) -> None:
+        if not isinstance(data, ABCSeries):
+            raise TypeError(
+                f"cannot convert an object of type {type(data)} to a datetimelike index"
+            )
+
+        self._parent = data
+        self._orig = orig
+        self._freeze()
+
+    def _delegate_property_get(self, name: str):  # type: ignore[override]
+        if not hasattr(self._parent.array, f"_dt_{name}"):
+            raise NotImplementedError(
+                f"dt.{name} is not supported for {self._parent.dtype}"
+            )
+        result = getattr(self._parent.array, f"_dt_{name}")
+
+        if not is_list_like(result):
+            return result
+
+        if self._orig is not None:
+            index = self._orig.index
+        else:
+            index = self._parent.index
+        # return the result as a Series, which is by definition a copy
+        result = type(self._parent)(
+            result, index=index, name=self._parent.name
+        ).__finalize__(self._parent)
+
+        return result
+
+    def _delegate_method(self, name: str, *args, **kwargs):
+        if not hasattr(self._parent.array, f"_dt_{name}"):
+            raise NotImplementedError(
+                f"dt.{name} is not supported for {self._parent.dtype}"
+            )
+
+        result = getattr(self._parent.array, f"_dt_{name}")(*args, **kwargs)
+
+        if self._orig is not None:
+            index = self._orig.index
+        else:
+            index = self._parent.index
+        # return the result as a Series, which is by definition a copy
+        result = type(self._parent)(
+            result, index=index, name=self._parent.name
+        ).__finalize__(self._parent)
+
+        return result
+
+    def to_pydatetime(self):
+        return cast(ArrowExtensionArray, self._parent.array)._dt_to_pydatetime()
+
+    def isocalendar(self):
+        from pandas import DataFrame
+
+        result = (
+            cast(ArrowExtensionArray, self._parent.array)
+            ._dt_isocalendar()
+            ._data.combine_chunks()
+        )
+        iso_calendar_df = DataFrame(
+            {
+                col: type(self._parent.array)(result.field(i))  # type: ignore[call-arg]
+                for i, col in enumerate(["year", "week", "day"])
+            }
+        )
+        return iso_calendar_df
+
+
+@delegate_names(
+    delegate=DatetimeArray,
+    accessors=DatetimeArray._datetimelike_ops + ["unit"],
+    typ="property",
+)
+@delegate_names(
+    delegate=DatetimeArray,
+    accessors=DatetimeArray._datetimelike_methods + ["as_unit"],
+    typ="method",
 )
 class DatetimeProperties(Properties):
     """
@@ -164,7 +255,7 @@ class DatetimeProperties(Properties):
     0    0
     1    1
     2    2
-    dtype: int64
+    dtype: int32
 
     >>> hours_series = pd.Series(pd.date_range("2000-01-01", periods=3, freq="h"))
     >>> hours_series
@@ -176,7 +267,7 @@ class DatetimeProperties(Properties):
     0    0
     1    1
     2    2
-    dtype: int64
+    dtype: int32
 
     >>> quarters_series = pd.Series(pd.date_range("2000-01-01", periods=3, freq="q"))
     >>> quarters_series
@@ -188,7 +279,7 @@ class DatetimeProperties(Properties):
     0    1
     1    2
     2    3
-    dtype: int64
+    dtype: int32
 
     Returns a Series indexed like the original Series.
     Raises TypeError if the Series does not contain datetimelike values.
@@ -276,31 +367,6 @@ class DatetimeProperties(Properties):
         """
         return self._get_values().isocalendar().set_index(self._parent.index)
 
-    @property
-    def weekofyear(self):
-        """
-        The week ordinal of the year according to the ISO 8601 standard.
-
-        .. deprecated:: 1.1.0
-
-        Series.dt.weekofyear and Series.dt.week have been deprecated.  Please
-        call :func:`Series.dt.isocalendar` and access the ``week`` column
-        instead.
-        """
-        warnings.warn(
-            "Series.dt.weekofyear and Series.dt.week have been deprecated. "
-            "Please use Series.dt.isocalendar().week instead.",
-            FutureWarning,
-            stacklevel=find_stack_level(),
-        )
-        week_series = self.isocalendar().week
-        week_series.name = self.name
-        if week_series.hasnans:
-            return week_series.astype("float64")
-        return week_series.astype("int64")
-
-    week = weekofyear
-
 
 @delegate_names(
     delegate=TimedeltaArray, accessors=TimedeltaArray._datetimelike_ops, typ="property"
@@ -331,7 +397,7 @@ class TimedeltaProperties(Properties):
     0    1
     1    2
     2    3
-    dtype: int64
+    dtype: int32
     """
 
     def to_pytimedelta(self) -> np.ndarray:
@@ -500,6 +566,8 @@ class CombinedDatetimelikeProperties(
                 index=orig.index,
             )
 
+        if isinstance(data.dtype, ArrowDtype) and data.dtype.kind == "M":
+            return ArrowTemporalProperties(data, orig)
         if is_datetime64_dtype(data.dtype):
             return DatetimeProperties(data, orig)
         elif is_datetime64tz_dtype(data.dtype):

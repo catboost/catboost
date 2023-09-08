@@ -93,7 +93,7 @@ def _is_sup(f1: str, f2: str) -> bool:
     )
 
 
-def _upsample_others(ax: Axes, freq, kwargs):
+def _upsample_others(ax: Axes, freq, kwargs) -> None:
     legend = ax.get_legend()
     lines, labels = _replot_ax(ax, freq, kwargs)
     _replot_ax(ax, freq, kwargs)
@@ -146,7 +146,7 @@ def _replot_ax(ax: Axes, freq, kwargs):
     return lines, labels
 
 
-def decorate_axes(ax: Axes, freq, kwargs):
+def decorate_axes(ax: Axes, freq, kwargs) -> None:
     """Initialize axes for time-series plotting"""
     if not hasattr(ax, "_plot_data"):
         ax._plot_data = []
@@ -306,7 +306,6 @@ def format_dateaxis(subplot, freq, index) -> None:
     # Note: DatetimeIndex does not use this
     # interface. DatetimeIndex uses matplotlib.date directly
     if isinstance(index, ABCPeriodIndex):
-
         majlocator = TimeSeries_DateLocator(
             freq, dynamic_mode=True, minor_locator=False, plot_obj=subplot
         )

@@ -25,7 +25,6 @@ def add_var(
     prev_value: float,
 ) -> tuple[int, float, float, float, int, float]:
     if not np.isnan(val):
-
         if val == prev_value:
             num_consecutive_same_value += 1
         else:
@@ -92,7 +91,6 @@ def sliding_var(
         s = start[i]
         e = end[i]
         if i == 0 or not is_monotonic_increasing_bounds:
-
             prev_value = values[s]
             num_consecutive_same_value = 0
 
@@ -112,7 +110,7 @@ def sliding_var(
                     ssqdm_x,
                     compensation_add,
                     num_consecutive_same_value,
-                    prev_value,
+                    prev_value,  # pyright: ignore[reportGeneralTypeIssues]
                 )
         else:
             for j in range(start[i - 1], s):
@@ -137,7 +135,7 @@ def sliding_var(
                     ssqdm_x,
                     compensation_add,
                     num_consecutive_same_value,
-                    prev_value,
+                    prev_value,  # pyright: ignore[reportGeneralTypeIssues]
                 )
 
         if nobs >= min_periods and nobs > ddof:

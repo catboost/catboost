@@ -13,7 +13,7 @@ ctypedef fused sparse_t:
     int64_t
 
 
-cdef inline float64_t __div__(sparse_t a, sparse_t b):
+cdef float64_t __div__(sparse_t a, sparse_t b):
     if b == 0:
         if a > 0:
             return INF
@@ -25,11 +25,11 @@ cdef inline float64_t __div__(sparse_t a, sparse_t b):
         return float(a) / b
 
 
-cdef inline float64_t __truediv__(sparse_t a, sparse_t b):
+cdef float64_t __truediv__(sparse_t a, sparse_t b):
     return __div__(a, b)
 
 
-cdef inline sparse_t __mod__(sparse_t a, sparse_t b):
+cdef sparse_t __mod__(sparse_t a, sparse_t b):
     if b == 0:
         if sparse_t is float64_t:
             return NaN
@@ -39,7 +39,7 @@ cdef inline sparse_t __mod__(sparse_t a, sparse_t b):
         return a % b
 
 
-cdef inline sparse_t __floordiv__(sparse_t a, sparse_t b):
+cdef sparse_t __floordiv__(sparse_t a, sparse_t b):
     if b == 0:
         if sparse_t is float64_t:
             # Match non-sparse Series behavior implemented in mask_zero_div_zero
@@ -57,26 +57,24 @@ cdef inline sparse_t __floordiv__(sparse_t a, sparse_t b):
 # ----------------------------------------------------------------------
 # sparse array op
 # ----------------------------------------------------------------------
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_add_float64(float64_t[:] x_,
+cdef tuple block_op_add_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[float64_t, ndim=1] out
@@ -158,11 +156,9 @@ cdef inline tuple block_op_add_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill + yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_add_float64(float64_t[:] x_,
+cdef tuple int_op_add_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -235,26 +231,24 @@ cpdef sparse_add_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_add_int64(int64_t[:] x_,
+cdef tuple block_op_add_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[int64_t, ndim=1] out
@@ -336,11 +330,9 @@ cdef inline tuple block_op_add_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill + yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_add_int64(int64_t[:] x_,
+cdef tuple int_op_add_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -413,26 +405,24 @@ cpdef sparse_add_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_sub_float64(float64_t[:] x_,
+cdef tuple block_op_sub_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[float64_t, ndim=1] out
@@ -514,11 +504,9 @@ cdef inline tuple block_op_sub_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill - yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_sub_float64(float64_t[:] x_,
+cdef tuple int_op_sub_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -591,26 +579,24 @@ cpdef sparse_sub_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_sub_int64(int64_t[:] x_,
+cdef tuple block_op_sub_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[int64_t, ndim=1] out
@@ -692,11 +678,9 @@ cdef inline tuple block_op_sub_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill - yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_sub_int64(int64_t[:] x_,
+cdef tuple int_op_sub_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -769,26 +753,24 @@ cpdef sparse_sub_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_mul_float64(float64_t[:] x_,
+cdef tuple block_op_mul_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[float64_t, ndim=1] out
@@ -870,11 +852,9 @@ cdef inline tuple block_op_mul_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill * yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_mul_float64(float64_t[:] x_,
+cdef tuple int_op_mul_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -947,26 +927,24 @@ cpdef sparse_mul_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_mul_int64(int64_t[:] x_,
+cdef tuple block_op_mul_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[int64_t, ndim=1] out
@@ -1048,11 +1026,9 @@ cdef inline tuple block_op_mul_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill * yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_mul_int64(int64_t[:] x_,
+cdef tuple int_op_mul_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -1125,26 +1101,24 @@ cpdef sparse_mul_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_div_float64(float64_t[:] x_,
+cdef tuple block_op_div_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[float64_t, ndim=1] out
@@ -1226,11 +1200,9 @@ cdef inline tuple block_op_div_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, __div__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_div_float64(float64_t[:] x_,
+cdef tuple int_op_div_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -1303,26 +1275,24 @@ cpdef sparse_div_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_div_int64(int64_t[:] x_,
+cdef tuple block_op_div_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[float64_t, ndim=1] out
@@ -1404,11 +1374,9 @@ cdef inline tuple block_op_div_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, __div__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_div_int64(int64_t[:] x_,
+cdef tuple int_op_div_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -1481,26 +1449,24 @@ cpdef sparse_div_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_mod_float64(float64_t[:] x_,
+cdef tuple block_op_mod_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[float64_t, ndim=1] out
@@ -1582,11 +1548,9 @@ cdef inline tuple block_op_mod_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, __mod__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_mod_float64(float64_t[:] x_,
+cdef tuple int_op_mod_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -1659,26 +1623,24 @@ cpdef sparse_mod_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_mod_int64(int64_t[:] x_,
+cdef tuple block_op_mod_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[int64_t, ndim=1] out
@@ -1760,11 +1722,9 @@ cdef inline tuple block_op_mod_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, __mod__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_mod_int64(int64_t[:] x_,
+cdef tuple int_op_mod_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -1837,26 +1797,24 @@ cpdef sparse_mod_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_truediv_float64(float64_t[:] x_,
+cdef tuple block_op_truediv_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[float64_t, ndim=1] out
@@ -1938,11 +1896,9 @@ cdef inline tuple block_op_truediv_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, __truediv__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_truediv_float64(float64_t[:] x_,
+cdef tuple int_op_truediv_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -2015,26 +1971,24 @@ cpdef sparse_truediv_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_truediv_int64(int64_t[:] x_,
+cdef tuple block_op_truediv_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[float64_t, ndim=1] out
@@ -2116,11 +2070,9 @@ cdef inline tuple block_op_truediv_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, __truediv__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_truediv_int64(int64_t[:] x_,
+cdef tuple int_op_truediv_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -2193,26 +2145,24 @@ cpdef sparse_truediv_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_floordiv_float64(float64_t[:] x_,
+cdef tuple block_op_floordiv_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[float64_t, ndim=1] out
@@ -2294,11 +2244,9 @@ cdef inline tuple block_op_floordiv_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, __floordiv__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_floordiv_float64(float64_t[:] x_,
+cdef tuple int_op_floordiv_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -2371,26 +2319,24 @@ cpdef sparse_floordiv_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_floordiv_int64(int64_t[:] x_,
+cdef tuple block_op_floordiv_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[int64_t, ndim=1] out
@@ -2472,11 +2418,9 @@ cdef inline tuple block_op_floordiv_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, __floordiv__(xfill, yfill)
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_floordiv_int64(int64_t[:] x_,
+cdef tuple int_op_floordiv_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -2549,26 +2493,25 @@ cpdef sparse_floordiv_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
+@cython.cpow(True) # Cython 3 matches Python pow, which isn't what we want here
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_pow_float64(float64_t[:] x_,
+cdef tuple block_op_pow_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[float64_t, ndim=1] out
@@ -2650,11 +2593,10 @@ cdef inline tuple block_op_pow_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill ** yfill
-
-
+@cython.cpow(True) # Cython 3 matches Python pow, which isn't what we want here
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_pow_float64(float64_t[:] x_,
+cdef tuple int_op_pow_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -2727,26 +2669,25 @@ cpdef sparse_pow_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
+@cython.cpow(True) # Cython 3 matches Python pow, which isn't what we want here
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_pow_int64(int64_t[:] x_,
+cdef tuple block_op_pow_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[int64_t, ndim=1] out
@@ -2828,11 +2769,10 @@ cdef inline tuple block_op_pow_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill ** yfill
-
-
+@cython.cpow(True) # Cython 3 matches Python pow, which isn't what we want here
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_pow_int64(int64_t[:] x_,
+cdef tuple int_op_pow_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -2905,26 +2845,24 @@ cpdef sparse_pow_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_eq_float64(float64_t[:] x_,
+cdef tuple block_op_eq_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -3006,11 +2944,9 @@ cdef inline tuple block_op_eq_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill == yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_eq_float64(float64_t[:] x_,
+cdef tuple int_op_eq_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -3083,26 +3019,24 @@ cpdef sparse_eq_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_eq_int64(int64_t[:] x_,
+cdef tuple block_op_eq_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -3184,11 +3118,9 @@ cdef inline tuple block_op_eq_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill == yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_eq_int64(int64_t[:] x_,
+cdef tuple int_op_eq_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -3261,26 +3193,24 @@ cpdef sparse_eq_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_ne_float64(float64_t[:] x_,
+cdef tuple block_op_ne_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -3362,11 +3292,9 @@ cdef inline tuple block_op_ne_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill != yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_ne_float64(float64_t[:] x_,
+cdef tuple int_op_ne_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -3439,26 +3367,24 @@ cpdef sparse_ne_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_ne_int64(int64_t[:] x_,
+cdef tuple block_op_ne_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -3540,11 +3466,9 @@ cdef inline tuple block_op_ne_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill != yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_ne_int64(int64_t[:] x_,
+cdef tuple int_op_ne_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -3617,26 +3541,24 @@ cpdef sparse_ne_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_lt_float64(float64_t[:] x_,
+cdef tuple block_op_lt_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -3718,11 +3640,9 @@ cdef inline tuple block_op_lt_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill < yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_lt_float64(float64_t[:] x_,
+cdef tuple int_op_lt_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -3795,26 +3715,24 @@ cpdef sparse_lt_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_lt_int64(int64_t[:] x_,
+cdef tuple block_op_lt_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -3896,11 +3814,9 @@ cdef inline tuple block_op_lt_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill < yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_lt_int64(int64_t[:] x_,
+cdef tuple int_op_lt_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -3973,26 +3889,24 @@ cpdef sparse_lt_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_gt_float64(float64_t[:] x_,
+cdef tuple block_op_gt_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -4074,11 +3988,9 @@ cdef inline tuple block_op_gt_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill > yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_gt_float64(float64_t[:] x_,
+cdef tuple int_op_gt_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -4151,26 +4063,24 @@ cpdef sparse_gt_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_gt_int64(int64_t[:] x_,
+cdef tuple block_op_gt_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -4252,11 +4162,9 @@ cdef inline tuple block_op_gt_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill > yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_gt_int64(int64_t[:] x_,
+cdef tuple int_op_gt_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -4329,26 +4237,24 @@ cpdef sparse_gt_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_le_float64(float64_t[:] x_,
+cdef tuple block_op_le_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -4430,11 +4336,9 @@ cdef inline tuple block_op_le_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill <= yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_le_float64(float64_t[:] x_,
+cdef tuple int_op_le_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -4507,26 +4411,24 @@ cpdef sparse_le_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_le_int64(int64_t[:] x_,
+cdef tuple block_op_le_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -4608,11 +4510,9 @@ cdef inline tuple block_op_le_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill <= yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_le_int64(int64_t[:] x_,
+cdef tuple int_op_le_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -4685,26 +4585,24 @@ cpdef sparse_le_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_ge_float64(float64_t[:] x_,
+cdef tuple block_op_ge_float64(float64_t[:] x_,
                                                 BlockIndex xindex,
                                                 float64_t xfill,
                                                 float64_t[:] y_,
                                                 BlockIndex yindex,
                                                 float64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         float64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -4786,11 +4684,9 @@ cdef inline tuple block_op_ge_float64(float64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill >= yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_ge_float64(float64_t[:] x_,
+cdef tuple int_op_ge_float64(float64_t[:] x_,
                                               IntIndex xindex,
                                               float64_t xfill,
                                               float64_t[:] y_,
@@ -4863,26 +4759,24 @@ cpdef sparse_ge_float64(float64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_ge_int64(int64_t[:] x_,
+cdef tuple block_op_ge_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -4964,11 +4858,9 @@ cdef inline tuple block_op_ge_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill >= yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_ge_int64(int64_t[:] x_,
+cdef tuple int_op_ge_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -5041,26 +4933,24 @@ cpdef sparse_ge_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_and_int64(int64_t[:] x_,
+cdef tuple block_op_and_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -5142,11 +5032,9 @@ cdef inline tuple block_op_and_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill & yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_and_int64(int64_t[:] x_,
+cdef tuple int_op_and_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -5219,26 +5107,24 @@ cpdef sparse_and_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_and_uint8(uint8_t[:] x_,
+cdef tuple block_op_and_uint8(uint8_t[:] x_,
                                                 BlockIndex xindex,
                                                 uint8_t xfill,
                                                 uint8_t[:] y_,
                                                 BlockIndex yindex,
                                                 uint8_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         uint8_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -5320,11 +5206,9 @@ cdef inline tuple block_op_and_uint8(uint8_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill & yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_and_uint8(uint8_t[:] x_,
+cdef tuple int_op_and_uint8(uint8_t[:] x_,
                                               IntIndex xindex,
                                               uint8_t xfill,
                                               uint8_t[:] y_,
@@ -5397,26 +5281,24 @@ cpdef sparse_and_uint8(uint8_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_or_int64(int64_t[:] x_,
+cdef tuple block_op_or_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -5498,11 +5380,9 @@ cdef inline tuple block_op_or_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill | yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_or_int64(int64_t[:] x_,
+cdef tuple int_op_or_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -5575,26 +5455,24 @@ cpdef sparse_or_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_or_uint8(uint8_t[:] x_,
+cdef tuple block_op_or_uint8(uint8_t[:] x_,
                                                 BlockIndex xindex,
                                                 uint8_t xfill,
                                                 uint8_t[:] y_,
                                                 BlockIndex yindex,
                                                 uint8_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         uint8_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -5676,11 +5554,9 @@ cdef inline tuple block_op_or_uint8(uint8_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill | yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_or_uint8(uint8_t[:] x_,
+cdef tuple int_op_or_uint8(uint8_t[:] x_,
                                               IntIndex xindex,
                                               uint8_t xfill,
                                               uint8_t[:] y_,
@@ -5753,26 +5629,24 @@ cpdef sparse_or_uint8(uint8_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_xor_int64(int64_t[:] x_,
+cdef tuple block_op_xor_int64(int64_t[:] x_,
                                                 BlockIndex xindex,
                                                 int64_t xfill,
                                                 int64_t[:] y_,
                                                 BlockIndex yindex,
                                                 int64_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         int64_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -5854,11 +5728,9 @@ cdef inline tuple block_op_xor_int64(int64_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill ^ yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_xor_int64(int64_t[:] x_,
+cdef tuple int_op_xor_int64(int64_t[:] x_,
                                               IntIndex xindex,
                                               int64_t xfill,
                                               int64_t[:] y_,
@@ -5931,26 +5803,24 @@ cpdef sparse_xor_int64(int64_t[:] x,
                                            y, yindex.to_int_index(), yfill)
     else:
         raise NotImplementedError
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple block_op_xor_uint8(uint8_t[:] x_,
+cdef tuple block_op_xor_uint8(uint8_t[:] x_,
                                                 BlockIndex xindex,
                                                 uint8_t xfill,
                                                 uint8_t[:] y_,
                                                 BlockIndex yindex,
                                                 uint8_t yfill):
-    '''
+    """
     Binary operator on BlockIndex objects with fill values
-    '''
+    """
 
     cdef:
         BlockIndex out_index
-        Py_ssize_t xi = 0, yi = 0, out_i = 0 # fp buf indices
-        int32_t xbp = 0, ybp = 0 # block positions
+        Py_ssize_t xi = 0, yi = 0, out_i = 0  # fp buf indices
+        int32_t xbp = 0, ybp = 0  # block positions
         int32_t xloc, yloc
-        Py_ssize_t xblock = 0, yblock = 0 # block numbers
+        Py_ssize_t xblock = 0, yblock = 0  # block numbers
 
         uint8_t[:] x, y
         ndarray[uint8_t, ndim=1] out
@@ -6032,11 +5902,9 @@ cdef inline tuple block_op_xor_uint8(uint8_t[:] x_,
                 ybp = 0
 
     return out, out_index, xfill ^ yfill
-
-
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline tuple int_op_xor_uint8(uint8_t[:] x_,
+cdef tuple int_op_xor_uint8(uint8_t[:] x_,
                                               IntIndex xindex,
                                               uint8_t xfill,
                                               uint8_t[:] y_,

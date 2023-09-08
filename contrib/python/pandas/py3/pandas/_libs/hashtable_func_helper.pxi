@@ -68,47 +68,74 @@ cdef value_count_complex128(const complex128_t[:] values, bint dropna, const uin
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_complex128(const complex128_t[:] values, object keep='first'):
+cdef duplicated_complex128(const complex128_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         khcomplex128_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_complex128_t *table = kh_init_complex128()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_complex128(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = to_khcomplex128_t(values[i])
-                kh_put_complex128(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = to_khcomplex128_t(values[i])
+                    kh_put_complex128(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = to_khcomplex128_t(values[i])
-                kh_put_complex128(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = to_khcomplex128_t(values[i])
+                    kh_put_complex128(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = to_khcomplex128_t(values[i])
-                k = kh_get_complex128(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_complex128(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = to_khcomplex128_t(values[i])
+                    k = kh_get_complex128(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_complex128(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_complex128(table)
     return out
@@ -235,47 +262,74 @@ cdef value_count_complex64(const complex64_t[:] values, bint dropna, const uint8
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_complex64(const complex64_t[:] values, object keep='first'):
+cdef duplicated_complex64(const complex64_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         khcomplex64_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_complex64_t *table = kh_init_complex64()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_complex64(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = to_khcomplex64_t(values[i])
-                kh_put_complex64(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = to_khcomplex64_t(values[i])
+                    kh_put_complex64(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = to_khcomplex64_t(values[i])
-                kh_put_complex64(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = to_khcomplex64_t(values[i])
+                    kh_put_complex64(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = to_khcomplex64_t(values[i])
-                k = kh_get_complex64(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_complex64(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = to_khcomplex64_t(values[i])
+                    k = kh_get_complex64(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_complex64(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_complex64(table)
     return out
@@ -402,47 +456,74 @@ cdef value_count_float64(const float64_t[:] values, bint dropna, const uint8_t[:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_float64(const float64_t[:] values, object keep='first'):
+cdef duplicated_float64(const float64_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         float64_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_float64_t *table = kh_init_float64()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_float64(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = (values[i])
-                kh_put_float64(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_float64(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = (values[i])
-                kh_put_float64(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_float64(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = (values[i])
-                k = kh_get_float64(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_float64(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = (values[i])
+                    k = kh_get_float64(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_float64(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_float64(table)
     return out
@@ -569,47 +650,74 @@ cdef value_count_float32(const float32_t[:] values, bint dropna, const uint8_t[:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_float32(const float32_t[:] values, object keep='first'):
+cdef duplicated_float32(const float32_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         float32_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_float32_t *table = kh_init_float32()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_float32(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = (values[i])
-                kh_put_float32(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_float32(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = (values[i])
-                kh_put_float32(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_float32(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = (values[i])
-                k = kh_get_float32(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_float32(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = (values[i])
+                    k = kh_get_float32(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_float32(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_float32(table)
     return out
@@ -736,47 +844,74 @@ cdef value_count_uint64(const uint64_t[:] values, bint dropna, const uint8_t[:] 
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_uint64(const uint64_t[:] values, object keep='first'):
+cdef duplicated_uint64(const uint64_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         uint64_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_uint64_t *table = kh_init_uint64()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_uint64(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = (values[i])
-                kh_put_uint64(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_uint64(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = (values[i])
-                kh_put_uint64(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_uint64(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = (values[i])
-                k = kh_get_uint64(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_uint64(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = (values[i])
+                    k = kh_get_uint64(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_uint64(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_uint64(table)
     return out
@@ -903,47 +1038,74 @@ cdef value_count_uint32(const uint32_t[:] values, bint dropna, const uint8_t[:] 
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_uint32(const uint32_t[:] values, object keep='first'):
+cdef duplicated_uint32(const uint32_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         uint32_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_uint32_t *table = kh_init_uint32()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_uint32(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = (values[i])
-                kh_put_uint32(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_uint32(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = (values[i])
-                kh_put_uint32(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_uint32(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = (values[i])
-                k = kh_get_uint32(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_uint32(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = (values[i])
+                    k = kh_get_uint32(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_uint32(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_uint32(table)
     return out
@@ -1070,47 +1232,74 @@ cdef value_count_uint16(const uint16_t[:] values, bint dropna, const uint8_t[:] 
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_uint16(const uint16_t[:] values, object keep='first'):
+cdef duplicated_uint16(const uint16_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         uint16_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_uint16_t *table = kh_init_uint16()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_uint16(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = (values[i])
-                kh_put_uint16(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_uint16(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = (values[i])
-                kh_put_uint16(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_uint16(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = (values[i])
-                k = kh_get_uint16(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_uint16(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = (values[i])
+                    k = kh_get_uint16(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_uint16(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_uint16(table)
     return out
@@ -1237,47 +1426,74 @@ cdef value_count_uint8(const uint8_t[:] values, bint dropna, const uint8_t[:] ma
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_uint8(const uint8_t[:] values, object keep='first'):
+cdef duplicated_uint8(const uint8_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         uint8_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_uint8_t *table = kh_init_uint8()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_uint8(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = (values[i])
-                kh_put_uint8(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_uint8(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = (values[i])
-                kh_put_uint8(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_uint8(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = (values[i])
-                k = kh_get_uint8(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_uint8(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = (values[i])
+                    k = kh_get_uint8(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_uint8(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_uint8(table)
     return out
@@ -1400,47 +1616,74 @@ cdef value_count_object(ndarray[object] values, bint dropna, const uint8_t[:] ma
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_object(ndarray[object] values, object keep='first'):
+cdef duplicated_object(ndarray[object] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         PyObject* value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_pymap_t *table = kh_init_pymap()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_pymap(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         if True:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = <PyObject*>(values[i])
-                kh_put_pymap(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = <PyObject*>(values[i])
+                    kh_put_pymap(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         if True:
             for i in range(n):
-                value = <PyObject*>(values[i])
-                kh_put_pymap(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = <PyObject*>(values[i])
+                    kh_put_pymap(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         if True:
             for i in range(n):
-                value = <PyObject*>(values[i])
-                k = kh_get_pymap(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_pymap(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = <PyObject*>(values[i])
+                    k = kh_get_pymap(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_pymap(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_pymap(table)
     return out
@@ -1567,47 +1810,74 @@ cdef value_count_int64(const int64_t[:] values, bint dropna, const uint8_t[:] ma
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_int64(const int64_t[:] values, object keep='first'):
+cdef duplicated_int64(const int64_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         int64_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_int64_t *table = kh_init_int64()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_int64(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = (values[i])
-                kh_put_int64(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_int64(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = (values[i])
-                kh_put_int64(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_int64(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = (values[i])
-                k = kh_get_int64(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_int64(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = (values[i])
+                    k = kh_get_int64(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_int64(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_int64(table)
     return out
@@ -1734,47 +2004,74 @@ cdef value_count_int32(const int32_t[:] values, bint dropna, const uint8_t[:] ma
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_int32(const int32_t[:] values, object keep='first'):
+cdef duplicated_int32(const int32_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         int32_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_int32_t *table = kh_init_int32()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_int32(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = (values[i])
-                kh_put_int32(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_int32(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = (values[i])
-                kh_put_int32(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_int32(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = (values[i])
-                k = kh_get_int32(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_int32(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = (values[i])
+                    k = kh_get_int32(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_int32(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_int32(table)
     return out
@@ -1901,47 +2198,74 @@ cdef value_count_int16(const int16_t[:] values, bint dropna, const uint8_t[:] ma
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_int16(const int16_t[:] values, object keep='first'):
+cdef duplicated_int16(const int16_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         int16_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_int16_t *table = kh_init_int16()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_int16(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = (values[i])
-                kh_put_int16(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_int16(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = (values[i])
-                kh_put_int16(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_int16(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = (values[i])
-                k = kh_get_int16(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_int16(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = (values[i])
+                    k = kh_get_int16(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_int16(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_int16(table)
     return out
@@ -2068,47 +2392,74 @@ cdef value_count_int8(const int8_t[:] values, bint dropna, const uint8_t[:] mask
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef duplicated_int8(const int8_t[:] values, object keep='first'):
+cdef duplicated_int8(const int8_t[:] values, object keep='first', const uint8_t[:] mask=None):
     cdef:
         int ret = 0
         int8_t value
-        Py_ssize_t i, n = len(values)
+        Py_ssize_t i, n = len(values), first_na = -1
         khiter_t k
         kh_int8_t *table = kh_init_int8()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
+        bint seen_na = False, uses_mask = mask is not None
+        bint seen_multiple_na = False
 
     kh_resize_int8(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
 
     if keep not in ('last', 'first', False):
         raise ValueError('keep must be either "first", "last" or False')
 
-    if keep == 'last':
+    if keep == "last":
         with nogil:
             for i in range(n - 1, -1, -1):
-                # equivalent: range(n)[::-1], which cython doesn't like in nogil
-                value = (values[i])
-                kh_put_int8(table, value, &ret)
-                out[i] = ret == 0
-
-    elif keep == 'first':
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_int8(table, value, &ret)
+                    out[i] = ret == 0
+    elif keep == "first":
         with nogil:
             for i in range(n):
-                value = (values[i])
-                kh_put_int8(table, value, &ret)
-                out[i] = ret == 0
+                if uses_mask and mask[i]:
+                    if seen_na:
+                        out[i] = True
+                    else:
+                        out[i] = False
+                        seen_na = True
+                else:
+                    value = (values[i])
+                    kh_put_int8(table, value, &ret)
+                    out[i] = ret == 0
 
     else:
         with nogil:
             for i in range(n):
-                value = (values[i])
-                k = kh_get_int8(table, value)
-                if k != table.n_buckets:
-                    out[table.vals[k]] = 1
-                    out[i] = 1
+                if uses_mask and mask[i]:
+                    if not seen_na:
+                        first_na = i
+                        seen_na = True
+                        out[i] = 0
+                    elif not seen_multiple_na:
+                        out[i] = 1
+                        out[first_na] = 1
+                        seen_multiple_na = True
+                    else:
+                        out[i] = 1
+
                 else:
-                    k = kh_put_int8(table, value, &ret)
-                    table.vals[k] = i
-                    out[i] = 0
+                    value = (values[i])
+                    k = kh_get_int8(table, value)
+                    if k != table.n_buckets:
+                        out[table.vals[k]] = 1
+                        out[i] = 1
+                    else:
+                        k = kh_put_int8(table, value, &ret)
+                        table.vals[k] = i
+                        out[i] = 0
 
     kh_destroy_int8(table)
     return out
@@ -2214,37 +2565,37 @@ cpdef value_count(ndarray[htfunc_t] values, bint dropna, const uint8_t[:] mask=N
         raise TypeError(values.dtype)
 
 
-cpdef duplicated(ndarray[htfunc_t] values, object keep="first"):
+cpdef duplicated(ndarray[htfunc_t] values, object keep="first", const uint8_t[:] mask=None):
     if htfunc_t is object:
-        return duplicated_object(values, keep)
+        return duplicated_object(values, keep, mask=mask)
 
     elif htfunc_t is int8_t:
-        return duplicated_int8(values, keep)
+        return duplicated_int8(values, keep, mask=mask)
     elif htfunc_t is int16_t:
-        return duplicated_int16(values, keep)
+        return duplicated_int16(values, keep, mask=mask)
     elif htfunc_t is int32_t:
-        return duplicated_int32(values, keep)
+        return duplicated_int32(values, keep, mask=mask)
     elif htfunc_t is int64_t:
-        return duplicated_int64(values, keep)
+        return duplicated_int64(values, keep, mask=mask)
 
     elif htfunc_t is uint8_t:
-        return duplicated_uint8(values, keep)
+        return duplicated_uint8(values, keep, mask=mask)
     elif htfunc_t is uint16_t:
-        return duplicated_uint16(values, keep)
+        return duplicated_uint16(values, keep, mask=mask)
     elif htfunc_t is uint32_t:
-        return duplicated_uint32(values, keep)
+        return duplicated_uint32(values, keep, mask=mask)
     elif htfunc_t is uint64_t:
-        return duplicated_uint64(values, keep)
+        return duplicated_uint64(values, keep, mask=mask)
 
     elif htfunc_t is float64_t:
-        return duplicated_float64(values, keep)
+        return duplicated_float64(values, keep, mask=mask)
     elif htfunc_t is float32_t:
-        return duplicated_float32(values, keep)
+        return duplicated_float32(values, keep, mask=mask)
 
     elif htfunc_t is complex128_t:
-        return duplicated_complex128(values, keep)
+        return duplicated_complex128(values, keep, mask=mask)
     elif htfunc_t is complex64_t:
-        return duplicated_complex64(values, keep)
+        return duplicated_complex64(values, keep, mask=mask)
 
     else:
         raise TypeError(values.dtype)

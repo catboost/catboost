@@ -9,10 +9,10 @@ from pandas._libs import (
     NaT,
     lib,
 )
+from pandas._typing import Axis
 from pandas.errors import InvalidIndexError
 
 from pandas.core.dtypes.cast import find_common_type
-from pandas.core.dtypes.common import is_dtype_equal
 
 from pandas.core.algorithms import safe_sort
 from pandas.core.indexes.base import (
@@ -26,12 +26,6 @@ from pandas.core.indexes.category import CategoricalIndex
 from pandas.core.indexes.datetimes import DatetimeIndex
 from pandas.core.indexes.interval import IntervalIndex
 from pandas.core.indexes.multi import MultiIndex
-from pandas.core.indexes.numeric import (
-    Float64Index,
-    Int64Index,
-    NumericIndex,
-    UInt64Index,
-)
 from pandas.core.indexes.period import PeriodIndex
 from pandas.core.indexes.range import RangeIndex
 from pandas.core.indexes.timedeltas import TimedeltaIndex
@@ -51,13 +45,9 @@ To retain the current behavior and silence the warning, pass 'sort=True'.
 __all__ = [
     "Index",
     "MultiIndex",
-    "NumericIndex",
-    "Float64Index",
-    "Int64Index",
     "CategoricalIndex",
     "IntervalIndex",
     "RangeIndex",
-    "UInt64Index",
     "InvalidIndexError",
     "TimedeltaIndex",
     "PeriodIndex",
@@ -76,7 +66,7 @@ __all__ = [
 
 
 def get_objs_combined_axis(
-    objs, intersect: bool = False, axis=0, sort: bool = True, copy: bool = False
+    objs, intersect: bool = False, axis: Axis = 0, sort: bool = True, copy: bool = False
 ) -> Index:
     """
     Extract combined index: return intersection or union (depending on the
@@ -189,7 +179,7 @@ def safe_sort_index(index: Index) -> Index:
     except TypeError:
         pass
     else:
-        if isinstance(array_sorted, MultiIndex):
+        if isinstance(array_sorted, Index):
             return array_sorted
 
         array_sorted = cast(np.ndarray, array_sorted)
@@ -275,7 +265,6 @@ def union_indexes(indexes, sort: bool | None = True) -> Index:
 
     if kind == "special":
         result = indexes[0]
-        first = result
 
         dtis = [x for x in indexes if isinstance(x, DatetimeIndex)]
         dti_tzs = [x for x in dtis if x.tz is not None]
@@ -288,12 +277,6 @@ def union_indexes(indexes, sort: bool | None = True) -> Index:
 
         if len(dtis) == len(indexes):
             sort = True
-            if not all(is_dtype_equal(x.dtype, first.dtype) for x in indexes):
-                # i.e. timezones mismatch
-                # TODO(2.0): once deprecation is enforced, this union will
-                #  cast to UTC automatically.
-                indexes = [x.tz_convert("UTC") for x in indexes]
-
             result = indexes[0]
 
         elif len(dtis) > 1:

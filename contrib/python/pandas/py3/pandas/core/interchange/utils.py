@@ -37,6 +37,7 @@ class ArrowCTypes:
     FLOAT32 = "f"
     FLOAT64 = "g"
     STRING = "u"  # utf-8
+    LARGE_STRING = "U"  # utf-8
     DATE32 = "tdD"
     DATE64 = "tdm"
     # Resoulution:
@@ -89,7 +90,3 @@ def dtype_to_arrow_c_fmt(dtype: DtypeObj) -> str:
     raise NotImplementedError(
         f"Conversion of {dtype} to Arrow C format string is not implemented."
     )
-
-
-class NoBufferPresent(Exception):
-    """Exception to signal that there is no requested buffer."""

@@ -197,6 +197,7 @@ from pandas._libs.khash cimport (
 
 from pandas._libs.tslibs.util cimport get_c_string
 from pandas._libs.missing cimport C_NA
+
 # Int64VectorData is defined in the .pxd file because it is needed (indirectly)
 #  by IntervalTree
 
@@ -207,7 +208,7 @@ ctypedef struct Complex128VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_complex128(Complex128VectorData *data,
+cdef void append_data_complex128(Complex128VectorData *data,
                                        khcomplex128_t x) nogil:
 
     data.data[data.n] = x
@@ -222,7 +223,7 @@ ctypedef struct Complex64VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_complex64(Complex64VectorData *data,
+cdef void append_data_complex64(Complex64VectorData *data,
                                        khcomplex64_t x) nogil:
 
     data.data[data.n] = x
@@ -237,7 +238,7 @@ ctypedef struct Float64VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_float64(Float64VectorData *data,
+cdef void append_data_float64(Float64VectorData *data,
                                        float64_t x) nogil:
 
     data.data[data.n] = x
@@ -252,7 +253,7 @@ ctypedef struct Float32VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_float32(Float32VectorData *data,
+cdef void append_data_float32(Float32VectorData *data,
                                        float32_t x) nogil:
 
     data.data[data.n] = x
@@ -261,7 +262,7 @@ cdef inline void append_data_float32(Float32VectorData *data,
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_int64(Int64VectorData *data,
+cdef void append_data_int64(Int64VectorData *data,
                                        int64_t x) nogil:
 
     data.data[data.n] = x
@@ -276,7 +277,7 @@ ctypedef struct Int32VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_int32(Int32VectorData *data,
+cdef void append_data_int32(Int32VectorData *data,
                                        int32_t x) nogil:
 
     data.data[data.n] = x
@@ -291,7 +292,7 @@ ctypedef struct Int16VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_int16(Int16VectorData *data,
+cdef void append_data_int16(Int16VectorData *data,
                                        int16_t x) nogil:
 
     data.data[data.n] = x
@@ -306,7 +307,7 @@ ctypedef struct Int8VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_int8(Int8VectorData *data,
+cdef void append_data_int8(Int8VectorData *data,
                                        int8_t x) nogil:
 
     data.data[data.n] = x
@@ -321,7 +322,7 @@ ctypedef struct StringVectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_string(StringVectorData *data,
+cdef void append_data_string(StringVectorData *data,
                                        char * x) nogil:
 
     data.data[data.n] = x
@@ -336,7 +337,7 @@ ctypedef struct UInt64VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_uint64(UInt64VectorData *data,
+cdef void append_data_uint64(UInt64VectorData *data,
                                        uint64_t x) nogil:
 
     data.data[data.n] = x
@@ -351,7 +352,7 @@ ctypedef struct UInt32VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_uint32(UInt32VectorData *data,
+cdef void append_data_uint32(UInt32VectorData *data,
                                        uint32_t x) nogil:
 
     data.data[data.n] = x
@@ -366,7 +367,7 @@ ctypedef struct UInt16VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_uint16(UInt16VectorData *data,
+cdef void append_data_uint16(UInt16VectorData *data,
                                        uint16_t x) nogil:
 
     data.data[data.n] = x
@@ -381,7 +382,7 @@ ctypedef struct UInt8VectorData:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef inline void append_data_uint8(UInt8VectorData *data,
+cdef void append_data_uint8(UInt8VectorData *data,
                                        uint8_t x) nogil:
 
     data.data[data.n] = x
@@ -402,7 +403,7 @@ ctypedef fused vector_data:
     Complex64VectorData
     StringVectorData
 
-cdef inline bint needs_resize(vector_data *data) nogil:
+cdef bint needs_resize(vector_data *data) nogil:
     return data.n == data.m
 
 # ----------------------------------------------------------------------
@@ -458,7 +459,7 @@ cdef class Complex128Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, khcomplex128_t x):
+    cdef void append(self, khcomplex128_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -513,7 +514,7 @@ cdef class Complex64Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, khcomplex64_t x):
+    cdef void append(self, khcomplex64_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -568,7 +569,7 @@ cdef class Float64Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, float64_t x):
+    cdef void append(self, float64_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -623,7 +624,7 @@ cdef class UInt64Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, uint64_t x):
+    cdef void append(self, uint64_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -675,7 +676,7 @@ cdef class Int64Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, int64_t x):
+    cdef void append(self, int64_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -730,7 +731,7 @@ cdef class Float32Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, float32_t x):
+    cdef void append(self, float32_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -785,7 +786,7 @@ cdef class UInt32Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, uint32_t x):
+    cdef void append(self, uint32_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -840,7 +841,7 @@ cdef class Int32Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, int32_t x):
+    cdef void append(self, int32_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -895,7 +896,7 @@ cdef class UInt16Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, uint16_t x):
+    cdef void append(self, uint16_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -950,7 +951,7 @@ cdef class Int16Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, int16_t x):
+    cdef void append(self, int16_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -1005,7 +1006,7 @@ cdef class UInt8Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, uint8_t x):
+    cdef void append(self, uint8_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -1060,7 +1061,7 @@ cdef class Int8Vector(Vector):
         self.external_view_exists = True
         return self.ao
 
-    cdef inline void append(self, int8_t x):
+    cdef void append(self, int8_t x):
 
         if needs_resize(self.data):
             if self.external_view_exists:
@@ -1128,7 +1129,7 @@ cdef class StringVector(Vector):
         self.data.m = self.data.n
         return ao
 
-    cdef inline void append(self, char *x):
+    cdef void append(self, char *x):
 
         if needs_resize(self.data):
             self.resize()
@@ -1156,7 +1157,7 @@ cdef class ObjectVector(Vector):
     def __len__(self) -> int:
         return self.n
 
-    cdef inline append(self, object obj):
+    cdef append(self, object obj):
         if self.n == self.m:
             if self.external_view_exists:
                 raise ValueError("external reference but "
@@ -1193,13 +1194,16 @@ cdef class HashTable:
 
 cdef class Complex128HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_complex128()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_complex128(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -1207,9 +1211,15 @@ cdef class Complex128HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             khcomplex128_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = to_khcomplex128_t(key)
         k = kh_get_complex128(self.table, ckey)
         return k != self.table.n_buckets
@@ -1232,10 +1242,24 @@ cdef class Complex128HashTable(HashTable):
         }
 
     cpdef get_item(self, complex128_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             khcomplex128_t cval
+
         cval = to_khcomplex128_t(val)
         k = kh_get_complex128(self.table, cval)
         if k != self.table.n_buckets:
@@ -1243,12 +1267,29 @@ cdef class Complex128HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, complex128_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             khcomplex128_t ckey
+
         ckey = to_khcomplex128_t(key)
         k = kh_put_complex128(self.table, ckey, &ret)
         if kh_exist_complex128(self.table, k):
@@ -1256,24 +1297,50 @@ cdef class Complex128HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            khcomplex128_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const complex128_t[:] values) -> None:
+    def map_locations(self, const complex128_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             khcomplex128_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= to_khcomplex128_t(values[i])
-                k = kh_put_complex128(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= to_khcomplex128_t(values[i])
+                        k = kh_put_complex128(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= to_khcomplex128_t(values[i])
+                    k = kh_put_complex128(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const complex128_t[:] values) -> ndarray:
+    def lookup(self, const complex128_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -1282,15 +1349,22 @@ cdef class Complex128HashTable(HashTable):
             khcomplex128_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = to_khcomplex128_t(values[i])
-                k = kh_get_complex128(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = to_khcomplex128_t(values[i])
+                    k = kh_get_complex128(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -1526,23 +1600,64 @@ cdef class Complex128HashTable(HashTable):
 
     def get_labels(self, const complex128_t[:] values, Complex128Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
 
+
+cdef class Complex128Factorizer(Factorizer):
+    cdef public:
+        Complex128HashTable table
+        Complex128Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = Complex128HashTable(size_hint)
+        self.uniques = Complex128Vector()
+
+    def factorize(self, const khcomplex128_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = Complex128Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="complex128"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = Complex128Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class Float64HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_float64()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_float64(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -1550,9 +1665,15 @@ cdef class Float64HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             float64_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = (key)
         k = kh_get_float64(self.table, ckey)
         return k != self.table.n_buckets
@@ -1575,10 +1696,24 @@ cdef class Float64HashTable(HashTable):
         }
 
     cpdef get_item(self, float64_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             float64_t cval
+
         cval = (val)
         k = kh_get_float64(self.table, cval)
         if k != self.table.n_buckets:
@@ -1586,12 +1721,29 @@ cdef class Float64HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, float64_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             float64_t ckey
+
         ckey = (key)
         k = kh_put_float64(self.table, ckey, &ret)
         if kh_exist_float64(self.table, k):
@@ -1599,24 +1751,50 @@ cdef class Float64HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            float64_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const float64_t[:] values) -> None:
+    def map_locations(self, const float64_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             float64_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= (values[i])
-                k = kh_put_float64(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= (values[i])
+                        k = kh_put_float64(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= (values[i])
+                    k = kh_put_float64(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const float64_t[:] values) -> ndarray:
+    def lookup(self, const float64_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -1625,15 +1803,22 @@ cdef class Float64HashTable(HashTable):
             float64_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = (values[i])
-                k = kh_get_float64(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = (values[i])
+                    k = kh_get_float64(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -1869,23 +2054,64 @@ cdef class Float64HashTable(HashTable):
 
     def get_labels(self, const float64_t[:] values, Float64Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
 
+
+cdef class Float64Factorizer(Factorizer):
+    cdef public:
+        Float64HashTable table
+        Float64Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = Float64HashTable(size_hint)
+        self.uniques = Float64Vector()
+
+    def factorize(self, const float64_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = Float64Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="float64"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = Float64Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class UInt64HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_uint64()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_uint64(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -1893,9 +2119,15 @@ cdef class UInt64HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             uint64_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = (key)
         k = kh_get_uint64(self.table, ckey)
         return k != self.table.n_buckets
@@ -1918,10 +2150,24 @@ cdef class UInt64HashTable(HashTable):
         }
 
     cpdef get_item(self, uint64_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             uint64_t cval
+
         cval = (val)
         k = kh_get_uint64(self.table, cval)
         if k != self.table.n_buckets:
@@ -1929,12 +2175,29 @@ cdef class UInt64HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, uint64_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             uint64_t ckey
+
         ckey = (key)
         k = kh_put_uint64(self.table, ckey, &ret)
         if kh_exist_uint64(self.table, k):
@@ -1942,24 +2205,50 @@ cdef class UInt64HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            uint64_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const uint64_t[:] values) -> None:
+    def map_locations(self, const uint64_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             uint64_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= (values[i])
-                k = kh_put_uint64(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= (values[i])
+                        k = kh_put_uint64(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= (values[i])
+                    k = kh_put_uint64(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const uint64_t[:] values) -> ndarray:
+    def lookup(self, const uint64_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -1968,15 +2257,22 @@ cdef class UInt64HashTable(HashTable):
             uint64_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = (values[i])
-                k = kh_get_uint64(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = (values[i])
+                    k = kh_get_uint64(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -2212,23 +2508,64 @@ cdef class UInt64HashTable(HashTable):
 
     def get_labels(self, const uint64_t[:] values, UInt64Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
 
+
+cdef class UInt64Factorizer(Factorizer):
+    cdef public:
+        UInt64HashTable table
+        UInt64Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = UInt64HashTable(size_hint)
+        self.uniques = UInt64Vector()
+
+    def factorize(self, const uint64_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = UInt64Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="uint64"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = UInt64Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class Int64HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_int64()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_int64(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -2236,9 +2573,15 @@ cdef class Int64HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             int64_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = (key)
         k = kh_get_int64(self.table, ckey)
         return k != self.table.n_buckets
@@ -2261,10 +2604,24 @@ cdef class Int64HashTable(HashTable):
         }
 
     cpdef get_item(self, int64_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int64_t cval
+
         cval = (val)
         k = kh_get_int64(self.table, cval)
         if k != self.table.n_buckets:
@@ -2272,18 +2629,47 @@ cdef class Int64HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, int64_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             int64_t ckey
+
         ckey = (key)
         k = kh_put_int64(self.table, ckey, &ret)
         if kh_exist_int64(self.table, k):
             self.table.vals[k] = val
         else:
             raise KeyError(key)
+
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            int64_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
 
     # We only use this for int64, can reduce build size and make .pyi
     #  more accurate by only implementing it for int64
@@ -2304,22 +2690,36 @@ cdef class Int64HashTable(HashTable):
                 self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
-    def map_locations(self, const int64_t[:] values) -> None:
+    def map_locations(self, const int64_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             int64_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= (values[i])
-                k = kh_put_int64(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= (values[i])
+                        k = kh_put_int64(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= (values[i])
+                    k = kh_put_int64(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const int64_t[:] values) -> ndarray:
+    def lookup(self, const int64_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -2328,15 +2728,22 @@ cdef class Int64HashTable(HashTable):
             int64_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = (values[i])
-                k = kh_get_int64(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = (values[i])
+                    k = kh_get_int64(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -2572,11 +2979,11 @@ cdef class Int64HashTable(HashTable):
 
     def get_labels(self, const int64_t[:] values, Int64Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
     @cython.boundscheck(False)
@@ -2625,15 +3032,56 @@ cdef class Int64HashTable(HashTable):
 
         return np.asarray(labels), arr_uniques
 
+
+cdef class Int64Factorizer(Factorizer):
+    cdef public:
+        Int64HashTable table
+        Int64Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = Int64HashTable(size_hint)
+        self.uniques = Int64Vector()
+
+    def factorize(self, const int64_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = Int64Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="int64"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = Int64Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class Complex64HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_complex64()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_complex64(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -2641,9 +3089,15 @@ cdef class Complex64HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             khcomplex64_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = to_khcomplex64_t(key)
         k = kh_get_complex64(self.table, ckey)
         return k != self.table.n_buckets
@@ -2666,10 +3120,24 @@ cdef class Complex64HashTable(HashTable):
         }
 
     cpdef get_item(self, complex64_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             khcomplex64_t cval
+
         cval = to_khcomplex64_t(val)
         k = kh_get_complex64(self.table, cval)
         if k != self.table.n_buckets:
@@ -2677,12 +3145,29 @@ cdef class Complex64HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, complex64_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             khcomplex64_t ckey
+
         ckey = to_khcomplex64_t(key)
         k = kh_put_complex64(self.table, ckey, &ret)
         if kh_exist_complex64(self.table, k):
@@ -2690,24 +3175,50 @@ cdef class Complex64HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            khcomplex64_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const complex64_t[:] values) -> None:
+    def map_locations(self, const complex64_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             khcomplex64_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= to_khcomplex64_t(values[i])
-                k = kh_put_complex64(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= to_khcomplex64_t(values[i])
+                        k = kh_put_complex64(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= to_khcomplex64_t(values[i])
+                    k = kh_put_complex64(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const complex64_t[:] values) -> ndarray:
+    def lookup(self, const complex64_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -2716,15 +3227,22 @@ cdef class Complex64HashTable(HashTable):
             khcomplex64_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = to_khcomplex64_t(values[i])
-                k = kh_get_complex64(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = to_khcomplex64_t(values[i])
+                    k = kh_get_complex64(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -2960,23 +3478,64 @@ cdef class Complex64HashTable(HashTable):
 
     def get_labels(self, const complex64_t[:] values, Complex64Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
 
+
+cdef class Complex64Factorizer(Factorizer):
+    cdef public:
+        Complex64HashTable table
+        Complex64Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = Complex64HashTable(size_hint)
+        self.uniques = Complex64Vector()
+
+    def factorize(self, const khcomplex64_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = Complex64Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="complex64"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = Complex64Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class Float32HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_float32()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_float32(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -2984,9 +3543,15 @@ cdef class Float32HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             float32_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = (key)
         k = kh_get_float32(self.table, ckey)
         return k != self.table.n_buckets
@@ -3009,10 +3574,24 @@ cdef class Float32HashTable(HashTable):
         }
 
     cpdef get_item(self, float32_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             float32_t cval
+
         cval = (val)
         k = kh_get_float32(self.table, cval)
         if k != self.table.n_buckets:
@@ -3020,12 +3599,29 @@ cdef class Float32HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, float32_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             float32_t ckey
+
         ckey = (key)
         k = kh_put_float32(self.table, ckey, &ret)
         if kh_exist_float32(self.table, k):
@@ -3033,24 +3629,50 @@ cdef class Float32HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            float32_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const float32_t[:] values) -> None:
+    def map_locations(self, const float32_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             float32_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= (values[i])
-                k = kh_put_float32(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= (values[i])
+                        k = kh_put_float32(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= (values[i])
+                    k = kh_put_float32(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const float32_t[:] values) -> ndarray:
+    def lookup(self, const float32_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -3059,15 +3681,22 @@ cdef class Float32HashTable(HashTable):
             float32_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = (values[i])
-                k = kh_get_float32(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = (values[i])
+                    k = kh_get_float32(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -3303,23 +3932,64 @@ cdef class Float32HashTable(HashTable):
 
     def get_labels(self, const float32_t[:] values, Float32Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
 
+
+cdef class Float32Factorizer(Factorizer):
+    cdef public:
+        Float32HashTable table
+        Float32Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = Float32HashTable(size_hint)
+        self.uniques = Float32Vector()
+
+    def factorize(self, const float32_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = Float32Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="float32"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = Float32Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class UInt32HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_uint32()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_uint32(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -3327,9 +3997,15 @@ cdef class UInt32HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             uint32_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = (key)
         k = kh_get_uint32(self.table, ckey)
         return k != self.table.n_buckets
@@ -3352,10 +4028,24 @@ cdef class UInt32HashTable(HashTable):
         }
 
     cpdef get_item(self, uint32_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             uint32_t cval
+
         cval = (val)
         k = kh_get_uint32(self.table, cval)
         if k != self.table.n_buckets:
@@ -3363,12 +4053,29 @@ cdef class UInt32HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, uint32_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             uint32_t ckey
+
         ckey = (key)
         k = kh_put_uint32(self.table, ckey, &ret)
         if kh_exist_uint32(self.table, k):
@@ -3376,24 +4083,50 @@ cdef class UInt32HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            uint32_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const uint32_t[:] values) -> None:
+    def map_locations(self, const uint32_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             uint32_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= (values[i])
-                k = kh_put_uint32(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= (values[i])
+                        k = kh_put_uint32(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= (values[i])
+                    k = kh_put_uint32(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const uint32_t[:] values) -> ndarray:
+    def lookup(self, const uint32_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -3402,15 +4135,22 @@ cdef class UInt32HashTable(HashTable):
             uint32_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = (values[i])
-                k = kh_get_uint32(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = (values[i])
+                    k = kh_get_uint32(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -3646,23 +4386,64 @@ cdef class UInt32HashTable(HashTable):
 
     def get_labels(self, const uint32_t[:] values, UInt32Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
 
+
+cdef class UInt32Factorizer(Factorizer):
+    cdef public:
+        UInt32HashTable table
+        UInt32Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = UInt32HashTable(size_hint)
+        self.uniques = UInt32Vector()
+
+    def factorize(self, const uint32_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = UInt32Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="uint32"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = UInt32Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class Int32HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_int32()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_int32(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -3670,9 +4451,15 @@ cdef class Int32HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             int32_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = (key)
         k = kh_get_int32(self.table, ckey)
         return k != self.table.n_buckets
@@ -3695,10 +4482,24 @@ cdef class Int32HashTable(HashTable):
         }
 
     cpdef get_item(self, int32_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int32_t cval
+
         cval = (val)
         k = kh_get_int32(self.table, cval)
         if k != self.table.n_buckets:
@@ -3706,12 +4507,29 @@ cdef class Int32HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, int32_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             int32_t ckey
+
         ckey = (key)
         k = kh_put_int32(self.table, ckey, &ret)
         if kh_exist_int32(self.table, k):
@@ -3719,24 +4537,50 @@ cdef class Int32HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            int32_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const int32_t[:] values) -> None:
+    def map_locations(self, const int32_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             int32_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= (values[i])
-                k = kh_put_int32(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= (values[i])
+                        k = kh_put_int32(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= (values[i])
+                    k = kh_put_int32(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const int32_t[:] values) -> ndarray:
+    def lookup(self, const int32_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -3745,15 +4589,22 @@ cdef class Int32HashTable(HashTable):
             int32_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = (values[i])
-                k = kh_get_int32(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = (values[i])
+                    k = kh_get_int32(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -3989,23 +4840,64 @@ cdef class Int32HashTable(HashTable):
 
     def get_labels(self, const int32_t[:] values, Int32Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
 
+
+cdef class Int32Factorizer(Factorizer):
+    cdef public:
+        Int32HashTable table
+        Int32Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = Int32HashTable(size_hint)
+        self.uniques = Int32Vector()
+
+    def factorize(self, const int32_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = Int32Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="int32"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = Int32Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class UInt16HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_uint16()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_uint16(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -4013,9 +4905,15 @@ cdef class UInt16HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             uint16_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = (key)
         k = kh_get_uint16(self.table, ckey)
         return k != self.table.n_buckets
@@ -4038,10 +4936,24 @@ cdef class UInt16HashTable(HashTable):
         }
 
     cpdef get_item(self, uint16_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             uint16_t cval
+
         cval = (val)
         k = kh_get_uint16(self.table, cval)
         if k != self.table.n_buckets:
@@ -4049,12 +4961,29 @@ cdef class UInt16HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, uint16_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             uint16_t ckey
+
         ckey = (key)
         k = kh_put_uint16(self.table, ckey, &ret)
         if kh_exist_uint16(self.table, k):
@@ -4062,24 +4991,50 @@ cdef class UInt16HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            uint16_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const uint16_t[:] values) -> None:
+    def map_locations(self, const uint16_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             uint16_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= (values[i])
-                k = kh_put_uint16(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= (values[i])
+                        k = kh_put_uint16(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= (values[i])
+                    k = kh_put_uint16(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const uint16_t[:] values) -> ndarray:
+    def lookup(self, const uint16_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -4088,15 +5043,22 @@ cdef class UInt16HashTable(HashTable):
             uint16_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = (values[i])
-                k = kh_get_uint16(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = (values[i])
+                    k = kh_get_uint16(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -4332,23 +5294,64 @@ cdef class UInt16HashTable(HashTable):
 
     def get_labels(self, const uint16_t[:] values, UInt16Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
 
+
+cdef class UInt16Factorizer(Factorizer):
+    cdef public:
+        UInt16HashTable table
+        UInt16Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = UInt16HashTable(size_hint)
+        self.uniques = UInt16Vector()
+
+    def factorize(self, const uint16_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = UInt16Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="uint16"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = UInt16Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class Int16HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_int16()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_int16(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -4356,9 +5359,15 @@ cdef class Int16HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             int16_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = (key)
         k = kh_get_int16(self.table, ckey)
         return k != self.table.n_buckets
@@ -4381,10 +5390,24 @@ cdef class Int16HashTable(HashTable):
         }
 
     cpdef get_item(self, int16_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int16_t cval
+
         cval = (val)
         k = kh_get_int16(self.table, cval)
         if k != self.table.n_buckets:
@@ -4392,12 +5415,29 @@ cdef class Int16HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, int16_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             int16_t ckey
+
         ckey = (key)
         k = kh_put_int16(self.table, ckey, &ret)
         if kh_exist_int16(self.table, k):
@@ -4405,24 +5445,50 @@ cdef class Int16HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            int16_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const int16_t[:] values) -> None:
+    def map_locations(self, const int16_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             int16_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= (values[i])
-                k = kh_put_int16(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= (values[i])
+                        k = kh_put_int16(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= (values[i])
+                    k = kh_put_int16(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const int16_t[:] values) -> ndarray:
+    def lookup(self, const int16_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -4431,15 +5497,22 @@ cdef class Int16HashTable(HashTable):
             int16_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = (values[i])
-                k = kh_get_int16(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = (values[i])
+                    k = kh_get_int16(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -4675,23 +5748,64 @@ cdef class Int16HashTable(HashTable):
 
     def get_labels(self, const int16_t[:] values, Int16Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
 
+
+cdef class Int16Factorizer(Factorizer):
+    cdef public:
+        Int16HashTable table
+        Int16Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = Int16HashTable(size_hint)
+        self.uniques = Int16Vector()
+
+    def factorize(self, const int16_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = Int16Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="int16"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = Int16Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class UInt8HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_uint8()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_uint8(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -4699,9 +5813,15 @@ cdef class UInt8HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             uint8_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = (key)
         k = kh_get_uint8(self.table, ckey)
         return k != self.table.n_buckets
@@ -4724,10 +5844,24 @@ cdef class UInt8HashTable(HashTable):
         }
 
     cpdef get_item(self, uint8_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             uint8_t cval
+
         cval = (val)
         k = kh_get_uint8(self.table, cval)
         if k != self.table.n_buckets:
@@ -4735,12 +5869,29 @@ cdef class UInt8HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, uint8_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             uint8_t ckey
+
         ckey = (key)
         k = kh_put_uint8(self.table, ckey, &ret)
         if kh_exist_uint8(self.table, k):
@@ -4748,24 +5899,50 @@ cdef class UInt8HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            uint8_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const uint8_t[:] values) -> None:
+    def map_locations(self, const uint8_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             uint8_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= (values[i])
-                k = kh_put_uint8(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= (values[i])
+                        k = kh_put_uint8(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= (values[i])
+                    k = kh_put_uint8(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const uint8_t[:] values) -> ndarray:
+    def lookup(self, const uint8_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -4774,15 +5951,22 @@ cdef class UInt8HashTable(HashTable):
             uint8_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = (values[i])
-                k = kh_get_uint8(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = (values[i])
+                    k = kh_get_uint8(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -5018,23 +6202,64 @@ cdef class UInt8HashTable(HashTable):
 
     def get_labels(self, const uint8_t[:] values, UInt8Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
 
+
+cdef class UInt8Factorizer(Factorizer):
+    cdef public:
+        UInt8HashTable table
+        UInt8Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = UInt8HashTable(size_hint)
+        self.uniques = UInt8Vector()
+
+    def factorize(self, const uint8_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = UInt8Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="uint8"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = UInt8Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
+
 cdef class Int8HashTable(HashTable):
 
-    def __cinit__(self, int64_t size_hint=1):
+    def __cinit__(self, int64_t size_hint=1, bint uses_mask=False):
         self.table = kh_init_int8()
         size_hint = min(kh_needed_n_buckets(size_hint), SIZE_HINT_LIMIT)
         kh_resize_int8(self.table, size_hint)
 
+        self.uses_mask = uses_mask
+        self.na_position = -1
+
     def __len__(self) -> int:
-        return self.table.size
+        return self.table.size + (0 if self.na_position == -1 else 1)
 
     def __dealloc__(self):
         if self.table is not NULL:
@@ -5042,9 +6267,15 @@ cdef class Int8HashTable(HashTable):
             self.table = NULL
 
     def __contains__(self, object key) -> bool:
+        # The caller is responsible to check for compatible NA values in case
+        # of masked arrays.
         cdef:
             khiter_t k
             int8_t ckey
+
+        if self.uses_mask and checknull(key):
+            return -1 != self.na_position
+
         ckey = (key)
         k = kh_get_int8(self.table, ckey)
         return k != self.table.n_buckets
@@ -5067,10 +6298,24 @@ cdef class Int8HashTable(HashTable):
         }
 
     cpdef get_item(self, int8_t val):
+        """Extracts the position of val from the hashtable.
+
+        Parameters
+        ----------
+        val : Scalar
+            The value that is looked up in the hashtable
+
+        Returns
+        -------
+        The position of the requested integer.
+        """
+
         # Used in core.sorting, IndexEngine.get_loc
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int8_t cval
+
         cval = (val)
         k = kh_get_int8(self.table, cval)
         if k != self.table.n_buckets:
@@ -5078,12 +6323,29 @@ cdef class Int8HashTable(HashTable):
         else:
             raise KeyError(val)
 
+    cpdef get_na(self):
+        """Extracts the position of na_value from the hashtable.
+
+        Returns
+        -------
+        The position of the last na value.
+        """
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        if self.na_position == -1:
+            raise KeyError("NA")
+        return self.na_position
+
     cpdef set_item(self, int8_t key, Py_ssize_t val):
         # Used in libjoin
+        # Caller is responsible for checking for pd.NA
         cdef:
             khiter_t k
             int ret = 0
             int8_t ckey
+
         ckey = (key)
         k = kh_put_int8(self.table, ckey, &ret)
         if kh_exist_int8(self.table, k):
@@ -5091,24 +6353,50 @@ cdef class Int8HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    cpdef set_na(self, Py_ssize_t val):
+        # Caller is responsible for checking for pd.NA
+        cdef:
+            khiter_t k
+            int ret = 0
+            int8_t ckey
+
+        if not self.uses_mask:
+            raise NotImplementedError
+
+        self.na_position = val
+
 
     @cython.boundscheck(False)
-    def map_locations(self, const int8_t[:] values) -> None:
+    def map_locations(self, const int8_t[:] values, const uint8_t[:] mask = None) -> None:
         # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             int8_t val
             khiter_t k
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
-            for i in range(n):
-                val= (values[i])
-                k = kh_put_int8(self.table, val, &ret)
-                self.table.vals[k] = i
+            if self.uses_mask:
+                for i in range(n):
+                    if mask[i]:
+                        na_position = i
+                    else:
+                        val= (values[i])
+                        k = kh_put_int8(self.table, val, &ret)
+                        self.table.vals[k] = i
+            else:
+                for i in range(n):
+                    val= (values[i])
+                    k = kh_put_int8(self.table, val, &ret)
+                    self.table.vals[k] = i
+        self.na_position = na_position
 
     @cython.boundscheck(False)
-    def lookup(self, const int8_t[:] values) -> ndarray:
+    def lookup(self, const int8_t[:] values, const uint8_t[:] mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
         # Used in safe_sort, IndexEngine.get_indexer
         cdef:
@@ -5117,15 +6405,22 @@ cdef class Int8HashTable(HashTable):
             int8_t val
             khiter_t k
             intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            int8_t na_position = self.na_position
+
+        if self.uses_mask and mask is None:
+            raise NotImplementedError  # pragma: no cover
 
         with nogil:
             for i in range(n):
-                val = (values[i])
-                k = kh_get_int8(self.table, val)
-                if k != self.table.n_buckets:
-                    locs[i] = self.table.vals[k]
+                if self.uses_mask and mask[i]:
+                    locs[i] = na_position
                 else:
-                    locs[i] = -1
+                    val = (values[i])
+                    k = kh_get_int8(self.table, val)
+                    if k != self.table.n_buckets:
+                        locs[i] = self.table.vals[k]
+                    else:
+                        locs[i] = -1
 
         return np.asarray(locs)
 
@@ -5361,13 +6656,51 @@ cdef class Int8HashTable(HashTable):
 
     def get_labels(self, const int8_t[:] values, Int8Vector uniques,
                    Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
-                   object na_value=None):
+                   object na_value=None, object mask=None):
         # -> np.ndarray[np.intp]
         _, labels = self._unique(values, uniques, count_prior=count_prior,
                                  na_sentinel=na_sentinel, na_value=na_value,
-                                 ignore_na=True, return_inverse=True)
+                                 ignore_na=True, return_inverse=True, mask=mask)
         return labels
 
+
+
+cdef class Int8Factorizer(Factorizer):
+    cdef public:
+        Int8HashTable table
+        Int8Vector uniques
+
+    def __cinit__(self, size_hint: int):
+        self.table = Int8HashTable(size_hint)
+        self.uniques = Int8Vector()
+
+    def factorize(self, const int8_t[:] values,
+                  na_sentinel=-1, na_value=None, object mask=None) -> np.ndarray:
+        """
+        Returns
+        -------
+        ndarray[intp_t]
+
+        Examples
+        --------
+        Factorize values with nans replaced by na_sentinel
+
+        >>> fac = Int8Factorizer(3)
+        >>> fac.factorize(np.array([1,2,3], dtype="int8"), na_sentinel=20)
+        array([0, 1, 2])
+        """
+        cdef:
+            ndarray[intp_t] labels
+
+        if self.uniques.external_view_exists:
+            uniques = Int8Vector()
+            uniques.extend(self.uniques.to_array())
+            self.uniques = uniques
+        labels = self.table.get_labels(values, self.uniques,
+                                       self.count, na_sentinel,
+                                       na_value=na_value, mask=mask)
+        self.count = len(self.uniques)
+        return labels
 
 
 cdef class StringHashTable(HashTable):
@@ -5457,8 +6790,9 @@ cdef class StringHashTable(HashTable):
         return labels
 
     @cython.boundscheck(False)
-    def lookup(self, ndarray[object] values) -> ndarray:
+    def lookup(self, ndarray[object] values, object mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
+        # mask not yet implemented
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -5493,7 +6827,8 @@ cdef class StringHashTable(HashTable):
         return np.asarray(locs)
 
     @cython.boundscheck(False)
-    def map_locations(self, ndarray[object] values) -> None:
+    def map_locations(self, ndarray[object] values, object mask = None) -> None:
+        # mask not yet implemented
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -5766,7 +7101,8 @@ cdef class PyObjectHashTable(HashTable):
         else:
             raise KeyError(key)
 
-    def map_locations(self, ndarray[object] values) -> None:
+    def map_locations(self, ndarray[object] values, object mask = None) -> None:
+        # mask not yet implemented
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -5780,8 +7116,9 @@ cdef class PyObjectHashTable(HashTable):
             k = kh_put_pymap(self.table, <PyObject*>val, &ret)
             self.table.vals[k] = i
 
-    def lookup(self, ndarray[object] values) -> ndarray:
+    def lookup(self, ndarray[object] values, object mask = None) -> ndarray:
         # -> np.ndarray[np.intp]
+        # mask not yet implemented
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0

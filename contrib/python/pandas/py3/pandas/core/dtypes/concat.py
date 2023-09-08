@@ -3,29 +3,19 @@ Utility functions related to concat.
 """
 from __future__ import annotations
 
-from typing import (
-    TYPE_CHECKING,
-    cast,
-)
-import warnings
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from pandas._typing import (
-    ArrayLike,
-    DtypeObj,
-)
-from pandas.util._exceptions import find_stack_level
+from pandas._typing import AxisInt
 
 from pandas.core.dtypes.astype import astype_array
 from pandas.core.dtypes.cast import (
     common_dtype_categorical_compat,
     find_common_type,
+    np_find_common_type,
 )
-from pandas.core.dtypes.common import (
-    is_dtype_equal,
-    is_sparse,
-)
+from pandas.core.dtypes.common import is_dtype_equal
 from pandas.core.dtypes.dtypes import (
     DatetimeTZDtype,
     ExtensionDtype,
@@ -38,37 +28,9 @@ from pandas.core.dtypes.generic import (
 
 if TYPE_CHECKING:
     from pandas.core.arrays import Categorical
-    from pandas.core.arrays.sparse import SparseArray
 
 
-def cast_to_common_type(arr: ArrayLike, dtype: DtypeObj) -> ArrayLike:
-    """
-    Helper function for `arr.astype(common_dtype)` but handling all special
-    cases.
-    """
-    if is_dtype_equal(arr.dtype, dtype):
-        return arr
-
-    if is_sparse(arr) and not is_sparse(dtype):
-        # TODO(2.0): remove special case once SparseArray.astype deprecation
-        #  is enforced.
-        # problem case: SparseArray.astype(dtype) doesn't follow the specified
-        # dtype exactly, but converts this to Sparse[dtype] -> first manually
-        # convert to dense array
-
-        # error: Argument 1 to "astype" of "_ArrayOrScalarCommon" has incompatible type
-        # "Union[dtype[Any], ExtensionDtype]"; expected "Union[dtype[Any], None, type, _
-        # SupportsDType[dtype[Any]], str, Union[Tuple[Any, int], Tuple[Any,
-        # Union[SupportsIndex, Sequence[SupportsIndex]]], List[Any], _DTypeDict,
-        # Tuple[Any, Any]]]"  [arg-type]
-        arr = cast("SparseArray", arr)
-        return arr.to_dense().astype(dtype, copy=False)  # type: ignore[arg-type]
-
-    # astype_array includes ensure_wrapped_if_datetimelike
-    return astype_array(arr, dtype=dtype, copy=False)
-
-
-def concat_compat(to_concat, axis: int = 0, ea_compat_axis: bool = False):
+def concat_compat(to_concat, axis: AxisInt = 0, ea_compat_axis: bool = False):
     """
     provide concatenation of an array of arrays each of which is a single
     'normalized' dtypes (in that for example, if it's object, then it is a
@@ -87,6 +49,7 @@ def concat_compat(to_concat, axis: int = 0, ea_compat_axis: bool = False):
     -------
     a single array, preserving the combined dtypes
     """
+
     # filter empty arrays
     # 1-d dtypes always are included here
     def is_nonempty(x) -> bool:
@@ -125,7 +88,9 @@ def concat_compat(to_concat, axis: int = 0, ea_compat_axis: bool = False):
         if not single_dtype:
             target_dtype = find_common_type([x.dtype for x in to_concat])
             target_dtype = common_dtype_categorical_compat(to_concat, target_dtype)
-            to_concat = [cast_to_common_type(arr, target_dtype) for arr in to_concat]
+            to_concat = [
+                astype_array(arr, target_dtype, copy=False) for arr in to_concat
+            ]
 
         if isinstance(to_concat[0], ABCExtensionArray):
             # TODO: what about EA-backed Index?
@@ -139,7 +104,6 @@ def concat_compat(to_concat, axis: int = 0, ea_compat_axis: bool = False):
         # object if we have non-numeric type operands (numpy would otherwise
         # cast this to float)
         if len(kinds) != 1:
-
             if not len(kinds - {"i", "u", "f"}) or not len(kinds - {"b", "i", "u"}):
                 # let numpy coerce
                 pass
@@ -147,18 +111,13 @@ def concat_compat(to_concat, axis: int = 0, ea_compat_axis: bool = False):
                 # coerce to object
                 to_concat = [x.astype("object") for x in to_concat]
                 kinds = {"o"}
+    else:
+        target_dtype = np_find_common_type(*dtypes)
 
     result = np.concatenate(to_concat, axis=axis)
     if "b" in kinds and result.dtype.kind in ["i", "u", "f"]:
-        # GH#39817
-        warnings.warn(
-            "Behavior when concatenating bool-dtype and numeric-dtype arrays is "
-            "deprecated; in a future version these will cast to object dtype "
-            "(instead of coercing bools to numeric values). To retain the old "
-            "behavior, explicitly cast bool-dtype arrays to numeric dtype.",
-            FutureWarning,
-            stacklevel=find_stack_level(),
-        )
+        # GH#39817 cast to object instead of casting bools to numeric
+        result = result.astype(object, copy=False)
     return result
 
 
@@ -319,8 +278,7 @@ def union_categoricals(
         if all(c.ordered for c in to_union):
             msg = "to union ordered Categoricals, all categories must be the same"
             raise TypeError(msg)
-        else:
-            raise TypeError("Categorical.ordered must be the same")
+        raise TypeError("Categorical.ordered must be the same")
 
     if ignore_order:
         ordered = False
@@ -328,14 +286,14 @@ def union_categoricals(
     return Categorical(new_codes, categories=categories, ordered=ordered, fastpath=True)
 
 
-def _concatenate_2d(to_concat, axis: int):
+def _concatenate_2d(to_concat, axis: AxisInt):
     # coerce to 2d if needed & concatenate
     if axis == 1:
         to_concat = [np.atleast_2d(x) for x in to_concat]
     return np.concatenate(to_concat, axis=axis)
 
 
-def _concat_datetime(to_concat, axis=0):
+def _concat_datetime(to_concat, axis: AxisInt = 0):
     """
     provide concatenation of an datetimelike array of arrays each of which is a
     single M8[ns], datetime64[ns, tz] or m8[ns] dtype

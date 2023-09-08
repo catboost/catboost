@@ -7,6 +7,7 @@ from contextlib import (
 import re
 import sys
 from typing import (
+    Generator,
     Literal,
     Sequence,
     Type,
@@ -24,7 +25,7 @@ def assert_produces_warning(
     check_stacklevel: bool = True,
     raise_on_extra_warnings: bool = True,
     match: str | None = None,
-):
+) -> Generator[list[warnings.WarningMessage], None, None]:
     """
     Context manager for running code expected to either raise a specific warning,
     multiple specific warnings, or not raise any warnings. Verifies that the code
@@ -86,22 +87,22 @@ def assert_produces_warning(
 
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter(filter_level)
-        yield w
-
-        if expected_warning:
-            expected_warning = cast(Type[Warning], expected_warning)
-            _assert_caught_expected_warning(
-                caught_warnings=w,
-                expected_warning=expected_warning,
-                match=match,
-                check_stacklevel=check_stacklevel,
-            )
-
-        if raise_on_extra_warnings:
-            _assert_caught_no_extra_warnings(
-                caught_warnings=w,
-                expected_warning=expected_warning,
-            )
+        try:
+            yield w
+        finally:
+            if expected_warning:
+                expected_warning = cast(Type[Warning], expected_warning)
+                _assert_caught_expected_warning(
+                    caught_warnings=w,
+                    expected_warning=expected_warning,
+                    match=match,
+                    check_stacklevel=check_stacklevel,
+                )
+            if raise_on_extra_warnings:
+                _assert_caught_no_extra_warnings(
+                    caught_warnings=w,
+                    expected_warning=expected_warning,
+                )
 
 
 def maybe_produces_warning(warning: type[Warning], condition: bool, **kwargs):
@@ -167,18 +168,13 @@ def _assert_caught_no_extra_warnings(
             if actual_warning.category == ResourceWarning:
                 # GH 44732: Don't make the CI flaky by filtering SSL-related
                 # ResourceWarning from dependencies
-                unclosed_ssl = (
-                    "unclosed transport <asyncio.sslproto._SSLProtocolTransport",
-                    "unclosed <ssl.SSLSocket",
-                )
-                if any(msg in str(actual_warning.message) for msg in unclosed_ssl):
+                if "unclosed <ssl.SSLSocket" in str(actual_warning.message):
                     continue
                 # GH 44844: Matplotlib leaves font files open during the entire process
                 # upon import. Don't make CI flaky if ResourceWarning raised
                 # due to these open files.
                 if any("matplotlib" in mod for mod in sys.modules):
                     continue
-
             extra_warnings.append(
                 (
                     actual_warning.category.__name__,

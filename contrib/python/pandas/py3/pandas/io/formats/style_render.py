@@ -85,11 +85,10 @@ class StylerRenderer:
         uuid_len: int = 5,
         table_styles: CSSStyles | None = None,
         table_attributes: str | None = None,
-        caption: str | tuple | None = None,
+        caption: str | tuple | list | None = None,
         cell_ids: bool = True,
         precision: int | None = None,
     ) -> None:
-
         # validate ordered args
         if isinstance(data, Series):
             data = data.to_frame()
@@ -98,7 +97,7 @@ class StylerRenderer:
         self.data: DataFrame = data
         self.index: Index = data.index
         self.columns: Index = data.columns
-        if not isinstance(uuid_len, int) or not uuid_len >= 0:
+        if not isinstance(uuid_len, int) or uuid_len < 0:
             raise TypeError("``uuid_len`` must be an integer in range [0, 32].")
         self.uuid = uuid or uuid4().hex[: min(32, uuid_len)]
         self.uuid_len = len(self.uuid)
@@ -410,11 +409,11 @@ class StylerRenderer:
         for r, hide in enumerate(self.hide_columns_):
             if hide or not clabels:
                 continue
-            else:
-                header_row = self._generate_col_header_row(
-                    (r, clabels), max_cols, col_lengths
-                )
-                head.append(header_row)
+
+            header_row = self._generate_col_header_row(
+                (r, clabels), max_cols, col_lengths
+            )
+            head.append(header_row)
 
         # 2) index names
         if (
@@ -632,13 +631,13 @@ class StylerRenderer:
 
     def _check_trim(
         self,
-        count,
-        max,
-        obj,
-        element,
-        css=None,
-        value="...",
-    ):
+        count: int,
+        max: int,
+        obj: list,
+        element: str,
+        css: str | None = None,
+        value: str = "...",
+    ) -> bool:
         """
         Indicates whether to break render loops and append a trimming indicator
 
@@ -919,7 +918,7 @@ class StylerRenderer:
                 f"`clines` value of {clines} is invalid. Should either be None or one "
                 f"of 'all;data', 'all;index', 'skip-last;data', 'skip-last;index'."
             )
-        elif clines is not None:
+        if clines is not None:
             data_len = len(row_body_cells) if "data" in clines and d["body"] else 0
 
             d["clines"] = defaultdict(list)
@@ -964,9 +963,6 @@ class StylerRenderer:
         na_rep : str, optional
             Representation for missing values.
             If ``na_rep`` is None, no special formatting is applied.
-
-            .. versionadded:: 1.0.0
-
         precision : int, optional
             Floating point precision to use for display purposes, if not determined by
             the specified ``formatter``.
@@ -1002,7 +998,7 @@ class StylerRenderer:
 
         Returns
         -------
-        self : Styler
+        Styler
 
         See Also
         --------
@@ -1077,8 +1073,8 @@ class StylerRenderer:
         Multiple ``na_rep`` or ``precision`` specifications under the default
         ``formatter``.
 
-        >>> df.style.format(na_rep='MISS', precision=1, subset=[0])
-        ...     .format(na_rep='PASS', precision=2, subset=[1, 2])  # doctest: +SKIP
+        >>> (df.style.format(na_rep='MISS', precision=1, subset=[0])
+        ...     .format(na_rep='PASS', precision=2, subset=[1, 2]))  # doctest: +SKIP
                 0      1      2
         0    MISS   1.00      A
         1     2.0   PASS   3.00
@@ -1125,8 +1121,8 @@ class StylerRenderer:
 
         >>> df = pd.DataFrame({"A": [1, 0, -1]})
         >>> pseudo_css = "number-format: 0§[Red](0)§-§@;"
-        >>> df.style.applymap(lambda v: css).to_excel("formatted_file.xlsx")
-        ...  # doctest: +SKIP
+        >>> filename = "formatted_file.xlsx"
+        >>> df.style.applymap(lambda v: pseudo_css).to_excel(filename) # doctest: +SKIP
 
         .. figure:: ../../_static/style/format_excel_css.png
         """
@@ -1172,7 +1168,7 @@ class StylerRenderer:
     def format_index(
         self,
         formatter: ExtFormatter | None = None,
-        axis: int | str = 0,
+        axis: Axis = 0,
         level: Level | list[Level] | None = None,
         na_rep: str | None = None,
         precision: int | None = None,
@@ -1218,7 +1214,7 @@ class StylerRenderer:
 
         Returns
         -------
-        self : Styler
+        Styler
 
         See Also
         --------
@@ -1381,7 +1377,7 @@ class StylerRenderer:
 
         Returns
         -------
-        self : Styler
+        Styler
 
         See Also
         --------
@@ -1518,7 +1514,7 @@ class StylerRenderer:
 
 def _element(
     html_element: str,
-    html_class: str,
+    html_class: str | None,
     value: Any,
     is_visible: bool,
     **kwargs,
@@ -1543,7 +1539,7 @@ def _get_trimming_maximums(
     max_elements,
     max_rows=None,
     max_cols=None,
-    scaling_factor=0.8,
+    scaling_factor: float = 0.8,
 ) -> tuple[int, int]:
     """
     Recursively reduce the number of rows and columns to satisfy max elements.
@@ -1815,7 +1811,7 @@ def _maybe_wrap_formatter(
     if na_rep is None:
         return func_3
     else:
-        return lambda x: na_rep if isna(x) else func_3(x)
+        return lambda x: na_rep if (isna(x) is True) else func_3(x)
 
 
 def non_reducing_slice(slice_: Subset):
@@ -2152,7 +2148,7 @@ def _parse_latex_cell_styles(
     """
     if convert_css:
         latex_styles = _parse_latex_css_conversion(latex_styles)
-    for (command, options) in latex_styles[::-1]:  # in reverse for most recent style
+    for command, options in latex_styles[::-1]:  # in reverse for most recent style
         formatter = {
             "--wrap": f"{{\\{command}--to_parse {display_value}}}",
             "--nowrap": f"\\{command}--to_parse {display_value}",
@@ -2243,14 +2239,14 @@ def _parse_latex_css_conversion(styles: CSSList) -> CSSList:
     """
 
     def font_weight(value, arg):
-        if value == "bold" or value == "bolder":
+        if value in ("bold", "bolder"):
             return "bfseries", f"{arg}"
         return None
 
     def font_style(value, arg):
         if value == "italic":
             return "itshape", f"{arg}"
-        elif value == "oblique":
+        if value == "oblique":
             return "slshape", f"{arg}"
         return None
 
@@ -2295,11 +2291,11 @@ def _parse_latex_css_conversion(styles: CSSList) -> CSSList:
     }
 
     latex_styles: CSSList = []
-    for (attribute, value) in styles:
+    for attribute, value in styles:
         if isinstance(value, str) and "--latex" in value:
             # return the style without conversion but drop '--latex'
             latex_styles.append((attribute, value.replace("--latex", "")))
-        if attribute in CONVERTED_ATTRIBUTES.keys():
+        if attribute in CONVERTED_ATTRIBUTES:
             arg = ""
             for x in ["--wrap", "--nowrap", "--lwrap", "--dwrap", "--rwrap"]:
                 if x in str(value):

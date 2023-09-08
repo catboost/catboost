@@ -3,7 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import (
     TYPE_CHECKING,
-    Iterator,
+    Generator,
 )
 
 from pandas.plotting._core import _get_plot_backend
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     )
 
 
-def table(ax, data, rowLabels=None, colLabels=None, **kwargs):
+def table(ax, data, **kwargs):
     """
     Helper function to convert DataFrame and Series to matplotlib.table.
 
@@ -193,7 +193,7 @@ def radviz(
     influence of all dimensions.
 
     More info available at the `original article
-    <https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.135.889>`_
+    <https://doi.org/10.1145/331770.331775>`_
     describing RadViz.
 
     Parameters
@@ -214,11 +214,11 @@ def radviz(
 
     Returns
     -------
-    class:`matplotlib.axes.Axes`
+    :class:`matplotlib.axes.Axes`
 
     See Also
     --------
-    plotting.andrews_curves : Plot clustering visualization.
+    pandas.plotting.andrews_curves : Plot clustering visualization.
 
     Examples
     --------
@@ -274,31 +274,36 @@ def andrews_curves(
 
     Andrews curves have the functional form:
 
-    f(t) = x_1/sqrt(2) + x_2 sin(t) + x_3 cos(t) +
-           x_4 sin(2t) + x_5 cos(2t) + ...
+    .. math::
+        f(t) = \\frac{x_1}{\\sqrt{2}} + x_2 \\sin(t) + x_3 \\cos(t) +
+        x_4 \\sin(2t) + x_5 \\cos(2t) + \\cdots
 
-    Where x coefficients correspond to the values of each dimension and t is
-    linearly spaced between -pi and +pi. Each row of frame then corresponds to
-    a single curve.
+    Where :math:`x` coefficients correspond to the values of each dimension
+    and :math:`t` is linearly spaced between :math:`-\\pi` and :math:`+\\pi`.
+    Each row of frame then corresponds to a single curve.
 
     Parameters
     ----------
     frame : DataFrame
         Data to be plotted, preferably normalized to (0.0, 1.0).
-    class_column : Name of the column containing class names
-    ax : matplotlib axes object, default None
-    samples : Number of points to plot in each curve
-    color : list or tuple, optional
-        Colors to use for the different classes.
+    class_column : label
+        Name of the column containing class names.
+    ax : axes object, default None
+        Axes to use.
+    samples : int
+        Number of points to plot in each curve.
+    color : str, list[str] or tuple[str], optional
+        Colors to use for the different classes. Colors can be strings
+        or 3-element floating point RGB values.
     colormap : str or matplotlib colormap object, default None
-        Colormap to select colors from. If string, load colormap with that name
-        from matplotlib.
+        Colormap to select colors from. If a string, load colormap with that
+        name from matplotlib.
     **kwargs
         Options to pass to matplotlib plotting method.
 
     Returns
     -------
-    class:`matplotlip.axis.Axes`
+    :class:`matplotlib.axes.Axes`
 
     Examples
     --------
@@ -336,7 +341,7 @@ def bootstrap_plot(
     Bootstrap plot on mean, median and mid-range statistics.
 
     The bootstrap plot is used to estimate the uncertainty of a statistic
-    by relaying on random sampling with replacement [1]_. This function will
+    by relying on random sampling with replacement [1]_. This function will
     generate bootstrapping plots for mean, median and mid-range statistics
     for the given number of samples of the given size.
 
@@ -365,8 +370,8 @@ def bootstrap_plot(
 
     See Also
     --------
-    DataFrame.plot : Basic plotting for DataFrame objects.
-    Series.plot : Basic plotting for Series objects.
+    pandas.DataFrame.plot : Basic plotting for DataFrame objects.
+    pandas.Series.plot : Basic plotting for Series objects.
 
     Examples
     --------
@@ -430,7 +435,7 @@ def parallel_coordinates(
 
     Returns
     -------
-    class:`matplotlib.axis.Axes`
+    matplotlib.axes.Axes
 
     Examples
     --------
@@ -470,19 +475,21 @@ def lag_plot(series: Series, lag: int = 1, ax: Axes | None = None, **kwds) -> Ax
 
     Parameters
     ----------
-    series : Time series
-    lag : lag of the scatter plot, default 1
+    series : Series
+        The time series to visualize.
+    lag : int, default 1
+        Lag length of the scatter plot.
     ax : Matplotlib axis object, optional
+        The matplotlib axis object to use.
     **kwds
         Matplotlib scatter method keyword arguments.
 
     Returns
     -------
-    class:`matplotlib.axis.Axes`
+    matplotlib.axes.Axes
 
     Examples
     --------
-
     Lag plots are most commonly used to look for patterns in time series data.
 
     Given the following time series
@@ -514,18 +521,19 @@ def autocorrelation_plot(series: Series, ax: Axes | None = None, **kwargs) -> Ax
 
     Parameters
     ----------
-    series : Time series
+    series : Series
+        The time series to visualize.
     ax : Matplotlib axis object, optional
+        The matplotlib axis object to use.
     **kwargs
         Options to pass to matplotlib plotting method.
 
     Returns
     -------
-    class:`matplotlib.axis.Axes`
+    matplotlib.axes.Axes
 
     Examples
     --------
-
     The horizontal lines in the plot correspond to 95% and 99% confidence bands.
 
     The dashed line is 99% confidence band.
@@ -594,7 +602,7 @@ class _Options(dict):
         return self._ALIASES.get(key, key)
 
     @contextmanager
-    def use(self, key, value) -> Iterator[_Options]:
+    def use(self, key, value) -> Generator[_Options, None, None]:
         """
         Temporarily set a parameter value using the with statement.
         Aliasing allowed.

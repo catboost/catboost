@@ -301,7 +301,7 @@ class CSSToExcelConverter:
             # Return "none" will keep "border" in style dictionary
             return "none"
 
-        if style == "none" or style == "hidden":
+        if style in ("none", "hidden"):
             return "none"
 
         width_name = self._get_width_name(width)
@@ -556,7 +556,6 @@ class ExcelFormatter:
             self.style_converter = None
         self.df = df
         if cols is not None:
-
             # all missing, raise
             if not len(Index(cols).intersection(df.columns)):
                 raise KeyError("passes columns are not ALL present dataframe")
@@ -692,8 +691,7 @@ class ExcelFormatter:
                         f"Writing {len(self.columns)} cols "
                         f"but got {len(self.header)} aliases"
                     )
-                else:
-                    colnames = self.header
+                colnames = self.header
 
             for colindex, colname in enumerate(colnames):
                 yield CssExcelCell(
@@ -804,7 +802,6 @@ class ExcelFormatter:
 
             # if index labels are not empty go ahead and dump
             if com.any_not_none(*index_labels) and self.header is not False:
-
                 for cidx, name in enumerate(index_labels):
                     yield ExcelCell(self.rowcounter - 1, cidx, name, self.header_style)
 
@@ -818,7 +815,6 @@ class ExcelFormatter:
                 for spans, levels, level_codes in zip(
                     level_lengths, self.df.index.levels, self.df.index.codes
                 ):
-
                     values = levels.take(
                         level_codes,
                         allow_fill=levels._can_hold_na,
@@ -913,14 +909,8 @@ class ExcelFormatter:
             is to be frozen
         engine : string, default None
             write engine to use if writer is a path - you can also set this
-            via the options ``io.excel.xlsx.writer``, ``io.excel.xls.writer``,
-            and ``io.excel.xlsm.writer``.
-
-            .. deprecated:: 1.2.0
-
-                As the `xlwt <https://pypi.org/project/xlwt/>`__ package is no longer
-                maintained, the ``xlwt`` engine will be removed in a future
-                version of pandas.
+            via the options ``io.excel.xlsx.writer``,
+            or ``io.excel.xlsm.writer``.
 
         {storage_options}
 
