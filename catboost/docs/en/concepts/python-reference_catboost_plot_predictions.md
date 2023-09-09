@@ -14,7 +14,7 @@ For example, use a two-document slice of the original dataset (refer to the exam
 
 **Possible types**
 
-- numpy.array
+- numpy.ndarray
 - pandas.DataFrame
 - {{ python_type__pandas-SparseDataFrame }}
 - scipy.sparse.spmatrix (all subclasses except dia_matrix)

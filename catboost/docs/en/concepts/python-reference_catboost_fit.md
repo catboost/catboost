@@ -64,7 +64,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 
 {% endcut %}
 
-{% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
 
 The input training dataset in the form of a two-dimensional feature matrix.
 
@@ -104,7 +104,7 @@ Do not use this parameter if the input training dataset (specified in the `X` pa
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
@@ -136,7 +136,7 @@ The `cat_features` parameter can also be specified in the constructor of the cl
 
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -160,7 +160,7 @@ A one-dimensional array of text columns indices (specified as integers) or names
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -183,7 +183,7 @@ A one-dimensional array of embedding columns indices (specified as integers) or 
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -211,7 +211,7 @@ The pairs description in the form of a two-dimensional matrix of shape `N` by 2
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 
 
@@ -244,7 +244,7 @@ The pairs description in the form of a two-dimensional matrix of shape `N` by 2
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
@@ -270,7 +270,7 @@ Group identifiers for all input objects. Supported identifier types are:
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -298,7 +298,7 @@ Used for calculating the final values of trees. By default, it is set to 1 for a
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -321,7 +321,7 @@ Subgroup identifiers for all input objects. Supported identifier types are:
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -351,7 +351,7 @@ By default, it is set to 1 for all pairs.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -380,7 +380,7 @@ Do not use this parameter if the input training dataset (specified in the `X` p
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 

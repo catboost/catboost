@@ -13,16 +13,16 @@ slice(rindex)
 
 ### rindex
 
-#### Description 
+#### Description
 
 The indices of objects to form the slice of the dataset from.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--list }}
-{{ python-type--numpyarray }}
+{{ python-type--numpy-ndarray }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 

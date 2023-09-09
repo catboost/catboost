@@ -315,7 +315,7 @@ default:
   python-type__Series: Series
   python-type--list: list
   python-type--pool: catboost.Pool
-  python-type--numpyarray: numpy.array
+  python-type--numpy-ndarray: numpy.ndarray
   python-type--array-like-data: array-like structures
   python-type--pandasDataFrame: pandas.DataFrame
   python-type--pandascoreframeDataFrame: pandas.core.frame.DataFrame

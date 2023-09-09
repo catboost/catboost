@@ -39,7 +39,7 @@ The description is different for each group of possible types.
 
 **Possible types**
 
-{% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
 
 Dataset in the form of a two-dimensional feature matrix.
 
@@ -95,7 +95,7 @@ Must be in the form of a one-dimensional array. The type of data in the array de
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasSeries }}
 - {{ python-type--pandasDataFrame }}
 
@@ -116,7 +116,7 @@ If any elements in this array are specified as names instead of indices, names f
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -133,7 +133,7 @@ A one-dimensional array of text columns indices (specified as integers) or names
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -150,7 +150,7 @@ A one-dimensional array of embedding columns indices (specified as integers) or 
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -184,7 +184,7 @@ The description is different for each group of possible types.
 
 **Possible types**
 
-{% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}" %}
 
 The pairs description in the form of a two-dimensional matrix of shape `N` by 2:
 
@@ -259,7 +259,7 @@ By default, it is set to 1 for all objects.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -278,7 +278,7 @@ Used for calculating the final values of trees. By default, it is set to 1 for a
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -312,7 +312,7 @@ $\begin{pmatrix} d_{1}&g_{1}&f_{1}\\ d_{3}&g_{3}&f_{3}\\ d_{2}&g_{2}&f_{2}\\ d_{
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -329,7 +329,7 @@ Subgroup identifiers for all input objects. Supported identifier types are:
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -349,7 +349,7 @@ By default, it is set to 1 for all pairs.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -364,7 +364,7 @@ Array of formula values for all input objects. The training starts from these va
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -381,7 +381,7 @@ Useful for sorting a learning dataset by this field during training.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 

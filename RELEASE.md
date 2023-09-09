@@ -1461,7 +1461,7 @@ We want to especially mention @pukhlyakova who implemented lots of useful metric
 
 # Release 0.8
 ## Breaking changes
-- We fixed bug in CatBoost. Pool initialization from `numpy.array` and `pandas.dataframe` with string values that can cause slight inconsistence while using trained model from older versions. Around 1% of cat feature hashes were treated incorrectly. If you expirience quality drop after update you should consider retraining your model.
+- We fixed bug in CatBoost. Pool initialization from `numpy.ndarray` and `pandas.dataframe` with string values that can cause slight inconsistence while using trained model from older versions. Around 1% of cat feature hashes were treated incorrectly. If you expirience quality drop after update you should consider retraining your model.
 
 ## Major Features And Improvements
 - Algorithm for finding most influential training samples for a given object from the 'Finding Influential Training Samples for Gradient Boosted Decision Trees' [paper](https://arxiv.org/pdf/1802.06640.pdf) is implemented. This mode for every object from input pool calculates scores for every object from train pool. A positive score means that the given train object has made a negative contribution to the given test object prediction. And vice versa for negative scores. The higher score modulo - the higher contribution.

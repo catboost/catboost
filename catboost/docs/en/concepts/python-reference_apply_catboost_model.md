@@ -79,7 +79,4 @@ Possible types:
 
 ### {{ dl--output-format }}
 
-{{ python-type--numpyarray }} (identical to the `[CatBoost()](python-reference_catboost.md).[predict](python-reference_catboost_predict.md)(prediction_type='RawFormulaVal')` method output)[Train a model](../references/training-parameters/index.md)
-
-
-
+{{ python-type--numpy-ndarray }} (identical to the `[CatBoost()](python-reference_catboost.md).[predict](python-reference_catboost_predict.md)(prediction_type='RawFormulaVal')` method output)[Train a model](../references/training-parameters/index.md)

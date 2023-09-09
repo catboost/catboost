@@ -246,10 +246,10 @@ cdef class Dictionary:
 
         Parameters
         ----------
-        data : string or list or numpy.array or pandas.Series
+        data : string or list or numpy.ndarray or pandas.Series
             Input data.
             If string, giving the path to the file with text data.
-            If list or numpy.arrays or pandas.Series, giving 1 or 2 dimensional array like text data.
+            If list or numpy.ndarrays or pandas.Series, giving 1 or 2 dimensional array like text data.
 
         tokenizer : Tokenizer, optional (default=None)
             Tokenizer for text processing. If you specify it and pass 1-dimensional data,
@@ -284,7 +284,7 @@ cdef class Dictionary:
 
         Parameters
         ----------
-        data : string or list or numpy.array or pandas.Series
+        data : string or list or numpy.ndarray or pandas.Series
             Input data. Giving 0,1 or 2 dimensional array like text data.
 
         tokenizer : Tokenizer, optional (default=None)
@@ -511,4 +511,3 @@ cdef class Dictionary:
             bpeDictHolder = dynamic_cast[TBpeDictionaryPtr](self.__dictionary_holder.Get())
             dereference(bpeDictHolder).Save(to_arcadia_string(frequency_dict_path), to_arcadia_string(bpe_path))
         return self
-

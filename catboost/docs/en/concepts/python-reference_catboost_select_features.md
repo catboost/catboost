@@ -72,7 +72,7 @@ Do not use this parameter if the input training dataset (specified in the `X` p
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
@@ -375,4 +375,3 @@ summary = model.select_features(
 The following is a chart plotted with [Jupyter Notebook](../features/visualization_jupyter-notebook.md) for the given example.
 
 ![](../images/jupyter__features__selection.png)
-

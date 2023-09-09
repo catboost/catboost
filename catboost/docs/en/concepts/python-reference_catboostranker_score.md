@@ -6,13 +6,13 @@ Calculate the NDCG@top [metric](../concepts/loss-functions.md) for the objects 
 ## {{ dl--invoke-format }} {#call-format}
 
 ```
-score(X, 
-      y=None, 
-      group_id=None, 
-      top=None, 
-      type=None, 
-      denominator=None, 
-      group_weight=None, 
+score(X,
+      y=None,
+      group_id=None,
+      top=None,
+      type=None,
+      denominator=None,
+      group_weight=None,
       thread_count=-1)
 ```
 
@@ -38,7 +38,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 
 {% endcut %}
 
-{% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
 
 The input training dataset in the form of a two-dimensional feature matrix.
 
@@ -74,7 +74,7 @@ Do not use this parameter if the input training dataset (specified in the `X` pa
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
@@ -96,7 +96,7 @@ Do not use this parameter if the input training dataset (specified in the `X` pa
 
 **Possible types**
 
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
@@ -157,7 +157,7 @@ Only a `weight` or `group_weight` parameter can be used at the time.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 

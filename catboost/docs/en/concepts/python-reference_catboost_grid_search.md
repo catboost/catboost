@@ -61,7 +61,7 @@ If a nontrivial value of the cat_features parameter is specified in the construc
 
 {% endcut %}
 
-{% cut "numpy.array, pandas.DataFrame" %}
+{% cut "numpy.ndarray, pandas.DataFrame" %}
 
 The input training dataset in the form of a two-dimensional feature matrix.
 
@@ -103,7 +103,7 @@ Do not use this parameter if the input training dataset (specified in the X para
 
 **Possible types**
 
-- numpy.array
+- numpy.ndarray
 - pandas.Series
 
 **Default value**
@@ -285,5 +285,3 @@ Dict with two fields:
 ## {{ dl--example }} {#example}
 
 {% include [grid-search-grid_search__catboost](../_includes/work_src/reusage-code-examples/grid_search__catboost.md) %}
-
-

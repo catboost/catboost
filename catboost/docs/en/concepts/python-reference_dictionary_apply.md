@@ -23,7 +23,7 @@ A zero-, one- or two-dimensional array-like data.
 
 **Data types**
 
-{{ python-type--string }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}
+{{ python-type--string }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}
 
 **Default value**
 

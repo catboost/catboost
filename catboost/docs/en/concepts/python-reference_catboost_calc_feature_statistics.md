@@ -25,14 +25,14 @@ calc_feature_statistics(data,
 
 The data to calculate the statistics on.
 
-**Possible types** 
+**Possible types**
 
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python_type__pandas-SparseDataFrame }}
 - {% include [libsvm-scipy-except-dia](../_includes/work_src/reusage-formats/scipy-except-dia.md) %}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -43,13 +43,13 @@ The data to calculate the statistics on.
 
 Label values for objects from the input data.
 
-**Possible types** 
+**Possible types**
 
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasSeries }}
 
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -73,14 +73,14 @@ Output information regarding two features, one of which is named `age` and the s
 feature=["age", 10]
 ```
 
-**Possible types** 
+**Possible types**
 
 - {{ python-type--int }}
 - {{ python-type--string }}
 - {{ python-type--list }} of {{ python-type--int }}, {{ python-type--string }} or their combination
 
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -98,11 +98,11 @@ Possible values:
 - {{ prediction-type--Exponent }}
 - {{ prediction-type--LogProbability }}
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 None ({{ prediction-type--Probability }} for {{ error-function--Logit }} and {{ error-function--CrossEntropy }}, {{ prediction-type--RawFormulaVal }} for all other loss functions)
 
@@ -113,13 +113,13 @@ None ({{ prediction-type--Probability }} for {{ error-function--Logit }} and {{ 
 
 A list of categorical feature values to calculate the statistics on. Can be used if statistics are calculated for a categorical feature.
 
-**Possible types** 
+**Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasSeries }}
 
-**Default value** 
+**Default value**
 
 None (statistics are calculated for all values of categorical feature)
 
@@ -130,11 +130,11 @@ None (statistics are calculated for all values of categorical feature)
 
 Plot a [Jupyter Notebook](../features/visualization_jupyter-notebook.md) chart based on the calculated statistics.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--bool }}
 
-**Default value** 
+**Default value**
 
 {{ get_feature_statistics__plot__default }}
 
@@ -147,11 +147,11 @@ The maximum number of different values of a categorical feature to output on one
 
 If the selected categorical feature takes more different values than the value set in this parameter, several charts are plotted.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ get_feature_statistics__thread_count__default }}
 
@@ -162,11 +162,11 @@ If the selected categorical feature takes more different values than the value s
 
 The number of threads to use for calculating statistics.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit__thread_count__wrappers }}
 
@@ -177,11 +177,11 @@ The number of threads to use for calculating statistics.
 
 The name of the output file to save the chart to.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 None (the file is not saved)
 

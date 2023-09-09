@@ -29,7 +29,7 @@ The text must be input from a file if the selected dictionary type is {{ diction
 {% endcut %}
 
 
-{% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasSeries }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasSeries }}" %}
 
 One- or two-dimensional array-like input text data.
 

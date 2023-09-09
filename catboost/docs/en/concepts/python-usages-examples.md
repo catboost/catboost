@@ -787,7 +787,7 @@ catboost_model.fit(train_pool, eval_set=test_pool)
 # Apply model on pool with baseline values
 preds1 = catboost_model.predict(test_pool)
 
-# Apply model on numpy.array and then add the baseline values
+# Apply model on numpy.ndarray and then add the baseline values
 preds2 = test_baseline + catboost_model.predict(X_test)
 
 # Check that preds have small diffs
@@ -817,7 +817,7 @@ catboost_model.fit(train_pool, eval_set=test_pool)
 # Apply model on pool with baseline values
 preds1 = catboost_model.predict(test_pool)
 
-# Apply model on numpy.array and then add the baseline values
+# Apply model on numpy.ndarray and then add the baseline values
 preds2 = baseline_model.predict(X_test) + catboost_model.predict(X_test)
 
 # Check that preds have small diffs

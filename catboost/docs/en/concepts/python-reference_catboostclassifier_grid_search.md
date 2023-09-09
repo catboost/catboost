@@ -64,7 +64,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 
 {% endcut %}
 
-{% cut "{{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}" %}
+{% cut "{{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}" %}
 
 The input training dataset in the form of a two-dimensional feature matrix.
 
@@ -99,7 +99,7 @@ Do not use this parameter if the input training dataset (specified in the `X` p
 **Possible types**
 
 
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasSeries }}
 
 **Default value**

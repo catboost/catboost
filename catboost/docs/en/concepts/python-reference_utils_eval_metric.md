@@ -27,7 +27,7 @@ A list of target variables (in other words, the label values of the objects).
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
@@ -44,7 +44,7 @@ A list of approximate values for all input objects.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
@@ -62,7 +62,7 @@ The evaluation metric to calculate.
 
 {% include [reusage-all-objectives-and-metrics](../_includes/work_src/reusage/all-objectives-and-metrics.md) %}
 
-{% endcut %}  
+{% endcut %}
 
 **Possible types**
 
@@ -81,7 +81,7 @@ The weights of objects.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
@@ -100,7 +100,7 @@ Group identifiers for all input objects. Supported identifier types are:
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
@@ -117,7 +117,7 @@ Subgroup identifiers for all input objects.
 **Possible types**
 
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 
 **Default value**
 
@@ -131,7 +131,7 @@ The description is different for each group of possible types.
 
 **Possible types**
 
-{% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}" %}
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}" %}
 
 
 The pairs description in the form of a two-dimensional matrix of shape `N` by 2:

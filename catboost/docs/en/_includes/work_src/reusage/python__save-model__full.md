@@ -92,7 +92,7 @@ The model can be saved to the {{ cli__metadata__dump_format__json }} format wit
 
 - {{ python-type--pool }}
 - {{ python-type--list }}
-- {{ python-type--numpyarray }}
+- {{ python-type--numpy-ndarray }}
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 - {{ python-type__FeaturesData }}
