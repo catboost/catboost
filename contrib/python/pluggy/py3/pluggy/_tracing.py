@@ -9,8 +9,8 @@ from typing import Sequence
 from typing import Tuple
 
 
-_Writer = Callable[[str], None]
-_Processor = Callable[[Tuple[str, ...], Tuple[Any, ...]], None]
+_Writer = Callable[[str], object]
+_Processor = Callable[[Tuple[str, ...], Tuple[Any, ...]], object]
 
 
 class TagTracer:
@@ -49,7 +49,7 @@ class TagTracer:
         else:
             processor(tags, args)
 
-    def setwriter(self, writer: _Writer) -> None:
+    def setwriter(self, writer: _Writer | None) -> None:
         self._writer = writer
 
     def setprocessor(self, tags: str | tuple[str, ...], processor: _Processor) -> None:

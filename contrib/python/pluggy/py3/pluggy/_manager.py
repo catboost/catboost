@@ -1,42 +1,34 @@
 from __future__ import annotations
 
+import importlib.metadata
 import inspect
-import sys
 import types
 import warnings
 from typing import Any
 from typing import Callable
 from typing import cast
+from typing import Final
 from typing import Iterable
 from typing import Mapping
 from typing import Sequence
-from typing import TYPE_CHECKING
 
 from . import _tracing
 from ._callers import _multicall
-from ._hooks import _HookCaller
 from ._hooks import _HookImplFunction
-from ._hooks import _HookRelay
 from ._hooks import _Namespace
 from ._hooks import _Plugin
 from ._hooks import _SubsetHookCaller
+from ._hooks import HookCaller
 from ._hooks import HookImpl
-from ._hooks import HookSpec
+from ._hooks import HookimplOpts
+from ._hooks import HookRelay
+from ._hooks import HookspecOpts
 from ._hooks import normalize_hookimpl_opts
-from ._result import _Result
+from ._result import Result
 
-if sys.version_info >= (3, 8):
-    from importlib import metadata as importlib_metadata
-else:
-    import importlib_metadata
-
-if TYPE_CHECKING:
-    from typing_extensions import Final
-
-    from ._hooks import _HookImplOpts, _HookSpecOpts
 
 _BeforeTrace = Callable[[str, Sequence[HookImpl], Mapping[str, Any]], None]
-_AfterTrace = Callable[[_Result[Any], str, Sequence[HookImpl], Mapping[str, Any]], None]
+_AfterTrace = Callable[[Result[Any], str, Sequence[HookImpl], Mapping[str, Any]], None]
 
 
 def _warn_for_function(warning: Warning, function: Callable[..., object]) -> None:
@@ -53,17 +45,19 @@ class PluginValidationError(Exception):
     """Plugin failed validation.
 
     :param plugin: The plugin which failed validation.
+    :param message: Error message.
     """
 
     def __init__(self, plugin: _Plugin, message: str) -> None:
         super().__init__(message)
+        #: The plugin which failed validation.
         self.plugin = plugin
 
 
 class DistFacade:
     """Emulate a pkg_resources Distribution"""
 
-    def __init__(self, dist: importlib_metadata.Distribution) -> None:
+    def __init__(self, dist: importlib.metadata.Distribution) -> None:
         self._dist = dist
 
     @property
@@ -90,14 +84,23 @@ class PluginManager:
 
     For debugging purposes you can call :meth:`PluginManager.enable_tracing`
     which will subsequently send debug information to the trace helper.
+
+    :param project_name:
+        The short project name. Prefer snake case. Make sure it's unique!
     """
 
     def __init__(self, project_name: str) -> None:
+        #: The project name.
         self.project_name: Final = project_name
         self._name2plugin: Final[dict[str, _Plugin]] = {}
         self._plugin_distinfo: Final[list[tuple[_Plugin, DistFacade]]] = []
-        self.trace: Final = _tracing.TagTracer().get("pluginmanage")
-        self.hook: Final = _HookRelay()
+        #: The "hook relay", used to call a hook on all registered plugins.
+        #: See :ref:`calling`.
+        self.hook: Final = HookRelay()
+        #: The tracing entry point. See :ref:`tracing`.
+        self.trace: Final[_tracing.TagTracerSub] = _tracing.TagTracer().get(
+            "pluginmanage"
+        )
         self._inner_hookexec = _multicall
 
     def _hookexec(
@@ -114,12 +117,15 @@ class PluginManager:
     def register(self, plugin: _Plugin, name: str | None = None) -> str | None:
         """Register a plugin and return its name.
 
-        If a name is not specified, a name is generated using
-        :func:`get_canonical_name`.
+        :param name:
+            The name under which to register the plugin. If not specified, a
+            name is generated using :func:`get_canonical_name`.
 
-        If the name is blocked from registering, returns ``None``.
+        :returns:
+            The plugin name. If the name is blocked from registering, returns
+            ``None``.
 
-        If the plugin is already registered, raises a :class:`ValueError`.
+        If the plugin is already registered, raises a :exc:`ValueError`.
         """
         plugin_name = name or self.get_canonical_name(plugin)
 
@@ -149,9 +155,9 @@ class PluginManager:
                 method: _HookImplFunction[object] = getattr(plugin, name)
                 hookimpl = HookImpl(plugin, plugin_name, method, hookimpl_opts)
                 name = hookimpl_opts.get("specname") or name
-                hook: _HookCaller | None = getattr(self.hook, name, None)
+                hook: HookCaller | None = getattr(self.hook, name, None)
                 if hook is None:
-                    hook = _HookCaller(name, self._hookexec)
+                    hook = HookCaller(name, self._hookexec)
                     setattr(self.hook, name, hook)
                 elif hook.has_spec():
                     self._verify_hook(hook, hookimpl)
@@ -159,12 +165,22 @@ class PluginManager:
                 hook._add_hookimpl(hookimpl)
         return plugin_name
 
-    def parse_hookimpl_opts(self, plugin: _Plugin, name: str) -> _HookImplOpts | None:
+    def parse_hookimpl_opts(self, plugin: _Plugin, name: str) -> HookimplOpts | None:
+        """Try to obtain a hook implementation from an item with the given name
+        in the given plugin which is being searched for hook impls.
+
+        :returns:
+            The parsed hookimpl options, or None to skip the given item.
+
+        This method can be overridden by ``PluginManager`` subclasses to
+        customize how hook implementation are picked up. By default, returns the
+        options for items decorated with :class:`HookimplMarker`.
+        """
         method: object = getattr(plugin, name)
         if not inspect.isroutine(method):
             return None
         try:
-            res: _HookImplOpts | None = getattr(
+            res: HookimplOpts | None = getattr(
                 method, self.project_name + "_impl", None
             )
         except Exception:
@@ -176,11 +192,13 @@ class PluginManager:
 
     def unregister(
         self, plugin: _Plugin | None = None, name: str | None = None
-    ) -> _Plugin:
+    ) -> Any | None:
         """Unregister a plugin and all of its hook implementations.
 
         The plugin can be specified either by the plugin object or the plugin
         name. If both are specified, they must agree.
+
+        Returns the unregistered plugin, or ``None`` if not found.
         """
         if name is None:
             assert plugin is not None, "one of name or plugin needs to be specified"
@@ -189,6 +207,8 @@ class PluginManager:
 
         if plugin is None:
             plugin = self.get_plugin(name)
+            if plugin is None:
+                return None
 
         hookcallers = self.get_hookcallers(plugin)
         if hookcallers:
@@ -221,9 +241,9 @@ class PluginManager:
         for name in dir(module_or_class):
             spec_opts = self.parse_hookspec_opts(module_or_class, name)
             if spec_opts is not None:
-                hc: _HookCaller | None = getattr(self.hook, name, None)
+                hc: HookCaller | None = getattr(self.hook, name, None)
                 if hc is None:
-                    hc = _HookCaller(name, self._hookexec, module_or_class, spec_opts)
+                    hc = HookCaller(name, self._hookexec, module_or_class, spec_opts)
                     setattr(self.hook, name, hc)
                 else:
                     # Plugins registered this hook without knowing the spec.
@@ -239,9 +259,20 @@ class PluginManager:
 
     def parse_hookspec_opts(
         self, module_or_class: _Namespace, name: str
-    ) -> _HookSpecOpts | None:
-        method: HookSpec = getattr(module_or_class, name)
-        opts: _HookSpecOpts | None = getattr(method, self.project_name + "_spec", None)
+    ) -> HookspecOpts | None:
+        """Try to obtain a hook specification from an item with the given name
+        in the given module or class which is being searched for hook specs.
+
+        :returns:
+            The parsed hookspec options for defining a hook, or None to skip the
+            given item.
+
+        This method can be overridden by ``PluginManager`` subclasses to
+        customize how hook specifications are picked up. By default, returns the
+        options for items decorated with :class:`HookspecMarker`.
+        """
+        method = getattr(module_or_class, name)
+        opts: HookspecOpts | None = getattr(method, self.project_name + "_spec", None)
         return opts
 
     def get_plugins(self) -> set[Any]:
@@ -257,7 +288,7 @@ class PluginManager:
 
         Note that a plugin may be registered under a different name
         specified by the caller of :meth:`register(plugin, name) <register>`.
-        To obtain the name of n registered plugin use :meth:`get_name(plugin)
+        To obtain the name of a registered plugin use :meth:`get_name(plugin)
         <get_name>` instead.
         """
         name: str | None = getattr(plugin, "__name__", None)
@@ -279,7 +310,7 @@ class PluginManager:
                 return name
         return None
 
-    def _verify_hook(self, hook: _HookCaller, hookimpl: HookImpl) -> None:
+    def _verify_hook(self, hook: HookCaller, hookimpl: HookImpl) -> None:
         if hook.is_historic() and (hookimpl.hookwrapper or hookimpl.wrapper):
             raise PluginValidationError(
                 hookimpl.plugin,
@@ -329,10 +360,10 @@ class PluginManager:
     def check_pending(self) -> None:
         """Verify that all hooks which have not been verified against a
         hook specification are optional, otherwise raise
-        :class:`PluginValidationError`."""
+        :exc:`PluginValidationError`."""
         for name in self.hook.__dict__:
             if name[0] != "_":
-                hook: _HookCaller = getattr(self.hook, name)
+                hook: HookCaller = getattr(self.hook, name)
                 if not hook.has_spec():
                     for hookimpl in hook.get_hookimpls():
                         if not hookimpl.optionalhook:
@@ -345,13 +376,16 @@ class PluginManager:
     def load_setuptools_entrypoints(self, group: str, name: str | None = None) -> int:
         """Load modules from querying the specified setuptools ``group``.
 
-        :param str group: Entry point group to load plugins.
-        :param str name: If given, loads only plugins with the given ``name``.
-        :rtype: int
-        :return: The number of plugins loaded by this call.
+        :param group:
+            Entry point group to load plugins.
+        :param name:
+            If given, loads only plugins with the given ``name``.
+
+        :return:
+            The number of plugins loaded by this call.
         """
         count = 0
-        for dist in list(importlib_metadata.distributions()):
+        for dist in list(importlib.metadata.distributions()):
             for ep in dist.entry_points:
                 if (
                     ep.group != group
@@ -376,8 +410,13 @@ class PluginManager:
         """Return a list of (name, plugin) pairs for all registered plugins."""
         return list(self._name2plugin.items())
 
-    def get_hookcallers(self, plugin: _Plugin) -> list[_HookCaller] | None:
-        """Get all hook callers for the specified plugin."""
+    def get_hookcallers(self, plugin: _Plugin) -> list[HookCaller] | None:
+        """Get all hook callers for the specified plugin.
+
+        :returns:
+            The hook callers, or ``None`` if ``plugin`` is not registered in
+            this plugin manager.
+        """
         if self.get_name(plugin) is None:
             return None
         hookcallers = []
@@ -399,7 +438,7 @@ class PluginManager:
         of HookImpl instances and the keyword arguments for the hook call.
 
         ``after(outcome, hook_name, hook_impls, kwargs)`` receives the
-        same arguments as ``before`` but also a :class:`_Result` object
+        same arguments as ``before`` but also a :class:`~pluggy.Result` object
         which represents the result of the overall hook call.
         """
         oldcall = self._inner_hookexec
@@ -411,7 +450,7 @@ class PluginManager:
             firstresult: bool,
         ) -> object | list[object]:
             before(hook_name, hook_impls, caller_kwargs)
-            outcome = _Result.from_call(
+            outcome = Result.from_call(
                 lambda: oldcall(hook_name, hook_impls, caller_kwargs, firstresult)
             )
             after(outcome, hook_name, hook_impls, caller_kwargs)
@@ -438,7 +477,7 @@ class PluginManager:
             hooktrace(hook_name, kwargs)
 
         def after(
-            outcome: _Result[object],
+            outcome: Result[object],
             hook_name: str,
             methods: Sequence[HookImpl],
             kwargs: Mapping[str, object],
@@ -451,11 +490,11 @@ class PluginManager:
 
     def subset_hook_caller(
         self, name: str, remove_plugins: Iterable[_Plugin]
-    ) -> _HookCaller:
-        """Return a proxy :py:class:`._hooks._HookCaller` instance for the named
+    ) -> HookCaller:
+        """Return a proxy :class:`~pluggy.HookCaller` instance for the named
         method which manages calls to all registered plugins except the ones
         from remove_plugins."""
-        orig: _HookCaller = getattr(self.hook, name)
+        orig: HookCaller = getattr(self.hook, name)
         plugins_to_remove = {plug for plug in remove_plugins if hasattr(plug, name)}
         if plugins_to_remove:
             return _SubsetHookCaller(orig, plugins_to_remove)

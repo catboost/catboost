@@ -6,13 +6,28 @@ except ImportError:
     __version__ = "unknown"
 
 __all__ = [
+    "__version__",
     "PluginManager",
     "PluginValidationError",
+    "HookCaller",
     "HookCallError",
+    "HookspecOpts",
+    "HookimplOpts",
+    "HookImpl",
+    "HookRelay",
     "HookspecMarker",
     "HookimplMarker",
+    "Result",
 ]
 
 from ._manager import PluginManager, PluginValidationError
-from ._result import HookCallError
-from ._hooks import HookspecMarker, HookimplMarker
+from ._result import HookCallError, Result
+from ._hooks import (
+    HookspecMarker,
+    HookimplMarker,
+    HookCaller,
+    HookRelay,
+    HookspecOpts,
+    HookimplOpts,
+    HookImpl,
+)

@@ -8,21 +8,18 @@ from typing import Generator
 from typing import Mapping
 from typing import Sequence
 from typing import Tuple
-from typing import TYPE_CHECKING
 from typing import Union
 
+from ._hooks import HookImpl
 from ._result import _raise_wrapfail
-from ._result import _Result
 from ._result import HookCallError
-
-if TYPE_CHECKING:
-    from ._hooks import HookImpl
+from ._result import Result
 
 
 # Need to distinguish between old- and new-style hook wrappers.
 # Wrapping one a singleton tuple is the fastest type-safe way I found to do it.
 Teardown = Union[
-    Tuple[Generator[None, _Result[object], None]],
+    Tuple[Generator[None, Result[object], None]],
     Generator[None, object, object],
 ]
 
@@ -36,7 +33,7 @@ def _multicall(
     """Execute a call into multiple python functions/methods and return the
     result(s).
 
-    ``caller_kwargs`` comes from _HookCaller.__call__().
+    ``caller_kwargs`` comes from HookCaller.__call__().
     """
     __tracebackhide__ = True
     results: list[object] = []
@@ -61,7 +58,7 @@ def _multicall(
                         # If this cast is not valid, a type error is raised below,
                         # which is the desired response.
                         res = hook_impl.function(*args)
-                        wrapper_gen = cast(Generator[None, _Result[object], None], res)
+                        wrapper_gen = cast(Generator[None, Result[object], None], res)
                         next(wrapper_gen)  # first yield
                         teardowns.append((wrapper_gen,))
                     except StopIteration:
@@ -85,7 +82,7 @@ def _multicall(
         except BaseException as exc:
             exception = exc
     finally:
-        # Fast path - only new-style wrappers, no _Result.
+        # Fast path - only new-style wrappers, no Result.
         if only_new_style_wrappers:
             if firstresult:  # first result hooks return a single value
                 result = results[0] if results else None
@@ -120,11 +117,11 @@ def _multicall(
         # Slow path - need to support old-style wrappers.
         else:
             if firstresult:  # first result hooks return a single value
-                outcome: _Result[object | list[object]] = _Result(
+                outcome: Result[object | list[object]] = Result(
                     results[0] if results else None, exception
                 )
             else:
-                outcome = _Result(results, exception)
+                outcome = Result(results, exception)
 
             # run all wrapper post-yield blocks
             for teardown in reversed(teardowns):
