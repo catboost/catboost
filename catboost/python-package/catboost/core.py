@@ -6438,7 +6438,7 @@ def sample_gaussian_process(X, y, eval_set=None,
 
     Returns
     -------
-    models : list of CatBoost models (size = samples)
+    models : list of trained CatBoostRegressor models (size = samples parameter value)
     """
     assert(sigma > 0)
     assert(samples > 0)
