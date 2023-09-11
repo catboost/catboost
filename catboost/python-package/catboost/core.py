@@ -6407,10 +6407,10 @@ def sample_gaussian_process(X, y, eval_set=None,
         Max count of trees for prior sampling step.
         range: [1, +inf]
     learning_rate : float, [default=0.1]
-        Step size shrinkage used in update to prevents overfitting.
+        Step size shrinkage used in update to prevent overfitting.
         range: (0,1]
     depth : int, [default=6]
-        Depth of a tree. All trees are the same depth.
+        Depth of the trees in the models.
         range: [1,+inf]
     sigma : float, [default=0.1]
         Scale of GP kernel (lower values lead to lower posterior variance)
@@ -6427,7 +6427,7 @@ def sample_gaussian_process(X, y, eval_set=None,
             - 'Gumbel' - Gumbel-distributed (as in paper)
             - 'NormalWithModelSizeDecrease' - Normally-distributed with deviation decreasing with model iteration count (default in CatBoost)
     eps : float, [default=1e-4]
-        Technical parameter that controls precision of prior estimation.
+        Technical parameter that controls the precision of the prior estimation.
         range: (0, 1]
     verbose : bool or int
         Verbosity of posterior model training output
