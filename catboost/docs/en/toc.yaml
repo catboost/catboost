@@ -713,6 +713,8 @@ items:
           - href: concepts/python-data-processing.md
             name: Pool initialization
         name: Pool
+      - href: concepts/python-reference_sample_gaussian_process.md
+        name: sample_gaussian_process
       - href: concepts/python-reference_sum_models.md
         name: sum_models
       - href: concepts/python-reference_to_classifier.md
