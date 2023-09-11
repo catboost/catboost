@@ -547,7 +547,7 @@ static TGroupedPairsInfo GetPairsSubset(
     );
 
     const TObjectsGrouping& subsetGrouping = *objectsGroupingSubset.GetSubsetGrouping();
-    TVector<TMaybe<TSrcToDstGroupMap>> srcToDstGroupMaps; // [groupIdx]
+    TVector<TMaybe<TSrcToDstGroupMap>> srcToDstGroupMaps(objectsGrouping.GetObjectCount()); // [groupIdx]
     objectsGroupingSubset.GetGroupsIndexing().ForEach(
         [&] (ui32 groupIdx, ui32 srcGroupIdx) {
             TSrcToDstGroupMap srcToDstGroupMap;

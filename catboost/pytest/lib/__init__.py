@@ -118,6 +118,24 @@ def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=Non
     yatest.common.execute(calc_cmd)
 
 
+def calc_loss_function_change(model_file, pool_path, pairs, cd_path, fstr_path, distributed_evaluation, args=None):
+    cmd = (
+        get_catboost_binary_path(),
+        'fstr',
+        '-m', model_file,
+        '--input-path', pool_path,
+        '--output-path', fstr_path,
+        '--fstr-type', 'LossFunctionChange',
+    )
+    if pairs:
+        cmd += ('--input-pairs', pairs)
+    if cd_path:
+        cmd += ('--column-description', cd_path)
+    if args:
+        cmd += tuple(args.strip().split())
+    yatest.common.execute(cmd)
+
+
 def local_canonical_file(*args, **kwargs):
     return yatest.common.canonical_file(*args, local=True, **kwargs)
 

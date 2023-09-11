@@ -184,6 +184,7 @@ namespace NCB {
      * Indices of objects passed to visitor methods are indices from the beginning of the subset (not indices in the whole dataset).
      * objectCount parameter represents the number of objects in the subset.
      */
+    THashMap<TGroupId, ui32> ConvertGroupIdToIdxMap(TConstArrayRef<TGroupId> groupIdsArray);
     void SetPairs(
         const TPathWithScheme& pairsPath,
         TDatasetSubset loadSubset,

@@ -5,6 +5,7 @@
 #include <util/digest/multi.h>
 #include <util/stream/output.h>
 #include <util/str_stl.h>
+#include <util/ysaveload.h>
 
 
 struct TPair {
@@ -25,6 +26,7 @@ struct TPair {
     }
 
     SAVELOAD(WinnerId, LoserId, Weight);
+    Y_SAVELOAD_DEFINE(WinnerId, LoserId, Weight);
 };
 
 

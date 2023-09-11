@@ -22,6 +22,8 @@ namespace NCB {
         TDatasetSubset DatasetSubset;
     };
 
+    THashMap<TGroupId, ui32> ConvertGroupIdToIdxMap(TConstArrayRef<TGroupId> groupIdsArray);
+
     struct IPairsDataLoader {
         virtual ~IPairsDataLoader() = default;
 
@@ -30,9 +32,7 @@ namespace NCB {
          */
         virtual bool NeedGroupIdToIdxMap() const { return false; }
 
-        // groupIdToIdxMap maps from groupId to groupIdx, it must include only groups from DatasetSubset
-        virtual void SetGroupIdToIdxMap(const THashMap<TGroupId, ui32>* groupIdToIdxMap);
-
+        virtual void SetGroupIdToIdxMap(TConstArrayRef<TGroupId> groupIdsArray);
         virtual void Do(IDatasetVisitor* visitor) = 0;
     };
 

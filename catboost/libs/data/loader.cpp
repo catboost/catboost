@@ -188,33 +188,9 @@ namespace NCB {
                 pairsPath,
                 TPairsDataLoaderArgs{pairsPath, loadSubset}
             );
-            THashMap<TGroupId, ui32> groupIdToIdxMap;
             if (pairsDataLoader->NeedGroupIdToIdxMap()) {
                 CB_ENSURE(groupIds, "Cannot load pairs data with group ids for a dataset without groups");
-
-                TConstArrayRef<TGroupId> groupIdsArray = *groupIds;
-                if (!groupIdsArray.empty()) {
-                    TGroupId currentGroupId = groupIdsArray[0];
-                    ui32 currentGroupIdx = 0;
-
-                    auto insertCurrentGroup = [&] () {
-                        CB_ENSURE(
-                            !groupIdToIdxMap.contains(currentGroupId),
-                            "Group id " << currentGroupId << " is used for several groups in the dataset"
-                        );
-                        groupIdToIdxMap.emplace(currentGroupId, currentGroupIdx++);
-                    };
-
-                    for (TGroupId groupId : groupIdsArray) {
-                        if (groupId != currentGroupId) {
-                            insertCurrentGroup();
-                            currentGroupId = groupId;
-                        }
-                    }
-                    insertCurrentGroup();
-                }
-
-                pairsDataLoader->SetGroupIdToIdxMap(&groupIdToIdxMap);
+                pairsDataLoader->SetGroupIdToIdxMap(*groupIds);
             }
             pairsDataLoader->Do(visitor);
         }

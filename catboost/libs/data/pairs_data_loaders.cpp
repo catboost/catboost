@@ -18,8 +18,7 @@
 #include <util/system/hp_timer.h>
 
 namespace NCB {
-    void IPairsDataLoader::SetGroupIdToIdxMap(const THashMap<TGroupId, ui32>* groupIdToIdxMap) {
-        Y_UNUSED(groupIdToIdxMap);
+    void IPairsDataLoader::SetGroupIdToIdxMap(TConstArrayRef<TGroupId>) {
         CB_ENSURE_INTERNAL(
             false,
             "IPairsDataLoader::SetGroupIdToIdxMap called for loader that does not need groupIdToIdxMap"
@@ -100,6 +99,32 @@ namespace NCB {
     }
 
 
+    THashMap<TGroupId, ui32> ConvertGroupIdToIdxMap(TConstArrayRef<TGroupId> groupIdsArray) {
+        THashMap<TGroupId, ui32> groupIdToIdxMap;
+        if (!groupIdsArray.empty()) {
+            TGroupId currentGroupId = groupIdsArray[0];
+            ui32 currentGroupIdx = 0;
+
+            auto insertCurrentGroup = [&] () {
+                CB_ENSURE(
+                        !groupIdToIdxMap.contains(currentGroupId),
+                        "Group id " << currentGroupId << " is used for several groups in the dataset"
+                );
+                groupIdToIdxMap.emplace(currentGroupId, currentGroupIdx++);
+            };
+
+            for (TGroupId groupId : groupIdsArray) {
+                if (groupId != currentGroupId) {
+                    insertCurrentGroup();
+                    currentGroupId = groupId;
+                }
+            }
+            insertCurrentGroup();
+        }
+        return groupIdToIdxMap;
+    }
+
+
     class TDsvGroupedPairsLoader : public IPairsDataLoader {
     public:
         explicit TDsvGroupedPairsLoader(TPairsDataLoaderArgs&& args)
@@ -109,8 +134,8 @@ namespace NCB {
         bool NeedGroupIdToIdxMap() const override {
             return Args.Path.Scheme != ("dsv-grouped-with-idx");
         }
-        void SetGroupIdToIdxMap(const THashMap<TGroupId, ui32>* groupIdToIdxMap) override {
-            GroupIdToIdxMap = groupIdToIdxMap;
+        void SetGroupIdToIdxMap(TConstArrayRef<TGroupId> groupIdsArray) override {
+            GroupIdToIdxMap = std::move(ConvertGroupIdToIdxMap(groupIdsArray));
         }
 
         void Do(IDatasetVisitor* visitor) override {
@@ -197,7 +222,7 @@ namespace NCB {
 
     private:
         TPairsDataLoaderArgs Args;
-        const THashMap<TGroupId, ui32>* GroupIdToIdxMap = nullptr;
+        TMaybe<THashMap<TGroupId, ui32>> GroupIdToIdxMap;
     };
 
     namespace {
