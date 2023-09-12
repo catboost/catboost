@@ -744,6 +744,11 @@ void TClientRequest::Process(void* ThreadSpecificResource) {
             HttpConn_->Output()->EnableCompression(HttpServ()->Options().CompressionEnabled);
         }
 
+        if (!BeforeParseRequestOk(ThreadSpecificResource)) {
+            ReleaseConnection();
+            return;
+        }
+
         if (ParsedHeaders.empty()) {
             RequestString = Input().FirstLine();
 
