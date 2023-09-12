@@ -67,7 +67,12 @@ def main():
     linker = groups['linker']
     archiver = groups['archiver']
 
-    do_link = linker + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles', '-Wl,-no-pie'] + global_srcs + auto_input
+    if 'Ya,xcode' in str(sys.argv):
+        no_pie = '-Wl,-no_pie'
+    else:
+        no_pie = '-Wl,-no-pie'
+
+    do_link = linker + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles', no_pie] + global_srcs + auto_input
     do_archive = archiver + [lib_output] + peers
     do_globals = None
     if args.globals_lib:
