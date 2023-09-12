@@ -706,13 +706,13 @@ namespace NLastGetopt {
         // Appends FromString<T>(arg) to *target for each argument
         template<class Container>
         TOpt& AppendTo(Container* target) {
-            return Handler1T<typename Container::value_type>([target](auto&& value) { target->push_back(std::move(value)); });
+            return Handler1T<typename Container::value_type>([target](auto&& value) { target->push_back(std::forward<decltype(value)>(value)); });
         }
 
         // Appends FromString<T>(arg) to *target for each argument
         template <typename T>
         TOpt& InsertTo(THashSet<T>* target) {
-            return Handler1T<T>([target](auto&& value) { target->insert(std::move(value)); });
+            return Handler1T<T>([target](auto&& value) { target->insert(std::forward<decltype(value)>(value)); });
         }
 
         // Emplaces TString arg to *target for each argument
