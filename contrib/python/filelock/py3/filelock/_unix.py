@@ -7,6 +7,7 @@ from errno import ENOSYS
 from typing import cast
 
 from ._api import BaseFileLock
+from ._util import ensure_directory_exists
 
 #: a flag to indicate if the fcntl API is available
 has_fcntl = False
@@ -33,6 +34,7 @@ else:  # pragma: win32 no cover
         """Uses the :func:`fcntl.flock` to hard lock the lock file on unix systems."""
 
         def _acquire(self) -> None:
+            ensure_directory_exists(self.lock_file)
             open_flags = os.O_RDWR | os.O_CREAT | os.O_TRUNC
             fd = os.open(self.lock_file, open_flags, self._context.mode)
             with suppress(PermissionError):  # This locked is not owned by this UID

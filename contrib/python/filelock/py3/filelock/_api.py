@@ -13,7 +13,14 @@ from typing import TYPE_CHECKING, Any
 from ._error import Timeout
 
 if TYPE_CHECKING:
+    import sys
     from types import TracebackType
+
+    if sys.version_info >= (3, 11):  # pragma: no cover (py311+)
+        from typing import Self
+    else:  # pragma: no cover (<py311)
+        from typing_extensions import Self
+
 
 _LOGGER = logging.getLogger("filelock")
 
@@ -71,7 +78,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
 
     def __init__(
         self,
-        lock_file: str | os.PathLike[Any],
+        lock_file: str | os.PathLike[str],
         timeout: float = -1,
         mode: int = 0o644,
         thread_local: bool = True,  # noqa: FBT001, FBT002
@@ -246,7 +253,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
                 self._context.lock_counter = 0
                 _LOGGER.debug("Lock %s released on %s", lock_id, lock_filename)
 
-    def __enter__(self) -> BaseFileLock:
+    def __enter__(self) -> Self:
         """
         Acquire the lock.
 
