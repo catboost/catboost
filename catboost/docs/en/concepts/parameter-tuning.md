@@ -197,7 +197,7 @@ The maximum depth of the trees is limited to {{ fit__maxtree__pairwise }} for p
 
 #### Description
 
- Depth of the tree. The range of supported values depends on the processing unit type and the type of the selected loss function:
+ Depth of the trees. The range of supported values depends on the processing unit type and the type of the selected loss function:
 - CPU — Any integer up to  {{ fit--maxtree }}.
 
 - GPU — Any integer up to {{ fit__maxtree__pairwise }} pairwise modes ({{ error-function__YetiRank }}, {{ error-function__PairLogitPairwise }} and {{ error-function__QueryCrossEntropy }}) and up to   {{ fit--maxtree }} for all other loss functions.
@@ -483,7 +483,7 @@ Class | Method | Description
 ## Methods for hyperparameter search by optuna
 
 Optuna is a famous hyperparameter optimization framework.
-Optuna enables efficient hyperparameter optimization by adopting state-of-the-art algorithms for sampling hyperparameters and pruning efficiently unpromising trials.  
+Optuna enables efficient hyperparameter optimization by adopting state-of-the-art algorithms for sampling hyperparameters and pruning efficiently unpromising trials.
 Catboost supports to stop unpromising trial of hyperparameter by callbacking after iteration functionality. [Pull Request](https://github.com/catboost/catboost/pull/1697/files#diff-ccca44461ac6b094190f29fec157a227996e226ea483213680dd0a152cd412eaR9679)
 
 The following is an optuna example that demonstrates a pruner for CatBoost. [Example](https://github.com/optuna/optuna-examples/blob/main/catboost/catboost_pruning.py)

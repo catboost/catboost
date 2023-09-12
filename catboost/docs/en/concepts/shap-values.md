@@ -44,7 +44,7 @@ Used variables:
 - `samples_count` is the number of documents in the dataset.
 - `dimension` is the dimensionality for Multiclassification and Multiregression.
 - `trees_count` is the number of trees.
-- `depth` is the depth of tree.
+- `depth` is the max depth of trees.
 - `average_depth` is the average depth of the trees.
 - `leaves_in_tree` is the number of leaves in the tree.
 - `features_in_tree_count` is the number of features in the tree.

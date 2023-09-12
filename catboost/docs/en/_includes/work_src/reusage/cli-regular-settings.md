@@ -696,7 +696,7 @@ Should be used with the `--use-best-model` parameter.
 
 ### -n, --depth
 
-Depth of the tree.
+Depth of the trees.
 
 The range of supported values depends on the processing unit type and the type of the selected loss function:
 - CPU — Any integer up to  {{ fit--maxtree }}.

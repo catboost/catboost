@@ -576,7 +576,7 @@ _Alias:_`max_depth`
 #### Description
 
 
-Depth of the tree.
+Depth of the trees.
 
 The range of supported values depends on the processing unit type and the type of the selected loss function:
 - CPU — Any integer up to  {{ fit--maxtree }}.
