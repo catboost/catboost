@@ -96,4 +96,5 @@ target_sources(contrib-libs-openssl PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/ssl/t1_trce.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/ssl/tls13_enc.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/ssl/tls_srp.c
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm
 )

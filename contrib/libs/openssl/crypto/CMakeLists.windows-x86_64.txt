@@ -682,4 +682,33 @@ target_sources(libs-openssl-crypto PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/crypto/des/fcrypt_b.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/crypto/bn/rsaz_exp.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/crypto/bn/bn_asm.c
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/aes/aesni-mb-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha1-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha256-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/aes/aesni-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/aes/vpaes-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/bn/rsaz-avx2.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/bn/rsaz-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-gf2m.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont5.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/camellia/cmll-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/chacha/chacha-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/ec/x25519-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/md5/md5-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/modes/aesni-gcm-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/modes/ghash-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/poly1305/poly1305-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/rc4/rc4-md5-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/rc4/rc4-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/sha/keccak1600-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/sha/sha1-mb-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/sha/sha1-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/sha/sha256-mb-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/sha/sha256-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/sha/sha512-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/whrlpool/wp-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/uplink-x86_64.masm
+  ${CMAKE_SOURCE_DIR}/contrib/libs/openssl/asm/windows/crypto/x86_64cpuid.masm
 )
