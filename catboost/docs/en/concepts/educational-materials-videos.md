@@ -30,10 +30,10 @@
 
 @[youtube](wjd1G5bu_TY)
 
-## Apache Spark: Introducing CatBoost
+## CatBoost for Apache Spark: Introduction
 
 @[youtube](47-mAVms-b8)
 
-## Apache Spark: Architecture
+## CatBoost for Apache Spark: Architecture
 
 @[youtube](nrGt5VKZpzc)
