@@ -9,6 +9,15 @@ from process_whole_archive_option import ProcessWholeArchiveOption
 YA_ARG_PREFIX = '-Ya,'
 
 
+def flt_args():
+    for a in sys.argv[1:]:
+        if a.startswith('-l'):
+            # skip -lxxx args
+            pass
+        else:
+            yield a
+
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--obj')
@@ -21,7 +30,7 @@ def get_args():
 
     groups = {}
     args_list = groups.setdefault('default', [])
-    for arg in pcf.iter_args(sys.argv[1:]):
+    for arg in pcf.iter_args(list(flt_args())):
         if arg == '--with-own-obj':
             groups['default'].append(arg)
         elif arg == '--globals-lib':
@@ -67,7 +76,7 @@ def main():
     linker = groups['linker']
     archiver = groups['archiver']
 
-    if 'Ya,xcode' in str(sys.argv):
+    if 'YA_XCODE' in str(sys.argv):
         no_pie = '-Wl,-no_pie'
     else:
         no_pie = '-Wl,-no-pie'
