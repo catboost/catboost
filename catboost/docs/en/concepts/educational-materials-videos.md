@@ -14,10 +14,6 @@
 
 @[youtube](jLU6kNRiZ5o)
 
-## Ordered boosting and categorical features processing in {{ product }} full overview {#unbiased-boosting-with-cat-features}
-
-@[youtube](db-iLhQvcH8)
-
 ## {{ product }} on GPU {#fast-open-source-gradient-boosting}
 
 @[youtube](aHSw4BQkK3s)
