@@ -13,7 +13,7 @@ def metrics(request):
     class Metrics(object):
         @classmethod
         def set(cls, name, value):
-            assert len(name) <= 128, "Length of the metric name must less than 128"
+            assert len(name) <= 256, "Length of the metric name must less than 128"
             assert type(value) in [int, float], "Metric value must be of type int or float"
             test_name = request.node.nodeid
             if test_name not in test_metrics.metrics:
