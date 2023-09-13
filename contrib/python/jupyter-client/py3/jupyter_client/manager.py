@@ -85,7 +85,8 @@ def in_pending_state(method: F) -> F:
             out = await method(self, *args, **kwargs)
             # Add a small sleep to ensure tests can capture the state before done
             await asyncio.sleep(0.01)
-            self._ready.set_result(None)
+            if self.owns_kernel:
+                self._ready.set_result(None)
             return out
         except Exception as e:
             self._ready.set_exception(e)
@@ -105,6 +106,7 @@ class KernelManager(ConnectionFileMixin):
 
     def __init__(self, *args, **kwargs):
         """Initialize a kernel manager."""
+        self._owns_kernel = kwargs.pop("owns_kernel", True)
         super().__init__(**kwargs)
         self._shutdown_status = _ShutdownStatus.Unset
         self._attempted_start = False
@@ -178,12 +180,14 @@ class KernelManager(ConnectionFileMixin):
 
     @property
     def kernel_spec(self) -> t.Optional[kernelspec.KernelSpec]:
-        if self._kernel_spec is None and self.kernel_name != "":  # noqa
+        if self._kernel_spec is None and self.kernel_name != "":
             self._kernel_spec = self.kernel_spec_manager.get_kernel_spec(self.kernel_name)
         return self._kernel_spec
 
     cache_ports: Bool = Bool(
-        help="True if the MultiKernelManager should cache ports for this KernelManager instance"
+        False,
+        config=True,
+        help="True if the MultiKernelManager should cache ports for this KernelManager instance",
     )
 
     @default("cache_ports")  # type:ignore[misc]
@@ -493,6 +497,9 @@ class KernelManager(ConnectionFileMixin):
             Will this kernel be restarted after it is shutdown. When this
             is True, connection files will not be cleaned up.
         """
+        if not self.owns_kernel:
+            return
+
         self.shutting_down = True  # Used by restarter to prevent race condition
         # Stop monitoring for restarting while we shutdown.
         self.stop_restarter()
@@ -555,6 +562,10 @@ class KernelManager(ConnectionFileMixin):
         await self._async_start_kernel(**self._launch_args)
 
     restart_kernel = run_sync(_async_restart_kernel)
+
+    @property
+    def owns_kernel(self) -> bool:
+        return self._owns_kernel
 
     @property
     def has_kernel(self) -> bool:
@@ -644,6 +655,9 @@ class KernelManager(ConnectionFileMixin):
 
     async def _async_is_alive(self) -> bool:
         """Is the kernel process still running?"""
+        if not self.owns_kernel:
+            return True
+
         if self.has_kernel:
             assert self.provisioner is not None
             ret = await self.provisioner.poll()

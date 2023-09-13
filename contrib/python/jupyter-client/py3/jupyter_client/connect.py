@@ -114,7 +114,7 @@ def write_connection_file(
     else:
         N = 1
         for _ in range(ports_needed):
-            while os.path.exists(f"{ip}-{str(N)}"):
+            while os.path.exists(f"{ip}-{N!s}"):
                 N += 1
             ports.append(N)
             N += 1

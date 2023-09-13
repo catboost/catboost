@@ -4,6 +4,7 @@ utils:
 - vendor functions from ipython_genutils that should be retired at some point.
 """
 import os
+from datetime import datetime, timedelta, tzinfo
 
 from jupyter_core.utils import ensure_async, run_sync  # noqa: F401  # noqa: F401
 
@@ -83,3 +84,35 @@ def _expand_path(s):
     if os.name == "nt":
         s = s.replace("IPYTHON_TEMP", "$\\")
     return s
+
+
+# constant for zero offset
+ZERO = timedelta(0)
+
+
+class tzUTC(tzinfo):  # noqa
+    """tzinfo object for UTC (zero offset)"""
+
+    def utcoffset(self, d):
+        """Compute utcoffset."""
+        return ZERO
+
+    def dst(self, d):
+        """Compute dst."""
+        return ZERO
+
+
+UTC = tzUTC()  # type:ignore
+
+
+def utc_aware(unaware):
+    """decorator for adding UTC tzinfo to datetime's utcfoo methods"""
+
+    def utc_method(*args, **kwargs):
+        dt = unaware(*args, **kwargs)
+        return dt.replace(tzinfo=UTC)
+
+    return utc_method
+
+
+utcnow = utc_aware(datetime.utcnow)
