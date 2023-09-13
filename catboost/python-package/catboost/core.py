@@ -4405,19 +4405,19 @@ class CatBoostClassifier(CatBoost):
     ----------
     iterations : int, [default=500]
         Max count of trees.
-        range: [1,+inf]
+        range: [1,+inf)
     learning_rate : float, [default value is selected automatically for binary classification with other parameters set to default. In all other cases default is 0.03]
         Step size shrinkage used in update to prevents overfitting.
         range: (0,1]
     depth : int, [default=6]
         Depth of a tree. All trees are the same depth.
-        range: [1,+inf]
+        range: [1,16]
     l2_leaf_reg : float, [default=3.0]
         Coefficient at the L2 regularization term of the cost function.
-        range: [0,+inf]
+        range: [0,+inf)
     model_size_reg : float, [default=None]
         Model size regularization coefficient.
-        range: [0,+inf]
+        range: [0,+inf)
     rsm : float, [default=None]
         Subsample ratio of columns when constructing each tree.
         range: (0,1]
@@ -4452,7 +4452,7 @@ class CatBoostClassifier(CatBoost):
     fold_permutation_block : int, [default=1]
         To accelerate the learning.
         The recommended value is within [1, 256]. On small samples, must be set to 1.
-        range: [1,+inf]
+        range: [1,+inf)
     od_pval : float, [default=None]
         Use overfitting detector to stop training when reaching a specified threshold.
         Can be used only with eval_set.
@@ -4484,7 +4484,7 @@ class CatBoostClassifier(CatBoost):
     leaf_estimation_iterations : int, [default=None]
         The number of steps in the gradient when calculating the values in the leaves.
         If None, then leaf_estimation_iterations=1.
-        range: [1,+inf]
+        range: [1,+inf)
     leaf_estimation_method : string, [default=None]
         The method used to calculate the values in the leaves.
         Possible values:
@@ -4493,11 +4493,11 @@ class CatBoostClassifier(CatBoost):
     thread_count : int, [default=None]
         Number of parallel threads used to run CatBoost.
         If None or -1, then the number of threads is set to the number of CPU cores.
-        range: [1,+inf]
+        range: [1,+inf)
     random_seed : int, [default=None]
         Random number seed.
         If None, 0 is used.
-        range: [0,+inf]
+        range: [0,+inf)
     use_best_model : bool, [default=None]
         To limit the number of trees in predict() using information about the optimal value of the error function.
         Can be used only with eval_set.
@@ -4547,14 +4547,14 @@ class CatBoostClassifier(CatBoost):
         This option reduces the resulting model size
         and the amount of memory required for training.
         Note that the resulting quality of the model can be affected.
-        range: [1,+inf] (for zero limit use ignored_features)
+        range: [1,+inf) (for zero limit use ignored_features)
     store_all_simple_ctr : bool, [default=None]
         Ignore categorical features, which are not used in feature combinations,
         when choosing candidates for exclusion.
         Use this parameter with ctr_leaf_count_limit only.
     max_ctr_complexity : int, [default=4]
         The maximum number of Categ features that can be combined.
-        range: [0,+inf]
+        range: [0,+inf)
     has_time : bool, [default=False]
         To use the order in which objects are represented in the input data
         (do not perform a random permutation of the dataset at the preprocessing stage).
@@ -6396,31 +6396,31 @@ def sample_gaussian_process(X, y, eval_set=None,
     random_seed : int, [default=None]
         Random number seed.
         If None, 0 is used.
-        range: [0,+inf]
+        range: [0,+inf)
     samples : int, [default=10]
         Number of Monte-Carlo samples from GP posterior. Controls how many models this function will return.
-        range: [1, +inf]
+        range: [1,+inf)
     posterior_iterations : int, [default=900]
         Max count of trees for posterior sampling step.
-        range: [1,+inf]
+        range: [1,+inf)
     prior_iterations : int, [default=100]
         Max count of trees for prior sampling step.
-        range: [1, +inf]
+        range: [1,+inf]
     learning_rate : float, [default=0.1]
         Step size shrinkage used in update to prevent overfitting.
         range: (0,1]
     depth : int, [default=6]
         Depth of the trees in the models.
-        range: [1,+inf]
+        range: [1,16]
     sigma : float, [default=0.1]
         Scale of GP kernel (lower values lead to lower posterior variance)
-        range: (0, +inf]
+        range: (0,+inf)
     delta : float, [default=0]
         Scale of homogenious noise of GP kernel (adjust if target is noisy)
-        range: [0, +infty]
+        range: [0,+inf)
     random_strength : float, [default=0.1]
         Corresponds to parameter beta in the paper. Higher values lead to faster convergence to GP posterior.
-        range: (0, +infty]
+        range: (0,+inf)
     random_score_type : string [default='Gumbel']
         Type of random noise added to scores.
         Possible values:
