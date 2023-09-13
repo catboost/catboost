@@ -47,11 +47,3 @@ add_custom_command(
   \"${CMAKE_CXX_COMPILER}\"
   \"${CMAKE_CXX_FLAGS}\"
 )
-configure_file(
-  ${CMAKE_SOURCE_DIR}/library/cpp/build_info/sandbox.cpp.in
-  ${CMAKE_BINARY_DIR}/library/cpp/build_info/sandbox.cpp
-)
-configure_file(
-  ${CMAKE_SOURCE_DIR}/library/cpp/build_info/build_info.cpp.in
-  ${CMAKE_BINARY_DIR}/library/cpp/build_info/build_info.cpp
-)
