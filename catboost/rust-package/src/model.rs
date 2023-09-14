@@ -13,6 +13,8 @@ pub struct Model {
     handle: *mut catboost_sys::ModelCalcerHandle,
 }
 
+unsafe impl Send for Model {}
+
 impl Model {
     fn new() -> Self {
         let model_handle = unsafe { catboost_sys::ModelCalcerCreate() };
