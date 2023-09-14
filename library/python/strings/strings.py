@@ -111,7 +111,7 @@ def locale_encoding():
         logger.debug('Cannot get system locale: %s', e)
         return None
     except ValueError as e:
-        logger.warn('Cannot get system locale: %s', e)
+        logger.debug('Cannot get system locale: %s', e)
         return None
 
 
