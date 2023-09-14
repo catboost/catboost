@@ -154,13 +154,13 @@ _Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ e
 Type of noise to add to approxes.
 
 _Default_: `Gumbel`.
-_Possible values_: `Gumbel`, `Gaussian`, `No`.
+_Possible values_: `Gumbel`, `Gauss`, `No`.
 
 {% endcut %}
 
 {% cut "noise_power" %}
 
-Power of noise to add (multiplier). Used only for `Gaussian` noise for now.
+Power of noise to add (multiplier). Used only for `Gauss` noise for now.
 
 _Default_: 1.
 
@@ -260,13 +260,13 @@ _Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ e
 Type of noise to add to approxes.
 
 _Default_: `Gumbel`.
-_Possible values_: `Gumbel`, `Gaussian`, `No`.
+_Possible values_: `Gumbel`, `Gauss`, `No`.
 
 {% endcut %}
 
 {% cut "noise_power" %}
 
-Power of noise to add (multiplier). Used only for `Gaussian` noise for now.
+Power of noise to add (multiplier). Used only for `Gauss` noise for now.
 
 _Default_: 1.
 
