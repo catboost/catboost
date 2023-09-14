@@ -466,7 +466,7 @@ public:
      *
      * @return self
      */
-    TShellCommand& Terminate();
+    TShellCommand& Terminate(int signal = SIGTERM);
 
     /**
      * @brief wait until the execution is finished
