@@ -808,6 +808,9 @@ public:
     std::pair<const_iterator, const_iterator> equal_range(const OtherKey& key) const;
 
     template <class OtherKey>
+    std::pair<iterator, iterator> equal_range_i(const OtherKey& key, insert_ctx& ins);
+
+    template <class OtherKey>
     size_type erase(const OtherKey& key);
 
     template <class OtherKey>
@@ -1100,8 +1103,16 @@ __yhashtable_iterator<V> THashTable<V, K, HF, Ex, Eq, A>::find_i(const OtherKey&
 template <class V, class K, class HF, class Ex, class Eq, class A>
 template <class OtherKey>
 std::pair<__yhashtable_iterator<V>, __yhashtable_iterator<V>> THashTable<V, K, HF, Ex, Eq, A>::equal_range(const OtherKey& key) {
+    insert_ctx ctx;
+    return equal_range_i(key, ctx);
+}
+
+template <class V, class K, class HF, class Ex, class Eq, class A>
+template <class OtherKey>
+std::pair<__yhashtable_iterator<V>, __yhashtable_iterator<V>> THashTable<V, K, HF, Ex, Eq, A>::equal_range_i(const OtherKey& key, insert_ctx& ins) {
     using pii = std::pair<iterator, iterator>;
     const size_type n = bkt_num_key(key);
+    ins = &buckets[n];
     node* first = buckets[n];
 
     if (first)                                                 /*y*/

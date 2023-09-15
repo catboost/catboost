@@ -200,6 +200,11 @@ public:
     }
 
     template <class TKey>
+    std::pair<iterator, iterator> equal_range_i(const TKey& key, insert_ctx& ins) {
+        return rep.equal_range_i(key, ins);
+    }
+
+    template <class TKey>
     std::pair<const_iterator, const_iterator> equal_range(const TKey& key) const {
         return rep.equal_range(key);
     }
