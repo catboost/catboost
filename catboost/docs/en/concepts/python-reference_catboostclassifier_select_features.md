@@ -113,7 +113,7 @@ The validation dataset or datasets used for the following processes:
 **Possible types**
 
 - {{ python-type--pool }}
-- {{ python-type--tuple }} (x, y)
+- {{ python-type--tuple }} (X, y)
 - {{ python-type--string }} (path to the dataset file)
 
 **Default value**

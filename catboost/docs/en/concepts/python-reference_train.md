@@ -171,8 +171,8 @@ The validation dataset or datasets used for the following processes:
 
 - {{ python-type--pool }}
 - {{ python-type--list }} of {{ python-type--pool }}
-- {{ python-type--tuple }} (x, y)
-- {{ python-type--list }} of {{ python-type--tuple }}s (x, y)
+- {{ python-type--tuple }} (X, y)
+- {{ python-type--list }} of {{ python-type--tuple }}s (X, y)
 - {{ python-type--string }} (path to the dataset file)
 - {{ python-type--list }} of {{ python-type--string }}s (paths to dataset files)
 
@@ -364,4 +364,3 @@ None (incremental learning is not used)
 **Supported processing units**
 
 {{ calcer_type__cpu }}
-
