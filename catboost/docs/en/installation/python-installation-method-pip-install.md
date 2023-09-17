@@ -1,8 +1,5 @@
 # pip install
 
-{% include [reusage-installation-gpu-support-from-the-box__p](../_includes/work_src/reusage-installation/gpu-support-from-the-box__p.md) %}
-
-
 To install {{ product }} from pip:
 
 1. Run the following command:
@@ -10,6 +7,20 @@ To install {{ product }} from pip:
     ```no-highlight
     pip install catboost
     ```
+
+    {% note info %}
+
+    [PyPI](https://pypi.org/) contains precompiled wheels for most commonly used platform configurations:
+
+    |Operating system|CPU architectures|GPU support using [CUDA](https://developer.nvidia.com/cuda-zone)|
+    |--------|-----------------|------------|
+    | macOS (versions currently supported by Apple) | x86_64 and arm64 |no|
+    | Linux (compatible with [manylinux2014 platform tag](https://peps.python.org/pep-0599/) ) | x86_64 and aarch64 |yes|
+    | Windows 10 and 11 | x86_64 |yes|
+
+    If the platform where the installation is performed is incompatible with platform tags of the available precompiled wheels then `pip` will try to build {{ product }} python package from source. This approach requires certain [build dependencies and requirements](python-installation-method-build-from-source.md#dependencies-and-requirements) to be set up before the installation.
+
+    {% endnote %}
 
 1. Install visualization tools:
     1. {% include [visualization-tools-install-apywidgets-short](../_includes/work_src/reusage-installation/install-apywidgets-short.md) %}
@@ -27,4 +38,3 @@ To install {{ product }} from pip:
     Refer to the following sections for details:
     - [Data visualization](../features/visualization.md)
     - [Additional packages for data visualization support](../installation/python-installation-additional-data-visualization-packages.md)
-
