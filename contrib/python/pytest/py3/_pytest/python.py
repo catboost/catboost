@@ -522,7 +522,7 @@ class PyCollector(PyobjMixin, nodes.Collector):
 
 
 class Module(nodes.File, PyCollector):
-    """Collector for test classes and functions."""
+    """Collector for test classes and functions in a Python module."""
 
     def _getobj(self):
         return self._importtestmodule()
@@ -659,6 +659,9 @@ class Module(nodes.File, PyCollector):
 
 
 class Package(Module):
+    """Collector for files and directories in a Python packages -- directories
+    with an `__init__.py` file."""
+
     def __init__(
         self,
         fspath: Optional[LEGACY_PATH],
@@ -788,7 +791,7 @@ def _get_first_non_fixture_func(obj: object, names: Iterable[str]) -> Optional[o
 
 
 class Class(PyCollector):
-    """Collector for test methods."""
+    """Collector for test methods (and nested classes) in a Python class."""
 
     @classmethod
     def from_parent(cls, parent, *, name, obj=None, **kw):
@@ -1162,7 +1165,7 @@ class CallSpec2:
         arg2scope = self._arg2scope.copy()
         for arg, val in zip(argnames, valset):
             if arg in params or arg in funcargs:
-                raise ValueError(f"duplicate {arg!r}")
+                raise ValueError(f"duplicate parametrization of {arg!r}")
             valtype_for_arg = valtypes[arg]
             if valtype_for_arg == "params":
                 params[arg] = val
@@ -1253,8 +1256,9 @@ class Metafunc:
         during the collection phase. If you need to setup expensive resources
         see about setting indirect to do it rather than at test setup time.
 
-        Can be called multiple times, in which case each call parametrizes all
-        previous parametrizations, e.g.
+        Can be called multiple times per test function (but only on different
+        argument names), in which case each call parametrizes all previous
+        parametrizations, e.g.
 
         ::
 
@@ -1686,7 +1690,7 @@ def write_docstring(tw: TerminalWriter, doc: str, indent: str = "    ") -> None:
 
 
 class Function(PyobjMixin, nodes.Item):
-    """An Item responsible for setting up and executing a Python test function.
+    """Item responsible for setting up and executing a Python test function.
 
     :param name:
         The full function name, including any decorations like those
@@ -1843,10 +1847,8 @@ class Function(PyobjMixin, nodes.Item):
 
 
 class FunctionDefinition(Function):
-    """
-    This class is a step gap solution until we evolve to have actual function definition nodes
-    and manage to get rid of ``metafunc``.
-    """
+    """This class is a stop gap solution until we evolve to have actual function
+    definition nodes and manage to get rid of ``metafunc``."""
 
     def runtest(self) -> None:
         raise RuntimeError("function definitions are not supposed to be run as tests")
