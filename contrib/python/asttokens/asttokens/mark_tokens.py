@@ -361,7 +361,34 @@ class MarkTokens(object):
                       last_token,  # type: util.Token
                       ):
     # type: (...) -> Tuple[util.Token, util.Token]
-    return self.handle_str(first_token, last_token)
+    if sys.version_info < (3, 12):
+      # Older versions don't tokenize the contents of f-strings
+      return self.handle_str(first_token, last_token)
+
+    last = first_token
+    while True:
+      if util.match_token(last, getattr(token, "FSTRING_START")):
+        # Python 3.12+ has tokens for the start (e.g. `f"`) and end (`"`)
+        # of the f-string. We can't just look for the next FSTRING_END
+        # because f-strings can be nested, e.g. f"{f'{x}'}", so we need
+        # to treat this like matching balanced parentheses.
+        count = 1
+        while count > 0:
+          last = self._code.next_token(last)
+          # mypy complains about token.FSTRING_START and token.FSTRING_END.
+          if util.match_token(last, getattr(token, "FSTRING_START")):
+            count += 1
+          elif util.match_token(last, getattr(token, "FSTRING_END")):
+            count -= 1
+        last_token = last
+        last = self._code.next_token(last_token)
+      elif util.match_token(last, token.STRING):
+        # Similar to handle_str, we also need to handle adjacent strings.
+        last_token = last
+        last = self._code.next_token(last_token)
+      else:
+        break
+    return (first_token, last_token)
 
   def visit_bytes(self, node, first_token, last_token):
     # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]

@@ -397,8 +397,15 @@ def last_stmt(node):
   Otherwise, just return the node.
   """
   child_stmts = [
-    child for child in ast.iter_child_nodes(node)
-    if isinstance(child, (ast.stmt, ast.excepthandler, getattr(ast, "match_case", ())))
+    child for child in iter_children_func(node)(node)
+    if is_stmt(child) or type(child).__name__ in (
+      "excepthandler",
+      "ExceptHandler",
+      "match_case",
+      "MatchCase",
+      "TryExcept",
+      "TryFinally",
+    )
   ]
   if child_stmts:
     return last_stmt(child_stmts[-1])
@@ -418,12 +425,17 @@ if sys.version_info[:2] >= (3, 8):
     Specifically this checks:
      - Values with a format spec or conversion
      - Repeated (i.e. identical-looking) expressions
-     - Multiline f-strings implicitly concatenated.
+     - f-strings implicitly concatenated over multiple lines.
+     - Multiline, triple-quoted f-strings.
     """
     source = """(
       f"a {b}{b} c {d!r} e {f:g} h {i:{j}} k {l:{m:n}}"
       f"a {b}{b} c {d!r} e {f:g} h {i:{j}} k {l:{m:n}}"
       f"{x + y + z} {x} {y} {z} {z} {z!a} {z:z}"
+      f'''
+      {s} {t}
+      {u} {v}
+      '''
     )"""
     tree = ast.parse(source)
     name_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.Name)]
@@ -441,6 +453,10 @@ if sys.version_info[:2] >= (3, 8):
     Add a special attribute `_broken_positions` to nodes inside f-strings
     if the lineno/col_offset cannot be trusted.
     """
+    if sys.version_info >= (3, 12):
+      # f-strings were weirdly implemented until https://peps.python.org/pep-0701/
+      # In Python 3.12, inner nodes have sensible positions.
+      return
     for joinedstr in walk(tree):
       if not isinstance(joinedstr, ast.JoinedStr):
         continue
@@ -452,6 +468,11 @@ if sys.version_info[:2] >= (3, 8):
           if not fstring_positions_work():
             for child in walk(part.value):
               setattr(child, '_broken_positions', True)
+              if isinstance(child, ast.JoinedStr):
+                # Recursively handle this inner JoinedStr in the same way.
+                # While this is usually automatic for other nodes,
+                # the children of f-strings are explicitly excluded in iter_children_ast.
+                annotate_fstring_nodes(child)
 
           if part.format_spec:  # this is another JoinedStr
             # Again, the standard positions span the full f-string.
