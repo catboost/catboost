@@ -2412,8 +2412,8 @@ class CatBoost(_CatBoostBase):
         use_best_model : bool, optional (default=None)
             Flag to use best model
 
-        eval_set : catboost.Pool, or list of catboost.Pool, or list of (X, y) tuples, optional (default=None)
-            Used as a validation set for early-stopping.
+        eval_set : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
+            Validation dataset or datasets for metrics calculation and possibly early stopping.
 
         logging_level : string, optional (default=None)
             Possible values:
@@ -4215,8 +4215,8 @@ class CatBoost(_CatBoostBase):
             Labels, 1 dimensional array like.
             Use only if X is not catboost.Pool.
 
-        eval_set : catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
-            Dataset for evaluation.
+        eval_set : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
+            Validation dataset or datasets for metrics calculation and possibly early stopping.
 
         features_for_select : str or list of feature indices, names or ranges
             (for grouping = Individual)
@@ -5032,8 +5032,8 @@ class CatBoostClassifier(CatBoost):
         use_best_model : bool, optional (default=None)
             Flag to use best model
 
-        eval_set : catboost.Pool or list, optional (default=None)
-            A list of (X, y) tuple pairs to use as a validation set for early-stopping
+        eval_set : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
+            Validation dataset or datasets for metrics calculation and possibly early stopping.
 
         metric_period : int
             Frequency of evaluating metrics.
@@ -5635,9 +5635,8 @@ class CatBoostRegressor(CatBoost):
         use_best_model : bool, optional (default=None)
             Flag to use best model
 
-        eval_set : catboost.Pool or list, optional (default=None)
-            A list of (X, y) tuple pairs to use as a validation set for
-            early-stopping
+        eval_set : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
+            Validation dataset or datasets for metrics calculation and possibly early stopping.
 
         metric_period : int
             Frequency of evaluating metrics.
@@ -6045,8 +6044,8 @@ class CatBoostRanker(CatBoost):
             Use only if X is not catboost.Pool.
         use_best_model : bool, optional (default=None)
             Flag to use best model
-        eval_set : catboost.Pool or list, optional (default=None)
-            A list of (X, y) tuple pairs to use as a validation set for early-stopping
+        eval_set : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
+            Validation dataset or datasets for metrics calculation and possibly early stopping.
         verbose : bool or int
             If verbose is bool, then if set to True, logging_level is set to Verbose,
             if set to False, logging_level is set to Silent.
@@ -6245,7 +6244,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     iterations : int
         Number of boosting iterations. Can be set in params dict.
 
-    evals : catboost.Pool or tuple (X, y)
+    evals : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)]
         Synonym for eval_set. Only one of these parameters should be set.
 
     dtrain : catboost.Pool or tuple (X, y)
@@ -6276,8 +6275,8 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     num_boost_round : int
         Synonym for iterations. Only one of these parameters should be set.
 
-    eval_set : catboost.Pool or tuple (X, y) or list [(X, y)]
-        Dataset for evaluation.
+    eval_set : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)]
+        Validation dataset or datasets for metrics calculation and possibly early stopping.
 
     plot : bool, optional (default=False)
         If True, draw train and eval error in Jupyter notebook
@@ -6382,8 +6381,8 @@ def sample_gaussian_process(X, y, eval_set=None,
         Must be non-empty (contain > 0 objects)
     y : list or numpy.ndarray or pandas.DataFrame or pandas.Series
         Labels, 1 dimensional array like.
-    eval_set : catboost.Pool, or list of catboost.Pool, or list of (X, y) tuples, optional (default=None)
-        Used as a validation set for early-stopping.
+    eval_set : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
+        Validation dataset or datasets for metrics calculation and possibly early stopping in posterior training.
     cat_features : list or numpy.ndarray, optional (default=None)
         If not None, giving the list of Categ columns indices.
         Use only if X is not catboost.FeaturesData
