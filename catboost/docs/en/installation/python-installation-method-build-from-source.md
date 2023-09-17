@@ -30,6 +30,14 @@ For building with earlier versions see these pages:
 
 1. Other setup dependencies that can be formulated as python packages are listed in [`pyproject.toml`](https://github.com/catboost/catboost/blob/master/catboost/python-package/pyproject.toml)'s `build-system.requires` and in [`setup.py`](https://github.com/catboost/catboost/blob/master/catboost/python-package/setup.py) in standard `setup_requires` parameter and processed using standard Python tools.
 
+1. For building CatBoost visualization widget bundled together with the python package (enabled by default) additional setup is required:
+    1. [Node.js](https://nodejs.org/) installation with `npm` command accessible from the shell.
+    1. [`rimraf` Node.js package](https://www.npmjs.com/package/rimraf) installed with `npm`'s `--global` option (this way `rimraf` command will be accessible from the shell).
+    1. [`yarn` package manager](https://yarnpkg.com/), version from 1.x series, `1.22.10` or later. Installed with `npm`'s `--global` option (this way `yarn` command will be accessible from the shell)
+  An example command to install: `npm install --global yarn@1.22.10`.
+
+    If you don't need CatBoost visualization widget support you can disable it's building and bundling with the CatBoost python package by passing `--no-widget` build/installation option.
+
 1. Installation dependencies are listed in [`setup.py`](https://github.com/catboost/catboost/blob/master/catboost/python-package/setup.py) in standard `install_requires` parameter and processed using standard Python tools.
 
 {% include [installation-nvidia-driver-reqs](../_includes/work_src/reusage-code-examples/nvidia-driver-reqs.md) %}
