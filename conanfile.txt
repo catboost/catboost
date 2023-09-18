@@ -1,5 +1,7 @@
 [requires]
 libiconv/1.15
+openssl/1.1.1t
+zlib/1.3
 
 [tool_requires]
 ragel/6.10

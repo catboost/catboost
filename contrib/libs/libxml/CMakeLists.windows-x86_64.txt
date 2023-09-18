@@ -7,6 +7,7 @@
 
 
 find_package(Iconv REQUIRED)
+find_package(ZLIB REQUIRED)
 
 add_library(contrib-libs-libxml)
 target_compile_options(contrib-libs-libxml PUBLIC
@@ -26,7 +27,7 @@ target_link_libraries(contrib-libs-libxml PUBLIC
   contrib-libs-cxxsupp
   yutil
   Iconv::Iconv
-  contrib-libs-zlib
+  ZLIB::ZLIB
   library-cpp-charset
 )
 target_sources(contrib-libs-libxml PRIVATE

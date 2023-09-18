@@ -6,12 +6,13 @@
 # original buildsystem will not be accepted.
 
 
+find_package(OpenSSL REQUIRED)
 
 add_library(cpp-openssl-holders)
 target_link_libraries(cpp-openssl-holders PUBLIC
   contrib-libs-cxxsupp
   yutil
-  contrib-libs-openssl
+  OpenSSL::OpenSSL
 )
 target_sources(cpp-openssl-holders PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/openssl/holders/bio.cpp
