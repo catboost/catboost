@@ -389,4 +389,26 @@ Y_UNIT_TEST_SUITE(THttpParser) {
         UNIT_ASSERT(p.Headers().HasHeader("Content-Encoding"));
         UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), content);
     }
+
+    Y_UNIT_TEST(TBodyNotExpected) {
+        THttpParser p;
+        p.BodyNotExpected();
+        UNIT_ASSERT(!Parse(p, "HTTP/1.1 200 OK\r\n"));
+        UNIT_ASSERT(!Parse(p, "Content-Length: 1234\r\n"));
+        UNIT_ASSERT(Parse(p, "\r\n"));
+
+        UNIT_ASSERT(p.Headers().HasHeader("Content-Length"));
+        UNIT_ASSERT(p.Headers().FindHeader("Content-Length")->Value() == "1234");
+    }
+
+    Y_UNIT_TEST(TBodyIgnoredIfNotExpected) {
+        THttpParser p;
+        p.BodyNotExpected();
+        UNIT_ASSERT(!Parse(p, "HTTP/1.1 200 OK\r\n"));
+        UNIT_ASSERT(!Parse(p, "Content-Length: 5\r\n"));
+        UNIT_ASSERT(Parse(p, "\r\nHello"));
+
+        UNIT_ASSERT(p.Content().empty());
+        UNIT_ASSERT(p.GetExtraDataSize() == 5);
+    }
 }
