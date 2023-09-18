@@ -6719,6 +6719,14 @@
             "uri": "file://test.test_model_shrink_correct_config2_/test.eval"
         }
     ],
+    "test.test_model_sum_with_multiple_target_classifiers": [
+        {
+            "uri": "file://test.test_model_sum_with_multiple_target_classifiers/sum_0_1_eval.txt"
+        },
+        {
+            "uri": "file://test.test_model_sum_with_multiple_target_classifiers/sum_0_1_2_eval.txt"
+        }
+    ],
     "test.test_multi_leaf_estimation_method[calc_block=5000000-Ordered-SymmetricTree-Gradient]": [
         {
             "uri": "file://test.test_multi_leaf_estimation_method_calc_block=5000000-Ordered-SymmetricTree-Gradient_/test.eval"

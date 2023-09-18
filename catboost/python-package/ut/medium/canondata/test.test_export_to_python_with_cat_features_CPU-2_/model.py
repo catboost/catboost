@@ -111,13 +111,13 @@ class catboost_model(object):
                     binarized_indexes = []
                 ),
                 model_ctrs = [
-                    catboost_model_ctr(base_hash = 16890222057671696978, base_ctr_type = "Counter", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = 0, scale = 15)
+                    catboost_model_ctr(base_hash = 4017420253906208354, base_ctr_type = "Counter", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = 0, scale = 15)
                 ]
             )
         ],
         ctr_data = catboost_ctr_data(
             learn_ctrs = {
-                16890222057671696978 :
+                4017420253906208354 :
                 catboost_ctr_value_table(
                     index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 13987540656699198946 : 4, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18089724839685297862 : 5, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10353740403438739754 : 2, 3922001124998993866 : 0, 13686716744772876732 : 1, 18293943161539901837 : 3, 18446744073709551615 : 0, 18446744073709551615 : 0},
                     target_classes_count = 0,

@@ -9541,6 +9541,82 @@ def test_model_sum(grow_policy, loss_function):
     yatest.common.execute(get_limited_precision_dsv_diff_tool(0) + [model_eval, sum_eval])
 
 
+def test_model_sum_with_multiple_target_classifiers():
+    model_0_path = yatest.common.test_output_path('model_0.bin')
+    model_1_path = yatest.common.test_output_path('model_1.bin')
+    model_2_path = yatest.common.test_output_path('model_2.bin')
+
+    simple_ctr = ','.join((
+        'Borders:TargetBorderCount=15',
+        'Buckets:TargetBorderCount=15',
+        'Borders:TargetBorderType=MinEntropy',
+        'Counter:CtrBorderCount=20',
+    ))
+
+    common_params = [
+        '--loss-function', 'RMSE',
+        '-f', data_file('adult_crossentropy', 'train_proba'),
+        '--cd', data_file('adult_crossentropy', 'train.cd'),
+        '-i', '10',
+        '-t', data_file('adult_crossentropy', 'test_proba'),
+        '--simple-ctr', simple_ctr
+    ]
+
+    execute_catboost_fit('CPU', common_params + [
+        '--random-seed', '1',
+        '--learning-rate', '0.1',
+        '-m', model_0_path
+    ])
+
+    execute_catboost_fit('CPU', common_params + [
+        '--random-seed', '2',
+        '--learning-rate', '0.2',
+        '-m', model_1_path
+    ])
+
+    execute_catboost_fit('CPU', common_params + [
+        '--random-seed', '3',
+        '--learning-rate', '0.3',
+        '-m', model_2_path
+    ])
+
+    model_sum_0_1_path = yatest.common.test_output_path('sum_0_1.bin')
+    yatest.common.execute([
+        CATBOOST_PATH,
+        'model-sum',
+        '--model-with-weight', '{}={}'.format(model_0_path, 0.75),
+        '--model-with-weight', '{}={}'.format(model_1_path, 0.25),
+        '--output-path', model_sum_0_1_path,
+    ])
+
+    model_sum_0_1_2_path = yatest.common.test_output_path('sum_0_1_2.bin')
+    yatest.common.execute([
+        CATBOOST_PATH,
+        'model-sum',
+        '--model-with-weight', '{}={}'.format(model_sum_0_1_path, 0.8),
+        '--model-with-weight', '{}={}'.format(model_2_path, 0.2),
+        '--output-path', model_sum_0_1_2_path,
+    ])
+
+    eval_results = []
+    for model_path, eval_file_name in [
+        (model_sum_0_1_path, 'sum_0_1_eval.txt'),
+        (model_sum_0_1_2_path, 'sum_0_1_2_eval.txt')
+    ]:
+        eval_path = yatest.common.test_output_path(eval_file_name)
+        yatest.common.execute([
+            CATBOOST_PATH,
+            'calc',
+            '-m', model_path,
+            '--input-path', data_file('adult_crossentropy', 'test_proba'),
+            '--cd', data_file('adult_crossentropy', 'train.cd'),
+            '--output-path', eval_path,
+        ])
+        eval_results.append(local_canonical_file(eval_path))
+
+    return eval_results
+
+
 def test_external_feature_names():
     fstr_cd_with_id_path = yatest.common.test_output_path('fstr_cd_with_id.tsv')
     fstr_cd_without_id_path = yatest.common.test_output_path('fstr_cd_without_id.tsv')

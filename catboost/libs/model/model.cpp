@@ -2,6 +2,7 @@
 
 #include "evaluation_interface.h"
 
+#include "ctr_helpers.h"
 #include "flatbuffers_serializer_helper.h"
 #include "model_import_interface.h"
 #include "model_build_helper.h"
@@ -32,6 +33,9 @@
 #include <util/generic/ymath.h>
 #include <util/string/builder.h>
 #include <util/stream/str.h>
+
+
+using namespace NCB;
 
 
 static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
@@ -1557,7 +1561,8 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
     double leafMultiplier,
     TObliviousTreeBuilder* builder,
     bool streamLeafWeights,
-    TMaybe<size_t> ownerModelIdx
+    ECtrTableMergePolicy ctrTableMergePolicy,
+    THashMap<TModelCtrBaseMergeKey, TCtrTablesMergeStatus>* ctrTablesIndices
 ) {
     auto& data = trees.GetModelTreeData();
     const auto& binFeatures = trees.GetBinFeatures();
@@ -1571,8 +1576,9 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
         {
             modelSplits.push_back(binFeatures[data->GetTreeSplits()[splitIdx]]);
             auto& split = modelSplits.back();
-            if (ownerModelIdx && split.Type == ESplitType::OnlineCtr) {
-                split.OnlineCtr.Ctr.Base.TargetBorderClassifierIdx = *ownerModelIdx;
+            if ((split.Type == ESplitType::OnlineCtr) && (ctrTableMergePolicy == ECtrTableMergePolicy::KeepAllTables)) {
+                auto& ctrBase = split.OnlineCtr.Ctr.Base;
+                ctrBase.TargetBorderClassifierIdx = (*ctrTablesIndices)[ctrBase].GetResultIndex(ctrBase.TargetBorderClassifierIdx);
             }
         }
         if (leafMultiplier == 1.0) {
@@ -1607,6 +1613,12 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
                     (1ull << data->GetTreeSizes()[treeIdx])
                 )
             );
+        }
+    }
+
+    if (ctrTableMergePolicy == ECtrTableMergePolicy::KeepAllTables) {
+        for (auto& [key, status] : *ctrTablesIndices) {
+            status.FinishModel();
         }
     }
 }
@@ -1672,9 +1684,12 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
     double leafMultiplier,
     TNonSymmetricTreeModelBuilder* builder,
     bool streamLeafWeights,
-    TMaybe<size_t> ownerModelIdx
+    ECtrTableMergePolicy ctrTableMergePolicy,
+    THashMap<TModelCtrBaseMergeKey, TCtrTablesMergeStatus>* ctrTablesIndices
 ) {
-    Y_UNUSED(ownerModelIdx);
+    CB_ENSURE(ctrTableMergePolicy != ECtrTableMergePolicy::KeepAllTables, "KeepAllTables CTR merge policy in not yet supported for non-symmetric trees");
+
+    Y_UNUSED(ctrTablesIndices);
     const auto& data = trees.GetModelTreeData();
     for (size_t treeIdx = 0; treeIdx < trees.GetTreeCount(); ++treeIdx) {
         builder->AddTree(
@@ -1813,6 +1828,8 @@ static void SumModels(
     const auto approxDimension = modelVector.back()->GetDimensionsCount();
     TBuilderType builder(floatFeatures, catFeatures, {}, {}, approxDimension);
 
+    THashMap<TModelCtrBaseMergeKey, TCtrTablesMergeStatus> ctrTablesIndices;
+
     for (const auto modelId : xrange(modelVector.size())) {
         TScaleAndBias normer = modelVector[modelId]->GetScaleAndBias();
         StreamModelTreesWithoutScaleAndBiasToBuilder(
@@ -1820,7 +1837,8 @@ static void SumModels(
             weights[modelId] * normer.Scale,
             &builder,
             allModelsHaveLeafWeights,
-            ctrMergePolicy == ECtrTableMergePolicy::KeepAllTables ? MakeMaybe(modelId) : Nothing()
+            ctrMergePolicy,
+            &ctrTablesIndices
         );
     }
     builder.Build(sum->ModelTrees.GetMutable());

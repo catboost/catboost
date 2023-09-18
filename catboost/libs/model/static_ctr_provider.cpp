@@ -8,6 +8,9 @@
 #include <util/string/cast.h>
 
 
+using namespace NCB;
+
+
 void TStaticCtrProvider::CalcCtrs(const TConstArrayRef<TModelCtr> neededCtrs,
                                   const TConstArrayRef<ui8> binarizedFeatures,
                                   const TConstArrayRef<ui32> hashedCatFeatures,
@@ -296,20 +299,32 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
         return result;
     }
     THashMap<TModelCtrBase, TVector<const TCtrValueTable*>> valuesMap;
-    THashMap<TModelCtrBase, TVector<size_t>> ownerModelIdx;
+    THashMap<TModelCtrBaseMergeKey, TCtrTablesMergeStatus> ctrTablesIndices;
     for (auto idx : xrange(providers.size())) {
         const auto& provider = providers[idx];
         for (const auto& [ctrBase, ctrValueTables] : provider->CtrData.LearnCtrs) {
-            valuesMap[ctrBase].push_back(&ctrValueTables);
-            ownerModelIdx[ctrBase].push_back(idx);
+            if (mergePolicy == ECtrTableMergePolicy::KeepAllTables) {
+                auto updatedBase = ctrBase;
+                updatedBase.TargetBorderClassifierIdx = ctrTablesIndices[ctrBase].GetResultIndex(ctrBase.TargetBorderClassifierIdx);
+                valuesMap[updatedBase].push_back(&ctrValueTables);
+            } else {
+                valuesMap[ctrBase].push_back(&ctrValueTables);
+            }
+        }
+        if (mergePolicy == ECtrTableMergePolicy::KeepAllTables) {
+            for (auto& [key, status] : ctrTablesIndices) {
+                status.FinishModel();
+            }
         }
     }
     for (const auto& [ctrBase, ctrValueTables] : valuesMap) {
-        if (ctrValueTables.size() == 1 && ECtrTableMergePolicy::KeepAllTables != mergePolicy) {
+        if (ctrValueTables.size() == 1) {
             result->CtrData.LearnCtrs[ctrBase] = *(ctrValueTables[0]);
             continue;
         }
         switch (mergePolicy) {
+            case ECtrTableMergePolicy::KeepAllTables:
+                CB_ENSURE_INTERNAL(false, "KeepAllTables policy encountered table duplicates when merging");
             case ECtrTableMergePolicy::FailIfCtrIntersects:
                 throw TCatBoostException() << "FailIfCtrIntersects policy forbids model ctr tables intersection";
             case ECtrTableMergePolicy::LeaveMostDiversifiedTable: {
@@ -330,18 +345,6 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
                 auto& target = result->CtrData.LearnCtrs[ctrBase];
                 target.ModelCtrBase = ctrBase;
                 MergeBuckets(ctrValueTables, &target);
-                break;
-            }
-            case ECtrTableMergePolicy::KeepAllTables: {
-                for (auto tableIdx : xrange(ctrValueTables.size())) {
-                    const auto& ctrTable = ctrValueTables[tableIdx];
-                    auto updatedBase = ctrBase;
-                    updatedBase.TargetBorderClassifierIdx = ownerModelIdx[ctrBase][tableIdx];
-                    auto updatedTable = *ctrTable;
-                    updatedTable.ModelCtrBase = updatedBase;
-                    CB_ENSURE(!result->CtrData.LearnCtrs.contains(updatedBase));
-                    result->CtrData.LearnCtrs[updatedBase] = std::move(updatedTable);
-                }
                 break;
             }
             default:

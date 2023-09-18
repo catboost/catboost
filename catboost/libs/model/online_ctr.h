@@ -168,15 +168,54 @@ struct THash<TFeatureCombination> {
     }
 };
 
-struct TModelCtrBase {
+struct TModelCtrBaseMergeKey {
     TFeatureCombination Projection;
     ECtrType CtrType = ECtrType::Borders;
+
+public:
+    bool operator==(const TModelCtrBaseMergeKey& other) const {
+        return std::tie(Projection, CtrType) ==
+               std::tie(other.Projection, other.CtrType);
+    }
+
+    bool operator!=(const TModelCtrBaseMergeKey& other) const {
+        return !(*this == other);
+    }
+
+    bool operator<(const TModelCtrBaseMergeKey& other) const {
+        return std::tie(Projection, CtrType) <
+               std::tie(other.Projection, other.CtrType);
+    }
+
+    Y_SAVELOAD_DEFINE(Projection, CtrType);
+
+    size_t GetHash() const {
+        return MultiHash(Projection.GetHash(), CtrType);
+    }
+
+    /* make sure floating-point values do not contain negative zeros -
+     * flatbuffers serializer will deserialize them as positive zeros
+     */
+    void Canonize() {
+        Projection.Canonize();
+    }
+};
+
+template <>
+struct THash<TModelCtrBaseMergeKey> {
+    size_t operator()(const TModelCtrBaseMergeKey& ctr) const noexcept {
+        return ctr.GetHash();
+    }
+};
+
+
+struct TModelCtrBase : public TModelCtrBaseMergeKey {
     int TargetBorderClassifierIdx = 0;
 
 public:
     bool operator==(const TModelCtrBase& other) const {
-        return std::tie(Projection, CtrType, TargetBorderClassifierIdx) ==
-               std::tie(other.Projection, other.CtrType, other.TargetBorderClassifierIdx);
+        return std::tie((const TModelCtrBaseMergeKey&)(*this), TargetBorderClassifierIdx) ==
+               std::tie((const TModelCtrBaseMergeKey&)other, other.TargetBorderClassifierIdx);
     }
 
     bool operator!=(const TModelCtrBase& other) const {
@@ -184,14 +223,20 @@ public:
     }
 
     bool operator<(const TModelCtrBase& other) const {
-        return std::tie(Projection, CtrType, TargetBorderClassifierIdx) <
-               std::tie(other.Projection, other.CtrType, other.TargetBorderClassifierIdx);
+        return std::tie((const TModelCtrBaseMergeKey&)(*this), TargetBorderClassifierIdx) <
+               std::tie((const TModelCtrBaseMergeKey&)other, other.TargetBorderClassifierIdx);
     }
 
-    Y_SAVELOAD_DEFINE(Projection, CtrType, TargetBorderClassifierIdx);
+    inline void Save(IOutputStream* s) const {
+        ::SaveMany(s, (const TModelCtrBaseMergeKey&)(*this), TargetBorderClassifierIdx);
+    }
+
+    inline void Load(IInputStream* s) {
+        ::LoadMany(s, (TModelCtrBaseMergeKey&)(*this), TargetBorderClassifierIdx);
+    }
 
     size_t GetHash() const {
-        return MultiHash(Projection.GetHash(), CtrType, TargetBorderClassifierIdx);
+        return MultiHash(TModelCtrBaseMergeKey::GetHash(), TargetBorderClassifierIdx);
     }
 
     flatbuffers::Offset<NCatBoostFbs::TModelCtrBase> FBSerialize(TModelPartsCachingSerializer& serializer) const;
@@ -201,7 +246,7 @@ public:
      * flatbuffers serializer will deserialize them as positive zeros
      */
     void Canonize() {
-        Projection.Canonize();
+        TModelCtrBaseMergeKey::Canonize();
     }
 };
 
