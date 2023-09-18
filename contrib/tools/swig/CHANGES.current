@@ -1,0 +1,79 @@
+Below are the changes for the current release.
+See the CHANGES file for changes in older releases.
+See the RELEASENOTES file for a summary of changes in each release.
+Issue # numbers mentioned below can be found on Github. For more details, add
+the issue number to the end of the URL: https://github.com/swig/swig/issues/
+
+Version 4.1.1 (30 Nov 2022)
+===========================
+
+2022-11-29: bero
+            Fix mismatch between #pragma GCC diagnostic push and pop statements
+
+2022-11-26: wsfulton
+            #2449 Fix undefined behaviour in ccache-swig calculating md4 hashes and possibly
+            also handling errors when CCACHE_CPP2 is set.
+
+2022-11-25: wsfulton
+            #961 Fix syntax error parsing unnamed template parameters with a default value.
+
+2022-11-25: olly
+	    #2447 Fix undefined behaviour in swig's parser when handling
+	    default parameter expressions containing method calls.
+
+2022-11-13: olly
+	    [PHP] #2419 Update the documentation to reflect that SWIG 4.1.0
+	    dropped support for -noproxy when generating PHP wrappers.
+
+2022-11-05: wsfulton
+            #2417 Fix -swiglib for Windows when building with CMake.
+
+2022-11-02: wsfulton
+            #2418 Fix infinite loop handling non-type template parameters.
+
+            Fixes infinite loop due to () brackets in a non-type template
+            parameter containing an expression.
+
+2022-10-28: wsfulton
+            [R] R rtypecheck typemaps
+
+            Further switch to use rtypecheck typemaps instead of hard coded logic.
+            The full switch to typemaps is deferred until swig-4.2 as it can't be fully
+            backwards compatible. For now a warning is provided to help the
+            transition. It provides the full typemap that should be placed into
+            a user's interface file, for example:
+
+            %typemap("rtype") int32_t * "integer"
+            void testmethod(int32_t * i);
+            void testmethod();
+
+            If there is no rtypecheck typemap for int32_t *, the warning shown is:
+
+              example.i:7: Warning 750: Optional rtypecheck code is deprecated. Add the
+              following typemap to fix as the next version of SWIG will not work without it:
+              %typemap("rtypecheck") int32_t * %{ (is.integer($arg) || is.numeric($arg)) %}
+
+            The warning is shown for any code that previously used "numeric", "integer" or
+            "character" for the rtype typemap. Copying the rtypecheck typemap as
+            shown into the user interface file will provide the appropriate fix and
+            the warning will disappear. This is important to do as swig-4.2 will
+            not be able to provide this helpful warning.
+
+2022-10-27: wsfulton
+            [R] Allow NULL to be used in overloaded functions taking shared_ptr.
+            Also fixes special variable $argtype expansion in rtypecheck typemaps.
+
+2022-10-26: wsfulton
+            [R] Improve R wrapper error message when calling overloaded methods
+            when incorrect types passed are passed to the overloaded methods.
+
+            Old unhelpful error message:
+              Error in f(...) : could not find function "f"
+
+            Example of new improved error message:
+              Error in use_count(k) :
+                cannot find overloaded function for use_count with argtypes (NULL)
+
+2022-10-26: wsfulton
+            [R] #2386 Fix memory leak in R shared_ptr wrappers.
+            Fix leak when a cast up a class inheritance chain is required.

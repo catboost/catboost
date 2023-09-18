@@ -1,0 +1,3 @@
+# see top-level Makefile.in
+Makefile.swig
+extconf.rb

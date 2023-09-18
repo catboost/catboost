@@ -1,0 +1,2 @@
+# see top-level Makefile.in
+Makefile.pl noembed.h
