@@ -6,7 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-find_package(ZLIB REQUIRED)
 
 add_library(contrib-libs-protobuf)
 target_compile_options(contrib-libs-protobuf PRIVATE
@@ -22,7 +21,7 @@ target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  ZLIB::ZLIB
+  contrib-libs-zlib
   cpp-sanitizer-include
 )
 target_sources(contrib-libs-protobuf PRIVATE
@@ -170,7 +169,7 @@ target_link_libraries(contrib-libs-protobuf.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  ZLIB::ZLIB
+  contrib-libs-zlib
   cpp-sanitizer-include
 )
 target_sources(contrib-libs-protobuf.global PRIVATE

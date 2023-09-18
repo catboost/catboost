@@ -6,7 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-find_package(ZLIB REQUIRED)
 add_subdirectory(charset)
 add_subdirectory(draft)
 
@@ -17,7 +16,7 @@ target_compile_options(yutil PRIVATE
 target_link_libraries(yutil PUBLIC
   contrib-libs-cxxsupp
   util-charset
-  ZLIB::ZLIB
+  contrib-libs-zlib
   contrib-libs-double-conversion
   contrib-libs-libc_compat
 )
