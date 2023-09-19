@@ -34,12 +34,13 @@
 #endif
 
 #if defined(_LIBCPP_MSVCRT)
-#    define _CTYPE_DISABLE_MACROS
+#   define _CTYPE_DISABLE_MACROS
 #endif
+
 #if defined(_LIBCPP_MSVCRT) || defined(__MINGW32__)
-#    include "__support/win32/locale_win32.h"
+#   include "__support/win32/locale_win32.h"
 #elif !defined(__BIONIC__) && !defined(__NuttX__)
-#    include <langinfo.h>
+#   include <langinfo.h>
 #endif
 
 #include "atomic"
@@ -4804,7 +4805,7 @@ __check_grouping(const string& __grouping, unsigned* __g, unsigned* __g_end,
 {
 //  if the grouping pattern is empty _or_ there are no grouping bits, then do nothing
 //  we always have at least a single entry in [__g, __g_end); the end of the input sequence
-	if (__grouping.size() != 0 && __g_end - __g > 1)
+    if (__grouping.size() != 0 && __g_end - __g > 1)
     {
         reverse(__g, __g_end);
         const char* __ig = __grouping.data();

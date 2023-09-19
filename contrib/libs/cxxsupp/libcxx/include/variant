@@ -1166,17 +1166,17 @@ public:
       if constexpr (__all<is_nothrow_move_constructible_v<_Types>...>::value) {
         this->__generic_construct(*__rhs, _VSTD::move(*__lhs));
       } else {
-      // EXTENSION: When the move construction of `__lhs` into `__rhs` throws
-      // and `__tmp` is nothrow move constructible then we move `__tmp` back
-      // into `__rhs` and provide the strong exception safety guarantee.
-      try {
-        this->__generic_construct(*__rhs, _VSTD::move(*__lhs));
-      } catch (...) {
-        if (__tmp.__move_nothrow()) {
-          this->__generic_construct(*__rhs, _VSTD::move(__tmp));
+        // EXTENSION: When the move construction of `__lhs` into `__rhs` throws
+        // and `__tmp` is nothrow move constructible then we move `__tmp` back
+        // into `__rhs` and provide the strong exception safety guarantee.
+        try {
+          this->__generic_construct(*__rhs, _VSTD::move(*__lhs));
+        } catch (...) {
+          if (__tmp.__move_nothrow()) {
+            this->__generic_construct(*__rhs, _VSTD::move(__tmp));
+          }
+          throw;
         }
-        throw;
-      }
       }
 #else
       // this isn't consolidated with the `if constexpr` branch above due to
@@ -1697,9 +1697,9 @@ inline _LIBCPP_INLINE_VISIBILITY
   const bool __valueless =
       (... || _VSTD::__as_variant(__vs).valueless_by_exception());
   if (__valueless) {
-      __throw_bad_variant_access();
-    }
+    __throw_bad_variant_access();
   }
+}
 
 template <
     class _Visitor, class... _Vs,

@@ -55,8 +55,8 @@ struct __debug_less
     __do_compare_assert(int, _LHS & __l, _RHS & __r) {
         _LIBCPP_ASSERT(!__comp_(__l, __r),
             "Comparator does not induce a strict weak ordering");
-            (void)__l;
-            (void)__r;
+        (void)__l;
+        (void)__r;
     }
 
     template <class _LHS, class _RHS>

@@ -483,7 +483,7 @@ template<class _Dest, class _Source, size_t ..._Np>
 _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
 void __memberwise_copy_assign(_Dest& __dest, _Source const& __source, __tuple_indices<_Np...>) {
     _VSTD::__swallow(((_VSTD::get<_Np>(__dest) = _VSTD::get<_Np>(__source)), void(), 0)...);
-    }
+}
 
 template<class _Dest, class _Source, class ..._Up, size_t ..._Np>
 _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
@@ -491,7 +491,7 @@ void __memberwise_forward_assign(_Dest& __dest, _Source&& __source, __tuple_type
     _VSTD::__swallow(((
         _VSTD::get<_Np>(__dest) = _VSTD::forward<_Up>(_VSTD::get<_Np>(__source))
     ), void(), 0)...);
-    }
+}
 
 template <class ..._Tp>
 class _LIBCPP_TEMPLATE_VIS tuple

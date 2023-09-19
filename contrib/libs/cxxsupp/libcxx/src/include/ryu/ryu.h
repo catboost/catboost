@@ -58,7 +58,7 @@
 #include "include/ryu/d2fixed.h"
 
 #if defined(_MSC_VER)
-#include <intrin.h> // for _umul128() and __shiftright128()
+#include <intrin.h> // for _umul128(), __shiftright128(), _BitScanForward{,64}
 #endif // defined(_MSC_VER)
 
 #if defined(_WIN64) || defined(_M_AMD64) || defined(__x86_64__) ||  defined(__aarch64__)

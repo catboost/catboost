@@ -201,8 +201,6 @@ class _LIBCPP_TYPE_VIS error_category
 public:
     virtual ~error_category() _NOEXCEPT;
 
-// ODR violation is used for binary compatibility with older versions of libc++.
-// We don't have old libc++ versions for MSVC, so we don't need it.
 #if defined(_LIBCPP_BUILDING_LIBRARY) && \
     defined(_LIBCPP_DEPRECATED_ABI_LEGACY_LIBRARY_DEFINITIONS_FOR_INLINE_FUNCTIONS)
     error_category() _NOEXCEPT;

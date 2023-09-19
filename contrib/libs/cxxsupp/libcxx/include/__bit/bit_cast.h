@@ -40,9 +40,9 @@ template<class _ToType, class _FromType, class = enable_if_t<
 >>
 _LIBCPP_NODISCARD_EXT _LIBCPP_HIDE_FROM_ABI
 constexpr _ToType bit_cast(_FromType const& __from) noexcept {
-	_ToType __to;
-	::memcpy(&__to, &__from, sizeof(__from));
-	return __to;
+    _ToType __to;
+    ::memcpy(&__to, &__from, sizeof(__from));
+    return __to;
 }
 
 #endif // _LIBCPP_STD_VER > 17

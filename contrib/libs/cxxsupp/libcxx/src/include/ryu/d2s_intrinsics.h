@@ -47,8 +47,6 @@
 
 #include "include/ryu/ryu.h"
 
-#include "include/ryu/ryu.h"
-
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 #if defined(_M_X64) && defined(_MSC_VER)

@@ -999,7 +999,7 @@ void __copy_symlink(const path& existing_symlink, const path& new_symlink,
     __create_directory_symlink(real_path, new_symlink, ec);
   else
 #endif
-  __create_symlink(real_path, new_symlink, ec);
+    __create_symlink(real_path, new_symlink, ec);
 }
 
 bool __create_directories(const path& p, error_code* ec) {
@@ -1070,7 +1070,7 @@ bool __create_directory(path const& p, path const& attributes, error_code* ec) {
     return err.report(capture_errno());
 
   mec = capture_errno();
-    error_code ignored_ec;
+  error_code ignored_ec;
   st = status(p, ignored_ec);
   if (!is_directory(st))
     return err.report(mec);

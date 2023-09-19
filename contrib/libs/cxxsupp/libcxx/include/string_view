@@ -748,7 +748,7 @@ bool operator==(basic_string_view<_CharT, _Traits> __lhs,
     return __lhs.compare(__rhs) == 0;
 }
 
-// The dummy default template parameters are used to work around a MSVC issue with mangling, see VSO-409236 for details.
+// The dummy default template parameters are used to work around a MSVC issue with mangling, see VSO-409326 for details.
 // This applies to the other sufficient overloads below for the other comparison operators.
 template<class _CharT, class _Traits, int = 1>
 _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
@@ -778,7 +778,6 @@ bool operator!=(basic_string_view<_CharT, _Traits> __lhs, basic_string_view<_Cha
         return true;
     return __lhs.compare(__rhs) != 0;
 }
-
 
 template<class _CharT, class _Traits, int = 1>
 _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY

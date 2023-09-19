@@ -213,8 +213,8 @@ template <class charT> class messages_byname;
 // Most unix variants have catopen.  These are the specific ones that don't.
 #  if !defined(__BIONIC__) && !defined(_NEWLIB_VERSION)
 #    define _LIBCPP_HAS_CATOPEN 1
-#include <nl_types.h>
-#endif
+#    include <nl_types.h>
+#  endif
 #endif
 
 #ifdef _LIBCPP_LOCALE__L_EXTENSIONS
@@ -1489,7 +1489,7 @@ num_put<_CharT, _OutputIterator>::__do_put_integral(iter_type __s, ios_base& __i
     _LIBCPP_CONSTEXPR const unsigned __nbuf
         = (numeric_limits<_Unsigned>::digits / 3)        // 1 char per 3 bits
         + ((numeric_limits<_Unsigned>::digits % 3) != 0) // round up
-        + 2; // base prefix + terminating null character                                                 // terminating null character
+        + 2; // base prefix + terminating null character
     char __nar[__nbuf];
     _LIBCPP_DIAGNOSTIC_PUSH
     _LIBCPP_CLANG_DIAGNOSTIC_IGNORED("-Wformat-nonliteral")

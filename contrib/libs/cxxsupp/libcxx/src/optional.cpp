@@ -31,9 +31,9 @@ class _LIBCPP_EXCEPTION_ABI _LIBCPP_AVAILABILITY_BAD_OPTIONAL_ACCESS bad_optiona
     : public std::logic_error
 {
 public:
-	bad_optional_access() : std::logic_error("Bad optional Access") {}
+    bad_optional_access() : std::logic_error("Bad optional Access") {}
 
-//	Get the key function ~bad_optional_access() into the dylib
+//    Get the key function ~bad_optional_access() into the dylib
     virtual ~bad_optional_access() noexcept;
 };
 

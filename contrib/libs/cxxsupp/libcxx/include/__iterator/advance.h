@@ -149,6 +149,7 @@ public:
                    "If `n < 0`, then `bidirectional_iterator<I> && same_as<I, S>` must be true.");
     // If `S` and `I` model `sized_sentinel_for<S, I>`:
     if constexpr (sized_sentinel_for<_Sp, _Ip>) {
+      // If |n| >= |bound - i|, equivalent to `ranges::advance(i, bound)`.
       // __magnitude_geq(a, b) returns |a| >= |b|, assuming they have the same sign.
       auto __magnitude_geq = [](auto __a, auto __b) {
         return __a == 0 ? __b == 0 :

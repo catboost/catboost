@@ -25,7 +25,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 #if _LIBCPP_STD_VER > 14
 
 struct __not_fn_op {
-    template<class... _Args>
+    template <class... _Args>
     _LIBCPP_HIDE_FROM_ABI
     _LIBCPP_CONSTEXPR_AFTER_CXX17 auto operator()(_Args&&... __args) const
         noexcept(noexcept(!_VSTD::invoke(_VSTD::forward<_Args>(__args)...)))
@@ -38,7 +38,7 @@ struct __not_fn_t : __perfect_forward<__not_fn_op, _Fn> {
     using __perfect_forward<__not_fn_op, _Fn>::__perfect_forward;
 };
 
-template<class _Fn, class = enable_if_t<
+template <class _Fn, class = enable_if_t<
     is_constructible_v<decay_t<_Fn>, _Fn> &&
     is_move_constructible_v<decay_t<_Fn>>
 >>
