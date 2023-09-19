@@ -8,3 +8,5 @@
 3. [Класс `TCiString`](https://a.yandex-team.ru/arc/trunk/arcadia/library/cpp/charset/ci_string.h) - аналог `TString`, но использующий case-insensitive-компаратор и хеш и поддерживающий разные кодировки.
 
 В комплекте есть ещё много функций для работы со старой однобайтной Yandex-кодировкой. Не рекомендуется к использованию. Для преобразования из UTF-8 в `TUtf16String` и для работы с Unicode используйте функции из [arcadia/util/charset](https://a.yandex-team.ru/arc/trunk/arcadia/util/charset).
+
+Библиотека library/cpp/charset/lite - содержит часть функциональности, не зависящей от libiconv (e.g. пункты 2 и 3 из основной библиотеки)
