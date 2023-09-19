@@ -535,13 +535,10 @@ def make_qt_app_for_kernel(gui, kernel):
     set_qt_api_env_from_gui(gui)
 
     # This import is guaranteed to work now:
-    from IPython.external.qt_for_kernel import QtCore, QtGui
+    from IPython.external.qt_for_kernel import QtCore
     from IPython.lib.guisupport import get_app_qt4
 
     kernel.app = get_app_qt4([" "])
-    if isinstance(kernel.app, QtGui.QApplication):
-        kernel.app.setQuitOnLastWindowClosed(False)
-
     kernel.app.qt_event_loop = QtCore.QEventLoop(kernel.app)
 
 
