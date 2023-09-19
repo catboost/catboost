@@ -1,3 +1,11 @@
+# Release 1.2.2
+
+## Bugfixes
+* Fix LossFunctionChange fstr with embedding features.
+* Fix a segmentation fault in JVM applier when using embedding features on JVM 11+.
+* Fix CTR data handling in model summation (especially for models with CTRs with multiple target quantizations).
+
+
 # Release 1.2.1
 
 ## New features
