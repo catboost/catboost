@@ -150,7 +150,7 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         'cmake',
         os.path.join('contrib', 'deprecated'),
         os.path.join('contrib', 'libs'),
-        os.path.join('contrib', 'python'), # TODO: remove it, only numpy headers are used from there
+        os.path.join('contrib', 'python', 'numpy'),
         os.path.join('contrib', 'restricted'),
         os.path.join('contrib', 'tools', 'cython'),
         os.path.join('contrib', 'tools', 'flatc'),
@@ -185,6 +185,14 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         else:
             distutils.dir_util.mkpath(os.path.dirname(dst))
             distutils.file_util.copy_file(src, dst, update=1, verbose=verbose, dry_run=dry_run)
+
+    # TODO: proper automatic dependencies
+    contrib_python_cmakelists_txt = os.path.join(pkgdir, 'contrib', 'python', 'CMakeLists.txt')
+    if verbose:
+        log.info(f'Creating {contrib_python_cmakelists_txt} with numpy')
+    if not dry_run:
+        with open(contrib_python_cmakelists_txt, 'w') as f:
+            f.write('add_subdirectory(numpy)')
 
 
 def emph(s):
