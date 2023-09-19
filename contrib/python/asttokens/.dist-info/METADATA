@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: asttokens
-Version: 2.3.0
+Version: 2.4.0
 Summary: Annotate AST trees with source code positions
 Home-page: https://github.com/gristlabs/asttokens
 Author: Dmitry Sagalovskiy, Grist Labs
