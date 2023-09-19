@@ -12,6 +12,8 @@ import six
 import libarchive
 import libarchive._libarchive as _libarchive
 
+from pathlib2 import PurePath
+
 logger = logging.getLogger(__name__)
 
 GZIP = "gzip"
@@ -58,24 +60,34 @@ def encode(value, encoding):
     return value.encode(encoding)
 
 
-def extract_tar(tar_file_path, output_dir):
+def extract_tar(tar_file_path, output_dir, strip_components=None, fail_on_duplicates=True):
     output_dir = encode(output_dir, ENCODING)
     _make_dirs(output_dir)
     with libarchive.Archive(tar_file_path, mode="rb") as tarfile:
         for e in tarfile:
-            p = e.pathname
+            p = _strip_prefix(e.pathname, strip_components)
+            if not p:
+                continue
             dest = os.path.join(output_dir, encode(p, ENCODING))
-            if p.endswith("/"):
+            if e.pathname.endswith("/"):
                 _make_dirs(dest)
                 continue
+
+            if strip_components and fail_on_duplicates:
+                if os.path.exists(dest):
+                    raise Exception(
+                        "The file {} is duplicated because of strip_components={}".format(dest, strip_components)
+                    )
 
             _make_dirs(os.path.dirname(dest))
 
             if e.ishardlink():
-                _hardlink(os.path.join(output_dir, e.hardlink), dest)
+                src = os.path.join(output_dir, _strip_prefix(e.hardlink, strip_components))
+                _hardlink(src, dest)
                 continue
             if e.issym():
-                _symlink(e.linkname, dest)
+                src = _strip_prefix(e.linkname, strip_components)
+                _symlink(src, dest)
                 continue
 
             with open(dest, "wb") as f:
@@ -87,6 +99,14 @@ def extract_tar(tar_file_path, output_dir):
                     tarfile._a,
                     f.fileno(),
                 )
+
+
+def _strip_prefix(path, strip_components):
+    if not strip_components:
+        return path
+    p = PurePath(path)
+    stripped = str(p.relative_to(*p.parts[:strip_components]))
+    return '' if stripped == '.' else stripped
 
 
 def tar(

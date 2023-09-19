@@ -25,10 +25,10 @@ if six.PY2:
 data_dir = yatest.common.build_path("library/python/archive/test/data")
 
 
-def extract_tar(filename, dirname):
+def extract_tar(filename, dirname, strip_components=None):
     if os.path.exists(dirname):
         shutil.rmtree(dirname)
-    return archive.extract_tar(filename, dirname)
+    return archive.extract_tar(filename, dirname, strip_components)
 
 
 def test_extract_tar():
@@ -40,6 +40,42 @@ def test_extract_tar():
         for f in ["1.txt", "2/2.txt", "executable.sh"]:
             assert os.path.exists(os.path.join(d, f))
         assert os.access(os.path.join(d, "executable.sh"), os.X_OK)
+
+
+@pytest.mark.parametrize(
+    'components,expected',
+    [
+        (None, ["1.txt", "2", "executable.sh"]),
+        (0, ["1.txt", "2", "executable.sh"]),
+        (1, ["2.txt"]),
+        (2, []),
+    ],
+)
+def test_extract_tar_strip_components(components, expected):
+    out_tar = yatest.common.output_path("out_tar")
+    extract_tar(os.path.join(data_dir, "sample.tar"), out_tar, strip_components=components)
+    files = set(os.listdir(out_tar))
+    assert files == set(expected)
+
+
+def test_extract_tar_fail_on_duplicates():
+    out_tar = "out_tar"
+    test_file_name = "test_file.txt"
+    open(test_file_name, "w").close()
+    tar_path = yatest.common.output_path("test_file_duplicates.tar")
+    archive.tar(
+        [
+            (test_file_name, "dir1/file"),
+            (test_file_name, "dir2/file"),
+        ],
+        tar_path,
+    )
+
+    # Extracting without strip_components doesn't raise an error
+    extract_tar(tar_path, out_tar)
+
+    with pytest.raises(Exception, match="duplicated"):
+        extract_tar(tar_path, out_tar, strip_components=1)
 
 
 def test_tar_add_files():
