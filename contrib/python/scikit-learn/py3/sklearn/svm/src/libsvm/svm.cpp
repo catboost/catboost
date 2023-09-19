@@ -3145,10 +3145,13 @@ const char *PREFIX(check_parameter)(const PREFIX(problem) *prob, const svm_param
 		// filter samples with negative and null weights
 		remove_zero_weight(&newprob, prob);
 
-		const char* msg = NULL;
 		// all samples were removed
-		if(newprob.l == 0)
-			msg =  "Invalid input - all samples have zero or negative weights.";
+		if(newprob.l == 0) {
+			free(newprob.x);
+			free(newprob.y);
+			free(newprob.W);
+			return "Invalid input - all samples have zero or negative weights.";
+		}
 		else if(prob->l != newprob.l &&
 		        svm_type == C_SVC)
 		{
@@ -3162,15 +3165,17 @@ const char *PREFIX(check_parameter)(const PREFIX(problem) *prob, const svm_param
 					break;
 				}
 			}
-			if(only_one_label == true)
-				msg = "Invalid input - all samples with positive weights belong to the same class.";
+			if(only_one_label) {
+				free(newprob.x);
+				free(newprob.y);
+				free(newprob.W);
+				return "Invalid input - all samples with positive weights belong to the same class.";
+			}
 		}
 
 		free(newprob.x);
 		free(newprob.y);
 		free(newprob.W);
-		if(msg != NULL)
-			return msg;
 	}
 	return NULL;
 }

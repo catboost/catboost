@@ -1,15 +1,10 @@
 import numpy as np
-cimport numpy as cnp
 
 from cython cimport final
 
-from ...utils._typedefs cimport DTYPE_t, ITYPE_t
-from ...metrics._dist_metrics cimport DistanceMetric
+from ...utils._typedefs cimport float64_t, float32_t, intp_t
 
 from scipy.sparse import issparse, csr_matrix
-from ...utils._typedefs import DTYPE, SPARSE_INDEX_TYPE
-
-cnp.import_array()
 
 cdef class DatasetsPair64:
     """Abstract class which wraps a pair of datasets (X, Y).
@@ -35,7 +30,7 @@ cdef class DatasetsPair64:
 
     Parameters
     ----------
-    distance_metric: DistanceMetric
+    distance_metric: DistanceMetric64
         The distance metric responsible for computing distances
         between two vectors of (X, Y).
     """
@@ -84,8 +79,9 @@ cdef class DatasetsPair64:
         if metric_kwargs is not None:
             metric_kwargs.pop("Y_norm_squared", None)
         cdef:
-            DistanceMetric distance_metric = DistanceMetric.get_metric(
+            DistanceMetric64 distance_metric = DistanceMetric.get_metric(
                 metric,
+                np.float64,
                 **(metric_kwargs or {})
             )
 
@@ -109,34 +105,34 @@ cdef class DatasetsPair64:
 
     @classmethod
     def unpack_csr_matrix(cls, X: csr_matrix):
-        """Ensure that the CSR matrix is indexed with SPARSE_INDEX_TYPE."""
-        X_data = np.asarray(X.data, dtype=DTYPE)
-        X_indices = np.asarray(X.indices, dtype=SPARSE_INDEX_TYPE)
-        X_indptr = np.asarray(X.indptr, dtype=SPARSE_INDEX_TYPE)
+        """Ensure that the CSR matrix is indexed with np.int32."""
+        X_data = np.asarray(X.data, dtype=np.float64)
+        X_indices = np.asarray(X.indices, dtype=np.int32)
+        X_indptr = np.asarray(X.indptr, dtype=np.int32)
         return X_data, X_indices, X_indptr
 
-    def __init__(self, DistanceMetric distance_metric, ITYPE_t n_features):
+    def __init__(self, DistanceMetric64 distance_metric, intp_t n_features):
         self.distance_metric = distance_metric
         self.n_features = n_features
 
-    cdef ITYPE_t n_samples_X(self) nogil:
+    cdef intp_t n_samples_X(self) noexcept nogil:
         """Number of samples in X."""
         # This is a abstract method.
         # This _must_ always be overwritten in subclasses.
         # TODO: add "with gil: raise" here when supporting Cython 3.0
         return -999
 
-    cdef ITYPE_t n_samples_Y(self) nogil:
+    cdef intp_t n_samples_Y(self) noexcept nogil:
         """Number of samples in Y."""
         # This is a abstract method.
         # This _must_ always be overwritten in subclasses.
         # TODO: add "with gil: raise" here when supporting Cython 3.0
         return -999
 
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.dist(i, j)
 
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
         # This is a abstract method.
         # This _must_ always be overwritten in subclasses.
         # TODO: add "with gil: raise" here when supporting Cython 3.0
@@ -161,9 +157,9 @@ cdef class DenseDenseDatasetsPair64(DatasetsPair64):
 
     def __init__(
         self,
-        const DTYPE_t[:, ::1] X,
-        const DTYPE_t[:, ::1] Y,
-        DistanceMetric distance_metric,
+        const float64_t[:, ::1] X,
+        const float64_t[:, ::1] Y,
+        DistanceMetric64 distance_metric,
     ):
         super().__init__(distance_metric, n_features=X.shape[1])
         # Arrays have already been checked
@@ -171,19 +167,19 @@ cdef class DenseDenseDatasetsPair64(DatasetsPair64):
         self.Y = Y
 
     @final
-    cdef ITYPE_t n_samples_X(self) nogil:
+    cdef intp_t n_samples_X(self) noexcept nogil:
         return self.X.shape[0]
 
     @final
-    cdef ITYPE_t n_samples_Y(self) nogil:
+    cdef intp_t n_samples_Y(self) noexcept nogil:
         return self.Y.shape[0]
 
     @final
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.rdist(&self.X[i, 0], &self.Y[j, 0], self.n_features)
 
     @final
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.dist(&self.X[i, 0], &self.Y[j, 0], self.n_features)
 
 
@@ -204,22 +200,22 @@ cdef class SparseSparseDatasetsPair64(DatasetsPair64):
         between two vectors of (X, Y).
     """
 
-    def __init__(self, X, Y, DistanceMetric distance_metric):
+    def __init__(self, X, Y, DistanceMetric64 distance_metric):
         super().__init__(distance_metric, n_features=X.shape[1])
 
         self.X_data, self.X_indices, self.X_indptr = self.unpack_csr_matrix(X)
         self.Y_data, self.Y_indices, self.Y_indptr = self.unpack_csr_matrix(Y)
 
     @final
-    cdef ITYPE_t n_samples_X(self) nogil:
+    cdef intp_t n_samples_X(self) noexcept nogil:
         return self.X_indptr.shape[0] - 1
 
     @final
-    cdef ITYPE_t n_samples_Y(self) nogil:
+    cdef intp_t n_samples_Y(self) noexcept nogil:
         return self.Y_indptr.shape[0] - 1
 
     @final
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.rdist_csr(
             x1_data=&self.X_data[0],
             x1_indices=self.X_indices,
@@ -233,7 +229,7 @@ cdef class SparseSparseDatasetsPair64(DatasetsPair64):
         )
 
     @final
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.dist_csr(
             x1_data=&self.X_data[0],
             x1_indices=self.X_indices,
@@ -264,7 +260,7 @@ cdef class SparseDenseDatasetsPair64(DatasetsPair64):
         between two vectors of (X, Y).
     """
 
-    def __init__(self, X, Y, DistanceMetric distance_metric):
+    def __init__(self, X, Y, DistanceMetric64 distance_metric):
         super().__init__(distance_metric, n_features=X.shape[1])
 
         self.X_data, self.X_indices, self.X_indptr = self.unpack_csr_matrix(X)
@@ -301,18 +297,18 @@ cdef class SparseDenseDatasetsPair64(DatasetsPair64):
         # Y array already has been checked here
         self.n_Y = Y.shape[0]
         self.Y_data = np.ravel(Y)
-        self.Y_indices = np.arange(self.n_features, dtype=SPARSE_INDEX_TYPE)
+        self.Y_indices = np.arange(self.n_features, dtype=np.int32)
 
     @final
-    cdef ITYPE_t n_samples_X(self) nogil:
+    cdef intp_t n_samples_X(self) noexcept nogil:
         return self.X_indptr.shape[0] - 1
 
     @final
-    cdef ITYPE_t n_samples_Y(self) nogil:
+    cdef intp_t n_samples_Y(self) noexcept nogil:
         return self.n_Y
 
     @final
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.rdist_csr(
             x1_data=&self.X_data[0],
             x1_indices=self.X_indices,
@@ -328,7 +324,7 @@ cdef class SparseDenseDatasetsPair64(DatasetsPair64):
         )
 
     @final
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
 
         return self.distance_metric.dist_csr(
             x1_data=&self.X_data[0],
@@ -362,28 +358,28 @@ cdef class DenseSparseDatasetsPair64(DatasetsPair64):
         between two vectors of (X, Y).
     """
 
-    def __init__(self, X, Y, DistanceMetric distance_metric):
+    def __init__(self, X, Y, DistanceMetric64 distance_metric):
         super().__init__(distance_metric, n_features=X.shape[1])
         # Swapping arguments on the constructor
         self.datasets_pair = SparseDenseDatasetsPair64(Y, X, distance_metric)
 
     @final
-    cdef ITYPE_t n_samples_X(self) nogil:
+    cdef intp_t n_samples_X(self) noexcept nogil:
         # Swapping interface
         return self.datasets_pair.n_samples_Y()
 
     @final
-    cdef ITYPE_t n_samples_Y(self) nogil:
+    cdef intp_t n_samples_Y(self) noexcept nogil:
         # Swapping interface
         return self.datasets_pair.n_samples_X()
 
     @final
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         # Swapping arguments on the same interface
         return self.datasets_pair.surrogate_dist(j, i)
 
     @final
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
         # Swapping arguments on the same interface
         return self.datasets_pair.dist(j, i)
 
@@ -460,8 +456,9 @@ cdef class DatasetsPair32:
         if metric_kwargs is not None:
             metric_kwargs.pop("Y_norm_squared", None)
         cdef:
-            DistanceMetric32 distance_metric = DistanceMetric32.get_metric(
+            DistanceMetric32 distance_metric = DistanceMetric.get_metric(
                 metric,
+                np.float32,
                 **(metric_kwargs or {})
             )
 
@@ -485,34 +482,34 @@ cdef class DatasetsPair32:
 
     @classmethod
     def unpack_csr_matrix(cls, X: csr_matrix):
-        """Ensure that the CSR matrix is indexed with SPARSE_INDEX_TYPE."""
+        """Ensure that the CSR matrix is indexed with np.int32."""
         X_data = np.asarray(X.data, dtype=np.float32)
-        X_indices = np.asarray(X.indices, dtype=SPARSE_INDEX_TYPE)
-        X_indptr = np.asarray(X.indptr, dtype=SPARSE_INDEX_TYPE)
+        X_indices = np.asarray(X.indices, dtype=np.int32)
+        X_indptr = np.asarray(X.indptr, dtype=np.int32)
         return X_data, X_indices, X_indptr
 
-    def __init__(self, DistanceMetric32 distance_metric, ITYPE_t n_features):
+    def __init__(self, DistanceMetric32 distance_metric, intp_t n_features):
         self.distance_metric = distance_metric
         self.n_features = n_features
 
-    cdef ITYPE_t n_samples_X(self) nogil:
+    cdef intp_t n_samples_X(self) noexcept nogil:
         """Number of samples in X."""
         # This is a abstract method.
         # This _must_ always be overwritten in subclasses.
         # TODO: add "with gil: raise" here when supporting Cython 3.0
         return -999
 
-    cdef ITYPE_t n_samples_Y(self) nogil:
+    cdef intp_t n_samples_Y(self) noexcept nogil:
         """Number of samples in Y."""
         # This is a abstract method.
         # This _must_ always be overwritten in subclasses.
         # TODO: add "with gil: raise" here when supporting Cython 3.0
         return -999
 
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.dist(i, j)
 
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
         # This is a abstract method.
         # This _must_ always be overwritten in subclasses.
         # TODO: add "with gil: raise" here when supporting Cython 3.0
@@ -537,8 +534,8 @@ cdef class DenseDenseDatasetsPair32(DatasetsPair32):
 
     def __init__(
         self,
-        const cnp.float32_t[:, ::1] X,
-        const cnp.float32_t[:, ::1] Y,
+        const float32_t[:, ::1] X,
+        const float32_t[:, ::1] Y,
         DistanceMetric32 distance_metric,
     ):
         super().__init__(distance_metric, n_features=X.shape[1])
@@ -547,19 +544,19 @@ cdef class DenseDenseDatasetsPair32(DatasetsPair32):
         self.Y = Y
 
     @final
-    cdef ITYPE_t n_samples_X(self) nogil:
+    cdef intp_t n_samples_X(self) noexcept nogil:
         return self.X.shape[0]
 
     @final
-    cdef ITYPE_t n_samples_Y(self) nogil:
+    cdef intp_t n_samples_Y(self) noexcept nogil:
         return self.Y.shape[0]
 
     @final
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.rdist(&self.X[i, 0], &self.Y[j, 0], self.n_features)
 
     @final
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.dist(&self.X[i, 0], &self.Y[j, 0], self.n_features)
 
 
@@ -587,15 +584,15 @@ cdef class SparseSparseDatasetsPair32(DatasetsPair32):
         self.Y_data, self.Y_indices, self.Y_indptr = self.unpack_csr_matrix(Y)
 
     @final
-    cdef ITYPE_t n_samples_X(self) nogil:
+    cdef intp_t n_samples_X(self) noexcept nogil:
         return self.X_indptr.shape[0] - 1
 
     @final
-    cdef ITYPE_t n_samples_Y(self) nogil:
+    cdef intp_t n_samples_Y(self) noexcept nogil:
         return self.Y_indptr.shape[0] - 1
 
     @final
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.rdist_csr(
             x1_data=&self.X_data[0],
             x1_indices=self.X_indices,
@@ -609,7 +606,7 @@ cdef class SparseSparseDatasetsPair32(DatasetsPair32):
         )
 
     @final
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.dist_csr(
             x1_data=&self.X_data[0],
             x1_indices=self.X_indices,
@@ -677,18 +674,18 @@ cdef class SparseDenseDatasetsPair32(DatasetsPair32):
         # Y array already has been checked here
         self.n_Y = Y.shape[0]
         self.Y_data = np.ravel(Y)
-        self.Y_indices = np.arange(self.n_features, dtype=SPARSE_INDEX_TYPE)
+        self.Y_indices = np.arange(self.n_features, dtype=np.int32)
 
     @final
-    cdef ITYPE_t n_samples_X(self) nogil:
+    cdef intp_t n_samples_X(self) noexcept nogil:
         return self.X_indptr.shape[0] - 1
 
     @final
-    cdef ITYPE_t n_samples_Y(self) nogil:
+    cdef intp_t n_samples_Y(self) noexcept nogil:
         return self.n_Y
 
     @final
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.rdist_csr(
             x1_data=&self.X_data[0],
             x1_indices=self.X_indices,
@@ -704,7 +701,7 @@ cdef class SparseDenseDatasetsPair32(DatasetsPair32):
         )
 
     @final
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
 
         return self.distance_metric.dist_csr(
             x1_data=&self.X_data[0],
@@ -744,21 +741,21 @@ cdef class DenseSparseDatasetsPair32(DatasetsPair32):
         self.datasets_pair = SparseDenseDatasetsPair32(Y, X, distance_metric)
 
     @final
-    cdef ITYPE_t n_samples_X(self) nogil:
+    cdef intp_t n_samples_X(self) noexcept nogil:
         # Swapping interface
         return self.datasets_pair.n_samples_Y()
 
     @final
-    cdef ITYPE_t n_samples_Y(self) nogil:
+    cdef intp_t n_samples_Y(self) noexcept nogil:
         # Swapping interface
         return self.datasets_pair.n_samples_X()
 
     @final
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         # Swapping arguments on the same interface
         return self.datasets_pair.surrogate_dist(j, i)
 
     @final
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil:
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
         # Swapping arguments on the same interface
         return self.datasets_pair.dist(j, i)

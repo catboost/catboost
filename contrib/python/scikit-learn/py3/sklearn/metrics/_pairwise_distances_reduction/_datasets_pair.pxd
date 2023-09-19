@@ -1,49 +1,47 @@
-cimport numpy as cnp
-
-from ...utils._typedefs cimport DTYPE_t, ITYPE_t, SPARSE_INDEX_TYPE_t
-from ...metrics._dist_metrics cimport DistanceMetric, DistanceMetric32
+from ...utils._typedefs cimport float64_t, float32_t, int32_t, intp_t
+from ...metrics._dist_metrics cimport DistanceMetric64, DistanceMetric32, DistanceMetric
 
 
 cdef class DatasetsPair64:
     cdef:
-        DistanceMetric distance_metric
-        ITYPE_t n_features
+        DistanceMetric64 distance_metric
+        intp_t n_features
 
-    cdef ITYPE_t n_samples_X(self) nogil
+    cdef intp_t n_samples_X(self) noexcept nogil
 
-    cdef ITYPE_t n_samples_Y(self) nogil
+    cdef intp_t n_samples_Y(self) noexcept nogil
 
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil
 
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil
 
 
 cdef class DenseDenseDatasetsPair64(DatasetsPair64):
     cdef:
-        const DTYPE_t[:, ::1] X
-        const DTYPE_t[:, ::1] Y
+        const float64_t[:, ::1] X
+        const float64_t[:, ::1] Y
 
 
 cdef class SparseSparseDatasetsPair64(DatasetsPair64):
     cdef:
-        const DTYPE_t[:] X_data
-        const SPARSE_INDEX_TYPE_t[:] X_indices
-        const SPARSE_INDEX_TYPE_t[:] X_indptr
+        const float64_t[:] X_data
+        const int32_t[:] X_indices
+        const int32_t[:] X_indptr
 
-        const DTYPE_t[:] Y_data
-        const SPARSE_INDEX_TYPE_t[:] Y_indices
-        const SPARSE_INDEX_TYPE_t[:] Y_indptr
+        const float64_t[:] Y_data
+        const int32_t[:] Y_indices
+        const int32_t[:] Y_indptr
 
 
 cdef class SparseDenseDatasetsPair64(DatasetsPair64):
     cdef:
-        const DTYPE_t[:] X_data
-        const SPARSE_INDEX_TYPE_t[:] X_indices
-        const SPARSE_INDEX_TYPE_t[:] X_indptr
+        const float64_t[:] X_data
+        const int32_t[:] X_indices
+        const int32_t[:] X_indptr
 
-        const DTYPE_t[:] Y_data
-        const SPARSE_INDEX_TYPE_t[:] Y_indices
-        ITYPE_t n_Y
+        const float64_t[:] Y_data
+        const int32_t[:] Y_indices
+        intp_t n_Y
 
 
 cdef class DenseSparseDatasetsPair64(DatasetsPair64):
@@ -57,43 +55,43 @@ cdef class DenseSparseDatasetsPair64(DatasetsPair64):
 cdef class DatasetsPair32:
     cdef:
         DistanceMetric32 distance_metric
-        ITYPE_t n_features
+        intp_t n_features
 
-    cdef ITYPE_t n_samples_X(self) nogil
+    cdef intp_t n_samples_X(self) noexcept nogil
 
-    cdef ITYPE_t n_samples_Y(self) nogil
+    cdef intp_t n_samples_Y(self) noexcept nogil
 
-    cdef DTYPE_t dist(self, ITYPE_t i, ITYPE_t j) nogil
+    cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil
 
-    cdef DTYPE_t surrogate_dist(self, ITYPE_t i, ITYPE_t j) nogil
+    cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil
 
 
 cdef class DenseDenseDatasetsPair32(DatasetsPair32):
     cdef:
-        const cnp.float32_t[:, ::1] X
-        const cnp.float32_t[:, ::1] Y
+        const float32_t[:, ::1] X
+        const float32_t[:, ::1] Y
 
 
 cdef class SparseSparseDatasetsPair32(DatasetsPair32):
     cdef:
-        const cnp.float32_t[:] X_data
-        const SPARSE_INDEX_TYPE_t[:] X_indices
-        const SPARSE_INDEX_TYPE_t[:] X_indptr
+        const float32_t[:] X_data
+        const int32_t[:] X_indices
+        const int32_t[:] X_indptr
 
-        const cnp.float32_t[:] Y_data
-        const SPARSE_INDEX_TYPE_t[:] Y_indices
-        const SPARSE_INDEX_TYPE_t[:] Y_indptr
+        const float32_t[:] Y_data
+        const int32_t[:] Y_indices
+        const int32_t[:] Y_indptr
 
 
 cdef class SparseDenseDatasetsPair32(DatasetsPair32):
     cdef:
-        const cnp.float32_t[:] X_data
-        const SPARSE_INDEX_TYPE_t[:] X_indices
-        const SPARSE_INDEX_TYPE_t[:] X_indptr
+        const float32_t[:] X_data
+        const int32_t[:] X_indices
+        const int32_t[:] X_indptr
 
-        const cnp.float32_t[:] Y_data
-        const SPARSE_INDEX_TYPE_t[:] Y_indices
-        ITYPE_t n_Y
+        const float32_t[:] Y_data
+        const int32_t[:] Y_indices
+        intp_t n_Y
 
 
 cdef class DenseSparseDatasetsPair32(DatasetsPair32):

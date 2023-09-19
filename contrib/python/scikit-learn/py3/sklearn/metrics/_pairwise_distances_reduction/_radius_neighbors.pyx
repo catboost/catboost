@@ -9,7 +9,7 @@ from cython.operator cimport dereference as deref
 from cython.parallel cimport parallel, prange
 
 from ...utils._sorting cimport simultaneous_sort
-from ...utils._typedefs cimport ITYPE_t, DTYPE_t
+from ...utils._typedefs cimport intp_t, float64_t
 from ...utils._vector_sentinel cimport vector_to_nd_array
 
 from numbers import Real
@@ -28,11 +28,11 @@ cdef extern from "<algorithm>" namespace "std" nogil:
 ######################
 
 cdef cnp.ndarray[object, ndim=1] coerce_vectors_to_nd_arrays(
-    shared_ptr[vector_vector_DITYPE_t] vecs
+    shared_ptr[vector_vector_double_intp_t] vecs
 ):
     """Coerce a std::vector of std::vector to a ndarray of ndarray."""
     cdef:
-        ITYPE_t n = deref(vecs).size()
+        intp_t n = deref(vecs).size()
         cnp.ndarray[object, ndim=1] nd_arrays_of_nd_arrays = np.empty(n, dtype=np.ndarray)
 
     for i in range(n):
@@ -60,7 +60,7 @@ cdef class RadiusNeighbors64(BaseDistancesReduction64):
         cls,
         X,
         Y,
-        DTYPE_t radius,
+        float64_t radius,
         str metric="euclidean",
         chunk_size=None,
         dict metric_kwargs=None,
@@ -81,10 +81,7 @@ cdef class RadiusNeighbors64(BaseDistancesReduction64):
 
         No instance should directly be created outside of this class method.
         """
-        if (
-            metric in ("euclidean", "sqeuclidean")
-            and not (issparse(X) ^ issparse(Y))  # "^" is XOR
-        ):
+        if metric in ("euclidean", "sqeuclidean"):
             # Specialized implementation of RadiusNeighbors for the Euclidean
             # distance for the dense-dense and sparse-sparse cases.
             # This implementation computes the distances by chunk using
@@ -128,7 +125,7 @@ cdef class RadiusNeighbors64(BaseDistancesReduction64):
     def __init__(
         self,
         DatasetsPair64 datasets_pair,
-        DTYPE_t radius,
+        float64_t radius,
         chunk_size=None,
         strategy=None,
         sort_results=False,
@@ -152,29 +149,29 @@ cdef class RadiusNeighbors64(BaseDistancesReduction64):
         #   - when parallelizing on Y, the pointers of those heaps are referencing
         #   std::vectors of std::vectors which are thread-wise-allocated and whose
         #   content will be merged into self.neigh_distances and self.neigh_indices.
-        self.neigh_distances_chunks = vector[shared_ptr[vector[vector[DTYPE_t]]]](
+        self.neigh_distances_chunks = vector[shared_ptr[vector[vector[float64_t]]]](
             self.chunks_n_threads
         )
-        self.neigh_indices_chunks = vector[shared_ptr[vector[vector[ITYPE_t]]]](
+        self.neigh_indices_chunks = vector[shared_ptr[vector[vector[intp_t]]]](
             self.chunks_n_threads
         )
 
         # Temporary datastructures which will be coerced to numpy arrays on before
         # RadiusNeighbors.compute "return" and will be then freed.
-        self.neigh_distances = make_shared[vector[vector[DTYPE_t]]](self.n_samples_X)
-        self.neigh_indices = make_shared[vector[vector[ITYPE_t]]](self.n_samples_X)
+        self.neigh_distances = make_shared[vector[vector[float64_t]]](self.n_samples_X)
+        self.neigh_indices = make_shared[vector[vector[intp_t]]](self.n_samples_X)
 
     cdef void _compute_and_reduce_distances_on_chunks(
         self,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-        ITYPE_t Y_start,
-        ITYPE_t Y_end,
-        ITYPE_t thread_num,
-    ) nogil:
+        intp_t X_start,
+        intp_t X_end,
+        intp_t Y_start,
+        intp_t Y_end,
+        intp_t thread_num,
+    ) noexcept nogil:
         cdef:
-            ITYPE_t i, j
-            DTYPE_t r_dist_i_j
+            intp_t i, j
+            float64_t r_dist_i_j
 
         for i in range(X_start, X_end):
             for j in range(Y_start, Y_end):
@@ -197,10 +194,10 @@ cdef class RadiusNeighbors64(BaseDistancesReduction64):
 
     cdef void _parallel_on_X_init_chunk(
         self,
-        ITYPE_t thread_num,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-    ) nogil:
+        intp_t thread_num,
+        intp_t X_start,
+        intp_t X_end,
+    ) noexcept nogil:
 
         # As this strategy is embarrassingly parallel, we can set the
         # thread vectors' pointers to the main vectors'.
@@ -210,12 +207,12 @@ cdef class RadiusNeighbors64(BaseDistancesReduction64):
     @final
     cdef void _parallel_on_X_prange_iter_finalize(
         self,
-        ITYPE_t thread_num,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-    ) nogil:
+        intp_t thread_num,
+        intp_t X_start,
+        intp_t X_end,
+    ) noexcept nogil:
         cdef:
-            ITYPE_t idx
+            intp_t idx
 
         # Sorting neighbors for each query vector of X
         if self.sort_results:
@@ -228,26 +225,26 @@ cdef class RadiusNeighbors64(BaseDistancesReduction64):
 
     cdef void _parallel_on_Y_init(
         self,
-    ) nogil:
+    ) noexcept nogil:
         cdef:
-            ITYPE_t thread_num
+            intp_t thread_num
         # As chunks of X are shared across threads, so must datastructures to avoid race
         # conditions: each thread has its own vectors of n_samples_X vectors which are
         # then merged back in the main n_samples_X vectors.
         for thread_num in range(self.chunks_n_threads):
-            self.neigh_distances_chunks[thread_num] = make_shared[vector[vector[DTYPE_t]]](self.n_samples_X)
-            self.neigh_indices_chunks[thread_num] = make_shared[vector[vector[ITYPE_t]]](self.n_samples_X)
+            self.neigh_distances_chunks[thread_num] = make_shared[vector[vector[float64_t]]](self.n_samples_X)
+            self.neigh_indices_chunks[thread_num] = make_shared[vector[vector[intp_t]]](self.n_samples_X)
 
     @final
     cdef void _merge_vectors(
         self,
-        ITYPE_t idx,
-        ITYPE_t num_threads,
-    ) nogil:
+        intp_t idx,
+        intp_t num_threads,
+    ) noexcept nogil:
         cdef:
-            ITYPE_t thread_num
-            ITYPE_t idx_n_elements = 0
-            ITYPE_t last_element_idx = deref(self.neigh_indices)[idx].size()
+            intp_t thread_num
+            intp_t idx_n_elements = 0
+            intp_t last_element_idx = deref(self.neigh_indices)[idx].size()
 
         # Resizing buffers only once for the given number of elements.
         for thread_num in range(num_threads):
@@ -273,9 +270,9 @@ cdef class RadiusNeighbors64(BaseDistancesReduction64):
 
     cdef void _parallel_on_Y_finalize(
         self,
-    ) nogil:
+    ) noexcept nogil:
         cdef:
-            ITYPE_t idx
+            intp_t idx
 
         with nogil, parallel(num_threads=self.effective_n_threads):
             # Merge vectors used in threads into the main ones.
@@ -299,10 +296,10 @@ cdef class RadiusNeighbors64(BaseDistancesReduction64):
 
         return
 
-    cdef void compute_exact_distances(self) nogil:
+    cdef void compute_exact_distances(self) noexcept nogil:
         """Convert rank-preserving distances to pairwise distances in parallel."""
         cdef:
-            ITYPE_t i, j
+            intp_t i, j
 
         for i in prange(self.n_samples_X, nogil=True, schedule='static',
                         num_threads=self.effective_n_threads):
@@ -327,7 +324,7 @@ cdef class EuclideanRadiusNeighbors64(RadiusNeighbors64):
         self,
         X,
         Y,
-        DTYPE_t radius,
+        float64_t radius,
         bint use_squared_distances=False,
         chunk_size=None,
         strategy=None,
@@ -354,7 +351,7 @@ cdef class EuclideanRadiusNeighbors64(RadiusNeighbors64):
             sort_results=sort_results,
         )
         cdef:
-            ITYPE_t dist_middle_terms_chunks_size = self.Y_n_samples_chunk * self.X_n_samples_chunk
+            intp_t dist_middle_terms_chunks_size = self.Y_n_samples_chunk * self.X_n_samples_chunk
 
         self.middle_term_computer = MiddleTermComputer64.get_for(
             X,
@@ -406,30 +403,30 @@ cdef class EuclideanRadiusNeighbors64(RadiusNeighbors64):
     @final
     cdef void _parallel_on_X_parallel_init(
         self,
-        ITYPE_t thread_num,
-    ) nogil:
+        intp_t thread_num,
+    ) noexcept nogil:
         RadiusNeighbors64._parallel_on_X_parallel_init(self, thread_num)
         self.middle_term_computer._parallel_on_X_parallel_init(thread_num)
 
     @final
     cdef void _parallel_on_X_init_chunk(
         self,
-        ITYPE_t thread_num,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-    ) nogil:
+        intp_t thread_num,
+        intp_t X_start,
+        intp_t X_end,
+    ) noexcept nogil:
         RadiusNeighbors64._parallel_on_X_init_chunk(self, thread_num, X_start, X_end)
         self.middle_term_computer._parallel_on_X_init_chunk(thread_num, X_start, X_end)
 
     @final
     cdef void _parallel_on_X_pre_compute_and_reduce_distances_on_chunks(
         self,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-        ITYPE_t Y_start,
-        ITYPE_t Y_end,
-        ITYPE_t thread_num,
-    ) nogil:
+        intp_t X_start,
+        intp_t X_end,
+        intp_t Y_start,
+        intp_t Y_end,
+        intp_t thread_num,
+    ) noexcept nogil:
         RadiusNeighbors64._parallel_on_X_pre_compute_and_reduce_distances_on_chunks(
             self,
             X_start, X_end,
@@ -443,29 +440,29 @@ cdef class EuclideanRadiusNeighbors64(RadiusNeighbors64):
     @final
     cdef void _parallel_on_Y_init(
         self,
-    ) nogil:
+    ) noexcept nogil:
         RadiusNeighbors64._parallel_on_Y_init(self)
         self.middle_term_computer._parallel_on_Y_init()
 
     @final
     cdef void _parallel_on_Y_parallel_init(
         self,
-        ITYPE_t thread_num,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-    ) nogil:
+        intp_t thread_num,
+        intp_t X_start,
+        intp_t X_end,
+    ) noexcept nogil:
         RadiusNeighbors64._parallel_on_Y_parallel_init(self, thread_num, X_start, X_end)
         self.middle_term_computer._parallel_on_Y_parallel_init(thread_num, X_start, X_end)
 
     @final
     cdef void _parallel_on_Y_pre_compute_and_reduce_distances_on_chunks(
         self,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-        ITYPE_t Y_start,
-        ITYPE_t Y_end,
-        ITYPE_t thread_num,
-    ) nogil:
+        intp_t X_start,
+        intp_t X_end,
+        intp_t Y_start,
+        intp_t Y_end,
+        intp_t thread_num,
+    ) noexcept nogil:
         RadiusNeighbors64._parallel_on_Y_pre_compute_and_reduce_distances_on_chunks(
             self,
             X_start, X_end,
@@ -477,25 +474,25 @@ cdef class EuclideanRadiusNeighbors64(RadiusNeighbors64):
         )
 
     @final
-    cdef void compute_exact_distances(self) nogil:
+    cdef void compute_exact_distances(self) noexcept nogil:
         if not self.use_squared_distances:
             RadiusNeighbors64.compute_exact_distances(self)
 
     @final
     cdef void _compute_and_reduce_distances_on_chunks(
         self,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-        ITYPE_t Y_start,
-        ITYPE_t Y_end,
-        ITYPE_t thread_num,
-    ) nogil:
+        intp_t X_start,
+        intp_t X_end,
+        intp_t Y_start,
+        intp_t Y_end,
+        intp_t thread_num,
+    ) noexcept nogil:
         cdef:
-            ITYPE_t i, j
-            DTYPE_t sqeuclidean_dist_i_j
-            ITYPE_t n_X = X_end - X_start
-            ITYPE_t n_Y = Y_end - Y_start
-            DTYPE_t *dist_middle_terms = self.middle_term_computer._compute_dist_middle_terms(
+            intp_t i, j
+            float64_t sqeuclidean_dist_i_j
+            intp_t n_X = X_end - X_start
+            intp_t n_Y = Y_end - Y_start
+            float64_t *dist_middle_terms = self.middle_term_computer._compute_dist_middle_terms(
                 X_start, X_end, Y_start, Y_end, thread_num
             )
 
@@ -534,7 +531,7 @@ cdef class RadiusNeighbors32(BaseDistancesReduction32):
         cls,
         X,
         Y,
-        DTYPE_t radius,
+        float64_t radius,
         str metric="euclidean",
         chunk_size=None,
         dict metric_kwargs=None,
@@ -555,10 +552,7 @@ cdef class RadiusNeighbors32(BaseDistancesReduction32):
 
         No instance should directly be created outside of this class method.
         """
-        if (
-            metric in ("euclidean", "sqeuclidean")
-            and not (issparse(X) ^ issparse(Y))  # "^" is XOR
-        ):
+        if metric in ("euclidean", "sqeuclidean"):
             # Specialized implementation of RadiusNeighbors for the Euclidean
             # distance for the dense-dense and sparse-sparse cases.
             # This implementation computes the distances by chunk using
@@ -602,7 +596,7 @@ cdef class RadiusNeighbors32(BaseDistancesReduction32):
     def __init__(
         self,
         DatasetsPair32 datasets_pair,
-        DTYPE_t radius,
+        float64_t radius,
         chunk_size=None,
         strategy=None,
         sort_results=False,
@@ -626,29 +620,29 @@ cdef class RadiusNeighbors32(BaseDistancesReduction32):
         #   - when parallelizing on Y, the pointers of those heaps are referencing
         #   std::vectors of std::vectors which are thread-wise-allocated and whose
         #   content will be merged into self.neigh_distances and self.neigh_indices.
-        self.neigh_distances_chunks = vector[shared_ptr[vector[vector[DTYPE_t]]]](
+        self.neigh_distances_chunks = vector[shared_ptr[vector[vector[float64_t]]]](
             self.chunks_n_threads
         )
-        self.neigh_indices_chunks = vector[shared_ptr[vector[vector[ITYPE_t]]]](
+        self.neigh_indices_chunks = vector[shared_ptr[vector[vector[intp_t]]]](
             self.chunks_n_threads
         )
 
         # Temporary datastructures which will be coerced to numpy arrays on before
         # RadiusNeighbors.compute "return" and will be then freed.
-        self.neigh_distances = make_shared[vector[vector[DTYPE_t]]](self.n_samples_X)
-        self.neigh_indices = make_shared[vector[vector[ITYPE_t]]](self.n_samples_X)
+        self.neigh_distances = make_shared[vector[vector[float64_t]]](self.n_samples_X)
+        self.neigh_indices = make_shared[vector[vector[intp_t]]](self.n_samples_X)
 
     cdef void _compute_and_reduce_distances_on_chunks(
         self,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-        ITYPE_t Y_start,
-        ITYPE_t Y_end,
-        ITYPE_t thread_num,
-    ) nogil:
+        intp_t X_start,
+        intp_t X_end,
+        intp_t Y_start,
+        intp_t Y_end,
+        intp_t thread_num,
+    ) noexcept nogil:
         cdef:
-            ITYPE_t i, j
-            DTYPE_t r_dist_i_j
+            intp_t i, j
+            float64_t r_dist_i_j
 
         for i in range(X_start, X_end):
             for j in range(Y_start, Y_end):
@@ -671,10 +665,10 @@ cdef class RadiusNeighbors32(BaseDistancesReduction32):
 
     cdef void _parallel_on_X_init_chunk(
         self,
-        ITYPE_t thread_num,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-    ) nogil:
+        intp_t thread_num,
+        intp_t X_start,
+        intp_t X_end,
+    ) noexcept nogil:
 
         # As this strategy is embarrassingly parallel, we can set the
         # thread vectors' pointers to the main vectors'.
@@ -684,12 +678,12 @@ cdef class RadiusNeighbors32(BaseDistancesReduction32):
     @final
     cdef void _parallel_on_X_prange_iter_finalize(
         self,
-        ITYPE_t thread_num,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-    ) nogil:
+        intp_t thread_num,
+        intp_t X_start,
+        intp_t X_end,
+    ) noexcept nogil:
         cdef:
-            ITYPE_t idx
+            intp_t idx
 
         # Sorting neighbors for each query vector of X
         if self.sort_results:
@@ -702,26 +696,26 @@ cdef class RadiusNeighbors32(BaseDistancesReduction32):
 
     cdef void _parallel_on_Y_init(
         self,
-    ) nogil:
+    ) noexcept nogil:
         cdef:
-            ITYPE_t thread_num
+            intp_t thread_num
         # As chunks of X are shared across threads, so must datastructures to avoid race
         # conditions: each thread has its own vectors of n_samples_X vectors which are
         # then merged back in the main n_samples_X vectors.
         for thread_num in range(self.chunks_n_threads):
-            self.neigh_distances_chunks[thread_num] = make_shared[vector[vector[DTYPE_t]]](self.n_samples_X)
-            self.neigh_indices_chunks[thread_num] = make_shared[vector[vector[ITYPE_t]]](self.n_samples_X)
+            self.neigh_distances_chunks[thread_num] = make_shared[vector[vector[float64_t]]](self.n_samples_X)
+            self.neigh_indices_chunks[thread_num] = make_shared[vector[vector[intp_t]]](self.n_samples_X)
 
     @final
     cdef void _merge_vectors(
         self,
-        ITYPE_t idx,
-        ITYPE_t num_threads,
-    ) nogil:
+        intp_t idx,
+        intp_t num_threads,
+    ) noexcept nogil:
         cdef:
-            ITYPE_t thread_num
-            ITYPE_t idx_n_elements = 0
-            ITYPE_t last_element_idx = deref(self.neigh_indices)[idx].size()
+            intp_t thread_num
+            intp_t idx_n_elements = 0
+            intp_t last_element_idx = deref(self.neigh_indices)[idx].size()
 
         # Resizing buffers only once for the given number of elements.
         for thread_num in range(num_threads):
@@ -747,9 +741,9 @@ cdef class RadiusNeighbors32(BaseDistancesReduction32):
 
     cdef void _parallel_on_Y_finalize(
         self,
-    ) nogil:
+    ) noexcept nogil:
         cdef:
-            ITYPE_t idx
+            intp_t idx
 
         with nogil, parallel(num_threads=self.effective_n_threads):
             # Merge vectors used in threads into the main ones.
@@ -773,10 +767,10 @@ cdef class RadiusNeighbors32(BaseDistancesReduction32):
 
         return
 
-    cdef void compute_exact_distances(self) nogil:
+    cdef void compute_exact_distances(self) noexcept nogil:
         """Convert rank-preserving distances to pairwise distances in parallel."""
         cdef:
-            ITYPE_t i, j
+            intp_t i, j
 
         for i in prange(self.n_samples_X, nogil=True, schedule='static',
                         num_threads=self.effective_n_threads):
@@ -801,7 +795,7 @@ cdef class EuclideanRadiusNeighbors32(RadiusNeighbors32):
         self,
         X,
         Y,
-        DTYPE_t radius,
+        float64_t radius,
         bint use_squared_distances=False,
         chunk_size=None,
         strategy=None,
@@ -828,7 +822,7 @@ cdef class EuclideanRadiusNeighbors32(RadiusNeighbors32):
             sort_results=sort_results,
         )
         cdef:
-            ITYPE_t dist_middle_terms_chunks_size = self.Y_n_samples_chunk * self.X_n_samples_chunk
+            intp_t dist_middle_terms_chunks_size = self.Y_n_samples_chunk * self.X_n_samples_chunk
 
         self.middle_term_computer = MiddleTermComputer32.get_for(
             X,
@@ -880,30 +874,30 @@ cdef class EuclideanRadiusNeighbors32(RadiusNeighbors32):
     @final
     cdef void _parallel_on_X_parallel_init(
         self,
-        ITYPE_t thread_num,
-    ) nogil:
+        intp_t thread_num,
+    ) noexcept nogil:
         RadiusNeighbors32._parallel_on_X_parallel_init(self, thread_num)
         self.middle_term_computer._parallel_on_X_parallel_init(thread_num)
 
     @final
     cdef void _parallel_on_X_init_chunk(
         self,
-        ITYPE_t thread_num,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-    ) nogil:
+        intp_t thread_num,
+        intp_t X_start,
+        intp_t X_end,
+    ) noexcept nogil:
         RadiusNeighbors32._parallel_on_X_init_chunk(self, thread_num, X_start, X_end)
         self.middle_term_computer._parallel_on_X_init_chunk(thread_num, X_start, X_end)
 
     @final
     cdef void _parallel_on_X_pre_compute_and_reduce_distances_on_chunks(
         self,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-        ITYPE_t Y_start,
-        ITYPE_t Y_end,
-        ITYPE_t thread_num,
-    ) nogil:
+        intp_t X_start,
+        intp_t X_end,
+        intp_t Y_start,
+        intp_t Y_end,
+        intp_t thread_num,
+    ) noexcept nogil:
         RadiusNeighbors32._parallel_on_X_pre_compute_and_reduce_distances_on_chunks(
             self,
             X_start, X_end,
@@ -917,29 +911,29 @@ cdef class EuclideanRadiusNeighbors32(RadiusNeighbors32):
     @final
     cdef void _parallel_on_Y_init(
         self,
-    ) nogil:
+    ) noexcept nogil:
         RadiusNeighbors32._parallel_on_Y_init(self)
         self.middle_term_computer._parallel_on_Y_init()
 
     @final
     cdef void _parallel_on_Y_parallel_init(
         self,
-        ITYPE_t thread_num,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-    ) nogil:
+        intp_t thread_num,
+        intp_t X_start,
+        intp_t X_end,
+    ) noexcept nogil:
         RadiusNeighbors32._parallel_on_Y_parallel_init(self, thread_num, X_start, X_end)
         self.middle_term_computer._parallel_on_Y_parallel_init(thread_num, X_start, X_end)
 
     @final
     cdef void _parallel_on_Y_pre_compute_and_reduce_distances_on_chunks(
         self,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-        ITYPE_t Y_start,
-        ITYPE_t Y_end,
-        ITYPE_t thread_num,
-    ) nogil:
+        intp_t X_start,
+        intp_t X_end,
+        intp_t Y_start,
+        intp_t Y_end,
+        intp_t thread_num,
+    ) noexcept nogil:
         RadiusNeighbors32._parallel_on_Y_pre_compute_and_reduce_distances_on_chunks(
             self,
             X_start, X_end,
@@ -951,25 +945,25 @@ cdef class EuclideanRadiusNeighbors32(RadiusNeighbors32):
         )
 
     @final
-    cdef void compute_exact_distances(self) nogil:
+    cdef void compute_exact_distances(self) noexcept nogil:
         if not self.use_squared_distances:
             RadiusNeighbors32.compute_exact_distances(self)
 
     @final
     cdef void _compute_and_reduce_distances_on_chunks(
         self,
-        ITYPE_t X_start,
-        ITYPE_t X_end,
-        ITYPE_t Y_start,
-        ITYPE_t Y_end,
-        ITYPE_t thread_num,
-    ) nogil:
+        intp_t X_start,
+        intp_t X_end,
+        intp_t Y_start,
+        intp_t Y_end,
+        intp_t thread_num,
+    ) noexcept nogil:
         cdef:
-            ITYPE_t i, j
-            DTYPE_t sqeuclidean_dist_i_j
-            ITYPE_t n_X = X_end - X_start
-            ITYPE_t n_Y = Y_end - Y_start
-            DTYPE_t *dist_middle_terms = self.middle_term_computer._compute_dist_middle_terms(
+            intp_t i, j
+            float64_t sqeuclidean_dist_i_j
+            intp_t n_X = X_end - X_start
+            intp_t n_Y = Y_end - Y_start
+            float64_t *dist_middle_terms = self.middle_term_computer._compute_dist_middle_terms(
                 X_start, X_end, Y_start, Y_end, thread_num
             )
 

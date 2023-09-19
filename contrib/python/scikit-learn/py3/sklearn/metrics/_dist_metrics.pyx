@@ -10,12 +10,11 @@ cnp.import_array()  # required in order to use C-API
 from libc.math cimport fabs, sqrt, exp, pow, cos, sin, asin
 
 from scipy.sparse import csr_matrix, issparse
-from ..utils._typedefs cimport DTYPE_t, ITYPE_t, DTYPECODE
-from ..utils._typedefs import DTYPE, ITYPE
-from ..utils._readonly_array_wrapper import ReadonlyArrayWrapper
+from ..utils._typedefs cimport float64_t, float32_t, int32_t, intp_t
 from ..utils import check_array
+from ..utils.fixes import parse_version, sp_base_version
 
-cdef inline double fmax(double a, double b) nogil:
+cdef inline double fmax(double a, double b) noexcept nogil:
     return max(a, b)
 
 
@@ -28,15 +27,19 @@ def newObj(obj):
 
 BOOL_METRICS = [
     "hamming",
-    "matching",
     "jaccard",
     "dice",
-    "kulsinski",
     "rogerstanimoto",
     "russellrao",
     "sokalmichener",
     "sokalsneath",
 ]
+if sp_base_version < parse_version("1.11"):
+    # Deprecated in SciPy 1.9 and removed in SciPy 1.11
+    BOOL_METRICS += ["kulsinski"]
+if sp_base_version < parse_version("1.9"):
+    # Deprecated in SciPy 1.0 and removed in SciPy 1.9
+    BOOL_METRICS += ["matching"]
 
 def get_valid_metric_ids(L):
     """Given an iterable of metric class names or class identifiers,
@@ -47,58 +50,84 @@ def get_valid_metric_ids(L):
     >>> sorted(L)
     ['cityblock', 'euclidean', 'l1', 'l2', 'manhattan']
     """
-    return [key for (key, val) in METRIC_MAPPING.items()
+    return [key for (key, val) in METRIC_MAPPING64.items()
             if (val.__name__ in L) or (val in L)]
 
-from ..utils._typedefs import SPARSE_INDEX_TYPE
+cdef class DistanceMetric:
+    @classmethod
+    def get_metric(cls, metric, dtype=np.float64, **kwargs):
+        """Get the given distance metric from the string identifier.
+
+        See the docstring of DistanceMetric for a list of available metrics.
+
+        Parameters
+        ----------
+        metric : str or class name
+            The distance metric to use
+        dtype : {np.float32, np.float64}, default=np.float64
+            The dtype of the data on which the metric will be applied
+        **kwargs
+            additional arguments will be passed to the requested metric
+        """
+        if dtype == np.float32:
+            specialized_class = DistanceMetric32
+        elif dtype == np.float64:
+            specialized_class = DistanceMetric64
+        else:
+            raise ValueError(
+                f"Unexpected dtype {dtype} provided. Please select a dtype from"
+                " {np.float32, np.float64}"
+            )
+
+        return specialized_class.get_metric(metric, **kwargs)
 
 ######################################################################
 # metric mappings
 #  These map from metric id strings to class names
-METRIC_MAPPING = {
-    'euclidean': EuclideanDistance,
-    'l2': EuclideanDistance,
-    'minkowski': MinkowskiDistance,
-    'p': MinkowskiDistance,
-    'manhattan': ManhattanDistance,
-    'cityblock': ManhattanDistance,
-    'l1': ManhattanDistance,
-    'chebyshev': ChebyshevDistance,
-    'infinity': ChebyshevDistance,
-    'seuclidean': SEuclideanDistance,
-    'mahalanobis': MahalanobisDistance,
-    'wminkowski': WMinkowskiDistance,
-    'hamming': HammingDistance,
-    'canberra': CanberraDistance,
-    'braycurtis': BrayCurtisDistance,
-    'matching': MatchingDistance,
-    'jaccard': JaccardDistance,
-    'dice': DiceDistance,
-    'kulsinski': KulsinskiDistance,
-    'rogerstanimoto': RogersTanimotoDistance,
-    'russellrao': RussellRaoDistance,
-    'sokalmichener': SokalMichenerDistance,
-    'sokalsneath': SokalSneathDistance,
-    'haversine': HaversineDistance,
-    'pyfunc': PyFuncDistance,
+METRIC_MAPPING64 = {
+    'euclidean': EuclideanDistance64,
+    'l2': EuclideanDistance64,
+    'minkowski': MinkowskiDistance64,
+    'p': MinkowskiDistance64,
+    'manhattan': ManhattanDistance64,
+    'cityblock': ManhattanDistance64,
+    'l1': ManhattanDistance64,
+    'chebyshev': ChebyshevDistance64,
+    'infinity': ChebyshevDistance64,
+    'seuclidean': SEuclideanDistance64,
+    'mahalanobis': MahalanobisDistance64,
+    'hamming': HammingDistance64,
+    'canberra': CanberraDistance64,
+    'braycurtis': BrayCurtisDistance64,
+    'matching': MatchingDistance64,
+    'jaccard': JaccardDistance64,
+    'dice': DiceDistance64,
+    'kulsinski': KulsinskiDistance64,
+    'rogerstanimoto': RogersTanimotoDistance64,
+    'russellrao': RussellRaoDistance64,
+    'sokalmichener': SokalMichenerDistance64,
+    'sokalsneath': SokalSneathDistance64,
+    'haversine': HaversineDistance64,
+    'pyfunc': PyFuncDistance64,
 }
 
-cdef inline cnp.ndarray _buffer_to_ndarray(const DTYPE_t* x, cnp.npy_intp n):
+cdef inline object _buffer_to_ndarray64(const float64_t* x, intp_t n):
     # Wrap a memory buffer with an ndarray. Warning: this is not robust.
     # In particular, if x is deallocated before the returned array goes
     # out of scope, this could cause memory errors.  Since there is not
     # a possibility of this for our use-case, this should be safe.
 
     # Note: this Segfaults unless np.import_array() is called above
-    return cnp.PyArray_SimpleNewFromData(1, &n, DTYPECODE, <void*>x)
+    # TODO: remove the explicit cast to cnp.intp_t* when cython min version >= 3.0
+    return cnp.PyArray_SimpleNewFromData(1, <cnp.intp_t*>&n, cnp.NPY_FLOAT64, <void*>x)
 
 
-cdef DTYPE_t INF = np.inf
+cdef float64_t INF64 = np.inf
 
 
 ######################################################################
 # Distance Metric Classes
-cdef class DistanceMetric:
+cdef class DistanceMetric64(DistanceMetric):
     """DistanceMetric class
 
     This class provides a uniform interface to fast distance metric
@@ -129,17 +158,9 @@ cdef class DistanceMetric:
     "manhattan"     ManhattanDistance     -         ``sum(|x - y|)``
     "chebyshev"     ChebyshevDistance     -         ``max(|x - y|)``
     "minkowski"     MinkowskiDistance     p, w      ``sum(w * |x - y|^p)^(1/p)``
-    "wminkowski"    WMinkowskiDistance    p, w      ``sum(|w * (x - y)|^p)^(1/p)``
     "seuclidean"    SEuclideanDistance    V         ``sqrt(sum((x - y)^2 / V))``
     "mahalanobis"   MahalanobisDistance   V or VI   ``sqrt((x - y)' V^-1 (x - y))``
     ==============  ====================  ========  ===============================
-
-    .. deprecated:: 1.1
-        `WMinkowskiDistance` is deprecated in version 1.1 and will be removed in version 1.3.
-        Use `MinkowskiDistance` instead. Note that in `MinkowskiDistance`, the weights are
-        applied to the absolute differences already raised to the p power. This is different from
-        `WMinkowskiDistance` where weights are applied to the absolute differences before raising
-        to the p power. The deprecation aims to remain consistent with SciPy 1.8 convention.
 
     **Metrics intended for two-dimensional vector spaces:**  Note that the haversine
     distance metric requires data in the form of [latitude, longitude] and both
@@ -213,8 +234,8 @@ cdef class DistanceMetric:
     """
     def __cinit__(self):
         self.p = 2
-        self.vec = np.zeros(1, dtype=DTYPE, order='C')
-        self.mat = np.zeros((1, 1), dtype=DTYPE, order='C')
+        self.vec = np.zeros(1, dtype=np.float64, order='C')
+        self.mat = np.zeros((1, 1), dtype=np.float64, order='C')
         self.size = 1
 
     def __reduce__(self):
@@ -227,7 +248,7 @@ cdef class DistanceMetric:
         """
         get state for pickling
         """
-        if self.__class__.__name__ == "PyFuncDistance":
+        if self.__class__.__name__ == "PyFuncDistance64":
             return (float(self.p), np.asarray(self.vec), np.asarray(self.mat), self.func, self.kwargs)
         return (float(self.p), np.asarray(self.vec), np.asarray(self.mat))
 
@@ -236,9 +257,9 @@ cdef class DistanceMetric:
         set state for pickling
         """
         self.p = state[0]
-        self.vec = ReadonlyArrayWrapper(state[1])
-        self.mat = ReadonlyArrayWrapper(state[2])
-        if self.__class__.__name__ == "PyFuncDistance":
+        self.vec = state[1]
+        self.mat = state[2]
+        if self.__class__.__name__ == "PyFuncDistance64":
             self.func = state[3]
             self.kwargs = state[4]
         self.size = self.vec.shape[0]
@@ -256,39 +277,39 @@ cdef class DistanceMetric:
         **kwargs
             additional arguments will be passed to the requested metric
         """
-        if isinstance(metric, DistanceMetric):
+        if isinstance(metric, DistanceMetric64):
             return metric
 
         if callable(metric):
-            return PyFuncDistance(metric, **kwargs)
+            return PyFuncDistance64(metric, **kwargs)
 
         # Map the metric string ID to the metric class
-        if isinstance(metric, type) and issubclass(metric, DistanceMetric):
+        if isinstance(metric, type) and issubclass(metric, DistanceMetric64):
             pass
         else:
             try:
-                metric = METRIC_MAPPING[metric]
+                metric = METRIC_MAPPING64[metric]
             except:
                 raise ValueError("Unrecognized metric '%s'" % metric)
 
         # In Minkowski special cases, return more efficient methods
-        if metric is MinkowskiDistance:
+        if metric is MinkowskiDistance64:
             p = kwargs.pop('p', 2)
             w = kwargs.pop('w', None)
             if p == 1 and w is None:
-                return ManhattanDistance(**kwargs)
+                return ManhattanDistance64(**kwargs)
             elif p == 2 and w is None:
-                return EuclideanDistance(**kwargs)
+                return EuclideanDistance64(**kwargs)
             elif np.isinf(p) and w is None:
-                return ChebyshevDistance(**kwargs)
+                return ChebyshevDistance64(**kwargs)
             else:
-                return MinkowskiDistance(p, w, **kwargs)
+                return MinkowskiDistance64(p, w, **kwargs)
         else:
             return metric(**kwargs)
 
     def __init__(self):
-        if self.__class__ is DistanceMetric:
-            raise NotImplementedError("DistanceMetric is an abstract class")
+        if self.__class__ is DistanceMetric64:
+            raise NotImplementedError("DistanceMetric64 is an abstract class")
 
     def _validate_data(self, X):
         """Validate the input data.
@@ -298,24 +319,24 @@ cdef class DistanceMetric:
         """
         return
 
-    cdef DTYPE_t dist(
+    cdef float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         """Compute the distance between vectors x1 and x2
 
         This should be overridden in a base class.
         """
         return -999
 
-    cdef DTYPE_t rdist(
+    cdef float64_t rdist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         """Compute the rank-preserving surrogate distance between vectors x1 and x2.
 
         This can optionally be overridden in a base class.
@@ -329,11 +350,11 @@ cdef class DistanceMetric:
 
     cdef int pdist(
         self,
-        const DTYPE_t[:, ::1] X,
-        DTYPE_t[:, ::1] D,
+        const float64_t[:, ::1] X,
+        float64_t[:, ::1] D,
     ) except -1:
         """Compute the pairwise distances between points in X"""
-        cdef ITYPE_t i1, i2
+        cdef intp_t i1, i2
         for i1 in range(X.shape[0]):
             for i2 in range(i1, X.shape[0]):
                 D[i1, i2] = self.dist(&X[i1, 0], &X[i2, 0], X.shape[1])
@@ -343,12 +364,12 @@ cdef class DistanceMetric:
 
     cdef int cdist(
         self,
-        const DTYPE_t[:, ::1] X,
-        const DTYPE_t[:, ::1] Y,
-        DTYPE_t[:, ::1] D,
+        const float64_t[:, ::1] X,
+        const float64_t[:, ::1] Y,
+        float64_t[:, ::1] D,
     ) except -1:
         """Compute the cross-pairwise distances between arrays X and Y"""
-        cdef ITYPE_t i1, i2
+        cdef intp_t i1, i2
         if X.shape[1] != Y.shape[1]:
             raise ValueError('X and Y must have the same second dimension')
         for i1 in range(X.shape[0]):
@@ -356,18 +377,18 @@ cdef class DistanceMetric:
                 D[i1, i2] = self.dist(&X[i1, 0], &Y[i2, 0], X.shape[1])
         return 0
 
-    cdef DTYPE_t dist_csr(
+    cdef float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         """Compute the distance between vectors x1 and x2 represented
         under the CSR format.
 
@@ -386,13 +407,13 @@ cdef class DistanceMetric:
 
         2. An alternative signature would be:
 
-            cdef DTYPE_t dist_csr(
+            cdef float64_t dist_csr(
                 self,
-                const DTYPE_t* x1_data,
-                const SPARSE_INDEX_TYPE_t[:] x1_indices,
-                const DTYPE_t* x2_data,
-                const SPARSE_INDEX_TYPE_t[:] x2_indices,
-            ) nogil except -1:
+                const float64_t* x1_data,
+                const int32_t[:] x1_indices,
+                const float64_t* x2_data,
+                const int32_t[:] x2_indices,
+            ) except -1 nogil:
 
         Where callers would use slicing on the original CSR data and indices
         memoryviews:
@@ -422,18 +443,18 @@ cdef class DistanceMetric:
         """
         return -999
 
-    cdef DTYPE_t rdist_csr(
+    cdef float64_t rdist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         """Distance between rows of CSR matrices x1 and x2.
 
         This can optionally be overridden in a subclass.
@@ -465,21 +486,21 @@ cdef class DistanceMetric:
 
     cdef int pdist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const SPARSE_INDEX_TYPE_t[:] x1_indptr,
-        const ITYPE_t size,
-        DTYPE_t[:, ::1] D,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const int32_t[:] x1_indptr,
+        const intp_t size,
+        float64_t[:, ::1] D,
+    ) except -1 nogil:
         """Pairwise distances between rows in CSR matrix X.
 
         Note that this implementation is twice faster than cdist_csr(X, X)
         because it leverages the symmetry of the problem.
         """
         cdef:
-            ITYPE_t i1, i2
-            ITYPE_t n_x1 = x1_indptr.shape[0] - 1
-            ITYPE_t x1_start, x1_end, x2_start, x2_end
+            intp_t i1, i2
+            intp_t n_x1 = x1_indptr.shape[0] - 1
+            intp_t x1_start, x1_end, x2_start, x2_end
 
         for i1 in range(n_x1):
             x1_start = x1_indptr[i1]
@@ -502,22 +523,22 @@ cdef class DistanceMetric:
 
     cdef int cdist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const SPARSE_INDEX_TYPE_t[:] x1_indptr,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t[:] x2_indptr,
-        const ITYPE_t size,
-        DTYPE_t[:, ::1] D,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const int32_t[:] x1_indptr,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t[:] x2_indptr,
+        const intp_t size,
+        float64_t[:, ::1] D,
+    ) except -1 nogil:
         """Compute the cross-pairwise distances between arrays X and Y
         represented in the CSR format."""
         cdef:
-            ITYPE_t i1, i2
-            ITYPE_t n_x1 = x1_indptr.shape[0] - 1
-            ITYPE_t n_x2 = x2_indptr.shape[0] - 1
-            ITYPE_t x1_start, x1_end, x2_start, x2_end
+            intp_t i1, i2
+            intp_t n_x1 = x1_indptr.shape[0] - 1
+            intp_t n_x2 = x2_indptr.shape[0] - 1
+            intp_t x1_start, x1_end, x2_start, x2_end
 
         for i1 in range(n_x1):
             x1_start = x1_indptr[i1]
@@ -539,11 +560,11 @@ cdef class DistanceMetric:
                 )
         return 0
 
-    cdef DTYPE_t _rdist_to_dist(self, DTYPE_t rdist) nogil except -1:
+    cdef float64_t _rdist_to_dist(self, float64_t rdist) except -1 nogil:
         """Convert the rank-preserving surrogate distance to the distance"""
         return rdist
 
-    cdef DTYPE_t _dist_to_rdist(self, DTYPE_t dist) nogil except -1:
+    cdef float64_t _dist_to_rdist(self, float64_t dist) except -1 nogil:
         """Convert the distance to the rank-preserving surrogate distance"""
         return dist
 
@@ -588,43 +609,43 @@ cdef class DistanceMetric:
         return dist
 
     def _pairwise_dense_dense(self, X, Y):
-        cdef cnp.ndarray[DTYPE_t, ndim=2, mode='c'] Xarr
-        cdef cnp.ndarray[DTYPE_t, ndim=2, mode='c'] Yarr
-        cdef cnp.ndarray[DTYPE_t, ndim=2, mode='c'] Darr
+        cdef const float64_t[:, ::1] Xarr
+        cdef const float64_t[:, ::1] Yarr
+        cdef float64_t[:, ::1] Darr
 
-        Xarr = np.asarray(X, dtype=DTYPE, order='C')
+        Xarr = np.asarray(X, dtype=np.float64, order='C')
         self._validate_data(Xarr)
         if X is Y:
-            Darr = np.empty((Xarr.shape[0], Xarr.shape[0]), dtype=DTYPE, order='C')
+            Darr = np.empty((Xarr.shape[0], Xarr.shape[0]), dtype=np.float64, order='C')
             self.pdist(Xarr, Darr)
         else:
-            Yarr = np.asarray(Y, dtype=DTYPE, order='C')
+            Yarr = np.asarray(Y, dtype=np.float64, order='C')
             self._validate_data(Yarr)
-            Darr = np.empty((Xarr.shape[0], Yarr.shape[0]), dtype=DTYPE, order='C')
+            Darr = np.empty((Xarr.shape[0], Yarr.shape[0]), dtype=np.float64, order='C')
             self.cdist(Xarr, Yarr, Darr)
         return np.asarray(Darr)
 
     def _pairwise_sparse_sparse(self, X: csr_matrix , Y: csr_matrix):
         cdef:
-            ITYPE_t n_X, n_features
-            const DTYPE_t[:] X_data
-            const SPARSE_INDEX_TYPE_t[:] X_indices
-            const SPARSE_INDEX_TYPE_t[:] X_indptr
+            intp_t n_X, n_features
+            const float64_t[:] X_data
+            const int32_t[:] X_indices
+            const int32_t[:] X_indptr
 
-            ITYPE_t n_Y
-            const DTYPE_t[:] Y_data
-            const SPARSE_INDEX_TYPE_t[:] Y_indices
-            const SPARSE_INDEX_TYPE_t[:] Y_indptr
+            intp_t n_Y
+            const float64_t[:] Y_data
+            const int32_t[:] Y_indices
+            const int32_t[:] Y_indptr
 
-            DTYPE_t[:, ::1] Darr
+            float64_t[:, ::1] Darr
 
         X_csr = X.tocsr()
         n_X, n_features = X_csr.shape
-        X_data = np.asarray(X_csr.data, dtype=DTYPE)
-        X_indices = np.asarray(X_csr.indices, dtype=SPARSE_INDEX_TYPE)
-        X_indptr = np.asarray(X_csr.indptr, dtype=SPARSE_INDEX_TYPE)
+        X_data = np.asarray(X_csr.data, dtype=np.float64)
+        X_indices = np.asarray(X_csr.indices, dtype=np.int32)
+        X_indptr = np.asarray(X_csr.indptr, dtype=np.int32)
         if X is Y:
-            Darr = np.empty((n_X, n_X), dtype=DTYPE, order='C')
+            Darr = np.empty((n_X, n_X), dtype=np.float64, order='C')
             self.pdist_csr(
                 x1_data=&X_data[0],
                 x1_indices=X_indices,
@@ -635,11 +656,11 @@ cdef class DistanceMetric:
         else:
             Y_csr = Y.tocsr()
             n_Y, _ = Y_csr.shape
-            Y_data = np.asarray(Y_csr.data, dtype=DTYPE)
-            Y_indices = np.asarray(Y_csr.indices, dtype=SPARSE_INDEX_TYPE)
-            Y_indptr = np.asarray(Y_csr.indptr, dtype=SPARSE_INDEX_TYPE)
+            Y_data = np.asarray(Y_csr.data, dtype=np.float64)
+            Y_indices = np.asarray(Y_csr.indices, dtype=np.int32)
+            Y_indptr = np.asarray(Y_csr.indptr, dtype=np.int32)
 
-            Darr = np.empty((n_X, n_Y), dtype=DTYPE, order='C')
+            Darr = np.empty((n_X, n_Y), dtype=np.float64, order='C')
             self.cdist_csr(
                 x1_data=&X_data[0],
                 x1_indices=X_indices,
@@ -654,31 +675,31 @@ cdef class DistanceMetric:
 
     def _pairwise_sparse_dense(self, X: csr_matrix, Y):
         cdef:
-            ITYPE_t n_X = X.shape[0]
-            ITYPE_t n_features = X.shape[1]
-            const DTYPE_t[:] X_data = np.asarray(
-                X.data, dtype=DTYPE,
+            intp_t n_X = X.shape[0]
+            intp_t n_features = X.shape[1]
+            const float64_t[:] X_data = np.asarray(
+                X.data, dtype=np.float64,
             )
-            const SPARSE_INDEX_TYPE_t[:] X_indices = np.asarray(
-                X.indices, dtype=SPARSE_INDEX_TYPE,
+            const int32_t[:] X_indices = np.asarray(
+                X.indices, dtype=np.int32,
             )
-            const SPARSE_INDEX_TYPE_t[:] X_indptr = np.asarray(
-                X.indptr, dtype=SPARSE_INDEX_TYPE,
-            )
-
-            const DTYPE_t[:, ::1] Y_data = np.asarray(
-                Y, dtype=DTYPE, order="C",
-            )
-            ITYPE_t n_Y = Y_data.shape[0]
-            const SPARSE_INDEX_TYPE_t[:] Y_indices = (
-                np.arange(n_features, dtype=SPARSE_INDEX_TYPE)
+            const int32_t[:] X_indptr = np.asarray(
+                X.indptr, dtype=np.int32,
             )
 
-            DTYPE_t[:, ::1] Darr = np.empty((n_X, n_Y), dtype=DTYPE, order='C')
+            const float64_t[:, ::1] Y_data = np.asarray(
+                Y, dtype=np.float64, order="C",
+            )
+            intp_t n_Y = Y_data.shape[0]
+            const int32_t[:] Y_indices = (
+                np.arange(n_features, dtype=np.int32)
+            )
 
-            ITYPE_t i1, i2
-            ITYPE_t x1_start, x1_end
-            DTYPE_t * x2_data
+            float64_t[:, ::1] Darr = np.empty((n_X, n_Y), dtype=np.float64, order='C')
+
+            intp_t i1, i2
+            intp_t x1_start, x1_end
+            float64_t * x2_data
 
         with nogil:
             # Use the exact same adaptation for CSR than in SparseDenseDatasetsPair
@@ -718,33 +739,33 @@ cdef class DistanceMetric:
         # swapping argument and by transposing the results, but this would
         # have come with an extra copy to ensure C-contiguity of the result.
         cdef:
-            ITYPE_t n_X = X.shape[0]
-            ITYPE_t n_features = X.shape[1]
+            intp_t n_X = X.shape[0]
+            intp_t n_features = X.shape[1]
 
-            const DTYPE_t[:, ::1] X_data = np.asarray(
-                X, dtype=DTYPE, order="C",
+            const float64_t[:, ::1] X_data = np.asarray(
+                X, dtype=np.float64, order="C",
             )
-            const SPARSE_INDEX_TYPE_t[:] X_indices = np.arange(
-                n_features, dtype=SPARSE_INDEX_TYPE,
-            )
-
-            ITYPE_t n_Y = Y.shape[0]
-            const DTYPE_t[:] Y_data = np.asarray(
-                Y.data, dtype=DTYPE,
-            )
-            const SPARSE_INDEX_TYPE_t[:] Y_indices = np.asarray(
-                Y.indices, dtype=SPARSE_INDEX_TYPE,
-            )
-            const SPARSE_INDEX_TYPE_t[:] Y_indptr = np.asarray(
-                Y.indptr, dtype=SPARSE_INDEX_TYPE,
+            const int32_t[:] X_indices = np.arange(
+                n_features, dtype=np.int32,
             )
 
-            DTYPE_t[:, ::1] Darr = np.empty((n_X, n_Y), dtype=DTYPE, order='C')
+            intp_t n_Y = Y.shape[0]
+            const float64_t[:] Y_data = np.asarray(
+                Y.data, dtype=np.float64,
+            )
+            const int32_t[:] Y_indices = np.asarray(
+                Y.indices, dtype=np.int32,
+            )
+            const int32_t[:] Y_indptr = np.asarray(
+                Y.indptr, dtype=np.int32,
+            )
 
-            ITYPE_t i1, i2
-            DTYPE_t * x1_data
+            float64_t[:, ::1] Darr = np.empty((n_X, n_Y), dtype=np.float64, order='C')
 
-            ITYPE_t x2_start, x2_end
+            intp_t i1, i2
+            float64_t * x1_data
+
+            intp_t x2_start, x2_end
 
         with nogil:
             # Use the exact same adaptation for CSR than in SparseDenseDatasetsPair
@@ -824,7 +845,7 @@ cdef class DistanceMetric:
 #------------------------------------------------------------
 # Euclidean Distance
 #  d = sqrt(sum(x_i^2 - y_i^2))
-cdef class EuclideanDistance(DistanceMetric):
+cdef class EuclideanDistance64(DistanceMetric64):
     r"""Euclidean Distance metric
 
     .. math::
@@ -833,24 +854,24 @@ cdef class EuclideanDistance(DistanceMetric):
     def __init__(self):
         self.p = 2
 
-    cdef inline DTYPE_t dist(self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        return euclidean_dist(x1, x2, size)
+    cdef inline float64_t dist(self,
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        return euclidean_dist64(x1, x2, size)
 
-    cdef inline DTYPE_t rdist(self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        return euclidean_rdist(x1, x2, size)
+    cdef inline float64_t rdist(self,
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        return euclidean_rdist64(x1, x2, size)
 
-    cdef inline DTYPE_t _rdist_to_dist(self, DTYPE_t rdist) nogil except -1:
+    cdef inline float64_t _rdist_to_dist(self, float64_t rdist) except -1 nogil:
         return sqrt(rdist)
 
-    cdef inline DTYPE_t _dist_to_rdist(self, DTYPE_t dist) nogil except -1:
+    cdef inline float64_t _dist_to_rdist(self, float64_t dist) except -1 nogil:
         return dist * dist
 
     def rdist_to_dist(self, rdist):
@@ -859,26 +880,26 @@ cdef class EuclideanDistance(DistanceMetric):
     def dist_to_rdist(self, dist):
         return dist ** 2
 
-    cdef inline DTYPE_t rdist_csr(
+    cdef inline float64_t rdist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
-            DTYPE_t unsquared = 0
+            float64_t d = 0.0
+            float64_t unsquared = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -911,18 +932,18 @@ cdef class EuclideanDistance(DistanceMetric):
 
         return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         return sqrt(
             self.rdist_csr(
             x1_data,
@@ -939,14 +960,14 @@ cdef class EuclideanDistance(DistanceMetric):
 #------------------------------------------------------------
 # SEuclidean Distance
 #  d = sqrt(sum((x_i - y_i2)^2 / v_i))
-cdef class SEuclideanDistance(DistanceMetric):
+cdef class SEuclideanDistance64(DistanceMetric64):
     r"""Standardized Euclidean Distance metric
 
     .. math::
        D(x, y) = \sqrt{ \sum_i \frac{ (x_i - y_i) ^ 2}{V_i} }
     """
     def __init__(self, V):
-        self.vec = ReadonlyArrayWrapper(np.asarray(V, dtype=DTYPE))
+        self.vec = np.asarray(V, dtype=np.float64)
         self.size = self.vec.shape[0]
         self.p = 2
 
@@ -954,31 +975,31 @@ cdef class SEuclideanDistance(DistanceMetric):
         if X.shape[1] != self.size:
             raise ValueError('SEuclidean dist: size of V does not match')
 
-    cdef inline DTYPE_t rdist(
+    cdef inline float64_t rdist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t tmp, d=0
-        cdef cnp.intp_t j
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t tmp, d=0
+        cdef intp_t j
         for j in range(size):
             tmp = x1[j] - x2[j]
             d += (tmp * tmp / self.vec[j])
         return d
 
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return sqrt(self.rdist(x1, x2, size))
 
-    cdef inline DTYPE_t _rdist_to_dist(self, DTYPE_t rdist) nogil except -1:
+    cdef inline float64_t _rdist_to_dist(self, float64_t rdist) except -1 nogil:
         return sqrt(rdist)
 
-    cdef inline DTYPE_t _dist_to_rdist(self, DTYPE_t dist) nogil except -1:
+    cdef inline float64_t _dist_to_rdist(self, float64_t dist) except -1 nogil:
         return dist * dist
 
     def rdist_to_dist(self, rdist):
@@ -987,26 +1008,26 @@ cdef class SEuclideanDistance(DistanceMetric):
     def dist_to_rdist(self, dist):
         return dist ** 2
 
-    cdef inline DTYPE_t rdist_csr(
+    cdef inline float64_t rdist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
-            DTYPE_t unsquared = 0
+            float64_t d = 0.0
+            float64_t unsquared = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -1040,18 +1061,18 @@ cdef class SEuclideanDistance(DistanceMetric):
                 i1 = i1 + 1
         return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         return sqrt(
             self.rdist_csr(
             x1_data,
@@ -1068,7 +1089,7 @@ cdef class SEuclideanDistance(DistanceMetric):
 #------------------------------------------------------------
 # Manhattan Distance
 #  d = sum(abs(x_i - y_i))
-cdef class ManhattanDistance(DistanceMetric):
+cdef class ManhattanDistance64(DistanceMetric64):
     r"""Manhattan/City-block Distance metric
 
     .. math::
@@ -1077,37 +1098,37 @@ cdef class ManhattanDistance(DistanceMetric):
     def __init__(self):
         self.p = 1
 
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t d = 0
-        cdef cnp.intp_t j
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t d = 0
+        cdef intp_t j
         for j in range(size):
             d += fabs(x1[j] - x2[j])
         return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
+            float64_t d = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -1139,7 +1160,7 @@ cdef class ManhattanDistance(DistanceMetric):
 #------------------------------------------------------------
 # Chebyshev Distance
 #  d = max_i(abs(x_i - y_i))
-cdef class ChebyshevDistance(DistanceMetric):
+cdef class ChebyshevDistance64(DistanceMetric64):
     """Chebyshev/Infinity Distance
 
     .. math::
@@ -1158,40 +1179,40 @@ cdef class ChebyshevDistance(DistanceMetric):
            [6.928..., 0....   ]])
     """
     def __init__(self):
-        self.p = INF
+        self.p = INF64
 
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t d = 0
-        cdef cnp.intp_t j
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t d = 0
+        cdef intp_t j
         for j in range(size):
             d = fmax(d, fabs(x1[j] - x2[j]))
         return d
 
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
+            float64_t d = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -1222,7 +1243,7 @@ cdef class ChebyshevDistance(DistanceMetric):
 
 #------------------------------------------------------------
 # Minkowski Distance
-cdef class MinkowskiDistance(DistanceMetric):
+cdef class MinkowskiDistance64(DistanceMetric64):
     r"""Minkowski Distance
 
     .. math::
@@ -1257,14 +1278,14 @@ cdef class MinkowskiDistance(DistanceMetric):
         self.p = p
         if w is not None:
             w_array = check_array(
-                w, ensure_2d=False, dtype=DTYPE, input_name="w"
+                w, ensure_2d=False, dtype=np.float64, input_name="w"
             )
             if (w_array < 0).any():
                 raise ValueError("w cannot contain negative weights")
-            self.vec = ReadonlyArrayWrapper(w_array)
+            self.vec = w_array
             self.size = self.vec.shape[0]
         else:
-            self.vec = ReadonlyArrayWrapper(np.asarray([], dtype=DTYPE))
+            self.vec = np.asarray([], dtype=np.float64)
             self.size = 0
 
     def _validate_data(self, X):
@@ -1273,14 +1294,14 @@ cdef class MinkowskiDistance(DistanceMetric):
                              f"the number of features ({X.shape[1]}). "
                              f"Currently len(w)={self.size}.")
 
-    cdef inline DTYPE_t rdist(
+    cdef inline float64_t rdist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t d=0
-        cdef cnp.intp_t j
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t d=0
+        cdef intp_t j
         cdef bint has_w = self.size > 0
         if has_w:
             for j in range(size):
@@ -1290,18 +1311,18 @@ cdef class MinkowskiDistance(DistanceMetric):
                 d += (pow(fabs(x1[j] - x2[j]), self.p))
         return d
 
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return pow(self.rdist(x1, x2, size), 1. / self.p)
 
-    cdef inline DTYPE_t _rdist_to_dist(self, DTYPE_t rdist) nogil except -1:
+    cdef inline float64_t _rdist_to_dist(self, float64_t rdist) except -1 nogil:
         return pow(rdist, 1. / self.p)
 
-    cdef inline DTYPE_t _dist_to_rdist(self, DTYPE_t dist) nogil except -1:
+    cdef inline float64_t _dist_to_rdist(self, float64_t dist) except -1 nogil:
         return pow(dist, self.p)
 
     def rdist_to_dist(self, rdist):
@@ -1310,25 +1331,25 @@ cdef class MinkowskiDistance(DistanceMetric):
     def dist_to_rdist(self, dist):
         return dist ** self.p
 
-    cdef inline DTYPE_t rdist_csr(
+    cdef inline float64_t rdist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
+            float64_t d = 0.0
             bint has_w = self.size > 0
 
         if has_w:
@@ -1390,172 +1411,18 @@ cdef class MinkowskiDistance(DistanceMetric):
 
             return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
-        return pow(
-            self.rdist_csr(
-                x1_data,
-                x1_indices,
-                x2_data,
-                x2_indices,
-                x1_start,
-                x1_end,
-                x2_start,
-                x2_end,
-                size,
-            ),
-            1 / self.p
-        )
-
-#------------------------------------------------------------
-# TODO: Remove in 1.3 - WMinkowskiDistance class
-# W-Minkowski Distance
-cdef class WMinkowskiDistance(DistanceMetric):
-    r"""Weighted Minkowski Distance
-
-    .. math::
-       D(x, y) = [\sum_i |w_i * (x_i - y_i)|^p] ^ (1/p)
-
-    Weighted Minkowski Distance requires p >= 1 and finite.
-
-    Parameters
-    ----------
-    p : int
-        The order of the norm of the difference :math:`{||u-v||}_p`.
-    w : (N,) array-like
-        The weight vector.
-
-    """
-    def __init__(self, p, w):
-        from warnings import warn
-        warn("WMinkowskiDistance is deprecated in version 1.1 and will be "
-            "removed in version 1.3. Use MinkowskiDistance instead. Note "
-            "that in MinkowskiDistance, the weights are applied to the "
-            "absolute differences raised to the p power. This is different "
-            "from WMinkowskiDistance where weights are applied to the "
-            "absolute differences before raising to the p power. "
-            "The deprecation aims to remain consistent with SciPy 1.8 "
-            "convention.", FutureWarning)
-
-        if p < 1:
-            raise ValueError("p must be greater than 1")
-        elif np.isinf(p):
-            raise ValueError("WMinkowskiDistance requires finite p. "
-                             "For p=inf, use ChebyshevDistance.")
-        self.p = p
-        self.vec = ReadonlyArrayWrapper(np.asarray(w, dtype=DTYPE))
-        self.size = self.vec.shape[0]
-
-    def _validate_data(self, X):
-        if X.shape[1] != self.size:
-            raise ValueError('WMinkowskiDistance dist: '
-                             'size of w does not match')
-
-    cdef inline DTYPE_t rdist(
-        self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-
-        cdef DTYPE_t d = 0
-        cdef cnp.intp_t j
-        for j in range(size):
-            d += (pow(self.vec[j] * fabs(x1[j] - x2[j]), self.p))
-        return d
-
-    cdef inline DTYPE_t dist(
-        self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        return pow(self.rdist(x1, x2, size), 1. / self.p)
-
-    cdef inline DTYPE_t _rdist_to_dist(self, DTYPE_t rdist) nogil except -1:
-        return pow(rdist, 1. / self.p)
-
-    cdef inline DTYPE_t _dist_to_rdist(self, DTYPE_t dist) nogil except -1:
-        return pow(dist, self.p)
-
-    def rdist_to_dist(self, rdist):
-        return rdist ** (1. / self.p)
-
-    def dist_to_rdist(self, dist):
-        return dist ** self.p
-
-    cdef inline DTYPE_t rdist_csr(
-        self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
-
-        cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
-
-            DTYPE_t d = 0.0
-
-        while i1 < x1_end and i2 < x2_end:
-            ix1 = x1_indices[i1]
-            ix2 = x2_indices[i2]
-
-            if ix1 == ix2:
-                d = d + pow(self.vec[ix1] * fabs(
-                    x1_data[i1] - x2_data[i2]
-                ), self.p)
-                i1 = i1 + 1
-                i2 = i2 + 1
-            elif ix1 < ix2:
-                d = d + pow(self.vec[ix1] * fabs(x1_data[i1]), self.p)
-                i1 = i1 + 1
-            else:
-                d = d + pow(self.vec[ix2] * fabs(x2_data[i2]), self.p)
-                i2 = i2 + 1
-
-        if i1 == x1_end:
-            while i2 < x2_end:
-                ix2 = x2_indices[i2]
-                d = d + pow(self.vec[ix2] * fabs(x2_data[i2]), self.p)
-                i2 = i2 + 1
-        else:
-            while i1 < x1_end:
-                ix1 = x1_indices[i1]
-                d = d + pow(self.vec[ix1] * fabs(x1_data[i1]), self.p)
-                i1 = i1 + 1
-
-        return d
-
-    cdef inline DTYPE_t dist_csr(
-        self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         return pow(
             self.rdist_csr(
                 x1_data,
@@ -1574,7 +1441,7 @@ cdef class WMinkowskiDistance(DistanceMetric):
 #------------------------------------------------------------
 # Mahalanobis Distance
 #  d = sqrt( (x - y)^T V^-1 (x - y) )
-cdef class MahalanobisDistance(DistanceMetric):
+cdef class MahalanobisDistance64(DistanceMetric64):
     """Mahalanobis Distance
 
     .. math::
@@ -1589,6 +1456,8 @@ cdef class MahalanobisDistance(DistanceMetric):
         optionally specify the inverse directly.  If VI is passed,
         then V is not referenced.
     """
+    cdef float64_t[::1] buffer
+
     def __init__(self, V=None, VI=None):
         if VI is None:
             if V is None:
@@ -1598,49 +1467,54 @@ cdef class MahalanobisDistance(DistanceMetric):
         if VI.ndim != 2 or VI.shape[0] != VI.shape[1]:
             raise ValueError("V/VI must be square")
 
-        self.mat = ReadonlyArrayWrapper(np.asarray(VI, dtype=DTYPE, order='C'))
+        self.mat = np.asarray(VI, dtype=np.float64, order='C')
 
         self.size = self.mat.shape[0]
 
-        # we need vec as a work buffer
-        self.vec = np.zeros(self.size, dtype=DTYPE)
+        # We need to create a buffer to store the vectors' coordinates' differences
+        self.buffer = np.zeros(self.size, dtype=np.float64)
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        self.size = self.mat.shape[0]
+        self.buffer = np.zeros(self.size, dtype=np.float64)
 
     def _validate_data(self, X):
         if X.shape[1] != self.size:
             raise ValueError('Mahalanobis dist: size of V does not match')
 
-    cdef inline DTYPE_t rdist(
+    cdef inline float64_t rdist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t tmp, d = 0
-        cdef cnp.intp_t i, j
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t tmp, d = 0
+        cdef intp_t i, j
 
         # compute (x1 - x2).T * VI * (x1 - x2)
         for i in range(size):
-            self.vec[i] = x1[i] - x2[i]
+            self.buffer[i] = x1[i] - x2[i]
 
         for i in range(size):
             tmp = 0
             for j in range(size):
-                tmp += self.mat[i, j] * self.vec[j]
-            d += tmp * self.vec[i]
+                tmp += self.mat[i, j] * self.buffer[j]
+            d += tmp * self.buffer[i]
         return d
 
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return sqrt(self.rdist(x1, x2, size))
 
-    cdef inline DTYPE_t _rdist_to_dist(self, DTYPE_t rdist) nogil except -1:
+    cdef inline float64_t _rdist_to_dist(self, float64_t rdist) except -1 nogil:
         return sqrt(rdist)
 
-    cdef inline DTYPE_t _dist_to_rdist(self, DTYPE_t dist) nogil except -1:
+    cdef inline float64_t _dist_to_rdist(self, float64_t dist) except -1 nogil:
         return dist * dist
 
     def rdist_to_dist(self, rdist):
@@ -1649,72 +1523,72 @@ cdef class MahalanobisDistance(DistanceMetric):
     def dist_to_rdist(self, dist):
         return dist ** 2
 
-    cdef inline DTYPE_t rdist_csr(
+    cdef inline float64_t rdist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t tmp, d = 0.0
+            float64_t tmp, d = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
             ix2 = x2_indices[i2]
 
             if ix1 == ix2:
-                self.vec[ix1] = x1_data[i1] - x2_data[i2]
+                self.buffer[ix1] = x1_data[i1] - x2_data[i2]
                 i1 = i1 + 1
                 i2 = i2 + 1
             elif ix1 < ix2:
-                self.vec[ix1] = x1_data[i1]
+                self.buffer[ix1] = x1_data[i1]
                 i1 = i1 + 1
             else:
-                self.vec[ix2] = - x2_data[i2]
+                self.buffer[ix2] = - x2_data[i2]
                 i2 = i2 + 1
 
         if i1 == x1_end:
             while i2 < x2_end:
                 ix2 = x2_indices[i2]
-                self.vec[ix2] = - x2_data[i2]
+                self.buffer[ix2] = - x2_data[i2]
                 i2 = i2 + 1
         else:
             while i1 < x1_end:
                 ix1 = x1_indices[i1]
-                self.vec[ix1] = x1_data[i1]
+                self.buffer[ix1] = x1_data[i1]
                 i1 = i1 + 1
 
         for i in range(size):
             tmp = 0
             for j in range(size):
-                tmp += self.mat[i, j] * self.vec[j]
-            d += tmp * self.vec[i]
+                tmp += self.mat[i, j] * self.buffer[j]
+            d += tmp * self.buffer[i]
 
         return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         return sqrt(
             self.rdist_csr(
             x1_data,
@@ -1731,7 +1605,7 @@ cdef class MahalanobisDistance(DistanceMetric):
 #------------------------------------------------------------
 # Hamming Distance
 #  d = N_unequal(x, y) / N_tot
-cdef class HammingDistance(DistanceMetric):
+cdef class HammingDistance64(DistanceMetric64):
     r"""Hamming Distance
 
     Hamming distance is meant for discrete-valued vectors, though it is
@@ -1740,39 +1614,39 @@ cdef class HammingDistance(DistanceMetric):
     .. math::
        D(x, y) = \frac{1}{N} \sum_i \delta_{x_i, y_i}
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int n_unequal = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             if x1[j] != x2[j]:
                 n_unequal += 1
         return float(n_unequal) / size
 
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
+            float64_t d = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -1806,7 +1680,7 @@ cdef class HammingDistance(DistanceMetric):
 #------------------------------------------------------------
 # Canberra Distance
 #  D(x, y) = sum[ abs(x_i - y_i) / (abs(x_i) + abs(y_i)) ]
-cdef class CanberraDistance(DistanceMetric):
+cdef class CanberraDistance64(DistanceMetric64):
     r"""Canberra Distance
 
     Canberra distance is meant for discrete-valued vectors, though it is
@@ -1815,39 +1689,39 @@ cdef class CanberraDistance(DistanceMetric):
     .. math::
        D(x, y) = \sum_i \frac{|x_i - y_i|}{|x_i| + |y_i|}
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t denom, d = 0
-        cdef cnp.intp_t j
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t denom, d = 0
+        cdef intp_t j
         for j in range(size):
             denom = fabs(x1[j]) + fabs(x2[j])
             if denom > 0:
                 d += fabs(x1[j] - x2[j]) / denom
         return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
+            float64_t d = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -1881,7 +1755,7 @@ cdef class CanberraDistance(DistanceMetric):
 #------------------------------------------------------------
 # Bray-Curtis Distance
 #  D(x, y) = sum[abs(x_i - y_i)] / sum[abs(x_i) + abs(y_i)]
-cdef class BrayCurtisDistance(DistanceMetric):
+cdef class BrayCurtisDistance64(DistanceMetric64):
     r"""Bray-Curtis Distance
 
     Bray-Curtis distance is meant for discrete-valued vectors, though it is
@@ -1890,14 +1764,14 @@ cdef class BrayCurtisDistance(DistanceMetric):
     .. math::
        D(x, y) = \frac{\sum_i |x_i - y_i|}{\sum_i(|x_i| + |y_i|)}
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t num = 0, denom = 0
-        cdef cnp.intp_t j
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t num = 0, denom = 0
+        cdef intp_t j
         for j in range(size):
             num += fabs(x1[j] - x2[j])
             denom += fabs(x1[j]) + fabs(x2[j])
@@ -1906,26 +1780,26 @@ cdef class BrayCurtisDistance(DistanceMetric):
         else:
             return 0.0
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t num = 0.0
-            DTYPE_t denom = 0.0
+            float64_t num = 0.0
+            float64_t denom = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -1961,7 +1835,7 @@ cdef class BrayCurtisDistance(DistanceMetric):
 #------------------------------------------------------------
 # Jaccard Distance (boolean)
 #  D(x, y) = N_unequal(x, y) / N_nonzero(x, y)
-cdef class JaccardDistance(DistanceMetric):
+cdef class JaccardDistance64(DistanceMetric64):
     r"""Jaccard Distance
 
     Jaccard Distance is a dissimilarity measure for boolean-valued
@@ -1970,14 +1844,14 @@ cdef class JaccardDistance(DistanceMetric):
 
         D(x, y) = (N_TF + N_FT) / (N_TT + N_TF + N_FT)
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_eq = 0, nnz = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
@@ -1990,25 +1864,25 @@ cdef class JaccardDistance(DistanceMetric):
             return 0
         return (nnz - n_eq) * 1.0 / nnz
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_tt = 0, nnz = 0
+            intp_t tf1, tf2, n_tt = 0, nnz = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -2050,7 +1924,7 @@ cdef class JaccardDistance(DistanceMetric):
 #------------------------------------------------------------
 # Matching Distance (boolean)
 #  D(x, y) = n_neq / n
-cdef class MatchingDistance(DistanceMetric):
+cdef class MatchingDistance64(DistanceMetric64):
     r"""Matching Distance
 
     Matching Distance is a dissimilarity measure for boolean-valued
@@ -2059,39 +1933,39 @@ cdef class MatchingDistance(DistanceMetric):
 
         D(x, y) = (N_TF + N_FT) / N
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_neq = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
             n_neq += (tf1 != tf2)
         return n_neq * 1. / size
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_neq = 0
+            intp_t tf1, tf2, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -2124,7 +1998,7 @@ cdef class MatchingDistance(DistanceMetric):
 #------------------------------------------------------------
 # Dice Distance (boolean)
 #  D(x, y) = n_neq / (2 * ntt + n_neq)
-cdef class DiceDistance(DistanceMetric):
+cdef class DiceDistance64(DistanceMetric64):
     r"""Dice Distance
 
     Dice Distance is a dissimilarity measure for boolean-valued
@@ -2134,14 +2008,14 @@ cdef class DiceDistance(DistanceMetric):
         D(x, y) = (N_TF + N_FT) / (2 * N_TT + N_TF + N_FT)
 
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_neq = 0, n_tt = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
@@ -2149,25 +2023,25 @@ cdef class DiceDistance(DistanceMetric):
             n_neq += (tf1 != tf2)
         return n_neq / (2.0 * n_tt + n_neq)
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_tt = 0, n_neq = 0
+            intp_t tf1, tf2, n_tt = 0, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -2205,7 +2079,7 @@ cdef class DiceDistance(DistanceMetric):
 #------------------------------------------------------------
 # Kulsinski Distance (boolean)
 #  D(x, y) = (ntf + nft - ntt + n) / (n_neq + n)
-cdef class KulsinskiDistance(DistanceMetric):
+cdef class KulsinskiDistance64(DistanceMetric64):
     r"""Kulsinski Distance
 
     Kulsinski Distance is a dissimilarity measure for boolean-valued
@@ -2215,14 +2089,14 @@ cdef class KulsinskiDistance(DistanceMetric):
         D(x, y) = 1 - N_TT / (N + N_TF + N_FT)
 
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_tt = 0, n_neq = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
@@ -2230,25 +2104,25 @@ cdef class KulsinskiDistance(DistanceMetric):
             n_tt += (tf1 and tf2)
         return (n_neq - n_tt + size) * 1.0 / (n_neq + size)
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_tt = 0, n_neq = 0
+            intp_t tf1, tf2, n_tt = 0, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -2285,7 +2159,7 @@ cdef class KulsinskiDistance(DistanceMetric):
 #------------------------------------------------------------
 # Rogers-Tanimoto Distance (boolean)
 #  D(x, y) = 2 * n_neq / (n + n_neq)
-cdef class RogersTanimotoDistance(DistanceMetric):
+cdef class RogersTanimotoDistance64(DistanceMetric64):
     r"""Rogers-Tanimoto Distance
 
     Rogers-Tanimoto Distance is a dissimilarity measure for boolean-valued
@@ -2294,39 +2168,39 @@ cdef class RogersTanimotoDistance(DistanceMetric):
 
         D(x, y) = 2 (N_TF + N_FT) / (N + N_TF + N_FT)
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_neq = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
             n_neq += (tf1 != tf2)
         return (2.0 * n_neq) / (size + n_neq)
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_neq = 0
+            intp_t tf1, tf2, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -2362,7 +2236,7 @@ cdef class RogersTanimotoDistance(DistanceMetric):
 #------------------------------------------------------------
 # Russell-Rao Distance (boolean)
 #  D(x, y) = (n - ntt) / n
-cdef class RussellRaoDistance(DistanceMetric):
+cdef class RussellRaoDistance64(DistanceMetric64):
     r"""Russell-Rao Distance
 
     Russell-Rao Distance is a dissimilarity measure for boolean-valued
@@ -2371,39 +2245,39 @@ cdef class RussellRaoDistance(DistanceMetric):
 
         D(x, y) = (N - N_TT) / N
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_tt = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
             n_tt += (tf1 and tf2)
         return (size - n_tt) * 1. / size
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_tt = 0
+            intp_t tf1, tf2, n_tt = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -2421,7 +2295,7 @@ cdef class RussellRaoDistance(DistanceMetric):
             else:
                 i2 = i2 + 1
 
-        # We don't need to go through all the longuest
+        # We don't need to go through all the longest
         # vector because tf1 or tf2 will be false
         # and thus n_tt won't be increased.
 
@@ -2432,7 +2306,7 @@ cdef class RussellRaoDistance(DistanceMetric):
 #------------------------------------------------------------
 # Sokal-Michener Distance (boolean)
 #  D(x, y) = 2 * n_neq / (n + n_neq)
-cdef class SokalMichenerDistance(DistanceMetric):
+cdef class SokalMichenerDistance64(DistanceMetric64):
     r"""Sokal-Michener Distance
 
     Sokal-Michener Distance is a dissimilarity measure for boolean-valued
@@ -2441,39 +2315,39 @@ cdef class SokalMichenerDistance(DistanceMetric):
 
         D(x, y) = 2 (N_TF + N_FT) / (N + N_TF + N_FT)
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_neq = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
             n_neq += (tf1 != tf2)
         return (2.0 * n_neq) / (size + n_neq)
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_neq = 0
+            intp_t tf1, tf2, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -2509,7 +2383,7 @@ cdef class SokalMichenerDistance(DistanceMetric):
 #------------------------------------------------------------
 # Sokal-Sneath Distance (boolean)
 #  D(x, y) = n_neq / (0.5 * n_tt + n_neq)
-cdef class SokalSneathDistance(DistanceMetric):
+cdef class SokalSneathDistance64(DistanceMetric64):
     r"""Sokal-Sneath Distance
 
     Sokal-Sneath Distance is a dissimilarity measure for boolean-valued
@@ -2518,14 +2392,14 @@ cdef class SokalSneathDistance(DistanceMetric):
 
         D(x, y) = (N_TF + N_FT) / (N_TT / 2 + N_FT + N_TF)
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_tt = 0, n_neq = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
@@ -2533,25 +2407,25 @@ cdef class SokalSneathDistance(DistanceMetric):
             n_tt += (tf1 and tf2)
         return n_neq / (0.5 * n_tt + n_neq)
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_tt = 0, n_neq = 0
+            intp_t tf1, tf2, n_tt = 0, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -2590,7 +2464,7 @@ cdef class SokalSneathDistance(DistanceMetric):
 # Haversine Distance (2 dimensional)
 #  D(x, y) = 2 arcsin{sqrt[sin^2 ((x1 - y1) / 2)
 #                          + cos(x1) cos(y1) sin^2 ((x2 - y2) / 2)]}
-cdef class HaversineDistance(DistanceMetric):
+cdef class HaversineDistance64(DistanceMetric64):
     """Haversine (Spherical) Distance
 
     The Haversine distance is the angular distance between two points on
@@ -2607,27 +2481,27 @@ cdef class HaversineDistance(DistanceMetric):
             raise ValueError("Haversine distance only valid "
                              "in 2 dimensions")
 
-    cdef inline DTYPE_t rdist(self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t sin_0 = sin(0.5 * ((x1[0]) - (x2[0])))
-        cdef DTYPE_t sin_1 = sin(0.5 * ((x1[1]) - (x2[1])))
+    cdef inline float64_t rdist(self,
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t sin_0 = sin(0.5 * ((x1[0]) - (x2[0])))
+        cdef float64_t sin_1 = sin(0.5 * ((x1[1]) - (x2[1])))
         return (sin_0 * sin_0 + cos(x1[0]) * cos(x2[0]) * sin_1 * sin_1)
 
-    cdef inline DTYPE_t dist(self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+    cdef inline float64_t dist(self,
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return 2 * asin(sqrt(self.rdist(x1, x2, size)))
 
-    cdef inline DTYPE_t _rdist_to_dist(self, DTYPE_t rdist) nogil except -1:
+    cdef inline float64_t _rdist_to_dist(self, float64_t rdist) except -1 nogil:
         return 2 * asin(sqrt(rdist))
 
-    cdef inline DTYPE_t _dist_to_rdist(self, DTYPE_t dist) nogil except -1:
-        cdef DTYPE_t tmp = sin(0.5 *  dist)
+    cdef inline float64_t _dist_to_rdist(self, float64_t dist) except -1 nogil:
+        cdef float64_t tmp = sin(0.5 *  dist)
         return tmp * tmp
 
     def rdist_to_dist(self, rdist):
@@ -2637,18 +2511,18 @@ cdef class HaversineDistance(DistanceMetric):
         tmp = np.sin(0.5 * dist)
         return tmp * tmp
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
          self,
-         const DTYPE_t* x1_data,
-         const SPARSE_INDEX_TYPE_t[:] x1_indices,
-         const DTYPE_t* x2_data,
-         const SPARSE_INDEX_TYPE_t[:] x2_indices,
-         const SPARSE_INDEX_TYPE_t x1_start,
-         const SPARSE_INDEX_TYPE_t x1_end,
-         const SPARSE_INDEX_TYPE_t x2_start,
-         const SPARSE_INDEX_TYPE_t x2_end,
-         const ITYPE_t size,
-    ) nogil except -1:
+         const float64_t* x1_data,
+         const int32_t[:] x1_indices,
+         const float64_t* x2_data,
+         const int32_t[:] x2_indices,
+         const int32_t x1_start,
+         const int32_t x1_end,
+         const int32_t x2_start,
+         const int32_t x2_end,
+         const intp_t size,
+    ) except -1 nogil:
         return 2 * asin(sqrt(self.rdist_csr(
             x1_data,
             x1_indices,
@@ -2661,30 +2535,30 @@ cdef class HaversineDistance(DistanceMetric):
             size,
         )))
 
-    cdef inline DTYPE_t rdist_csr(
+    cdef inline float64_t rdist_csr(
         self,
-        const DTYPE_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const DTYPE_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float64_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t x1_0 = 0
-            DTYPE_t x1_1 = 0
-            DTYPE_t x2_0 = 0
-            DTYPE_t x2_1 = 0
-            DTYPE_t sin_0
-            DTYPE_t sin_1
+            float64_t x1_0 = 0
+            float64_t x1_1 = 0
+            float64_t x2_0 = 0
+            float64_t x2_1 = 0
+            float64_t sin_0
+            float64_t sin_1
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -2734,7 +2608,7 @@ cdef class HaversineDistance(DistanceMetric):
 #------------------------------------------------------------
 # User-defined distance
 #
-cdef class PyFuncDistance(DistanceMetric):
+cdef class PyFuncDistance64(DistanceMetric64):
     """PyFunc Distance
 
     A user-defined distance
@@ -2753,24 +2627,23 @@ cdef class PyFuncDistance(DistanceMetric):
     # allowed in cython >= 0.26 since it is a redundant GIL acquisition. The
     # only way to be back compatible is to inherit `dist` from the base class
     # without GIL and called an inline `_dist` which acquire GIL.
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return self._dist(x1, x2, size)
 
-    cdef inline DTYPE_t _dist(
+    cdef inline float64_t _dist(
         self,
-        const DTYPE_t* x1,
-        const DTYPE_t* x2,
-        ITYPE_t size,
+        const float64_t* x1,
+        const float64_t* x2,
+        intp_t size,
     ) except -1 with gil:
-        cdef cnp.ndarray x1arr
-        cdef cnp.ndarray x2arr
-        x1arr = _buffer_to_ndarray(x1, size)
-        x2arr = _buffer_to_ndarray(x2, size)
+        cdef:
+            object x1arr = _buffer_to_ndarray64(x1, size)
+            object x2arr = _buffer_to_ndarray64(x2, size)
         d = self.func(x1arr, x2arr, **self.kwargs)
         try:
             # Cython generates code here that results in a TypeError
@@ -2795,7 +2668,6 @@ METRIC_MAPPING32 = {
     'infinity': ChebyshevDistance32,
     'seuclidean': SEuclideanDistance32,
     'mahalanobis': MahalanobisDistance32,
-    'wminkowski': WMinkowskiDistance32,
     'hamming': HammingDistance32,
     'canberra': CanberraDistance32,
     'braycurtis': BrayCurtisDistance32,
@@ -2811,22 +2683,23 @@ METRIC_MAPPING32 = {
     'pyfunc': PyFuncDistance32,
 }
 
-cdef inline cnp.ndarray _buffer_to_ndarray32(const cnp.float32_t* x, cnp.npy_intp n):
+cdef inline object _buffer_to_ndarray32(const float32_t* x, intp_t n):
     # Wrap a memory buffer with an ndarray. Warning: this is not robust.
     # In particular, if x is deallocated before the returned array goes
     # out of scope, this could cause memory errors.  Since there is not
     # a possibility of this for our use-case, this should be safe.
 
     # Note: this Segfaults unless np.import_array() is called above
-    return cnp.PyArray_SimpleNewFromData(1, &n, DTYPECODE, <void*>x)
+    # TODO: remove the explicit cast to cnp.intp_t* when cython min version >= 3.0
+    return cnp.PyArray_SimpleNewFromData(1, <cnp.intp_t*>&n, cnp.NPY_FLOAT64, <void*>x)
 
 
-cdef cnp.float32_t INF32 = np.inf
+cdef float32_t INF32 = np.inf
 
 
 ######################################################################
 # Distance Metric Classes
-cdef class DistanceMetric32:
+cdef class DistanceMetric32(DistanceMetric):
     """DistanceMetric class
 
     This class provides a uniform interface to fast distance metric
@@ -2857,17 +2730,9 @@ cdef class DistanceMetric32:
     "manhattan"     ManhattanDistance     -         ``sum(|x - y|)``
     "chebyshev"     ChebyshevDistance     -         ``max(|x - y|)``
     "minkowski"     MinkowskiDistance     p, w      ``sum(w * |x - y|^p)^(1/p)``
-    "wminkowski"    WMinkowskiDistance    p, w      ``sum(|w * (x - y)|^p)^(1/p)``
     "seuclidean"    SEuclideanDistance    V         ``sqrt(sum((x - y)^2 / V))``
     "mahalanobis"   MahalanobisDistance   V or VI   ``sqrt((x - y)' V^-1 (x - y))``
     ==============  ====================  ========  ===============================
-
-    .. deprecated:: 1.1
-        `WMinkowskiDistance` is deprecated in version 1.1 and will be removed in version 1.3.
-        Use `MinkowskiDistance` instead. Note that in `MinkowskiDistance`, the weights are
-        applied to the absolute differences already raised to the p power. This is different from
-        `WMinkowskiDistance` where weights are applied to the absolute differences before raising
-        to the p power. The deprecation aims to remain consistent with SciPy 1.8 convention.
 
     **Metrics intended for two-dimensional vector spaces:**  Note that the haversine
     distance metric requires data in the form of [latitude, longitude] and both
@@ -2941,8 +2806,8 @@ cdef class DistanceMetric32:
     """
     def __cinit__(self):
         self.p = 2
-        self.vec = np.zeros(1, dtype=DTYPE, order='C')
-        self.mat = np.zeros((1, 1), dtype=DTYPE, order='C')
+        self.vec = np.zeros(1, dtype=np.float64, order='C')
+        self.mat = np.zeros((1, 1), dtype=np.float64, order='C')
         self.size = 1
 
     def __reduce__(self):
@@ -2964,8 +2829,8 @@ cdef class DistanceMetric32:
         set state for pickling
         """
         self.p = state[0]
-        self.vec = ReadonlyArrayWrapper(state[1])
-        self.mat = ReadonlyArrayWrapper(state[2])
+        self.vec = state[1]
+        self.mat = state[2]
         if self.__class__.__name__ == "PyFuncDistance32":
             self.func = state[3]
             self.kwargs = state[4]
@@ -3026,24 +2891,24 @@ cdef class DistanceMetric32:
         """
         return
 
-    cdef DTYPE_t dist(
+    cdef float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         """Compute the distance between vectors x1 and x2
 
         This should be overridden in a base class.
         """
         return -999
 
-    cdef DTYPE_t rdist(
+    cdef float64_t rdist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         """Compute the rank-preserving surrogate distance between vectors x1 and x2.
 
         This can optionally be overridden in a base class.
@@ -3057,11 +2922,11 @@ cdef class DistanceMetric32:
 
     cdef int pdist(
         self,
-        const cnp.float32_t[:, ::1] X,
-        DTYPE_t[:, ::1] D,
+        const float32_t[:, ::1] X,
+        float64_t[:, ::1] D,
     ) except -1:
         """Compute the pairwise distances between points in X"""
-        cdef ITYPE_t i1, i2
+        cdef intp_t i1, i2
         for i1 in range(X.shape[0]):
             for i2 in range(i1, X.shape[0]):
                 D[i1, i2] = self.dist(&X[i1, 0], &X[i2, 0], X.shape[1])
@@ -3071,12 +2936,12 @@ cdef class DistanceMetric32:
 
     cdef int cdist(
         self,
-        const cnp.float32_t[:, ::1] X,
-        const cnp.float32_t[:, ::1] Y,
-        DTYPE_t[:, ::1] D,
+        const float32_t[:, ::1] X,
+        const float32_t[:, ::1] Y,
+        float64_t[:, ::1] D,
     ) except -1:
         """Compute the cross-pairwise distances between arrays X and Y"""
-        cdef ITYPE_t i1, i2
+        cdef intp_t i1, i2
         if X.shape[1] != Y.shape[1]:
             raise ValueError('X and Y must have the same second dimension')
         for i1 in range(X.shape[0]):
@@ -3084,18 +2949,18 @@ cdef class DistanceMetric32:
                 D[i1, i2] = self.dist(&X[i1, 0], &Y[i2, 0], X.shape[1])
         return 0
 
-    cdef DTYPE_t dist_csr(
+    cdef float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         """Compute the distance between vectors x1 and x2 represented
         under the CSR format.
 
@@ -3114,13 +2979,13 @@ cdef class DistanceMetric32:
 
         2. An alternative signature would be:
 
-            cdef DTYPE_t dist_csr(
+            cdef float64_t dist_csr(
                 self,
-                const cnp.float32_t* x1_data,
-                const SPARSE_INDEX_TYPE_t[:] x1_indices,
-                const cnp.float32_t* x2_data,
-                const SPARSE_INDEX_TYPE_t[:] x2_indices,
-            ) nogil except -1:
+                const float32_t* x1_data,
+                const int32_t[:] x1_indices,
+                const float32_t* x2_data,
+                const int32_t[:] x2_indices,
+            ) except -1 nogil:
 
         Where callers would use slicing on the original CSR data and indices
         memoryviews:
@@ -3150,18 +3015,18 @@ cdef class DistanceMetric32:
         """
         return -999
 
-    cdef DTYPE_t rdist_csr(
+    cdef float64_t rdist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         """Distance between rows of CSR matrices x1 and x2.
 
         This can optionally be overridden in a subclass.
@@ -3193,21 +3058,21 @@ cdef class DistanceMetric32:
 
     cdef int pdist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const SPARSE_INDEX_TYPE_t[:] x1_indptr,
-        const ITYPE_t size,
-        DTYPE_t[:, ::1] D,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const int32_t[:] x1_indptr,
+        const intp_t size,
+        float64_t[:, ::1] D,
+    ) except -1 nogil:
         """Pairwise distances between rows in CSR matrix X.
 
         Note that this implementation is twice faster than cdist_csr(X, X)
         because it leverages the symmetry of the problem.
         """
         cdef:
-            ITYPE_t i1, i2
-            ITYPE_t n_x1 = x1_indptr.shape[0] - 1
-            ITYPE_t x1_start, x1_end, x2_start, x2_end
+            intp_t i1, i2
+            intp_t n_x1 = x1_indptr.shape[0] - 1
+            intp_t x1_start, x1_end, x2_start, x2_end
 
         for i1 in range(n_x1):
             x1_start = x1_indptr[i1]
@@ -3230,22 +3095,22 @@ cdef class DistanceMetric32:
 
     cdef int cdist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const SPARSE_INDEX_TYPE_t[:] x1_indptr,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t[:] x2_indptr,
-        const ITYPE_t size,
-        DTYPE_t[:, ::1] D,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const int32_t[:] x1_indptr,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t[:] x2_indptr,
+        const intp_t size,
+        float64_t[:, ::1] D,
+    ) except -1 nogil:
         """Compute the cross-pairwise distances between arrays X and Y
         represented in the CSR format."""
         cdef:
-            ITYPE_t i1, i2
-            ITYPE_t n_x1 = x1_indptr.shape[0] - 1
-            ITYPE_t n_x2 = x2_indptr.shape[0] - 1
-            ITYPE_t x1_start, x1_end, x2_start, x2_end
+            intp_t i1, i2
+            intp_t n_x1 = x1_indptr.shape[0] - 1
+            intp_t n_x2 = x2_indptr.shape[0] - 1
+            intp_t x1_start, x1_end, x2_start, x2_end
 
         for i1 in range(n_x1):
             x1_start = x1_indptr[i1]
@@ -3267,11 +3132,11 @@ cdef class DistanceMetric32:
                 )
         return 0
 
-    cdef DTYPE_t _rdist_to_dist(self, cnp.float32_t rdist) nogil except -1:
+    cdef float64_t _rdist_to_dist(self, float32_t rdist) except -1 nogil:
         """Convert the rank-preserving surrogate distance to the distance"""
         return rdist
 
-    cdef DTYPE_t _dist_to_rdist(self, cnp.float32_t dist) nogil except -1:
+    cdef float64_t _dist_to_rdist(self, float32_t dist) except -1 nogil:
         """Convert the distance to the rank-preserving surrogate distance"""
         return dist
 
@@ -3316,43 +3181,43 @@ cdef class DistanceMetric32:
         return dist
 
     def _pairwise_dense_dense(self, X, Y):
-        cdef cnp.ndarray[cnp.float32_t, ndim=2, mode='c'] Xarr
-        cdef cnp.ndarray[cnp.float32_t, ndim=2, mode='c'] Yarr
-        cdef cnp.ndarray[DTYPE_t, ndim=2, mode='c'] Darr
+        cdef const float32_t[:, ::1] Xarr
+        cdef const float32_t[:, ::1] Yarr
+        cdef float64_t[:, ::1] Darr
 
         Xarr = np.asarray(X, dtype=np.float32, order='C')
         self._validate_data(Xarr)
         if X is Y:
-            Darr = np.empty((Xarr.shape[0], Xarr.shape[0]), dtype=DTYPE, order='C')
+            Darr = np.empty((Xarr.shape[0], Xarr.shape[0]), dtype=np.float64, order='C')
             self.pdist(Xarr, Darr)
         else:
             Yarr = np.asarray(Y, dtype=np.float32, order='C')
             self._validate_data(Yarr)
-            Darr = np.empty((Xarr.shape[0], Yarr.shape[0]), dtype=DTYPE, order='C')
+            Darr = np.empty((Xarr.shape[0], Yarr.shape[0]), dtype=np.float64, order='C')
             self.cdist(Xarr, Yarr, Darr)
         return np.asarray(Darr)
 
     def _pairwise_sparse_sparse(self, X: csr_matrix , Y: csr_matrix):
         cdef:
-            ITYPE_t n_X, n_features
-            const cnp.float32_t[:] X_data
-            const SPARSE_INDEX_TYPE_t[:] X_indices
-            const SPARSE_INDEX_TYPE_t[:] X_indptr
+            intp_t n_X, n_features
+            const float32_t[:] X_data
+            const int32_t[:] X_indices
+            const int32_t[:] X_indptr
 
-            ITYPE_t n_Y
-            const cnp.float32_t[:] Y_data
-            const SPARSE_INDEX_TYPE_t[:] Y_indices
-            const SPARSE_INDEX_TYPE_t[:] Y_indptr
+            intp_t n_Y
+            const float32_t[:] Y_data
+            const int32_t[:] Y_indices
+            const int32_t[:] Y_indptr
 
-            DTYPE_t[:, ::1] Darr
+            float64_t[:, ::1] Darr
 
         X_csr = X.tocsr()
         n_X, n_features = X_csr.shape
         X_data = np.asarray(X_csr.data, dtype=np.float32)
-        X_indices = np.asarray(X_csr.indices, dtype=SPARSE_INDEX_TYPE)
-        X_indptr = np.asarray(X_csr.indptr, dtype=SPARSE_INDEX_TYPE)
+        X_indices = np.asarray(X_csr.indices, dtype=np.int32)
+        X_indptr = np.asarray(X_csr.indptr, dtype=np.int32)
         if X is Y:
-            Darr = np.empty((n_X, n_X), dtype=DTYPE, order='C')
+            Darr = np.empty((n_X, n_X), dtype=np.float64, order='C')
             self.pdist_csr(
                 x1_data=&X_data[0],
                 x1_indices=X_indices,
@@ -3364,10 +3229,10 @@ cdef class DistanceMetric32:
             Y_csr = Y.tocsr()
             n_Y, _ = Y_csr.shape
             Y_data = np.asarray(Y_csr.data, dtype=np.float32)
-            Y_indices = np.asarray(Y_csr.indices, dtype=SPARSE_INDEX_TYPE)
-            Y_indptr = np.asarray(Y_csr.indptr, dtype=SPARSE_INDEX_TYPE)
+            Y_indices = np.asarray(Y_csr.indices, dtype=np.int32)
+            Y_indptr = np.asarray(Y_csr.indptr, dtype=np.int32)
 
-            Darr = np.empty((n_X, n_Y), dtype=DTYPE, order='C')
+            Darr = np.empty((n_X, n_Y), dtype=np.float64, order='C')
             self.cdist_csr(
                 x1_data=&X_data[0],
                 x1_indices=X_indices,
@@ -3382,31 +3247,31 @@ cdef class DistanceMetric32:
 
     def _pairwise_sparse_dense(self, X: csr_matrix, Y):
         cdef:
-            ITYPE_t n_X = X.shape[0]
-            ITYPE_t n_features = X.shape[1]
-            const cnp.float32_t[:] X_data = np.asarray(
+            intp_t n_X = X.shape[0]
+            intp_t n_features = X.shape[1]
+            const float32_t[:] X_data = np.asarray(
                 X.data, dtype=np.float32,
             )
-            const SPARSE_INDEX_TYPE_t[:] X_indices = np.asarray(
-                X.indices, dtype=SPARSE_INDEX_TYPE,
+            const int32_t[:] X_indices = np.asarray(
+                X.indices, dtype=np.int32,
             )
-            const SPARSE_INDEX_TYPE_t[:] X_indptr = np.asarray(
-                X.indptr, dtype=SPARSE_INDEX_TYPE,
+            const int32_t[:] X_indptr = np.asarray(
+                X.indptr, dtype=np.int32,
             )
 
-            const cnp.float32_t[:, ::1] Y_data = np.asarray(
+            const float32_t[:, ::1] Y_data = np.asarray(
                 Y, dtype=np.float32, order="C",
             )
-            ITYPE_t n_Y = Y_data.shape[0]
-            const SPARSE_INDEX_TYPE_t[:] Y_indices = (
-                np.arange(n_features, dtype=SPARSE_INDEX_TYPE)
+            intp_t n_Y = Y_data.shape[0]
+            const int32_t[:] Y_indices = (
+                np.arange(n_features, dtype=np.int32)
             )
 
-            DTYPE_t[:, ::1] Darr = np.empty((n_X, n_Y), dtype=DTYPE, order='C')
+            float64_t[:, ::1] Darr = np.empty((n_X, n_Y), dtype=np.float64, order='C')
 
-            ITYPE_t i1, i2
-            ITYPE_t x1_start, x1_end
-            cnp.float32_t * x2_data
+            intp_t i1, i2
+            intp_t x1_start, x1_end
+            float32_t * x2_data
 
         with nogil:
             # Use the exact same adaptation for CSR than in SparseDenseDatasetsPair
@@ -3446,33 +3311,33 @@ cdef class DistanceMetric32:
         # swapping argument and by transposing the results, but this would
         # have come with an extra copy to ensure C-contiguity of the result.
         cdef:
-            ITYPE_t n_X = X.shape[0]
-            ITYPE_t n_features = X.shape[1]
+            intp_t n_X = X.shape[0]
+            intp_t n_features = X.shape[1]
 
-            const cnp.float32_t[:, ::1] X_data = np.asarray(
+            const float32_t[:, ::1] X_data = np.asarray(
                 X, dtype=np.float32, order="C",
             )
-            const SPARSE_INDEX_TYPE_t[:] X_indices = np.arange(
-                n_features, dtype=SPARSE_INDEX_TYPE,
+            const int32_t[:] X_indices = np.arange(
+                n_features, dtype=np.int32,
             )
 
-            ITYPE_t n_Y = Y.shape[0]
-            const cnp.float32_t[:] Y_data = np.asarray(
+            intp_t n_Y = Y.shape[0]
+            const float32_t[:] Y_data = np.asarray(
                 Y.data, dtype=np.float32,
             )
-            const SPARSE_INDEX_TYPE_t[:] Y_indices = np.asarray(
-                Y.indices, dtype=SPARSE_INDEX_TYPE,
+            const int32_t[:] Y_indices = np.asarray(
+                Y.indices, dtype=np.int32,
             )
-            const SPARSE_INDEX_TYPE_t[:] Y_indptr = np.asarray(
-                Y.indptr, dtype=SPARSE_INDEX_TYPE,
+            const int32_t[:] Y_indptr = np.asarray(
+                Y.indptr, dtype=np.int32,
             )
 
-            DTYPE_t[:, ::1] Darr = np.empty((n_X, n_Y), dtype=DTYPE, order='C')
+            float64_t[:, ::1] Darr = np.empty((n_X, n_Y), dtype=np.float64, order='C')
 
-            ITYPE_t i1, i2
-            cnp.float32_t * x1_data
+            intp_t i1, i2
+            float32_t * x1_data
 
-            ITYPE_t x2_start, x2_end
+            intp_t x2_start, x2_end
 
         with nogil:
             # Use the exact same adaptation for CSR than in SparseDenseDatasetsPair
@@ -3561,24 +3426,24 @@ cdef class EuclideanDistance32(DistanceMetric32):
     def __init__(self):
         self.p = 2
 
-    cdef inline DTYPE_t dist(self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+    cdef inline float64_t dist(self,
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return euclidean_dist32(x1, x2, size)
 
-    cdef inline DTYPE_t rdist(self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+    cdef inline float64_t rdist(self,
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return euclidean_rdist32(x1, x2, size)
 
-    cdef inline DTYPE_t _rdist_to_dist(self, cnp.float32_t rdist) nogil except -1:
+    cdef inline float64_t _rdist_to_dist(self, float32_t rdist) except -1 nogil:
         return sqrt(rdist)
 
-    cdef inline DTYPE_t _dist_to_rdist(self, cnp.float32_t dist) nogil except -1:
+    cdef inline float64_t _dist_to_rdist(self, float32_t dist) except -1 nogil:
         return dist * dist
 
     def rdist_to_dist(self, rdist):
@@ -3587,26 +3452,26 @@ cdef class EuclideanDistance32(DistanceMetric32):
     def dist_to_rdist(self, dist):
         return dist ** 2
 
-    cdef inline DTYPE_t rdist_csr(
+    cdef inline float64_t rdist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
-            DTYPE_t unsquared = 0
+            float64_t d = 0.0
+            float64_t unsquared = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -3639,18 +3504,18 @@ cdef class EuclideanDistance32(DistanceMetric32):
 
         return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         return sqrt(
             self.rdist_csr(
             x1_data,
@@ -3674,7 +3539,7 @@ cdef class SEuclideanDistance32(DistanceMetric32):
        D(x, y) = \sqrt{ \sum_i \frac{ (x_i - y_i) ^ 2}{V_i} }
     """
     def __init__(self, V):
-        self.vec = ReadonlyArrayWrapper(np.asarray(V, dtype=DTYPE))
+        self.vec = np.asarray(V, dtype=np.float64)
         self.size = self.vec.shape[0]
         self.p = 2
 
@@ -3682,31 +3547,31 @@ cdef class SEuclideanDistance32(DistanceMetric32):
         if X.shape[1] != self.size:
             raise ValueError('SEuclidean dist: size of V does not match')
 
-    cdef inline DTYPE_t rdist(
+    cdef inline float64_t rdist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t tmp, d=0
-        cdef cnp.intp_t j
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t tmp, d=0
+        cdef intp_t j
         for j in range(size):
             tmp = x1[j] - x2[j]
             d += (tmp * tmp / self.vec[j])
         return d
 
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return sqrt(self.rdist(x1, x2, size))
 
-    cdef inline DTYPE_t _rdist_to_dist(self, cnp.float32_t rdist) nogil except -1:
+    cdef inline float64_t _rdist_to_dist(self, float32_t rdist) except -1 nogil:
         return sqrt(rdist)
 
-    cdef inline DTYPE_t _dist_to_rdist(self, cnp.float32_t dist) nogil except -1:
+    cdef inline float64_t _dist_to_rdist(self, float32_t dist) except -1 nogil:
         return dist * dist
 
     def rdist_to_dist(self, rdist):
@@ -3715,26 +3580,26 @@ cdef class SEuclideanDistance32(DistanceMetric32):
     def dist_to_rdist(self, dist):
         return dist ** 2
 
-    cdef inline DTYPE_t rdist_csr(
+    cdef inline float64_t rdist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
-            DTYPE_t unsquared = 0
+            float64_t d = 0.0
+            float64_t unsquared = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -3768,18 +3633,18 @@ cdef class SEuclideanDistance32(DistanceMetric32):
                 i1 = i1 + 1
         return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         return sqrt(
             self.rdist_csr(
             x1_data,
@@ -3805,37 +3670,37 @@ cdef class ManhattanDistance32(DistanceMetric32):
     def __init__(self):
         self.p = 1
 
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t d = 0
-        cdef cnp.intp_t j
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t d = 0
+        cdef intp_t j
         for j in range(size):
             d += fabs(x1[j] - x2[j])
         return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
+            float64_t d = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -3888,38 +3753,38 @@ cdef class ChebyshevDistance32(DistanceMetric32):
     def __init__(self):
         self.p = INF32
 
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t d = 0
-        cdef cnp.intp_t j
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t d = 0
+        cdef intp_t j
         for j in range(size):
             d = fmax(d, fabs(x1[j] - x2[j]))
         return d
 
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
+            float64_t d = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -3985,14 +3850,14 @@ cdef class MinkowskiDistance32(DistanceMetric32):
         self.p = p
         if w is not None:
             w_array = check_array(
-                w, ensure_2d=False, dtype=DTYPE, input_name="w"
+                w, ensure_2d=False, dtype=np.float64, input_name="w"
             )
             if (w_array < 0).any():
                 raise ValueError("w cannot contain negative weights")
-            self.vec = ReadonlyArrayWrapper(w_array)
+            self.vec = w_array
             self.size = self.vec.shape[0]
         else:
-            self.vec = ReadonlyArrayWrapper(np.asarray([], dtype=DTYPE))
+            self.vec = np.asarray([], dtype=np.float64)
             self.size = 0
 
     def _validate_data(self, X):
@@ -4001,14 +3866,14 @@ cdef class MinkowskiDistance32(DistanceMetric32):
                              f"the number of features ({X.shape[1]}). "
                              f"Currently len(w)={self.size}.")
 
-    cdef inline DTYPE_t rdist(
+    cdef inline float64_t rdist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t d=0
-        cdef cnp.intp_t j
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t d=0
+        cdef intp_t j
         cdef bint has_w = self.size > 0
         if has_w:
             for j in range(size):
@@ -4018,18 +3883,18 @@ cdef class MinkowskiDistance32(DistanceMetric32):
                 d += (pow(fabs(x1[j] - x2[j]), self.p))
         return d
 
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return pow(self.rdist(x1, x2, size), 1. / self.p)
 
-    cdef inline DTYPE_t _rdist_to_dist(self, cnp.float32_t rdist) nogil except -1:
+    cdef inline float64_t _rdist_to_dist(self, float32_t rdist) except -1 nogil:
         return pow(rdist, 1. / self.p)
 
-    cdef inline DTYPE_t _dist_to_rdist(self, cnp.float32_t dist) nogil except -1:
+    cdef inline float64_t _dist_to_rdist(self, float32_t dist) except -1 nogil:
         return pow(dist, self.p)
 
     def rdist_to_dist(self, rdist):
@@ -4038,25 +3903,25 @@ cdef class MinkowskiDistance32(DistanceMetric32):
     def dist_to_rdist(self, dist):
         return dist ** self.p
 
-    cdef inline DTYPE_t rdist_csr(
+    cdef inline float64_t rdist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
+            float64_t d = 0.0
             bint has_w = self.size > 0
 
         if has_w:
@@ -4118,172 +3983,18 @@ cdef class MinkowskiDistance32(DistanceMetric32):
 
             return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
-        return pow(
-            self.rdist_csr(
-                x1_data,
-                x1_indices,
-                x2_data,
-                x2_indices,
-                x1_start,
-                x1_end,
-                x2_start,
-                x2_end,
-                size,
-            ),
-            1 / self.p
-        )
-
-#------------------------------------------------------------
-# TODO: Remove in 1.3 - WMinkowskiDistance class
-# W-Minkowski Distance
-cdef class WMinkowskiDistance32(DistanceMetric32):
-    r"""Weighted Minkowski Distance
-
-    .. math::
-       D(x, y) = [\sum_i |w_i * (x_i - y_i)|^p] ^ (1/p)
-
-    Weighted Minkowski Distance requires p >= 1 and finite.
-
-    Parameters
-    ----------
-    p : int
-        The order of the norm of the difference :math:`{||u-v||}_p`.
-    w : (N,) array-like
-        The weight vector.
-
-    """
-    def __init__(self, p, w):
-        from warnings import warn
-        warn("WMinkowskiDistance is deprecated in version 1.1 and will be "
-            "removed in version 1.3. Use MinkowskiDistance instead. Note "
-            "that in MinkowskiDistance, the weights are applied to the "
-            "absolute differences raised to the p power. This is different "
-            "from WMinkowskiDistance where weights are applied to the "
-            "absolute differences before raising to the p power. "
-            "The deprecation aims to remain consistent with SciPy 1.8 "
-            "convention.", FutureWarning)
-
-        if p < 1:
-            raise ValueError("p must be greater than 1")
-        elif np.isinf(p):
-            raise ValueError("WMinkowskiDistance requires finite p. "
-                             "For p=inf, use ChebyshevDistance.")
-        self.p = p
-        self.vec = ReadonlyArrayWrapper(np.asarray(w, dtype=DTYPE))
-        self.size = self.vec.shape[0]
-
-    def _validate_data(self, X):
-        if X.shape[1] != self.size:
-            raise ValueError('WMinkowskiDistance dist: '
-                             'size of w does not match')
-
-    cdef inline DTYPE_t rdist(
-        self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-
-        cdef DTYPE_t d = 0
-        cdef cnp.intp_t j
-        for j in range(size):
-            d += (pow(self.vec[j] * fabs(x1[j] - x2[j]), self.p))
-        return d
-
-    cdef inline DTYPE_t dist(
-        self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        return pow(self.rdist(x1, x2, size), 1. / self.p)
-
-    cdef inline DTYPE_t _rdist_to_dist(self, cnp.float32_t rdist) nogil except -1:
-        return pow(rdist, 1. / self.p)
-
-    cdef inline DTYPE_t _dist_to_rdist(self, cnp.float32_t dist) nogil except -1:
-        return pow(dist, self.p)
-
-    def rdist_to_dist(self, rdist):
-        return rdist ** (1. / self.p)
-
-    def dist_to_rdist(self, dist):
-        return dist ** self.p
-
-    cdef inline DTYPE_t rdist_csr(
-        self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
-
-        cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
-
-            DTYPE_t d = 0.0
-
-        while i1 < x1_end and i2 < x2_end:
-            ix1 = x1_indices[i1]
-            ix2 = x2_indices[i2]
-
-            if ix1 == ix2:
-                d = d + pow(self.vec[ix1] * fabs(
-                    x1_data[i1] - x2_data[i2]
-                ), self.p)
-                i1 = i1 + 1
-                i2 = i2 + 1
-            elif ix1 < ix2:
-                d = d + pow(self.vec[ix1] * fabs(x1_data[i1]), self.p)
-                i1 = i1 + 1
-            else:
-                d = d + pow(self.vec[ix2] * fabs(x2_data[i2]), self.p)
-                i2 = i2 + 1
-
-        if i1 == x1_end:
-            while i2 < x2_end:
-                ix2 = x2_indices[i2]
-                d = d + pow(self.vec[ix2] * fabs(x2_data[i2]), self.p)
-                i2 = i2 + 1
-        else:
-            while i1 < x1_end:
-                ix1 = x1_indices[i1]
-                d = d + pow(self.vec[ix1] * fabs(x1_data[i1]), self.p)
-                i1 = i1 + 1
-
-        return d
-
-    cdef inline DTYPE_t dist_csr(
-        self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         return pow(
             self.rdist_csr(
                 x1_data,
@@ -4317,6 +4028,8 @@ cdef class MahalanobisDistance32(DistanceMetric32):
         optionally specify the inverse directly.  If VI is passed,
         then V is not referenced.
     """
+    cdef float64_t[::1] buffer
+
     def __init__(self, V=None, VI=None):
         if VI is None:
             if V is None:
@@ -4326,49 +4039,54 @@ cdef class MahalanobisDistance32(DistanceMetric32):
         if VI.ndim != 2 or VI.shape[0] != VI.shape[1]:
             raise ValueError("V/VI must be square")
 
-        self.mat = ReadonlyArrayWrapper(np.asarray(VI, dtype=DTYPE, order='C'))
+        self.mat = np.asarray(VI, dtype=np.float64, order='C')
 
         self.size = self.mat.shape[0]
 
-        # we need vec as a work buffer
-        self.vec = np.zeros(self.size, dtype=DTYPE)
+        # We need to create a buffer to store the vectors' coordinates' differences
+        self.buffer = np.zeros(self.size, dtype=np.float64)
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        self.size = self.mat.shape[0]
+        self.buffer = np.zeros(self.size, dtype=np.float64)
 
     def _validate_data(self, X):
         if X.shape[1] != self.size:
             raise ValueError('Mahalanobis dist: size of V does not match')
 
-    cdef inline DTYPE_t rdist(
+    cdef inline float64_t rdist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t tmp, d = 0
-        cdef cnp.intp_t i, j
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t tmp, d = 0
+        cdef intp_t i, j
 
         # compute (x1 - x2).T * VI * (x1 - x2)
         for i in range(size):
-            self.vec[i] = x1[i] - x2[i]
+            self.buffer[i] = x1[i] - x2[i]
 
         for i in range(size):
             tmp = 0
             for j in range(size):
-                tmp += self.mat[i, j] * self.vec[j]
-            d += tmp * self.vec[i]
+                tmp += self.mat[i, j] * self.buffer[j]
+            d += tmp * self.buffer[i]
         return d
 
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return sqrt(self.rdist(x1, x2, size))
 
-    cdef inline DTYPE_t _rdist_to_dist(self, cnp.float32_t rdist) nogil except -1:
+    cdef inline float64_t _rdist_to_dist(self, float32_t rdist) except -1 nogil:
         return sqrt(rdist)
 
-    cdef inline DTYPE_t _dist_to_rdist(self, cnp.float32_t dist) nogil except -1:
+    cdef inline float64_t _dist_to_rdist(self, float32_t dist) except -1 nogil:
         return dist * dist
 
     def rdist_to_dist(self, rdist):
@@ -4377,72 +4095,72 @@ cdef class MahalanobisDistance32(DistanceMetric32):
     def dist_to_rdist(self, dist):
         return dist ** 2
 
-    cdef inline DTYPE_t rdist_csr(
+    cdef inline float64_t rdist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t tmp, d = 0.0
+            float64_t tmp, d = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
             ix2 = x2_indices[i2]
 
             if ix1 == ix2:
-                self.vec[ix1] = x1_data[i1] - x2_data[i2]
+                self.buffer[ix1] = x1_data[i1] - x2_data[i2]
                 i1 = i1 + 1
                 i2 = i2 + 1
             elif ix1 < ix2:
-                self.vec[ix1] = x1_data[i1]
+                self.buffer[ix1] = x1_data[i1]
                 i1 = i1 + 1
             else:
-                self.vec[ix2] = - x2_data[i2]
+                self.buffer[ix2] = - x2_data[i2]
                 i2 = i2 + 1
 
         if i1 == x1_end:
             while i2 < x2_end:
                 ix2 = x2_indices[i2]
-                self.vec[ix2] = - x2_data[i2]
+                self.buffer[ix2] = - x2_data[i2]
                 i2 = i2 + 1
         else:
             while i1 < x1_end:
                 ix1 = x1_indices[i1]
-                self.vec[ix1] = x1_data[i1]
+                self.buffer[ix1] = x1_data[i1]
                 i1 = i1 + 1
 
         for i in range(size):
             tmp = 0
             for j in range(size):
-                tmp += self.mat[i, j] * self.vec[j]
-            d += tmp * self.vec[i]
+                tmp += self.mat[i, j] * self.buffer[j]
+            d += tmp * self.buffer[i]
 
         return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
         return sqrt(
             self.rdist_csr(
             x1_data,
@@ -4468,39 +4186,39 @@ cdef class HammingDistance32(DistanceMetric32):
     .. math::
        D(x, y) = \frac{1}{N} \sum_i \delta_{x_i, y_i}
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int n_unequal = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             if x1[j] != x2[j]:
                 n_unequal += 1
         return float(n_unequal) / size
 
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
+            float64_t d = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -4543,39 +4261,39 @@ cdef class CanberraDistance32(DistanceMetric32):
     .. math::
        D(x, y) = \sum_i \frac{|x_i - y_i|}{|x_i| + |y_i|}
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t denom, d = 0
-        cdef cnp.intp_t j
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t denom, d = 0
+        cdef intp_t j
         for j in range(size):
             denom = fabs(x1[j]) + fabs(x2[j])
             if denom > 0:
                 d += fabs(x1[j] - x2[j]) / denom
         return d
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t d = 0.0
+            float64_t d = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -4618,14 +4336,14 @@ cdef class BrayCurtisDistance32(DistanceMetric32):
     .. math::
        D(x, y) = \frac{\sum_i |x_i - y_i|}{\sum_i(|x_i| + |y_i|)}
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t num = 0, denom = 0
-        cdef cnp.intp_t j
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t num = 0, denom = 0
+        cdef intp_t j
         for j in range(size):
             num += fabs(x1[j] - x2[j])
             denom += fabs(x1[j]) + fabs(x2[j])
@@ -4634,26 +4352,26 @@ cdef class BrayCurtisDistance32(DistanceMetric32):
         else:
             return 0.0
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t num = 0.0
-            DTYPE_t denom = 0.0
+            float64_t num = 0.0
+            float64_t denom = 0.0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -4698,14 +4416,14 @@ cdef class JaccardDistance32(DistanceMetric32):
 
         D(x, y) = (N_TF + N_FT) / (N_TT + N_TF + N_FT)
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_eq = 0, nnz = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
@@ -4718,25 +4436,25 @@ cdef class JaccardDistance32(DistanceMetric32):
             return 0
         return (nnz - n_eq) * 1.0 / nnz
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_tt = 0, nnz = 0
+            intp_t tf1, tf2, n_tt = 0, nnz = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -4787,39 +4505,39 @@ cdef class MatchingDistance32(DistanceMetric32):
 
         D(x, y) = (N_TF + N_FT) / N
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_neq = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
             n_neq += (tf1 != tf2)
         return n_neq * 1. / size
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_neq = 0
+            intp_t tf1, tf2, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -4862,14 +4580,14 @@ cdef class DiceDistance32(DistanceMetric32):
         D(x, y) = (N_TF + N_FT) / (2 * N_TT + N_TF + N_FT)
 
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_neq = 0, n_tt = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
@@ -4877,25 +4595,25 @@ cdef class DiceDistance32(DistanceMetric32):
             n_neq += (tf1 != tf2)
         return n_neq / (2.0 * n_tt + n_neq)
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_tt = 0, n_neq = 0
+            intp_t tf1, tf2, n_tt = 0, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -4943,14 +4661,14 @@ cdef class KulsinskiDistance32(DistanceMetric32):
         D(x, y) = 1 - N_TT / (N + N_TF + N_FT)
 
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_tt = 0, n_neq = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
@@ -4958,25 +4676,25 @@ cdef class KulsinskiDistance32(DistanceMetric32):
             n_tt += (tf1 and tf2)
         return (n_neq - n_tt + size) * 1.0 / (n_neq + size)
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_tt = 0, n_neq = 0
+            intp_t tf1, tf2, n_tt = 0, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -5022,39 +4740,39 @@ cdef class RogersTanimotoDistance32(DistanceMetric32):
 
         D(x, y) = 2 (N_TF + N_FT) / (N + N_TF + N_FT)
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_neq = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
             n_neq += (tf1 != tf2)
         return (2.0 * n_neq) / (size + n_neq)
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_neq = 0
+            intp_t tf1, tf2, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -5099,39 +4817,39 @@ cdef class RussellRaoDistance32(DistanceMetric32):
 
         D(x, y) = (N - N_TT) / N
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_tt = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
             n_tt += (tf1 and tf2)
         return (size - n_tt) * 1. / size
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_tt = 0
+            intp_t tf1, tf2, n_tt = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -5149,7 +4867,7 @@ cdef class RussellRaoDistance32(DistanceMetric32):
             else:
                 i2 = i2 + 1
 
-        # We don't need to go through all the longuest
+        # We don't need to go through all the longest
         # vector because tf1 or tf2 will be false
         # and thus n_tt won't be increased.
 
@@ -5169,39 +4887,39 @@ cdef class SokalMichenerDistance32(DistanceMetric32):
 
         D(x, y) = 2 (N_TF + N_FT) / (N + N_TF + N_FT)
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_neq = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
             n_neq += (tf1 != tf2)
         return (2.0 * n_neq) / (size + n_neq)
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_neq = 0
+            intp_t tf1, tf2, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -5246,14 +4964,14 @@ cdef class SokalSneathDistance32(DistanceMetric32):
 
         D(x, y) = (N_TF + N_FT) / (N_TT / 2 + N_FT + N_TF)
     """
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         cdef int tf1, tf2, n_tt = 0, n_neq = 0
-        cdef cnp.intp_t j
+        cdef intp_t j
         for j in range(size):
             tf1 = x1[j] != 0
             tf2 = x2[j] != 0
@@ -5261,25 +4979,25 @@ cdef class SokalSneathDistance32(DistanceMetric32):
             n_tt += (tf1 and tf2)
         return n_neq / (0.5 * n_tt + n_neq)
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            ITYPE_t tf1, tf2, n_tt = 0, n_neq = 0
+            intp_t tf1, tf2, n_tt = 0, n_neq = 0
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -5335,27 +5053,27 @@ cdef class HaversineDistance32(DistanceMetric32):
             raise ValueError("Haversine distance only valid "
                              "in 2 dimensions")
 
-    cdef inline DTYPE_t rdist(self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
-        cdef DTYPE_t sin_0 = sin(0.5 * ((x1[0]) - (x2[0])))
-        cdef DTYPE_t sin_1 = sin(0.5 * ((x1[1]) - (x2[1])))
+    cdef inline float64_t rdist(self,
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
+        cdef float64_t sin_0 = sin(0.5 * ((x1[0]) - (x2[0])))
+        cdef float64_t sin_1 = sin(0.5 * ((x1[1]) - (x2[1])))
         return (sin_0 * sin_0 + cos(x1[0]) * cos(x2[0]) * sin_1 * sin_1)
 
-    cdef inline DTYPE_t dist(self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+    cdef inline float64_t dist(self,
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return 2 * asin(sqrt(self.rdist(x1, x2, size)))
 
-    cdef inline DTYPE_t _rdist_to_dist(self, cnp.float32_t rdist) nogil except -1:
+    cdef inline float64_t _rdist_to_dist(self, float32_t rdist) except -1 nogil:
         return 2 * asin(sqrt(rdist))
 
-    cdef inline DTYPE_t _dist_to_rdist(self, cnp.float32_t dist) nogil except -1:
-        cdef DTYPE_t tmp = sin(0.5 *  dist)
+    cdef inline float64_t _dist_to_rdist(self, float32_t dist) except -1 nogil:
+        cdef float64_t tmp = sin(0.5 *  dist)
         return tmp * tmp
 
     def rdist_to_dist(self, rdist):
@@ -5365,18 +5083,18 @@ cdef class HaversineDistance32(DistanceMetric32):
         tmp = np.sin(0.5 * dist)
         return tmp * tmp
 
-    cdef inline DTYPE_t dist_csr(
+    cdef inline float64_t dist_csr(
          self,
-         const cnp.float32_t* x1_data,
-         const SPARSE_INDEX_TYPE_t[:] x1_indices,
-         const cnp.float32_t* x2_data,
-         const SPARSE_INDEX_TYPE_t[:] x2_indices,
-         const SPARSE_INDEX_TYPE_t x1_start,
-         const SPARSE_INDEX_TYPE_t x1_end,
-         const SPARSE_INDEX_TYPE_t x2_start,
-         const SPARSE_INDEX_TYPE_t x2_end,
-         const ITYPE_t size,
-    ) nogil except -1:
+         const float32_t* x1_data,
+         const int32_t[:] x1_indices,
+         const float32_t* x2_data,
+         const int32_t[:] x2_indices,
+         const int32_t x1_start,
+         const int32_t x1_end,
+         const int32_t x2_start,
+         const int32_t x2_end,
+         const intp_t size,
+    ) except -1 nogil:
         return 2 * asin(sqrt(self.rdist_csr(
             x1_data,
             x1_indices,
@@ -5389,30 +5107,30 @@ cdef class HaversineDistance32(DistanceMetric32):
             size,
         )))
 
-    cdef inline DTYPE_t rdist_csr(
+    cdef inline float64_t rdist_csr(
         self,
-        const cnp.float32_t* x1_data,
-        const SPARSE_INDEX_TYPE_t[:] x1_indices,
-        const cnp.float32_t* x2_data,
-        const SPARSE_INDEX_TYPE_t[:] x2_indices,
-        const SPARSE_INDEX_TYPE_t x1_start,
-        const SPARSE_INDEX_TYPE_t x1_end,
-        const SPARSE_INDEX_TYPE_t x2_start,
-        const SPARSE_INDEX_TYPE_t x2_end,
-        const ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1_data,
+        const int32_t[:] x1_indices,
+        const float32_t* x2_data,
+        const int32_t[:] x2_indices,
+        const int32_t x1_start,
+        const int32_t x1_end,
+        const int32_t x2_start,
+        const int32_t x2_end,
+        const intp_t size,
+    ) except -1 nogil:
 
         cdef:
-            cnp.npy_intp ix1, ix2
-            cnp.npy_intp i1 = x1_start
-            cnp.npy_intp i2 = x2_start
+            intp_t ix1, ix2
+            intp_t i1 = x1_start
+            intp_t i2 = x2_start
 
-            DTYPE_t x1_0 = 0
-            DTYPE_t x1_1 = 0
-            DTYPE_t x2_0 = 0
-            DTYPE_t x2_1 = 0
-            DTYPE_t sin_0
-            DTYPE_t sin_1
+            float64_t x1_0 = 0
+            float64_t x1_1 = 0
+            float64_t x2_0 = 0
+            float64_t x2_1 = 0
+            float64_t sin_0
+            float64_t sin_1
 
         while i1 < x1_end and i2 < x2_end:
             ix1 = x1_indices[i1]
@@ -5481,24 +5199,23 @@ cdef class PyFuncDistance32(DistanceMetric32):
     # allowed in cython >= 0.26 since it is a redundant GIL acquisition. The
     # only way to be back compatible is to inherit `dist` from the base class
     # without GIL and called an inline `_dist` which acquire GIL.
-    cdef inline DTYPE_t dist(
+    cdef inline float64_t dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
-    ) nogil except -1:
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
+    ) except -1 nogil:
         return self._dist(x1, x2, size)
 
-    cdef inline DTYPE_t _dist(
+    cdef inline float64_t _dist(
         self,
-        const cnp.float32_t* x1,
-        const cnp.float32_t* x2,
-        ITYPE_t size,
+        const float32_t* x1,
+        const float32_t* x2,
+        intp_t size,
     ) except -1 with gil:
-        cdef cnp.ndarray x1arr
-        cdef cnp.ndarray x2arr
-        x1arr = _buffer_to_ndarray32(x1, size)
-        x2arr = _buffer_to_ndarray32(x2, size)
+        cdef:
+            object x1arr = _buffer_to_ndarray32(x1, size)
+            object x2arr = _buffer_to_ndarray32(x2, size)
         d = self.func(x1arr, x2arr, **self.kwargs)
         try:
             # Cython generates code here that results in a TypeError
