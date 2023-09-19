@@ -44,6 +44,7 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   private-libs-options
   private-libs-quantized_pool
   JNITarget::jni
+  swig-Lib-java
   contrib-libs-jdk
 )
 target_sources(catboost4j-spark-impl-cpp PRIVATE

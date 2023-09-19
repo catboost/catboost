@@ -1,0 +1,10 @@
+#include "arcadia_root.h"
+
+extern "C" {
+
+const char* ArcadiaRoot() THROWING {
+    return R"__weirdrawstr(@ARCADIA_ROOT@)__weirdrawstr";
+}
+
+}
+
