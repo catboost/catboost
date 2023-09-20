@@ -24,8 +24,10 @@ def test_iter():
 
 
 def test_resfs_files():
-    assert "contrib/python/py/.dist-info/METADATA" in set(rs.resfs_files())
+    metadata_path = "contrib/python/py/py{}/.dist-info/METADATA".format("2" if six.PY2 else "3")
+    assert metadata_path in set(rs.resfs_files())
 
 
 def test_resfs_read():
-    assert "Metadata-Version" in rs.resfs_read("contrib/python/py/.dist-info/METADATA").decode("utf-8")
+    metadata_path = "contrib/python/py/py{}/.dist-info/METADATA".format("2" if six.PY2 else "3")
+    assert "Metadata-Version" in rs.resfs_read(metadata_path).decode("utf-8")
