@@ -148,7 +148,7 @@ section for more details)
 Converting between timezones is more easily done, using the
 standard astimezone method.
 
->>> utc_dt = utc.localize(datetime.utcfromtimestamp(1143408899))
+>>> utc_dt = datetime.fromtimestamp(1143408899, tz=utc)
 >>> utc_dt.strftime(fmt)
 '2006-03-26 21:34:59 UTC+0000'
 >>> au_tz = timezone('Australia/Sydney')
@@ -166,7 +166,7 @@ conversions. ``normalize()`` and ``localize()`` are not really
 necessary when there are no daylight saving time transitions to
 deal with.
 
->>> utc_dt = datetime.utcfromtimestamp(1143408899).replace(tzinfo=utc)
+>>> utc_dt = datetime.fromtimestamp(1143408899, tz=utc)
 >>> utc_dt.strftime(fmt)
 '2006-03-26 21:34:59 UTC+0000'
 >>> au_tz = timezone('Australia/Sydney')
@@ -605,4 +605,3 @@ Contact
 ~~~~~~~
 
 Stuart Bishop <stuart@stuartbishop.net>
-

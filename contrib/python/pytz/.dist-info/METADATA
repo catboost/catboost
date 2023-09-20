@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pytz
-Version: 2023.3
+Version: 2023.3.post1
 Summary: World timezone definitions, modern and historical
 Home-page: http://pythonhosted.org/pytz
 Author: Stuart Bishop
@@ -34,6 +34,7 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 
 pytz - World Timezone Definitions for Python
@@ -186,7 +187,7 @@ section for more details)
 Converting between timezones is more easily done, using the
 standard astimezone method.
 
->>> utc_dt = utc.localize(datetime.utcfromtimestamp(1143408899))
+>>> utc_dt = datetime.fromtimestamp(1143408899, tz=utc)
 >>> utc_dt.strftime(fmt)
 '2006-03-26 21:34:59 UTC+0000'
 >>> au_tz = timezone('Australia/Sydney')
@@ -204,7 +205,7 @@ conversions. ``normalize()`` and ``localize()`` are not really
 necessary when there are no daylight saving time transitions to
 deal with.
 
->>> utc_dt = datetime.utcfromtimestamp(1143408899).replace(tzinfo=utc)
+>>> utc_dt = datetime.fromtimestamp(1143408899, tz=utc)
 >>> utc_dt.strftime(fmt)
 '2006-03-26 21:34:59 UTC+0000'
 >>> au_tz = timezone('Australia/Sydney')
@@ -643,6 +644,5 @@ Contact
 ~~~~~~~
 
 Stuart Bishop <stuart@stuartbishop.net>
-
 
 
