@@ -3418,16 +3418,17 @@ class CatBoost(_CatBoostBase):
     def plot_predictions(self, data, features_to_change, plot=True, plot_file=None):
         """
         To use this function, you should install plotly.
+
         data: numpy.ndarray or pandas.DataFrame or catboost.Pool
-        feature:
-            Float features indexes in pd.DataFrame for which you want vary prediction value.
+        features_to_change: list-like with int (for indices) or str (for names) elements
+            Numerical features indices or names in `data` for which you want to vary prediction value.
         plot: bool
             Plot predictions.
         plot_file: str
             Output file for plot predictions.
         Returns
         -------
-            List of list of predictions for all buckets for all documents in data
+            List of list of predictions for all buckets for all samples in data
         """
 
         def predict(doc, feature_idx, borders, nan_treatment):
