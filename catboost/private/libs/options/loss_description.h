@@ -182,7 +182,7 @@ void IterateOverCombination(const TMap<TString, TString>& params, const TCallabl
         const auto& weightKey = GetCombinationWeightKey(idx);
         CB_ENSURE(params.contains(lossKey) && params.contains(weightKey), "Mandatory parameter " << lossKey << " or " << weightKey << " is missing");
         float weight;
-        CB_ENSURE(TryFromString<float>(params.at(weightKey), weight), "Value of " << weightKey << " must be floating point number");
+        CB_ENSURE(TryFromString<float>(params.at(weightKey), weight), "Value of " << weightKey << " must be floating point number, not " << params.at(weightKey));
         if (weight == 0.0f) {
             continue;
         }
