@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
@@ -35,6 +34,8 @@
 
 
 #pragma once
+#pragma clang system_header
+
 
 // This is not used by this file; this is a hack so that we can detect the
 // CUB version from Thrust on older versions of CUB that did not have

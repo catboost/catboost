@@ -1,5 +1,3 @@
-#pragma clang system_header
-
 /******************************************************************************
  * Copyright (c) NVIDIA CORPORATION.  All rights reserved.
  *

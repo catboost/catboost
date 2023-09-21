@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -32,6 +31,8 @@
  */
 
 #pragma once
+#pragma clang system_header
+
 
 #include <type_traits>
 

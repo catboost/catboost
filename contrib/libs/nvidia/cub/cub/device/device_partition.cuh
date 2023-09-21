@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
@@ -34,6 +33,8 @@
  */
 
 #pragma once
+#pragma clang system_header
+
 
 #include <stdio.h>
 #include <iterator>
@@ -621,5 +622,3 @@ struct DevicePartition
  */
 
 CUB_NAMESPACE_END
-
-

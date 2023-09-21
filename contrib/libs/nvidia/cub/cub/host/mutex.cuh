@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
@@ -35,6 +34,8 @@
 #include "../util_cpp_dialect.cuh"
 
 #pragma once
+#pragma clang system_header
+
 
 #if CUB_CPP_DIALECT >= 2011
     #include <mutex>
@@ -160,4 +161,3 @@ struct Mutex
 
 
 CUB_NAMESPACE_END
-

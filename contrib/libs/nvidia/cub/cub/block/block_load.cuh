@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2016, NVIDIA CORPORATION.  All rights reserved.
@@ -33,10 +32,12 @@
  */
 
 #pragma once
-
+#pragma clang system_header
 #if defined(__clang__) && !defined(__NVCC__)
 #include <contrib/libs/clang14/lib/Headers/cuda_wrappers/new>
 #endif
+
+
 
 #include <iterator>
 #include <type_traits>
@@ -1308,4 +1309,3 @@ struct BlockLoadType
 
 
 CUB_NAMESPACE_END
-

@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
@@ -33,6 +32,8 @@
  */
 
 #pragma once
+#pragma clang system_header
+
 
 // Static configuration
 #include "config.cuh"
@@ -106,4 +107,3 @@
 #include "util_macro.cuh"
 #include "util_ptx.cuh"
 #include "util_type.cuh"
-

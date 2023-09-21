@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -34,6 +33,8 @@
  */
 
 #pragma once
+#pragma clang system_header
+
 
 #include "../block/block_load.cuh"
 #include "../block/radix_rank_sort_operations.cuh"

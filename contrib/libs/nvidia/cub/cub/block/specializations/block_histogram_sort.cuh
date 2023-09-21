@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
@@ -33,6 +32,8 @@
  */
 
 #pragma once
+#pragma clang system_header
+
 
 #include "../../block/block_radix_sort.cuh"
 #include "../../block/block_discontinuity.cuh"
@@ -219,4 +220,3 @@ struct BlockHistogramSort
 };
 
 CUB_NAMESPACE_END
-

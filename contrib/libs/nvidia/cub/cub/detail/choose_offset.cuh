@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -27,6 +26,8 @@
  ******************************************************************************/
 
 #pragma once
+#pragma clang system_header
+
 
 #include <cub/config.cuh>
 
@@ -60,4 +61,3 @@ struct ChooseOffsetT
 } // namespace detail
 
 CUB_NAMESPACE_END
-

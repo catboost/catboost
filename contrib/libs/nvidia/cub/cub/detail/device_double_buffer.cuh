@@ -1,4 +1,3 @@
-#pragma clang system_header
 /*
  *  Copyright 2021 NVIDIA Corporation
  *
@@ -16,6 +15,8 @@
  */
 
 #pragma once
+#pragma clang system_header
+
 
 #include <cub/util_namespace.cuh>
 

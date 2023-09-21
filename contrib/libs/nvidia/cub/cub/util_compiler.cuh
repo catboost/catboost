@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -32,6 +31,8 @@
  */
 
 #pragma once
+#pragma clang system_header
+
 
 // enumerate host compilers we know about
 #define CUB_HOST_COMPILER_UNKNOWN 0

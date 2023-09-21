@@ -1,4 +1,3 @@
-#pragma clang system_header
 /******************************************************************************
  * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -27,6 +26,8 @@
  ******************************************************************************/
 
 #pragma once
+#pragma clang system_header
+
 
 #include <cub/agent/agent_adjacent_difference.cuh>
 #include <cub/config.cuh>
