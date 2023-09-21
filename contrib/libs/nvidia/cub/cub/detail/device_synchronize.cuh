@@ -1,3 +1,4 @@
+#pragma clang system_header
 /*
  *  Copyright 2021 NVIDIA Corporation
  *
