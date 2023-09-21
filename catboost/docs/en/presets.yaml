@@ -512,7 +512,7 @@ default:
   java__hashcategoricalfeature: hashCategoricalFeature(String)
   title__export-to-core-ml: Export the model to Apple CoreML
   loss-function__params__greater-than: greater_than
-  ECtrTableMergePolicy__FailIfCtrsIntersects: FailIfCtrsIntersects
+  ECtrTableMergePolicy__FailIfCtrIntersects: FailIfCtrIntersects
   ECtrTableMergePolicy__LeaveMostDiversifiedTable: LeaveMostDiversifiedTable
   ECtrTableMergePolicy__IntersectingCountersAverage: IntersectingCountersAverage
   ECtrTableMergePolicy__KeepAllTables: KeepAllTables
