@@ -34,6 +34,10 @@
 
 #pragma once
 
+#if defined(__clang__) && !defined(__NVCC__)
+#include <contrib/libs/clang14/lib/Headers/cuda_wrappers/new>
+#endif
+
 #include <iterator>
 #include <type_traits>
 
