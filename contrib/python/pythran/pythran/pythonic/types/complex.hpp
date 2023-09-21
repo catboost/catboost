@@ -177,6 +177,7 @@ PYTHONIC_NS_END
 #ifdef ENABLE_PYTHON_MODULE
 
 #include "numpy/arrayscalars.h"
+#include "numpy/npy_math.h"
 #include "pythonic/python/core.hpp"
 
 PYTHONIC_NS_BEGIN
@@ -228,7 +229,7 @@ inline std::complex<long double>
 from_python<std::complex<long double>>::convert(PyObject *obj)
 {
   auto val = PyArrayScalar_VAL(obj, CLongDouble);
-  return {val.real, val.imag};
+  return {npy_creall(val), npy_cimagl(val)};
 }
 
 template <>
@@ -243,7 +244,7 @@ inline std::complex<float>
 from_python<std::complex<float>>::convert(PyObject *obj)
 {
   auto val = PyArrayScalar_VAL(obj, CFloat);
-  return {val.real, val.imag};
+  return {npy_crealf(val), npy_cimagf(val)};
 }
 PYTHONIC_NS_END
 #endif

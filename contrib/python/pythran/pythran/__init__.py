@@ -45,13 +45,91 @@ Cleanup
 
 '''
 
+import importlib as _importlib
+
 import pythran.log
-from pythran.config import get_include
-from pythran.toolchain import (generate_cxx, compile_cxxfile, compile_cxxcode,
-                               compile_pythrancode, compile_pythranfile,
-                               import_pythrancode, import_pythranfile,
-                               test_compile)
-from pythran.spec import spec_parser
-from pythran.spec import load_specfile
-from pythran.dist import PythranExtension
 from pythran.version import __version__
+
+
+_submodules = [
+    'analyses',
+    'backend',
+    'config',
+    'conversion',
+    'cxxgen',
+    'cxxtypes',
+    'dist',
+    'errors',
+    'frontend',
+    'graph',
+    'interval',
+    'intrinsic',
+    'log',
+    'metadata',
+    'middlend',
+    'openmp',
+    'optimizations',
+    'passmanager',
+    'spec',
+    'syntax',
+    'tables',
+    'toolchain',
+    'transformations',
+    'types',
+    'typing',
+    'unparse',
+    'utils',
+    'version'
+]
+
+
+_toplevel_objects = [
+    '__version__',
+    'PythranExtension',
+    'compile_cxxcode',
+    'compile_cxxfile',
+    'compile_pythrancode',
+    'compile_pythranfile',
+    'generate_cxx',
+    'get_include',
+    'import_pythrancode',
+    'import_pythranfile',
+    'load_specfile',
+    'spec_parser',
+    'test_compile',
+]
+
+
+__all__ = _submodules + _toplevel_objects
+
+
+def __dir__():
+    return __all__
+
+
+def __getattr__(name):
+    if name in _submodules:
+        return _importlib.import_module(f'pythran.{name}')
+    else:
+        if name == 'PythranExtension':
+            from pythran.dist import PythranExtension
+            return PythranExtension
+        elif name == 'get_include':
+            from pythran.config import get_include
+            return get_include
+        elif name == 'load_specfile':
+            from pythran.spec import load_specfile
+            return load_specfile
+        elif name == 'spec_parser':
+            from pythran.spec import spec_parser
+            return spec_parser
+        elif name in _toplevel_objects:
+            import pythran.toolchain
+            return getattr(pythran.toolchain, name)
+        else:
+            try:
+                return globals()[name]
+            except KeyError:
+                raise AttributeError(
+                    f"Module 'pythran' has no attribute '{name}'"
+            )

@@ -3,16 +3,6 @@
 
 #include "pythonic/include/types/tuple.hpp"
 
-#ifdef _OPENMP
-#include <omp.h>
-
-// as a macro so that an enlightened user can modify this variable :-)
-#ifndef PYTHRAN_OPENMP_MIN_ITERATION_COUNT
-#define PYTHRAN_OPENMP_MIN_ITERATION_COUNT 1000
-#endif
-
-#endif
-
 PYTHONIC_NS_BEGIN
 
 namespace utils

@@ -2,8 +2,8 @@
 #define PYTHONIC_INCLUDE_UTILS_SHARED_REF_HPP
 
 #include <memory>
-#include <utility>
 #include <unordered_map>
+#include <utility>
 #ifdef _OPENMP
 #define THREAD_SAFE_REF_COUNT
 #endif
@@ -48,8 +48,11 @@ namespace utils
       atomic_size_t count;
       extern_type foreign;
       template <class... Types>
-      memory(Types &&... args);
+      memory(Types &&...args);
     } * mem;
+
+    template <class Tp>
+    friend class shared_ref;
 
   public:
     // Uninitialized ctor
@@ -60,7 +63,7 @@ namespace utils
 
     // Ctor allocate T && forward all arguments to T ctor
     template <class... Types>
-    shared_ref(Types &&... args);
+    shared_ref(Types &&...args);
 
     // Move Ctor
     shared_ref(shared_ref<T> &&p) noexcept;
@@ -81,6 +84,9 @@ namespace utils
     // Takes by copy so that acquire/release is handle by ctor
     shared_ref<T> &operator=(shared_ref<T> p) noexcept;
 
+    template <class Tp>
+    shared_ref<Tp> recast() noexcept;
+
     T &operator*() const noexcept;
 
     T *operator->() const noexcept;
@@ -99,7 +105,7 @@ namespace utils
     void dispose();
     void acquire();
   };
-}
+} // namespace utils
 PYTHONIC_NS_END
 
 #endif

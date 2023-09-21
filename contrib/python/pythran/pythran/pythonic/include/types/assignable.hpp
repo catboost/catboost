@@ -12,7 +12,7 @@ namespace types
   template <class T>
   constexpr T as_const(T &&t) noexcept
   {
-    return t;
+    return std::forward<T>(t);
   }
 
   // Pass all scalars by value when called through pythonic::types::call
@@ -40,10 +40,10 @@ namespace types
   template <class F, class... Args>
   static inline auto call(F &&f, Args &&...args)
       -> decltype(std::forward<F>(f).template operator()<by_val_t<Args>...>(
-          std::forward<Args>(args)...))
+          static_cast<by_val_t<Args>>(args)...))
   {
     return std::forward<F>(f).template operator()<by_val_t<Args>...>(
-        std::forward<Args>(args)...);
+        static_cast<by_val_t<Args>>(args)...);
   }
 
 } // namespace types

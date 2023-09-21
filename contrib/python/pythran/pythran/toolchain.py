@@ -22,7 +22,6 @@ from pythran.version import __version__
 from pythran.utils import cxxid
 import pythran.frontend as frontend
 
-from datetime import datetime
 from distutils.errors import CompileError
 from distutils import sysconfig
 try:
@@ -183,8 +182,7 @@ def generate_cxx(module_name, code, specs=None, optimizations=None,
         else:
             code_bytes = code.encode('ascii', 'ignore')
         metainfo = {'hash': hashlib.sha256(code_bytes).hexdigest(),
-                    'version': __version__,
-                    'date': datetime.now()}
+                    'version': __version__}
 
         mod = PythonModule(module_name, docstrings, metainfo)
         mod.add_to_includes(

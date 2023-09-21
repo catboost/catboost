@@ -4,8 +4,8 @@
 #include "pythonic/include/utils/shared_ref.hpp"
 
 #include <memory>
-#include <utility>
 #include <unordered_map>
+#include <utility>
 #ifdef _OPENMP
 #include <atomic>
 #endif
@@ -21,7 +21,7 @@ namespace utils
    */
   template <class T>
   template <class... Types>
-  shared_ref<T>::memory::memory(Types &&... args)
+  shared_ref<T>::memory::memory(Types &&...args)
       : ptr(std::forward<Types>(args)...), count(1), foreign(nullptr)
   {
   }
@@ -38,7 +38,7 @@ namespace utils
 
   template <class T>
   template <class... Types>
-  shared_ref<T>::shared_ref(Types &&... args)
+  shared_ref<T>::shared_ref(Types &&...args)
       : mem(new (std::nothrow) memory(std::forward<Types>(args)...))
   {
   }
@@ -54,6 +54,17 @@ namespace utils
   {
     if (mem)
       acquire();
+  }
+
+  template <class T>
+  template <class Tp>
+  shared_ref<Tp> shared_ref<T>::recast() noexcept
+  {
+    shared_ref<Tp> res = no_memory{};
+    if (mem)
+      acquire();
+    res.mem = reinterpret_cast<typename shared_ref<Tp>::memory *>(mem);
+    return res;
   }
 
   template <class T>
@@ -143,7 +154,7 @@ namespace utils
     assert(mem);
     ++mem->count;
   }
-}
+} // namespace utils
 PYTHONIC_NS_END
 
 #endif

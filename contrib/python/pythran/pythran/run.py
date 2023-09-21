@@ -8,6 +8,7 @@ import os
 import sys
 
 import pythran
+import pythran.types.tog
 
 from distutils.errors import CompileError
 

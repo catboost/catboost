@@ -90,9 +90,9 @@ class Spec(object):
                 self.functions[fname] = (signatures,)
 
         if not self:
-            import logging
-            logging.warning("No pythran specification, "
-                            "nothing will be exported")
+            from pythran.log import logger
+            logger.warning("No pythran specification, "
+                           "nothing will be exported")
 
     def keys(self):
         return list(self.functions.keys()) + list(self.capsules.keys())

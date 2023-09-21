@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pythran
-Version: 0.13.1
+Version: 0.14.0
 Summary: Ahead of Time compiler for numeric kernels
 Home-page: https://github.com/serge-sans-paille/pythran
 Author: Serge Guelton
@@ -13,12 +13,12 @@ Classifier: License :: OSI Approved :: BSD License
 Classifier: Natural Language :: English
 Classifier: Operating System :: POSIX :: Linux
 Classifier: Operating System :: MacOS
-Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: C++
 Classifier: Topic :: Software Development :: Compilers
 Classifier: Topic :: Software Development :: Code Generators
+Requires-Python: >=3.7
 License-File: LICENSE
 License-File: AUTHORS
 Requires-Dist: ply (>=3.4)

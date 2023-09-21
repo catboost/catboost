@@ -210,6 +210,13 @@ namespace types
       return *this;
     }
 
+    template <class Tp, size_t... Is>
+    auto recast()
+        -> decltype(numpy::functor::transpose{}(arg.template recast<Tp>()))
+    {
+      return numpy::functor::transpose{}(arg.template recast<Tp>());
+    }
+
     template <class S0, class... S>
     auto
     operator()(S0 const &s0, S const &...s) const -> typename std::enable_if<

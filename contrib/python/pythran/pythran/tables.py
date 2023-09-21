@@ -825,6 +825,7 @@ CLASSES = {
         ),
         "tofile": ConstMethodIntr(signature=Fun[[NDArray[T0, :]], str, str], global_effects=True),
         "tostring": ConstMethodIntr(signature=Fun[[NDArray[T0, :]], str]),
+        "view": MethodIntr(),
     },
 }
 
@@ -2544,6 +2545,17 @@ _numpy_array_signature = Union[
          _complex_signature], NDArray[complex, :, :, :, :]],
 ]
 
+
+def expand_numpy_2_args(args, defaults=None):
+    if numpy.__version__[0] < '2':
+        if defaults is not None:
+            return {'args': args, 'defaults': defaults}
+        else:
+            return {'args': args}
+    else:
+        return {}
+
+
 # each module consist in a module_name <> set of symbols
 MODULES = {
     "builtins": {
@@ -3186,9 +3198,9 @@ MODULES = {
             return_range=interval.positive_values
         ),
         "around": ConstFunctionIntr(signature=_numpy_around_signature),
-        "array": ReadOnceFunctionIntr(signature=_numpy_array_signature,
-                                      args=('object', 'dtype'),
-                                      defaults=(None,)),
+        "array": FunctionIntr(signature=_numpy_array_signature,
+                              args=('object', 'dtype'),
+                              defaults=(None,)),
         "array2string": ConstFunctionIntr(
             signature=_numpy_array_str_signature),
         "array_equal": ConstFunctionIntr(signature=Fun[[T0, T1], bool]),
@@ -3888,86 +3900,88 @@ MODULES = {
             "hfft": FunctionIntr(global_effects=True),
             "ihfft": FunctionIntr(global_effects=True),
         },
+        # Note: numpy.random signatures were improved upstream, so we only need
+        # to add args/defaults for older versions.
         "random": {
-            "binomial": FunctionIntr(args=('n', 'p', 'size'),
-                                     global_effects=True),
-            "bytes": FunctionIntr(args=('length',),
-                                  global_effects=True),
-            "chisquare": FunctionIntr(args=('df', 'size',),
-                                      global_effects=True),
-            "choice": FunctionIntr(args=('a', 'size', 'replace', 'p'),
-                                   global_effects=True),
-            "dirichlet": FunctionIntr(args=('alpha', 'size',),
-                                      global_effects=True),
-            "exponential": FunctionIntr(args=('scale', 'size',),
-                                        defaults=(1.0, None,),
-                                        global_effects=True),
-            "f": FunctionIntr(args=('dfnum', 'dfden', 'size'),
-                              global_effects=True),
-            "gamma": FunctionIntr(args=('shape', 'scale', 'size',),
-                                  defaults=(None, 1.0, None,),
-                                  global_effects=True),
-            "geometric": FunctionIntr(args=('p', 'size',),
-                                      global_effects=True),
-            "pareto": FunctionIntr(args=('a', 'size',),
-                                   global_effects=True),
-            "gumbel": FunctionIntr(args=('loc', 'scale', 'size',),
-                                   defaults=(0.0, 1.0, None,),
-                                   global_effects=True),
-            "poisson": FunctionIntr(args=('lam', 'size',),
-                                    defaults=(1.0, None,),
-                                    global_effects=True),
-            "negative_binomial": FunctionIntr(args=('n', 'p', 'size',),
-                                              global_effects=True),
-            "normal": FunctionIntr(args=('loc', 'scale', 'size',),
-                                   defaults=(0.0, 1.0, None,),
-                                   global_effects=True),
-            "laplace": FunctionIntr(args=('loc', 'scale', 'size',),
-                                    defaults=(0.0, 1.0, None,),
-                                    global_effects=True),
-            "logistic": FunctionIntr(args=('loc', 'scale', 'size',),
-                                     defaults=(0.0, 1.0, None,),
-                                     global_effects=True),
-            "lognormal": FunctionIntr(args=('mean', 'sigma', 'size',),
-                                      defaults=(0.0, 1.0, None,),
-                                      global_effects=True),
-            "logseries": FunctionIntr(args=('p', 'size',),
-                                      global_effects=True),
-            "power": FunctionIntr(args=('a', 'size',),
-                                  global_effects=True),
-            "rand": FunctionIntr(args=(),
-                                 global_effects=True),
-            "ranf": FunctionIntr(args=('size',),
-                                 global_effects=True),
-            "randint": FunctionIntr(args=("low", "high", "size"),
-                                    defaults=(None, None),
-                                    global_effects=True),
-            "randn": FunctionIntr(args=(),
-                                  global_effects=True),
-            "random": FunctionIntr(args=('size',),
-                                   global_effects=True),
-            "random_integers": FunctionIntr(args=("low", "high", "size"),
-                                            global_effects=True),
-            "random_sample": FunctionIntr(args=('size',),
-                                          global_effects=True),
-            "rayleigh": FunctionIntr(args=('scale', 'size',),
-                                     defaults=(1.0, None,),
-                                     global_effects=True),
-            "sample": FunctionIntr(args=('size',),
-                                   global_effects=True),
+            "binomial": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('n', 'p', 'size'))),
+            "bytes": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('length',))),
+            "chisquare": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('df', 'size',))),
+            "choice": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('a', 'size', 'replace', 'p'))),
+            "dirichlet": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('alpha', 'size',))),
+            "exponential": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('scale', 'size',),
+                                      defaults=(1.0, None,))),
+            "f": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('dfnum', 'dfden', 'size'))),
+            "gamma": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('shape', 'scale', 'size',),
+                                      defaults=(0.0, 1.0, None,))),
+            "geometric": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('p', 'size',))),
+            "pareto": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('a', 'size',))),
+            "gumbel": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('loc', 'scale', 'size',),
+                                      defaults=(0.0, 1.0, None,))),
+            "poisson": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('lam', 'size',),
+                                      defaults=(1.0, None,))),
+            "negative_binomial": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('n', 'p', 'size',))),
+            "normal": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('loc', 'scale', 'size',),
+                                      defaults=(0.0, 1.0, None,))),
+            "laplace": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('loc', 'scale', 'size',),
+                                      defaults=(0.0, 1.0, None,))),
+            "logistic": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('loc', 'scale', 'size',),
+                                      defaults=(0.0, 1.0, None,))),
+            "lognormal": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('mean', 'sigma', 'size',),
+                                      defaults=(0.0, 1.0, None,))),
+            "logseries": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('p', 'size',))),
+            "power": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('a', 'size',))),
+            "rand": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=())),
+            "ranf": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('size',))),
+            "randint": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=("low", "high", "size"),
+                                      defaults=(None, None))),
+            "randn": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=())),
+            "random": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('size',))),
+            "random_integers": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=("low", "high", "size"))),
+            "random_sample": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('size',))),
+            "rayleigh": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('scale', 'size',),
+                                      defaults=(1.0, None,))),
+            "sample": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('size',))),
             "seed": FunctionIntr(global_effects=True),
             "shuffle": FunctionIntr(global_effects=True),
-            "standard_exponential": FunctionIntr(args=('size',),
-                                                 global_effects=True),
-            "standard_gamma": FunctionIntr(args=('shape', 'size',),
-                                           global_effects=True),
-            "standard_normal": FunctionIntr(args=('size',),
-                                            global_effects=True),
-            "uniform": FunctionIntr(args=('low', 'high', 'size',),
-                                    defaults=(0.0, 1.0, None,),
-                                    global_effects=True),
-            "weibull": FunctionIntr(args=('a', 'size',),
-                                    global_effects=True),
+            "standard_exponential": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('size',))),
+            "standard_gamma": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('shape', 'size',))),
+            "standard_normal": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('size',))),
+            "uniform": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('low', 'high', 'size',),
+                                      defaults=(0.0, 1.0, None,))),
+            "weibull": FunctionIntr(global_effects=True,
+                **expand_numpy_2_args(args=('a', 'size',))),
         },
         # We currently don't accurately model the fact that the return of ravel
         # shares memory with its argument, but not the type.
@@ -4505,6 +4519,7 @@ MODULES = {
     },
 }
 
+
 if sys.version_info < (3, 5):
     del MODULES['operator']['matmul']
     del MODULES['operator']['__matmul__']
@@ -4565,33 +4580,50 @@ def save_arguments(module_name, elements):
                 obj = getattr(themodule, elem)
                 while hasattr(obj, '__wrapped__'):
                     obj = obj.__wrapped__
+            except (AttributeError, ImportError, TypeError):
+                continue
 
-                # first try to gather info through getfullargspec
+            # first try to gather info through getfullargspec
+            try:
                 spec = inspect.getfullargspec(obj)
+            except:
+                continue
 
-                args = [ast.Name(arg, ast.Param(), None, None)
-                        for arg in spec.args]
-                defaults = list(spec.defaults or [])
-                args += [ast.Name(arg, ast.Param(), None, None)
-                         for arg in spec.kwonlyargs]
-                defaults += [spec.kwonlydefaults[kw] for kw in spec.kwonlyargs]
+            args = [ast.Name(arg, ast.Param(), None, None)
+                    for arg in spec.args]
+            defaults = list(spec.defaults or [])
+            args += [ast.Name(arg, ast.Param(), None, None)
+                     for arg in spec.kwonlyargs]
+            defaults += [spec.kwonlydefaults[kw] for kw in spec.kwonlyargs]
 
-                # Sanity check
-                if signature.args.args:
+            # Check if we already have a pythran description for that object
+            if signature.args.args:
+                if module_name != ('numpy', 'random'):
+                    # Skip this warning for `numpy.random`, because the
+                    # signatures changed in 1.25.x and that may yet be reverted
+                    # (see pythran#2139) in 1.25.3 and/or 1.26.x
                     logger.warning(
                         "Overriding pythran description with argspec "
                         "information for: {}".format(
 
-                            ".".join(module_name + (elem,))))
-                # Avoid use of comprehension to fill "as much args/defauls" as
-                # possible
-                signature.args.args = args[:-len(defaults) or None]
-                signature.args.defaults = []
+                        ".".join(module_name + (elem,))))
+                else:
+                    continue
+
+            # Avoid use of comprehension to fill "as much args/defaults" as
+            # possible
+            signature_args = args[:-len(defaults) or None]
+            signature_defaults = []
+            try:
                 for arg, value in zip(args[-len(defaults):], defaults):
-                    signature.args.defaults.append(to_ast(value))
-                    signature.args.args.append(arg)
-            except (AttributeError, ImportError, TypeError, ToNotEval):
-                pass
+                    signature_args.append(arg)
+                    signature_defaults.append(to_ast(value))
+            except ToNotEval:
+                continue
+
+            # Only validate once we have a valid signature
+            signature.args.args = signature_args
+            signature.args.defaults = signature_defaults
 
 
 save_arguments((), MODULES)

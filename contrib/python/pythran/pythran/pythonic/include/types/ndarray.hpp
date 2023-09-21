@@ -663,6 +663,15 @@ namespace types
     template <class qS>
     ndarray<T, qS> reshape(qS const &shape) &&;
 
+    template <class OT>
+    ndarray<OT, types::array<long, value>> recast()
+    {
+      auto new_shape = sutils::array(_shape);
+      new_shape[value - 1] = new_shape[value - 1] * sizeof(T) / sizeof(OT);
+      auto new_mem = mem.template recast<raw_array<OT>>();
+      return ndarray<OT, types::array<long, value>>(new_mem, new_shape);
+    }
+
     explicit operator bool() const;
 
     ndarray<T, pshape<long>> flat() const;
@@ -732,6 +741,12 @@ namespace std
     using type =
         decltype(std::declval<pythonic::types::numpy_gexpr<E, S...>>()[0]);
   };
+
+  template <size_t I, class T, class F>
+  struct tuple_element<I, pythonic::types::numpy_vexpr<T, F>> {
+    using type = decltype(std::declval<pythonic::types::numpy_vexpr<T, F>>()[0]);
+  };
+
 } // namespace std
 
 /* pythran attribute system { */

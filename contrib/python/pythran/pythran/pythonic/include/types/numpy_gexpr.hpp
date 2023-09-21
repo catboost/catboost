@@ -35,6 +35,26 @@ namespace types
         count_new_axis<T0>::value + count_new_axis<T...>::value;
   };
 
+  /* helper to cast slices
+   */
+  template <size_t T, size_t Tp>
+  long recast_slice(long n)
+  {
+    return (n * (long)T) / (long)Tp;
+  }
+  template <size_t T, size_t Tp>
+  cstride_slice<1> recast_slice(normalized_slice s)
+  {
+    assert(s.step == 1 && "To change to a dtype of a different size, the last "
+                          "axis must be contiguous");
+    return {s.lower * (long)T / (long)Tp, s.upper * (long)T / (long)Tp};
+  }
+  template <size_t T, size_t Tp, long stride>
+  cstride_slice<stride> recast_slice(cstride_normalized_slice<stride> s)
+  {
+    return {s.lower * (long)T / (long)Tp, s.upper * (long)T / (long)Tp};
+  }
+
   /* helper to turn a new axis into a slice
    */
   template <class T>
@@ -893,11 +913,29 @@ namespace types
     {
       return buffer;
     }
+
     long flat_size() const;
     long size() const;
     ndarray<dtype, shape_t> copy() const
     {
       return {*this};
+    }
+
+    template <class Tp, size_t... Is>
+    auto recast(utils::index_sequence<Is...>) -> decltype(make_gexpr(
+        arg.template recast<Tp>(),
+        recast_slice<sizeof(dtype), sizeof(Tp)>(std::get<Is>(slices))...))
+    {
+      return make_gexpr(
+          arg.template recast<Tp>(),
+          recast_slice<sizeof(dtype), sizeof(Tp)>(std::get<Is>(slices))...);
+    }
+
+    template <class Tp>
+    auto recast()
+        -> decltype(recast<Tp>(utils::make_index_sequence<sizeof...(S)>()))
+    {
+      return recast<Tp>(utils::make_index_sequence<sizeof...(S)>());
     }
   };
 } // namespace types

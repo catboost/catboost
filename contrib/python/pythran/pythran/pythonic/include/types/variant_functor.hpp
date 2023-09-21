@@ -113,13 +113,13 @@ namespace types
 
       template <class... Args>
       auto operator()(Args &&... args) -> typename __combined<
-          decltype(std::declval<Type>()(args...)),
-          decltype(std::declval<Types>()(args...))...>::type;
+          decltype(std::declval<Type>()(std::forward<Args>(args)...)),
+          decltype(std::declval<Types>()(std::forward<Args>(args)...))...>::type;
 
       template <class... Args>
       auto operator()(Args &&... args) const -> typename __combined<
-          decltype(std::declval<Type>()(args...)),
-          decltype(std::declval<Types>()(args...))...>::type;
+          decltype(std::declval<Type>()(std::forward<Args>(args)...)),
+          decltype(std::declval<Types>()(std::forward<Args>(args)...))...>::type;
     };
   }
 

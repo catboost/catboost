@@ -36,8 +36,7 @@ namespace types
     static constexpr size_t value = std::remove_reference<Arg>::type::value - 1;
     static const bool is_vectorizable =
         std::remove_reference<Arg>::type::is_vectorizable;
-    static const bool is_flat =
-        std::remove_reference<Arg>::type::is_flat;
+    static const bool is_flat = std::remove_reference<Arg>::type::is_flat;
     using dtype = typename std::remove_reference<Arg>::type::dtype;
     using value_type =
         typename std::remove_reference<decltype(numpy_iexpr_helper<value>::get(
@@ -307,6 +306,14 @@ namespace types
       return {*this};
     }
 
+    template <typename Tp>
+    auto recast() -> decltype(arg.template recast<Tp>().fast(0))
+    {
+      long former_index = (buffer - arg.buffer) / arg.template strides<0>();
+      return arg.template recast<Tp>().fast(former_index * sizeof(dtype) /
+                                            sizeof(Tp));
+    }
+
     template <class F> // indexing through an array of indices -- a view
     typename std::enable_if<is_numexpr_arg<F>::value &&
                                 !is_array_index<F>::value &&
@@ -336,8 +343,14 @@ namespace types
       return (*this)[std::get<0>(index)];
     }
 
-    dtype* data() { return buffer;}
-    const dtype* data() const { return buffer;}
+    dtype *data()
+    {
+      return buffer;
+    }
+    const dtype *data() const
+    {
+      return buffer;
+    }
 
   private:
     /* compute the buffer offset, returning the offset between the

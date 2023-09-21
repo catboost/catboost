@@ -475,7 +475,7 @@ class ConstantFolding(Transformation):
                 pass
             except Exception as e:
                 if not cfg.getboolean('pythran', 'ignore_fold_error'):
-                    msg = 'when folding expression, pythran met the following'\
+                    msg = 'when folding expression, pythran met the following '\
                           'runtime exception:\n>>> {}'
                     raise PythranSyntaxError(msg.format(e), node)
 

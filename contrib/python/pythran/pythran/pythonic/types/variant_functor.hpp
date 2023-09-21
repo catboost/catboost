@@ -178,26 +178,26 @@ namespace types
     template <class Type, class... Types>
     template <class... Args>
     auto variant_functor_impl<Type, Types...>::operator()(Args &&... args) ->
-        typename __combined<decltype(std::declval<Type>()(args...)),
-                            decltype(std::declval<Types>()(args...))...>::type
+        typename __combined<decltype(std::declval<Type>()(std::forward<Args>(args)...)),
+                            decltype(std::declval<Types>()(std::forward<Args>(args)...))...>::type
     {
       if (head.fun)
-        return head(args...);
+        return head(std::forward<Args>(args)...);
       else
-        return tail(args...);
+        return tail(std::forward<Args>(args)...);
     }
 
     template <class Type, class... Types>
     template <class... Args>
     auto variant_functor_impl<Type, Types...>::operator()(Args &&... args) const
         ->
-        typename __combined<decltype(std::declval<Type>()(args...)),
-                            decltype(std::declval<Types>()(args...))...>::type
+        typename __combined<decltype(std::declval<Type>()(std::forward<Args>(args)...)),
+                            decltype(std::declval<Types>()(std::forward<Args>(args)...))...>::type
     {
       if (head.fun)
-        return head(args...);
+        return head(std::forward<Args>(args)...);
       else
-        return tail(args...);
+        return tail(std::forward<Args>(args)...);
     }
   }
 

@@ -556,7 +556,8 @@ namespace types
   template <class T>
   void list<T>::reserve(size_t n)
   {
-    _data->reserve(n);
+    if(n > _data->capacity())
+      _data->reserve((n / 2) * 3);
   }
   template <class T>
   void list<T>::resize(size_t n)
