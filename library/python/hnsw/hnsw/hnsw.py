@@ -48,6 +48,7 @@ class EVectorComponentType(IntEnum):
     I8 = 1
     I32 = 2
 
+
 _hnsw = get_hnsw_bin_module()
 
 HnswException = _hnsw.HnswException

@@ -37,11 +37,11 @@ class Compression(object):
     Best = Level(3)
 
 
-def get_compression_level(filter_name, l):
-    if l is None or not filter_name:
+def get_compression_level(filter_name, level):
+    if level is None or not filter_name:
         return None
-    elif isinstance(l, Level):
-        l = {
+    elif isinstance(level, Level):
+        level = {
             GZIP: {
                 Compression.Fast: 1,
                 Compression.Default: 6,
@@ -52,8 +52,8 @@ def get_compression_level(filter_name, l):
                 Compression.Default: 3,
                 Compression.Best: 22,
             },
-        }[filter_name][l]
-    return l
+        }[filter_name][level]
+    return level
 
 
 def encode(value, encoding):

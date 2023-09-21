@@ -46,7 +46,7 @@ def canonical_file(
             try:  # check if iterable
                 if not isinstance(diff_tool[0], six.string_types):
                     raise Exception("Invalid custom diff-tool: not cmd")
-            except:
+            except Exception:
                 raise Exception("Invalid custom diff-tool: not binary path")
     return runtime._get_ya_plugin_instance().file(
         safe_path, diff_tool=diff_tool, local=local, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout
@@ -217,7 +217,9 @@ def _canonical_execute(
     out_file_path = path.get_unique_file_path(runtime.output_path(), "{}.out.txt".format(file_name))
     err_file_path = path.get_unique_file_path(runtime.output_path(), "{}.err.txt".format(file_name))
     if not data_transformer:
-        data_transformer = lambda x: x
+
+        def data_transformer(x):
+            return x
 
     try:
         os.makedirs(os.path.dirname(out_file_path))

@@ -2,7 +2,6 @@
 
 import base64
 import errno
-import re
 import sys
 import os
 import logging
@@ -15,7 +14,6 @@ import signal
 import inspect
 import warnings
 
-import attr
 import faulthandler
 import py
 import pytest
@@ -67,6 +65,7 @@ _pytest.main.EXIT_NOTESTSCOLLECTED = 0
 SHUTDOWN_REQUESTED = False
 
 pytest_config = None
+
 
 def configure_pdb_on_demand():
     import signal
@@ -184,6 +183,7 @@ def pytest_addoption(parser):
 
 def from_ya_test():
     return "YA_TEST_RUNNER" in os.environ
+
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_configure(config):
@@ -344,8 +344,11 @@ def _collect_test_rusage(item):
         def add_metric(attr_name, metric_name=None, modifier=None):
             if not metric_name:
                 metric_name = attr_name
+
             if not modifier:
-                modifier = lambda x: x
+                def modifier(x):
+                    return x
+
             if hasattr(item.rusage, attr_name):
                 ya_inst.set_metric_value(metric_name, modifier(getattr(finish_rusage, attr_name) - getattr(item.rusage, attr_name)))
 

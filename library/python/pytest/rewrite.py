@@ -93,7 +93,7 @@ class AssertionRewritingHook(rewrite.AssertionRewritingHook):
                 module.__cached__ = None
                 module.__loader__ = self
                 module.__spec__ = importlib.util.spec_from_file_location(module.__name__, co.co_filename, loader=self)
-                exec(co, module.__dict__)
+                exec(co, module.__dict__)  # noqa
             except:  # noqa
                 if module.__name__ in sys.modules:
                     del sys.modules[module.__name__]

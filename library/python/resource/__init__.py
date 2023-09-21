@@ -5,10 +5,10 @@ import six
 
 
 def iterkeys(prefix="", strip_prefix=False):
-    decode = lambda s: s
+    decode = lambda s: s  # noqa: E731
     if isinstance(prefix, six.text_type):
         prefix = prefix.encode("utf-8")
-        decode = lambda s: s.decode("utf-8")
+        decode = lambda s: s.decode("utf-8")  # noqa: E731
 
     for i in six.moves.range(count()):
         key = key_by_index(i)
@@ -37,9 +37,9 @@ def resfs_file_exists(path):
 
 
 def resfs_files(prefix=""):
-    decode = lambda s: s
+    decode = lambda s: s  # noqa: E731
     if isinstance(prefix, six.text_type):
-        decode = lambda s: s.decode("utf-8")
+        decode = lambda s: s.decode("utf-8")  # noqa: E731
     return [decode(s) for s in __resfs_files(prefix=prefix)]
 
 

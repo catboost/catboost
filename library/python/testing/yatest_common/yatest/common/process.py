@@ -373,7 +373,10 @@ class _Execution(object):
 
         try:
             if timeout:
-                process_is_finished = lambda: not self.running
+
+                def process_is_finished():
+                    return not self.running
+
                 fail_message = "Command '%s' stopped by %d seconds timeout" % (self._command, timeout)
                 try:
                     wait_for(
