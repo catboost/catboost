@@ -76,7 +76,7 @@ Examples:
 
 - Calculate the value of {{ error-function--Quantile }} with the coefficient $\alpha = 0.1$
     ```
-    {{ error-function--Quantile }}alpha=0.1
+    {{ error-function--Quantile }}:alpha=0.1
     ```
 
 
@@ -379,4 +379,3 @@ Possible values:
 - Info — Output additional information and the number of trees.
 
 - Debug — Output debugging information.
-
