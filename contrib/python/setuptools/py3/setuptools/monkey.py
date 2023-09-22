@@ -2,15 +2,15 @@
 Monkey patching of distutils.
 """
 
-import sys
-import distutils.filelist
-import platform
-import types
 import functools
-from importlib import import_module
 import inspect
+import platform
+import sys
+import types
+from importlib import import_module
 
-import setuptools
+import distutils.filelist
+
 
 __all__ = []
 """
@@ -61,6 +61,8 @@ def get_unpatched_class(cls):
 
 
 def patch_all():
+    import setuptools
+
     # we can't patch distutils.cmd, alas
     distutils.core.Command = setuptools.Command
 
@@ -97,9 +99,16 @@ def patch_all():
 
 
 def _patch_distribution_metadata():
+    from . import _core_metadata
+
     """Patch write_pkg_file and read_pkg_file for higher metadata standards"""
-    for attr in ('write_pkg_file', 'read_pkg_file', 'get_metadata_version'):
-        new_val = getattr(setuptools.dist, attr)
+    for attr in (
+        'write_pkg_info',
+        'write_pkg_file',
+        'read_pkg_file',
+        'get_metadata_version',
+    ):
+        new_val = getattr(_core_metadata, attr)
         setattr(distutils.dist.DistributionMetadata, attr, new_val)
 
 

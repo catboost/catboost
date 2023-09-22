@@ -13,8 +13,7 @@ class Installer:
         nsp = self._get_all_ns_packages()
         if not nsp:
             return
-        filename, ext = os.path.splitext(self._get_target())
-        filename += self.nspkg_ext
+        filename = self._get_nspkg_file()
         self.outputs.append(filename)
         log.info("Installing %s", filename)
         lines = map(self._gen_nspkg_line, nsp)
@@ -28,12 +27,15 @@ class Installer:
             f.writelines(lines)
 
     def uninstall_namespaces(self):
-        filename, ext = os.path.splitext(self._get_target())
-        filename += self.nspkg_ext
+        filename = self._get_nspkg_file()
         if not os.path.exists(filename):
             return
         log.info("Removing %s", filename)
         os.remove(filename)
+
+    def _get_nspkg_file(self):
+        filename, _ = os.path.splitext(self._get_target())
+        return filename + self.nspkg_ext
 
     def _get_target(self):
         return self.target
@@ -75,7 +77,7 @@ class Installer:
     def _get_all_ns_packages(self):
         """Return sorted list of all package namespaces"""
         pkgs = self.distribution.namespace_packages or []
-        return sorted(flatten(map(self._pkg_names, pkgs)))
+        return sorted(set(flatten(map(self._pkg_names, pkgs))))
 
     @staticmethod
     def _pkg_names(pkg):

@@ -1,230 +1,42 @@
 __all__ = ['Distribution']
 
+
 import io
-import sys
-import re
-import os
-import numbers
-import distutils.log
-import distutils.core
-import distutils.cmd
-import distutils.dist
-import distutils.command
-from distutils.util import strtobool
-from distutils.debug import DEBUG
-from distutils.fancy_getopt import translate_longopt
-from glob import iglob
 import itertools
-import textwrap
+import numbers
+import os
+import re
+import sys
 from contextlib import suppress
-from typing import List, Optional, Set, TYPE_CHECKING
+from glob import iglob
 from pathlib import Path
+from typing import List, Optional, Set
 
-from collections import defaultdict
-from email import message_from_file
-
+import distutils.cmd
+import distutils.command
+import distutils.core
+import distutils.dist
+import distutils.log
+from distutils.debug import DEBUG
 from distutils.errors import DistutilsOptionError, DistutilsSetupError
-from distutils.util import rfc822_escape
+from distutils.fancy_getopt import translate_longopt
+from distutils.util import strtobool
 
-from setuptools.extern import packaging
-from setuptools.extern import ordered_set
-from setuptools.extern.more_itertools import unique_everseen, partition
+from .extern.more_itertools import partition, unique_everseen
+from .extern.ordered_set import OrderedSet
+from .extern.packaging.markers import InvalidMarker, Marker
+from .extern.packaging.specifiers import InvalidSpecifier, SpecifierSet
+from .extern.packaging.version import InvalidVersion, Version
 
-import setuptools
-import setuptools.command
-from setuptools import windows_support
-from setuptools.monkey import get_unpatched
-from setuptools.config import setupcfg, pyprojecttoml
-from setuptools.discovery import ConfigDiscovery
-
-from setuptools.extern.packaging import version
-from . import _reqs
 from . import _entry_points
 from . import _normalization
+from . import _reqs
+from . import command as _  # noqa  -- imported for side-effects
 from ._importlib import metadata
+from .config import setupcfg, pyprojecttoml
+from .discovery import ConfigDiscovery
+from .monkey import get_unpatched
 from .warnings import InformationOnly, SetuptoolsDeprecationWarning
-
-if TYPE_CHECKING:
-    from email.message import Message
-
-__import__('setuptools.extern.packaging.specifiers')
-__import__('setuptools.extern.packaging.version')
-
-
-def get_metadata_version(self):
-    mv = getattr(self, 'metadata_version', None)
-    if mv is None:
-        mv = version.Version('2.1')
-        self.metadata_version = mv
-    return mv
-
-
-def rfc822_unescape(content: str) -> str:
-    """Reverse RFC-822 escaping by removing leading whitespaces from content."""
-    lines = content.splitlines()
-    if len(lines) == 1:
-        return lines[0].lstrip()
-    return '\n'.join((lines[0].lstrip(), textwrap.dedent('\n'.join(lines[1:]))))
-
-
-def _read_field_from_msg(msg: "Message", field: str) -> Optional[str]:
-    """Read Message header field."""
-    value = msg[field]
-    if value == 'UNKNOWN':
-        return None
-    return value
-
-
-def _read_field_unescaped_from_msg(msg: "Message", field: str) -> Optional[str]:
-    """Read Message header field and apply rfc822_unescape."""
-    value = _read_field_from_msg(msg, field)
-    if value is None:
-        return value
-    return rfc822_unescape(value)
-
-
-def _read_list_from_msg(msg: "Message", field: str) -> Optional[List[str]]:
-    """Read Message header field and return all results as list."""
-    values = msg.get_all(field, None)
-    if values == []:
-        return None
-    return values
-
-
-def _read_payload_from_msg(msg: "Message") -> Optional[str]:
-    value = msg.get_payload().strip()
-    if value == 'UNKNOWN' or not value:
-        return None
-    return value
-
-
-def read_pkg_file(self, file):
-    """Reads the metadata values from a file object."""
-    msg = message_from_file(file)
-
-    self.metadata_version = version.Version(msg['metadata-version'])
-    self.name = _read_field_from_msg(msg, 'name')
-    self.version = _read_field_from_msg(msg, 'version')
-    self.description = _read_field_from_msg(msg, 'summary')
-    # we are filling author only.
-    self.author = _read_field_from_msg(msg, 'author')
-    self.maintainer = None
-    self.author_email = _read_field_from_msg(msg, 'author-email')
-    self.maintainer_email = None
-    self.url = _read_field_from_msg(msg, 'home-page')
-    self.download_url = _read_field_from_msg(msg, 'download-url')
-    self.license = _read_field_unescaped_from_msg(msg, 'license')
-
-    self.long_description = _read_field_unescaped_from_msg(msg, 'description')
-    if self.long_description is None and self.metadata_version >= version.Version(
-        '2.1'
-    ):
-        self.long_description = _read_payload_from_msg(msg)
-    self.description = _read_field_from_msg(msg, 'summary')
-
-    if 'keywords' in msg:
-        self.keywords = _read_field_from_msg(msg, 'keywords').split(',')
-
-    self.platforms = _read_list_from_msg(msg, 'platform')
-    self.classifiers = _read_list_from_msg(msg, 'classifier')
-
-    # PEP 314 - these fields only exist in 1.1
-    if self.metadata_version == version.Version('1.1'):
-        self.requires = _read_list_from_msg(msg, 'requires')
-        self.provides = _read_list_from_msg(msg, 'provides')
-        self.obsoletes = _read_list_from_msg(msg, 'obsoletes')
-    else:
-        self.requires = None
-        self.provides = None
-        self.obsoletes = None
-
-    self.license_files = _read_list_from_msg(msg, 'license-file')
-
-
-def single_line(val):
-    """
-    Quick and dirty validation for Summary pypa/setuptools#1390.
-    """
-    if '\n' in val:
-        # TODO: Replace with `raise ValueError("newlines not allowed")`
-        # after reviewing #2893.
-        msg = "newlines are not allowed in `summary` and will break in the future"
-        SetuptoolsDeprecationWarning.emit("Invalid config.", msg)
-        # due_date is undefined. Controversial change, there was a lot of push back.
-        val = val.strip().split('\n')[0]
-    return val
-
-
-# Based on Python 3.5 version
-def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
-    """Write the PKG-INFO format data to a file object."""
-    version = self.get_metadata_version()
-
-    def write_field(key, value):
-        file.write("%s: %s\n" % (key, value))
-
-    write_field('Metadata-Version', str(version))
-    write_field('Name', self.get_name())
-    write_field('Version', self.get_version())
-
-    summary = self.get_description()
-    if summary:
-        write_field('Summary', single_line(summary))
-
-    optional_fields = (
-        ('Home-page', 'url'),
-        ('Download-URL', 'download_url'),
-        ('Author', 'author'),
-        ('Author-email', 'author_email'),
-        ('Maintainer', 'maintainer'),
-        ('Maintainer-email', 'maintainer_email'),
-    )
-
-    for field, attr in optional_fields:
-        attr_val = getattr(self, attr, None)
-        if attr_val is not None:
-            write_field(field, attr_val)
-
-    license = self.get_license()
-    if license:
-        write_field('License', rfc822_escape(license))
-
-    for project_url in self.project_urls.items():
-        write_field('Project-URL', '%s, %s' % project_url)
-
-    keywords = ','.join(self.get_keywords())
-    if keywords:
-        write_field('Keywords', keywords)
-
-    platforms = self.get_platforms() or []
-    for platform in platforms:
-        write_field('Platform', platform)
-
-    self._write_list(file, 'Classifier', self.get_classifiers())
-
-    # PEP 314
-    self._write_list(file, 'Requires', self.get_requires())
-    self._write_list(file, 'Provides', self.get_provides())
-    self._write_list(file, 'Obsoletes', self.get_obsoletes())
-
-    # Setuptools specific for PEP 345
-    if hasattr(self, 'python_requires'):
-        write_field('Requires-Python', self.python_requires)
-
-    # PEP 566
-    if self.long_description_content_type:
-        write_field('Description-Content-Type', self.long_description_content_type)
-    if self.provides_extras:
-        for extra in self.provides_extras:
-            write_field('Provides-Extra', extra)
-
-    self._write_list(file, 'License-File', self.license_files or [])
-
-    long_description = self.get_long_description()
-    if long_description:
-        file.write("\n%s" % long_description)
-        if not long_description.endswith("\n"):
-            file.write("\n")
 
 
 sequence = tuple, list
@@ -299,7 +111,7 @@ def _check_extra(extra, reqs):
     name, sep, marker = extra.partition(':')
     try:
         _check_marker(marker)
-    except packaging.markers.InvalidMarker:
+    except InvalidMarker:
         msg = f"Invalid environment marker: {marker} ({extra!r})"
         raise DistutilsSetupError(msg) from None
     list(_reqs.parse(reqs))
@@ -308,7 +120,7 @@ def _check_extra(extra, reqs):
 def _check_marker(marker):
     if not marker:
         return
-    m = packaging.markers.Marker(marker)
+    m = Marker(marker)
     m.evaluate()
 
 
@@ -344,8 +156,8 @@ def check_requirements(dist, attr, value):
 def check_specifier(dist, attr, value):
     """Verify that value is a valid version specifier"""
     try:
-        packaging.specifiers.SpecifierSet(value)
-    except (packaging.specifiers.InvalidSpecifier, AttributeError) as error:
+        SpecifierSet(value)
+    except (InvalidSpecifier, AttributeError) as error:
         tmpl = (
             "{attr!r} must be a string " "containing valid version specifiers; {error}"
         )
@@ -448,9 +260,14 @@ class Distribution(_Distribution):
     _DISTUTILS_UNSUPPORTED_METADATA = {
         'long_description_content_type': lambda: None,
         'project_urls': dict,
-        'provides_extras': ordered_set.OrderedSet,
+        'provides_extras': OrderedSet,
         'license_file': lambda: None,
         'license_files': lambda: None,
+        # Both install_requires and extras_require are needed to write PKG-INFO,
+        # So we take this opportunity to cache parsed requirement objects.
+        # These attributes are not part of the public API and intended for internal use.
+        '_normalized_install_requires': dict,  # Dict[str, Requirement]
+        '_normalized_extras_require': dict,  # Dict[str, Dict[str, Requirement]]
     }
 
     _patched_dist = None
@@ -496,11 +313,6 @@ class Distribution(_Distribution):
         # sdist (e.g. `version = file: VERSION.txt`)
         self._referenced_files: Set[str] = set()
 
-        # Save the original dependencies before they are processed into the egg format
-        self._orig_extras_require = {}
-        self._orig_install_requires = []
-        self._tmp_extras_require = defaultdict(ordered_set.OrderedSet)
-
         self.set_defaults = ConfigDiscovery(self)
 
         self._set_metadata_defaults(attrs)
@@ -535,10 +347,12 @@ class Distribution(_Distribution):
 
     @staticmethod
     def _normalize_version(version):
-        if isinstance(version, setuptools.sic) or version is None:
+        from . import sic
+
+        if isinstance(version, sic) or version is None:
             return version
 
-        normalized = str(packaging.version.Version(version))
+        normalized = str(Version(version))
         if version != normalized:
             InformationOnly.emit(f"Normalizing '{version}' to '{normalized}'")
             return normalized
@@ -552,8 +366,10 @@ class Distribution(_Distribution):
 
         if version is not None:
             try:
-                packaging.version.Version(version)
-            except (packaging.version.InvalidVersion, TypeError):
+                Version(version)
+            except (InvalidVersion, TypeError):
+                from . import sic
+
                 SetuptoolsDeprecationWarning.emit(
                     f"Invalid version: {version!r}.",
                     """
@@ -566,7 +382,7 @@ class Distribution(_Distribution):
                     # Warning initially introduced in 26 Sept 2014
                     # pypa/packaging already removed legacy versions.
                 )
-                return setuptools.sic(version)
+                return sic(version)
         return version
 
     def _finalize_requires(self):
@@ -577,81 +393,31 @@ class Distribution(_Distribution):
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
 
-        if getattr(self, 'extras_require', None):
-            # Save original before it is messed by _convert_extras_requirements
-            self._orig_extras_require = self._orig_extras_require or self.extras_require
+        self._normalize_requires()
+
+        if self.extras_require:
             for extra in self.extras_require.keys():
-                # Since this gets called multiple times at points where the
-                # keys have become 'converted' extras, ensure that we are only
-                # truly adding extras we haven't seen before here.
+                # Setuptools allows a weird "<name>:<env markers> syntax for extras
                 extra = extra.split(':')[0]
                 if extra:
                     self.metadata.provides_extras.add(extra)
 
-        if getattr(self, 'install_requires', None) and not self._orig_install_requires:
-            # Save original before it is messed by _move_install_requirements_markers
-            self._orig_install_requires = self.install_requires
-
-        self._convert_extras_requirements()
-        self._move_install_requirements_markers()
-
-    def _convert_extras_requirements(self):
-        """
-        Convert requirements in `extras_require` of the form
-        `"extra": ["barbazquux; {marker}"]` to
-        `"extra:{marker}": ["barbazquux"]`.
-        """
-        spec_ext_reqs = getattr(self, 'extras_require', None) or {}
-        tmp = defaultdict(ordered_set.OrderedSet)
-        self._tmp_extras_require = getattr(self, '_tmp_extras_require', tmp)
-        for section, v in spec_ext_reqs.items():
-            # Do not strip empty sections.
-            self._tmp_extras_require[section]
-            for r in _reqs.parse(v):
-                suffix = self._suffix_for(r)
-                self._tmp_extras_require[section + suffix].append(r)
-
-    @staticmethod
-    def _suffix_for(req):
-        """
-        For a requirement, return the 'extras_require' suffix for
-        that requirement.
-        """
-        return ':' + str(req.marker) if req.marker else ''
-
-    def _move_install_requirements_markers(self):
-        """
-        Move requirements in `install_requires` that are using environment
-        markers `extras_require`.
-        """
-
-        # divide the install_requires into two sets, simple ones still
-        # handled by install_requires and more complex ones handled
-        # by extras_require.
-
-        def is_simple_req(req):
-            return not req.marker
-
-        spec_inst_reqs = getattr(self, 'install_requires', None) or ()
-        inst_reqs = list(_reqs.parse(spec_inst_reqs))
-        simple_reqs = filter(is_simple_req, inst_reqs)
-        complex_reqs = itertools.filterfalse(is_simple_req, inst_reqs)
-        self.install_requires = list(map(str, simple_reqs))
-
-        for r in complex_reqs:
-            self._tmp_extras_require[':' + str(r.marker)].append(r)
-        self.extras_require = dict(
-            # list(dict.fromkeys(...))  ensures a list of unique strings
-            (k, list(dict.fromkeys(str(r) for r in map(self._clean_req, v))))
-            for k, v in self._tmp_extras_require.items()
-        )
-
-    def _clean_req(self, req):
-        """
-        Given a Requirement, remove environment markers and return it.
-        """
-        req.marker = None
-        return req
+    def _normalize_requires(self):
+        """Make sure requirement-related attributes exist and are normalized"""
+        install_requires = getattr(self, "install_requires", None) or []
+        extras_require = getattr(self, "extras_require", None) or {}
+        meta = self.metadata
+        meta._normalized_install_requires = {
+            str(r): r for r in _reqs.parse(install_requires)
+        }
+        meta._normalized_extras_require = {
+            k: {str(r): r for r in _reqs.parse(v or [])}
+            for k, v in extras_require.items()
+        }
+        self.install_requires = list(meta._normalized_install_requires)
+        self.extras_require = {
+            k: list(v) for k, v in meta._normalized_extras_require.items()
+        }
 
     def _finalize_license_files(self):
         """Compute names of all license files which should be included."""
@@ -903,7 +669,7 @@ class Distribution(_Distribution):
 
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
-        from setuptools.installer import _fetch_build_eggs
+        from .installer import _fetch_build_eggs
 
         return _fetch_build_eggs(self, requires)
 
@@ -946,6 +712,8 @@ class Distribution(_Distribution):
                 ep.load()(self, ep.name, value)
 
     def get_egg_cache_dir(self):
+        from . import windows_support
+
         egg_cache_dir = os.path.join(os.curdir, '.eggs')
         if not os.path.exists(egg_cache_dir):
             os.mkdir(egg_cache_dir)
@@ -966,7 +734,7 @@ class Distribution(_Distribution):
 
     def fetch_build_egg(self, req):
         """Fetch an egg needed for building"""
-        from setuptools.installer import fetch_build_egg
+        from .installer import fetch_build_egg
 
         return fetch_build_egg(self, req)
 

@@ -12,12 +12,12 @@ import functools
 import os
 import re
 import sys
-import io
 import time
 import collections
 
 from .._importlib import metadata
 from .. import _entry_points, _normalization
+from . import _requirestxt
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
@@ -28,7 +28,6 @@ import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
 from setuptools.extern import packaging
-from setuptools.extern.jaraco.text import yield_lines
 from ..warnings import SetuptoolsDeprecationWarning
 
 
@@ -692,31 +691,9 @@ def warn_depends_obsolete(cmd, basename, filename):
     """
 
 
-def _write_requirements(stream, reqs):
-    lines = yield_lines(reqs or ())
-
-    def append_cr(line):
-        return line + '\n'
-
-    lines = map(append_cr, lines)
-    stream.writelines(lines)
-
-
-def write_requirements(cmd, basename, filename):
-    dist = cmd.distribution
-    data = io.StringIO()
-    _write_requirements(data, dist.install_requires)
-    extras_require = dist.extras_require or {}
-    for extra in sorted(extras_require):
-        data.write('\n[{extra}]\n'.format(**vars()))
-        _write_requirements(data, extras_require[extra])
-    cmd.write_or_delete_file("requirements", filename, data.getvalue())
-
-
-def write_setup_requirements(cmd, basename, filename):
-    data = io.StringIO()
-    _write_requirements(data, cmd.distribution.setup_requires)
-    cmd.write_or_delete_file("setup-requirements", filename, data.getvalue())
+# Export API used in entry_points
+write_requirements = _requirestxt.write_requirements
+write_setup_requirements = _requirestxt.write_setup_requirements
 
 
 def write_toplevel_names(cmd, basename, filename):

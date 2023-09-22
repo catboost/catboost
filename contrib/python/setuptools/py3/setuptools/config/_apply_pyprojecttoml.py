@@ -216,7 +216,7 @@ def _dependencies(dist: "Distribution", val: list, _root_dir):
 
 
 def _optional_dependencies(dist: "Distribution", val: dict, _root_dir):
-    existing = getattr(dist, "extras_require", {})
+    existing = getattr(dist, "extras_require", None) or {}
     _set_config(dist, "extras_require", {**existing, **val})
 
 
@@ -383,8 +383,8 @@ _PREVIOUSLY_DEFINED = {
     "entry-points": _get_previous_entrypoints,
     "scripts": _get_previous_scripts,
     "gui-scripts": _get_previous_gui_scripts,
-    "dependencies": _some_attrgetter("_orig_install_requires", "install_requires"),
-    "optional-dependencies": _some_attrgetter("_orig_extras_require", "extras_require"),
+    "dependencies": _attrgetter("install_requires"),
+    "optional-dependencies": _attrgetter("extras_require"),
 }
 
 

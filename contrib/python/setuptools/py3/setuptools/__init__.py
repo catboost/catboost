@@ -5,21 +5,17 @@ import os
 import re
 
 import _distutils_hack.override  # noqa: F401
-
 import distutils.core
 from distutils.errors import DistutilsOptionError
 from distutils.util import convert_path as _convert_path
 
+from . import logging, monkey
+from . import version as _version_module
+from .depends import Require
+from .discovery import PackageFinder, PEP420PackageFinder
+from .dist import Distribution
+from .extension import Extension
 from .warnings import SetuptoolsDeprecationWarning
-
-import setuptools.version
-from setuptools.extension import Extension
-from setuptools.dist import Distribution
-from setuptools.depends import Require
-from setuptools.discovery import PackageFinder, PEP420PackageFinder
-from . import monkey
-from . import logging
-
 
 __all__ = [
     'setup',
@@ -32,7 +28,7 @@ __all__ = [
     'find_namespace_packages',
 ]
 
-__version__ = setuptools.version.__version__
+__version__ = _version_module.__version__
 
 bootstrap_install_from = None
 

@@ -341,7 +341,7 @@ class editable_wheel(Command):
         with unpacked_wheel as unpacked, build_lib as lib, build_tmp as tmp:
             unpacked_dist_info = Path(unpacked, Path(self.dist_info_dir).name)
             shutil.copytree(self.dist_info_dir, unpacked_dist_info)
-            self._install_namespaces(unpacked, dist_info.name)
+            self._install_namespaces(unpacked, dist_name)
             files, mapping = self._run_build_commands(dist_name, unpacked, lib, tmp)
             strategy = self._select_strategy(dist_name, tag, lib)
             with strategy, WheelFile(wheel_path, "w") as wheel_obj:
@@ -505,9 +505,19 @@ class _TopLevelFinder:
             )
         )
 
+        legacy_namespaces = {
+            pkg: find_package_path(pkg, roots, self.dist.src_root or "")
+            for pkg in self.dist.namespace_packages or []
+        }
+
+        mapping = {**roots, **legacy_namespaces}
+        # ^-- We need to explicitly add the legacy_namespaces to the mapping to be
+        #     able to import their modules even if another package sharing the same
+        #     namespace is installed in a conventional (non-editable) way.
+
         name = f"__editable__.{self.name}.finder"
         finder = _normalization.safe_identifier(name)
-        content = bytes(_finder_template(name, roots, namespaces_), "utf-8")
+        content = bytes(_finder_template(name, mapping, namespaces_), "utf-8")
         wheel.writestr(f"{finder}.py", content)
 
         content = _encode_pth(f"import {finder}; {finder}.install()")
@@ -752,9 +762,9 @@ class _NamespaceInstaller(namespaces.Installer):
         self.outputs = []
         self.dry_run = False
 
-    def _get_target(self):
+    def _get_nspkg_file(self):
         """Installation target."""
-        return os.path.join(self.installation_dir, self.editable_name)
+        return os.path.join(self.installation_dir, self.editable_name + self.nspkg_ext)
 
     def _get_root(self):
         """Where the modules/packages should be loaded from."""
@@ -777,6 +787,8 @@ PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 class _EditableFinder:  # MetaPathFinder
     @classmethod
     def find_spec(cls, fullname, path=None, target=None):
+        extra_path = []
+
         # Top-level packages and modules (we know these exist in the FS)
         if fullname in MAPPING:
             pkg_path = MAPPING[fullname]
@@ -787,7 +799,7 @@ class _EditableFinder:  # MetaPathFinder
         # to the importlib.machinery implementation.
         parent, _, child = fullname.rpartition(".")
         if parent and parent in MAPPING:
-            return PathFinder.find_spec(fullname, path=[MAPPING[parent]])
+            return PathFinder.find_spec(fullname, path=[MAPPING[parent], *extra_path])
 
         # Other levels of nesting should be handled automatically by importlib
         # using the parent path.

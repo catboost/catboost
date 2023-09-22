@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 68.1.2
+Version: 68.2.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -21,7 +21,7 @@ Requires-Python: >=3.8
 License-File: LICENSE
 Provides-Extra: certs
 Provides-Extra: docs
-Requires-Dist: sphinx <=7.1.2,>=3.5 ; extra == 'docs'
+Requires-Dist: sphinx >=3.5 ; extra == 'docs'
 Requires-Dist: jaraco.packaging >=9.3 ; extra == 'docs'
 Requires-Dist: rst.linker >=1.9 ; extra == 'docs'
 Requires-Dist: furo ; extra == 'docs'
@@ -32,7 +32,7 @@ Requires-Dist: sphinx-favicon ; extra == 'docs'
 Requires-Dist: sphinx-inline-tabs ; extra == 'docs'
 Requires-Dist: sphinx-reredirects ; extra == 'docs'
 Requires-Dist: sphinxcontrib-towncrier ; extra == 'docs'
-Requires-Dist: sphinx-notfound-page ==0.8.3 ; extra == 'docs'
+Requires-Dist: sphinx-notfound-page <2,>=1 ; extra == 'docs'
 Requires-Dist: sphinx-hoverxref <2 ; extra == 'docs'
 Provides-Extra: ssl
 Provides-Extra: testing
@@ -62,6 +62,7 @@ Requires-Dist: jaraco.path >=3.2.0 ; extra == 'testing-integration'
 Requires-Dist: jaraco.envs >=2.2 ; extra == 'testing-integration'
 Requires-Dist: build[virtualenv] ; extra == 'testing-integration'
 Requires-Dist: filelock >=3.4.0 ; extra == 'testing-integration'
+Requires-Dist: packaging ; extra == 'testing-integration'
 Requires-Dist: pytest-black >=0.3.7 ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: pytest-cov ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: pytest-mypy >=0.9.1 ; (platform_python_implementation != "PyPy") and extra == 'testing'

@@ -14,6 +14,7 @@ _Path = Union[str, Path]
 # https://packaging.python.org/en/latest/specifications/core-metadata/#name
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
 _UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9.]+", re.I)
+_NON_ALPHANUMERIC = re.compile(r"[^A-Z0-9]+", re.I)
 
 
 def safe_identifier(name: str) -> str:
@@ -90,6 +91,16 @@ def best_effort_version(version: str) -> str:
         )
         v = version.replace(' ', '.')
         return safe_name(v)
+
+
+def safe_extra(extra: str) -> str:
+    """Normalize extra name according to PEP 685
+    >>> safe_extra("_FrIeNdLy-._.-bArD")
+    'friendly-bard'
+    >>> safe_extra("FrIeNdLy-._.-bArD__._-")
+    'friendly-bard'
+    """
+    return _NON_ALPHANUMERIC.sub("-", extra).strip("-").lower()
 
 
 def filename_component(value: str) -> str:

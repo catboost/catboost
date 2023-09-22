@@ -3,10 +3,10 @@ import marshal
 import contextlib
 import dis
 
-from setuptools.extern.packaging import version
 
-from ._imp import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
 from . import _imp
+from ._imp import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
+from .extern.packaging.version import Version
 
 
 __all__ = ['Require', 'find_module', 'get_module_constant', 'extract_constant']
@@ -19,7 +19,7 @@ class Require:
         self, name, requested_version, module, homepage='', attribute=None, format=None
     ):
         if format is None and requested_version is not None:
-            format = version.Version
+            format = Version
 
         if format is not None:
             requested_version = format(requested_version)
