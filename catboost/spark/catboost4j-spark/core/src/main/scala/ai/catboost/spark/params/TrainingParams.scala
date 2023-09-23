@@ -219,7 +219,7 @@ trait TrainingParamsTrait
   final val depth: IntParam = new IntParam(
     this,
     "depth",
-    "Depth of the tree."
+    "Depth of the trees."
     + "Default value is 6."
   )
 

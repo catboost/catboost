@@ -122,7 +122,7 @@ Command-line: `-n`, `--depth`
 
 _Alias:_ `max_depth`
 
-Depth of the tree.
+Depth of the trees.
 
 ### [grow_policy](common.md#grow_policy)
 

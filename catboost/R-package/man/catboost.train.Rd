@@ -307,7 +307,7 @@ The list of parameters
 
     \item depth
 
-      Depth of the tree.
+      Depth of the trees.
 
       The value can be any integer up to 16. It is recommended to use values in the range [1; 10].
 
