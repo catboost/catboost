@@ -94,7 +94,7 @@ Since CatBoost 1.2.1 YetiRank meaning has been expanded to allow for optimizing 
 
 {% cut "{{ loss-functions__params__mode }}" %}
 
-The mode of operation. Either `Classic` - the traditional YetiRank as described in [Winning The Transfer Learning Track of Yahoo!’s Learning To Rank Challenge with YetiRank](http://proceedings.mlr.press/v14/gulin11a.html) or a specific ranking loss function to optimize as described in [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500) paper. Possible loss function values are `DCG`, `NDCG`, `MRR`, `ERR`, `MAP`.
+The mode of operation. Either `Classic` - the traditional YetiRank as described in [Winning The Transfer Learning Track of Yahoo!’s Learning To Rank Challenge with YetiRank](http://proceedings.mlr.press/v14/gulin11a.html) or a specific ranking loss function to optimize as described in [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500) paper. Possible loss function values are `DCG`, `NDCG`, `MRR`, `ERR`, `MAP`. Non-Classic modes are supported only on CPU.
 
 _Default:_  `Classic`
 
@@ -200,7 +200,7 @@ Since CatBoost 1.2.1 YetiRankPairwise meaning has been expanded to allow for opt
 
 {% cut "{{ loss-functions__params__mode }}" %}
 
-The mode of operation. Either `Classic` - the traditional YetiRankPairwise as described in [Winning The Transfer Learning Track of Yahoo!’s Learning To Rank Challenge with YetiRank](http://proceedings.mlr.press/v14/gulin11a.html) or a specific ranking loss function to optimize as described in [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500) paper. Possible loss function values are `DCG`, `NDCG`, `MRR`, `ERR`, `MAP`.
+The mode of operation. Either `Classic` - the traditional YetiRankPairwise as described in [Winning The Transfer Learning Track of Yahoo!’s Learning To Rank Challenge with YetiRank](http://proceedings.mlr.press/v14/gulin11a.html) or a specific ranking loss function to optimize as described in [Which Tricks are Important for Learning to Rank?](https://arxiv.org/abs/2204.01500) paper. Possible loss function values are `DCG`, `NDCG`, `MRR`, `ERR`, `MAP`. Non-Classic modes are supported only on CPU.
 
 _Default:_  `Classic`
 
@@ -689,8 +689,8 @@ _Examples_: `AUC:type=Ranking;use_weights=False`.
 [{{ error-function__PairLogit }}](#PairLogit)                 |     +                   |     +                   |
 [{{ error-function__PairLogitPairwise }}](#PairLogitPairwise) |     +                   |     +                   |
 [{{ error-function__PairAccuracy }}](#PairAccuracy)           |     -                   |     -                   |
-[{{ error-function__YetiRank }}](#YetiRank)                   |     +                   |     +                   |
-[{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   |     +                   |
+[{{ error-function__YetiRank }}](#YetiRank)                   |     +                   |     + (but only Classic mode) |
+[{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   |     + (but only Classic mode) |
 [{{ error-function__StochasticFilter }}](#StochasticFilter)   |     +                   |     -                   |
 [{{ error-function__StochasticRank }}](#StochasticRank)       |     +                   |     -                   |
 [{{ error-function__QueryCrossEntropy }}](#QueryCrossEntropy) |     +                   |     +                   |
