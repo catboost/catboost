@@ -560,7 +560,7 @@ _Default_: {{ loss-functions__obligatory-text }}.
 
 {% include [loss-functions-function-calculation](../_includes/work_src/reusage-common-phrases/function-calculation.md) %}
 
-1. The objectsare sorted in descending order of predicted relevancies ($a_{i}$)
+1. The objects are sorted in descending order of predicted relevancies ($a_{i}$)
 
 1. The metric is calculated as follows:
 
@@ -580,7 +580,7 @@ _Default_: {{ loss-functions__obligatory-text }}.
 
 {% include [loss-functions-function-calculation](../_includes/work_src/reusage-common-phrases/function-calculation.md) %}
 
-1. The objectsare sorted in descending order of predicted relevancies ($a_{i}$)
+1. The objects are sorted in descending order of predicted relevancies ($a_{i}$)
 
 1. The metric is calculated as follows:
     $RecalAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{\sum\limits_{i=1}^{N} Relevant_{i}}$
