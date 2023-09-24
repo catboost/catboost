@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: black
-Version: 23.7.0
+Version: 23.9.0
 Summary: The uncompromising code formatter.
 Project-URL: Changelog, https://github.com/psf/black/blob/main/CHANGES.md
 Project-URL: Homepage, https://github.com/psf/black
@@ -16,7 +16,6 @@ Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
@@ -30,7 +29,7 @@ Requires-Dist: packaging>=22.0
 Requires-Dist: pathspec>=0.9.0
 Requires-Dist: platformdirs>=2
 Requires-Dist: tomli>=1.1.0; python_version < '3.11'
-Requires-Dist: typing-extensions>=3.10.0.0; python_version < '3.10'
+Requires-Dist: typing-extensions>=4.0.1; python_version < '3.11'
 Provides-Extra: colorama
 Requires-Dist: colorama>=0.4.3; extra == 'colorama'
 Provides-Extra: d
@@ -52,7 +51,7 @@ Description-Content-Type: text/markdown
 <a href="https://coveralls.io/github/psf/black?branch=main"><img alt="Coverage Status" src="https://coveralls.io/repos/github/psf/black/badge.svg?branch=main"></a>
 <a href="https://github.com/psf/black/blob/main/LICENSE"><img alt="License: MIT" src="https://black.readthedocs.io/en/stable/_static/license.svg"></a>
 <a href="https://pypi.org/project/black/"><img alt="PyPI" src="https://img.shields.io/pypi/v/black"></a>
-<a href="https://pepy.tech/project/black"><img alt="Downloads" src="https://pepy.tech/badge/black"></a>
+<a href="https://pepy.tech/project/black"><img alt="Downloads" src="https://static.pepy.tech/badge/black"></a>
 <a href="https://anaconda.org/conda-forge/black/"><img alt="conda-forge" src="https://img.shields.io/conda/dn/conda-forge/black.svg?label=conda-forge"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
@@ -181,8 +180,8 @@ SQLAlchemy, Poetry, PyPA applications (Warehouse, Bandersnatch, Pipenv, virtuale
 pandas, Pillow, Twisted, LocalStack, every Datadog Agent Integration, Home Assistant,
 Zulip, Kedro, OpenOA, FLORIS, ORBIT, WOMBAT, and many more.
 
-The following organizations use _Black_: Facebook, Dropbox, KeepTruckin, Mozilla, Quora,
-Duolingo, QuantumBlack, Tesla, Archer Aviation.
+The following organizations use _Black_: Facebook, Dropbox, KeepTruckin, Lyft, Mozilla,
+Quora, Duolingo, QuantumBlack, Tesla, Archer Aviation.
 
 Are we missing anyone? Let us know.
 
@@ -320,6 +319,37 @@ And if you _really_ need to slap somebody, do it with a fish while dancing.
 
 <!-- Major changes to documentation and policies. Small docs changes
      don't need a changelog entry. -->
+
+## 23.9.0
+
+### Preview style
+
+- More concise formatting for dummy implementations (#3796)
+- In stub files, add a blank line between a statement with a body (e.g an
+  `if sys.version_info > (3, x):`) and a function definition on the same level (#3862)
+- Fix a bug whereby spaces were removed from walrus operators within subscript(#3823)
+
+### Configuration
+
+- Black now applies exclusion and ignore logic before resolving symlinks (#3846)
+
+### Performance
+
+- Avoid importing `IPython` if notebook cells do not contain magics (#3782)
+- Improve caching by comparing file hashes as fallback for mtime and size (#3821)
+
+### _Blackd_
+
+- Fix an issue in `blackd` with single character input (#3558)
+
+### Integrations
+
+- Black now has an
+  [official pre-commit mirror](https://github.com/psf/black-pre-commit-mirror). Swapping
+  `https://github.com/psf/black` to `https://github.com/psf/black-pre-commit-mirror` in
+  your `.pre-commit-config.yaml` will make Black about 2x faster (#3828)
+- The `.black.env` folder specified by `ENV_PATH` will now be removed on the completion
+  of the GitHub Action (#3759)
 
 ## 23.7.0
 

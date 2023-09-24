@@ -170,6 +170,7 @@ class Preview(Enum):
 
     add_trailing_comma_consistently = auto()
     blank_line_after_nested_stub_class = auto()
+    blank_line_between_nested_and_def_stub_file = auto()
     hex_codes_in_unicode_sequences = auto()
     improved_async_statements_handling = auto()
     multiline_string_handling = auto()
@@ -182,6 +183,8 @@ class Preview(Enum):
     skip_magic_trailing_comma_in_subscript = auto()
     wrap_long_dict_values_in_parens = auto()
     wrap_multiple_context_managers_in_parens = auto()
+    dummy_implementations = auto()
+    walrus_subscript = auto()
 
 
 class Deprecated(UserWarning):
