@@ -51,6 +51,10 @@ TDataMetaInfo::TDataMetaInfo(
     , ClassLabels(classLabels)
     , ColumnsInfo(std::move(columnsInfo))
 {
+    ColumnsInfo->Validate();
+
+    FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames, featureTags);
+
     TargetCount = ColumnsInfo->CountColumns(EColumn::Label);
     if (TargetCount) {
         CB_ENSURE(TargetType != ERawTargetType::None, "data has target columns, but target type specified as None");
@@ -59,17 +63,15 @@ TDataMetaInfo::TDataMetaInfo(
     }
 
     BaselineCount = additionalBaselineCount ? *additionalBaselineCount : ColumnsInfo->CountColumns(EColumn::Baseline);
-    HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
+
     HasGroupId = ColumnsInfo->CountColumns(EColumn::GroupId) != 0;
     HasGroupWeight = ColumnsInfo->CountColumns(EColumn::GroupWeight) != 0 || hasAdditionalGroupWeight;
     HasSubgroupIds = ColumnsInfo->CountColumns(EColumn::SubgroupId) != 0;
+    HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
     HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0 || hasTimestamp;
     HasPairs = hasPairs;
     ForceUnitAutoPairWeights = forceUnitAutoPairWeights;
 
-    FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames, featureTags);
-
-    ColumnsInfo->Validate();
     Validate();
 }
 
