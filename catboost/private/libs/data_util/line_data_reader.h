@@ -156,4 +156,26 @@ namespace NCB {
         ui64 LineIdx;
         TString LineBuffer;
     };
+
+    class TIndexedSubsetLineDataReader final : public ILineDataReader {
+    public:
+        // subsetIndices must be in an increasing order, duplicates are allowed
+        // it is not checked in this method for speed
+        TIndexedSubsetLineDataReader(THolder<ILineDataReader>&& lineDataReader, TVector<ui64>&& subsetIndices);
+
+        ui64 GetDataLineCount(bool estimate = false) override;
+
+        TMaybe<TString> GetHeader() override;
+
+        bool ReadLine(TString* line, ui64* lineIdx = nullptr) override;
+
+    private:
+        THolder<ILineDataReader> LineDataReader;
+        TVector<ui64> SubsetIndices;
+        TVector<ui64>::iterator CurrentIndex;
+        ui64 EnclosingLineIdx;
+
+        TMaybe<TString> Header;
+        TString LineBuffer;
+    };
 }
