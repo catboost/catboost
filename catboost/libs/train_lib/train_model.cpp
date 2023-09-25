@@ -197,8 +197,8 @@ static void InitializeAndCheckMetricData(
     const bool canCalcEvalMetric = hasTest && (!metrics[0]->NeedTarget() || lastTestDatasetHasTargetData);
 
     if (canCalcEvalMetric) {
-        EMetricBestValue bestValueType;
-        float bestPossibleValue;
+        EMetricBestValue bestValueType = {};
+        float bestPossibleValue = 0;
 
         metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
         metricsData->ErrorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
