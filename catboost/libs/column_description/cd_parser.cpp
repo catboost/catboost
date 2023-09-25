@@ -102,8 +102,21 @@ namespace {
         TCdFromArrayProvider(const TVector<TColumn>& columnsDescription)
             : ColumnsDescription(columnsDescription) {}
 
-        TVector<TColumn> GetColumnsDescription(TMaybe<ui32>) const override {
-            return ColumnsDescription;
+        TVector<TColumn> GetColumnsDescription(TMaybe<ui32> columnsCount) const override {
+            if (columnsCount) {
+                if (*columnsCount > ColumnsDescription.size()) {
+                    TVector<TColumn> extendedColumnsDescription(ColumnsDescription);
+                    extendedColumnsDescription.resize(*columnsCount, TColumn{EColumn::Num, ""});
+                    return extendedColumnsDescription;
+                }
+                CB_ENSURE_INTERNAL(
+                    *columnsCount == ColumnsDescription.size(),
+                    "columnsCount < ColumnsDescription.size()"
+                );
+                return ColumnsDescription;
+            } else {
+                return ColumnsDescription;
+            }
         }
 
         bool Inited() const override {
