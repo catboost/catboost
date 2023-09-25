@@ -176,12 +176,7 @@ namespace NCB {
         return timestamps;
     }
 
-    void SetPairs(
-        const TPathWithScheme& pairsPath,
-        TDatasetSubset loadSubset,
-        TMaybeData<TConstArrayRef<TGroupId>> groupIds,
-        IDatasetVisitor* visitor
-    ) {
+    void SetPairs(const TPathWithScheme& pairsPath, TDatasetSubset loadSubset, IDatasetVisitor* visitor) {
         DumpMemUsage("After data read");
         if (pairsPath.Inited()) {
             auto pairsDataLoader = GetProcessor<IPairsDataLoader>(
@@ -189,8 +184,9 @@ namespace NCB {
                 TPairsDataLoaderArgs{pairsPath, loadSubset}
             );
             if (pairsDataLoader->NeedGroupIdToIdxMap()) {
-                CB_ENSURE(groupIds, "Cannot load pairs data with group ids for a dataset without groups");
-                pairsDataLoader->SetGroupIdToIdxMap(*groupIds);
+                auto maybeGroupIds = visitor->GetGroupIds();
+                CB_ENSURE(maybeGroupIds, "Cannot load pairs data with group ids for a dataset without groups");
+                pairsDataLoader->SetGroupIdToIdxMap(*maybeGroupIds);
             }
             pairsDataLoader->Do(visitor);
         }

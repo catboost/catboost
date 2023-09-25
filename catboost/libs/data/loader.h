@@ -188,7 +188,6 @@ namespace NCB {
     void SetPairs(
         const TPathWithScheme& pairsPath,
         TDatasetSubset loadSubset,
-        TMaybeData<TConstArrayRef<TGroupId>> groupIds,
         IDatasetVisitor* visitor);
     void SetGroupWeights(
         const TPathWithScheme& groupWeightsPath,
@@ -291,7 +290,7 @@ namespace NCB {
             if (!inBlock) {
                 const ui32 objectCount = GetObjectCountSynchronized();
                 SetGroupWeights(Args.GroupWeightsFilePath, objectCount, Args.DatasetSubset, visitor);
-                SetPairs(Args.PairsFilePath, Args.DatasetSubset, visitor->GetGroupIds(), visitor);
+                SetPairs(Args.PairsFilePath, Args.DatasetSubset, visitor);
                 SetTimestamps(Args.TimestampsFilePath, objectCount, Args.DatasetSubset, visitor);
             }
             visitor->Finish();
