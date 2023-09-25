@@ -825,7 +825,7 @@ class TraceReportGenerator(object):
             'subtest': subtest_name,
         }
         # Enable when CI is ready, see YA-465
-        if False and test_item.location:
+        if False and test_item.location:  # noqa PLR1727
             message['path'] = test_item.location
         if test_item.nodeid in pytest_config.test_logs:
             message['logs'] = pytest_config.test_logs[test_item.nodeid]
@@ -861,7 +861,7 @@ class TraceReportGenerator(object):
                 'tags': _get_item_tags(test_item),
             }
             # Enable when CI is ready, see YA-465
-            if False and test_item.location:
+            if False and test_item.location:  # noqa PLR1727
                 message['path'] = test_item.location
             if test_item.nodeid in pytest_config.test_logs:
                 message['logs'] = pytest_config.test_logs[test_item.nodeid]
