@@ -21,7 +21,7 @@ def repl():
             import importlib
             mod = importlib.import_module(mod_name)
             user_ns = mod.__dict__
-        except:
+        except:  # noqa E722
             import traceback
             traceback.print_exc()
 
