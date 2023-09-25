@@ -833,8 +833,8 @@ def _run_readelf(binary_path):
 def check_glibc_version(binary_path):
     lucid_glibc_version = packaging.version.parse("2.11")
 
-    for l in _run_readelf(binary_path).split('\n'):
-        match = GLIBC_PATTERN.search(l)
+    for line in _run_readelf(binary_path).split('\n'):
+        match = GLIBC_PATTERN.search(line)
         if not match:
             continue
         assert packaging.version.parse(match.group(1)) <= lucid_glibc_version, match.group(0)
