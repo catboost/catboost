@@ -178,16 +178,16 @@ namespace NCB {
             ui32 baselineIdx = 0;
 
             TVector<float> floatFeatures;
-            floatFeatures.yresize(featuresLayout.GetFloatFeatureCount());
+            floatFeatures.resize(featuresLayout.GetFloatFeatureCount());
 
             TVector<ui32> catFeatures;
-            catFeatures.yresize(featuresLayout.GetCatFeatureCount());
+            catFeatures.resize(featuresLayout.GetCatFeatureCount());
 
             TVector<TString> textFeatures;
-            textFeatures.yresize(featuresLayout.GetTextFeatureCount());
+            textFeatures.resize(featuresLayout.GetTextFeatureCount());
 
             TVector<TVector<float>> embeddingFeatures;
-            embeddingFeatures.yresize(featuresLayout.GetEmbeddingFeatureCount());
+            embeddingFeatures.resize(featuresLayout.GetEmbeddingFeatureCount());
 
             size_t tokenIdx = 0;
             try {
