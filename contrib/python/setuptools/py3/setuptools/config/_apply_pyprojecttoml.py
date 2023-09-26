@@ -125,7 +125,7 @@ def _set_config(dist: "Distribution", field: str, value: Any):
         setter(value)
     elif hasattr(dist.metadata, field) or field in SETUPTOOLS_PATCHES:
         setattr(dist.metadata, field, value)
-    else:
+    if hasattr(dist, field):
         setattr(dist, field, value)
 
 

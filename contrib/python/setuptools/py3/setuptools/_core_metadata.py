@@ -13,7 +13,7 @@ from typing import Optional, List
 
 from distutils.util import rfc822_escape
 
-from . import _normalization
+from . import _normalization, _reqs
 from .extern.packaging.markers import Marker
 from .extern.packaging.requirements import Requirement
 from .extern.packaging.version import Version
@@ -211,11 +211,11 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
 
 
 def _write_requirements(self, file):
-    for req in self._normalized_install_requires:
+    for req in _reqs.parse(self.install_requires):
         file.write(f"Requires-Dist: {req}\n")
 
     processed_extras = {}
-    for augmented_extra, reqs in self._normalized_extras_require.items():
+    for augmented_extra, reqs in self.extras_require.items():
         # Historically, setuptools allows "augmented extras": `<extra>:<condition>`
         unsafe_extra, _, condition = augmented_extra.partition(":")
         unsafe_extra = unsafe_extra.strip()
@@ -223,7 +223,7 @@ def _write_requirements(self, file):
 
         if extra:
             _write_provides_extra(file, processed_extras, extra, unsafe_extra)
-        for req in reqs:
+        for req in _reqs.parse_strings(reqs):
             r = _include_extra(req, extra, condition.strip())
             file.write(f"Requires-Dist: {r}\n")
 
@@ -231,7 +231,7 @@ def _write_requirements(self, file):
 
 
 def _include_extra(req: str, extra: str, condition: str) -> Requirement:
-    r = Requirement(req)
+    r = Requirement(req)  # create a fresh object that can be modified
     parts = (
         f"({r.marker})" if r.marker else None,
         f"({condition})" if condition else None,

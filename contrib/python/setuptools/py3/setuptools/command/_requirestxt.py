@@ -11,6 +11,7 @@ from collections import defaultdict
 from itertools import filterfalse
 from typing import Dict, List, Tuple, Mapping, TypeVar
 
+from .. import _reqs
 from ..extern.jaraco.text import yield_lines
 from ..extern.packaging.requirements import Requirement
 
@@ -19,11 +20,11 @@ from ..extern.packaging.requirements import Requirement
 _T = TypeVar("_T")
 _Ordered = Dict[_T, None]
 _ordered = dict
+_StrOrIter = _reqs._StrOrIter
 
 
 def _prepare(
-    install_requires: Dict[str, Requirement],
-    extras_require: Mapping[str, Dict[str, Requirement]],
+    install_requires: _StrOrIter, extras_require: Mapping[str, _StrOrIter]
 ) -> Tuple[List[str], Dict[str, List[str]]]:
     """Given values for ``install_requires`` and ``extras_require``
     create modified versions in a way that can be written in ``requires.txt``
@@ -33,7 +34,7 @@ def _prepare(
 
 
 def _convert_extras_requirements(
-    extras_require: Dict[str, Dict[str, Requirement]],
+    extras_require: _StrOrIter,
 ) -> Mapping[str, _Ordered[Requirement]]:
     """
     Convert requirements in `extras_require` of the form
@@ -44,15 +45,14 @@ def _convert_extras_requirements(
     for section, v in extras_require.items():
         # Do not strip empty sections.
         output[section]
-        for r in v.values():
+        for r in _reqs.parse(v):
             output[section + _suffix_for(r)].setdefault(r)
 
     return output
 
 
 def _move_install_requirements_markers(
-    install_requires: Dict[str, Requirement],
-    extras_require: Mapping[str, _Ordered[Requirement]],
+    install_requires: _StrOrIter, extras_require: Mapping[str, _Ordered[Requirement]]
 ) -> Tuple[List[str], Dict[str, List[str]]]:
     """
     The ``requires.txt`` file has an specific format:
@@ -66,7 +66,7 @@ def _move_install_requirements_markers(
     # divide the install_requires into two sets, simple ones still
     # handled by install_requires and more complex ones handled by extras_require.
 
-    inst_reqs = install_requires.values()
+    inst_reqs = list(_reqs.parse(install_requires))
     simple_reqs = filter(_no_marker, inst_reqs)
     complex_reqs = filterfalse(_no_marker, inst_reqs)
     simple_install_requires = list(map(str, simple_reqs))
@@ -90,7 +90,7 @@ def _suffix_for(req):
 
 def _clean_req(req):
     """Given a Requirement, remove environment markers and return it"""
-    r = Requirement(str(req))  # create a copy before modifying.
+    r = Requirement(str(req))  # create a copy before modifying
     r.marker = None
     return r
 
@@ -111,10 +111,9 @@ def _write_requirements(stream, reqs):
 
 def write_requirements(cmd, basename, filename):
     dist = cmd.distribution
-    meta = dist.metadata
     data = io.StringIO()
     install_requires, extras_require = _prepare(
-        meta._normalized_install_requires, meta._normalized_extras_require
+        dist.install_requires or (), dist.extras_require or {}
     )
     _write_requirements(data, install_requires)
     for extra in sorted(extras_require):
