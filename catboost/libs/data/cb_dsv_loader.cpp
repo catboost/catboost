@@ -172,6 +172,7 @@ namespace NCB {
 
         auto parseLine = [&](TString& line, int lineIdx) {
             const auto& featuresLayout = *DataMetaInfo.FeaturesLayout;
+            bool storeStringColumns = DataMetaInfo.StoreStringColumns;
 
             ui32 featureId = 0;
             ui32 targetId = 0;
@@ -281,7 +282,11 @@ namespace NCB {
                             }
                             case EColumn::GroupId: {
                                 CB_ENSURE(token.length() != 0, "empty values not supported for GroupId");
-                                visitor->AddGroupId(lineIdx, CalcGroupIdFor(token));
+                                if (storeStringColumns) {
+                                    visitor->AddGroupId(lineIdx, TString(token));
+                                } else {
+                                    visitor->AddGroupId(lineIdx, CalcGroupIdFor(token));
+                                }
                                 break;
                             }
                             case EColumn::GroupWeight: {
@@ -291,7 +296,11 @@ namespace NCB {
                             }
                             case EColumn::SubgroupId: {
                                 CB_ENSURE(token.length() != 0, "empty values not supported for SubgroupId");
-                                visitor->AddSubgroupId(lineIdx, CalcSubgroupIdFor(token));
+                                if (storeStringColumns) {
+                                    visitor->AddSubgroupId(lineIdx, TString(token));
+                                } else {
+                                    visitor->AddSubgroupId(lineIdx, CalcSubgroupIdFor(token));
+                                }
                                 break;
                             }
                             case EColumn::Baseline: {
