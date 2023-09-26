@@ -295,7 +295,7 @@ namespace NLastGetopt {
          *  @return self
          */
         TOpt& DisableSpaceParse() {
-            Y_ASSERT(GetHasArg() == OPTIONAL_ARGUMENT);
+            Y_ASSERT(GetHasArg() == OPTIONAL_ARGUMENT || GetHasArg() == REQUIRED_ARGUMENT);
             EqParseOnly_ = true;
             return *this;
         }
