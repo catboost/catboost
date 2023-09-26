@@ -896,6 +896,8 @@ items:
             name: Evaluation library
           - href: concepts/c-plus-plus-api_header-only-evaluator.md
             name: Standalone evaluator
+          - href: concepts/c-plus-plus-api_carrying_model.md
+            name: Carrying model
       - items:
           - href: concepts/java-package.md
             name: Overview
