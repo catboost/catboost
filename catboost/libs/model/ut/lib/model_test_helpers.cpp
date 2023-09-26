@@ -126,6 +126,7 @@ TDataProviderPtr GetAdultPool() {
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,
         /*verbose*/true,
+        /*loadSampleIds*/ false,
         /*forceUnitAutoPairWeights*/ false,
         &classLabels
     );
@@ -174,6 +175,7 @@ TDataProviderPtr GetMultiClassPool() {
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,
         /*verbose*/true,
+        /*loadSampleIds*/ false,
         /*forceUnitAutoPairWeights*/ false,
         &classLabels
     );

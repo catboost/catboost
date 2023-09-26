@@ -199,6 +199,7 @@ namespace NCB {
             poolLoadParams->IgnoredFeatures,
             catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ? EObjectsOrder::Ordered : EObjectsOrder::Undefined,
             TDatasetSubset::MakeRange(0, subsetDocumentCount),
+            /*loadSampleIds*/ false,
             catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
             &classLabels,
             executor

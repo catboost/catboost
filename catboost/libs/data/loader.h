@@ -73,6 +73,7 @@ namespace NCB {
         ui32 BlockSize;
         TDatasetSubset DatasetSubset;
         bool LoadColumnsAsString;
+        bool LoadSampleIds; // special flag because they are rarely used
         bool ForceUnitAutoPairWeights;
         NPar::ILocalExecutor* LocalExecutor;
     };

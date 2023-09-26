@@ -54,6 +54,7 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                 true,
                 false,
                 false,
+                false,
                 true,
                 Nothing(),
                 &featureNames
@@ -65,6 +66,7 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                 NCB::TDataMetaInfo dataMetaInfo2(
                     NCB::TDataColumnsMetaInfo(dataColumnsMetaInfo),
                     ERawTargetType::String,
+                    false,
                     false,
                     false,
                     false,
@@ -94,6 +96,7 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                     NCB::TDataColumnsMetaInfo(dataColumnsMetaInfo3),
                     ERawTargetType::String,
                     true,
+                    false,
                     false,
                     false,
                     true,

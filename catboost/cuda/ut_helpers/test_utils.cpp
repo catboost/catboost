@@ -161,6 +161,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                                         16,
                                         true,
                                         false,
+                                        false,
                                         /*classLabels*/ Nothing());
     }
 

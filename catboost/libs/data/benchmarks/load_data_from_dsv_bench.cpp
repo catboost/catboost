@@ -68,6 +68,7 @@ Y_CPU_BENCHMARK(DsvLoaderNumFeatures, iface) {
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
+            /*loadSampleIds*/ false,
             /*forceUnitAutoPairWeights*/ true,
             /*classLabels*/ Nothing(),
             &localExecutor);
@@ -106,6 +107,7 @@ Y_CPU_BENCHMARK(DsvLoaderCatFeatures, iface) {
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
+            /*loadSampleIds*/ false,
             /*forceUnitAutoPairWeights*/ false,
             /*classLabels*/ Nothing(),
             &localExecutor);
@@ -144,6 +146,7 @@ Y_CPU_BENCHMARK(DsvLoaderQuotedCatFeatures, iface) {
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
+            /*loadSampleIds*/ false,
             /*forceUnitAutoPairWeights*/ false,
             /*classLabels*/ Nothing(),
             &localExecutor);

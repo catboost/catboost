@@ -129,6 +129,7 @@ NCB::TDataMetaInfo GetDataMetaInfo(
         hasAdditionalGroupWeight,
         hasTimestamps,
         hasPairs,
+        /*loadSampleIds*/ false,
         forceUnitAutoPairWeights,
         baselineCount,
         &featureNames,

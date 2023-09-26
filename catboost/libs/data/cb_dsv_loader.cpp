@@ -93,6 +93,7 @@ namespace NCB {
             Args.GroupWeightsFilePath.Inited(),
             Args.TimestampsFilePath.Inited(),
             Args.PairsFilePath.Inited(),
+            Args.LoadSampleIds,
             Args.ForceUnitAutoPairWeights,
             BaselineReader ? TMaybe<ui32>(BaselineReader->GetBaselineCount()) : Nothing(),
             &featureNames,

@@ -54,6 +54,7 @@ namespace {
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,
                                            NCB::TDatasetSubset::MakeColumns(),
+                                           /*loadSampleIds*/ false,
                                            /*forceUnitAutoPairWeights*/ false,
                                            /*classLabels*/ Nothing(),
                                            LocalExecutor.Get());
@@ -185,4 +186,3 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
 
     ModeFstrSingleHostInner(params, model);
 }
-

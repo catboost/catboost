@@ -84,7 +84,8 @@ inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingPa
                 NCB::EObjectsOrder::Undefined,
                 blockSize,
                 NCB::TDatasetSubset::MakeColumns(),
-                /*LoadColumnsAsString*/ false,
+                /*LoadColumnsAsString*/ params.LoadSampleIds,
+                params.LoadSampleIds,
                 params.ForceUnitAutoPairWeights,
                 localExecutor
             }

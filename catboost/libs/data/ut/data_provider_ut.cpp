@@ -42,6 +42,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
         /*hasTimestamps*/ false,
         hasPairs,
         /*forceUnitAutoPairWeights*/ false,
+        /*loadSampleIds*/ false,
         /*additionalBaselineCount*/ Nothing(),
         &featureId
     );

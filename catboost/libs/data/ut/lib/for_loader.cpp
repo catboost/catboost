@@ -85,6 +85,7 @@ namespace NCB {
                 testCase.SrcData.IgnoredFeatures,
                 testCase.SrcData.ObjectsOrder,
                 TDatasetSubset::MakeColumns(),
+                /*loadSampleIds*/ false,
                 /*forceUnitAutoPairWeights*/ true,
                 /*classLabels*/Nothing(),
                 &localExecutor

@@ -77,6 +77,7 @@ namespace NCB {
             bool hasAdditionalGroupWeight,
             bool hasTimestamp,
             bool hasPairs,
+            bool loadSampleIds, // special flag because they are rarely used
             bool forceUnitAutoPairWeights,
             TMaybe<ui32> additionalBaselineCount = Nothing(),
 

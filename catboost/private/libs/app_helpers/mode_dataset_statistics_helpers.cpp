@@ -161,6 +161,7 @@ static THolder<IDatasetLoader> GetDatasetLoader(
             blockSize,
             NCB::TDatasetSubset::MakeColumns(),
             /*LoadColumnsAsString*/ false,
+            /*LoadSampleIds*/ false,
             params.ForceUnitAutoPairWeights,
             localExecutor};
     };

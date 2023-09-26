@@ -28,6 +28,7 @@ namespace NCB {
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
+        bool loadSampleIds,
         bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
@@ -57,7 +58,8 @@ namespace NCB {
                     objectsOrder,
                     10000, // TODO: make it a named constant
                     loadSubset,
-                    /*LoadColumnsAsString*/ false,
+                    /*LoadColumnsAsString*/ loadSampleIds,
+                    /*LoadSampleIds*/ loadSampleIds,
                     forceUnitAutoPairWeights,
                     localExecutor
                 }
@@ -100,6 +102,7 @@ namespace NCB {
         EObjectsOrder objectsOrder,
         int threadCount,
         bool verbose,
+        bool loadSampleIds,
         bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels
     ) {
@@ -121,6 +124,7 @@ namespace NCB {
             ignoredFeatures,
             objectsOrder,
             TDatasetSubset::MakeColumns(),
+            loadSampleIds,
             forceUnitAutoPairWeights,
             classLabels,
             &localExecutor
@@ -142,6 +146,7 @@ namespace NCB {
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        bool loadSampleIds,
         bool forceUnitAutoPairWeights,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::ILocalExecutor* localExecutor
@@ -176,7 +181,8 @@ namespace NCB {
                     objectsOrder,
                     10000, // TODO: make it a named constant
                     loadSubset,
-                    /*LoadColumnsAsString*/ false,
+                    /*LoadColumnsAsString*/ loadSampleIds,
+                    loadSampleIds,
                     forceUnitAutoPairWeights,
                     localExecutor
                 }
@@ -222,6 +228,7 @@ namespace NCB {
                 loadOptions.IgnoredFeatures,
                 objectsOrder,
                 learnDatasetSubset,
+                /*loadSampleIds*/ false,
                 forceUnitAutoPairWeights,
                 classLabels,
                 executor
@@ -259,6 +266,7 @@ namespace NCB {
                     loadOptions.IgnoredFeatures,
                     objectsOrder,
                     testDatasetSubsets[testIdx],
+                    /*loadSampleIds*/ false,
                     forceUnitAutoPairWeights,
                     classLabels,
                     executor

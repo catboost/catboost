@@ -809,6 +809,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
                 *blockSize,
                 loadSubset,
                 /*LoadColumnsAsString*/ false,
+                /*LoadSampleIds*/ false,
                 catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
                 localExecutor}});
 

@@ -482,6 +482,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         EObjectsOrder objectsOrder,
         int threadCount,
         bool_t verbose,
+        bool_t loadSampleIds,
         bool_t forceUnitAutoPAirweights
     ) nogil except +ProcessException
 
@@ -3784,6 +3785,7 @@ cdef class _PoolBase:
                 emptyIntVec,
                 EObjectsOrder_Undefined,
                 thread_count,
+                False,
                 False,
                 False
             )

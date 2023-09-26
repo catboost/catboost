@@ -382,6 +382,7 @@ TRawDatasetRowsReader::TRawDatasetRowsReader(
             SafeIntegerCast<ui32>(blockSize),
             /*loadSubset*/ TDatasetSubset(),
             /*LoadColumnsAsString*/ false,
+            /*LoadSampleIds*/ false,
             /*ForceUnitAutoPairWeights*/ false,
             &LocalExecutor
         }
@@ -413,6 +414,3 @@ i32 TRawDatasetRowsReader::ReadNextBlock() {
 const TRawDatasetRow& TRawDatasetRowsReader::GetRow(i32 objectIdx) {
     return Visitor->GetRow(objectIdx);
 }
-
-
-

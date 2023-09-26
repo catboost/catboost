@@ -209,6 +209,7 @@ int DoMain(int argc, char** argv) {
         NCB::EObjectsOrder::Undefined,
         NSystemInfo::CachedNumberOfCpus(),
         true,
+        /*loadSampleIds*/ false,
         /*forceUnitAutoPairWeights*/ false,
         /*classNames*/ Nothing()
     );
