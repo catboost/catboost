@@ -363,12 +363,13 @@ template <class R, class Alloc> struct uses_allocator<packaged_task<R>, Alloc>;
 
 #include <__assert>
 #include <__availability>
+#include <__chrono/duration.h>
+#include <__chrono/time_point.h>
 #include <__config>
 #include <__memory/allocator_arg_t.h>
 #include <__memory/uses_allocator.h>
 #include <__utility/auto_cast.h>
 #include <__utility/forward.h>
-#include <chrono>
 #include <exception>
 #include <memory>
 #include <mutex>
@@ -399,7 +400,7 @@ _LIBCPP_DECLARE_STRONG_ENUM_EPILOG(future_errc)
 template <>
 struct _LIBCPP_TEMPLATE_VIS is_error_code_enum<future_errc> : public true_type {};
 
-#ifdef _LIBCPP_HAS_NO_STRONG_ENUMS
+#ifdef _LIBCPP_CXX03_LANG
 template <>
 struct _LIBCPP_TEMPLATE_VIS is_error_code_enum<future_errc::__lx> : public true_type { };
 #endif
@@ -413,7 +414,7 @@ _LIBCPP_DECLARE_STRONG_ENUM(launch)
 };
 _LIBCPP_DECLARE_STRONG_ENUM_EPILOG(launch)
 
-#ifndef _LIBCPP_HAS_NO_STRONG_ENUMS
+#ifndef _LIBCPP_CXX03_LANG
 
 typedef underlying_type<launch>::type __launch_underlying_type;
 
@@ -473,7 +474,7 @@ operator^=(launch& __x, launch __y)
     __x = __x ^ __y; return __x;
 }
 
-#endif // !_LIBCPP_HAS_NO_STRONG_ENUMS
+#endif // !_LIBCPP_CXX03_LANG
 
 //enum class future_status
 _LIBCPP_DECLARE_STRONG_ENUM(future_status)

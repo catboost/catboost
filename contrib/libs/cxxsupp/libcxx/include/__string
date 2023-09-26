@@ -693,7 +693,7 @@ char_traits<char8_t>::find(const char_type* __s, size_t __n, const char_type& __
     return nullptr;
 }
 
-#endif // #_LIBCPP_HAS_NO_CHAR8_T
+#endif // _LIBCPP_HAS_NO_CHAR8_T
 
 #ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
 
@@ -1169,17 +1169,17 @@ size_t __do_string_hash(_Ptr __p, _Ptr __e)
     return __murmur2_or_cityhash<size_t>()(__p, (__e-__p)*sizeof(value_type));
 }
 
-template <class _CharT, class _Iter, class _Traits=char_traits<_CharT> >
+template <class _CharT, class _Iter, class _Traits = char_traits<_CharT> >
 struct __quoted_output_proxy
 {
-    _Iter  __first;
-    _Iter  __last;
-    _CharT  __delim;
-    _CharT  __escape;
+    _Iter  __first_;
+    _Iter  __last_;
+    _CharT  __delim_;
+    _CharT  __escape_;
 
-    __quoted_output_proxy(_Iter __f, _Iter __l, _CharT __d, _CharT __e)
-    : __first(__f), __last(__l), __delim(__d), __escape(__e) {}
-    //  This would be a nice place for a string_ref
+    _LIBCPP_HIDE_FROM_ABI
+    explicit __quoted_output_proxy(_Iter __f, _Iter __l, _CharT __d, _CharT __e)
+        : __first_(__f), __last_(__l), __delim_(__d), __escape_(__e) {}
 };
 
 _LIBCPP_END_NAMESPACE_STD
