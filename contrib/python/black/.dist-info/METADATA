@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: black
-Version: 23.9.0
+Version: 23.9.1
 Summary: The uncompromising code formatter.
 Project-URL: Changelog, https://github.com/psf/black/blob/main/CHANGES.md
 Project-URL: Homepage, https://github.com/psf/black
@@ -20,6 +20,7 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Software Development :: Quality Assurance
 Requires-Python: >=3.8
@@ -319,6 +320,24 @@ And if you _really_ need to slap somebody, do it with a fish while dancing.
 
 <!-- Major changes to documentation and policies. Small docs changes
      don't need a changelog entry. -->
+
+## 23.9.1
+
+Due to various issues, the previous release (23.9.0) did not include compiled mypyc
+wheels, which make Black significantly faster. These issues have now been fixed, and
+this release should come with compiled wheels once again.
+
+There will be no wheels for Python 3.12 due to a bug in mypyc. We will provide 3.12
+wheels in a future release as soon as the mypyc bug is fixed.
+
+### Packaging
+
+- Upgrade to mypy 1.5.1 (#3864)
+
+### Performance
+
+- Store raw tuples instead of NamedTuples in Black's cache, improving performance and
+  decreasing the size of the cache (#3877)
 
 ## 23.9.0
 
