@@ -311,6 +311,10 @@ namespace NCB {
                                 break;
                             }
                             case EColumn::SampleId: {
+                                if (Args.LoadSampleIds) {
+                                    CB_ENSURE(token.length() != 0, "empty values not supported for SampleId");
+                                    visitor->AddSampleId(lineIdx, TString(token));
+                                }
                                 break;
                             }
                             case EColumn::Timestamp: {
