@@ -182,6 +182,7 @@ namespace NCB {
         }
 
         void AddSampleId(ui32 localObjectIdx, const TString& value) override {
+            Y_ASSERT(Data.CommonObjectsData.StoreStringColumns);
             (*Data.CommonObjectsData.SampleId)[Cursor + localObjectIdx] = value;
         }
 
