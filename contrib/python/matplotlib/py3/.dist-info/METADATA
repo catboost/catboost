@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: matplotlib
-Version: 3.7.2
+Version: 3.7.3
 Summary: Python plotting package
 Home-page: https://matplotlib.org
 Download-URL: https://matplotlib.org/stable/users/installing/index.html
@@ -24,6 +24,7 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Scientific/Engineering :: Visualization
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
@@ -39,16 +40,16 @@ License-File: LICENSE/LICENSE_QT4_EDITOR
 License-File: LICENSE/LICENSE_SOLARIZED
 License-File: LICENSE/LICENSE_STIX
 License-File: LICENSE/LICENSE_YORICK
-Requires-Dist: contourpy (>=1.0.1)
-Requires-Dist: cycler (>=0.10)
-Requires-Dist: fonttools (>=4.22.0)
-Requires-Dist: kiwisolver (>=1.0.1)
-Requires-Dist: numpy (>=1.20)
-Requires-Dist: packaging (>=20.0)
-Requires-Dist: pillow (>=6.2.0)
-Requires-Dist: pyparsing (<3.1,>=2.3.1)
-Requires-Dist: python-dateutil (>=2.7)
-Requires-Dist: importlib-resources (>=3.2.0) ; python_version<"3.10"
+Requires-Dist: contourpy >=1.0.1
+Requires-Dist: cycler >=0.10
+Requires-Dist: fonttools >=4.22.0
+Requires-Dist: kiwisolver >=1.0.1
+Requires-Dist: numpy <2,>=1.20
+Requires-Dist: packaging >=20.0
+Requires-Dist: pillow >=6.2.0
+Requires-Dist: pyparsing >=2.3.1
+Requires-Dist: python-dateutil >=2.7
+Requires-Dist: importlib-resources >=3.2.0 ; python_version<"3.10"
 
 [![PyPi](https://badge.fury.io/py/matplotlib.svg)](https://badge.fury.io/py/matplotlib)
 [![Downloads](https://pepy.tech/badge/matplotlib/month)](https://pepy.tech/project/matplotlib)
