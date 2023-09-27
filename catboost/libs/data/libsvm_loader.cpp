@@ -1,6 +1,7 @@
 #include "libsvm_loader.h"
 
 #include "features_layout.h"
+#include "sampler.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/helpers/mem_usage.h>
@@ -20,6 +21,7 @@
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
 #include <util/string/split.h>
+#include <util/system/compiler.h>
 #include <util/system/guard.h>
 #include <util/system/types.h>
 
@@ -428,5 +430,31 @@ namespace NCB {
         TLineDataReaderFactory::TRegistrator<TFileLineDataReader> LibSvmLineDataReaderReg("libsvm");
         TDatasetLoaderFactory::TRegistrator<TLibSvmDataLoader> LibSvmDataLoaderReg("libsvm");
         TDatasetLineDataLoaderFactory::TRegistrator<TLibSvmDataLoader> LibSvmLineDataLoader("libsvm");
+    }
+
+
+    class TLibSvmDatasetSampler final : public IDataProviderSampler {
+    public:
+        TLibSvmDatasetSampler(TDataProviderSampleParams&& params)
+            : Params(std::move(params))
+        {}
+
+        TDataProviderPtr SampleByIndices(TConstArrayRef<ui32> indices) override {
+            return LinesFileSampleByIndices(Params, indices);
+        }
+
+        TDataProviderPtr SampleBySampleIds(TConstArrayRef<TString> sampleIds) override {
+            Y_UNUSED(sampleIds);
+
+            CB_ENSURE(false, "libsvm format has no sampleIds, so sampling by them is not supported");
+            return TDataProviderPtr();
+        }
+
+    private:
+        TDataProviderSampleParams Params;
+    };
+
+    namespace {
+        TDataProviderSamplerFactory::TRegistrator<TLibSvmDatasetSampler> CBDsvDatasetSampler("libsvm");
     }
 }

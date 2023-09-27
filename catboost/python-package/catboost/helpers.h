@@ -29,6 +29,10 @@
 
 struct TTrainTestSplitParams;
 
+namespace NCatboostOptions {
+    struct TDatasetReadingParams;
+}
+
 
 class TGilGuard : public TNonCopyable {
 public:
@@ -282,3 +286,12 @@ void TrainEvalSplit(
 TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int threadsCount);
 
 size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription);
+
+void GetNumFeatureValuesSample(
+    const TFullModel& model,
+    const NCatboostOptions::TDatasetReadingParams& datasetReadingParams,
+    int threadCount,
+    const TVector<ui32>& sampleIndicesVector,
+    const TVector<TString>& sampleIdsVector,
+    TVector<TArrayRef<float>>* numFeaturesColumns
+);

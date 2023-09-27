@@ -1,21 +1,26 @@
 #include "baseline.h"
 #include "cb_dsv_loader.h"
+#include "load_data.h"
+#include "sampler.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/data_util/line_data_reader.h>
 #include <catboost/private/libs/labels/helpers.h>
+#include <catboost/private/libs/options/dataset_reading_params.h>
 #include <catboost/private/libs/options/pool_metainfo_options.h>
 
 #include <library/cpp/object_factory/object_factory.h>
 #include <library/cpp/string_utils/csv/csv.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
 #include <util/string/split.h>
+#include <util/system/compiler.h>
 #include <util/system/guard.h>
 #include <util/system/types.h>
 
@@ -390,5 +395,173 @@ namespace NCB {
         TDatasetLoaderFactory::TRegistrator<TCBDsvDataLoader> CBDsvDataLoaderReg("dsv");
 
         TDatasetLineDataLoaderFactory::TRegistrator<TCBDsvDataLoader> CBDsvLineDataLoader("dsv");
+    }
+
+
+    class TSampleIdSubsetDsvLineDataReader final : public ILineDataReader {
+    public:
+        TSampleIdSubsetDsvLineDataReader(
+            THolder<ILineDataReader>&& lineDataReader,
+            THashMap<TString, ui32>&& subsetSampleIdsToCount,
+            TDsvFormatOptions&& dstFormatOptions,
+            size_t sampleIdColumnIdx
+        )
+            : LineDataReader(std::move(lineDataReader))
+            , SubsetSampleIdsToCount(std::move(subsetSampleIdsToCount))
+            , DsvFormatOptions(std::move(dstFormatOptions))
+            , CsvSplitterQuote(DsvFormatOptions.IgnoreCsvQuoting ? '\0' : '"')
+            , SampleIdColumnIdx(sampleIdColumnIdx)
+            , LineIdx(0)
+            , Header(LineDataReader->GetHeader())
+        {
+            if (!SubsetSampleIdsToCount.empty()) {
+                Size = 0;
+                for (const auto& [sampleId, count] : SubsetSampleIdsToCount) {
+                    Size += count;
+                }
+            }
+        }
+
+        ui64 GetDataLineCount(bool estimate = false) override {
+            Y_UNUSED(estimate);
+            return Size;
+        }
+
+        TMaybe<TString> GetHeader() override {
+            return Header;
+        }
+
+        bool ReadLine(TString* line, ui64* lineIdx = nullptr) override {
+            if (SubsetSampleIdsToCount.empty()) {
+                return false;
+            }
+
+            while (true) {
+                auto it = SubsetSampleIdsToCount.find(CurrentSampleId);
+                if (it != SubsetSampleIdsToCount.end()) {
+                    if (it->second == 1) {
+                        SubsetSampleIdsToCount.erase(it);
+                        *line = std::move(LineBuffer);
+                    } else {
+                        --(it->second);
+                        *line = LineBuffer;
+                    }
+
+                    if (lineIdx) {
+                        *lineIdx = LineIdx;
+                    }
+                    ++LineIdx;
+                    return true;
+                }
+                NextLine();
+            }
+        }
+
+    private:
+        void NextLine() {
+            bool enclosingReadResult = LineDataReader->ReadLine(&LineBuffer);
+            CB_ENSURE(enclosingReadResult, "Reached the end of data but not reached the end of subset");
+
+            auto splitter = NCsvFormat::CsvSplitter(LineBuffer, DsvFormatOptions.Delimiter, CsvSplitterQuote);
+            for (size_t i = 0; i < SampleIdColumnIdx; ++i) {
+                splitter.Consume();
+                splitter.Step();
+            }
+            CurrentSampleId = splitter.Consume();
+        }
+
+    private:
+        THolder<ILineDataReader> LineDataReader;
+        THashMap<TString, ui32> SubsetSampleIdsToCount;
+        TDsvFormatOptions DsvFormatOptions;
+        char CsvSplitterQuote;
+        size_t SampleIdColumnIdx;
+
+        //ui64 EnclosingLineIdx;
+        ui64 LineIdx;
+        TString CurrentSampleId;
+        TMaybe<TString> Header;
+        size_t Size = 0;
+        TString LineBuffer;
+    };
+
+
+    class TDsvDatasetSampler final : public IDataProviderSampler {
+    public:
+        TDsvDatasetSampler(TDataProviderSampleParams&& params)
+            : Params(std::move(params))
+        {}
+
+        TDataProviderPtr SampleByIndices(TConstArrayRef<ui32> indices) override {
+            return LinesFileSampleByIndices(Params, indices);
+        }
+
+        TDataProviderPtr SampleBySampleIds(TConstArrayRef<TString> sampleIds) override {
+            const auto& datasetReadingParams = Params.DatasetReadingParams;
+            const auto& dsvFormat = datasetReadingParams.ColumnarPoolFormatParams.DsvFormat;
+
+            auto lineDataReader = MakeHolder<TFileLineDataReader>(
+                TLineDataReaderArgs {
+                    datasetReadingParams.PoolPath,
+                    dsvFormat,
+                    /*KeepLineOrder*/ false
+                }
+            );
+
+            THashMap<TString, ui32> subsetSampleIdsToCount;
+            for (const auto& sampleId : sampleIds) {
+                subsetSampleIdsToCount[sampleId]++;
+            }
+
+            TVector<TColumn> columnsDescription;
+            TMaybe<size_t> sampleIdColumnIdx;
+
+            ReadCDForSampler(
+                datasetReadingParams.ColumnarPoolFormatParams.CdFilePath,
+                Params.OnlyFeaturesData,
+                /*loadSampleIds*/ true,
+                &columnsDescription,
+                &sampleIdColumnIdx
+            );
+
+            CB_ENSURE(sampleIdColumnIdx.Defined(), "SampleId column not present in CD file");
+
+            auto subsetLineDataReader = MakeHolder<TSampleIdSubsetDsvLineDataReader>(
+                std::move(lineDataReader),
+                std::move(subsetSampleIdsToCount),
+                TDsvFormatOptions(dsvFormat),
+                *sampleIdColumnIdx
+            );
+
+            TVector<NJson::TJsonValue> classLabels = datasetReadingParams.ClassLabels;
+
+            auto dataset = ReadDataset(
+                std::move(subsetLineDataReader),
+                /*pairsFilePath*/ TPathWithScheme(),
+                /*groupWeightsFilePath*/ TPathWithScheme(),
+                /*timestampsFilePath*/ TPathWithScheme(),
+                /*baselineFilePath*/ TPathWithScheme(),
+                datasetReadingParams.FeatureNamesPath,
+                datasetReadingParams.PoolMetaInfoPath,
+                dsvFormat,
+                columnsDescription,
+                /*ignoredFeatures*/ {},  //TODO(akhropov): get unused features from the model
+                EObjectsOrder::Ordered,
+                /*loadSampleIds*/ true,
+                /*forceUnitAutoPairWeights*/ false,
+                &classLabels,
+                Params.LocalExecutor
+            );
+
+            return DataProviderSamplerReorderBySampleIds(Params, dataset, sampleIds);
+        }
+
+    private:
+        TDataProviderSampleParams Params;
+    };
+
+    namespace {
+        TDataProviderSamplerFactory::TRegistrator<TDsvDatasetSampler> DefDatasetSampler("");
+        TDataProviderSamplerFactory::TRegistrator<TDsvDatasetSampler> CBDsvDatasetSampler("dsv");
     }
 }

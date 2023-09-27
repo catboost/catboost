@@ -1,6 +1,7 @@
 #include "for_loader.h"
 
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data/sampler.h>
 
 #include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
@@ -96,6 +97,55 @@ namespace NCB {
             UNIT_ASSERT_EXCEPTION(readDataset(), TCatBoostException);
         } else {
             TDataProviderPtr dataProvider = readDataset();
+            Compare<TRawObjectsDataProvider>(std::move(dataProvider), testCase.ExpectedData);
+        }
+    }
+
+
+    void TestSampleDataset(const TSampleDatasetTestCase& testCase) {
+        TReadDatasetMainParams readDatasetMainParams;
+
+        // TODO(akhropov): temporarily use THolder until TTempFile move semantic are fixed
+        TVector<THolder<TTempFile>> srcDataFiles;
+
+        SaveSrcData(testCase.SrcData, &readDatasetMainParams, &srcDataFiles);
+
+        NCatboostOptions::TDatasetReadingParams datasetReadingParams;
+        datasetReadingParams.ColumnarPoolFormatParams = readDatasetMainParams.ColumnarPoolFormatParams;
+        datasetReadingParams.PoolPath = readDatasetMainParams.PoolPath;
+        datasetReadingParams.PairsFilePath = readDatasetMainParams.PairsFilePath;
+        datasetReadingParams.FeatureNamesPath = readDatasetMainParams.FeatureNamesFilePath;
+
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(3);
+
+        auto sampleDataset = [&] () {
+            auto sampler = GetProcessor<IDataProviderSampler, TDataProviderSampleParams>(
+                readDatasetMainParams.PoolPath,
+                TDataProviderSampleParams {
+                    datasetReadingParams,
+                    testCase.OnlyFeaturesData,
+                    /*CpuUsedRamLimit*/ Max<ui64>(),
+                    &localExecutor
+                }
+            );
+
+            TDataProviderPtr dataProvider;
+            if (testCase.SubsetIndices) {
+                dataProvider = sampler->SampleByIndices(*(testCase.SubsetIndices));
+            } else if (testCase.SubsetSampleIds) {
+                dataProvider = sampler->SampleBySampleIds(*(testCase.SubsetSampleIds));
+            } else {
+                CB_ENSURE(false, "Neither indices nor sampleIds are provided");
+            }
+
+            return dataProvider;
+        };
+
+        if (testCase.ExpectedReadError) {
+            UNIT_ASSERT_EXCEPTION(sampleDataset(), TCatBoostException);
+        } else {
+            TDataProviderPtr dataProvider = sampleDataset();
             Compare<TRawObjectsDataProvider>(std::move(dataProvider), testCase.ExpectedData);
         }
     }

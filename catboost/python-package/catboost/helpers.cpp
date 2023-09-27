@@ -1,11 +1,14 @@
 #include "helpers.h"
 
 #include <catboost/libs/data/feature_names_converter.h>
+#include <catboost/libs/data/sampler.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/matrix.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/private/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/options/dataset_reading_params.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/options/split_params.h>
@@ -14,6 +17,9 @@
 #include <util/system/guard.h>
 #include <util/system/info.h>
 #include <util/system/mutex.h>
+
+
+using namespace NCB;
 
 
 extern "C" PyObject* PyCatboostExceptionType;
@@ -331,4 +337,43 @@ TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int thre
 size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) {
     const auto& paramsMap = ParseLossParams(lossFunctionDescription).GetParamsMap();
     return NCatboostOptions::GetAlphaMultiQuantile(paramsMap).size();
+}
+
+void GetNumFeatureValuesSample(
+    const TFullModel& model,
+    const NCatboostOptions::TDatasetReadingParams& datasetReadingParams,
+    int threadCount,
+    const TVector<ui32>& sampleIndicesVector,
+    const TVector<TString>& sampleIdsVector,
+    TVector<TArrayRef<float>>* numFeaturesColumns
+) {
+    auto localExecutor = GetCachedLocalExecutor(threadCount).Get();
+
+    auto sampler = GetProcessor<IDataProviderSampler, TDataProviderSampleParams>(
+        datasetReadingParams.PoolPath,
+        TDataProviderSampleParams {
+            datasetReadingParams,
+            /*OnlyFeaturesData*/ true,
+            /*CpuUsedRamLimit*/ Max<ui64>(),
+            localExecutor
+        }
+    );
+
+    TDataProviderPtr dataProvider;
+    if (!sampleIndicesVector.empty()) {
+        dataProvider = sampler->SampleByIndices(sampleIndicesVector);
+    } else if (!sampleIdsVector.empty()) {
+        dataProvider = sampler->SampleBySampleIds(sampleIdsVector);
+    } else {
+        CB_ENSURE(false, "Neither indices nor sampleIds are provided");
+    }
+    auto objectsDataProvider = dataProvider->ObjectsData;
+    auto rawObjectsDataProvider = dynamic_cast<const TRawObjectsDataProvider*>(objectsDataProvider.Get());
+    CB_ENSURE(rawObjectsDataProvider, "Only non-quantized datasets are supported now");
+
+    for (const auto& floatFeature : model.ModelTrees->GetFloatFeatures()) {
+        auto values = (*rawObjectsDataProvider->GetFloatFeature(floatFeature.Position.Index))->ExtractValues(localExecutor);
+        auto dst = (*numFeaturesColumns)[floatFeature.Position.FlatIndex];
+        Copy(values.begin(), values.end(), dst.begin());
+    }
 }

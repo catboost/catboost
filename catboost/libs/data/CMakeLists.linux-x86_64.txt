@@ -87,6 +87,7 @@ target_sources(catboost-libs-data PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/proceed_pool_in_blocks.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/quantization.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/quantized_features_info.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/libs/data/sampler.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/sparse_columns.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/target.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/unaligned_mem.cpp

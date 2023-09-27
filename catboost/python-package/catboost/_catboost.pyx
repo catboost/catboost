@@ -408,6 +408,18 @@ cdef extern from "catboost/private/libs/options/load_options.h" namespace "NCatb
         TPathWithScheme CdFilePath
 
 
+cdef extern from "catboost/private/libs/options/dataset_reading_params.h" namespace "NCatboostOptions":
+    cdef cppclass TDatasetReadingParams:
+        TColumnarPoolFormatParams ColumnarPoolFormatParams
+        TPathWithScheme PoolPath
+        TVector[TJsonValue] ClassLabels
+        TPathWithScheme PairsFilePath
+        TPathWithScheme FeatureNamesPath
+        TPathWithScheme PoolMetaInfoPath
+        bool_t ForceUnitAutoPairWeights
+        TVector[ui32] IgnoredFeatures
+
+
 cdef class Py_ObjectsOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
     cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor
@@ -983,6 +995,14 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     ) except +ProcessException
     cdef TAtomicSharedPtr[TTbbLocalExecutor] GetCachedLocalExecutor(int threadsCount)
     cdef size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) except +ProcessException
+    cdef void GetNumFeatureValuesSample(
+        const TFullModel& model,
+        const TDatasetReadingParams& datasetReadingParams,
+        int threadCount,
+        const TVector[ui32]& sampleIndicesVector,
+        const TVector[TString]& sampleIdsVector,
+        TVector[TArrayRef[float]]* numFeaturesColumns
+    ) except +ProcessException
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -6102,6 +6122,98 @@ cpdef convert_features_to_indices(indices_or_names, cd_path, pool_metainfo_path)
 
     ConvertFeaturesFromStringToIndices(cd_path_with_scheme, pool_metainfo_path_with_scheme, &indices_or_names_as_json)
     return loads(to_native_str(WriteTJsonValue(indices_or_names_as_json)))
+
+
+cdef TArrayRef[float] get_array_ref(np.ndarray[np.float32_t, ndim=1] src):
+    return TArrayRef[float](<float*>src.data, <size_t>src.shape[0])
+
+
+cpdef get_num_feature_values_sample(
+    _CatBoost model,
+    str dataset_path_with_scheme,
+    str cd_path_with_scheme,
+    str dataset_feature_names_path,
+    str delimiter,  # one-character
+    bool_t has_header,
+    bool_t ignore_csv_quoting,
+    int thread_count,
+    list sample_indices,
+    list sample_ids):
+
+    cdef TDatasetReadingParams datasetReadingParams
+    datasetReadingParams.ColumnarPoolFormatParams.DsvFormat.HasHeader = has_header
+    datasetReadingParams.ColumnarPoolFormatParams.DsvFormat.Delimiter = ord(delimiter)
+    datasetReadingParams.ColumnarPoolFormatParams.DsvFormat.IgnoreCsvQuoting = ignore_csv_quoting
+    if cd_path_with_scheme is not None:
+        datasetReadingParams.ColumnarPoolFormatParams.CdFilePath = TPathWithScheme(
+            <TStringBuf>to_arcadia_string(fspath(cd_path_with_scheme)),
+            TStringBuf(<char*>'dsv')
+        )
+
+    datasetReadingParams.PoolPath = TPathWithScheme(
+        <TStringBuf>to_arcadia_string(fspath(dataset_path_with_scheme)),
+        TStringBuf(<char*>'dsv')
+    )
+
+    if dataset_feature_names_path is not None:
+        datasetReadingParams.FeatureNamesPath = TPathWithScheme(
+            <TStringBuf>to_arcadia_string(fspath(dataset_feature_names_path)),
+            TStringBuf(<char*>'dsv')
+        )
+
+    thread_count = UpdateThreadCount(thread_count)
+
+
+    cdef TVector[ui32] sample_indices_vector
+    cdef TVector[TString] sample_ids_vector
+
+    cdef size_t object_count = 0
+
+    cdef TVector[TArrayRef[float]] num_features_columns  # idx is flat_feature_idx, non-numeric will be None
+
+    if sample_indices is not None:
+        object_count = len(sample_indices)
+        for sample_idx in sample_indices:
+            sample_indices_vector.push_back(sample_idx)
+
+    if sample_ids is not None:
+        if sample_indices is not None:
+            raise CatBoostError('both sample_indices and sample_ids specified')
+
+        object_count = len(sample_ids)
+        for sample_id in sample_ids:
+            sample_ids_vector.push_back(to_arcadia_string(sample_id))
+
+
+    cdef TVector[TString] feature_names = GetModelUsedFeaturesNames(dereference(model.__model))
+    cdef TConstArrayRef[TFloatFeature] float_features = model.__model.ModelTrees.Get().GetFloatFeatures()
+
+
+    feature_names_list = [to_native_str(s) for s in feature_names]
+
+    data_dict = {}
+
+    num_features_columns.resize(feature_names.size())
+    for float_feature in float_features:
+        column_data = np.empty(object_count, dtype=np.float32)
+        num_features_columns[float_feature.Position.FlatIndex] = get_array_ref(column_data)
+        data_dict[feature_names_list[float_feature.Position.FlatIndex]] = column_data
+
+    placeholder_column = np.empty(object_count, dtype=np.int8)
+    for feature_name in feature_names_list:
+        if feature_name not in data_dict:
+            data_dict[feature_name] = placeholder_column
+
+    GetNumFeatureValuesSample(
+        dereference(model.__model),
+        datasetReadingParams,
+        thread_count,
+        sample_indices_vector,
+        sample_ids_vector,
+        &num_features_columns
+    )
+
+    return pd.DataFrame(data_dict, columns=feature_names_list)
 
 
 cpdef _check_train_params(dict params):
