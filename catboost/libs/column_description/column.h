@@ -5,6 +5,9 @@
 #include <util/ysaveload.h>
 #include <util/generic/string.h>
 
+#include <tuple>
+
+
 enum class EColumn {
     Num,
     Categ,
@@ -61,6 +64,10 @@ struct TColumn {
 public:
     bool operator==(const TColumn& rhs) const {
         return (Type == rhs.Type) && (Id == rhs.Id);
+    }
+
+    bool operator<(const TColumn& rhs) const {
+        return std::tie(Type, Id) < std::tie(rhs.Type, rhs.Id);
     }
 
     Y_SAVELOAD_DEFINE(Type, Id);

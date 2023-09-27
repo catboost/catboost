@@ -30,6 +30,8 @@ target_sources(catboost-libs-column_description PRIVATE
 )
 generate_enum_serilization(catboost-libs-column_description
   ${CMAKE_SOURCE_DIR}/catboost/libs/column_description/column.h
+  GEN_HEADER
+  ${CMAKE_BINARY_DIR}/catboost/libs/column_description/column.h_serialized.h
   INCLUDE_HEADERS
   catboost/libs/column_description/column.h
 )
