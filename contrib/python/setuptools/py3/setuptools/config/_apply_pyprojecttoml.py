@@ -125,7 +125,7 @@ def _set_config(dist: "Distribution", field: str, value: Any):
         setter(value)
     elif hasattr(dist.metadata, field) or field in SETUPTOOLS_PATCHES:
         setattr(dist.metadata, field, value)
-    if hasattr(dist, field):
+    else:
         setattr(dist, field, value)
 
 
@@ -212,12 +212,12 @@ def _dependencies(dist: "Distribution", val: list, _root_dir):
     if getattr(dist, "install_requires", []):
         msg = "`install_requires` overwritten in `pyproject.toml` (dependencies)"
         SetuptoolsWarning.emit(msg)
-    _set_config(dist, "install_requires", val)
+    dist.install_requires = val
 
 
 def _optional_dependencies(dist: "Distribution", val: dict, _root_dir):
     existing = getattr(dist, "extras_require", None) or {}
-    _set_config(dist, "extras_require", {**existing, **val})
+    dist.extras_require = {**existing, **val}
 
 
 def _unify_entry_points(project_table: dict):
