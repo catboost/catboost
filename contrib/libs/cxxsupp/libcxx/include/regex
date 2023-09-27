@@ -767,6 +767,8 @@ typedef regex_token_iterator<wstring::const_iterator> wsregex_token_iterator;
 #include <__config>
 #include <__iterator/wrap_iter.h>
 #include <__locale>
+#include <__utility/move.h>
+#include <__utility/swap.h>
 #include <compare>
 #include <deque>
 #include <initializer_list>
@@ -774,7 +776,6 @@ typedef regex_token_iterator<wstring::const_iterator> wsregex_token_iterator;
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
 #include <version>
 
@@ -2094,14 +2095,14 @@ class __r_anchor_multiline
 {
     typedef __owns_one_state<_CharT> base;
 
-    bool __multiline;
+    bool __multiline_;
 
 public:
     typedef _VSTD::__state<_CharT> __state;
 
     _LIBCPP_INLINE_VISIBILITY
     __r_anchor_multiline(bool __multiline, __node<_CharT>* __s)
-        : base(__s), __multiline(__multiline) {}
+        : base(__s), __multiline_(__multiline) {}
 
     virtual void __exec(__state&) const;
 };
@@ -2116,7 +2117,7 @@ __r_anchor_multiline<_CharT>::__exec(__state& __s) const
         __s.__do_ = __state::__accept_but_not_consume;
         __s.__node_ = this->first();
     }
-    else if (__multiline && __is_eol(*__s.__current_))
+    else if (__multiline_ && __is_eol(*__s.__current_))
     {
         __s.__do_ = __state::__accept_but_not_consume;
         __s.__node_ = this->first();

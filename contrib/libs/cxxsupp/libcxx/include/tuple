@@ -175,10 +175,12 @@ template <class... Types>
 #include <__utility/forward.h>
 #include <__utility/integer_sequence.h>
 #include <__utility/move.h>
+#include <__utility/pair.h>
+#include <__utility/piecewise_construct.h>
+#include <__utility/swap.h>
 #include <compare>
 #include <cstddef>
 #include <type_traits>
-#include <utility>
 #include <version>
 
 // TODO: remove these headers
@@ -1143,7 +1145,7 @@ public:
     void swap(tuple&) _NOEXCEPT {}
 };
 
-#if _LIBCPP_STD_VER > 20 && !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#if _LIBCPP_STD_VER > 20
 template <class... _TTypes, class... _UTypes, template<class> class _TQual, template<class> class _UQual>
     requires requires { typename tuple<common_reference_t<_TQual<_TTypes>, _UQual<_UTypes>>...>; }
 struct basic_common_reference<tuple<_TTypes...>, tuple<_UTypes...>, _TQual, _UQual> {
@@ -1155,7 +1157,7 @@ template <class... _TTypes, class... _UTypes>
 struct common_type<tuple<_TTypes...>, tuple<_UTypes...>> {
     using type = tuple<common_type_t<_TTypes, _UTypes>...>;
 };
-#endif // _LIBCPP_STD_VER > 20 && !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#endif // _LIBCPP_STD_VER > 20
 
 #if _LIBCPP_STD_VER > 14
 template <class ..._Tp>
@@ -1360,7 +1362,7 @@ operator==(const tuple<_Tp...>& __x, const tuple<_Up...>& __y)
     return __tuple_equal<sizeof...(_Tp)>()(__x, __y);
 }
 
-#if !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#if _LIBCPP_STD_VER > 17
 
 // operator<=>
 
@@ -1382,7 +1384,7 @@ operator<=>(const tuple<_Tp...>& __x, const tuple<_Up...>& __y)
     return _VSTD::__tuple_compare_three_way(__x, __y, index_sequence_for<_Tp...>{});
 }
 
-#else // !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#else // _LIBCPP_STD_VER > 17
 
 template <class ..._Tp, class ..._Up>
 inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
@@ -1452,7 +1454,7 @@ operator<=(const tuple<_Tp...>& __x, const tuple<_Up...>& __y)
     return !(__y < __x);
 }
 
-#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
+#endif // _LIBCPP_STD_VER > 17
 
 // tuple_cat
 
@@ -1557,6 +1559,7 @@ struct __tuple_cat<tuple<_Types...>, __tuple_indices<_I0...>, __tuple_indices<_J
     typename __tuple_cat_return_ref<tuple<_Types...>&&, _Tuple0&&>::type
     operator()(tuple<_Types...> __t, _Tuple0&& __t0)
     {
+        (void)__t; // avoid unused parameter warning on GCC when _I0 is empty
         return _VSTD::forward_as_tuple(
             _VSTD::forward<_Types>(_VSTD::get<_I0>(__t))...,
             _VSTD::get<_J0>(_VSTD::forward<_Tuple0>(__t0))...);
@@ -1567,6 +1570,7 @@ struct __tuple_cat<tuple<_Types...>, __tuple_indices<_I0...>, __tuple_indices<_J
     typename __tuple_cat_return_ref<tuple<_Types...>&&, _Tuple0&&, _Tuple1&&, _Tuples&&...>::type
     operator()(tuple<_Types...> __t, _Tuple0&& __t0, _Tuple1&& __t1, _Tuples&& ...__tpls)
     {
+        (void)__t; // avoid unused parameter warning on GCC when _I0 is empty
         typedef _LIBCPP_NODEBUG typename remove_reference<_Tuple0>::type _T0;
         typedef _LIBCPP_NODEBUG typename remove_reference<_Tuple1>::type _T1;
         return __tuple_cat<

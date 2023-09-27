@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP___ALGORITHM_RANGES_MIN_ELEMENT_H
-#define _LIBCPP___ALGORITHM_RANGES_MIN_ELEMENT_H
+#ifndef _LIBCPP___ALGORITHM_RANGES_MAX_ELEMENT_H
+#define _LIBCPP___ALGORITHM_RANGES_MAX_ELEMENT_H
 
 #include <__config>
 #include <__functional/identity.h>
@@ -18,7 +18,6 @@
 #include <__ranges/access.h>
 #include <__ranges/concepts.h>
 #include <__ranges/dangling.h>
-#include <__utility/forward.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -29,7 +28,7 @@
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 namespace ranges {
-namespace __min_element {
+namespace __max_element {
 struct __fn {
   template <class _Ip, class _Sp, class _Proj, class _Comp>
   _LIBCPP_HIDE_FROM_ABI static constexpr
@@ -39,7 +38,7 @@ struct __fn {
 
     _Ip __i = __first;
     while (++__i != __last)
-      if (std::invoke(__comp, std::invoke(__proj, *__i), std::invoke(__proj, *__first)))
+      if (std::invoke(__comp, std::invoke(__proj, *__first), std::invoke(__proj, *__i)))
         __first = __i;
     return __first;
   }
@@ -58,10 +57,10 @@ struct __fn {
     return __go(ranges::begin(__r), ranges::end(__r), __comp, __proj);
   }
 };
-} // namespace __min_element
+} // namespace __max_element
 
 inline namespace __cpo {
-  inline constexpr auto min_element = __min_element::__fn{};
+  inline constexpr auto max_element = __max_element::__fn{};
 } // namespace __cpo
 } // namespace ranges
 
@@ -69,4 +68,4 @@ _LIBCPP_END_NAMESPACE_STD
 
 #endif // _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_INCOMPLETE_RANGES)
 
-#endif // _LIBCPP___ALGORITHM_RANGES_MIN_ELEMENT_H
+#endif // _LIBCPP___ALGORITHM_RANGES_MAX_ELEMENT_H

@@ -162,13 +162,14 @@ template<class T>
 #include <__availability>
 #include <__concepts/invocable.h>
 #include <__config>
+#include <__utility/in_place.h>
+#include <__utility/swap.h>
 #include <compare>
 #include <functional>
 #include <initializer_list>
 #include <new>
 #include <stdexcept>
 #include <type_traits>
-#include <utility>
 #include <version>
 
 // TODO: remove these headers
