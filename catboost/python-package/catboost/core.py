@@ -4398,6 +4398,135 @@ class CatBoost(_CatBoostBase):
     def _convert_to_asymmetric_representation(self):
         self._object._convert_oblivious_to_asymmetric()
 
+    def gaussian_search(self, param_distributions, X, y=None, cv=3, n_random_starts=10,
+                        random_state=None, n_calls=100, search_by_train_test_split=True,
+                        partition_random_seed=None, n_jobs=1, const_params={}, to_minimize_objective=True,
+                        refit=True, train_size=0.8, verbose=True, plot=False):
+        import skopt
+        if n_calls <= 0:
+            assert CatBoostError("n_iter should be a positive number")
+        if not isinstance(param_distributions, Mapping):
+            assert CatBoostError("param_distributions should be a dictionary")
+        for param in param_distributions:
+            if not isinstance(param, skopt.space.space.Dimension):
+                raise TypeError('Parameter grid value is not from skopt.space.space.Dimension')
+
+        if X is None:
+            raise CatBoostError("X must not be None")
+
+        if y is None and not isinstance(X, STRING_TYPES + (Pool,)):
+            raise CatBoostError("y may be None only when X is an instance of catboost. Pool or string")
+
+        return self._gaussian_search(param_distributions=param_distributions, X=X, y=y, cv=cv, n_random_starts=n_random_starts,
+                                     random_state=random_state, n_calls=n_calls, search_by_train_test_split=search_by_train_test_split,
+                                     partition_random_seed=partition_random_seed, n_jobs=n_jobs, const_params=const_params, to_minimize_objective=to_minimize_objective,
+                                     refit=refit, train_size=train_size, verbose=verbose, plot=plot)
+
+    def _gaussian_search(self, param_distributions, X, y=None, cv=3, n_random_starts=10,
+                         random_state=None, n_calls=100, search_by_train_test_split=True,
+                         partition_random_seed=None, n_jobs=1, const_params={}, to_minimize_objective=True,
+                         refit=True, train_size=0.8, verbose=True, plot=False):
+        train_params = self._prepare_train_params(
+            X, y, None, None, None, None, None, None, None, None, None, None, None, None,
+            None, None, None, None, None, True, None, None, None, None, None
+        )
+        params = train_params["params"]
+        loss_function = params.get('loss_function', None)
+
+        self.set_params(**const_params)
+
+        from skopt.utils import use_named_args
+        from skopt import gp_minimize
+        from skopt.space import Real, Categorical, Integer
+
+        optimized_params_names = [distibution.name for distibution in param_distributions]
+        init_params = self._init_params.copy()
+
+        objective = SkoptObjective(X,
+                                   y,
+                                   random_state,
+                                   train_size,
+                                   cv,
+                                   partition_random_seed,
+                                   optimized_params_names,
+                                   self,
+                                   loss_function,
+                                   train_params["train_pool"],
+                                   search_by_train_test_split,
+                                   to_minimize_objective,
+                                   const_params,
+                                   init_params)
+
+        results = gp_minimize(objective,
+                              param_distributions,
+                              n_calls=n_calls,
+                              n_random_starts=n_random_starts,
+                              random_state=random_state)
+        best_params = {optimized_params_names[i]: results.x[i] for i in range(len(optimized_params_names))}
+        self.set_params(**best_params)
+        if refit:
+            self.set_params(**best_params)
+            self.fit(X, y, silent=True)
+        return best_params
+
+    def _convert_to_asymmetric_representation(self):
+        self._object._convert_oblivious_to_asymmetric()
+
+
+class SkoptObjective(object):
+    def __init__(self, X, y, random_state, train_size, cv,
+                 partition_random_seed, optimized_params_names,
+                 model, loss_function, train_pool, search_by_train_test_split,
+                 to_minimize_objective, const_params, init_params):
+        self.X = X
+        self.y = y
+        self.random_state = random_state
+        self.train_size = train_size
+        self.cv = cv
+        self.partition_random_seed = partition_random_seed
+        self.optimized_params_names = optimized_params_names
+        self.model = model
+        self.loss_function = loss_function
+        self.train_pool = train_pool
+        self.to_minimize_objective = to_minimize_objective
+        self.search_by_train_test_split = search_by_train_test_split
+        self.const_params = const_params
+        self.init_params = init_params
+
+    def __call__(self, params):
+        from sklearn.model_selection import train_test_split
+
+        params_dict = dict(zip(self.optimized_params_names, params))
+        if isinstance(self.model, CatBoostClassifier):
+            self.model = CatBoostClassifier(**self.init_params)
+        elif isinstance(self.model, CatBoostRegressor):
+            self.model = CatBoostRegressor(**self.init_params)
+        elif isinstance(self.model, CatBoost):
+            self.model = CatBoost(**self.init_params)
+
+        self.model.set_params(**self.const_params)
+        self.model.set_params(**params_dict)
+        if self.search_by_train_test_split:
+            if isinstance(self.X, Pool):
+                self.X = self.X.get_features()
+                self.y = self.X.get_label()
+            X_train, X_val, y_train, y_val = train_test_split(self.X,
+                                                              self.y,
+                                                              random_state=self.partition_random_seed,
+                                                              train_size=self.train_size)
+            self.model.fit(X_train, y_train, silent=True, eval_set=(X_val, y_val))
+            result = self.model.get_best_score()['validation'][self.loss_function]
+        else:
+            result = self.model.cv(self.train_params["train_pool"],
+                              params=params_dict,
+                              fold_count=self.cv,
+                              partition_random_seed=self.partition_random_seed)
+            result = list(result["test-" + self.loss_function + "-mean"])[-1]
+        if not self.to_minimize_objective:
+            result = -result
+        return result
+
+
 class CatBoostClassifier(CatBoost):
     """
     Implementation of the scikit-learn API for CatBoost classification.
