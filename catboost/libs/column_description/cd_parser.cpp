@@ -147,7 +147,7 @@ TVector<TColumn> TCdFromFileProvider::GetColumnsDescription(TMaybe<ui32> columns
         );
     } else {
         columnsDescription.assign(
-            columnsCount.Defined() ? *columnsCount : ui32(0),
+            columnsCount.Defined() ? *columnsCount : ui32(1),
             TColumn{EColumn::Num, TString()}
         );
         columnsDescription[0].Type = EColumn::Label;
