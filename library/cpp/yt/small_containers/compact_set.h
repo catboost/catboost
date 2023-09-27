@@ -34,13 +34,16 @@ namespace NYT {
  *
  *  Note that any modification of the set may invalidate *all* iterators.
  */
-template <typename T, size_t N, typename C = std::less<T>>
+template <typename T, size_t N, typename C = std::less<T>, typename A = std::allocator<T>>
 class TCompactSet
 {
 public:
     class const_iterator;
     using size_type = std::size_t;
     using key_type = T;
+
+    TCompactSet() = default;
+    TCompactSet(const A& allocator);
 
     [[nodiscard]] bool empty() const;
 
@@ -72,9 +75,9 @@ private:
     // reach its 'large' stage) to avoid calling the default ctors of elements
     // we will never use.
     TCompactVector<T, N> Vector_;
-    std::set<T, C> Set_;
+    std::set<T, C, A> Set_;
 
-    using TSetConstIterator = typename std::set<T, C>::const_iterator;
+    using TSetConstIterator = typename std::set<T, C, A>::const_iterator;
     using TVectorConstIterator = typename TCompactVector<T, N>::const_iterator;
 
     bool is_small() const;
