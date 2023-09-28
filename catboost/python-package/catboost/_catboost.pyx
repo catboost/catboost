@@ -6137,8 +6137,8 @@ cpdef get_num_feature_values_sample(
     bool_t has_header,
     bool_t ignore_csv_quoting,
     int thread_count,
-    list sample_indices,
-    list sample_ids):
+    sample_indices,
+    sample_ids):
 
     cdef TDatasetReadingParams datasetReadingParams
     datasetReadingParams.ColumnarPoolFormatParams.DsvFormat.HasHeader = has_header
