@@ -13,6 +13,7 @@ from IPython.utils.capture import capture_output
 from ipywidgets.widgets import widget
 from ipywidgets.widgets.widget import Widget
 from ipywidgets.widgets.widget_button import Button
+import copy
 
 
 def test_no_widget_view():
@@ -80,3 +81,11 @@ def test_compatibility():
     caller_path = inspect.stack(context=0)[1].filename
     assert all(x.filename == caller_path for x in record)
     assert len(record) == 6
+
+
+def test_widget_copy():
+    button = Button()
+    with pytest.raises(NotImplementedError):
+        copy.copy(button)
+    with pytest.raises(NotImplementedError):
+        copy.deepcopy(button)
