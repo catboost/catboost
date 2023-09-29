@@ -160,7 +160,7 @@ TFullModel CarryModel(const TFullModel& model, const TVector<TFeaturePosition>& 
     const auto trees = model.ModelTrees;
     const auto biasFromModel = model.GetScaleAndBias().GetBiasRef();
 
-    TVector<double> bias(biasFromModel.empty() ? 0 : biasFromModel.front(), factorValues.front().size());
+    TVector<double> bias(factorValues.front().size(), biasFromModel.empty() ? 0 : biasFromModel.front());
     TVector<TFloatFeature> floatFeatures(trees->GetFloatFeatures().begin(), trees->GetFloatFeatures().end());
     TVector<TCatFeature> catFeatures(trees->GetCatFeatures().begin(), trees->GetCatFeatures().end());
 
@@ -244,7 +244,7 @@ TFullModel UpliftModel(const TFullModel& model, const TVector<TFeaturePosition>&
 
     const auto biasFromModel = model.GetScaleAndBias().GetBiasRef();
     const auto scale = model.GetScaleAndBias().Scale;
-    double bias = biasFromModel.empty() ? 0 : biasFromModel.front();
+    double bias = 0;
 
     const auto& data = trees->GetModelTreeData();
     const auto& binFeatures = trees->GetBinFeatures();
