@@ -2,7 +2,6 @@
 
 [![Tests](https://github.com/ipython/traitlets/actions/workflows/tests.yml/badge.svg)](https://github.com/ipython/traitlets/actions/workflows/tests.yml)
 [![Documentation Status](https://readthedocs.org/projects/traitlets/badge/?version=latest)](https://traitlets.readthedocs.io/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/ipython/traitlets/branch/main/graph/badge.svg?token=HcsbLGEmI1)](https://codecov.io/gh/ipython/traitlets)
 [![Tidelift](https://tidelift.com/subscription/pkg/pypi-traitlets)](https://tidelift.com/badges/package/pypi/traitlets)
 
 |               |                                      |
@@ -188,3 +187,31 @@ with parity_check.hold_trait_notifications():
 
 However, we **recommend** that custom cross-validators don't modify the state
 of the HasTraits instance.
+
+## About the IPython Development Team
+
+The IPython Development Team is the set of all contributors to the IPython project.
+This includes all of the IPython subprojects.
+
+The core team that coordinates development on GitHub can be found here:
+https://github.com/jupyter/.
+
+## Our Copyright Policy
+
+IPython uses a shared copyright model. Each contributor maintains copyright
+over their contributions to IPython. But, it is important to note that these
+contributions are typically only changes to the repositories. Thus, the IPython
+source code, in its entirety is not the copyright of any single person or
+institution. Instead, it is the collective copyright of the entire IPython
+Development Team. If individual contributors want to maintain a record of what
+changes/contributions they have specific copyright on, they should indicate
+their copyright in the commit message of the change, when they commit the
+change to one of the IPython repositories.
+
+With this in mind, the following banner should be used in any source code file
+to indicate the copyright and license terms:
+
+```
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+```

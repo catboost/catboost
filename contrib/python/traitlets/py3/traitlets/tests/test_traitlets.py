@@ -112,7 +112,7 @@ class TestTraitType(TestCase):
         self.assertEqual(a._notify_new, 10)
 
     def test_validate(self):
-        class MyTT(TraitType):
+        class MyTT(TraitType[int, int]):
             def validate(self, inst, value):
                 return -1
 
@@ -127,7 +127,7 @@ class TestTraitType(TestCase):
         self.assertEqual(a.tt, -1)
 
     def test_default_validate(self):
-        class MyIntTT(TraitType):
+        class MyIntTT(TraitType[int, int]):
             def validate(self, obj, value):
                 if isinstance(value, int):
                     return value
@@ -154,7 +154,7 @@ class TestTraitType(TestCase):
 
     def test_error(self):
         class A(HasTraits):
-            tt = TraitType()
+            tt = TraitType[int, int]()
 
         a = A()
         self.assertRaises(TraitError, A.tt.error, a, 10)
@@ -193,7 +193,6 @@ class TestTraitType(TestCase):
         self.assertEqual(a._trait_values, {"x": 11})
 
     def test_deprecated_method_warnings(self):
-
         with expected_warnings([]):
 
             class ShouldntWarn(HasTraits):
@@ -271,14 +270,14 @@ class TestTraitType(TestCase):
         self.assertEqual(a._trait_values, {"x": 11})
 
     def test_tag_metadata(self):
-        class MyIntTT(TraitType):
+        class MyIntTT(TraitType[int, int]):
             metadata = {"a": 1, "b": 2}
 
         a = MyIntTT(10).tag(b=3, c=4)
         self.assertEqual(a.metadata, {"a": 1, "b": 3, "c": 4})
 
     def test_metadata_localized_instance(self):
-        class MyIntTT(TraitType):
+        class MyIntTT(TraitType[int, int]):
             metadata = {"a": 1, "b": 2}
 
         a = MyIntTT(10)
@@ -326,7 +325,7 @@ class TestTraitType(TestCase):
         self.assertEqual(Foo().bar, {})
 
     def test_deprecated_metadata_access(self):
-        class MyIntTT(TraitType):
+        class MyIntTT(TraitType[int, int]):
             metadata = {"a": 1, "b": 2}
 
         a = MyIntTT(10)
@@ -395,12 +394,12 @@ class TestHasDescriptorsMeta(TestCase):
 
     def test_this_class(self):
         class A(HasTraits):
-            t = This()
-            tt = This()
+            t = This["A"]()
+            tt = This["A"]()
 
         class B(A):
-            tt = This()
-            ttt = This()
+            tt = This["A"]()
+            ttt = This["A"]()
 
         self.assertEqual(A.t.this_class, A)
         self.assertEqual(B.t.this_class, A)
@@ -415,7 +414,6 @@ class TestHasDescriptors(TestCase):
                 foo = inst.foo  # instance should have the attr
 
         class HasFooDescriptors(HasDescriptors):
-
             fd = FooDescriptor()
 
             def setup_instance(self, *args, **kwargs):
@@ -597,7 +595,6 @@ class TestHasTraitsNotify(TestCase):
                 self.b += 1
 
         class B(A):
-
             c = 0
             d = 0
 
@@ -788,7 +785,6 @@ class TestObserveDecorator(TestCase):
                 self.b += 1
 
         class B(A):
-
             c = 0
             d = 0
 
@@ -1098,7 +1094,7 @@ class TestInstance(TestCase):
         class Bah:
             pass
 
-        class FooInstance(Instance):
+        class FooInstance(Instance[Foo]):
             klass = Foo
 
         class A(HasTraits):
@@ -1174,7 +1170,7 @@ class TestInstance(TestCase):
 
         def inner():
             class A(HasTraits):
-                inst = Instance(Foo())
+                inst = Instance(Foo())  # type:ignore
 
         self.assertRaises(TraitError, inner)
 
@@ -1182,7 +1178,7 @@ class TestInstance(TestCase):
 class TestThis(TestCase):
     def test_this_class(self):
         class Foo(HasTraits):
-            this = This()
+            this = This["Foo"]()
 
         f = Foo()
         self.assertEqual(f.this, None)
@@ -1193,7 +1189,7 @@ class TestThis(TestCase):
 
     def test_this_inst(self):
         class Foo(HasTraits):
-            this = This()
+            this = This["Foo"]()
 
         f = Foo()
         f.this = Foo()
@@ -1201,7 +1197,7 @@ class TestThis(TestCase):
 
     def test_subclass(self):
         class Foo(HasTraits):
-            t = This()
+            t = This["Foo"]()
 
         class Bar(Foo):
             pass
@@ -1215,7 +1211,7 @@ class TestThis(TestCase):
 
     def test_subclass_override(self):
         class Foo(HasTraits):
-            t = This()
+            t = This["Foo"]()
 
         class Bar(Foo):
             t = This()
@@ -1291,12 +1287,10 @@ class TraitTestBase(TestCase):
 
 
 class AnyTrait(HasTraits):
-
     value = Any()
 
 
 class AnyTraitTest(TraitTestBase):
-
     obj = AnyTrait()
 
     _default_value = None
@@ -1305,48 +1299,40 @@ class AnyTraitTest(TraitTestBase):
 
 
 class UnionTrait(HasTraits):
-
     value = Union([Type(), Bool()])
 
 
 class UnionTraitTest(TraitTestBase):
-
     obj = UnionTrait(value="traitlets.config.Config")
     _good_values = [int, float, True]
     _bad_values = [[], (0,), 1j]
 
 
 class CallableTrait(HasTraits):
-
     value = Callable()
 
 
 class CallableTraitTest(TraitTestBase):
-
     obj = CallableTrait(value=lambda x: type(x))
     _good_values = [int, sorted, lambda x: print(x)]
     _bad_values = [[], 1, ""]
 
 
 class OrTrait(HasTraits):
-
     value = Bool() | Unicode()
 
 
 class OrTraitTest(TraitTestBase):
-
     obj = OrTrait()
     _good_values = [True, False, "ten"]
     _bad_values = [[], (0,), 1j]
 
 
 class IntTrait(HasTraits):
-
     value = Int(99, min=-100)
 
 
 class TestInt(TraitTestBase):
-
     obj = IntTrait()
     _default_value = 99
     _good_values = [10, -10]
@@ -1397,12 +1383,10 @@ class TestMinBoundCInt(TestCInt):
 
 
 class LongTrait(HasTraits):
-
     value = Long(99)
 
 
 class TestLong(TraitTestBase):
-
     obj = LongTrait()
 
     _default_value = 99
@@ -1513,12 +1497,10 @@ class TestMaxBoundInteger(TraitTestBase):
 
 
 class FloatTrait(HasTraits):
-
     value = Float(99.0, max=200.0)
 
 
 class TestFloat(TraitTestBase):
-
     obj = FloatTrait()
 
     _default_value = 99.0
@@ -1541,12 +1523,10 @@ class TestFloat(TraitTestBase):
 
 
 class CFloatTrait(HasTraits):
-
     value = CFloat("99.0", max=200.0)
 
 
 class TestCFloat(TraitTestBase):
-
     obj = CFloatTrait()
 
     _default_value = 99.0
@@ -1558,12 +1538,10 @@ class TestCFloat(TraitTestBase):
 
 
 class ComplexTrait(HasTraits):
-
     value = Complex(99.0 - 99.0j)
 
 
 class TestComplex(TraitTestBase):
-
     obj = ComplexTrait()
 
     _default_value = 99.0 - 99.0j
@@ -1583,12 +1561,10 @@ class TestComplex(TraitTestBase):
 
 
 class BytesTrait(HasTraits):
-
     value = Bytes(b"string")
 
 
 class TestBytes(TraitTestBase):
-
     obj = BytesTrait()
 
     _default_value = b"string"
@@ -1597,12 +1573,10 @@ class TestBytes(TraitTestBase):
 
 
 class UnicodeTrait(HasTraits):
-
     value = Unicode("unicode")
 
 
 class TestUnicode(TraitTestBase):
-
     obj = UnicodeTrait()
 
     _default_value = "unicode"
@@ -1659,7 +1633,6 @@ class TCPAddressTrait(HasTraits):
 
 
 class TestTCPAddress(TraitTestBase):
-
     obj = TCPAddressTrait()
 
     _default_value = ("127.0.0.1", 0)
@@ -1668,12 +1641,10 @@ class TestTCPAddress(TraitTestBase):
 
 
 class ListTrait(HasTraits):
-
     value = List(Int())
 
 
 class TestList(TraitTestBase):
-
     obj = ListTrait()
 
     _default_value: t.List[t.Any] = []
@@ -1691,12 +1662,10 @@ class Foo:
 
 
 class NoneInstanceListTrait(HasTraits):
-
     value = List(Instance(Foo))
 
 
 class TestNoneInstanceList(TraitTestBase):
-
     obj = NoneInstanceListTrait()
 
     _default_value: t.List[t.Any] = []
@@ -1705,12 +1674,10 @@ class TestNoneInstanceList(TraitTestBase):
 
 
 class InstanceListTrait(HasTraits):
-
     value = List(Instance(__name__ + ".Foo"))
 
 
 class TestInstanceList(TraitTestBase):
-
     obj = InstanceListTrait()
 
     def test_klass(self):
@@ -1731,12 +1698,10 @@ class TestInstanceList(TraitTestBase):
 
 
 class UnionListTrait(HasTraits):
-
     value = List(Int() | Bool())
 
 
 class TestUnionListTrait(TraitTestBase):
-
     obj = UnionListTrait()
 
     _default_value: t.List[t.Any] = []
@@ -1745,12 +1710,10 @@ class TestUnionListTrait(TraitTestBase):
 
 
 class LenListTrait(HasTraits):
-
     value = List(Int(), [0], minlen=1, maxlen=2)
 
 
 class TestLenList(TraitTestBase):
-
     obj = LenListTrait()
 
     _default_value = [0]
@@ -1764,12 +1727,10 @@ class TestLenList(TraitTestBase):
 
 
 class TupleTrait(HasTraits):
-
     value = Tuple(Int(allow_none=True), default_value=(1,))
 
 
 class TestTupleTrait(TraitTestBase):
-
     obj = TupleTrait()
 
     _default_value = (1,)
@@ -1788,12 +1749,10 @@ class TestTupleTrait(TraitTestBase):
 
 
 class LooseTupleTrait(HasTraits):
-
     value = Tuple((1, 2, 3))
 
 
 class TestLooseTupleTrait(TraitTestBase):
-
     obj = LooseTupleTrait()
 
     _default_value = (1, 2, 3)
@@ -1812,12 +1771,10 @@ class TestLooseTupleTrait(TraitTestBase):
 
 
 class MultiTupleTrait(HasTraits):
-
     value = Tuple(Int(), Bytes(), default_value=[99, b"bottles"])
 
 
 class TestMultiTuple(TraitTestBase):
-
     obj = MultiTupleTrait()
 
     _default_value = (99, b"bottles")
@@ -1884,7 +1841,6 @@ def test_subclass_default_value(Trait, default_value):
 
 
 class CRegExpTrait(HasTraits):
-
     value = CRegExp(r"")
 
 
@@ -1913,12 +1869,10 @@ def test_dict_assignment():
 
 
 class UniformlyValueValidatedDictTrait(HasTraits):
-
     value = Dict(value_trait=Unicode(), default_value={"foo": "1"})
 
 
 class TestInstanceUniformlyValueValidatedDict(TraitTestBase):
-
     obj = UniformlyValueValidatedDictTrait()
 
     _default_value = {"foo": "1"}
@@ -1927,12 +1881,10 @@ class TestInstanceUniformlyValueValidatedDict(TraitTestBase):
 
 
 class NonuniformlyValueValidatedDictTrait(HasTraits):
-
     value = Dict(per_key_traits={"foo": Int()}, default_value={"foo": 1})
 
 
 class TestInstanceNonuniformlyValueValidatedDict(TraitTestBase):
-
     obj = NonuniformlyValueValidatedDictTrait()
 
     _default_value = {"foo": 1}
@@ -1941,12 +1893,10 @@ class TestInstanceNonuniformlyValueValidatedDict(TraitTestBase):
 
 
 class KeyValidatedDictTrait(HasTraits):
-
     value = Dict(key_trait=Unicode(), default_value={"foo": "1"})
 
 
 class TestInstanceKeyValidatedDict(TraitTestBase):
-
     obj = KeyValidatedDictTrait()
 
     _default_value = {"foo": "1"}
@@ -1955,7 +1905,6 @@ class TestInstanceKeyValidatedDict(TraitTestBase):
 
 
 class FullyValidatedDictTrait(HasTraits):
-
     value = Dict(
         value_trait=Unicode(),
         key_trait=Unicode(),
@@ -1965,7 +1914,6 @@ class FullyValidatedDictTrait(HasTraits):
 
 
 class TestInstanceFullyValidatedDict(TraitTestBase):
-
     obj = FullyValidatedDictTrait()
 
     _default_value = {"foo": 1}
@@ -1992,7 +1940,6 @@ class TestValidationHook(TestCase):
         """Verify that the early validation hook is effective"""
 
         class Parity(HasTraits):
-
             value = Int(0)
             parity = Enum(["odd", "even"], default_value="even")
 
@@ -2018,7 +1965,6 @@ class TestValidationHook(TestCase):
         """Verify that we can register the same validator to multiple names"""
 
         class OddEven(HasTraits):
-
             odd = Int(1)
             even = Int(0)
 
@@ -2319,7 +2265,6 @@ class TestDirectionalLink(TestCase):
 
 
 class Pickleable(HasTraits):
-
     i = Int()
 
     @observe("i")
@@ -2478,28 +2423,25 @@ def test_notification_order():
 # Traits for Forward Declaration Tests
 ###
 class ForwardDeclaredInstanceTrait(HasTraits):
-
-    value = ForwardDeclaredInstance("ForwardDeclaredBar", allow_none=True)
+    value = ForwardDeclaredInstance["ForwardDeclaredBar"]("ForwardDeclaredBar", allow_none=True)
 
 
 class ForwardDeclaredTypeTrait(HasTraits):
-
-    value = ForwardDeclaredType("ForwardDeclaredBar", allow_none=True)
+    value = ForwardDeclaredType[t.Any, t.Any]("ForwardDeclaredBar", allow_none=True)
 
 
 class ForwardDeclaredInstanceListTrait(HasTraits):
-
     value = List(ForwardDeclaredInstance("ForwardDeclaredBar"))
 
 
 class ForwardDeclaredTypeListTrait(HasTraits):
-
     value = List(ForwardDeclaredType("ForwardDeclaredBar"))
 
 
 ###
 # End Traits for Forward Declaration Tests
 ###
+
 
 ###
 # Classes for Forward Declaration Tests
@@ -2516,11 +2458,11 @@ class ForwardDeclaredBarSub(ForwardDeclaredBar):
 # End Classes for Forward Declaration Tests
 ###
 
+
 ###
 # Forward Declaration Tests
 ###
 class TestForwardDeclaredInstanceTrait(TraitTestBase):
-
     obj = ForwardDeclaredInstanceTrait()
     _default_value = None
     _good_values = [None, ForwardDeclaredBar(), ForwardDeclaredBarSub()]
@@ -2528,7 +2470,6 @@ class TestForwardDeclaredInstanceTrait(TraitTestBase):
 
 
 class TestForwardDeclaredTypeTrait(TraitTestBase):
-
     obj = ForwardDeclaredTypeTrait()
     _default_value = None
     _good_values = [None, ForwardDeclaredBar, ForwardDeclaredBarSub]
@@ -2536,7 +2477,6 @@ class TestForwardDeclaredTypeTrait(TraitTestBase):
 
 
 class TestForwardDeclaredInstanceList(TraitTestBase):
-
     obj = ForwardDeclaredInstanceListTrait()
 
     def test_klass(self):
@@ -2560,7 +2500,6 @@ class TestForwardDeclaredInstanceList(TraitTestBase):
 
 
 class TestForwardDeclaredTypeList(TraitTestBase):
-
     obj = ForwardDeclaredTypeListTrait()
 
     def test_klass(self):
@@ -2673,7 +2612,6 @@ def test_default_value_repr():
 
 
 class TransitionalClass(HasTraits):
-
     d = Any()
 
     @default("d")

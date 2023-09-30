@@ -124,10 +124,10 @@ def reverse_aliases(app):
     # Treat flags which set one trait to True as aliases.
     for flag, (cfg, _) in app.flags.items():
         if len(cfg) == 1:
-            classname = list(cfg)[0]
+            classname = next(iter(cfg))
             cls_cfg = cfg[classname]
             if len(cls_cfg) == 1:
-                traitname = list(cls_cfg)[0]
+                traitname = next(iter(cls_cfg))
                 if cls_cfg[traitname] is True:
                     res[classname + "." + traitname].append(flag)
 

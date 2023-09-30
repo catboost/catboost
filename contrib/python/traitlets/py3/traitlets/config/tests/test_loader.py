@@ -96,7 +96,6 @@ class TestFileCL(TestCase):
         self._check_conf(config)
 
     def test_context_manager(self):
-
         fd, fname = mkstemp(".json", prefix="μnïcø∂e")
         f = os.fdopen(fd, "w")
         f.write("{}")

@@ -9,8 +9,8 @@ import os
 import typing as t
 
 try:
-    import argcomplete  # type: ignore[import]
-    from argcomplete import CompletionFinder
+    import argcomplete
+    from argcomplete import CompletionFinder  # type:ignore
 except ImportError:
     # This module and its utility methods are written to not crash even
     # if argcomplete is not installed.
@@ -20,8 +20,8 @@ except ImportError:
                 raise ModuleNotFoundError("No module named 'argcomplete'")
             raise AttributeError(f"argcomplete stub module has no attribute '{attr}'")
 
-    argcomplete = StubModule()
-    CompletionFinder = object
+    argcomplete = StubModule()  # type:ignore
+    CompletionFinder = object  # type:ignore
 
 
 def get_argcomplete_cwords() -> t.Optional[t.List[str]]:
@@ -45,7 +45,9 @@ def get_argcomplete_cwords() -> t.Optional[t.List[str]]:
             cword_suffix,
             comp_words,
             last_wordbreak_pos,
-        ) = argcomplete.split_line(comp_line, comp_point)
+        ) = argcomplete.split_line(  # type:ignore
+            comp_line, comp_point
+        )
     except ModuleNotFoundError:
         return None
 
@@ -73,7 +75,9 @@ def increment_argcomplete_index():
         os.environ["_ARGCOMPLETE"] = str(int(os.environ["_ARGCOMPLETE"]) + 1)
     except Exception:
         try:
-            argcomplete.debug("Unable to increment $_ARGCOMPLETE", os.environ["_ARGCOMPLETE"])
+            argcomplete.debug(  # type:ignore
+                "Unable to increment $_ARGCOMPLETE", os.environ["_ARGCOMPLETE"]
+            )
         except (KeyError, ModuleNotFoundError):
             pass
 
@@ -196,7 +200,7 @@ class ExtendedCompletionFinder(CompletionFinder):
         # Instead, check if comp_words only consists of the script,
         # if so check if any subcommands start with cword_prefix.
         if self.subcommands and len(comp_words) == 1:
-            argcomplete.debug("Adding subcommands for", cword_prefix)
+            argcomplete.debug("Adding subcommands for", cword_prefix)  # type:ignore
             completions.extend(subc for subc in self.subcommands if subc.startswith(cword_prefix))
 
         return completions

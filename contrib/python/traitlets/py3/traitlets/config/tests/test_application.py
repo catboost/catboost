@@ -34,7 +34,6 @@ pjoin = os.path.join
 
 
 class Foo(Configurable):
-
     i = Integer(
         0,
         help="""
@@ -51,7 +50,6 @@ class Foo(Configurable):
 
 
 class Bar(Configurable):
-
     b = Integer(0, help="The integer b.").tag(config=True)
     enabled = Bool(True, help="Enable bar.").tag(config=True)
     tb = Tuple(()).tag(config=True, multiplicity="*")
@@ -62,7 +60,6 @@ class Bar(Configurable):
 
 
 class MyApp(Application):
-
     name = Unicode("myapp")
     running = Bool(False, help="Is the app running?").tag(config=True)
     classes = List([Bar, Foo])  # type:ignore
@@ -475,7 +472,6 @@ class TestApplication(TestCase):
         self.assertEqual(app.config.MyApp.log_level, "CRITICAL")
 
     def test_extra_args(self):
-
         app = MyApp()
         app.parse_command_line(["--Bar.b=5", "extra", "args", "--disable"])
         app.init_bar()

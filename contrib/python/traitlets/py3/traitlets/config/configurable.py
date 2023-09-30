@@ -5,7 +5,6 @@
 
 
 import logging
-import warnings
 from copy import deepcopy
 from textwrap import dedent
 
@@ -20,6 +19,7 @@ from traitlets.traitlets import (
     observe_compat,
     validate,
 )
+from traitlets.utils import warnings
 from traitlets.utils.text import indent, wrap_paragraphs
 
 from .loader import Config, DeferredConfig, LazyConfigValue, _is_section_key
@@ -43,7 +43,6 @@ class MultipleInstanceError(ConfigurableError):
 
 
 class Configurable(HasTraits):
-
     config = Instance(Config, (), {})
     parent = Instance("traitlets.config.configurable.Configurable", allow_none=True)
 
@@ -183,13 +182,15 @@ class Configurable(HasTraits):
                     from difflib import get_close_matches
 
                     if isinstance(self, LoggingConfigurable):
+                        assert self.log is not None
                         warn = self.log.warning
                     else:
-                        warn = lambda msg: warnings.warn(msg, stacklevel=9)  # noqa[E371]
+
+                        def warn(msg):
+                            return warnings.warn(msg, UserWarning, stacklevel=9)
+
                     matches = get_close_matches(name, traits)
-                    msg = "Config option `{option}` not recognized by `{klass}`.".format(
-                        option=name, klass=self.__class__.__name__
-                    )
+                    msg = f"Config option `{name}` not recognized by `{self.__class__.__name__}`."
 
                     if len(matches) == 1:
                         msg += f"  Did you mean `{matches[0]}`?"
@@ -453,13 +454,16 @@ class LoggingConfigurable(Configurable):
             # warn about unsupported type, but be lenient to allow for duck typing
             warnings.warn(
                 f"{self.__class__.__name__}.log should be a Logger or LoggerAdapter,"
-                f" got {proposal.value}."
+                f" got {proposal.value}.",
+                UserWarning,
+                stacklevel=2,
             )
         return proposal.value
 
     @default("log")
     def _log_default(self):
         if isinstance(self.parent, LoggingConfigurable):
+            assert self.parent is not None
             return self.parent.log
         from traitlets import log
 
@@ -558,8 +562,8 @@ class SingletonConfigurable(LoggingConfigurable):
             return cls._instance
         else:
             raise MultipleInstanceError(
-                "An incompatible sibling of '%s' is already instantiated"
-                " as singleton: %s" % (cls.__name__, type(cls._instance).__name__)
+                f"An incompatible sibling of '{cls.__name__}' is already instantiated"
+                f" as singleton: {type(cls._instance).__name__}"
             )
 
     @classmethod
