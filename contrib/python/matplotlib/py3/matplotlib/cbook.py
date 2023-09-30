@@ -1,9 +1,6 @@
 """
 A collection of utility functions and classes.  Originally, many
 (but not all) were from the Python Cookbook -- hence the name cbook.
-
-This module is safe to import from anywhere within Matplotlib;
-it imports Matplotlib only at runtime.
 """
 
 import collections
@@ -33,19 +30,6 @@ except ImportError:
 
 import matplotlib
 from matplotlib import _api, _c_internal_utils
-
-
-@_api.caching_module_getattr
-class __getattr__:
-    # module-level deprecations
-    MatplotlibDeprecationWarning = _api.deprecated(
-        "3.6", obj_type="",
-        alternative="matplotlib.MatplotlibDeprecationWarning")(
-        property(lambda self: _api.deprecation.MatplotlibDeprecationWarning))
-    mplDeprecation = _api.deprecated(
-        "3.6", obj_type="",
-        alternative="matplotlib.MatplotlibDeprecationWarning")(
-        property(lambda self: _api.deprecation.MatplotlibDeprecationWarning))
 
 
 def _get_running_interactive_framework():
@@ -307,7 +291,7 @@ class CallbackRegistry:
         """
         if self._signals is not None:
             _api.check_in_list(self._signals, signal=s)
-        for cid, ref in list(self.callbacks.get(s, {}).items()):
+        for ref in list(self.callbacks.get(s, {}).values()):
             func = ref()
             if func is not None:
                 try:
@@ -519,7 +503,9 @@ def is_scalar_or_string(val):
     return isinstance(val, str) or not np.iterable(val)
 
 
-def get_sample_data(fname, asfileobj=True, *, np_load=False):
+@_api.delete_parameter(
+    "3.8", "np_load", alternative="open(get_sample_data(..., asfileobj=False))")
+def get_sample_data(fname, asfileobj=True, *, np_load=True):
     """
     Return a sample data file.  *fname* is a path relative to the
     :file:`mpl-data/sample_data` directory.  If *asfileobj* is `True`
@@ -529,9 +515,8 @@ def get_sample_data(fname, asfileobj=True, *, np_load=False):
     the Matplotlib package.
 
     If the filename ends in .gz, the file is implicitly ungzipped.  If the
-    filename ends with .npy or .npz, *asfileobj* is True, and *np_load* is
-    True, the file is loaded with `numpy.load`.  *np_load* currently defaults
-    to False but will default to True in a future release.
+    filename ends with .npy or .npz, and *asfileobj* is `True`, the file is
+    loaded with `numpy.load`.
     """
     path = _get_data_path('sample_data', fname)
     if asfileobj:
@@ -542,12 +527,6 @@ def get_sample_data(fname, asfileobj=True, *, np_load=False):
             if np_load:
                 return np.load(path)
             else:
-                _api.warn_deprecated(
-                    "3.3", message="In a future release, get_sample_data "
-                    "will automatically load numpy arrays.  Set np_load to "
-                    "True to get the array and suppress this warning.  Set "
-                    "asfileobj to False to get the path to the data file and "
-                    "suppress this warning.")
                 return path.open('rb')
         elif suffix in ['.csv', '.xrc', '.txt']:
             return path.open('r')
@@ -588,27 +567,7 @@ def flatten(seq, scalarp=is_scalar_or_string):
             yield from flatten(item, scalarp)
 
 
-@_api.deprecated("3.6", alternative="functools.lru_cache")
-class maxdict(dict):
-    """
-    A dictionary with a maximum size.
-
-    Notes
-    -----
-    This doesn't override all the relevant methods to constrain the size,
-    just ``__setitem__``, so use with caution.
-    """
-
-    def __init__(self, maxsize):
-        super().__init__()
-        self.maxsize = maxsize
-
-    def __setitem__(self, k, v):
-        super().__setitem__(k, v)
-        while len(self) >= self.maxsize:
-            del self[next(iter(self))]
-
-
+@_api.deprecated("3.8")
 class Stack:
     """
     Stack of elements with a movable cursor.
@@ -715,15 +674,70 @@ class Stack:
                 self.push(elem)
 
 
+class _Stack:
+    """
+    Stack of elements with a movable cursor.
+
+    Mimics home/back/forward in a web browser.
+    """
+
+    def __init__(self):
+        self._pos = -1
+        self._elements = []
+
+    def clear(self):
+        """Empty the stack."""
+        self._pos = -1
+        self._elements = []
+
+    def __call__(self):
+        """Return the current element, or None."""
+        return self._elements[self._pos] if self._elements else None
+
+    def __len__(self):
+        return len(self._elements)
+
+    def __getitem__(self, ind):
+        return self._elements[ind]
+
+    def forward(self):
+        """Move the position forward and return the current element."""
+        self._pos = min(self._pos + 1, len(self._elements) - 1)
+        return self()
+
+    def back(self):
+        """Move the position back and return the current element."""
+        self._pos = max(self._pos - 1, 0)
+        return self()
+
+    def push(self, o):
+        """
+        Push *o* to the stack after the current position, and return *o*.
+
+        Discard all later elements.
+        """
+        self._elements[self._pos + 1:] = [o]
+        self._pos = len(self._elements) - 1
+        return o
+
+    def home(self):
+        """
+        Push the first element onto the top of the stack.
+
+        The first element is returned.
+        """
+        return self.push(self._elements[0]) if self._elements else None
+
+
 def safe_masked_invalid(x, copy=False):
     x = np.array(x, subok=True, copy=copy)
     if not x.dtype.isnative:
         # If we have already made a copy, do the byteswap in place, else make a
         # copy with the byte order swapped.
-        x = x.byteswap(inplace=copy).newbyteorder('N')  # Swap to native order.
+        # Swap to native order.
+        x = x.byteswap(inplace=copy).view(x.dtype.newbyteorder('N'))
     try:
-        xm = np.ma.masked_invalid(x, copy=False)
-        xm.shrink_mask()
+        xm = np.ma.masked_where(~(np.isfinite(x)), x, copy=False)
     except TypeError:
         return x
     return xm
@@ -756,10 +770,10 @@ def print_cycles(objects, outstream=sys.stdout, show_progress=False):
             if isinstance(step, dict):
                 for key, val in step.items():
                     if val is next:
-                        outstream.write("[{!r}]".format(key))
+                        outstream.write(f"[{key!r}]")
                         break
                     if key is next:
-                        outstream.write("[key] = {!r}".format(val))
+                        outstream.write(f"[key] = {val!r}")
                         break
             elif isinstance(step, list):
                 outstream.write("[%d]" % step.index(next))
@@ -833,48 +847,54 @@ class Grouper:
     """
 
     def __init__(self, init=()):
-        self._mapping = {weakref.ref(x): [weakref.ref(x)] for x in init}
+        self._mapping = weakref.WeakKeyDictionary(
+            {x: weakref.WeakSet([x]) for x in init})
+
+    def __getstate__(self):
+        return {
+            **vars(self),
+            # Convert weak refs to strong ones.
+            "_mapping": {k: set(v) for k, v in self._mapping.items()},
+        }
+
+    def __setstate__(self, state):
+        vars(self).update(state)
+        # Convert strong refs to weak ones.
+        self._mapping = weakref.WeakKeyDictionary(
+            {k: weakref.WeakSet(v) for k, v in self._mapping.items()})
 
     def __contains__(self, item):
-        return weakref.ref(item) in self._mapping
+        return item in self._mapping
 
+    @_api.deprecated("3.8", alternative="none, you no longer need to clean a Grouper")
     def clean(self):
         """Clean dead weak references from the dictionary."""
-        mapping = self._mapping
-        to_drop = [key for key in mapping if key() is None]
-        for key in to_drop:
-            val = mapping.pop(key)
-            val.remove(key)
 
     def join(self, a, *args):
         """
         Join given arguments into the same set.  Accepts one or more arguments.
         """
         mapping = self._mapping
-        set_a = mapping.setdefault(weakref.ref(a), [weakref.ref(a)])
+        set_a = mapping.setdefault(a, weakref.WeakSet([a]))
 
         for arg in args:
-            set_b = mapping.get(weakref.ref(arg), [weakref.ref(arg)])
+            set_b = mapping.get(arg, weakref.WeakSet([arg]))
             if set_b is not set_a:
                 if len(set_b) > len(set_a):
                     set_a, set_b = set_b, set_a
-                set_a.extend(set_b)
+                set_a.update(set_b)
                 for elem in set_b:
                     mapping[elem] = set_a
 
-        self.clean()
-
     def joined(self, a, b):
         """Return whether *a* and *b* are members of the same set."""
-        self.clean()
-        return (self._mapping.get(weakref.ref(a), object())
-                is self._mapping.get(weakref.ref(b)))
+        return (self._mapping.get(a, object()) is self._mapping.get(b))
 
     def remove(self, a):
-        self.clean()
-        set_a = self._mapping.pop(weakref.ref(a), None)
+        """Remove *a* from the grouper, doing nothing if it is not there."""
+        set_a = self._mapping.pop(a, None)
         if set_a:
-            set_a.remove(weakref.ref(a))
+            set_a.remove(a)
 
     def __iter__(self):
         """
@@ -882,44 +902,24 @@ class Grouper:
 
         The iterator is invalid if interleaved with calls to join().
         """
-        self.clean()
         unique_groups = {id(group): group for group in self._mapping.values()}
         for group in unique_groups.values():
-            yield [x() for x in group]
+            yield [x for x in group]
 
     def get_siblings(self, a):
         """Return all of the items joined with *a*, including itself."""
-        self.clean()
-        siblings = self._mapping.get(weakref.ref(a), [weakref.ref(a)])
-        return [x() for x in siblings]
+        siblings = self._mapping.get(a, [a])
+        return [x for x in siblings]
 
 
 class GrouperView:
     """Immutable view over a `.Grouper`."""
 
-    def __init__(self, grouper):
-        self._grouper = grouper
-
-    class _GrouperMethodForwarder:
-        def __init__(self, deprecated_kw=None):
-            self._deprecated_kw = deprecated_kw
-
-        def __set_name__(self, owner, name):
-            wrapped = getattr(Grouper, name)
-            forwarder = functools.wraps(wrapped)(
-                lambda self, *args, **kwargs: wrapped(
-                    self._grouper, *args, **kwargs))
-            if self._deprecated_kw:
-                forwarder = _api.deprecated(**self._deprecated_kw)(forwarder)
-            setattr(owner, name, forwarder)
-
-    __contains__ = _GrouperMethodForwarder()
-    __iter__ = _GrouperMethodForwarder()
-    joined = _GrouperMethodForwarder()
-    get_siblings = _GrouperMethodForwarder()
-    clean = _GrouperMethodForwarder(deprecated_kw=dict(since="3.6"))
-    join = _GrouperMethodForwarder(deprecated_kw=dict(since="3.6"))
-    remove = _GrouperMethodForwarder(deprecated_kw=dict(since="3.6"))
+    def __init__(self, grouper): self._grouper = grouper
+    def __contains__(self, item): return item in self._grouper
+    def __iter__(self): return iter(self._grouper)
+    def joined(self, a, b): return self._grouper.joined(a, b)
+    def get_siblings(self, a): return self._grouper.get_siblings(a)
 
 
 def simple_linear_interpolation(a, steps):
@@ -1696,10 +1696,14 @@ def _safe_first_finite(obj, *, skip_nonfinite=True):
         if val is None:
             return False
         try:
+            return math.isfinite(val)
+        except TypeError:
+            pass
+        try:
             return np.isfinite(val) if np.isscalar(val) else True
         except TypeError:
-            # This is something that numpy can not make heads or tails
-            # of, assume "finite"
+            # This is something that NumPy cannot make heads or tails of,
+            # assume "finite"
             return True
     if skip_nonfinite is False:
         if isinstance(obj, collections.abc.Iterator):
@@ -1722,7 +1726,10 @@ def _safe_first_finite(obj, *, skip_nonfinite=True):
         raise RuntimeError("matplotlib does not "
                            "support generators as input")
     else:
-        return next((val for val in obj if safe_isfinite(val)), safe_first_element(obj))
+        for val in obj:
+            if safe_isfinite(val):
+                return val
+        return safe_first_element(obj)
 
 
 def sanitize_sequence(data):
@@ -1767,7 +1774,7 @@ def normalize_kwargs(kw, alias_mapping=None):
 
     # deal with default value of alias_mapping
     if alias_mapping is None:
-        alias_mapping = dict()
+        alias_mapping = {}
     elif (isinstance(alias_mapping, type) and issubclass(alias_mapping, Artist)
           or isinstance(alias_mapping, Artist)):
         alias_mapping = getattr(alias_mapping, "_alias_map", {})
@@ -2143,8 +2150,7 @@ def _check_and_log_subprocess(command, logger, **kwargs):
     *logger*.  In case of success, the output is likewise logged.
     """
     logger.debug('%s', _pformat_subprocess(command))
-    proc = subprocess.run(
-        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+    proc = subprocess.run(command, capture_output=True, **kwargs)
     if proc.returncode:
         stdout = proc.stdout
         if isinstance(stdout, bytes):
@@ -2172,7 +2178,7 @@ def _backend_module_name(name):
     or a custom backend -- "module://...") to the corresponding module name).
     """
     return (name[9:] if name.startswith("module://")
-            else "matplotlib.backends.backend_{}".format(name.lower()))
+            else f"matplotlib.backends.backend_{name.lower()}")
 
 
 def _setup_new_guiapp():
@@ -2235,6 +2241,9 @@ def _unikey_or_keysym_to_mplkey(unikey, keysym):
         key = key.replace("page_", "page")
     if key.endswith(("_l", "_r")):  # alt_l, ctrl_l, shift_l.
         key = key[:-2]
+    if sys.platform == "darwin" and key == "meta":
+        # meta should be reported as command on mac
+        key = "cmd"
     key = {
         "return": "enter",
         "prior": "pageup",  # Used by tk.
@@ -2243,7 +2252,7 @@ def _unikey_or_keysym_to_mplkey(unikey, keysym):
     return key
 
 
-@functools.lru_cache(None)
+@functools.cache
 def _make_class_factory(mixin_class, fmt, attr_name=None):
     """
     Return a function that creates picklable classes inheriting from a mixin.
@@ -2262,7 +2271,7 @@ def _make_class_factory(mixin_class, fmt, attr_name=None):
     ``Axes`` class always return the same subclass.
     """
 
-    @functools.lru_cache(None)
+    @functools.cache
     def class_factory(axes_class):
         # if we have already wrapped this class, declare victory!
         if issubclass(axes_class, mixin_class):
@@ -2303,7 +2312,7 @@ def _unpack_to_numpy(x):
         # If numpy, return directly
         return x
     if hasattr(x, 'to_numpy'):
-        # Assume that any function to_numpy() do actually return a numpy array
+        # Assume that any to_numpy() method actually returns a numpy array
         return x.to_numpy()
     if hasattr(x, 'values'):
         xtmp = x.values

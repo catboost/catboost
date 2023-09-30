@@ -21,11 +21,6 @@
 #include "_backend_agg_basic_types.h"
 #include "numpy_cpp.h"
 
-/* Compatibility for PyPy3.7 before 7.3.4. */
-#ifndef Py_DTSF_ADD_DOT_0
-#define Py_DTSF_ADD_DOT_0 0x2
-#endif
-
 struct XY
 {
     double x;
@@ -287,35 +282,15 @@ inline bool point_in_path(
     return result[0] != 0;
 }
 
-template <class PathIterator, class PointArray, class ResultArray>
-void points_on_path(PointArray &points,
-                    const double r,
-                    PathIterator &path,
-                    agg::trans_affine &trans,
-                    ResultArray result)
+template <class PathIterator>
+inline bool point_on_path(
+    double x, double y, const double r, PathIterator &path, agg::trans_affine &trans)
 {
     typedef agg::conv_transform<PathIterator> transformed_path_t;
     typedef PathNanRemover<transformed_path_t> no_nans_t;
     typedef agg::conv_curve<no_nans_t> curve_t;
     typedef agg::conv_stroke<curve_t> stroke_t;
 
-    size_t i;
-    for (i = 0; i < points.size(); ++i) {
-        result[i] = false;
-    }
-
-    transformed_path_t trans_path(path, trans);
-    no_nans_t nan_removed_path(trans_path, true, path.has_codes());
-    curve_t curved_path(nan_removed_path);
-    stroke_t stroked_path(curved_path);
-    stroked_path.width(r * 2.0);
-    point_in_path_impl(points, stroked_path, result);
-}
-
-template <class PathIterator>
-inline bool point_on_path(
-    double x, double y, const double r, PathIterator &path, agg::trans_affine &trans)
-{
     npy_intp shape[] = {1, 2};
     numpy::array_view<double, 2> points(shape);
     points(0, 0) = x;
@@ -324,8 +299,12 @@ inline bool point_on_path(
     int result[1];
     result[0] = 0;
 
-    points_on_path(points, r, path, trans, result);
-
+    transformed_path_t trans_path(path, trans);
+    no_nans_t nan_removed_path(trans_path, true, path.has_codes());
+    curve_t curved_path(nan_removed_path);
+    stroke_t stroked_path(curved_path);
+    stroked_path.width(r * 2.0);
+    point_in_path_impl(points, stroked_path, result);
     return result[0] != 0;
 }
 
@@ -399,7 +378,7 @@ void get_path_collection_extents(agg::trans_affine &master_transform,
                                  extent_limits &extent)
 {
     if (offsets.size() != 0 && offsets.dim(1) != 2) {
-        throw std::runtime_error("Offsets array must be Nx2");
+        throw std::runtime_error("Offsets array must have shape (N, 2)");
     }
 
     size_t Npaths = paths.size();
