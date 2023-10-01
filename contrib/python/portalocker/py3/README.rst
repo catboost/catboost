@@ -32,6 +32,13 @@ The module is currently maintained by Rick van Hattem <Wolph@wol.ph>.
 The project resides at https://github.com/WoLpH/portalocker . Bugs and feature
 requests can be submitted there. Patches are also very welcome.
 
+Security contact information
+------------------------------------------------------------------------------
+
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_.
+Tidelift will coordinate the fix and disclosure.
+
 Redis Locks
 -----------
 

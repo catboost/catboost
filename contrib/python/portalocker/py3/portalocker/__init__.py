@@ -1,8 +1,4 @@
-from . import __about__
-from . import constants
-from . import exceptions
-from . import portalocker
-from . import utils
+from . import __about__, constants, exceptions, portalocker, utils
 
 try:  # pragma: no cover
     from .redis import RedisLock
@@ -17,7 +13,7 @@ __author__ = __about__.__author__
 #: Current author's email address
 __email__ = __about__.__email__
 #: Version number
-__version__ = '2.7.0'
+__version__ = '2.8.2'
 #: Package description for Pypi
 __description__ = __about__.__description__
 #: Package homepage
@@ -78,4 +74,3 @@ __all__ = [
     'open_atomic',
     'RedisLock',
 ]
-

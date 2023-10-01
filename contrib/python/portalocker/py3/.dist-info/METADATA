@@ -1,36 +1,63 @@
 Metadata-Version: 2.1
 Name: portalocker
-Version: 2.7.0
+Version: 2.8.2
 Summary: Wraps the portalocker recipe for easy usage
-Home-page: https://github.com/WoLpH/portalocker
-Author: Rick van Hattem
-Author-email: wolph@wol.ph
+Author-email: Rick van Hattem <wolph@wol.ph>
 License: BSD-3-Clause
-Keywords: locking,locks,with statement,windows,linux,unix
+Project-URL: bugs, https://github.com/wolph/portalocker/issues
+Project-URL: documentation, https://portalocker.readthedocs.io/en/latest/
+Project-URL: repository, https://github.com/wolph/portalocker/
+Keywords: locking,locks,with,statement,windows,linux,unix
 Platform: any
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Development Status :: 6 - Mature
 Classifier: Intended Audience :: Developers
-Classifier: Programming Language :: Python
-Classifier: Programming Language :: Python :: 3.5
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Programming Language :: Python :: 3.7
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Natural Language :: English
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: Microsoft :: MS-DOS
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: Microsoft
+Classifier: Operating System :: POSIX :: BSD :: FreeBSD
+Classifier: Operating System :: POSIX :: BSD
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: POSIX :: SunOS/Solaris
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: Unix
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
-Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: IronPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
-Requires-Python: >=3.5
+Classifier: Programming Language :: Python :: Implementation
+Classifier: Programming Language :: Python
+Classifier: Topic :: Education :: Testing
+Classifier: Topic :: Office/Business
+Classifier: Topic :: Other/Nonlisted Topic
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: System :: Monitoring
+Requires-Python: >=3.8
+Description-Content-Type: text/x-rst
 License-File: LICENSE
-Requires-Dist: pywin32 (>=226) ; platform_system == "Windows"
+Requires-Dist: pywin32 >=226 ; platform_system == "Windows"
 Provides-Extra: docs
-Requires-Dist: sphinx (>=1.7.1) ; extra == 'docs'
+Requires-Dist: sphinx >=1.7.1 ; extra == 'docs'
 Provides-Extra: redis
 Requires-Dist: redis ; extra == 'redis'
 Provides-Extra: tests
-Requires-Dist: pytest (>=5.4.1) ; extra == 'tests'
-Requires-Dist: pytest-cov (>=2.8.1) ; extra == 'tests'
-Requires-Dist: pytest-timeout (>=2.1.0) ; extra == 'tests'
-Requires-Dist: sphinx (>=6.0.0) ; extra == 'tests'
-Requires-Dist: pytest-mypy (>=0.8.0) ; extra == 'tests'
+Requires-Dist: pytest >=5.4.1 ; extra == 'tests'
+Requires-Dist: pytest-cov >=2.8.1 ; extra == 'tests'
+Requires-Dist: pytest-timeout >=2.1.0 ; extra == 'tests'
+Requires-Dist: sphinx >=6.0.0 ; extra == 'tests'
+Requires-Dist: pytest-mypy >=0.8.0 ; extra == 'tests'
+Requires-Dist: types-redis ; extra == 'tests'
 Requires-Dist: redis ; extra == 'tests'
 
 ############################################
@@ -66,6 +93,13 @@ recommended however. For more information about the subject:
 The module is currently maintained by Rick van Hattem <Wolph@wol.ph>.
 The project resides at https://github.com/WoLpH/portalocker . Bugs and feature
 requests can be submitted there. Patches are also very welcome.
+
+Security contact information
+------------------------------------------------------------------------------
+
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_.
+Tidelift will coordinate the fix and disclosure.
 
 Redis Locks
 -----------

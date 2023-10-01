@@ -13,7 +13,7 @@ Lock flags:
 Manually unlock, only needed internally
 
 - `UNBLOCK` unlock
-'''.strip()
+'''
 import enum
 import os
 
@@ -28,10 +28,12 @@ if os.name == 'nt':  # pragma: no cover
     LOCK_SH = 0x2
     #: non-blocking
     LOCK_NB = 0x4
-    LOCK_UN = msvcrt.LK_UNLCK  #: unlock
+    #: unlock
+    LOCK_UN = msvcrt.LK_UNLCK  # type: ignore
 
 elif os.name == 'posix':  # pragma: no cover
     import fcntl
+
     #: exclusive lock
     LOCK_EX = fcntl.LOCK_EX
     #: shared lock

@@ -4,13 +4,10 @@ import logging
 import random
 import time
 import typing
-from typing import Any
-from typing import Dict
 
 from redis import client
 
-from . import exceptions
-from . import utils
+from . import exceptions, utils
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +16,6 @@ DEFAULT_THREAD_SLEEP_TIME = 0.1
 
 
 class PubSubWorkerThread(client.PubSubWorkerThread):  # type: ignore
-
     def run(self):
         try:
             super().run()
@@ -64,7 +60,8 @@ class RedisLock(utils.LockBase):
             `health_check_interval=0`)
 
     '''
-    redis_kwargs: Dict[str, Any]
+
+    redis_kwargs: typing.Dict[str, typing.Any]
     thread: typing.Optional[PubSubWorkerThread]
     channel: str
     timeout: float
@@ -72,20 +69,20 @@ class RedisLock(utils.LockBase):
     pubsub: typing.Optional[client.PubSub] = None
     close_connection: bool
 
-    DEFAULT_REDIS_KWARGS = dict(
+    DEFAULT_REDIS_KWARGS: typing.ClassVar[typing.Dict[str, typing.Any]] = dict(
         health_check_interval=10,
     )
 
     def __init__(
-            self,
-            channel: str,
-            connection: typing.Optional[client.Redis] = None,
-            timeout: typing.Optional[float] = None,
-            check_interval: typing.Optional[float] = None,
-            fail_when_locked: typing.Optional[bool] = False,
-            thread_sleep_time: float = DEFAULT_THREAD_SLEEP_TIME,
-            unavailable_timeout: float = DEFAULT_UNAVAILABLE_TIMEOUT,
-            redis_kwargs: typing.Optional[typing.Dict] = None,
+        self,
+        channel: str,
+        connection: typing.Optional[client.Redis] = None,
+        timeout: typing.Optional[float] = None,
+        check_interval: typing.Optional[float] = None,
+        fail_when_locked: typing.Optional[bool] = False,
+        thread_sleep_time: float = DEFAULT_THREAD_SLEEP_TIME,
+        unavailable_timeout: float = DEFAULT_UNAVAILABLE_TIMEOUT,
+        redis_kwargs: typing.Optional[typing.Dict] = None,
     ):
         # We don't want to close connections given as an argument
         self.close_connection = not connection
@@ -100,9 +97,11 @@ class RedisLock(utils.LockBase):
         for key, value in self.DEFAULT_REDIS_KWARGS.items():
             self.redis_kwargs.setdefault(key, value)
 
-        super(RedisLock, self).__init__(timeout=timeout,
-                                        check_interval=check_interval,
-                                        fail_when_locked=fail_when_locked)
+        super().__init__(
+            timeout=timeout,
+            check_interval=check_interval,
+            fail_when_locked=fail_when_locked,
+        )
 
     def get_connection(self) -> client.Redis:
         if not self.connection:
@@ -120,21 +119,29 @@ class RedisLock(utils.LockBase):
             logger.debug('TypeError while parsing: %r', message)
             return
 
+        assert self.connection is not None
         self.connection.publish(data['response_channel'], str(time.time()))
 
     @property
     def client_name(self):
-        return self.channel + '-lock'
+        return f'{self.channel}-lock'
 
     def acquire(
-            self, timeout: float = None, check_interval: float = None,
-            fail_when_locked: typing.Optional[bool] = None):
-
+        self,
+        timeout: typing.Optional[float] = None,
+        check_interval: typing.Optional[float] = None,
+        fail_when_locked: typing.Optional[bool] = None,
+    ):
         timeout = utils.coalesce(timeout, self.timeout, 0.0)
-        check_interval = utils.coalesce(check_interval, self.check_interval,
-                                        0.0)
-        fail_when_locked = utils.coalesce(fail_when_locked,
-                                          self.fail_when_locked)
+        check_interval = utils.coalesce(
+            check_interval,
+            self.check_interval,
+            0.0,
+        )
+        fail_when_locked = utils.coalesce(
+            fail_when_locked,
+            self.fail_when_locked,
+        )
 
         assert not self.pubsub, 'This lock is already active'
         connection = self.get_connection()
@@ -144,12 +151,16 @@ class RedisLock(utils.LockBase):
             subscribers = connection.pubsub_numsub(self.channel)[0][1]
 
             if subscribers:
-                logger.debug('Found %d lock subscribers for %s',
-                             subscribers, self.channel)
+                logger.debug(
+                    'Found %d lock subscribers for %s',
+                    subscribers,
+                    self.channel,
+                )
 
                 if self.check_or_kill_lock(
-                        connection,
-                        self.unavailable_timeout):  # pragma: no branch
+                    connection,
+                    self.unavailable_timeout,
+                ):  # pragma: no branch
                     continue
                 else:  # pragma: no cover
                     subscribers = 0
@@ -161,7 +172,9 @@ class RedisLock(utils.LockBase):
                 self.pubsub = connection.pubsub()
                 self.pubsub.subscribe(**{self.channel: self.channel_handler})
                 self.thread = PubSubWorkerThread(
-                    self.pubsub, sleep_time=self.thread_sleep_time)
+                    self.pubsub,
+                    sleep_time=self.thread_sleep_time,
+                )
                 self.thread.start()
 
                 subscribers = connection.pubsub_numsub(self.channel)[0][1]
@@ -182,24 +195,30 @@ class RedisLock(utils.LockBase):
 
         pubsub = connection.pubsub()
         pubsub.subscribe(response_channel)
-        connection.publish(self.channel, json.dumps(dict(
-            response_channel=response_channel,
-            message='ping',
-        )))
+        connection.publish(
+            self.channel,
+            json.dumps(
+                dict(
+                    response_channel=response_channel,
+                    message='ping',
+                ),
+            ),
+        )
 
         check_interval = min(self.thread_sleep_time, timeout / 10)
         for _ in self._timeout_generator(
-                timeout, check_interval):  # pragma: no branch
-            message = pubsub.get_message(timeout=check_interval)
-            if message:  # pragma: no branch
+            timeout,
+            check_interval,
+        ):  # pragma: no branch
+            if pubsub.get_message(timeout=check_interval):
                 pubsub.close()
                 return True
 
         for client_ in connection.client_list('pubsub'):  # pragma: no cover
             if client_.get('name') == self.client_name:
-                logger.warning(
-                    'Killing unavailable redis client: %r', client_)
+                logger.warning('Killing unavailable redis client: %r', client_)
                 connection.client_kill_filter(client_.get('id'))
+        return None
 
     def release(self):
         if self.thread:  # pragma: no branch
@@ -215,4 +234,3 @@ class RedisLock(utils.LockBase):
 
     def __del__(self):
         self.release()
-
