@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from bokeh.models import GridPlot
     from bokeh.palettes import Palette
     from numpy.typing import ArrayLike
+    from selenium.webdriver.remote.webdriver import WebDriver
 
     from contourpy._contourpy import FillReturn, LineReturn
 
@@ -220,13 +221,20 @@ class BokehRenderer(Renderer):
         x, y = self._grid_as_2d(x, y)
         fig.circle(x[mask], y[mask], fill_color=color, size=10)
 
-    def save(self, filename: str, transparent: bool = False) -> None:
+    def save(
+        self,
+        filename: str,
+        transparent: bool = False,
+        *,
+        webdriver: WebDriver | None = None,
+    ) -> None:
         """Save plots to SVG or PNG file.
 
         Args:
             filename (str): Filename to save to.
             transparent (bool, optional): Whether background should be transparent, default
                 ``False``.
+            webdriver (WebDriver, optional): Selenium WebDriver instance to use to create the image.
 
         Warning:
             To output to SVG file, ``want_svg=True`` must have been passed to the constructor.
@@ -237,17 +245,20 @@ class BokehRenderer(Renderer):
                 fig.border_fill_color = None  # type: ignore[assignment]
 
         if self._want_svg:
-            export_svg(self._layout, filename=filename)
+            export_svg(self._layout, filename=filename, webdriver=webdriver)
         else:
-            export_png(self._layout, filename=filename)
+            export_png(self._layout, filename=filename, webdriver=webdriver)
 
-    def save_to_buffer(self) -> io.BytesIO:
+    def save_to_buffer(self, *, webdriver: WebDriver | None = None) -> io.BytesIO:
         """Save plots to an ``io.BytesIO`` buffer.
+
+        Args:
+            webdriver (WebDriver, optional): Selenium WebDriver instance to use to create the image.
 
         Return:
             BytesIO: PNG image buffer.
         """
-        image = get_screenshot_as_png(self._layout)
+        image = get_screenshot_as_png(self._layout, driver=webdriver)
         buffer = io.BytesIO()
         image.save(buffer, "png")
         return buffer
