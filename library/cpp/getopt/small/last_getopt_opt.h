@@ -715,9 +715,21 @@ namespace NLastGetopt {
             return Handler1T<T>([target](auto&& value) { target->insert(std::forward<decltype(value)>(value)); });
         }
 
+        // Appends FromString<T>(arg) to *target for each argument
+        template <class Container>
+        TOpt& InsertTo(Container* target) {
+            return Handler1T<typename Container::value_type>([target](auto&& value) { target->insert(std::forward<decltype(value)>(value)); });
+        }
+
         // Emplaces TString arg to *target for each argument
         template <typename T>
         TOpt& EmplaceTo(TVector<T>* target) {
+            return Handler1T<TString>([target](TString arg) { target->emplace_back(std::move(arg)); } );
+        }
+
+        // Emplaces TString arg to *target for each argument
+        template <class Container>
+        TOpt& EmplaceTo(Container* target) {
             return Handler1T<TString>([target](TString arg) { target->emplace_back(std::move(arg)); } );
         }
 
