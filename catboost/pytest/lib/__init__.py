@@ -1,15 +1,27 @@
 import os
 import pytest
 import re
+import sys
 import tempfile
 import time
-import yatest.common
-import yatest.common.network
-import yatest.common.runtime
 from .common_helpers import *  # noqa
 import zipfile
 
 from testpath.tempdir import TemporaryDirectory
+
+try:
+    import yatest.common
+except ImportError:
+    sys.path += [
+        os.environ['CMAKE_SOURCE_DIR'],
+        os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing', 'yatest_common')
+    ]
+    import yatest.common
+
+import yatest.common.network
+
+
+binary_path = yatest.common.binary_path
 
 
 def get_catboost_binary_path():

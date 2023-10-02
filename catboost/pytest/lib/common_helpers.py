@@ -32,16 +32,13 @@ __all__ = [
 ]
 
 try:
-    import yatest
-    binary_path = yatest.common.binary_path
-    test_output_path = yatest.common.test_output_path
-
+    from yatest.common import binary_path, test_output_path
 except ImportError:
-    def binary_path(*path):
-        return os.path.join(os.environ["BINARY_PATH"], *path)
-
-    def test_output_path(*path):
-        return os.path.join(os.getcwd(), *path)
+    sys.path += [
+        os.environ['CMAKE_SOURCE_DIR'],
+        os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing', 'yatest_common')
+    ]
+    from yatest.common import binary_path, test_output_path
 
 
 def remove_time_from_json(filename):
@@ -414,9 +411,13 @@ def get_limited_precision_json_diff_tool(diff_limit):
 
 
 def get_limited_precision_numpy_diff_tool(rtol=None, atol=None):
-    diff_tool = [
-        binary_path("catboost/tools/limited_precision_numpy_diff/limited_precision_numpy_diff"),
-    ]
+    diff_tool = [binary_path("catboost/tools/limited_precision_numpy_diff/limited_precision_numpy_diff")]
+    if diff_tool[0] is None:
+        diff_tool = [
+            'python',
+            os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'tools', 'limited_precision_numpy_diff', 'main.py')
+        ]
+
     if rtol is not None:
         diff_tool += ['--rtol', str(rtol)]
     if atol is not None:

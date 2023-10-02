@@ -1,3 +1,4 @@
+import pytest
 import yatest.common
 import shutil
 import os
@@ -8,6 +9,11 @@ PYTHON_PACKAGE_DIR = os.path.join("catboost", "python-package")
 
 
 def test_wheel():
+    try:
+        import catboost_pytest_lib  # noqa
+    except ImportError:
+        pytest.skip('test_wheel requires YA build')
+
     shutil.copy(yatest.common.source_path(os.path.join(PYTHON_PACKAGE_DIR, "mk_wheel.py")), 'mk_wheel.py')
     from mk_wheel import BUILD_SYSTEM, PythonTrait, make_wheel
 

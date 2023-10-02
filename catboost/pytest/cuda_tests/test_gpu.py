@@ -5,20 +5,32 @@ import numpy as np
 import os
 import pytest
 import re
+import sys   # noqa
 import yatest.common
 import yatest.common.runtime
 
-from catboost_pytest_lib import (
-    append_params_to_cmdline,
-    apply_catboost,
-    compare_evals_with_precision,
-    compare_fit_evals_with_precision,
-    compare_metrics_with_diff,
-    data_file,
-    execute_catboost_fit,
-    format_crossvalidation,
-    get_limited_precision_dsv_diff_tool,
-    local_canonical_file,
+try:
+    import catboost_pytest_lib as lib
+except ImportError:
+    sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
+    import lib
+
+globals().update(
+    {
+        n: getattr(lib, n)
+        for n in [
+            'append_params_to_cmdline',
+            'apply_catboost',
+            'compare_evals_with_precision',
+            'compare_fit_evals_with_precision',
+            'compare_metrics_with_diff',
+            'data_file',
+            'execute_catboost_fit',
+            'format_crossvalidation',
+            'get_limited_precision_dsv_diff_tool',
+            'local_canonical_file',
+        ]
+    }
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -64,7 +76,15 @@ def diff_tool(threshold=2e-7):
 
 
 def skipif_no_cuda():
-    for flag in yatest.common.runtime._get_ya_config().option.flags:
+    if 'HAVE_CUDA' in os.environ:
+        flags = [f"HAVE_CUDA={os.environ['HAVE_CUDA']}"]
+    else:
+        try:
+            flags = yatest.common.runtime._get_ya_config().option.flags
+        except Exception:
+            flags = ['HAVE_CUDA=no']
+
+    for flag in flags:
         if re.match('HAVE_CUDA=(0|no|false)', flag, flags=re.IGNORECASE):
             return pytest.mark.skipif(True, reason=flag)
 

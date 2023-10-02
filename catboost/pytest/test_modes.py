@@ -2,7 +2,7 @@ import os
 import pytest
 import re
 import yatest.common as yc
-from catboost_pytest_lib import (
+from lib import (
     data_file,
     get_limited_precision_dsv_diff_tool,
 )

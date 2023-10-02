@@ -46,29 +46,40 @@ from pandas.arrays import SparseArray
 import scipy.sparse
 import scipy.special
 
-from catboost_pytest_lib import (
-    DelayedTee,
-    binary_path,
-    data_file,
-    get_limited_precision_dsv_diff_tool,
-    get_limited_precision_json_diff_tool,
-    get_limited_precision_numpy_diff_tool,
-    local_canonical_file,
-    permute_dataset_columns,
-    remove_time_from_json,
-    test_output_path,
-    generate_concatenated_random_labeled_dataset,
-    generate_random_labeled_dataset,
-    generate_dataset_with_num_and_cat_features,
-    load_dataset_as_dataframe,
-    load_pool_features_as_df
+
+try:
+    import catboost_pytest_lib as lib
+    pytest_plugins = "list_plugin"
+except ImportError:
+    sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
+    import lib
+
+globals().update(
+    {
+        n: getattr(lib, n)
+        for n in [
+            'DelayedTee',
+            'binary_path',
+            'data_file',
+            'get_limited_precision_dsv_diff_tool',
+            'get_limited_precision_json_diff_tool',
+            'get_limited_precision_numpy_diff_tool',
+            'local_canonical_file',
+            'permute_dataset_columns',
+            'remove_time_from_json',
+            'test_output_path',
+            'generate_concatenated_random_labeled_dataset',
+            'generate_random_labeled_dataset',
+            'generate_dataset_with_num_and_cat_features',
+            'load_dataset_as_dataframe',
+            'load_pool_features_as_df'
+        ]
+    }
 )
 
-if sys.version_info.major == 2:
-    import cPickle as pickle
-else:
-    import _pickle as pickle
-    pytest_plugins = "list_plugin",
+
+import _pickle as pickle
+
 
 fails_on_gpu = pytest.mark.fails_on_gpu
 

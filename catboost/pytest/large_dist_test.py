@@ -1,7 +1,7 @@
 import yatest.common
 import pytest
 
-from catboost_pytest_lib import (
+from lib import (
     data_file,
     execute_dist_train,
     local_canonical_file,
