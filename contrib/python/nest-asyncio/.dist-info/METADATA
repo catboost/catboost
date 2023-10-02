@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: nest-asyncio
-Version: 1.5.7
+Version: 1.5.8
 Summary: Patch asyncio to allow nested event loops
 Home-page: https://github.com/erdewit/nest_asyncio
 Author: Ewald R. de Wit
@@ -17,6 +17,7 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Framework :: AsyncIO
 Requires-Python: >=3.5
@@ -80,7 +81,7 @@ generally can't be patched.
 .. |License| image:: https://img.shields.io/badge/license-BSD-blue.svg
    :alt:
 
-.. |Downloads| image:: https://pepy.tech/badge/nest-asyncio/month
+.. |Downloads| image:: https://static.pepy.tech/badge/nest-asyncio/month
    :alt: Number of downloads
    :target: https://pepy.tech/project/nest-asyncio
 
