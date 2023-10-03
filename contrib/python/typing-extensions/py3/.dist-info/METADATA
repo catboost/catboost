@@ -1,10 +1,10 @@
 Metadata-Version: 2.1
 Name: typing_extensions
-Version: 4.7.1
-Summary: Backported and Experimental Type Hints for Python 3.7+
+Version: 4.8.0
+Summary: Backported and Experimental Type Hints for Python 3.8+
 Keywords: annotations,backport,checker,checking,function,hinting,hints,type,typechecking,typehinting,typehints,typing
 Author-email: "Guido van Rossum, Jukka Lehtosalo, Łukasz Langa, Michael Lee" <levkivskyi@gmail.com>
-Requires-Python: >=3.7
+Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Environment :: Console
@@ -13,7 +13,6 @@ Classifier: License :: OSI Approved :: Python Software Foundation License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
@@ -54,8 +53,6 @@ major version will be incremented only for backwards-incompatible changes.
 Therefore, it's safe to depend
 on `typing_extensions` like this: `typing_extensions >=x.y, <(x+1)`,
 where `x.y` is the first version that includes all features you need.
-
-`typing_extensions` supports Python versions 3.7 and higher.
 
 ## Included items
 
