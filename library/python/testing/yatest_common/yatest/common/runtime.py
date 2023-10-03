@@ -158,7 +158,7 @@ def java_path():
     """
     from . import runtime_java
 
-    return runtime_java.get_java_path(binary_path(os.path.join('contrib', 'tools', 'jdk')))
+    return runtime_java.get_java_path(binary_path(os.path.join('build', 'platform', 'java', 'jdk', 'testing')))
 
 
 def java_home():
