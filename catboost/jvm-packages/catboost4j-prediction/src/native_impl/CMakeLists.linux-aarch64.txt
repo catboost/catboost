@@ -6,7 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-find_package(JNITarget REQUIRED)
 
 add_shared_library(catboost4j-prediction)
 target_link_libraries(catboost4j-prediction PUBLIC
@@ -17,7 +16,7 @@ target_link_libraries(catboost4j-prediction PUBLIC
   catboost-libs-helpers
   catboost-libs-model
   libs-model-model_export
-  JNITarget::jni
+  library-cpp-jni
 )
 target_link_options(catboost4j-prediction PRIVATE
   -ldl

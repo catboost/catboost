@@ -6,8 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-find_package(JNI REQUIRED)
-find_package(JNITarget REQUIRED)
 find_package(Java REQUIRED)
 find_package(SWIG REQUIRED COMPONENTS java)
 include(UseSWIG)
@@ -23,6 +21,7 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   cpp-malloc-mimalloc
   library-cpp-dbg_output
   library-cpp-grid_creator
+  library-cpp-jni
   library-cpp-json
   library-cpp-par
   cpp-threading-atomic
@@ -43,7 +42,6 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   private-libs-labels
   private-libs-options
   private-libs-quantized_pool
-  JNITarget::jni
   contrib-libs-libunwind
   swig-Lib-java
   contrib-libs-jdk
