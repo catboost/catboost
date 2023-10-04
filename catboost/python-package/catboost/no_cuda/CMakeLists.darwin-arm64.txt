@@ -24,6 +24,7 @@ target_link_libraries(_catboost_no_cuda PUBLIC
   cpp-malloc-mimalloc
   Python3::Module
   libs-gpu_config-force_no_cuda
+  catboost-libs-carry_model
   catboost-libs-cat_feature
   catboost-libs-data
   catboost-libs-eval_result

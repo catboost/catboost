@@ -22,6 +22,7 @@ target_link_libraries(_catboost PUBLIC
   yutil
   cpp-malloc-mimalloc
   Python3::Module
+  catboost-libs-carry_model
   catboost-libs-cat_feature
   catboost-libs-data
   catboost-libs-eval_result

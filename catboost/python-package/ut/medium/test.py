@@ -38,6 +38,7 @@ from catboost.core import is_maximizable_metric, is_minimizable_metric
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
+from catboost.carry import carry, uplift
 import os.path
 import os
 import pandas as pd
@@ -11098,3 +11099,43 @@ def test_sample_gaussian_process(random_score_type):
         canonical_models.append(compare_canonical_models(output_model_path))
 
     return canonical_models
+
+
+def test_carry_model():
+    prng = np.random.RandomState(seed=20230927)
+    test_features = prng.random_sample((10, 200))
+    train_pool = Pool(prng.random_sample((10, 200)), label=prng.random_sample((10,)))
+
+    model = CatBoostRegressor(iterations=10)
+    model.fit(train_pool)
+
+    as_is_predict = model.predict(test_features)
+    assert np.min(as_is_predict) < np.max(as_is_predict), 'formula produce with constant score'
+
+    # search for factor wich can change formula score if be replaced by constant
+    factor_id = None
+    for i in range(test_features.shape[1]):
+        test_copy = np.copy(test_features)
+        test_copy[:, i] = 0
+        carry_pool_predict = model.predict(test_copy)
+
+        test_copy[:, i] = 1
+        uplift_pool_predict = model.predict(test_copy) - carry_pool_predict
+        if np.sum((carry_pool_predict - as_is_predict) ** 2) > 1e-4:
+            factor_id = i
+            break
+
+    assert factor_id is not None, 'no factor can change formula score'
+    pool_without_feature = np.concatenate([
+        test_features[:, :factor_id],
+        test_features[:, factor_id + 1 :]],
+        axis=1)
+
+    # remove feature
+    carried_model = carry(model, {factor_id: 0})
+    carry_model_predict = carried_model.predict(pool_without_feature)
+    assert np.max((carry_pool_predict - carry_model_predict) ** 2)**0.5 < 1e-8, 'Wrong carry model predict'
+
+    uplifted_model = uplift(model, {factor_id: (0, 1)})
+    uplift_model_predict = uplifted_model.predict(pool_without_feature)
+    assert np.max((uplift_pool_predict - uplift_model_predict) ** 2)**0.5 < 1e-8, 'Wrong uplift model predict'
