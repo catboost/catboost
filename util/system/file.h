@@ -8,6 +8,15 @@
 #include <util/generic/noncopyable.h>
 
 #include <cstdio>
+#include <filesystem>
+
+#if defined(_ios_) && defined(USE_STL_SYSTEM)
+// Workaround for
+// std::filesystem::path is unavailable: introduced in iOS 13.0
+using StdFilesystemPath = std::string;
+#else
+using StdFilesystemPath = std::filesystem::path;
+#endif
 
 enum EOpenModeFlag {
     OpenExisting = 0,  // Opens a file. It fails if the file does not exist.
@@ -76,7 +85,9 @@ public:
         other.Fd_ = INVALID_FHANDLE;
     }
 
+    TFileHandle(const char* fName, EOpenMode oMode) noexcept;
     TFileHandle(const TString& fName, EOpenMode oMode) noexcept;
+    TFileHandle(const StdFilesystemPath& path, EOpenMode oMode) noexcept;
 
     inline ~TFileHandle() {
         Close();
@@ -150,7 +161,9 @@ public:
     /// Takes ownership of handle, so closes it when the last holder of descriptor dies.
     explicit TFile(FHANDLE fd);
     TFile(FHANDLE fd, const TString& fname);
+    TFile(const char* fName, EOpenMode oMode);
     TFile(const TString& fName, EOpenMode oMode);
+    TFile(const StdFilesystemPath& path, EOpenMode oMode);
     ~TFile();
 
     void Close();
