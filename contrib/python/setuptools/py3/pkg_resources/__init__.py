@@ -3318,8 +3318,10 @@ class UnionProvider(EmptyProvider):
 
     def _itdir(self, path):
         for p, pp in path:
+            if not p._isdir(pp):
+                continue
             for np in p._listdir(pp):
-                yield p, p._fn(pp, np)
+                yield np
 
     def _listdir(self, path):
         return list(self._itdir(path))
