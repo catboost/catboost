@@ -63,18 +63,7 @@ static bool IsStupidFlagCombination(EOpenMode oMode) {
     return (oMode & (CreateAlways | ForAppend)) == (CreateAlways | ForAppend) || (oMode & (TruncExisting | ForAppend)) == (TruncExisting | ForAppend) || (oMode & (CreateNew | ForAppend)) == (CreateNew | ForAppend);
 }
 
-#if defined(_win_)
-
-static SECURITY_ATTRIBUTES ConvertToSecAttrs(EOpenMode oMode) {
-    bool closeOnExec = (oMode & CloseOnExec);
-    SECURITY_ATTRIBUTES secAttrs;
-    secAttrs.bInheritHandle = closeOnExec ? FALSE : TRUE;
-    secAttrs.lpSecurityDescriptor = nullptr;
-    secAttrs.nLength = sizeof(secAttrs);
-    return secAttrs;
-}
-
-TFileHandle::TFileHandle(const StdFilesystemPath& path, EOpenMode oMode) noexcept {
+TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
     ui32 fcMode = 0;
     EOpenMode createMode = oMode & MaskCreation;
     Y_VERIFY(!IsStupidFlagCombination(oMode), "oMode %d makes no sense", static_cast<int>(oMode));
@@ -84,6 +73,8 @@ TFileHandle::TFileHandle(const StdFilesystemPath& path, EOpenMode oMode) noexcep
     if (!(oMode & AMask)) {
         oMode |= ARW;
     }
+
+#ifdef _win_
 
     switch (createMode) {
         case OpenExisting:
@@ -120,6 +111,8 @@ TFileHandle::TFileHandle(const StdFilesystemPath& path, EOpenMode oMode) noexcep
         faMode &= ~FILE_WRITE_DATA;
     }
 
+    bool inheritHandle = !(oMode & CloseOnExec);
+
     ui32 shMode = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
 
     ui32 attrMode = FILE_ATTRIBUTE_NORMAL;
@@ -141,43 +134,14 @@ TFileHandle::TFileHandle(const StdFilesystemPath& path, EOpenMode oMode) noexcep
         attrMode |= /*FILE_FLAG_NO_BUFFERING |*/ FILE_FLAG_WRITE_THROUGH;
     }
 
-    SECURITY_ATTRIBUTES secAttrs = ConvertToSecAttrs(oMode);
-
-    Fd_ = ::CreateFileW(
-        path.c_str(),
-        faMode,
-        shMode,
-        &secAttrs,
-        fcMode,
-        attrMode,
-        /* hTemplateHandle = */ nullptr);
+    Fd_ = NFsPrivate::CreateFileWithUtf8Name(fName, faMode, shMode, fcMode, attrMode, inheritHandle);
 
     if ((oMode & ::ForAppend) && (Fd_ != INVALID_FHANDLE)) {
         ::SetFilePointer(Fd_, 0, 0, FILE_END);
     }
-}
-
-TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept
-    : TFileHandle{
-          std::filesystem::path(
-              std::u8string_view(reinterpret_cast<const char8_t*>(fName.data()), fName.size())),
-          oMode,
-      }
-{
-}
 
 #elif defined(_unix_)
-TFileHandle::TFileHandle(const StdFilesystemPath& path, EOpenMode oMode) noexcept {
-    ui32 fcMode = 0;
-    Y_VERIFY(!IsStupidFlagCombination(oMode), "oMode %d makes no sense", static_cast<int>(oMode));
-    if (!(oMode & MaskRW)) {
-        oMode |= RdWr;
-    }
-    if (!(oMode & AMask)) {
-        oMode |= ARW;
-    }
 
-    EOpenMode createMode = oMode & MaskCreation;
     switch (createMode) {
         case OpenExisting:
             fcMode = 0;
@@ -275,7 +239,7 @@ TFileHandle::TFileHandle(const StdFilesystemPath& path, EOpenMode oMode) noexcep
     }
 
     do {
-        Fd_ = ::open(path.c_str(), fcMode, permMode);
+        Fd_ = ::open(fName.data(), fcMode, permMode);
     } while (Fd_ == -1 && errno == EINTR);
 
     #if HAVE_POSIX_FADVISE
@@ -296,28 +260,11 @@ TFileHandle::TFileHandle(const StdFilesystemPath& path, EOpenMode oMode) noexcep
 
     //temp file
     if (Fd_ >= 0 && (oMode & Transient)) {
-    #if defined(_ios_) && defined(USE_STL_SYSTEM)
-        ::unlink(path.c_str());
-    #else
-        std::filesystem::remove(path);
-    #endif
+        unlink(fName.data());
     }
-}
-
-TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept
-    : TFileHandle{
-          StdFilesystemPath(fName.ConstRef()),
-          oMode,
-      }
-{
-}
 #else
     #error unsupported platform
 #endif
-
-TFileHandle::TFileHandle(const char* fName, EOpenMode oMode) noexcept
-    : TFileHandle(TString(fName), oMode)
-{
 }
 
 bool TFileHandle::Close() noexcept {
@@ -902,34 +849,12 @@ public:
     {
     }
 
-    inline TImpl(const char* fName, EOpenMode oMode)
-        : Handle_(fName, oMode)
-        , FileName_(fName)
-    {
-        if (!Handle_.IsOpen()) {
-            ythrow TFileError() << "can't open " << FileName_.Quote() << " with mode " << DecodeOpenMode(oMode) << " (" << Hex(oMode.ToBaseType()) << ")";
-        }
-    }
-
     inline TImpl(const TString& fName, EOpenMode oMode)
         : Handle_(fName, oMode)
         , FileName_(fName)
     {
         if (!Handle_.IsOpen()) {
-            ythrow TFileError() << "can't open " << FileName_.Quote() << " with mode " << DecodeOpenMode(oMode) << " (" << Hex(oMode.ToBaseType()) << ")";
-        }
-    }
-
-    inline TImpl(const StdFilesystemPath& path, EOpenMode oMode)
-        : Handle_(path, oMode)
-#if defined(_ios_) && defined(USE_STL_SYSTEM)
-        , FileName_(path)
-#else
-        , FileName_(path.string())
-#endif
-    {
-        if (!Handle_.IsOpen()) {
-            ythrow TFileError() << "can't open " << FileName_.Quote() << " with mode " << DecodeOpenMode(oMode) << " (" << Hex(oMode.ToBaseType()) << ")";
+            ythrow TFileError() << "can't open " << fName.Quote() << " with mode " << DecodeOpenMode(oMode) << " (" << Hex(oMode.ToBaseType()) << ")";
         }
     }
 
@@ -1177,18 +1102,8 @@ TFile::TFile(FHANDLE fd, const TString& name)
 {
 }
 
-TFile::TFile(const char* fName, EOpenMode oMode)
-    : Impl_(new TImpl(fName, oMode))
-{
-}
-
 TFile::TFile(const TString& fName, EOpenMode oMode)
     : Impl_(new TImpl(fName, oMode))
-{
-}
-
-TFile::TFile(const StdFilesystemPath& path, EOpenMode oMode)
-    : Impl_(new TImpl(path, oMode))
 {
 }
 
