@@ -20,7 +20,8 @@ class TMappedIterator {
 protected:
     using TSelf = TMappedIterator<TIterator, TMapper>;
     using TSrcPointerType = typename std::iterator_traits<TIterator>::reference;
-    using TValue = typename std::invoke_result_t<TMapper, TSrcPointerType>;
+    using TInvokeResult = std::invoke_result_t<TMapper, TSrcPointerType>;
+    using TValue = std::remove_reference_t<TInvokeResult>;
 public:
     using difference_type = std::ptrdiff_t;
     using value_type = TValue;
@@ -43,10 +44,10 @@ public:
         --Iter;
         return *this;
     }
-    TValue operator*() {
+    TInvokeResult operator*() {
         return Mapper((*Iter));
     }
-    TValue operator*() const {
+    TInvokeResult operator*() const {
         return Mapper((*Iter));
     }
 
@@ -54,7 +55,7 @@ public:
         return &(Mapper((*Iter)));
     }
 
-    TValue operator[](difference_type n) const {
+    TInvokeResult operator[](difference_type n) const {
         return Mapper(*(Iter + n));
     }
     TSelf& operator+=(difference_type n) {
