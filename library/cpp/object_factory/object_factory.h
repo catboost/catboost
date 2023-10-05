@@ -77,13 +77,15 @@ namespace NObjectFactory {
         }
 
     protected:
-        IFactoryObjectCreator<TProduct, TArgs...>* GetCreator(const TKey& key) const {
+        template <class T>
+        IFactoryObjectCreator<TProduct, TArgs...>* GetCreator(const T& key) const {
             TReadGuard guard(CreatorsLock);
             typename ICreators::const_iterator i = Creators.find(key);
             return i == Creators.end() ? nullptr : i->second.Get();
         }
 
-        bool HasImpl(const TKey& key) const {
+        template <class T>
+        bool HasImpl(const T& key) const {
             TReadGuard guard(CreatorsLock);
             return Creators.find(key) != Creators.end();
         }
@@ -98,16 +100,19 @@ namespace NObjectFactory {
     template <class TProduct, class TKey, class... TArgs>
     class TParametrizedObjectFactory: public IObjectFactory<TProduct, TKey, TArgs...> {
     public:
-        TProduct* Create(const TKey& key, TArgs... args) const {
+        template <class T>
+        TProduct* Create(const T& key, TArgs... args) const {
             IFactoryObjectCreator<TProduct, TArgs...>* creator = IObjectFactory<TProduct, TKey, TArgs...>::GetCreator(key);
             return creator == nullptr ? nullptr : creator->Create(std::forward<TArgs>(args)...);
         }
 
-        static bool Has(const TKey& key) {
+        template <class T>
+        static bool Has(const T& key) {
             return Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->HasImpl(key);
         }
 
-        static TProduct* Construct(const TKey& key, const TKey& defKey, TArgs... args) {
+        template <class T>
+        static TProduct* Construct(const T& key, const TKey& defKey, TArgs... args) {
             TProduct* result = Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->Create(key, std::forward<TArgs>(args)...);
             if (!result && !!defKey) {
                 result = Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->Create(defKey, std::forward<TArgs>(args)...);
@@ -115,7 +120,8 @@ namespace NObjectFactory {
             return result;
         }
 
-        static TProduct* Construct(const TKey& key, TArgs... args) {
+        template <class T>
+        static TProduct* Construct(const T& key, TArgs... args) {
             return Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->Create(key, std::forward<TArgs>(args)...);
         }
 
