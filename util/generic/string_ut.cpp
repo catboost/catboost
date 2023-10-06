@@ -279,7 +279,9 @@ protected:
     void null_char_of_empty() {
         const TStringType s;
 
-        UNIT_ASSERT(s[s.size()] == 0);
+        //NOTE: https://a.yandex-team.ru/arcadia/junk/grechnik/test_string?rev=r12602052
+        i64 i = s[s.size()];
+        UNIT_ASSERT_VALUES_EQUAL(i, 0);
     }
 
     void null_char() {

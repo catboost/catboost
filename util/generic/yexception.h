@@ -187,12 +187,13 @@ std::string CurrentExceptionTypeName();
 
 TString FormatExc(const std::exception& exception);
 
-#define Y_ENSURE_EX(CONDITION, THROW_EXPRESSION) \
-    do {                                         \
-        if (Y_UNLIKELY(!(CONDITION))) {          \
-            ythrow THROW_EXPRESSION;             \
-        }                                        \
+#define Y_THROW_UNLESS_EX(CONDITION, THROW_EXPRESSION) \
+    do {                                               \
+        if (Y_UNLIKELY(!(CONDITION))) {                \
+            ythrow THROW_EXPRESSION;                   \
+        }                                              \
     } while (false)
+#define Y_ENSURE_EX Y_THROW_UNLESS_EX
 
 /// @def Y_ENSURE_SIMPLE
 /// This macro works like the Y_ENSURE, but requires the second argument to be a constant string view.
@@ -225,7 +226,8 @@ TString FormatExc(const std::exception& exception);
  * }
  * @endcode
  */
-#define Y_ENSURE(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_ENSURE_IMPL_2, Y_ENSURE_IMPL_1)(__VA_ARGS__))
+#define Y_THROW_UNLESS(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_ENSURE_IMPL_2, Y_ENSURE_IMPL_1)(__VA_ARGS__))
+#define Y_ENSURE Y_THROW_UNLESS
 
 /**
  * @def Y_ENSURE_BT

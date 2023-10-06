@@ -61,35 +61,15 @@ inline void YaDebugBreak() {
 #undef Y_ASSERT
 
 #if !defined(NDEBUG) && !defined(__GCCXML__)
-    #define Y_ASSERT(a)                                         \
-        do {                                                    \
-            try {                                               \
-                if (Y_UNLIKELY(!(a))) {                         \
-                    if (YaIsDebuggerPresent())                  \
-                        __debugbreak();                         \
-                    else {                                      \
-                        PrintBackTrace();                       \
-                        /* NOLINTNEXTLINE */                    \
-                        assert(false && (a));                   \
-                    }                                           \
-                }                                               \
-            } catch (...) {                                     \
-                if (YaIsDebuggerPresent())                      \
-                    __debugbreak();                             \
-                else {                                          \
-                    PrintBackTrace();                           \
-                    /* NOLINTNEXTLINE */                        \
-                    assert(false && "Exception during assert"); \
-                }                                               \
-            }                                                   \
+    #define Y_HIT_DEBUGGER()             \
+        do {                             \
+            if (YaIsDebuggerPresent()) { \
+                __debugbreak();          \
+            }                            \
         } while (false)
 #else
-    #define Y_ASSERT(a)                            \
-        do {                                       \
-            if (false) {                           \
-                auto __xxx = static_cast<bool>(a); \
-                Y_UNUSED(__xxx);                   \
-            }                                      \
+    #define Y_HIT_DEBUGGER(a) \
+        do {                  \
         } while (false)
 #endif
 
@@ -99,28 +79,32 @@ namespace NPrivate {
 }
 
 /// Assert that does not depend on NDEBUG macro and outputs message like printf
-#define Y_VERIFY(expr, ...)                                                                          \
-    do {                                                                                             \
-        if (Y_UNLIKELY(!(expr))) {                                                                   \
-            ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, #expr, " " __VA_ARGS__); \
-        }                                                                                            \
+#define Y_ABORT_UNLESS(expr, ...)                                                                            \
+    do {                                                                                                     \
+        try {                                                                                                \
+            if (Y_UNLIKELY(!(expr))) {                                                                       \
+                Y_HIT_DEBUGGER();                                                                            \
+                ::PrintBackTrace();                                                                          \
+                /* NOLINTNEXTLINE */                                                                         \
+                ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, #expr, " " __VA_ARGS__);     \
+            }                                                                                                \
+        } catch (...) {                                                                                      \
+            Y_HIT_DEBUGGER();                                                                                \
+            /* NOLINTNEXTLINE */                                                                             \
+            ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, #expr, "Exception during assert" \
+                                                                                   " " __VA_ARGS__);         \
+        }                                                                                                    \
     } while (false)
+#define Y_VERIFY(...) Y_ABORT_UNLESS(__VA_ARGS__)
 
-#define Y_FAIL(...)                                                                                \
-    do {                                                                                           \
-        ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, nullptr, " " __VA_ARGS__); \
-    } while (false)
+#define Y_ABORT(...) Y_ABORT_UNLESS(false, __VA_ARGS__)
+#define Y_FAIL Y_ABORT
 
 #ifndef NDEBUG
     /// Assert that depend on NDEBUG macro and outputs message like printf
-    #define Y_VERIFY_DEBUG(expr, ...)                                                                    \
-        do {                                                                                             \
-            if (Y_UNLIKELY(!(expr))) {                                                                   \
-                ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, #expr, " " __VA_ARGS__); \
-            }                                                                                            \
-        } while (false)
+    #define Y_DEBUG_ABORT_UNLESS Y_ABORT_UNLESS
 #else
-    #define Y_VERIFY_DEBUG(expr, ...)                 \
+    #define Y_DEBUG_ABORT_UNLESS(expr, ...)           \
         do {                                          \
             if (false) {                              \
                 bool __xxx = static_cast<bool>(expr); \
@@ -128,3 +112,5 @@ namespace NPrivate {
             }                                         \
         } while (false)
 #endif
+#define Y_VERIFY_DEBUG Y_DEBUG_ABORT_UNLESS
+#define Y_ASSERT(a) Y_DEBUG_ABORT_UNLESS(a)
