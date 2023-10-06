@@ -9,6 +9,7 @@
 
 #include <util/generic/string.h>
 #include <util/stream/file.h>
+#include <util/stream/output.h>
 #include <util/ysaveload.h>
 
 static NJson::TJsonValue GetOptions(const TString& snapshotPath) {

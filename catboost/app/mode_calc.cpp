@@ -1,4 +1,5 @@
 #include <catboost/private/libs/app_helpers/mode_calc_helpers.h>
+#include <catboost/private/libs/options/analytical_mode_params.h>
 #include <catboost/libs/model/model.h>
 
 #include <library/cpp/getopt/small/last_getopt_opts.h>

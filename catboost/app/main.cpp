@@ -1,13 +1,13 @@
 #include "modes.h"
 
-#include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/init/init_reg.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <library/cpp/getopt/small/modchooser.h>
 #include <library/cpp/svnversion/svnversion.h>
 
-#include <util/generic/ptr.h>
+#include <util/generic/yexception.h>
+
 #include <util/stream/output.h>
 
 #include <cstdlib>
