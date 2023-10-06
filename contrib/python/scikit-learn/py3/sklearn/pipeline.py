@@ -65,6 +65,12 @@ class Pipeline(_BaseComposition):
     to another estimator, or a transformer removed by setting it to
     `'passthrough'` or `None`.
 
+    For an example use case of `Pipeline` combined with
+    :class:`~sklearn.model_selection.GridSearchCV`, refer to
+    :ref:`sphx_glr_auto_examples_compose_plot_compare_reduction.py`. The
+    example :ref:`sphx_glr_auto_examples_compose_plot_digits_pipe.py` shows how
+    to grid search on a pipeline using `'__'` as a separator in the parameter names.
+
     Read more in the :ref:`User Guide <pipeline>`.
 
     .. versionadded:: 0.5
@@ -131,10 +137,11 @@ class Pipeline(_BaseComposition):
     >>> pipe = Pipeline([('scaler', StandardScaler()), ('svc', SVC())])
     >>> # The pipeline can be used as any other estimator
     >>> # and avoids leaking the test set into the train set
-    >>> pipe.fit(X_train, y_train)
-    Pipeline(steps=[('scaler', StandardScaler()), ('svc', SVC())])
-    >>> pipe.score(X_test, y_test)
+    >>> pipe.fit(X_train, y_train).score(X_test, y_test)
     0.88
+    >>> # An estimator's parameter can be set using '__' syntax
+    >>> pipe.set_params(svc__C=10).fit(X_train, y_train).score(X_test, y_test)
+    0.76
     """
 
     # BaseEstimator interface
@@ -1051,6 +1058,13 @@ class FeatureUnion(TransformerMixin, _BaseComposition):
     >>> union.fit_transform(X)
     array([[ 1.5       ,  3.0...,  0.8...],
            [-1.5       ,  5.7..., -0.4...]])
+    >>> # An estimator's parameter can be set using '__' syntax
+    >>> union.set_params(pca__n_components=1).fit_transform(X)
+    array([[ 1.5       ,  3.0...],
+           [-1.5       ,  5.7...]])
+
+    For a more detailed example of usage, see
+    :ref:`sphx_glr_auto_examples_compose_plot_feature_union.py`.
     """
 
     _required_parameters = ["transformer_list"]
@@ -1362,11 +1376,12 @@ class FeatureUnion(TransformerMixin, _BaseComposition):
 
 
 def make_union(*transformers, n_jobs=None, verbose=False):
-    """Construct a FeatureUnion from the given transformers.
+    """Construct a :class:`FeatureUnion` from the given transformers.
 
-    This is a shorthand for the FeatureUnion constructor; it does not require,
-    and does not permit, naming the transformers. Instead, they will be given
-    names automatically based on their types. It also does not allow weighting.
+    This is a shorthand for the :class:`FeatureUnion` constructor; it does not
+    require, and does not permit, naming the transformers. Instead, they will
+    be given names automatically based on their types. It also does not allow
+    weighting.
 
     Parameters
     ----------

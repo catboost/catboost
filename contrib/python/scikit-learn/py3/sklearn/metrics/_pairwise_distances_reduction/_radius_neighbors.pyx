@@ -299,7 +299,8 @@ cdef class RadiusNeighbors64(BaseDistancesReduction64):
     cdef void compute_exact_distances(self) noexcept nogil:
         """Convert rank-preserving distances to pairwise distances in parallel."""
         cdef:
-            intp_t i, j
+            intp_t i
+            vector[intp_t].size_type j
 
         for i in prange(self.n_samples_X, nogil=True, schedule='static',
                         num_threads=self.effective_n_threads):
@@ -770,7 +771,8 @@ cdef class RadiusNeighbors32(BaseDistancesReduction32):
     cdef void compute_exact_distances(self) noexcept nogil:
         """Convert rank-preserving distances to pairwise distances in parallel."""
         cdef:
-            intp_t i, j
+            intp_t i
+            vector[intp_t].size_type j
 
         for i in prange(self.n_samples_X, nogil=True, schedule='static',
                         num_threads=self.effective_n_threads):

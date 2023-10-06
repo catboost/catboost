@@ -761,7 +761,7 @@ class AdaBoostClassifier(ClassifierMixin, BaseWeightBoosting):
         -------
         score : ndarray of shape of (n_samples, k)
             The decision function of the input samples. The order of
-            outputs is the same of that of the :term:`classes_` attribute.
+            outputs is the same as that of the :term:`classes_` attribute.
             Binary classification is a special cases with ``k == 1``,
             otherwise ``k==n_classes``. For binary classification,
             values closer to -1 or 1 mean more like the first or second
@@ -780,7 +780,11 @@ class AdaBoostClassifier(ClassifierMixin, BaseWeightBoosting):
             )
         else:  # self.algorithm == "SAMME"
             pred = sum(
-                (estimator.predict(X) == classes).T * w
+                np.where(
+                    (estimator.predict(X) == classes).T,
+                    w,
+                    -1 / (n_classes - 1) * w,
+                )
                 for estimator, w in zip(self.estimators_, self.estimator_weights_)
             )
 
@@ -827,8 +831,11 @@ class AdaBoostClassifier(ClassifierMixin, BaseWeightBoosting):
                 # The weights are all 1. for SAMME.R
                 current_pred = _samme_proba(estimator, n_classes, X)
             else:  # elif self.algorithm == "SAMME":
-                current_pred = estimator.predict(X)
-                current_pred = (current_pred == classes).T * weight
+                current_pred = np.where(
+                    (estimator.predict(X) == classes).T,
+                    weight,
+                    -1 / (n_classes - 1) * weight,
+                )
 
             if pred is None:
                 pred = current_pred

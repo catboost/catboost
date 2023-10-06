@@ -576,8 +576,8 @@ def check_estimator(estimator=None, generate_only=False):
     independently and report the checks that are failing.
 
     scikit-learn provides a pytest specific decorator,
-    :func:`~sklearn.utils.parametrize_with_checks`, making it easier to test
-    multiple estimators.
+    :func:`~sklearn.utils.estimator_checks.parametrize_with_checks`, making it
+    easier to test multiple estimators.
 
     Parameters
     ----------
@@ -1261,7 +1261,10 @@ def check_dtype_object(name, estimator_orig):
 
     if "string" not in tags["X_types"]:
         X[0, 0] = {"foo": "bar"}
-        msg = "argument must be a string.* number"
+        # This error is raised by:
+        # - `np.asarray` in `check_array`
+        # - `_unique_python` for encoders
+        msg = "argument must be .* string.* number"
         with raises(TypeError, match=msg):
             estimator.fit(X, y)
     else:
@@ -1427,7 +1430,7 @@ def _apply_on_subsets(func, X):
 
     if sparse.issparse(result_full):
         result_full = result_full.A
-        result_by_batch = [x.A for x in result_by_batch]
+        result_by_batch = [x.toarray() for x in result_by_batch]
 
     return np.ravel(result_full), np.ravel(result_by_batch)
 
@@ -3453,7 +3456,6 @@ def _enforce_estimator_tags_y(estimator, y):
         # Create strictly positive y. The minimal increment above 0 is 1, as
         # y could be of integer dtype.
         y += 1 + abs(y.min())
-    # Estimators with a `binary_only` tag only accept up to two unique y values
     if _safe_tags(estimator, key="binary_only") and y.size > 0:
         y = np.where(y == y.flat[0], y, y.flat[0] + 1)
     # Estimators in mono_output_task_error raise ValueError if y is of 1-D
@@ -3473,7 +3475,8 @@ def _enforce_estimator_tags_X(estimator, X, kernel=linear_kernel):
     if _safe_tags(estimator, key="requires_positive_X"):
         X = X - X.min()
     if "categorical" in _safe_tags(estimator, key="X_types"):
-        X = (X - X.min()).astype(np.int32)
+        dtype = np.float64 if _safe_tags(estimator, key="allow_nan") else np.int32
+        X = np.round((X - X.min())).astype(dtype)
 
     if estimator.__class__.__name__ == "SkewedChi2Sampler":
         # SkewedChi2Sampler requires X > -skewdness in transform
@@ -4479,7 +4482,7 @@ def check_set_output_transform_pandas(name, transformer_orig):
         outputs_pandas = _output_from_fit_transform(transformer_pandas, name, X, df, y)
     except ValueError as e:
         # transformer does not support sparse data
-        assert str(e) == "Pandas output does not support sparse data.", e
+        assert "Pandas output does not support sparse data." in str(e), e
         return
 
     for case in outputs_default:
@@ -4488,7 +4491,7 @@ def check_set_output_transform_pandas(name, transformer_orig):
         )
 
 
-def check_global_ouptut_transform_pandas(name, transformer_orig):
+def check_global_output_transform_pandas(name, transformer_orig):
     """Check that setting globally the output of a transformer to pandas lead to the
     right results."""
     try:
@@ -4525,7 +4528,7 @@ def check_global_ouptut_transform_pandas(name, transformer_orig):
             )
     except ValueError as e:
         # transformer does not support sparse data
-        assert str(e) == "Pandas output does not support sparse data.", e
+        assert "Pandas output does not support sparse data." in str(e), e
         return
 
     for case in outputs_default:

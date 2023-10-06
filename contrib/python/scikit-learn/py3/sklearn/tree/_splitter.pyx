@@ -20,7 +20,7 @@ from cython cimport final
 
 import numpy as np
 
-from scipy.sparse import isspmatrix_csc
+from scipy.sparse import issparse
 
 from ._utils cimport log
 from ._utils cimport rand_int
@@ -208,8 +208,13 @@ cdef class Splitter:
         weighted_n_node_samples[0] = self.criterion.weighted_n_node_samples
         return 0
 
-    cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features) except -1 nogil:
+    cdef int node_split(
+        self,
+        double impurity,
+        SplitRecord* split,
+        SIZE_t* n_constant_features,
+    ) except -1 nogil:
+
         """Find the best split on node samples[start:end].
 
         This is a placeholder method. The majority of computation will be done
@@ -1041,7 +1046,7 @@ cdef class SparsePartitioner:
         DTYPE_t[::1] feature_values,
         const unsigned char[::1] missing_values_in_feature_mask,
     ):
-        if not isspmatrix_csc(X):
+        if not (issparse(X) and X.format == "csc"):
             raise ValueError("X should be in csc format")
 
         self.samples = samples

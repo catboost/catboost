@@ -32,7 +32,6 @@ cnp.import_array()
 
 from scipy.sparse import issparse
 from scipy.sparse import csr_matrix
-from scipy.sparse import isspmatrix_csr
 
 from ._utils cimport safe_realloc
 from ._utils cimport sizet_ptr_to_ndarray
@@ -464,11 +463,19 @@ cdef class BestFirstTreeBuilder(TreeBuilder):
         if rc == -1:
             raise MemoryError()
 
-    cdef inline int _add_split_node(self, Splitter splitter, Tree tree,
-                                    SIZE_t start, SIZE_t end, double impurity,
-                                    bint is_first, bint is_left, Node* parent,
-                                    SIZE_t depth,
-                                    FrontierRecord* res) except -1 nogil:
+    cdef inline int _add_split_node(
+        self,
+        Splitter splitter,
+        Tree tree,
+        SIZE_t start,
+        SIZE_t end,
+        double impurity,
+        bint is_first,
+        bint is_left,
+        Node* parent,
+        SIZE_t depth,
+        FrontierRecord* res
+    ) except -1 nogil:
         """Adds node w/ partition ``[start, end)`` to the frontier. """
         cdef SplitRecord split
         cdef SIZE_t node_id
@@ -574,6 +581,9 @@ cdef class Tree:
         children_right[i] > i. This child handles the case where
         X[:, feature[i]] > threshold[i].
 
+    n_leaves : int
+        Number of leaves in the tree.
+
     feature : array of int, shape [node_count]
         feature[i] holds the feature to split on, for the internal node i.
 
@@ -593,6 +603,10 @@ cdef class Tree:
     weighted_n_node_samples : array of double, shape [node_count]
         weighted_n_node_samples[i] holds the weighted number of training samples
         reaching node i.
+
+    missing_go_to_left : array of bool, shape [node_count]
+        missing_go_to_left[i] holds a bool indicating whether or not there were
+        missing values at node i.
     """
     # Wrap for outside world.
     # WARNING: these reference the current `nodes` and `value` buffers, which
@@ -877,7 +891,7 @@ cdef class Tree:
         """Finds the terminal region (=leaf node) for each sample in sparse X.
         """
         # Check input
-        if not isspmatrix_csr(X):
+        if not (issparse(X) and X.format == 'csr'):
             raise ValueError("X should be in csr_matrix format, got %s"
                              % type(X))
 
@@ -1005,7 +1019,7 @@ cdef class Tree:
         """Finds the decision path (=node) for each sample in X."""
 
         # Check input
-        if not isspmatrix_csr(X):
+        if not (issparse(X) and X.format == "csr"):
             raise ValueError("X should be in csr_matrix format, got %s"
                              % type(X))
 

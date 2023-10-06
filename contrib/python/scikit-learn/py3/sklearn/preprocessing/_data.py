@@ -188,8 +188,7 @@ def scale(X, *, axis=0, with_mean=True, with_std=True, copy=True):
     affect model performance.
 
     For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
+    see: :ref:`sphx_glr_auto_examples_preprocessing_plot_all_scaling.py`.
 
     .. warning:: Risk of data leak
 
@@ -291,6 +290,12 @@ class MinMaxScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     This transformation is often used as an alternative to zero mean,
     unit variance scaling.
 
+    `MinMaxScaler` doesn't reduce the effect of outliers, but it linearily
+    scales them down into a fixed range, where the largest occuring data point
+    corresponds to the maximum value and the smallest one corresponds to the
+    minimum value. For an example visualization, refer to :ref:`Compare
+    MinMaxScaler with other scalers <plot_all_scaling_minmax_scaler_section>`.
+
     Read more in the :ref:`User Guide <preprocessing_scaler>`.
 
     Parameters
@@ -363,10 +368,6 @@ class MinMaxScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     -----
     NaNs are treated as missing values: disregarded in fit, and maintained in
     transform.
-
-    For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
 
     Examples
     --------
@@ -629,8 +630,7 @@ def minmax_scale(X, feature_range=(0, 1), *, axis=0, copy=True):
     Notes
     -----
     For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
+    see: :ref:`sphx_glr_auto_examples_preprocessing_plot_all_scaling.py`.
     """
     # Unlike the scaler object, this function allows 1d input.
     # If copy is required, it will be done inside the scaler object.
@@ -683,6 +683,11 @@ class StandardScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     than others, it might dominate the objective function and make the
     estimator unable to learn from other features correctly as expected.
 
+    `StandardScaler` is sensitive to outliers, and the features may scale
+    differently from each other in the presence of outliers. For an example
+    visualization, refer to :ref:`Compare StandardScaler with other scalers
+    <plot_all_scaling_standard_scaler_section>`.
+
     This scaler can also be applied to sparse CSR or CSC matrices by passing
     `with_mean=False` to avoid breaking the sparsity structure of the data.
 
@@ -721,11 +726,12 @@ class StandardScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
 
     mean_ : ndarray of shape (n_features,) or None
         The mean value for each feature in the training set.
-        Equal to ``None`` when ``with_mean=False``.
+        Equal to ``None`` when ``with_mean=False`` and ``with_std=False``.
 
     var_ : ndarray of shape (n_features,) or None
         The variance for each feature in the training set. Used to compute
-        `scale_`. Equal to ``None`` when ``with_std=False``.
+        `scale_`. Equal to ``None`` when ``with_mean=False`` and
+        ``with_std=False``.
 
     n_features_in_ : int
         Number of features seen during :term:`fit`.
@@ -762,10 +768,6 @@ class StandardScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     We use a biased estimator for the standard deviation, equivalent to
     `numpy.std(x, ddof=0)`. Note that the choice of `ddof` is unlikely to
     affect model performance.
-
-    For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
 
     Examples
     --------
@@ -1080,6 +1082,10 @@ class MaxAbsScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
 
     This scaler can also be applied to sparse CSR or CSC matrices.
 
+    `MaxAbsScaler` doesn't reduce the effect of outliers; it only linearily
+    scales them down. For an example visualization, refer to :ref:`Compare
+    MaxAbsScaler with other scalers <plot_all_scaling_max_abs_scaler_section>`.
+
     .. versionadded:: 0.17
 
     Parameters
@@ -1122,10 +1128,6 @@ class MaxAbsScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     -----
     NaNs are treated as missing values: disregarded in fit, and maintained in
     transform.
-
-    For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
 
     Examples
     --------
@@ -1346,8 +1348,7 @@ def maxabs_scale(X, *, axis=0, copy=True):
     and maintained during the data transformation.
 
     For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
+    see: :ref:`sphx_glr_auto_examples_preprocessing_plot_all_scaling.py`.
     """
     # Unlike the scaler object, this function allows 1d input.
 
@@ -1390,11 +1391,13 @@ class RobustScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     set. Median and interquartile range are then stored to be used on
     later data using the :meth:`transform` method.
 
-    Standardization of a dataset is a common requirement for many
-    machine learning estimators. Typically this is done by removing the mean
-    and scaling to unit variance. However, outliers can often influence the
-    sample mean / variance in a negative way. In such cases, the median and
-    the interquartile range often give better results.
+    Standardization of a dataset is a common preprocessing for many machine
+    learning estimators. Typically this is done by removing the mean and
+    scaling to unit variance. However, outliers can often influence the sample
+    mean / variance in a negative way. In such cases, using the median and the
+    interquartile range often give better results. For an example visualization
+    and comparison to other scalers, refer to :ref:`Compare RobustScaler with
+    other scalers <plot_all_scaling_robust_scaler_section>`.
 
     .. versionadded:: 0.17
 
@@ -1465,9 +1468,6 @@ class RobustScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
 
     Notes
     -----
-    For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
 
     https://en.wikipedia.org/wiki/Median
     https://en.wikipedia.org/wiki/Interquartile_range
@@ -1730,8 +1730,7 @@ def robust_scale(
     To avoid memory copy the caller should pass a CSR matrix.
 
     For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
+    see: :ref:`sphx_glr_auto_examples_preprocessing_plot_all_scaling.py`.
 
     .. warning:: Risk of data leak
 
@@ -1832,8 +1831,7 @@ def normalize(X, norm="l2", *, axis=1, copy=True, return_norm=False):
     Notes
     -----
     For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
+    see: :ref:`sphx_glr_auto_examples_preprocessing_plot_all_scaling.py`.
     """
     if axis == 0:
         sparse_format = "csc"
@@ -1903,6 +1901,9 @@ class Normalizer(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     of the vectors and is the base similarity metric for the Vector
     Space Model commonly used by the Information Retrieval community.
 
+    For an example visualization, refer to :ref:`Compare Normalizer with other
+    scalers <plot_all_scaling_normalizer_section>`.
+
     Read more in the :ref:`User Guide <preprocessing_normalization>`.
 
     Parameters
@@ -1940,10 +1941,6 @@ class Normalizer(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     However, we recommend to call :meth:`fit_transform` instead of
     :meth:`transform`, as parameter validation is only performed in
     :meth:`fit`.
-
-    For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
 
     Examples
     --------
@@ -2393,7 +2390,7 @@ def add_dummy_feature(X, value=1.0):
     n_samples, n_features = X.shape
     shape = (n_samples, n_features + 1)
     if sparse.issparse(X):
-        if sparse.isspmatrix_coo(X):
+        if X.format == "coo":
             # Shift columns to the right.
             col = X.col + 1
             # Column indices of dummy feature are 0 everywhere.
@@ -2403,7 +2400,7 @@ def add_dummy_feature(X, value=1.0):
             # Prepend the dummy feature n_samples times.
             data = np.concatenate((np.full(n_samples, value), X.data))
             return sparse.coo_matrix((data, (row, col)), shape)
-        elif sparse.isspmatrix_csc(X):
+        elif X.format == "csc":
             # Shift index pointers since we need to add n_samples elements.
             indptr = X.indptr + n_samples
             # indptr[0] must be 0.
@@ -2437,6 +2434,9 @@ class QuantileTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimator)
     distribution. Note that this transform is non-linear. It may distort linear
     correlations between variables measured at the same scale but renders
     variables measured at different scales more directly comparable.
+
+    For example visualizations, refer to :ref:`Compare QuantileTransformer with
+    other scalers <plot_all_scaling_quantile_transformer_section>`.
 
     Read more in the :ref:`User Guide <preprocessing_transformer>`.
 
@@ -2514,10 +2514,6 @@ class QuantileTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimator)
     -----
     NaNs are treated as missing values: disregarded in fit, and maintained in
     transform.
-
-    For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
 
     Examples
     --------
@@ -2967,8 +2963,7 @@ def quantile_transform(
         LogisticRegression())`.
 
     For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
+    see: :ref:`sphx_glr_auto_examples_preprocessing_plot_all_scaling.py`.
 
     Examples
     --------
@@ -3011,6 +3006,12 @@ class PowerTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
 
     By default, zero-mean, unit-variance normalization is applied to the
     transformed data.
+
+    For an example visualization, refer to :ref:`Compare PowerTransformer with
+    other scalers <plot_all_scaling_power_transformer_section>`. To see the
+    effect of Box-Cox and Yeo-Johnson transformations on different
+    distributions, see:
+    :ref:`sphx_glr_auto_examples_preprocessing_plot_map_data_to_normal.py`.
 
     Read more in the :ref:`User Guide <preprocessing_transformer>`.
 
@@ -3059,19 +3060,16 @@ class PowerTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     NaNs are treated as missing values: disregarded in ``fit``, and maintained
     in ``transform``.
 
-    For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
-
     References
     ----------
 
-    .. [1] I.K. Yeo and R.A. Johnson, "A new family of power transformations to
-           improve normality or symmetry." Biometrika, 87(4), pp.954-959,
-           (2000).
+    .. [1] :doi:`I.K. Yeo and R.A. Johnson, "A new family of power
+           transformations to improve normality or symmetry." Biometrika,
+           87(4), pp.954-959, (2000). <10.1093/biomet/87.4.954>`
 
-    .. [2] G.E.P. Box and D.R. Cox, "An Analysis of Transformations", Journal
-           of the Royal Statistical Society B, 26, 211-252 (1964).
+    .. [2] :doi:`G.E.P. Box and D.R. Cox, "An Analysis of Transformations",
+           Journal of the Royal Statistical Society B, 26, 211-252 (1964).
+           <10.1111/j.2517-6161.1964.tb00553.x>`
 
     Examples
     --------
@@ -3479,8 +3477,7 @@ def power_transform(X, method="yeo-johnson", *, standardize=True, copy=True):
     in ``transform``.
 
     For a comparison of the different scalers, transformers, and normalizers,
-    see :ref:`examples/preprocessing/plot_all_scaling.py
-    <sphx_glr_auto_examples_preprocessing_plot_all_scaling.py>`.
+    see: :ref:`sphx_glr_auto_examples_preprocessing_plot_all_scaling.py`.
 
     References
     ----------
