@@ -45,7 +45,6 @@ from ._binary import i32be as i32
 from ._binary import o8
 from ._binary import o16be as o16
 from ._binary import o32be as o32
-from ._deprecate import deprecate
 
 logger = logging.getLogger(__name__)
 
@@ -129,17 +128,6 @@ class Blend(IntEnum):
     This frame should be alpha composited with the previous output image contents.
     See :ref:`Saving APNG sequences<apng-saving>`.
     """
-
-
-def __getattr__(name):
-    for enum, prefix in {Disposal: "APNG_DISPOSE_", Blend: "APNG_BLEND_"}.items():
-        if name.startswith(prefix):
-            name = name[len(prefix) :]
-            if name in enum.__members__:
-                deprecate(f"{prefix}{name}", 10, f"{enum.__name__}.{name}")
-                return enum[name]
-    msg = f"module '{__name__}' has no attribute '{name}'"
-    raise AttributeError(msg)
 
 
 def _safe_zlib_decompress(s):
@@ -1150,19 +1138,22 @@ def _write_multiple_frames(im, fp, chunk, rawmode, default_image, append_images)
                 else:
                     base_im = previous["im"]
                 delta = ImageChops.subtract_modulo(
-                    im_frame.convert("RGB"), base_im.convert("RGB")
+                    im_frame.convert("RGBA"), base_im.convert("RGBA")
                 )
-                bbox = delta.getbbox()
+                bbox = delta.getbbox(alpha_only=False)
                 if (
                     not bbox
                     and prev_disposal == encoderinfo.get("disposal")
                     and prev_blend == encoderinfo.get("blend")
                 ):
-                    if isinstance(duration, (list, tuple)):
-                        previous["encoderinfo"]["duration"] += encoderinfo["duration"]
+                    previous["encoderinfo"]["duration"] += encoderinfo.get(
+                        "duration", duration
+                    )
                     continue
             else:
                 bbox = None
+            if "duration" not in encoderinfo:
+                encoderinfo["duration"] = duration
             im_frames.append({"im": im_frame, "bbox": bbox, "encoderinfo": encoderinfo})
 
     # animation control
@@ -1187,7 +1178,7 @@ def _write_multiple_frames(im, fp, chunk, rawmode, default_image, append_images)
             im_frame = im_frame.crop(bbox)
         size = im_frame.size
         encoderinfo = frame_data["encoderinfo"]
-        frame_duration = int(round(encoderinfo.get("duration", duration)))
+        frame_duration = int(round(encoderinfo["duration"]))
         frame_disposal = encoderinfo.get("disposal", disposal)
         frame_blend = encoderinfo.get("blend", blend)
         # frame control

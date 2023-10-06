@@ -290,7 +290,7 @@ ImagingConvertTransparent(Imaging im, const char *mode, int r, int g, int b);
 extern Imaging
 ImagingCrop(Imaging im, int x0, int y0, int x1, int y1);
 extern Imaging
-ImagingExpand(Imaging im, int x, int y, int mode);
+ImagingExpand(Imaging im, int x, int y);
 extern Imaging
 ImagingFill(Imaging im, const void *ink);
 extern int
@@ -317,7 +317,7 @@ ImagingMerge(const char *mode, Imaging bands[4]);
 extern int
 ImagingSplit(Imaging im, Imaging bands[4]);
 extern int
-ImagingGetBBox(Imaging im, int bbox[4]);
+ImagingGetBBox(Imaging im, int bbox[4], int alpha_only);
 typedef struct {
     int x, y;
     INT32 count;

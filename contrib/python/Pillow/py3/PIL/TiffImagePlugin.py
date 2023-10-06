@@ -49,7 +49,7 @@ from collections.abc import MutableMapping
 from fractions import Fraction
 from numbers import Number, Rational
 
-from . import Image, ImageFile, ImageOps, ImagePalette, TiffTags
+from . import ExifTags, Image, ImageFile, ImageOps, ImagePalette, TiffTags
 from ._binary import i16be as i16
 from ._binary import i32be as i32
 from ._binary import o8
@@ -170,6 +170,8 @@ OPEN_INFO = {
     (MM, 0, (1,), 2, (8,), ()): ("L", "L;IR"),
     (II, 1, (1,), 1, (8,), ()): ("L", "L"),
     (MM, 1, (1,), 1, (8,), ()): ("L", "L"),
+    (II, 1, (2,), 1, (8,), ()): ("L", "L"),
+    (MM, 1, (2,), 1, (8,), ()): ("L", "L"),
     (II, 1, (1,), 2, (8,), ()): ("L", "L;R"),
     (MM, 1, (1,), 2, (8,), ()): ("L", "L;R"),
     (II, 1, (1,), 1, (12,), ()): ("I;16", "I;12"),
@@ -1183,7 +1185,7 @@ class TiffImageFile(ImageFile.ImageFile):
         :returns: Photoshop "Image Resource Blocks" in a dictionary.
         """
         blocks = {}
-        val = self.tag_v2.get(0x8649)
+        val = self.tag_v2.get(ExifTags.Base.ImageResources)
         if val:
             while val[:4] == b"8BIM":
                 id = i16(val[4:6])
@@ -1251,9 +1253,8 @@ class TiffImageFile(ImageFile.ImageFile):
         # To be nice on memory footprint, if there's a
         # file descriptor, use that instead of reading
         # into a string in python.
-        # libtiff closes the file descriptor, so pass in a dup.
         try:
-            fp = hasattr(self.fp, "fileno") and os.dup(self.fp.fileno())
+            fp = hasattr(self.fp, "fileno") and self.fp.fileno()
             # flush the file descriptor, prevents error on pypy 2.4+
             # should also eliminate the need for fp.tell
             # in _seek
@@ -1303,18 +1304,11 @@ class TiffImageFile(ImageFile.ImageFile):
             # UNDONE -- so much for that buffer size thing.
             n, err = decoder.decode(self.fp.read())
 
-        if fp:
-            try:
-                os.close(fp)
-            except OSError:
-                pass
-
         self.tile = []
         self.readonly = 0
 
         self.load_end()
 
-        # libtiff closed the fp in a, we need to close self.fp, if possible
         if close_self_fp:
             self.fp.close()
             self.fp = None  # might be shared
@@ -1548,7 +1542,7 @@ class TiffImageFile(ImageFile.ImageFile):
             palette = [o8(b // 256) for b in self.tag_v2[COLORMAP]]
             self.palette = ImagePalette.raw("RGB;L", b"".join(palette))
 
-        self._tile_orientation = self.tag_v2.get(0x0112)
+        self._tile_orientation = self.tag_v2.get(ExifTags.Base.Orientation)
 
 
 #
@@ -1892,6 +1886,10 @@ class AppendingTiffWriter:
         8,  # srational
         4,  # float
         8,  # double
+        4,  # ifd
+        2,  # unicode
+        4,  # complex
+        8,  # long8
     ]
 
     #    StripOffsets = 273

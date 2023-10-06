@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: Pillow
-Version: 9.5.0
+Version: 10.0.1
 Summary: Python Imaging Library (Fork)
 Home-page: https://python-pillow.org
 Author: Jeffrey A. Clark (Alex)
@@ -18,7 +18,6 @@ Classifier: Development Status :: 6 - Mature
 Classifier: License :: OSI Approved :: Historical Permission Notice and Disclaimer (HPND)
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
@@ -30,7 +29,7 @@ Classifier: Topic :: Multimedia :: Graphics :: Capture :: Digital Camera
 Classifier: Topic :: Multimedia :: Graphics :: Capture :: Screen Capture
 Classifier: Topic :: Multimedia :: Graphics :: Graphics Conversion
 Classifier: Topic :: Multimedia :: Graphics :: Viewers
-Requires-Python: >=3.7
+Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Provides-Extra: docs

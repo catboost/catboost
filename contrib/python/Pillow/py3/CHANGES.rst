@@ -2,6 +2,135 @@
 Changelog (Pillow)
 ==================
 
+10.0.1 (2023-09-15)
+-------------------
+
+- Updated libwebp to 1.3.2 #7395
+  [radarhere]
+
+- Updated zlib to 1.3 #7344
+  [radarhere]
+
+10.0.0 (2023-07-01)
+-------------------
+
+- Fixed deallocating mask images #7246
+  [radarhere]
+
+- Added ImageFont.MAX_STRING_LENGTH #7244
+  [radarhere, hugovk]
+
+- Fix Windows build with pyproject.toml #7230
+  [hugovk, nulano, radarhere]
+
+- Do not close provided file handles with libtiff #7199
+  [radarhere]
+
+- Convert to HSV if mode is HSV in getcolor() #7226
+  [radarhere]
+
+- Added alpha_only argument to getbbox() #7123
+  [radarhere. hugovk]
+
+- Prioritise speed in _repr_png_ #7242
+  [radarhere]
+
+- Do not use CFFI access by default on PyPy #7236
+  [radarhere]
+
+- Limit size even if one dimension is zero in decompression bomb check #7235
+  [radarhere]
+
+- Use --config-settings instead of deprecated --global-option #7171
+  [radarhere]
+
+- Better C integer definitions #6645
+  [Yay295, hugovk]
+
+- Fixed finding dependencies on Cygwin #7175
+  [radarhere]
+
+- Changed grabclipboard() to use PNG instead of JPG compression on macOS #7219
+  [abey79, radarhere]
+
+- Added in_place argument to ImageOps.exif_transpose() #7092
+  [radarhere]
+
+- Fixed calling putpalette() on L and LA images before load() #7187
+  [radarhere]
+
+- Fixed saving TIFF multiframe images with LONG8 tag types #7078
+  [radarhere]
+
+- Fixed combining single duration across duplicate APNG frames #7146
+  [radarhere]
+
+- Remove temporary file when error is raised #7148
+  [radarhere]
+
+- Do not use temporary file when grabbing clipboard on Linux #7200
+  [radarhere]
+
+- If the clipboard fails to open on Windows, wait and try again #7141
+  [radarhere]
+
+- Fixed saving multiple 1 mode frames to GIF #7181
+  [radarhere]
+
+- Replaced absolute PIL import with relative import #7173
+  [radarhere]
+
+- Replaced deprecated Py_FileSystemDefaultEncoding for Python >= 3.12 #7192
+  [radarhere]
+
+- Improved wl-paste mimetype handling in ImageGrab #7094
+  [rrcgat, radarhere]
+
+- Added _repr_jpeg_() for IPython display_jpeg #7135
+  [n3011, radarhere, nulano]
+
+- Use "/sbin/ldconfig" if ldconfig is not found #7068
+  [radarhere]
+
+- Prefer screenshots using XCB over gnome-screenshot #7143
+  [nulano, radarhere]
+
+- Fixed joined corners for ImageDraw rounded_rectangle() odd dimensions #7151
+  [radarhere]
+
+- Support reading signed 8-bit TIFF images #7111
+  [radarhere]
+
+- Added width argument to ImageDraw regular_polygon #7132
+  [radarhere]
+
+- Support I mode for ImageFilter.BuiltinFilter #7108
+  [radarhere]
+
+- Raise error from stderr of Linux ImageGrab.grabclipboard() command #7112
+  [radarhere]
+
+- Added unpacker from I;16B to I;16 #7125
+  [radarhere]
+
+- Support float font sizes #7107
+  [radarhere]
+
+- Use later value for duplicate xref entries in PdfParser #7102
+  [radarhere]
+
+- Load before getting size in __getstate__ #7105
+  [bigcat88, radarhere]
+
+- Fixed type handling for include and lib directories #7069
+  [adisbladis, radarhere]
+
+- Remove deprecations for Pillow 10.0.0 #7059, #7080
+  [hugovk, radarhere]
+
+- Drop support for soon-EOL Python 3.7 #7058
+  [hugovk, radarhere]
+
 9.5.0 (2023-04-01)
 ------------------
 

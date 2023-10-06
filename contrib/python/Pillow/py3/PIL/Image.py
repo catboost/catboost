@@ -56,28 +56,7 @@ from . import (
     _plugins,
 )
 from ._binary import i32le, o32be, o32le
-from ._deprecate import deprecate
 from ._util import DeferredError, is_path
-
-
-def __getattr__(name):
-    categories = {"NORMAL": 0, "SEQUENCE": 1, "CONTAINER": 2}
-    if name in categories:
-        deprecate("Image categories", 10, "is_animated", plural=True)
-        return categories[name]
-    old_resampling = {
-        "LINEAR": "BILINEAR",
-        "CUBIC": "BICUBIC",
-        "ANTIALIAS": "LANCZOS",
-    }
-    if name in old_resampling:
-        deprecate(
-            name, 10, f"{old_resampling[name]} or Resampling.{old_resampling[name]}"
-        )
-        return Resampling[old_resampling[name]]
-    msg = f"module '{__name__}' has no attribute '{name}'"
-    raise AttributeError(msg)
-
 
 logger = logging.getLogger(__name__)
 
@@ -128,8 +107,7 @@ except ImportError as v:
     raise
 
 
-# works everywhere, win for pypy, not cpython
-USE_CFFI_ACCESS = hasattr(sys, "pypy_version_info")
+USE_CFFI_ACCESS = False
 try:
     import cffi
 except ImportError:
@@ -441,26 +419,18 @@ def _getencoder(mode, encoder_name, args, extra=()):
 # Simple expression analyzer
 
 
-def coerce_e(value):
-    deprecate("coerce_e", 10)
-    return value if isinstance(value, _E) else _E(1, value)
-
-
-# _E(scale, offset) represents the affine transformation scale * x + offset.
-# The "data" field is named for compatibility with the old implementation,
-# and should be renamed once coerce_e is removed.
 class _E:
-    def __init__(self, scale, data):
+    def __init__(self, scale, offset):
         self.scale = scale
-        self.data = data
+        self.offset = offset
 
     def __neg__(self):
-        return _E(-self.scale, -self.data)
+        return _E(-self.scale, -self.offset)
 
     def __add__(self, other):
         if isinstance(other, _E):
-            return _E(self.scale + other.scale, self.data + other.data)
-        return _E(self.scale, self.data + other)
+            return _E(self.scale + other.scale, self.offset + other.offset)
+        return _E(self.scale, self.offset + other)
 
     __radd__ = __add__
 
@@ -473,19 +443,19 @@ class _E:
     def __mul__(self, other):
         if isinstance(other, _E):
             return NotImplemented
-        return _E(self.scale * other, self.data * other)
+        return _E(self.scale * other, self.offset * other)
 
     __rmul__ = __mul__
 
     def __truediv__(self, other):
         if isinstance(other, _E):
             return NotImplemented
-        return _E(self.scale / other, self.data / other)
+        return _E(self.scale / other, self.offset / other)
 
 
 def _getscaleoffset(expr):
     a = expr(_E(1, 0))
-    return (a.scale, a.data) if isinstance(a, _E) else (0, a)
+    return (a.scale, a.offset) if isinstance(a, _E) else (0, a)
 
 
 # --------------------------------------------------------------------
@@ -516,16 +486,9 @@ class Image:
         self._size = (0, 0)
         self.palette = None
         self.info = {}
-        self._category = 0
         self.readonly = 0
         self.pyaccess = None
         self._exif = None
-
-    def __getattr__(self, name):
-        if name == "category":
-            deprecate("Image categories", 10, "is_animated", plural=True)
-            return self._category
-        raise AttributeError(name)
 
     @property
     def width(self):
@@ -639,7 +602,6 @@ class Image:
             and self.mode == other.mode
             and self.size == other.size
             and self.info == other.info
-            and self._category == other._category
             and self.getpalette() == other.getpalette()
             and self.tobytes() == other.tobytes()
         )
@@ -670,18 +632,33 @@ class Image:
             )
         )
 
-    def _repr_png_(self):
-        """iPython display hook support
+    def _repr_image(self, image_format, **kwargs):
+        """Helper function for iPython display hook.
 
-        :returns: png version of the image as bytes
+        :param image_format: Image format.
+        :returns: image as bytes, saved into the given format.
         """
         b = io.BytesIO()
         try:
-            self.save(b, "PNG")
+            self.save(b, image_format, **kwargs)
         except Exception as e:
-            msg = "Could not save to PNG for display"
+            msg = f"Could not save to {image_format} for display"
             raise ValueError(msg) from e
         return b.getvalue()
+
+    def _repr_png_(self):
+        """iPython display hook support for PNG format.
+
+        :returns: PNG version of the image as bytes
+        """
+        return self._repr_image("PNG", compress_level=1)
+
+    def _repr_jpeg_(self):
+        """iPython display hook support for JPEG format.
+
+        :returns: JPEG version of the image as bytes
+        """
+        return self._repr_image("JPEG")
 
     @property
     def __array_interface__(self):
@@ -709,7 +686,8 @@ class Image:
         return new
 
     def __getstate__(self):
-        return [self.info, self.mode, self.size, self.getpalette(), self.tobytes()]
+        im_data = self.tobytes()  # load image first
+        return [self.info, self.mode, self.size, self.getpalette(), im_data]
 
     def __setstate__(self, state):
         Image.__init__(self)
@@ -1144,7 +1122,6 @@ class Image:
            Available methods are :data:`Dither.NONE` or :data:`Dither.FLOYDSTEINBERG`
            (default).
         :returns: A new image
-
         """
 
         self.load()
@@ -1276,7 +1253,7 @@ class Image:
         if ymargin is None:
             ymargin = xmargin
         self.load()
-        return self._new(self.im.expand(xmargin, ymargin, 0))
+        return self._new(self.im.expand(xmargin, ymargin))
 
     def filter(self, filter):
         """
@@ -1315,11 +1292,15 @@ class Image:
         """
         return ImageMode.getmode(self.mode).bands
 
-    def getbbox(self):
+    def getbbox(self, *, alpha_only=True):
         """
         Calculates the bounding box of the non-zero regions in the
         image.
 
+        :param alpha_only: Optional flag, defaulting to ``True``.
+           If ``True`` and the image has an alpha channel, trim transparent pixels.
+           Otherwise, trim pixels when all channels are zero.
+           Keyword-only argument.
         :returns: The bounding box is returned as a 4-tuple defining the
            left, upper, right, and lower pixel coordinate. See
            :ref:`coordinate-system`. If the image is completely empty, this
@@ -1328,7 +1309,7 @@ class Image:
         """
 
         self.load()
-        return self.im.getbbox()
+        return self.im.getbbox(alpha_only)
 
     def getcolors(self, maxcolors=256):
         """
@@ -1455,12 +1436,12 @@ class Image:
             self._exif.load(exif_info)
 
         # XMP tags
-        if 0x0112 not in self._exif:
+        if ExifTags.Base.Orientation not in self._exif:
             xmp_tags = self.info.get("XML:com.adobe.xmp")
             if xmp_tags:
                 match = re.search(r'tiff:Orientation(="|>)([0-9])', xmp_tags)
                 if match:
-                    self._exif[0x0112] = int(match[2])
+                    self._exif[ExifTags.Base.Orientation] = int(match[2])
 
         return self._exif
 
@@ -1753,7 +1734,7 @@ class Image:
         if not isinstance(dest, (list, tuple)):
             msg = "Destination must be a tuple"
             raise ValueError(msg)
-        if not len(source) in (2, 4):
+        if len(source) not in (2, 4):
             msg = "Source must be a 2 or 4-tuple"
             raise ValueError(msg)
         if not len(dest) == 2:
@@ -2473,8 +2454,8 @@ class Image:
         The image is first saved to a temporary file. By default, it will be in
         PNG format.
 
-        On Unix, the image is then opened using the **display**, **eog** or
-        **xv** utility, depending on which one can be found.
+        On Unix, the image is then opened using the **xdg-open**, **display**,
+        **gm**, **eog** or **xv** utility, depending on which one can be found.
 
         On macOS, the image is opened with the native Preview application.
 
@@ -2904,7 +2885,7 @@ def new(mode, size, color=0):
     :param color: What color to use for the image.  Default is black.
        If given, this should be a single integer or floating point value
        for single-band modes, and a tuple for multi-band modes (one value
-       per band).  When creating RGB images, you can also use color
+       per band).  When creating RGB or HSV images, you can also use color
        strings as supported by the ImageColor module.  If the color is
        None, the image is not initialised.
     :returns: An :py:class:`~PIL.Image.Image` object.
@@ -3163,7 +3144,7 @@ def _decompression_bomb_check(size):
     if MAX_IMAGE_PIXELS is None:
         return
 
-    pixels = size[0] * size[1]
+    pixels = max(1, size[0]) * max(1, size[1])
 
     if pixels > 2 * MAX_IMAGE_PIXELS:
         msg = (
@@ -3193,7 +3174,8 @@ def open(fp, mode="r", formats=None):
     :param fp: A filename (string), pathlib.Path object or a file object.
        The file object must implement ``file.read``,
        ``file.seek``, and ``file.tell`` methods,
-       and be opened in binary mode.
+       and be opened in binary mode. The file object will also seek to zero
+       before reading.
     :param mode: The mode.  If given, this argument must be "r".
     :param formats: A list or tuple of formats to attempt to load the file in.
        This can be used to restrict the set of formats checked.
