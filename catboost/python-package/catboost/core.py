@@ -862,8 +862,8 @@ class Pool(_PoolBase):
         """
         if not isinstance(data, (PATH_TYPES, ARRAY_TYPES, SPARSE_MATRIX_TYPES, FeaturesData)):
             raise CatBoostError(
-                "Invalid data type={}: data must be list(), np.ndarray(), DataFrame(), Series(), FeaturesData " +
-                " scipy.sparse matrix or filename str() or pathlib.Path().".format(type(data))
+                ("Invalid data type={}: data must be list(), np.ndarray(), DataFrame(), Series(), FeaturesData " +
+                 " scipy.sparse matrix or filename str() or pathlib.Path().").format(type(data))
             )
 
     def _check_data_empty(self, data):
@@ -2054,16 +2054,16 @@ def _check_param_types(params):
     _cast_value_to_list_of_strings(params, 'per_float_feature_quantization')
     if 'monotone_constraints' in params:
         if not isinstance(params['monotone_constraints'], STRING_TYPES + ARRAY_TYPES + (dict,)):
-            raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
+            raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of ints in range {{-1, 0, 1}} or dict.".format(type(params['monotone_constraints'])))
     if 'feature_weights' in params:
         if not isinstance(params['feature_weights'], STRING_TYPES + ARRAY_TYPES + (dict,)):
-            raise CatBoostError("Invalid `feature_weights` type={} : must be string or list of floats or dict.".format(type(param)))
+            raise CatBoostError("Invalid `feature_weights` type={} : must be string or list of floats or dict.".format(type(params['feature_weights'])))
     if 'first_feature_use_penalties' in params:
         if not isinstance(params['first_feature_use_penalties'], STRING_TYPES + ARRAY_TYPES + (dict,)):
-            raise CatBoostError("Invalid `first_feature_use_penalties` type={} : must be string or list of floats or dict.".format(type(param)))
+            raise CatBoostError("Invalid `first_feature_use_penalties` type={} : must be string or list of floats or dict.".format(type(params['first_feature_use_penalties'])))
     if 'per_object_feature_penalties' in params:
         if not isinstance(params['per_object_feature_penalties'], STRING_TYPES + ARRAY_TYPES + (dict,)):
-            raise CatBoostError("Invalid `per_object_feature_penalties` type={} : must be string or list of floats or dict.".format(type(param)))
+            raise CatBoostError("Invalid `per_object_feature_penalties` type={} : must be string or list of floats or dict.".format(type(params['per_object_feature_penalties'])))
 
 
 def _params_type_cast(params):
