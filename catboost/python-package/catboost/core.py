@@ -42,11 +42,12 @@ except ImportError:
 import scipy.sparse
 
 
-_typeof = type
-
 from .plot_helpers import save_plot_file, try_plot_offline, OfflineMetricVisualizer
 from . import _catboost
 from .metrics import BuiltinMetric
+
+
+_typeof = type
 
 _PoolBase = _catboost._PoolBase
 _CatBoost = _catboost._CatBoost
@@ -101,6 +102,10 @@ else:
     PATH_TYPES = STRING_TYPES
 
 
+def create_dir_if_not_exist(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
+
 class _StreamLikeWrapper:
     def __init__(self, callable_object):
         self.callable_object = callable_object
@@ -118,7 +123,9 @@ def _get_stream_like_object(obj):
         'Expected callable object or stream-like object'
     )
 
+
 catboost_logger_lock = Lock()
+
 
 @contextmanager
 def log_fixup(log_cout=sys.stdout, log_cerr=sys.stderr):
@@ -519,6 +526,7 @@ def plot_features_selection_loss_graph(
     )
 
     return fig
+
 
 def plot_features_selection_loss_graphs(summary):
     result = {}
@@ -1036,7 +1044,6 @@ class Pool(_PoolBase):
         if len(timestamp) != samples_count:
             raise CatBoostError("Length of timestamp={} and length of data={} are different.".format(len(timestamp), samples_count))
 
-
     def _check_feature_names(self, feature_names, num_col=None):
         if num_col is None:
             num_col = self.num_col()
@@ -1315,7 +1322,6 @@ class Pool(_PoolBase):
         else:
             return non_embedding_data_feature_names
 
-
     def _init(
         self,
         data,
@@ -1431,7 +1437,10 @@ def _build_train_pool(X, y, cat_features, text_features, embedding_features, pai
     if isinstance(X, Pool):
         train_pool = X
         if any(v is not None for v in [cat_features, text_features, embedding_features, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline]):
-            raise CatBoostError("cat_features, text_features, embedding_features, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline should have the None type when X has catboost.Pool type.")
+            raise CatBoostError(
+                "cat_features, text_features, embedding_features, sample_weight, group_id, group_weight, subgroup_id,"
+                " pairs_weight, baseline should have the None type when X has catboost.Pool type."
+            )
         if (not X.has_label()) and X.num_pairs() == 0:
             raise CatBoostError("Label in X has not been initialized.")
         if y is not None:
@@ -1497,6 +1506,7 @@ def _process_synonyms_group(synonyms, params):
     if value is not None:
         params[synonyms[0]] = value
 
+
 def _process_synonyms_groups(params):
     _process_synonyms_group(['learning_rate', 'eta'], params)
     _process_synonyms_group(['border_count', 'max_bin'], params)
@@ -1509,6 +1519,7 @@ def _process_synonyms_groups(params):
     _process_synonyms_group(['custom_metric', 'custom_loss'], params)
     _process_synonyms_group(['max_leaves', 'num_leaves'], params)
     _process_synonyms_group(['min_data_in_leaf', 'min_child_samples'], params)
+
 
 def _process_synonyms(params):
     if 'objective' in params:
@@ -1584,15 +1595,10 @@ def _process_synonyms(params):
     if 'used_ram_limit' in params:
         params['used_ram_limit'] = str(params['used_ram_limit'])
 
+
 def stringify_builtin_metrics(params):
     """Replace all occurrences of BuiltinMetric with their string representations."""
-    for f in [
-            "loss_function",
-            "objective",
-            "eval_metric",
-            "custom_metric",
-            "custom_loss"
-        ]:
+    for f in ["loss_function", "objective", "eval_metric", "custom_metric", "custom_loss"]:
         if f not in params:
             continue
         val = params[f]
@@ -1607,6 +1613,7 @@ def stringify_builtin_metrics(params):
 
 def stringify_builtin_metrics_list(metrics):
     return list(map(str, metrics))
+
 
 def _get_loss_function_for_train(params, estimator_type, train_pool):
     """
@@ -1645,7 +1652,7 @@ class _CatBoostBase(object):
         self._init_params = init_params
         if 'thread_count' in self._init_params and self._init_params['thread_count'] == -1:
             self._init_params.pop('thread_count')
-        if 'fixed_binary_splits' in self._init_params and self._init_params['fixed_binary_splits'] == None:
+        if 'fixed_binary_splits' in self._init_params and self._init_params['fixed_binary_splits'] is None:
             self._init_params['fixed_binary_splits'] = []
         self._object = _CatBoost()
 
@@ -1790,8 +1797,35 @@ class _CatBoostBase(object):
         metrics_description_list = metrics_description if isinstance(metrics_description, list) else [metrics_description]
         return self._object._base_eval_metrics(pool, metrics_description_list, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
-    def _calc_fstr(self, type, pool, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices, shap_calc_type, sage_n_samples, sage_batch_size, sage_detect_convergence):
-        return self._object._calc_fstr(type.name, pool, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices, shap_calc_type, sage_n_samples, sage_batch_size, sage_detect_convergence)
+    def _calc_fstr(
+        self,
+        type,
+        pool,
+        reference_data,
+        thread_count,
+        verbose,
+        model_output,
+        shap_mode,
+        interaction_indices,
+        shap_calc_type,
+        sage_n_samples,
+        sage_batch_size,
+        sage_detect_convergence
+    ):
+        return self._object._calc_fstr(
+            type.name,
+            pool,
+            reference_data,
+            thread_count,
+            verbose,
+            model_output,
+            shap_mode,
+            interaction_indices,
+            shap_calc_type,
+            sage_n_samples,
+            sage_batch_size,
+            sage_detect_convergence
+        )
 
     def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
         return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
@@ -1994,7 +2028,6 @@ class _CatBoostBase(object):
         '''
         self._object._set_feature_names(feature_names)
 
-
     def _get_tags(self):
         tags = {
             'requires_positive_X': False,
@@ -2142,7 +2175,6 @@ class CatBoost(_CatBoostBase):
         """
         super(CatBoost, self).__init__(params)
 
-
     def _dataset_train_eval_split(self, train_pool, params, save_eval_pool):
         """
         returns:
@@ -2158,7 +2190,6 @@ class CatBoost(_CatBoostBase):
             params['eval_fraction'],
             save_eval_pool
         )
-
 
     def _prepare_train_params(self, X=None, y=None, cat_features=None, text_features=None, embedding_features=None,
                               pairs=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None,
@@ -2315,7 +2346,7 @@ class CatBoost(_CatBoostBase):
         allow_clear_pool = train_params["allow_clear_pool"]
 
         with log_fixup(log_cout, log_cerr), \
-            plot_wrapper(plot, plot_file, 'Training plots', [_get_train_dir(self.get_params())]):
+                plot_wrapper(plot, plot_file, 'Training plots', [_get_train_dir(self.get_params())]):
             self._train(
                 train_pool,
                 train_params["eval_sets"],
@@ -2333,7 +2364,21 @@ class CatBoost(_CatBoostBase):
         else:
             if not self._object._has_leaf_weights_in_model():
                 if allow_clear_pool:
-                    train_pool = _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
+                    train_pool = _build_train_pool(
+                        X,
+                        y,
+                        cat_features,
+                        text_features,
+                        embedding_features,
+                        pairs,
+                        sample_weight,
+                        group_id,
+                        group_weight,
+                        subgroup_id,
+                        pairs_weight,
+                        baseline,
+                        column_description
+                    )
                     if params.get('eval_fraction', 0.0) != 0.0:
                         train_pool, _ = self._dataset_train_eval_split(train_pool, params, save_eval_pool=False)
 
@@ -2907,10 +2952,9 @@ class CatBoost(_CatBoostBase):
         first_dir = os.path.join(tmp_dir, 'first_model')
         second_dir = os.path.join(tmp_dir, 'second_model')
 
-        create_if_not_exist = lambda path: os.mkdir(path) if not os.path.exists(path) else None
-        create_if_not_exist(tmp_dir)
-        create_if_not_exist(first_dir)
-        create_if_not_exist(second_dir)
+        create_dir_if_not_exist(tmp_dir)
+        create_dir_if_not_exist(first_dir)
+        create_dir_if_not_exist(second_dir)
 
         with plot_wrapper(True, plot_file=plot_file, plot_title='Compare models', train_dirs=[first_dir, second_dir]):
             self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, first_dir, tmp_dir,
@@ -4370,16 +4414,15 @@ class CatBoost(_CatBoostBase):
         elif len(train_params["eval_sets"]) == 1:
             test_pool = train_params["eval_sets"][0]
 
-        create_if_not_exist = lambda path: os.mkdir(path) if not os.path.exists(path) else None
         train_dir = _get_train_dir(self.get_params())
-        create_if_not_exist(train_dir)
+        create_dir_if_not_exist(train_dir)
         plot_dirs = []
         for step in range(steps or 1):
             plot_dirs.append(os.path.join(train_dir, 'model-{}'.format(step)))
         if train_final_model:
             plot_dirs.append(os.path.join(train_dir, 'model-final'))
         for plot_dir in plot_dirs:
-            create_if_not_exist(plot_dir)
+            create_dir_if_not_exist(plot_dir)
 
         with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=plot_file, plot_title='Select features plot', train_dirs=plot_dirs):
             summary = self._object._select_features(train_pool, test_pool, params)
@@ -6781,14 +6824,13 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
                                 " vs " + str(pool.get_embedding_feature_indices()))
         del params['embedding_features']
 
-    create_if_not_exist = lambda path: os.mkdir(path) if not os.path.exists(path) else None
     train_dir = _get_train_dir(params)
-    create_if_not_exist(train_dir)
+    create_dir_if_not_exist(train_dir)
     plot_dirs = []
     for step in range(fold_count):
         plot_dirs.append(os.path.join(train_dir, 'fold-{}'.format(step)))
     for plot_dir in plot_dirs:
-        create_if_not_exist(plot_dir)
+        create_dir_if_not_exist(plot_dir)
 
     with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=plot_file, plot_title='Cross-validation plot', train_dirs=plot_dirs):
         if not return_models:
