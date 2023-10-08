@@ -15,23 +15,17 @@ except ImportError:
     sys.path.append(os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'catboost', 'pytest'))
     import lib
 
-globals().update(
-    {
-        n: getattr(lib, n)
-        for n in [
-            'append_params_to_cmdline',
-            'apply_catboost',
-            'compare_evals_with_precision',
-            'compare_fit_evals_with_precision',
-            'compare_metrics_with_diff',
-            'data_file',
-            'execute_catboost_fit',
-            'format_crossvalidation',
-            'get_limited_precision_dsv_diff_tool',
-            'local_canonical_file',
-        ]
-    }
-)
+append_params_to_cmdline = lib.append_params_to_cmdline
+apply_catboost = lib.apply_catboost
+compare_evals_with_precision = lib.compare_evals_with_precision
+compare_fit_evals_with_precision = lib.compare_fit_evals_with_precision
+compare_metrics_with_diff = lib.compare_metrics_with_diff
+data_file = lib.data_file
+execute_catboost_fit = lib.execute_catboost_fit
+format_crossvalidation = lib.format_crossvalidation
+get_limited_precision_dsv_diff_tool = lib.get_limited_precision_dsv_diff_tool
+local_canonical_file = lib.local_canonical_file
+
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
