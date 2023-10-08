@@ -1,6 +1,7 @@
 # Release 1.2.2
 
 ## Bugfixes
+* Fix Segmentation fault when using custom `eval_metric` in binary python packages of version 1.2.1 on PyPI. #2486
 * Fix LossFunctionChange fstr with embedding features.
 * Fix a segmentation fault in JVM applier when using embedding features on JVM 11+.
 * Fix CTR data handling in model summation (especially for models with CTRs with multiple target quantizations).
