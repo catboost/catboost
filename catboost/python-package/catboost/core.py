@@ -3985,8 +3985,6 @@ class CatBoost(_CatBoostBase):
                 if param in grid:
                     raise CatBoostError("Parameter '{}' currently is not supported in grid search".format(param))
 
-            ignored_params = set()
-
         if X is None:
             raise CatBoostError("X must not be None")
 
@@ -6888,7 +6886,6 @@ def _calc_feature_statistics_layout(go, xaxis, single_pool):
 def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
     try:
         import plotly.graph_objs as go
-        import plotly.colors as colors
     except ImportError as e:
         warnings.warn("To draw binarized feature statistics you should install plotly.")
         raise ImportError(str(e))
