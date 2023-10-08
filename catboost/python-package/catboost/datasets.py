@@ -298,11 +298,11 @@ def adult():
     test_path = tempfile.mktemp()
     _cached_download(test_urls, test_md5, test_path)
 
-    train_df = pd.read_csv(train_path, names=names, header=None, sep=',\s*', na_values=['?'], engine='python')
+    train_df = pd.read_csv(train_path, names=names, header=None, sep=r',\s*', na_values=['?'], engine='python')
     os.remove(train_path)
 
     # lines in test part end with dot, thus we need to fix last column of the dataset
-    test_df = pd.read_csv(test_path, names=names, header=None, sep=',\s*', na_values=['?'], skiprows=1, converters={'income': lambda x: x[:-1]}, engine='python')
+    test_df = pd.read_csv(test_path, names=names, header=None, sep=r',\s*', na_values=['?'], skiprows=1, converters={'income': lambda x: x[:-1]}, engine='python')
     os.remove(test_path)
 
     # pandas 0.19.1 doesn't support `dtype` parameter for `read_csv` when `python` engine is used,
