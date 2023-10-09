@@ -28,7 +28,7 @@ def save_plot_file(plot_file, plot_name, figs):
     except ImportError as e:
         warnings.warn(warn_msg)
         raise ImportError(str(e))
-    
+
     def write_plot_file(plot_file_stream):
         plot_file_stream.write('\n'.join((
             '<html>',
@@ -112,9 +112,9 @@ class OfflineMetricVisualizer(object):
     def _get_plotly_figs(self, title):
         try:
             import plotly.graph_objs as go
-        except ImportError as e:
+        except ImportError as err:
             warnings.warn("To save plots to files you should install plotly.")
-            raise ImportError(str(e))
+            raise ImportError(str(err))
 
         figs = []
         for path, dir_data in self.data.items():
@@ -182,4 +182,3 @@ class OfflineMetricVisualizer(object):
 
     def save_to_file(self, title, file_output):
         save_plot_file(file_output, title, self._get_plotly_figs(title))
-

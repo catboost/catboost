@@ -1,5 +1,5 @@
 from . import _catboost
-from .core import Pool, CatBoostError, ARRAY_TYPES, PATH_TYPES, STRING_TYPES, fspath, _update_params_quantize_part, _process_synonyms
+from .core import Pool, CatBoostError, ARRAY_TYPES, PATH_TYPES, fspath, _update_params_quantize_part, _process_synonyms
 from collections import defaultdict
 from contextlib import contextmanager
 import sys
@@ -171,7 +171,6 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
     column_names = []
     non_feature_column_indices = []
 
-
     def add_missed_columns(start_column_idx, end_column_idx, non_feature_column_count):
         for missed_column_idx in range(start_column_idx, end_column_idx):
             column_name = 'feature_%i' % (missed_column_idx - non_feature_column_count)
@@ -328,7 +327,7 @@ def get_confusion_matrix(model, data, thread_count=-1):
     if not isinstance(data, Pool):
         raise CatBoostError('data must be a catboost.Pool')
 
-    return _get_confusion_matrix(model._object, data, thread_count);
+    return _get_confusion_matrix(model._object, data, thread_count)
 
 
 def get_roc_curve(model, data, thread_count=-1, plot=False):
@@ -656,8 +655,8 @@ def quantize(
         per_float_feature_quantization,
         border_count,
         feature_border_type,
-        None, # sparse_features_conflict_fraction
-        None, # dev_efb_max_buckets
+        None,  # sparse_features_conflict_fraction
+        None,  # dev_efb_max_buckets
         nan_mode,
         input_borders,
         task_type,
@@ -719,6 +718,7 @@ def convert_to_onnx_object(model, export_parameters=None, **kwargs):
     model_str = _get_onnx_model(model._object, params_string)
     onnx_model = onnx.load_model_from_string(model_str)
     return onnx_model
+
 
 def calculate_quantization_grid(values, border_count, border_type='Median'):
     assert border_count > 0, 'Border count should be > 0'

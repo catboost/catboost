@@ -106,6 +106,7 @@ def create_dir_if_not_exist(path):
     if not os.path.exists(path):
         os.mkdir(path)
 
+
 class _StreamLikeWrapper:
     def __init__(self, callable_object):
         self.callable_object = callable_object
@@ -2996,7 +2997,6 @@ class CatBoost(_CatBoostBase):
         else:
             return np.array(getattr(self, "_prediction_values_change", None))
 
-
     def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False,
                                thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto",
                                model_output="Raw", interaction_indices=None, shap_calc_type="Regular",
@@ -3421,7 +3421,6 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("There is no trained model to use get_all_params(). Use fit() to train model. Then use this method.")
         return self._object._get_plain_params()
 
-
     def save_borders(self, fname):
         """
         Save the model borders to a file.
@@ -3531,8 +3530,7 @@ class CatBoost(_CatBoostBase):
 
             if len(borders) == 0:
                 xaxis = go.layout.XAxis(title='Bins', tickvals=[0])
-                figs += go.Figure(data=[],
-                                 layout=get_layout(go, feature_idx, xaxis))
+                figs += go.Figure(data=[], layout=get_layout(go, feature_idx, xaxis))
 
             xaxis = go.layout.XAxis(
                 title='Bins',
@@ -3549,17 +3547,11 @@ class CatBoost(_CatBoostBase):
             for idx, features in enumerate(data.get_features()):
                 predictions, border_idx = predict(features, feature_idx, borders, nan_treatments[feature_idx])
                 all_predictions[idx][feature_idx] = predictions
-                trace.append(go.Scatter(
-                    y = predictions,
-                    mode = 'lines+markers',
-                    name = u'Document {} predictions'.format(idx)
-                ))
+                trace.append(
+                    go.Scatter(y=predictions, mode='lines+markers', name=u'Document {} predictions'.format(idx))
+                )
 
-                trace.append(go.Scatter(
-                    x = [border_idx],
-                    y = [predictions[border_idx]],
-                    showlegend=False
-                ))
+                trace.append(go.Scatter(x=[border_idx], y=[predictions[border_idx]], showlegend=False))
 
             layout = get_layout(go, feature, xaxis)
             figs += [go.Figure(data=trace, layout=layout)]
@@ -3623,7 +3615,7 @@ class CatBoost(_CatBoostBase):
                 'tickvals': list(range(len(borders) + 1)),
                 'ticktext': ['(-inf, {:.4f}]'.format(borders[0])] +
                             ['({:.4f}, {:.4f}]'.format(val_1, val_2)
-                            for val_1, val_2 in zip(borders[:-1], borders[1:])] +
+                             for val_1, val_2 in zip(borders[:-1], borders[1:])] +
                             ['({:.4f}, +inf)'.format(borders[-1])],
                 'showticklabels': False}
 
@@ -3674,7 +3666,6 @@ class CatBoost(_CatBoostBase):
             save_plot_file(plot_file, "Partial dependence plot for features '{}'".format(features), fig)
 
         return all_predictions, fig
-
 
     def calc_feature_statistics(self, data, target=None, feature=None, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
@@ -3898,7 +3889,7 @@ class CatBoost(_CatBoostBase):
 
                 try:
                     node_label = node_label.decode("utf-8")
-                except:
+                except Exception:
                     pass
 
                 graph.node(str(current_size), node_label, color=color, shape=shape)
@@ -4006,12 +3997,14 @@ class CatBoost(_CatBoostBase):
                 stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
         else:
             if not hasattr(cv, '__iter__') and not hasattr(cv, 'split'):
-                raise AttributeError("cv should be one of possible things:"
+                raise AttributeError(
+                    "cv should be one of possible things:"
                     "\n- None, to use the default 3-fold cross validation,"
                     "\n- integer, to specify the number of folds in a (Stratified)KFold"
                     "\n- one of the scikit-learn splitter classes"
                     " (https://scikit-learn.org/stable/modules/classes.html#splitter-classes)"
-                    "\n- An iterable yielding (train, test) splits as arrays of indices")
+                    "\n- An iterable yielding (train, test) splits as arrays of indices"
+                )
             custom_folds = cv
             shuffle = False
 
@@ -4438,6 +4431,7 @@ class CatBoost(_CatBoostBase):
 
     def _convert_to_asymmetric_representation(self):
         self._object._convert_oblivious_to_asymmetric()
+
 
 class CatBoostClassifier(CatBoost):
     """
@@ -5235,7 +5229,6 @@ class CatBoostClassifier(CatBoost):
         """
         return self._predict(X, 'Probability', ntree_start, ntree_end, thread_count, verbose, 'predict_proba', task_type)
 
-
     def predict_log_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
         """
         Predict class log probability with data.
@@ -5370,7 +5363,6 @@ class CatBoostClassifier(CatBoost):
                 with probability for every class for each object.
         """
         return self._staged_predict(data, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict_proba')
-
 
     def staged_predict_log_proba(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
@@ -5890,6 +5882,7 @@ class CatBoostRegressor(CatBoost):
                 return 'RMSEWithUncertainty'
         return 'RawFormulaVal'
 
+
 class CatBoostRanker(CatBoost):
     """
     Implementation of the scikit-learn API for CatBoost ranking.
@@ -6231,7 +6224,7 @@ class CatBoostRanker(CatBoost):
                    higher is better
         """
         def get_ndcg_metric_name(values, names):
-            if np.all(np.array(values) == None):
+            if np.all(np.equal(values, None)):
                 return 'NDCG'
             return 'NDCG:' + ';'.join(['{}={}'.format(n, v) for v, n in zip(values, names) if v is not None])
 
@@ -6250,7 +6243,6 @@ class CatBoostRanker(CatBoost):
 
         predictions = self.predict(X)
         return _eval_metric_util([y], [predictions], get_ndcg_metric_name([top, type, denominator], ['top', 'type', 'denominator']), None, group_id, group_weight, None, None, thread_count)[0]
-
 
     @staticmethod
     def _check_is_compatible_loss(loss_function):
@@ -6481,10 +6473,10 @@ def sample_gaussian_process(X, y, eval_set=None,
     -------
     models : list of trained CatBoostRegressor models (size = samples parameter value)
     """
-    assert(sigma > 0)
-    assert(samples > 0)
-    assert(random_strength > 0)
-    assert(eps > 0)
+    assert (sigma > 0)
+    assert (samples > 0)
+    assert (random_strength > 0)
+    assert (eps > 0)
 
     if random_seed is None:
         random_seed = 0
@@ -6712,7 +6704,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if 'loss_function' not in params:
         raise CatBoostError("Parameter loss_function should be specified for cross-validation")
 
-    if any(v is not None for v in [fold_count,nfold]) and folds is not None:
+    if any(v is not None for v in [fold_count, nfold]) and folds is not None:
         raise CatBoostError(
             "if folds is not None, then all of fold_count, shuffle, partition_random_seed, inverted are None"
         )
@@ -6813,7 +6805,6 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
                                 " vs " + str(pool.get_text_feature_indices()))
         del params['text_features']
 
-
     if 'embedding_features' in params:
         embedding_feature_indices_from_params = _get_features_indices(params['embedding_features'], pool.get_feature_names())
         if set(pool.get_embedding_feature_indices()) != set(embedding_feature_indices_from_params):
@@ -6832,11 +6823,35 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=plot_file, plot_title='Cross-validation plot', train_dirs=plot_dirs):
         if not return_models:
-            return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
-                    metric_update_interval, as_pandas, folds, type, return_models)
+            return _cv(
+                params,
+                pool,
+                fold_count,
+                inverted,
+                partition_random_seed,
+                shuffle,
+                stratified,
+                metric_update_interval,
+                as_pandas,
+                folds,
+                type,
+                return_models
+            )
         else:
-            results, cv_models = _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
-                                     metric_update_interval, as_pandas, folds, type, return_models)
+            results, cv_models = _cv(
+                params,
+                pool,
+                fold_count,
+                inverted,
+                partition_random_seed,
+                shuffle,
+                stratified,
+                metric_update_interval,
+                as_pandas,
+                folds,
+                type,
+                return_models
+            )
             output_cv_models = _convert_to_catboost(cv_models)
             return results, output_cv_models
 
@@ -6924,7 +6939,7 @@ def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
         raise CatBoostError('Expected field "borders" or "cat_values" in binarized feature statistics')
 
     for i, statistics in enumerate(statistics_list):
-        if  pools_count == 1:
+        if pools_count == 1:
             name_suffix = ''
         else:
             name_suffix = ', {} pool'.format(pool_names[i])
@@ -6958,7 +6973,7 @@ def _build_binarized_feature_statistics_fig(statistics_list, pool_names):
             objects_in_pool = statistics['objects_per_bin'].sum()
             color_a = np.array([30, 150, 30])
             color_b = np.array([30, 30, 150])
-            color = (color_a * i  + color_b * (pools_count - 1 - i)) / float(pools_count - 1)
+            color = (color_a * i + color_b * (pools_count - 1 - i)) / float(pools_count - 1)
             color = color.astype(int)
             trace_4 = go.Bar(
                 y=statistics['objects_per_bin'][order] / float(objects_in_pool),

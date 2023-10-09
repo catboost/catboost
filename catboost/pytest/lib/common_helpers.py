@@ -197,7 +197,7 @@ def generate_dataset_with_num_and_cat_features(
                 else:
                     value = (
                         num_features_range[0]
-                            + (num_features_range[1] - num_features_range[0]) * (v1 / num_features_density)
+                        + (num_features_range[1] - num_features_range[0]) * (v1 / num_features_density)
                     )
                 values.append(num_features_dtype(value))
             feature_columns['n' + str(num_feature_idx)] = values

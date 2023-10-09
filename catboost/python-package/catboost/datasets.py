@@ -73,7 +73,7 @@ _cache_path = None
 def _get_cache_path():
     global _cache_path
     if _cache_path is None:
-         _cache_path = os.path.join(os.getcwd(), 'catboost_cached_datasets')
+        _cache_path = os.path.join(os.getcwd(), 'catboost_cached_datasets')
     return _cache_path
 
 
