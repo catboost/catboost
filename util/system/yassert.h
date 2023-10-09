@@ -84,7 +84,6 @@ namespace NPrivate {
         try {                                                                                                \
             if (Y_UNLIKELY(!(expr))) {                                                                       \
                 Y_HIT_DEBUGGER();                                                                            \
-                ::PrintBackTrace();                                                                          \
                 /* NOLINTNEXTLINE */                                                                         \
                 ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, #expr, " " __VA_ARGS__);     \
             }                                                                                                \
