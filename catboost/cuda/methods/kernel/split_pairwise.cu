@@ -158,7 +158,7 @@ namespace NKernel {
             } else if (partCount == 256) {
                 RUN(256)
             } else {
-                Y_VERIFY(false);
+                Y_ABORT_UNLESS(false);
             }
         }
     }

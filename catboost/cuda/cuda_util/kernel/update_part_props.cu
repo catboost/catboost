@@ -213,7 +213,7 @@ namespace NKernel {
         numBlocks.y = partCount;
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
-        Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+        Y_ABORT_UNLESS(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
         if (IsGridEmpty(numBlocks)) {
             return;
         }
@@ -366,7 +366,7 @@ namespace NKernel {
         numBlocks.y = 2 * partCount;
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
-        Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+        Y_ABORT_UNLESS(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
         if (IsGridEmpty(numBlocks)) {
             return;
         }
@@ -396,7 +396,7 @@ namespace NKernel {
         numBlocks.y = 2;
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
-        Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+        Y_ABORT_UNLESS(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
         if (IsGridEmpty(numBlocks)) {
             return;
         }
@@ -429,7 +429,7 @@ namespace NKernel {
         numBlocks.y = min(count, 65535);
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
-        Y_VERIFY((ui64)numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+        Y_ABORT_UNLESS((ui64)numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
         if (IsGridEmpty(numBlocks)) {
             return;
         }

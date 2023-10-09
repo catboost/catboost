@@ -518,7 +518,7 @@ namespace NKernel {
                 break;
             }
             default: {
-                Y_VERIFY(false, "Unknown target");
+                Y_ABORT_UNLESS(false, "Unknown target");
             }
         }
     }
