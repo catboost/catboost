@@ -74,7 +74,7 @@ namespace NPrivate {
         void deallocate(T* p, size_type n) {
             if (p >= reinterpret_cast<T*>(&StackBasedStorage[0]) &&
                     p < reinterpret_cast<T*>(&StackBasedStorage[CountOnStack])) {
-                Y_VERIFY(IsStorageUsed);
+                Y_ABORT_UNLESS(IsStorageUsed);
                 IsStorageUsed = false;
             } else {
                 FallbackAllocator().deallocate(p, n);

@@ -174,7 +174,7 @@ namespace NLastGetopt::NComp {
         TMultipartCustomCompleter(TStringBuf sep)
             : Sep_(sep)
         {
-            Y_VERIFY(!Sep_.empty());
+            Y_ABORT_UNLESS(!Sep_.empty());
         }
 
     public:

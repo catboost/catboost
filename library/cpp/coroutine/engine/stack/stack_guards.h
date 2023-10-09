@@ -42,7 +42,7 @@ namespace NCoro::NStack {
             Y_ASSERT(size >= Canary.size()); // stack should have enough space to place guard
 
             if (checkPrevious) {
-                Y_VERIFY(CheckOverflow(stack), "Previous stack was corrupted");
+                Y_ABORT_UNLESS(CheckOverflow(stack), "Previous stack was corrupted");
             }
             auto guardPos = (char*) stack + size - Canary.size();
             memcpy(guardPos, Canary.data(), Canary.size());

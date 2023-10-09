@@ -1760,7 +1760,7 @@ namespace {
                     TAtomicBase oldReqId;
                     do {
                         oldReqId = AtomicGet(PrimaryResponse_);
-                        Y_VERIFY(oldReqId, "race inside http pipelining");
+                        Y_ABORT_UNLESS(oldReqId, "race inside http pipelining");
                     } while (!AtomicCas(&PrimaryResponse_, requestId, oldReqId));
 
                     ProcessResponsesData();
@@ -1768,7 +1768,7 @@ namespace {
                     TAtomicBase oldReqId = AtomicGet(PrimaryResponse_);
                     if (oldReqId) {
                         while (!AtomicCas(&PrimaryResponse_, 0, oldReqId)) {
-                            Y_VERIFY(oldReqId == AtomicGet(PrimaryResponse_), "race inside http pipelining [2]");
+                            Y_ABORT_UNLESS(oldReqId == AtomicGet(PrimaryResponse_), "race inside http pipelining [2]");
                         }
                     }
                 }

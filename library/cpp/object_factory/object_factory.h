@@ -128,7 +128,7 @@ namespace NObjectFactory {
         template <class... Args>
         static THolder<TProduct> VerifiedConstruct(Args&&... args) {
             auto result = MakeHolder(std::forward<Args>(args)...);
-            Y_VERIFY(result, "Construct by factory failed");
+            Y_ABORT_UNLESS(result, "Construct by factory failed");
             return result;
         }
 

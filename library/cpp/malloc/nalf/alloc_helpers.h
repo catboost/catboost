@@ -29,12 +29,12 @@ struct TSystemAllocHelper {
     // (allocator themself)
 
     void* operator new(size_t sz) {
-        Y_VERIFY(sz == sizeof(TFinal));
+        Y_ABORT_UNLESS(sz == sizeof(TFinal));
         return NNumaAwareLockFreeAllocator::SystemAllocation(sz);
     }
 
     void* operator new[](size_t sz) {
-        Y_VERIFY(sz == sizeof(TFinal));
+        Y_ABORT_UNLESS(sz == sizeof(TFinal));
         return NNumaAwareLockFreeAllocator::SystemAllocation(sz);
     }
 

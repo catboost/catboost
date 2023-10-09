@@ -80,7 +80,7 @@ namespace NNetliba_v12 {
         void AttachStats(TIntrusivePtr<TRequesterPendingDataStats> stats) {
             Y_ASSERT(stats.Get());
             Y_ASSERT(Find(Stats, Stats + StatsEnd, stats.Get()) == Stats + StatsEnd && "Duplicate stats attach!");
-            Y_VERIFY(StatsEnd < Y_ARRAY_SIZE(Stats), "Please increase Stats array size");
+            Y_ABORT_UNLESS(StatsEnd < Y_ARRAY_SIZE(Stats), "Please increase Stats array size");
 
             Stats[StatsEnd++] = stats;
             AddToInpCount(stats.Get(), 1);
@@ -190,7 +190,7 @@ namespace NNetliba_v12 {
         void AttachStats(TIntrusivePtr<TRequesterPendingDataStats> stats) {
             Y_ASSERT(stats.Get());
             Y_ASSERT(Find(Stats, Stats + StatsEnd, stats.Get()) == Stats + StatsEnd && "Duplicate stats attach!");
-            Y_VERIFY(StatsEnd < Y_ARRAY_SIZE(Stats), "Please increase Stats array size");
+            Y_ABORT_UNLESS(StatsEnd < Y_ARRAY_SIZE(Stats), "Please increase Stats array size");
 
             Stats[StatsEnd++] = stats;
             IncStats(stats.Get());
@@ -392,7 +392,7 @@ namespace NNetliba_v12 {
                     }
 
                     Window.PopFront();
-                    Y_VERIFY(Window.PushBack(nullptr), "");
+                    Y_ABORT_UNLESS(Window.PushBack(nullptr), "");
                     Y_ASSERT(Window.Full());
                 }
 
@@ -441,7 +441,7 @@ namespace NNetliba_v12 {
 
             Y_ASSERT(Window.Capacity() == WINDOW_SIZE);
             for (size_t i = 1; i <= Latest; ++i) {
-                Y_VERIFY(Window.PushBack(nullptr), "");
+                Y_ABORT_UNLESS(Window.PushBack(nullptr), "");
             }
             Y_ASSERT(Window.Full());
             Y_ASSERT(GetIdByWindowIndex(Latest, 0) == 1);

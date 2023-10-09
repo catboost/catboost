@@ -35,12 +35,12 @@ namespace NCoro::NStack {
 
 #ifdef _linux_
     void ReleaseRss(char* alignedPtr, size_t numOfPages) noexcept {
-        Y_VERIFY( !((size_t)alignedPtr & PageSizeMask), "Not aligned pointer to release RSS memory");
+        Y_ABORT_UNLESS( !((size_t)alignedPtr & PageSizeMask), "Not aligned pointer to release RSS memory");
         if (!numOfPages) {
             return;
         }
         if (auto res = madvise((void*) alignedPtr, numOfPages * PageSize, MADV_DONTNEED); res) {
-            Y_VERIFY(errno == EAGAIN || errno == ENOMEM, "Failed to release memory");
+            Y_ABORT_UNLESS(errno == EAGAIN || errno == ENOMEM, "Failed to release memory");
         }
     }
 #else
@@ -50,12 +50,12 @@ namespace NCoro::NStack {
 
 #ifdef _linux_
     size_t CountMapped(char* alignedPtr, size_t numOfPages) noexcept {
-        Y_VERIFY( !((size_t)alignedPtr & PageSizeMask) );
+        Y_ABORT_UNLESS( !((size_t)alignedPtr & PageSizeMask) );
         Y_ASSERT(numOfPages);
 
         size_t result = 0;
         unsigned char* mappedPages = (unsigned char*) calloc(numOfPages, numOfPages);
-        Y_VERIFY(mappedPages);
+        Y_ABORT_UNLESS(mappedPages);
         Y_DEFER {
             free(mappedPages);
         };

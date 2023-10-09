@@ -155,9 +155,9 @@ extern "C" void* valloc(size_t size)
 extern "C" void* aligned_alloc(size_t alignment, size_t size)
 {
     // Alignment must be a power of two.
-    Y_VERIFY((alignment & (alignment - 1)) == 0);
+    Y_ABORT_UNLESS((alignment & (alignment - 1)) == 0);
     // Alignment must not exceed the page size.
-    Y_VERIFY(alignment <= PageSize);
+    Y_ABORT_UNLESS(alignment <= PageSize);
     if (alignment <= 16) {
         // Proper alignment here is automatic.
         return Allocate(size);

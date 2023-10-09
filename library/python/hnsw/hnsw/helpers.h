@@ -84,7 +84,7 @@ namespace NHnsw::PythonHelpers {
                     break;
                 }
                 default:
-                    Y_VERIFY(false, "Unknown distance!");
+                    Y_ABORT_UNLESS(false, "Unknown distance!");
                     return "";
             }
         }();
@@ -153,7 +153,7 @@ namespace NHnsw::PythonHelpers {
                 return ToPyObject<typename TL2SqrDistance<T>::TResult>(neighbors);
             }
             default:
-                Y_VERIFY(false, "Unknown distance!");
+                Y_ABORT_UNLESS(false, "Unknown distance!");
         }
     }
 
@@ -165,7 +165,7 @@ namespace NHnsw::PythonHelpers {
                                      ui32* resultNeighInd, // [nQueries x topSize] array
                                      void* resultNeighDist) { // [nQueries x topSize] array, can be nullptr
 
-        Y_VERIFY(neighbors.size() <= topSize);
+        Y_ABORT_UNLESS(neighbors.size() <= topSize);
 
         ui32* resultNeighIndForQuery = resultNeighInd + queryIdx * topSize;
         if (resultNeighDist == nullptr) {
@@ -233,7 +233,7 @@ namespace NHnsw::PythonHelpers {
                 break;
             }
             default:
-                Y_VERIFY(false, "Unknown distance!");
+                Y_ABORT_UNLESS(false, "Unknown distance!");
         }
     }
 
@@ -253,7 +253,7 @@ namespace NHnsw::PythonHelpers {
                 indexData = BuildDenseVectorIndex<T, NHnsw::TL2SqrDistance<T>>(options, *storage, storage->GetDimension());
                 break;
             default:
-                Y_VERIFY(false, "Unknown distance!");
+                Y_ABORT_UNLESS(false, "Unknown distance!");
         }
         TBuffer buffer;
         TBufferOutput output(buffer);

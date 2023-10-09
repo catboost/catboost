@@ -471,7 +471,7 @@ void TNlpParser::Execute(const wchar16* text, size_t len, const wchar16** textSt
             // convert at least 2 UTF8 bytes
             if (i > 1) {
                 decoded = true;
-                Y_VERIFY(size_t(p - start) == 3 * i);
+                Y_ABORT_UNLESS(size_t(p - start) == 3 * i);
                 size_t written = 0;
                 const size_t extraLenRollback = ExtraLen.size();
                 for (size_t j = 0; j < i;) {
@@ -480,7 +480,7 @@ void TNlpParser::Execute(const wchar16* text, size_t len, const wchar16** textSt
                         decoded = false;
                         break;
                     }
-                    Y_VERIFY(stepRead && j + stepRead <= i);
+                    Y_ABORT_UNLESS(stepRead && j + stepRead <= i);
                     size_t stepWritten = 0;
                     if (!UTF8ToWide(utf8 + j, stepRead, dest + written, stepWritten)) {
                         decoded = false;

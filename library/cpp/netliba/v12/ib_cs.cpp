@@ -207,7 +207,7 @@ namespace NNetliba_v12 {
                         return z;
                     }
                 }
-                Y_VERIFY(0, "no send by guid");
+                Y_ABORT_UNLESS(0, "no send by guid");
                 return SendQueue.begin();
             }
             TDeque<TQueuedSend>::iterator GetSend(TIBMsgHandle msgHandle) {
@@ -216,7 +216,7 @@ namespace NNetliba_v12 {
                         return z;
                     }
                 }
-                Y_VERIFY(0, "no send by handle");
+                Y_ABORT_UNLESS(0, "no send by handle");
                 return SendQueue.begin();
             }
             TDeque<TQueuedRecv>::iterator GetRecv(const TGUID& packetGuid) {
@@ -225,7 +225,7 @@ namespace NNetliba_v12 {
                         return z;
                     }
                 }
-                Y_VERIFY(0, "no recv by guid");
+                Y_ABORT_UNLESS(0, "no recv by guid");
                 return RecvQueue.begin();
             }
             void PostRDMA(TQueuedSend& qs) {
@@ -363,7 +363,7 @@ namespace NNetliba_v12 {
                 //printf("Remove peer %p from hash (QPN %d)\n", peer.Get(), peer->QP->GetQPN());
                 TPeerChannelHash::iterator z = Channels.find(peer->QP->GetQPN());
                 if (z == Channels.end()) {
-                    Y_VERIFY(0, "peer failed for unregistered peer");
+                    Y_ABORT_UNLESS(0, "peer failed for unregistered peer");
                 }
                 Channels.erase(z);
             }
@@ -456,7 +456,7 @@ namespace NNetliba_v12 {
                             TDeque<TQueuedRecv>::iterator z = peer->GetRecv(cmd.PacketGuid);
                             TQueuedRecv& qr = *z;
 #ifdef _DEBUG
-                            Y_VERIFY(MurmurHash<ui64>(qr.Data->GetData(), qr.Data->GetSize()) == cmd.DataHash || cmd.DataHash == 0, "RDMA data hash mismatch");
+                            Y_ABORT_UNLESS(MurmurHash<ui64>(qr.Data->GetData(), qr.Data->GetSize()) == cmd.DataHash || cmd.DataHash == 0, "RDMA data hash mismatch");
 #endif
                             TIBRequest* req = new TIBRequest;
 
@@ -534,12 +534,12 @@ namespace NNetliba_v12 {
                         BP.FreeBuf(wc->wr_id);
                     }
                 } else {
-                    Y_VERIFY(0, "got completion without outstanding messages");
+                    Y_ABORT_UNLESS(0, "got completion without outstanding messages");
                 }
             } else {
                 //printf("Got completion for non existing qpn %d, bufId %d (status %d)\n", wc->qp_num, (int)wc->wr_id, (int)wc->status);
                 if (wc->status == IBV_WC_SUCCESS) {
-                    Y_VERIFY(0, "only errors should go unmatched");
+                    Y_ABORT_UNLESS(0, "only errors should go unmatched");
                 }
                 // no need to free buf since it has to be freed in PeerFailed()
             }
@@ -626,7 +626,7 @@ namespace NNetliba_v12 {
                         // received msg
                         if ((int)wc.qp_num == WelcomeQPN) {
                             if (wc.status != IBV_WC_SUCCESS) {
-                                Y_VERIFY(0, "ud recv op completed with error %d\n", (int)wc.status);
+                                Y_ABORT_UNLESS(0, "ud recv op completed with error %d\n", (int)wc.status);
                             }
                             Y_ASSERT(wc.opcode == IBV_WC_RECV | IBV_WC_SEND);
                             ParseWelcomePacket(&wc);
@@ -654,7 +654,7 @@ namespace NNetliba_v12 {
                     }
                     TDeque<TQueuedSend>::iterator z = peer->GetSend(msgHandle);
                     if (z == peer->SendQueue.end()) {
-                        Y_VERIFY(0, "peer %p, copy completed, msg %d not found?\n", peer.Get(), (int)msgHandle);
+                        Y_ABORT_UNLESS(0, "peer %p, copy completed, msg %d not found?\n", peer.Get(), (int)msgHandle);
                         continue;
                     }
                     TQueuedSend& qs = *z;

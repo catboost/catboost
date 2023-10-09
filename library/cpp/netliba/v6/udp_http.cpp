@@ -829,7 +829,7 @@ namespace NNetliba {
         void SendRequestImpl(const TUdpAddress& addr, const TString& url, TVector<char>* data, const TGUID& reqId,
                              TWaitResponse* wr, TRequesterUserQueues* userQueues) {
             if (data && data->size() > MAX_PACKET_SIZE) {
-                Y_VERIFY(0, "data size is too large");
+                Y_ABORT_UNLESS(0, "data size is too large");
             }
             //printf("SendRequest(%s)\n", url.c_str());
             if (wr)
@@ -873,7 +873,7 @@ namespace NNetliba {
         void SendResponseImpl(const TGUID& reqId, EPacketPriority prior, TVector<char>* data) // non-virtual, for direct call from TRequestOps
         {
             if (data && data->size() > MAX_PACKET_SIZE) {
-                Y_VERIFY(0, "data size is too large");
+                Y_ABORT_UNLESS(0, "data size is too large");
             }
             SendRespList.Enqueue(new TSendResponse(reqId, prior, data));
             Host->CancelWait();

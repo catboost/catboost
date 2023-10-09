@@ -52,7 +52,7 @@ public:
     }
 
     bool Create(const size_t size, TGUID preferedGuid = TGUID()) {
-        Y_VERIFY(Guid.IsEmpty(), "You must call Close before");
+        Y_ABORT_UNLESS(Guid.IsEmpty(), "You must call Close before");
         if (preferedGuid.IsEmpty()) {
             CreateGuid(&preferedGuid);
         }
@@ -60,7 +60,7 @@ public:
     }
 
     bool Open(const TGUID& guid, const size_t size) {
-        Y_VERIFY(Guid.IsEmpty(), "You must call Close before");
+        Y_ABORT_UNLESS(Guid.IsEmpty(), "You must call Close before");
         return CreateOpen(guid, size, false);
     }
 
@@ -99,7 +99,7 @@ public:
         // which already opened it will see no difference.
         if (up == UP_FORCE_UNLINK || (IsCreator && up == UP_CREATOR_UNLINKS)) {
             Y_ASSERT(!Unlinked && !Guid.IsEmpty());
-            Y_VERIFY(!Unlinked, "You tried to unlink shared memory twice! Fix your code");
+            Y_ABORT_UNLESS(!Unlinked, "You tried to unlink shared memory twice! Fix your code");
             Unlinked = shm_unlink(ConvertGuidToName(Guid).c_str());
             return Unlinked;
         }
@@ -138,7 +138,7 @@ private:
         if (result.size() + 1 > limit) { // +1 for null terminator
             result.erase(result.find_last_of('-'));
         }
-        Y_VERIFY(result.size() < limit, "Wow, your system really sucks!");
+        Y_ABORT_UNLESS(result.size() < limit, "Wow, your system really sucks!");
 
         return result;
     }

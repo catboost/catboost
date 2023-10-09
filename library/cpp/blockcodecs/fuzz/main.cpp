@@ -45,8 +45,8 @@ static void DoDecodeEncode(const TPackUnpackCase& case_) {
     TransferData(&decoded, &co);
     co.Flush();
 
-    Y_VERIFY((case_.GetData().size() > 0) == (cno.Counter() > 0));
-    Y_VERIFY((case_.GetData().size() > 0) == (decoded.Str().size() > 0));
+    Y_ABORT_UNLESS((case_.GetData().size() > 0) == (cno.Counter() > 0));
+    Y_ABORT_UNLESS((case_.GetData().size() > 0) == (decoded.Str().size() > 0));
 }
 
 static void DoEncodeDecode(const TPackUnpackCase& case_) {
@@ -62,8 +62,8 @@ static void DoEncodeDecode(const TPackUnpackCase& case_) {
     TDecodedInput di(&encoded, codec);
     TransferData(&di, &decoded);
 
-    Y_VERIFY((case_.GetData().size() > 0) == (encoded.Str().size() > 0));
-    Y_VERIFY(case_.GetData() == decoded.Str());
+    Y_ABORT_UNLESS((case_.GetData().size() > 0) == (encoded.Str().size() > 0));
+    Y_ABORT_UNLESS(case_.GetData() == decoded.Str());
 }
 
 DEFINE_BINARY_PROTO_FUZZER(const TPackUnpackCase& case_) {

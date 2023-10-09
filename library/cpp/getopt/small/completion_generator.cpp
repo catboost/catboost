@@ -24,13 +24,13 @@ namespace NLastGetopt {
     TCompletionGenerator::TCompletionGenerator(const TModChooser* modChooser)
         : Options_(modChooser)
     {
-        Y_VERIFY(modChooser != nullptr);
+        Y_ABORT_UNLESS(modChooser != nullptr);
     }
 
     TCompletionGenerator::TCompletionGenerator(const TOpts* opts)
         : Options_(opts)
     {
-        Y_VERIFY(opts != nullptr);
+        Y_ABORT_UNLESS(opts != nullptr);
     }
 
     void TZshCompletionGenerator::Generate(TStringBuf command, IOutputStream& stream) {

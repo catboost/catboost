@@ -110,7 +110,7 @@ const TString& GetTestParam(TStringBuf name, const TString& def) {
 const TString& GetGlobalResource(TStringBuf name) {
     auto& resources = NPrivate::GetTestEnv().GlobalResources;
     auto it = resources.find(name.data());
-    Y_VERIFY(it != resources.end());
+    Y_ABORT_UNLESS(it != resources.end());
     return it->second;
 }
 

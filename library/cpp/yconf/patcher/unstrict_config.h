@@ -50,7 +50,7 @@ private:
             , BeginIndex(beginIndex)
             , EndIndex(endIndex)
         {
-            Y_VERIFY(EndIndex >= BeginIndex);
+            Y_ABORT_UNLESS(EndIndex >= BeginIndex);
         }
         inline TPathUnit(const TCiString& name, size_t index)
             : TPathUnit(name, index, index)

@@ -313,7 +313,7 @@ void NPar::ILocalExecutor::ExecRange(TLocallyExecutableFunction exec, int firstI
 }
 
 void NPar::ILocalExecutor::ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags) {
-    Y_VERIFY((flags & WAIT_COMPLETE) != 0, "ExecRangeWithThrow() requires WAIT_COMPLETE to wait if exceptions arise.");
+    Y_ABORT_UNLESS((flags & WAIT_COMPLETE) != 0, "ExecRangeWithThrow() requires WAIT_COMPLETE to wait if exceptions arise.");
     if (TryExecRangeSequentially(exec, firstId, lastId, flags)) {
         return;
     }

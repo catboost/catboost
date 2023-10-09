@@ -105,7 +105,7 @@ namespace {
             if (!SyncDir_.IsDefined()) {
                 SyncDir_ = TFsPath(GetSystemTempDir()) / "testing_port_locks";
             }
-            Y_VERIFY(SyncDir_.IsDefined());
+            Y_ABORT_UNLESS(SyncDir_.IsDefined());
             NFs::MakeDirectoryRecursive(SyncDir_);
 
             Ranges_ = GetPortRanges();
@@ -113,7 +113,7 @@ namespace {
             for (auto [left, right] : Ranges_) {
                 TotalCount_ += right - left;
             }
-            Y_VERIFY(0 != TotalCount_);
+            Y_ABORT_UNLESS(0 != TotalCount_);
 
             DisableRandomPorts_ = !GetEnv("NO_RANDOM_PORTS").empty();
         }
@@ -141,7 +141,7 @@ namespace {
         }
 
         TVector<NTesting::TPortHolder> GetFreePortsRange(size_t count) const {
-            Y_VERIFY(count > 0);
+            Y_ABORT_UNLESS(count > 0);
             TVector<NTesting::TPortHolder> ports(Reserve(count));
             for (size_t i = 0; i < Retries; ++i) {
                 for (auto[left, right] : Ranges_) {
@@ -194,7 +194,7 @@ namespace {
             TSockAddrInet6 addr("::", port);
             if (sock.Bind(&addr) != 0) {
                 lock->Release();
-                Y_VERIFY(EADDRINUSE == LastSystemError(), "unexpected error: %d, port: %d", LastSystemError(), port);
+                Y_ABORT_UNLESS(EADDRINUSE == LastSystemError(), "unexpected error: %d, port: %d", LastSystemError(), port);
                 return nullptr;
             }
             return MakeHolder<TPortGuard>(port, std::move(lock));

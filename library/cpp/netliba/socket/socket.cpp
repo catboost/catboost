@@ -188,24 +188,24 @@ namespace NNetlibaSocket {
         }
         {
             int flag = 0;
-            Y_VERIFY(SetSockOpt(IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&flag, sizeof(flag)) == 0, "IPV6_V6ONLY failed");
+            Y_ABORT_UNLESS(SetSockOpt(IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&flag, sizeof(flag)) == 0, "IPV6_V6ONLY failed");
         }
         {
             int flag = 1;
-            Y_VERIFY(SetSockOpt(SOL_SOCKET, SO_REUSEADDR, (const char*)&flag, sizeof(flag)) == 0, "SO_REUSEADDR failed");
+            Y_ABORT_UNLESS(SetSockOpt(SOL_SOCKET, SO_REUSEADDR, (const char*)&flag, sizeof(flag)) == 0, "SO_REUSEADDR failed");
         }
 #if defined(_win_)
         unsigned long dummy = 1;
         ioctlsocket(S, FIONBIO, &dummy);
 #else
-        Y_VERIFY(fcntl(S, F_SETFL, O_NONBLOCK) == 0, "fnctl failed: %s (errno = %d)", LastSystemErrorText(), LastSystemError());
-        Y_VERIFY(fcntl(S, F_SETFD, FD_CLOEXEC) == 0, "fnctl failed: %s (errno = %d)", LastSystemErrorText(), LastSystemError());
+        Y_ABORT_UNLESS(fcntl(S, F_SETFL, O_NONBLOCK) == 0, "fnctl failed: %s (errno = %d)", LastSystemErrorText(), LastSystemError());
+        Y_ABORT_UNLESS(fcntl(S, F_SETFD, FD_CLOEXEC) == 0, "fnctl failed: %s (errno = %d)", LastSystemErrorText(), LastSystemError());
         {
             int flag = 1;
 #ifndef IPV6_RECVPKTINFO /* Darwin platforms require this */
-            Y_VERIFY(SetSockOpt(IPPROTO_IPV6, IPV6_PKTINFO, (const char*)&flag, sizeof(flag)) == 0, "IPV6_PKTINFO failed");
+            Y_ABORT_UNLESS(SetSockOpt(IPPROTO_IPV6, IPV6_PKTINFO, (const char*)&flag, sizeof(flag)) == 0, "IPV6_PKTINFO failed");
 #else
-            Y_VERIFY(SetSockOpt(IPPROTO_IPV6, IPV6_RECVPKTINFO, (const char*)&flag, sizeof(flag)) == 0, "IPV6_RECVPKTINFO failed");
+            Y_ABORT_UNLESS(SetSockOpt(IPPROTO_IPV6, IPV6_RECVPKTINFO, (const char*)&flag, sizeof(flag)) == 0, "IPV6_RECVPKTINFO failed");
 #endif
         }
 #endif
@@ -280,17 +280,17 @@ namespace NNetlibaSocket {
 #if defined(_win_)
         DWORD flag = 0;
         socklen_t sz = sizeof(flag);
-        Y_VERIFY(GetSockOpt(IPPROTO_IP, IP_DONTFRAGMENT, (char*)&flag, &sz) == 0, "");
+        Y_ABORT_UNLESS(GetSockOpt(IPPROTO_IP, IP_DONTFRAGMENT, (char*)&flag, &sz) == 0, "");
         return flag;
 #elif defined(_linux_)
         int flag = 0;
         socklen_t sz = sizeof(flag);
-        Y_VERIFY(GetSockOpt(IPPROTO_IPV6, IPV6_MTU_DISCOVER, (char*)&flag, &sz) == 0, "");
+        Y_ABORT_UNLESS(GetSockOpt(IPPROTO_IPV6, IPV6_MTU_DISCOVER, (char*)&flag, &sz) == 0, "");
         return flag == IPV6_PMTUDISC_DO;
 #elif !defined(_darwin_)
         int flag = 0;
         socklen_t sz = sizeof(flag);
-        Y_VERIFY(GetSockOpt(IPPROTO_IPV6, IPV6_DONTFRAG, (char*)&flag, &sz) == 0, "");
+        Y_ABORT_UNLESS(GetSockOpt(IPPROTO_IPV6, IPV6_DONTFRAG, (char*)&flag, &sz) == 0, "");
         return flag;
 #endif
         return false;
@@ -346,10 +346,10 @@ namespace NNetlibaSocket {
 
     int TAbstractSocket::SendMMsg(TMMsgHdr* msgvec, unsigned int vlen, unsigned int flags) {
         Y_ASSERT(IsValid());
-        Y_VERIFY(SendMMsgFunc, "sendmmsg is not supported!");
+        Y_ABORT_UNLESS(SendMMsgFunc, "sendmmsg is not supported!");
         TReadGuard rg(Mutex);
         static bool checked = 0;
-        Y_VERIFY(checked || (checked = !IsFragmentationForbiden()), "Send methods of this class expect default EnableFragmentation behavior");
+        Y_ABORT_UNLESS(checked || (checked = !IsFragmentationForbiden()), "Send methods of this class expect default EnableFragmentation behavior");
         return SendMMsgFunc(S, msgvec, vlen, flags);
     }
 
@@ -357,23 +357,23 @@ namespace NNetlibaSocket {
         Y_ASSERT(IsValid());
 #ifdef _win32_
         static bool checked = 0;
-        Y_VERIFY(hdr->msg_iov->iov_len == 1, "Scatter/gather is currenly not supported on Windows");
+        Y_ABORT_UNLESS(hdr->msg_iov->iov_len == 1, "Scatter/gather is currenly not supported on Windows");
         if (hdr->Tos || frag == FF_DONT_FRAG) {
             TWriteGuard wg(Mutex);
             if (frag == FF_DONT_FRAG) {
                 ForbidFragmentation();
             } else {
-                Y_VERIFY(checked || (checked = !IsFragmentationForbiden()), "Send methods of this class expect default EnableFragmentation behavior");
+                Y_ABORT_UNLESS(checked || (checked = !IsFragmentationForbiden()), "Send methods of this class expect default EnableFragmentation behavior");
             }
             int originalTos;
             if (hdr->Tos) {
                 socklen_t sz = sizeof(originalTos);
-                Y_VERIFY(GetSockOpt(IPPROTO_IP, IP_TOS, (char*)&originalTos, &sz) == 0, "");
-                Y_VERIFY(SetSockOpt(IPPROTO_IP, IP_TOS, (char*)&hdr->Tos, sizeof(hdr->Tos)) == 0, "");
+                Y_ABORT_UNLESS(GetSockOpt(IPPROTO_IP, IP_TOS, (char*)&originalTos, &sz) == 0, "");
+                Y_ABORT_UNLESS(SetSockOpt(IPPROTO_IP, IP_TOS, (char*)&hdr->Tos, sizeof(hdr->Tos)) == 0, "");
             }
             const ssize_t rv = sendto(S, hdr->msg_iov->iov_base, hdr->msg_iov->iov_len, flags, (sockaddr*)hdr->msg_name, hdr->msg_namelen);
             if (hdr->Tos) {
-                Y_VERIFY(SetSockOpt(IPPROTO_IP, IP_TOS, (char*)&originalTos, sizeof(originalTos)) == 0, "");
+                Y_ABORT_UNLESS(SetSockOpt(IPPROTO_IP, IP_TOS, (char*)&originalTos, sizeof(originalTos)) == 0, "");
             }
             if (frag == FF_DONT_FRAG) {
                 EnableFragmentation();
@@ -381,7 +381,7 @@ namespace NNetlibaSocket {
             return rv;
         }
         TReadGuard rg(Mutex);
-        Y_VERIFY(checked || (checked = !IsFragmentationForbiden()), "Send methods of this class expect default EnableFragmentation behavior");
+        Y_ABORT_UNLESS(checked || (checked = !IsFragmentationForbiden()), "Send methods of this class expect default EnableFragmentation behavior");
         return sendto(S, hdr->msg_iov->iov_base, hdr->msg_iov->iov_len, flags, (sockaddr*)hdr->msg_name, hdr->msg_namelen);
 #else
         if (frag == FF_DONT_FRAG) {
@@ -395,7 +395,7 @@ namespace NNetlibaSocket {
         TReadGuard rg(Mutex);
 #ifndef _darwin_
         static bool checked = 0;
-        Y_VERIFY(checked || (checked = !IsFragmentationForbiden()), "Send methods of this class expect default EnableFragmentation behavior");
+        Y_ABORT_UNLESS(checked || (checked = !IsFragmentationForbiden()), "Send methods of this class expect default EnableFragmentation behavior");
 #endif
         return sendmsg(S, hdr, flags);
 #endif
@@ -501,13 +501,13 @@ namespace NNetlibaSocket {
     void TAbstractSocket::CloseImpl() {
         if (IsValid()) {
             Poller.Unwait(S);
-            Y_VERIFY(closesocket(S) == 0, "closesocket failed: %s (errno = %d)", LastSystemErrorText(), LastSystemError());
+            Y_ABORT_UNLESS(closesocket(S) == 0, "closesocket failed: %s (errno = %d)", LastSystemErrorText(), LastSystemError());
         }
         S = INVALID_SOCKET;
     }
 
     void TAbstractSocket::WaitImpl(float timeoutSec) const {
-        Y_VERIFY(IsValid(), "something went wrong");
+        Y_ABORT_UNLESS(IsValid(), "something went wrong");
         Poller.WaitT(TDuration::Seconds(timeoutSec));
     }
 
@@ -526,7 +526,7 @@ namespace NNetlibaSocket {
         Y_ASSERT(IsValid());
 
 #ifdef _win32_
-        Y_VERIFY(hdr->msg_iov->iov_len == 1, "Scatter/gather is currenly not supported on Windows");
+        Y_ABORT_UNLESS(hdr->msg_iov->iov_len == 1, "Scatter/gather is currenly not supported on Windows");
         return recvfrom(S, hdr->msg_iov->iov_base, hdr->msg_iov->iov_len, flags, (sockaddr*)hdr->msg_name, &hdr->msg_namelen);
 #else
         return recvmsg(S, hdr, flags);
@@ -559,7 +559,7 @@ namespace NNetlibaSocket {
     // thread-safe
     int TAbstractSocket::RecvMMsgImpl(TMMsgHdr* msgvec, unsigned int vlen, unsigned int flags, timespec* timeout) {
         Y_ASSERT(IsValid());
-        Y_VERIFY(RecvMMsgFunc, "recvmmsg is not supported!");
+        Y_ABORT_UNLESS(RecvMMsgFunc, "recvmmsg is not supported!");
         return RecvMMsgFunc(S, msgvec, vlen, flags, timeout);
     }
 
@@ -648,7 +648,7 @@ namespace NNetlibaSocket {
         ssize_t RecvMsg(TMsgHdr* hdr, int flags) override {
             Y_UNUSED(hdr);
             Y_UNUSED(flags);
-            Y_VERIFY(false, "Use TBasicSocket for RecvMsg call! TRecvMMsgSocket implementation must use memcpy which is suboptimal and thus forbidden!");
+            Y_ABORT_UNLESS(false, "Use TBasicSocket for RecvMsg call! TRecvMMsgSocket implementation must use memcpy which is suboptimal and thus forbidden!");
         }
         TUdpRecvPacket* Recv(sockaddr_in6* addr, sockaddr_in6* dstAddr, int netlibaVersion) override;
     };
@@ -842,7 +842,7 @@ public:
 
         AtomicSwap(&NumThreadsToDie, (int)RecvThreads.size());
         CancelWaitImpl();
-        Y_VERIFY(AllThreadsAreDead.WaitT(TDuration::Seconds(30)), "TMTRecvSocket destruction failed");
+        Y_ABORT_UNLESS(AllThreadsAreDead.WaitT(TDuration::Seconds(30)), "TMTRecvSocket destruction failed");
 
         CloseImpl();
     }
@@ -869,7 +869,7 @@ public:
     }
 
     bool IsRecvMsgSupported() const { return false; }
-    ssize_t RecvMsg(TMsgHdr* hdr, int flags) { Y_VERIFY(false, "Use TBasicSocket for RecvMsg call! TMTRecvSocket implementation must use memcpy which is suboptimal and thus forbidden!"); }
+    ssize_t RecvMsg(TMsgHdr* hdr, int flags) { Y_ABORT_UNLESS(false, "Use TBasicSocket for RecvMsg call! TMTRecvSocket implementation must use memcpy which is suboptimal and thus forbidden!"); }
 };
 */
 
@@ -939,7 +939,7 @@ public:
         ssize_t RecvMsg(TMsgHdr* hdr, int flags) override {
             Y_UNUSED(hdr);
             Y_UNUSED(flags);
-            Y_VERIFY(false, "Use TBasicSocket for RecvMsg call! TDualStackSocket implementation must use memcpy which is suboptimal and thus forbidden!");
+            Y_ABORT_UNLESS(false, "Use TBasicSocket for RecvMsg call! TDualStackSocket implementation must use memcpy which is suboptimal and thus forbidden!");
         }
 
         TUdpRecvPacket* Recv(sockaddr_in6* addr, sockaddr_in6* dstAddr, int netlibaVersion) override;
@@ -989,7 +989,7 @@ public:
 
         AtomicSwap(&ShouldDie, 1);
         CancelWaitImpl();
-        Y_VERIFY(DieEvent.WaitT(TDuration::Seconds(30)), "TDualStackSocket::Close failed");
+        Y_ABORT_UNLESS(DieEvent.WaitT(TDuration::Seconds(30)), "TDualStackSocket::Close failed");
 
         TBase::Close();
     }

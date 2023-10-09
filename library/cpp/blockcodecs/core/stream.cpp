@@ -100,7 +100,7 @@ void TCodedOutput::DoWrite(const void* buf, size_t len) {
         in += avail;
         len -= avail;
 
-        Y_VERIFY(FlushImpl(), "flush on writing failed");
+        Y_ABORT_UNLESS(FlushImpl(), "flush on writing failed");
     }
 }
 

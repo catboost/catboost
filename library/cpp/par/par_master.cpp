@@ -242,7 +242,7 @@ namespace NPar {
         int hostCount = GetSlaveCount();
         if (QueryProc.Get() == nullptr)
             hostCount = groupCount;
-        Y_VERIFY(groupCount <= hostCount, "enough hosts to represent all groups");
+        Y_ABORT_UNLESS(groupCount <= hostCount, "enough hosts to represent all groups");
         TVector<int> res;
         res.resize(hostCount);
         for (int i = 0; i < hostCount; ++i)

@@ -73,7 +73,7 @@ namespace NNetliba_v12 {
             Ops.resize(colSize);
         }
         void Transfer(int srcRank, int dstRank, int sl, int rangeBeg, int rangeFin, int id) {
-            Y_VERIFY(id < 64, "recv mask overflow");
+            Y_ABORT_UNLESS(id < 64, "recv mask overflow");
             Ops[srcRank].OutList.push_back(TMergeRecord::TTransfer(dstRank, sl, rangeBeg, rangeFin, id));
             Ops[dstRank].InList.push_back(TMergeRecord::TInTransfer(srcRank, sl));
             Ops[dstRank].RecvMask |= ui64(1) << id;
@@ -188,7 +188,7 @@ namespace NNetliba_v12 {
         for (int k = 1; k < groupSize; ++k) {
             int h1 = myGroup[k - 1];
             int h2 = myGroup[k];
-            Y_VERIFY(hostCoverage[h1].Fin == hostCoverage[h2].Beg, "Invalid host order in CreateGroupMerge()");
+            Y_ABORT_UNLESS(hostCoverage[h1].Fin == hostCoverage[h2].Beg, "Invalid host order in CreateGroupMerge()");
         }
 
         switch (mode) {
@@ -303,12 +303,12 @@ namespace NNetliba_v12 {
                     if (cur == prev + 1) {
                         isIncrement = false;
                     } else {
-                        Y_VERIFY(cur == 0, "ib_hosts, wrapped to non-zero");
-                        Y_VERIFY(prev == gcount[groupType] - 1, "ib_hosts, structure is irregular");
+                        Y_ABORT_UNLESS(cur == 0, "ib_hosts, wrapped to non-zero");
+                        Y_ABORT_UNLESS(prev == gcount[groupType] - 1, "ib_hosts, structure is irregular");
                         isIncrement = true;
                     }
                 } else {
-                    Y_VERIFY(prev == cur, "ib_hosts, structure is irregular");
+                    Y_ABORT_UNLESS(prev == cur, "ib_hosts, structure is irregular");
                 }
             }
         }
@@ -333,7 +333,7 @@ namespace NNetliba_v12 {
                 if (newIter == 0) {
                     newIter = nn;
                 } else {
-                    Y_VERIFY(newIter == nn, "groups should be of same size");
+                    Y_ABORT_UNLESS(newIter == nn, "groups should be of same size");
                 }
             }
             baseIter = newIter;
@@ -429,13 +429,13 @@ namespace NNetliba_v12 {
                 while ((recvMask & iter.RecvMask) != iter.RecvMask) {
                     int rv = CQ->Poll(&wc, 1);
                     if (rv > 0) {
-                        Y_VERIFY(wc.status == IBV_WC_SUCCESS, "AllGather::Sync fail, status %d", (int)wc.status);
+                        Y_ABORT_UNLESS(wc.status == IBV_WC_SUCCESS, "AllGather::Sync fail, status %d", (int)wc.status);
                         if (wc.opcode == IBV_WC_RECV_RDMA_WITH_IMM) {
                             //printf("Got %d\n", wc.imm_data);
                             ++recvDebt;
                             ui64 newBit = ui64(1) << wc.imm_data;
                             if (recvMask & newBit) {
-                                Y_VERIFY((FutureRecvMask & newBit) == 0, "data from 2 Sync() ahead is impossible");
+                                Y_ABORT_UNLESS((FutureRecvMask & newBit) == 0, "data from 2 Sync() ahead is impossible");
                                 FutureRecvMask |= newBit;
                             } else {
                                 recvMask |= newBit;
@@ -604,7 +604,7 @@ namespace NNetliba_v12 {
         }
 
         bool Resize(const TVector<size_t>& szPerRank) override {
-            Y_VERIFY(szPerRank.ysize() == ColSize, "Invalid size array");
+            Y_ABORT_UNLESS(szPerRank.ysize() == ColSize, "Invalid size array");
 
             TVector<size_t> offsets;
             offsets.push_back(0);
@@ -732,7 +732,7 @@ namespace NNetliba_v12 {
                 ibv_wc wc;
                 int rv = CQ->Poll(&wc, 1);
                 if (rv > 0) {
-                    Y_VERIFY(wc.status == IBV_WC_SUCCESS, "WaitForMsg() fail, status %d", (int)wc.status);
+                    Y_ABORT_UNLESS(wc.status == IBV_WC_SUCCESS, "WaitForMsg() fail, status %d", (int)wc.status);
                     if (wc.opcode & IBV_WC_RECV) {
                         BP->RequestPostRecv();
                         if (tbl->NeedQPN(wc.qp_num)) {
@@ -753,7 +753,7 @@ namespace NNetliba_v12 {
         }
 
         bool ProcessSendCompletion(const ibv_wc& wc) {
-            Y_VERIFY(wc.status == IBV_WC_SUCCESS, "WaitForMsg() fail, status %d", (int)wc.status);
+            Y_ABORT_UNLESS(wc.status == IBV_WC_SUCCESS, "WaitForMsg() fail, status %d", (int)wc.status);
             if (wc.opcode & IBV_WC_RECV) {
                 BP->RequestPostRecv();
                 Pending.push_back(TPendingMessage(wc.qp_num, wc.wr_id));
@@ -805,7 +805,7 @@ namespace NNetliba_v12 {
             for (;;) {
                 int rv = CQ->Poll(&wc, 1);
                 if (rv > 0) {
-                    Y_VERIFY(wc.status == IBV_WC_SUCCESS, "WaitForMsg() fail, status %d", (int)wc.status);
+                    Y_ABORT_UNLESS(wc.status == IBV_WC_SUCCESS, "WaitForMsg() fail, status %d", (int)wc.status);
                     if (wc.opcode & IBV_WC_RECV) {
                         BP->RequestPostRecv();
                         if ((int)wc.qp_num == qpn) {
@@ -956,7 +956,7 @@ namespace NNetliba_v12 {
         IAllGather* CreateAllGather(const TVector<size_t>& szPerRank) override {
             const TMergePlan& plan = MergePlan;
 
-            Y_VERIFY(szPerRank.ysize() == ColSize, "Invalid size array");
+            Y_ABORT_UNLESS(szPerRank.ysize() == ColSize, "Invalid size array");
 
             size_t totalSize = 0;
             for (int i = 0; i < szPerRank.ysize(); ++i) {
@@ -1003,7 +1003,7 @@ namespace NNetliba_v12 {
                 iter.RecvMask = rr.RecvMask;
             }
             bool rv = res->Resize(szPerRank);
-            Y_VERIFY(rv, "oops");
+            Y_ABORT_UNLESS(rv, "oops");
 
             return res;
         }
@@ -1086,7 +1086,7 @@ namespace NNetliba_v12 {
             res->ReadyOffsetMult = currentDataOffset;
 
             bool rv = res->Resize(dataSize);
-            Y_VERIFY(rv, "oops");
+            Y_ABORT_UNLESS(rv, "oops");
 
             return res;
         }

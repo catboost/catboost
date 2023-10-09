@@ -566,7 +566,7 @@ private:
                 ythrow yexception() << "Forked test finished with unknown status";
             }
             case TShellCommand::SHELL_RUNNING: {
-                Y_VERIFY(false, "This can't happen, we used sync mode, it's a bug!");
+                Y_ABORT_UNLESS(false, "This can't happen, we used sync mode, it's a bug!");
             }
             case TShellCommand::SHELL_INTERNAL_ERROR: {
                 ythrow yexception() << "Forked test failed with internal error: " << cmd.GetInternalError();
@@ -706,7 +706,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
         memset(&sa, 0, sizeof(sa));
         sa.sa_handler = GracefulShutdownHandler;
         sa.sa_flags = SA_SIGINFO | SA_RESTART;
-        Y_VERIFY(!sigaction(SIGUSR2, &sa, nullptr));
+        Y_ABORT_UNLESS(!sigaction(SIGUSR2, &sa, nullptr));
     }
 #endif
     NTesting::THook::CallBeforeInit();

@@ -280,7 +280,7 @@ namespace NPar {
             PAR_DEBUG_LOG << "From " << GetHostAndPort() << " sending request " << GetGuidAsString(reqId) << " url: " << url << " data len: " << (data ? data->size() : 0) << Endl;
             InternalSendQuery(address, reqId, url + "@" + ToString(ListenPort), data);
             reqInfo->Event.WaitI();
-            Y_VERIFY(DirectRequestsInfo.EraseValueIfPresent(reqId));
+            Y_ABORT_UNLESS(DirectRequestsInfo.EraseValueIfPresent(reqId));
             return std::move(reqInfo->Response);
         }
 

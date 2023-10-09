@@ -49,7 +49,7 @@ namespace NTextProcessing::NDictionary {
         if (optionsJson.Has(name)) {
             TStringBuf value = (optionsJson[name]).GetString();
             const bool isParsed = TryFromString<TType>(value, *result);
-            Y_VERIFY(isParsed, "Couldn't parse option \"%s\" with value = %s", name.data(), value.data());
+            Y_ABORT_UNLESS(isParsed, "Couldn't parse option \"%s\" with value = %s", name.data(), value.data());
         }
     }
 

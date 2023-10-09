@@ -1871,7 +1871,7 @@ namespace NNeh {
     }
 
     void SetHttpOutputConnectionsLimits(size_t softLimit, size_t hardLimit) {
-        Y_VERIFY(
+        Y_ABORT_UNLESS(
             hardLimit > softLimit,
             "invalid output fd limits; hardLimit=%" PRISZT ", softLimit=%" PRISZT,
             hardLimit, softLimit);
@@ -1880,7 +1880,7 @@ namespace NNeh {
     }
 
     void SetHttpInputConnectionsLimits(size_t softLimit, size_t hardLimit) {
-        Y_VERIFY(
+        Y_ABORT_UNLESS(
             hardLimit > softLimit,
             "invalid output fd limits; hardLimit=%" PRISZT ", softLimit=%" PRISZT,
             hardLimit, softLimit);
@@ -1889,7 +1889,7 @@ namespace NNeh {
     }
 
     void SetHttpInputConnectionsTimeouts(unsigned minSec, unsigned maxSec) {
-        Y_VERIFY(
+        Y_ABORT_UNLESS(
             maxSec > minSec,
             "invalid input fd limits timeouts; maxSec=%u, minSec=%u",
             maxSec, minSec);

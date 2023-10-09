@@ -146,7 +146,7 @@ TContExecutor::TContExecutor(
 }
 
 TContExecutor::~TContExecutor() {
-    Y_VERIFY(Allocated_ == 0, "leaked %u coroutines", (ui32)Allocated_);
+    Y_ABORT_UNLESS(Allocated_ == 0, "leaked %u coroutines", (ui32)Allocated_);
 }
 
 void TContExecutor::Execute() noexcept {

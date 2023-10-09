@@ -1,7 +1,7 @@
 #include "buffered_io.h"
 
 i64 IBinaryStream::LongWrite(const void* userBuffer, i64 size) {
-    Y_VERIFY(size >= 0, "IBinaryStream::Write() called with a negative buffer size.");
+    Y_ABORT_UNLESS(size >= 0, "IBinaryStream::Write() called with a negative buffer size.");
 
     i64 leftToWrite = size;
     while (leftToWrite != 0) {
@@ -19,7 +19,7 @@ i64 IBinaryStream::LongWrite(const void* userBuffer, i64 size) {
 }
 
 i64 IBinaryStream::LongRead(void* userBuffer, i64 size) {
-    Y_VERIFY(size >= 0, "IBinaryStream::Read() called with a negative buffer size.");
+    Y_ABORT_UNLESS(size >= 0, "IBinaryStream::Read() called with a negative buffer size.");
 
     i64 leftToRead = size;
     while (leftToRead != 0) {

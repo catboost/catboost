@@ -34,11 +34,11 @@ namespace NNetliba_v12 {
         }
 
         void SetDataTos(const int dataTos) {
-            Y_VERIFY(IsValidTos(dataTos), "Bad TOS!");
+            Y_ABORT_UNLESS(IsValidTos(dataTos), "Bad TOS!");
             DataTos = dataTos;
         }
         void SetAckTos(const int ackTos) {
-            Y_VERIFY(IsValidTos(ackTos), "Bad TOS!");
+            Y_ABORT_UNLESS(IsValidTos(ackTos), "Bad TOS!");
             AckTos = ackTos;
         }
 

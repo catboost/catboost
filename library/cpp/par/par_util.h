@@ -113,7 +113,7 @@ namespace NPar {
 
             void MRCommandComplete(bool isCanceled, TVector<TVector<char>>* res) override {
                 // easy way to get isCanceled here is to forget to call SetCotextData() for all hostIds
-                Y_VERIFY(!isCanceled);
+                Y_ABORT_UNLESS(!isCanceled);
                 Y_ASSERT(!IsReadyFlag);
                 Results.swap(*res);
                 IsReadyFlag = true;
@@ -153,7 +153,7 @@ namespace NPar {
         void GetResult(T* res) {
             TVector<TVector<char>> buf;
             GetRawResult(&buf);
-            Y_VERIFY(buf.ysize() == 1, "buf.ysize()=%d", buf.ysize());
+            Y_ABORT_UNLESS(buf.ysize() == 1, "buf.ysize()=%d", buf.ysize());
             SerializeFromMem(&buf[0], *res);
         }
         template <class T>

@@ -99,7 +99,7 @@ namespace {
             const TYandexConfig::Section* source,
             const TYandexConfig::Section* target,
             const TString& parentPrefix = TString()) {
-        Y_VERIFY(target);
+        Y_ABORT_UNLESS(target);
         const TString& prefix = parentPrefix ? (parentPrefix + ".") : parentPrefix;
 
         for (const auto& [name, value]: target->GetDirectives()) {
@@ -137,7 +137,7 @@ namespace {
             const bool needsIndex = targetSections.size() > 1;
 
             if (targetSections.empty()) {
-                Y_VERIFY(source);
+                Y_ABORT_UNLESS(source);
                 container[prefix + sectionName] = "__remove_all__";
             } else {
                 for (const size_t i: xrange(targetSections.size())) {

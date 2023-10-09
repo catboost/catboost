@@ -40,7 +40,7 @@ namespace NCoro::NStack {
 
     template<typename TGuard>
     NDetails::TStack TStorage::GetStack(const TGuard& guard, const char* name) {
-        Y_VERIFY(!IsEmpty()); // check before call
+        Y_ABORT_UNLESS(!IsEmpty()); // check before call
 
         void* newStack = nullptr;
         if (!Full_.empty()) {
@@ -52,8 +52,8 @@ namespace NCoro::NStack {
             Released_.pop_back();
         }
 
-        Y_VERIFY(guard.CheckOverflow(newStack), "corrupted stack in pool");
-        Y_VERIFY(guard.CheckOverride(newStack, StackSize_), "corrupted stack in pool");
+        Y_ABORT_UNLESS(guard.CheckOverflow(newStack), "corrupted stack in pool");
+        Y_ABORT_UNLESS(guard.CheckOverride(newStack, StackSize_), "corrupted stack in pool");
 
         return NDetails::TStack{newStack, newStack, StackSize_, name};
     }

@@ -188,7 +188,7 @@ namespace {
                     UpdateInFly();
                     TInFly::iterator it = InFly_.find(resp->ReqId);
 
-                    Y_VERIFY(it != InFly_.end(), "incorrect incoming message");
+                    Y_ABORT_UNLESS(it != InFly_.end(), "incorrect incoming message");
 
                     TRequestRef& req = it->second;
 
@@ -220,7 +220,7 @@ namespace {
                     UpdateInFly();
                     TInFly::iterator it = InFly_.find(guid);
 
-                    Y_VERIFY(it != InFly_.end(), "incorrect complete notification");
+                    Y_ABORT_UNLESS(it != InFly_.end(), "incorrect complete notification");
 
                     it->second->OnRequestAck();
                 }

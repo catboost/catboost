@@ -256,7 +256,7 @@ namespace NLastGetopt::NComp {
     }
 
     void TCustomCompleter::RegisterCustomCompleter(TCustomCompleter* completer) noexcept {
-        Y_VERIFY(completer);
+        Y_ABORT_UNLESS(completer);
         completer->Next_ = Head;
         Head = completer;
     }

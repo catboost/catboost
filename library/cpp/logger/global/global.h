@@ -81,7 +81,7 @@ public:
     do {                                                      \
         if (Y_UNLIKELY(!(expr))) {                            \
             FATAL_LOG << Sprintf(msg, ##__VA_ARGS__) << Endl; \
-            Y_VERIFY(false, msg, ##__VA_ARGS__);              \
+            Y_ABORT_UNLESS(false, msg, ##__VA_ARGS__);              \
         };                                                    \
     } while (0);
 

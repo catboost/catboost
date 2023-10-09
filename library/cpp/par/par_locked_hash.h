@@ -82,7 +82,7 @@ public:
     void EmplaceValue(const TKeyType& key, Args&&... args) {
         const auto binIndex = GetBinIndexForKey(key);
         with_lock (Locks[binIndex]) {
-            Y_VERIFY(Storages[binIndex].emplace(key, std::forward<Args>(args)...).second, "emplacing non uniq value");
+            Y_ABORT_UNLESS(Storages[binIndex].emplace(key, std::forward<Args>(args)...).second, "emplacing non uniq value");
         }
     }
     bool LockedValueModify(const TKeyType& key, std::function<void(TValueType& value)> functor) {

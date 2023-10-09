@@ -18,7 +18,7 @@ static bool
 AreJsonMapsEqual(const NJson::TJsonValue& lhs, const NJson::TJsonValue& rhs) {
     using namespace NJson;
 
-    Y_VERIFY(lhs.GetType() == JSON_MAP, "lhs has not a JSON_MAP type.");
+    Y_ABORT_UNLESS(lhs.GetType() == JSON_MAP, "lhs has not a JSON_MAP type.");
 
     if (rhs.GetType() != JSON_MAP)
         return false;
@@ -46,7 +46,7 @@ static bool
 AreJsonArraysEqual(const NJson::TJsonValue& lhs, const NJson::TJsonValue& rhs) {
     using namespace NJson;
 
-    Y_VERIFY(lhs.GetType() == JSON_ARRAY, "lhs has not a JSON_ARRAY type.");
+    Y_ABORT_UNLESS(lhs.GetType() == JSON_ARRAY, "lhs has not a JSON_ARRAY type.");
 
     if (rhs.GetType() != JSON_ARRAY)
         return false;

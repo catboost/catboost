@@ -17,9 +17,9 @@ namespace NPyBind {
         TAtExitRegistrar::TAtExitRegistrar(TPyObjectPtr module) {
             TPyObjectPtr atExitModuleName(Py_BuildValue("s", "atexit"), true);
             TPyObjectPtr atExitModule(PyImport_Import(atExitModuleName.Get()));
-            Y_VERIFY(atExitModule);
+            Y_ABORT_UNLESS(atExitModule);
             TPyObjectPtr finalizerFunc(PyObject_GetAttrString(module.Get(), "finalizer"), true);
-            Y_VERIFY(finalizerFunc);
+            Y_ABORT_UNLESS(finalizerFunc);
             TPyObjectPtr registerName(Py_BuildValue("s", "register"), true);
             PyObject_CallMethodObjArgs(atExitModule.Get(), registerName.Get(), finalizerFunc.Get(), nullptr);
         }
@@ -28,7 +28,7 @@ namespace NPyBind {
             TPyObjectPtr modules(PySys_GetObject("modules"));
             Y_ENSURE(modules.Get());
             if (Module = NPrivate::CreatePyBindModule()) {
-                Y_VERIFY(0 == PyDict_SetItemString(modules.Get(), "pybind", Module.RefGet()));
+                Y_ABORT_UNLESS(0 == PyDict_SetItemString(modules.Get(), "pybind", Module.RefGet()));
             }
             AddFinalizationCallBack([this]() {
                 auto ptr = Module;
@@ -37,7 +37,7 @@ namespace NPyBind {
                 Y_ENSURE(modules.Get());
                 TPyObjectPtr pyBindName(Py_BuildValue("s", "pybind"));
                 if (PyDict_Contains(modules.Get(), pyBindName.Get()) == 1) {
-                    Y_VERIFY(0==PyDict_DelItemString(modules.Get(), "pybind"));
+                    Y_ABORT_UNLESS(0==PyDict_DelItemString(modules.Get(), "pybind"));
                 }
                 if (Module) {
                     //We have to untrack the module because some refs from him refers to gc-leaked errors

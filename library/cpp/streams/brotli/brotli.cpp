@@ -55,7 +55,7 @@ public:
     void Finish() {
         Flush();
         DoWrite(nullptr, 0, BROTLI_OPERATION_FINISH);
-        Y_VERIFY(BrotliEncoderIsFinished(EncoderState_));
+        Y_ABORT_UNLESS(BrotliEncoderIsFinished(EncoderState_));
     }
 
 private:
@@ -171,7 +171,7 @@ public:
                 ythrow yexception() << "Brotli decoder failed to decompress buffer: "
                                     << BrotliDecoderErrorString(code);
             } else if (result == BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT) {
-                Y_VERIFY(availableOut != size,
+                Y_ABORT_UNLESS(availableOut != size,
                          "Buffer passed to read in Brotli decoder is too small");
                 break;
             }
@@ -213,7 +213,7 @@ private:
     }
 
     void ResetState() {
-        Y_VERIFY(BrotliDecoderIsFinished(DecoderState_));
+        Y_ABORT_UNLESS(BrotliDecoderIsFinished(DecoderState_));
         FreeDecoder();
         InitDecoder();
     }

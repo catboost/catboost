@@ -131,7 +131,7 @@ namespace NBalloc {
             for (res = Head; res; res = Head) {
                 TNode* keepNext = res->Next;
                 if (DoCas(&Head, keepNext, res)) {
-                    //Y_VERIFY(keepNext == res->Next);
+                    //Y_ABORT_UNLESS(keepNext == res->Next);
                     break;
                 }
             }

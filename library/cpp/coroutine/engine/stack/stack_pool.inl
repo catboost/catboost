@@ -91,7 +91,7 @@ namespace NCoro::NStack {
 
         TMemory memory;
         const auto res = GetAlignedMemory(totalSizeInPages, memory.Raw, memory.Aligned);
-        Y_VERIFY(res, "Failed to allocate memory for coro stack pool");
+        Y_ABORT_UNLESS(res, "Failed to allocate memory for coro stack pool");
 
         NextToAlloc_ = memory.Aligned + Guard_.GetPageAlignedSize(); // skip first guard page
         Guard_.Protect(memory.Aligned, Guard_.GetPageAlignedSize(), false); // protect first guard page

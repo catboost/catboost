@@ -402,7 +402,7 @@ namespace NNetliba_v12 {
                 map |= OV_HAS_TRANSFER_OPTIONS;
                 written += TransferOpt.Serialize(buf);
             }
-            Y_VERIFY(written < 255, "TOptionsVector is too long\n");
+            Y_ABORT_UNLESS(written < 255, "TOptionsVector is too long\n");
             Write(&start, (ui8)written);
             Write(&start, map);
             return written;
@@ -518,7 +518,7 @@ namespace NNetliba_v12 {
     inline void CheckedSendTo(TUdpSocket& s, const char (&buf)[TbufSize], const char* bufEnd, const sockaddr_in6& dst, const sockaddr_in6& src,
                               const ui8 tos, const EFragFlag frag) {
         const size_t len = bufEnd - buf;
-        Y_VERIFY(len <= TbufSize, "Increase buf size to at least %d bytes", (int)len);
+        Y_ABORT_UNLESS(len <= TbufSize, "Increase buf size to at least %d bytes", (int)len);
         s.SendTo(buf, len, {dst, src}, tos, frag);
     }
 

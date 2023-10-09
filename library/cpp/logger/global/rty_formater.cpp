@@ -12,7 +12,7 @@ namespace {
     constexpr size_t LocalTimeSBufferSize = sizeof("2017-07-24 12:20:34.313 +0300");
 
     size_t PrintLocalTimeS(const TInstant instant, char* const begin, const char* const end) {
-        Y_VERIFY(static_cast<size_t>(end - begin) >= LocalTimeSBufferSize);
+        Y_ABORT_UNLESS(static_cast<size_t>(end - begin) >= LocalTimeSBufferSize);
 
         struct tm tm;
         instant.LocalTime(&tm);
@@ -22,7 +22,7 @@ namespace {
         pos += strftime(pos, end - pos, "%Y-%m-%d %H:%M:%S.", &tm);
         pos += sprintf(pos, "%03" PRIu32, instant.MilliSecondsOfSecond());
         pos += strftime(pos, end - pos, " %z", &tm);
-        Y_VERIFY(LocalTimeSBufferSize - 1 == pos - begin); // together with Y_VERIFY above this also implies pos<=end
+        Y_ABORT_UNLESS(LocalTimeSBufferSize - 1 == pos - begin); // together with Y_VERIFY above this also implies pos<=end
         return (pos - begin);
     }
 }

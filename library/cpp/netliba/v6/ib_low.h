@@ -13,7 +13,7 @@ namespace NNetliba {
         int rv = (x);                                               \
         if (rv != 0) {                                              \
             fprintf(stderr, "check_z failed, errno = %d\n", errno); \
-            Y_VERIFY(0, "check_z");                                 \
+            Y_ABORT_UNLESS(0, "check_z");                                 \
         }                                                           \
     }
 
@@ -167,7 +167,7 @@ namespace NNetliba {
             //};
             int rv = ibv_poll_cq(CQ, bufSize, res);
             if (rv < 0) {
-                Y_VERIFY(0, "ibv_poll_cq failed");
+                Y_ABORT_UNLESS(0, "ibv_poll_cq failed");
             }
             if (rv > 0) {
                 //printf("Completed wr\n");

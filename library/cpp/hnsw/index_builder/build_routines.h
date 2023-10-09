@@ -108,7 +108,7 @@ namespace NHnsw {
                 Y_ASSERT(Ids.size() + batch.size() * NeighborsCount <= Ids.capacity());
 
                 for (const auto& neighbors: batch) {
-                    Y_VERIFY(neighbors.size() == NeighborsCount);
+                    Y_ABORT_UNLESS(neighbors.size() == NeighborsCount);
                     for (const auto& neighbor: neighbors) {
                         Distances.push_back(neighbor.Dist);
                         Ids.push_back(neighbor.Id);

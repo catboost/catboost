@@ -147,7 +147,7 @@ namespace NNetliba_v12 {
                     toRemove.push_back(it);
                 } else if (res == EIdleResult::ER_YIELD) {
                     LoopPreemptedNum++;
-                    Y_VERIFY(savedPos == CachedPos); //just to check nobody change me
+                    Y_ABORT_UNLESS(savedPos == CachedPos); //just to check nobody change me
                     CachedPos = it;
                     break;
                 }
@@ -171,7 +171,7 @@ namespace NNetliba_v12 {
         }
 
         void InsertToActive(TConnection* connection) {
-            Y_VERIFY(connection, "null connection inserted\n");
+            Y_ABORT_UNLESS(connection, "null connection inserted\n");
             if (connection->Inactivated == true) {
                 ActiveConnectionList.PushBack(connection);
             }
@@ -186,7 +186,7 @@ namespace NNetliba_v12 {
         }
 
         void InsertToSending(TConnection* connection) {
-            Y_VERIFY(connection, "null connection inserted\n");
+            Y_ABORT_UNLESS(connection, "null connection inserted\n");
             if (connection->Sending == false) {
                 SendingConnectionList.insert(SendingConnectionList.end(), connection);
             }
@@ -316,7 +316,7 @@ namespace NNetliba_v12 {
                         delete cancelCmd;
                     } break;
                     default:
-                        Y_VERIFY(false);
+                        Y_ABORT_UNLESS(false);
                         break;
                 }
             }
@@ -528,7 +528,7 @@ namespace NNetliba_v12 {
             while (IB->GetSendResult(&sr)) {
                 TIBtoTransferHash::iterator z = IBKeyToTransfer.find(sr.Handle);
                 if (z == IBKeyToTransfer.end()) {
-                    Y_VERIFY(0, "unknown handle returned from IB");
+                    Y_ABORT_UNLESS(0, "unknown handle returned from IB");
                 }
                 TTransfer transfer = z->second;
                 IBKeyToTransfer.erase(z);
@@ -536,7 +536,7 @@ namespace NNetliba_v12 {
                 TConnection* connection = CheckedCast<TConnection*>(transfer.Connection.Get());
                 TUdpOutTransfer* xferPtr = connection->GetSendQueue().Get(transfer.Id);
                 if (!xferPtr) {
-                    Y_VERIFY(0, "IBKeyToTransferKey refers nonexisting xfer");
+                    Y_ABORT_UNLESS(0, "IBKeyToTransferKey refers nonexisting xfer");
                 }
                 TUdpOutTransfer& xfer = *xferPtr;
 
@@ -586,7 +586,7 @@ namespace NNetliba_v12 {
         Y_ASSERT(connection);
 
         TTransfer transfer(connection, connection->GetNextTransferId());
-        Y_VERIFY(transfer.Id > 0, "transferId overflowed, wow you have counted to almost infinity!");
+        Y_ABORT_UNLESS(transfer.Id > 0, "transferId overflowed, wow you have counted to almost infinity!");
         TXUserQueue.EnqueueSend(transfer, data, pp, tos, netlibaColor);
         CancelWaitLow();
         return transfer;
@@ -1289,7 +1289,7 @@ namespace NNetliba_v12 {
             case ACK_RESEND_NOSHMEM: {
                 // abort execution here
                 // failed to open shmem on recv side, need to transmit data without using shmem
-                Y_VERIFY(0, "not implemented yet");
+                Y_ABORT_UNLESS(0, "not implemented yet");
                 return true;
             }
             default:

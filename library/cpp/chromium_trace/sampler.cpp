@@ -10,7 +10,7 @@ TSamplerThread::TSamplerThread(TTracer* tracer, TDuration interval)
     , Interval(interval)
     , Tracer(tracer)
 {
-    Y_VERIFY(Tracer);
+    Y_ABORT_UNLESS(Tracer);
 }
 
 TSamplerThread::~TSamplerThread() = default;
