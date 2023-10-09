@@ -9,6 +9,7 @@ from IPython.display import display
 
 from .metrics_plotter import MetricsPlotter
 
+
 class XGBPlottingCallback(XGBTrainingCallback):
     '''XGBoost callback with metrics plotting widget from CatBoost
     '''
