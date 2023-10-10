@@ -86,18 +86,18 @@ public:
 
     inline ~TImpl() {
         int ret = pthread_cond_destroy(&Cond_);
-        Y_VERIFY(ret == 0, "pthread_cond_destroy failed: %s", LastSystemErrorText(ret));
+        Y_ABORT_UNLESS(ret == 0, "pthread_cond_destroy failed: %s", LastSystemErrorText(ret));
     }
 
     inline void Signal() noexcept {
         int ret = pthread_cond_signal(&Cond_);
-        Y_VERIFY(ret == 0, "pthread_cond_signal failed: %s", LastSystemErrorText(ret));
+        Y_ABORT_UNLESS(ret == 0, "pthread_cond_signal failed: %s", LastSystemErrorText(ret));
     }
 
     inline bool WaitD(TMutex& lock, TInstant deadLine) noexcept {
         if (deadLine == TInstant::Max()) {
             int ret = pthread_cond_wait(&Cond_, (pthread_mutex_t*)lock.Handle());
-            Y_VERIFY(ret == 0, "pthread_cond_wait failed: %s", LastSystemErrorText(ret));
+            Y_ABORT_UNLESS(ret == 0, "pthread_cond_wait failed: %s", LastSystemErrorText(ret));
             return true;
         } else {
             struct timespec spec;
@@ -109,7 +109,7 @@ public:
 
             int ret = pthread_cond_timedwait(&Cond_, (pthread_mutex_t*)lock.Handle(), &spec);
 
-            Y_VERIFY(ret == 0 || ret == ETIMEDOUT, "pthread_cond_timedwait failed: %s", LastSystemErrorText(ret));
+            Y_ABORT_UNLESS(ret == 0 || ret == ETIMEDOUT, "pthread_cond_timedwait failed: %s", LastSystemErrorText(ret));
 
             return ret == 0;
         }
@@ -117,7 +117,7 @@ public:
 
     inline void BroadCast() noexcept {
         int ret = pthread_cond_broadcast(&Cond_);
-        Y_VERIFY(ret == 0, "pthread_cond_broadcast failed: %s", LastSystemErrorText(ret));
+        Y_ABORT_UNLESS(ret == 0, "pthread_cond_broadcast failed: %s", LastSystemErrorText(ret));
     }
 
 private:

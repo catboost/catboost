@@ -21,7 +21,7 @@ public:
     }
 
     inline void DoUndo(size_t len) {
-        Y_VERIFY(len <= Data_.Size(), "trying to undo more bytes than actually written");
+        Y_ABORT_UNLESS(len <= Data_.Size(), "trying to undo more bytes than actually written");
         Data_.Resize(Data_.size() - len);
     }
 
@@ -114,6 +114,6 @@ size_t TBufferInput::DoNext(const void** ptr, size_t len) {
 }
 
 void TBufferInput::DoUndo(size_t len) {
-    Y_VERIFY(len <= Readed_);
+    Y_ABORT_UNLESS(len <= Readed_);
     Readed_ -= len;
 }

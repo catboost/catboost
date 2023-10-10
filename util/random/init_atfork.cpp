@@ -14,7 +14,7 @@ namespace {
             (void)&AtFork;
 
 #if defined(_unix_)
-            Y_VERIFY(pthread_atfork(nullptr, AtFork, nullptr) == 0, "it happens");
+            Y_ABORT_UNLESS(pthread_atfork(nullptr, AtFork, nullptr) == 0, "it happens");
 #endif
         }
 

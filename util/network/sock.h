@@ -580,7 +580,7 @@ protected:
     TStreamSocket* Socket;
 
     size_t DoRead(void* buf, size_t len) override {
-        Y_VERIFY(Socket, "TStreamSocketInput: socket isn't set");
+        Y_ABORT_UNLESS(Socket, "TStreamSocketInput: socket isn't set");
         const ssize_t ret = Socket->Recv(buf, len);
 
         if (ret >= 0) {
@@ -608,7 +608,7 @@ protected:
     TStreamSocket* Socket;
 
     void DoWrite(const void* buf, size_t len) override {
-        Y_VERIFY(Socket, "TStreamSocketOutput: socket isn't set");
+        Y_ABORT_UNLESS(Socket, "TStreamSocketOutput: socket isn't set");
 
         const char* ptr = (const char*)buf;
         while (len) {

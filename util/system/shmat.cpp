@@ -170,7 +170,7 @@ static key_t GetKey(const TGUID& id) {
 }
 
 bool TSharedMemory::Open(const TGUID& id, int size) {
-    Y_VERIFY(id, "invalid shared memory guid: %s", GetGuidAsString(id).data());
+    Y_ABORT_UNLESS(id, "invalid shared memory guid: %s", GetGuidAsString(id).data());
 
     //Y_ASSERT(Data == 0);
     Size = size;

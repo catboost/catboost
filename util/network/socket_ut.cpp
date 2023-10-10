@@ -132,12 +132,12 @@ class TTempEnableSigPipe {
 public:
     TTempEnableSigPipe() {
         OriginalSigHandler_ = signal(SIGPIPE, SIG_DFL);
-        Y_VERIFY(OriginalSigHandler_ != SIG_ERR);
+        Y_ABORT_UNLESS(OriginalSigHandler_ != SIG_ERR);
     }
 
     ~TTempEnableSigPipe() {
         auto ret = signal(SIGPIPE, OriginalSigHandler_);
-        Y_VERIFY(ret != SIG_ERR);
+        Y_ABORT_UNLESS(ret != SIG_ERR);
     }
 
 private:
@@ -188,7 +188,7 @@ void TSockTest::TestClose() {
 void TSockTest::TestReusePortAvailCheck() {
 #if defined _linux_
     utsname sysInfo;
-    Y_VERIFY(!uname(&sysInfo), "Error while call uname: %s", LastSystemErrorText());
+    Y_ABORT_UNLESS(!uname(&sysInfo), "Error while call uname: %s", LastSystemErrorText());
     TStringBuf release(sysInfo.release);
     release = release.substr(0, release.find_first_not_of(".0123456789"));
     int v1 = FromString<int>(release.NextTok('.'));

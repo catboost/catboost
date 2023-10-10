@@ -12,7 +12,7 @@ size_t TStringInput::DoNext(const void** ptr, size_t len) {
 }
 
 void TStringInput::DoUndo(size_t len) {
-    Y_VERIFY(len <= Pos_);
+    Y_ABORT_UNLESS(len <= Pos_);
     Pos_ -= len;
 }
 
@@ -29,7 +29,7 @@ size_t TStringOutput::DoNext(void** ptr) {
 }
 
 void TStringOutput::DoUndo(size_t len) {
-    Y_VERIFY(len <= S_->size(), "trying to undo more bytes than actually written");
+    Y_ABORT_UNLESS(len <= S_->size(), "trying to undo more bytes than actually written");
     S_->resize(S_->size() - len);
 }
 

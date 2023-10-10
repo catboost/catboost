@@ -35,7 +35,7 @@ public:
 
             inline ~T() {
                 int result = pthread_mutexattr_destroy(&Attr);
-                Y_VERIFY(result == 0, "mutexattr destroy(%s)", LastSystemErrorText(result));
+                Y_ABORT_UNLESS(result == 0, "mutexattr destroy(%s)", LastSystemErrorText(result));
             }
         } pma;
 
@@ -51,7 +51,7 @@ public:
         DeleteCriticalSection(&Obj);
 #else
         int result = pthread_mutex_destroy(&Obj);
-        Y_VERIFY(result == 0, "mutex destroy failure (%s)", LastSystemErrorText(result));
+        Y_ABORT_UNLESS(result == 0, "mutex destroy failure (%s)", LastSystemErrorText(result));
 #endif
     }
 
@@ -60,7 +60,7 @@ public:
         EnterCriticalSection(&Obj);
 #else
         int result = pthread_mutex_lock(&Obj);
-        Y_VERIFY(result == 0, "mutex lock failure (%s)", LastSystemErrorText(result));
+        Y_ABORT_UNLESS(result == 0, "mutex lock failure (%s)", LastSystemErrorText(result));
 #endif
     }
 
@@ -104,7 +104,7 @@ public:
         LeaveCriticalSection(&Obj);
 #else
         int result = pthread_mutex_unlock(&Obj);
-        Y_VERIFY(result == 0, "mutex unlock failure (%s)", LastSystemErrorText(result));
+        Y_ABORT_UNLESS(result == 0, "mutex unlock failure (%s)", LastSystemErrorText(result));
 #endif
     }
 

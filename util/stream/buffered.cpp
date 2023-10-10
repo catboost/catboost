@@ -174,7 +174,7 @@ public:
     }
 
     inline void Undo(size_t len) {
-        Y_VERIFY(len <= Stored(), "trying to undo more bytes than actually written");
+        Y_ABORT_UNLESS(len <= Stored(), "trying to undo more bytes than actually written");
         MemOut_.Undo(len);
     }
 

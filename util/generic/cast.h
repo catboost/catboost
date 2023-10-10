@@ -18,7 +18,7 @@ static inline T VerifyDynamicCast(F f) {
 
     T ret = dynamic_cast<T>(f);
 
-    Y_VERIFY(ret, "verify cast failed");
+    Y_ABORT_UNLESS(ret, "verify cast failed");
 
     return ret;
 }

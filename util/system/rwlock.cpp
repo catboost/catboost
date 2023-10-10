@@ -42,8 +42,8 @@ TRWMutex::TImpl::TImpl()
 }
 
 TRWMutex::TImpl::~TImpl() {
-    Y_VERIFY(State_ == 0, "failure, State_ != 0");
-    Y_VERIFY(BlockedWriters_ == 0, "failure, BlockedWriters_ != 0");
+    Y_ABORT_UNLESS(State_ == 0, "failure, State_ != 0");
+    Y_ABORT_UNLESS(BlockedWriters_ == 0, "failure, BlockedWriters_ != 0");
 }
 
 void TRWMutex::TImpl::AcquireRead() noexcept {
@@ -173,44 +173,44 @@ TRWMutex::TImpl::TImpl() {
 
 TRWMutex::TImpl::~TImpl() {
     const int result = pthread_rwlock_destroy(&Lock_);
-    Y_VERIFY(result == 0, "rwlock destroy failed (%s)", LastSystemErrorText(result));
+    Y_ABORT_UNLESS(result == 0, "rwlock destroy failed (%s)", LastSystemErrorText(result));
 }
 
 void TRWMutex::TImpl::AcquireRead() noexcept {
     const int result = pthread_rwlock_rdlock(&Lock_);
-    Y_VERIFY(result == 0, "rwlock rdlock failed (%s)", LastSystemErrorText(result));
+    Y_ABORT_UNLESS(result == 0, "rwlock rdlock failed (%s)", LastSystemErrorText(result));
 }
 
 bool TRWMutex::TImpl::TryAcquireRead() noexcept {
     const int result = pthread_rwlock_tryrdlock(&Lock_);
-    Y_VERIFY(result == 0 || result == EBUSY, "rwlock tryrdlock failed (%s)", LastSystemErrorText(result));
+    Y_ABORT_UNLESS(result == 0 || result == EBUSY, "rwlock tryrdlock failed (%s)", LastSystemErrorText(result));
     return result == 0;
 }
 
 void TRWMutex::TImpl::ReleaseRead() noexcept {
     const int result = pthread_rwlock_unlock(&Lock_);
-    Y_VERIFY(result == 0, "rwlock (read) unlock failed (%s)", LastSystemErrorText(result));
+    Y_ABORT_UNLESS(result == 0, "rwlock (read) unlock failed (%s)", LastSystemErrorText(result));
 }
 
 void TRWMutex::TImpl::AcquireWrite() noexcept {
     const int result = pthread_rwlock_wrlock(&Lock_);
-    Y_VERIFY(result == 0, "rwlock wrlock failed (%s)", LastSystemErrorText(result));
+    Y_ABORT_UNLESS(result == 0, "rwlock wrlock failed (%s)", LastSystemErrorText(result));
 }
 
 bool TRWMutex::TImpl::TryAcquireWrite() noexcept {
     const int result = pthread_rwlock_trywrlock(&Lock_);
-    Y_VERIFY(result == 0 || result == EBUSY, "rwlock trywrlock failed (%s)", LastSystemErrorText(result));
+    Y_ABORT_UNLESS(result == 0 || result == EBUSY, "rwlock trywrlock failed (%s)", LastSystemErrorText(result));
     return result == 0;
 }
 
 void TRWMutex::TImpl::ReleaseWrite() noexcept {
     const int result = pthread_rwlock_unlock(&Lock_);
-    Y_VERIFY(result == 0, "rwlock (write) unlock failed (%s)", LastSystemErrorText(result));
+    Y_ABORT_UNLESS(result == 0, "rwlock (write) unlock failed (%s)", LastSystemErrorText(result));
 }
 
 void TRWMutex::TImpl::Release() noexcept {
     const int result = pthread_rwlock_unlock(&Lock_);
-    Y_VERIFY(result == 0, "rwlock unlock failed (%s)", LastSystemErrorText(result));
+    Y_ABORT_UNLESS(result == 0, "rwlock unlock failed (%s)", LastSystemErrorText(result));
 }
 
 #endif

@@ -561,9 +561,9 @@ void TSocketHolder::Close() noexcept {
 // because often it means double close
 // that is disasterous
 #ifdef _win_
-            Y_VERIFY(WSAGetLastError() != WSAENOTSOCK, "must not quietly close bad socket descriptor");
+            Y_ABORT_UNLESS(WSAGetLastError() != WSAENOTSOCK, "must not quietly close bad socket descriptor");
 #elif defined(_unix_)
-            Y_VERIFY(errno != EBADF, "must not quietly close bad descriptor: fd=%d", int(Fd_));
+            Y_ABORT_UNLESS(errno != EBADF, "must not quietly close bad descriptor: fd=%d", int(Fd_));
 #else
     #error unsupported platform
 #endif

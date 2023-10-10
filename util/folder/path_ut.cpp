@@ -39,10 +39,10 @@ namespace {
     };
 
     TTestDirectory::TTestDirectory(const TString& name) {
-        Y_VERIFY(name.length() > 0, "have to specify name");
-        Y_VERIFY(name.find('.') == TString::npos, "must be simple name");
-        Y_VERIFY(name.find('/') == TString::npos, "must be simple name");
-        Y_VERIFY(name.find('\\') == TString::npos, "must be simple name");
+        Y_ABORT_UNLESS(name.length() > 0, "have to specify name");
+        Y_ABORT_UNLESS(name.find('.') == TString::npos, "must be simple name");
+        Y_ABORT_UNLESS(name.find('/') == TString::npos, "must be simple name");
+        Y_ABORT_UNLESS(name.find('\\') == TString::npos, "must be simple name");
         Path_ = TFsPath(name);
 
         Path_.ForceDelete();

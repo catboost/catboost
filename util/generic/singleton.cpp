@@ -45,7 +45,7 @@ void NPrivate::FillWithTrash(void* ptr, size_t len) {
 void NPrivate::LockRecursive(std::atomic<size_t>& lock) noexcept {
     const size_t id = MyThreadId();
 
-    Y_VERIFY(lock.load(std::memory_order_acquire) != id, "recursive singleton initialization");
+    Y_ABORT_UNLESS(lock.load(std::memory_order_acquire) != id, "recursive singleton initialization");
 
     if (!MyAtomicTryLock(lock, id)) {
         TSpinWait sw;
@@ -57,6 +57,6 @@ void NPrivate::LockRecursive(std::atomic<size_t>& lock) noexcept {
 }
 
 void NPrivate::UnlockRecursive(std::atomic<size_t>& lock) noexcept {
-    Y_VERIFY(lock.load(std::memory_order_acquire) == MyThreadId(), "unlock from another thread?!?!");
+    Y_ABORT_UNLESS(lock.load(std::memory_order_acquire) == MyThreadId(), "unlock from another thread?!?!");
     lock.store(0);
 }

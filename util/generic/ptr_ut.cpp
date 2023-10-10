@@ -806,7 +806,7 @@ public:
     }
 
     void DecRef() noexcept {
-        Y_VERIFY(--ExternalCounter_.Counter != 0);
+        Y_ABORT_UNLESS(--ExternalCounter_.Counter != 0);
     }
 
 private:

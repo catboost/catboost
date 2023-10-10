@@ -47,7 +47,7 @@ namespace NPrivate {
      */
     template <class T, class TRandGen>
     static T GenUniform(T max, TRandGen&& gen) {
-        Y_VERIFY(max > 0, "Invalid random number range [0, 0)");
+        Y_ABORT_UNLESS(max > 0, "Invalid random number range [0, 0)");
 
         const T randmax = gen.RandMax() - gen.RandMax() % max;
         T rand;

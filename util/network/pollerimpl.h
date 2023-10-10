@@ -139,7 +139,7 @@ public:
         EV_SET(e + 0, fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
         EV_SET(e + 1, fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
 
-        Y_VERIFY(!(Kevent(Fd_, e, 2, nullptr, 0, nullptr) == -1 && errno != ENOENT), "kevent remove failed: %s", LastSystemErrorText());
+        Y_ABORT_UNLESS(!(Kevent(Fd_, e, 2, nullptr, 0, nullptr) == -1 && errno != ENOENT), "kevent remove failed: %s", LastSystemErrorText());
     }
 
     inline size_t Wait(TEvent* events, size_t len, int timeout) noexcept {
@@ -150,7 +150,7 @@ public:
 
         const int ret = Kevent(Fd_, nullptr, 0, events, len, &ts);
 
-        Y_VERIFY(ret >= 0, "kevent failed: %s", LastSystemErrorText());
+        Y_ABORT_UNLESS(ret >= 0, "kevent failed: %s", LastSystemErrorText());
 
         return (size_t)ret;
     }
@@ -277,7 +277,7 @@ public:
     inline size_t Wait(TEvent* events, size_t len, int timeout) noexcept {
         const int ret = ContEpollWait(Fd_, events, len, MicroToMilli(timeout));
 
-        Y_VERIFY(ret >= 0, "epoll wait error: %s", LastSystemErrorText());
+        Y_ABORT_UNLESS(ret >= 0, "epoll wait error: %s", LastSystemErrorText());
 
         return (size_t)ret;
     }
@@ -527,7 +527,7 @@ public:
             TryWait();
         }
 
-        Y_VERIFY(ret >= 0 && (size_t)ret <= len, "select error: %s", LastSystemErrorText());
+        Y_ABORT_UNLESS(ret >= 0 && (size_t)ret <= len, "select error: %s", LastSystemErrorText());
 
         TEvent* eventsStart = events;
 

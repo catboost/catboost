@@ -29,7 +29,7 @@ Y_UNIT_TEST_SUITE(YassertTest) {
     }
 
     Y_UNIT_TEST(TestVerify) {
-        Y_VERIFY(true, "hi %s", "there");
-        Y_VERIFY(true);
+        Y_ABORT_UNLESS(true, "hi %s", "there");
+        Y_ABORT_UNLESS(true);
     }
 }

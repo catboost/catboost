@@ -129,7 +129,7 @@ namespace {
     #else
             int ret = sem_post(Handle);
     #endif
-            Y_VERIFY(ret == 0, "can not release semaphore");
+            Y_ABORT_UNLESS(ret == 0, "can not release semaphore");
 #endif
         }
 
@@ -137,7 +137,7 @@ namespace {
         //hence to maintain consistancy, for win32 case we use INFINITE or 0 timeout.
         inline void Acquire() noexcept {
 #ifdef _win_
-            Y_VERIFY(::WaitForSingleObject(Handle, INFINITE) == WAIT_OBJECT_0, "can not acquire semaphore");
+            Y_ABORT_UNLESS(::WaitForSingleObject(Handle, INFINITE) == WAIT_OBJECT_0, "can not acquire semaphore");
 #else
     #ifdef USE_SYSV_SEMAPHORES
             struct sembuf ops[] = {{0, -1, SEM_UNDO}};
@@ -145,7 +145,7 @@ namespace {
     #else
             int ret = sem_wait(Handle);
     #endif
-            Y_VERIFY(ret == 0, "can not acquire semaphore");
+            Y_ABORT_UNLESS(ret == 0, "can not acquire semaphore");
 #endif
         }
 
@@ -183,20 +183,20 @@ namespace {
         }
 
         inline ~TPosixSemaphore() {
-            Y_VERIFY(sem_destroy(&S_) == 0, "semaphore destroy failed");
+            Y_ABORT_UNLESS(sem_destroy(&S_) == 0, "semaphore destroy failed");
         }
 
         inline void Acquire() noexcept {
-            Y_VERIFY(sem_wait(&S_) == 0, "semaphore acquire failed");
+            Y_ABORT_UNLESS(sem_wait(&S_) == 0, "semaphore acquire failed");
         }
 
         inline void Release() noexcept {
-            Y_VERIFY(sem_post(&S_) == 0, "semaphore release failed");
+            Y_ABORT_UNLESS(sem_post(&S_) == 0, "semaphore release failed");
         }
 
         inline bool TryAcquire() noexcept {
             if (sem_trywait(&S_)) {
-                Y_VERIFY(errno == EAGAIN, "semaphore try wait failed");
+                Y_ABORT_UNLESS(errno == EAGAIN, "semaphore try wait failed");
 
                 return false;
             }

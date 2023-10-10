@@ -199,7 +199,7 @@ TFsPath::TSplit& TFsPath::GetSplit() const {
 }
 
 static Y_FORCE_INLINE void VerifyPath(const TStringBuf path) {
-    Y_VERIFY(!path.Contains('\0'), "wrong format of TFsPath: %s", EscapeC(path).c_str());
+    Y_ABORT_UNLESS(!path.Contains('\0'), "wrong format of TFsPath: %s", EscapeC(path).c_str());
 }
 
 TFsPath::TFsPath() {

@@ -66,7 +66,7 @@ static bool IsStupidFlagCombination(EOpenMode oMode) {
 TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
     ui32 fcMode = 0;
     EOpenMode createMode = oMode & MaskCreation;
-    Y_VERIFY(!IsStupidFlagCombination(oMode), "oMode %d makes no sense", static_cast<int>(oMode));
+    Y_ABORT_UNLESS(!IsStupidFlagCombination(oMode), "oMode %d makes no sense", static_cast<int>(oMode));
     if (!(oMode & MaskRW)) {
         oMode |= RdWr;
     }
@@ -274,8 +274,8 @@ bool TFileHandle::Close() noexcept {
         isOk = (::CloseHandle(Fd_) != 0);
     }
     if (!isOk) {
-        Y_VERIFY(GetLastError() != ERROR_INVALID_HANDLE,
-                 "must not quietly close invalid handle");
+        Y_ABORT_UNLESS(GetLastError() != ERROR_INVALID_HANDLE,
+                       "must not quietly close invalid handle");
     }
 #elif defined(_unix_)
     if (Fd_ != INVALID_FHANDLE) {
@@ -285,7 +285,7 @@ bool TFileHandle::Close() noexcept {
         // Do not quietly close bad descriptor,
         // because often it means double close
         // that is disasterous
-        Y_VERIFY(errno != EBADF, "must not quietly close bad descriptor: fd=%d", int(Fd_));
+        Y_ABORT_UNLESS(errno != EBADF, "must not quietly close bad descriptor: fd=%d", int(Fd_));
     }
 #else
     #error unsupported platform
