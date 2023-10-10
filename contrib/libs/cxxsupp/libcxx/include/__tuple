@@ -91,6 +91,7 @@ struct __integer_sequence {
   using __to_tuple_indices = __tuple_indices<(_Values + _Sp)...>;
 };
 
+// Disable Clang builtins which nvcc does not understand
 #if defined(__CUDACC__) || !__has_builtin(__make_integer_seq) || defined(_LIBCPP_TESTING_FALLBACK_MAKE_INTEGER_SEQUENCE)
 namespace __detail {
 
@@ -133,6 +134,7 @@ template<> struct __parity<7> { template<size_t _Np> struct __pmake : __repeat<t
 
 #endif // !__has_builtin(__make_integer_seq) || defined(_LIBCPP_TESTING_FALLBACK_MAKE_INTEGER_SEQUENCE)
 
+// Disable Clang builtins which nvcc does not understand
 #if __has_builtin(__make_integer_seq) && !defined(__CUDACC__)
 template <size_t _Ep, size_t _Sp>
 using __make_indices_imp =
