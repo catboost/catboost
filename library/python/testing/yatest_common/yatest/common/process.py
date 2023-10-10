@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import io
 import os
 import re
 import time
@@ -547,13 +548,14 @@ def execute(
 
     def get_out_stream(stream, default_name):
         mode = 'w+t' if text else 'w+b'
+        open_kwargs = {'errors': 'ignore', 'encoding': 'utf-8'} if text else {}
         if stream is None:
             # No stream is supplied: open new temp file
-            return _get_command_output_file(command, default_name, mode), False
+            return _get_command_output_file(command, default_name, mode, open_kwargs), False
 
         if isinstance(stream, six.string_types):
             # User filename is supplied: open file for writing
-            return open(stream, mode), stream.startswith('/dev/')
+            return io.open(stream, mode, **open_kwargs), stream.startswith('/dev/')
 
         # Open file or PIPE sentinel is supplied
         is_pipe = stream == subprocess.PIPE
@@ -650,7 +652,9 @@ def execute(
     return res
 
 
-def _get_command_output_file(cmd, ext, mode):
+def _get_command_output_file(cmd, ext, mode, open_kwargs=None):
+    if open_kwargs is None:
+        open_kwargs = {}
     parts = [get_command_name(cmd)]
     if 'YA_RETRY_INDEX' in os.environ:
         parts.append('retry{}'.format(os.environ.get('YA_RETRY_INDEX')))
@@ -667,9 +671,9 @@ def _get_command_output_file(cmd, ext, mode):
             raise ImportError("not in test")
         filename = path.get_unique_file_path(yatest.common.output_path(), filename)
         yatest_logger.debug("Command %s will be placed to %s", ext, os.path.basename(filename))
-        return open(filename, mode)
+        return io.open(filename, mode, **open_kwargs)
     except ImportError:
-        return tempfile.NamedTemporaryFile(mode=mode, delete=False, suffix=filename)
+        return tempfile.NamedTemporaryFile(mode=mode, delete=False, suffix=filename, **(open_kwargs if six.PY3 else {}))
 
 
 def _get_proc_tree_info(pids):
