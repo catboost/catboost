@@ -42,6 +42,7 @@ _Alias:_`objective`
 - {{ error-function__YetiRankPairwise }}
 - {{ error-function__StochasticFilter }}
 - {{ error-function__StochasticRank }}
+- {{ error-function__LambdaMart }}
 
 {% endcut %}
 

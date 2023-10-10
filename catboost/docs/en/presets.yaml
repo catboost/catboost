@@ -253,6 +253,7 @@ default:
   error-function__dcg: DCG
   error-function__FilteredDCG: FilteredDCG
   error-function__FilteredNDCG: FilteredNDCG
+  error-function__LambdaMart: LambdaMart
   error-function__StochasticFilter: StochasticFilter
   error-function__StochasticRank: StochasticRank
   error-function__ndcg__type__Exp: Exp

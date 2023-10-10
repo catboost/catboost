@@ -285,6 +285,44 @@ _Default_: 1.
 {% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 
+### {{ error-function__LambdaMart }} {#LambdaMart}
+
+Directly optimize the selected metric. The value of the selected metric is written to [output data](../concepts/output-data.md)
+
+Refer to the [From RankNet to LambdaRank to LambdaMART](https://www.microsoft.com/en-us/research/uploads/prod/2016/02/MSR-TR-2010-82.pdf) paper for details.
+
+**{{ optimization }}** See [more](#usage-information).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% cut "{{ loss-functions__params__metric }}" %}
+
+The metric that should be optimized.
+
+_Default_: `{{ error-function__ndcg }}`
+_Supported values_: `{{ error-function__dcg }}`, `{{ error-function__ndcg }}`, `{{ error-function__mrr }}`, `{{ error-function__err }}`, `{{ error-function__mapk }}`.
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__sigma }}" %}
+
+General sigmoid parameter. See [From RankNet to LambdaRank to LambdaMART](https://www.microsoft.com/en-us/research/uploads/prod/2016/02/MSR-TR-2010-82.pdf) paper for details.
+
+_Default_: 1.0
+_Supported values_: Real positive values.
+
+{% endcut %}
+
+{% cut "norm" %}
+
+Derivatives should be normalized.
+
+_Default_: True
+_Supported values_: False, True.
+
+{% endcut %}
+
+
 ### {{ error-function__StochasticFilter }} {#StochasticFilter}
 
 Directly optimize the {{ error-function__FilteredDCG }} metric calculated for a pre-defined order of objects for filtration of objects under a fixed ranking. As a result, the {{ error-function__FilteredDCG }} metric can be used for optimization.
@@ -691,6 +729,7 @@ _Examples_: `AUC:type=Ranking;use_weights=False`.
 [{{ error-function__PairAccuracy }}](#PairAccuracy)           |     -                   |     -                   |
 [{{ error-function__YetiRank }}](#YetiRank)                   |     +                   |     + (but only Classic mode) |
 [{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   |     + (but only Classic mode) |
+[{{ error-function__LambdaMart }}](#LambdaMart)               |     +                   |     -                   |
 [{{ error-function__StochasticFilter }}](#StochasticFilter)   |     +                   |     -                   |
 [{{ error-function__StochasticRank }}](#StochasticRank)       |     +                   |     -                   |
 [{{ error-function__QueryCrossEntropy }}](#QueryCrossEntropy) |     +                   |     +                   |
