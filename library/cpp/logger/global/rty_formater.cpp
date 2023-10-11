@@ -22,7 +22,7 @@ namespace {
         pos += strftime(pos, end - pos, "%Y-%m-%d %H:%M:%S.", &tm);
         pos += sprintf(pos, "%03" PRIu32, instant.MilliSecondsOfSecond());
         pos += strftime(pos, end - pos, " %z", &tm);
-        Y_ABORT_UNLESS(LocalTimeSBufferSize - 1 == pos - begin); // together with Y_VERIFY above this also implies pos<=end
+        Y_ABORT_UNLESS(LocalTimeSBufferSize - 1 == pos - begin); // together with Y_ABORT_UNLESS above this also implies pos<=end
         return (pos - begin);
     }
 }
