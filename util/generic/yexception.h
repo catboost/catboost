@@ -163,7 +163,7 @@ TString CurrentExceptionMessage();
  * The speed of this method is not guaranteed either. Do not call it in hot paths of your code.
  *
  * The lack of current exception prior to the invocation indicates logical bug in the client code.
- * Y_VERIFY asserts the existence of exception, otherwise panic and abort.
+ * Y_ABORT_UNLESS asserts the existence of exception, otherwise panic and abort.
  */
 TString FormatCurrentException();
 void FormatCurrentExceptionTo(IOutputStream& out);
