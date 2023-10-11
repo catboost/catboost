@@ -165,6 +165,7 @@ template <class... Types>
 
 */
 
+#include <__assert> // all public C++ headers provide the assertion handler
 #include <__compare/common_comparison_category.h>
 #include <__compare/synth_three_way.h>
 #include <__config>
@@ -1627,7 +1628,7 @@ inline _LIBCPP_INLINE_VISIBILITY
 constexpr decltype(auto) __apply_tuple_impl(_Fn && __f, _Tuple && __t,
                                             __tuple_indices<_Id...>)
 _LIBCPP_NOEXCEPT_RETURN(
-    _VSTD::__invoke_constexpr(
+    _VSTD::__invoke(
         _VSTD::forward<_Fn>(__f),
         _VSTD::get<_Id>(_VSTD::forward<_Tuple>(__t))...)
 )
