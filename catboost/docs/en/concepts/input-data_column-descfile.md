@@ -24,6 +24,7 @@ The columns description file is optional. {{ column-desc__default }}
 * [{{ cd-file__col-type__Num }}](#num)
 * [{{ cd-file__col-type__Categ }}](#categ)
 * [{{ cd-file__col-type__Text }}](#text)
+* [{{ cd-file__col-type__NumVector }}](#numvector)
 * [{{ cd-file__col-type__Auxiliary }}](#auxiliary)
 * [{{ cd-file__col-type__SampleId }}](#sampleId)
 * [{{ cd-file__col-type__Weight }}](#weight)

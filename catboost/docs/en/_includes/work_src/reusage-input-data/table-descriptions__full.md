@@ -29,6 +29,10 @@ A categorical feature.
 
 A text feature.
 
+#### {{ cd-file__col-type__NumVector }}
+
+An array of numbers that represent an embedding feature.
+
 #### {{ cd-file__col-type__Auxiliary }}
 
 Any data.

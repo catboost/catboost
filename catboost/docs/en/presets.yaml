@@ -438,6 +438,7 @@ default:
   cd-file__col-type__SubgroupId: SubgroupId
   cd-file__col-type__Timestamp: Timestamp
   cd-file__col-type__Position: Position
+  cd-file__col-type__NumVector: NumVector
   cd-file__internal__RequestId: RequestId
   cd-file__internal__Rating: Rating
   cd-file__internal__Grouping: Grouping
