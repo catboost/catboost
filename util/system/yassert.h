@@ -94,7 +94,6 @@ namespace NPrivate {
                                                                                    " " __VA_ARGS__);         \
         }                                                                                                    \
     } while (false)
-#define Y_VERIFY(...) Y_ABORT_UNLESS(__VA_ARGS__)
 
 #define Y_ABORT(...) Y_ABORT_UNLESS(false, __VA_ARGS__)
 #define Y_FAIL Y_ABORT
