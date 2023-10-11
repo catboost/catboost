@@ -287,7 +287,7 @@ class link:
 
     updating = False
 
-    def __init__(self, source, target, transform=None):
+    def __init__(self, source: t.Any, target: t.Any, transform: t.Any = None) -> None:
         _validate_link(source, target)
         self.source, self.target = source, target
         self._transform, self._transform_inv = transform if transform else (lambda x: x,) * 2
@@ -372,7 +372,7 @@ class directional_link:
 
     updating = False
 
-    def __init__(self, source, target, transform=None):
+    def __init__(self, source: t.Any, target: t.Any, transform: t.Any = None) -> None:
         self._transform = transform if transform else lambda x: x
         _validate_link(source, target)
         self.source, self.target = source, target
@@ -504,7 +504,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         help: str | None = None,
         config: t.Any = None,
         **kwargs: t.Any,
-    ):
+    ) -> None:
         """Declare a traitlet.
 
         If *allow_none* is True, None is a valid value in addition to any
@@ -919,7 +919,7 @@ class _CallbackWrapper:
     callbacks.
     """
 
-    def __init__(self, cb):
+    def __init__(self, cb: t.Any) -> None:
         self.cb = cb
         # Bound methods have an additional 'self' argument.
         offset = -1 if isinstance(self.cb, types.MethodType) else 0
@@ -980,7 +980,7 @@ class MetaHasDescriptors(type):
 
         return super().__new__(mcls, name, bases, classdict)
 
-    def __init__(cls, name, bases, classdict):
+    def __init__(cls, name: str, bases: t.Any, classdict: t.Any) -> None:
         """Finish initializing the HasDescriptors class."""
         super().__init__(name, bases, classdict)
         cls.setup_class(classdict)
@@ -1233,12 +1233,23 @@ def default(name: str) -> DefaultHandler:
     return DefaultHandler(name)
 
 
+FuncT = t.TypeVar("FuncT", bound=t.Callable[..., t.Any])
+
+
 class EventHandler(BaseDescriptor):
-    def _init_call(self, func):
+    def _init_call(self, func: FuncT) -> EventHandler:
         self.func = func
         return self
 
-    def __call__(self, *args, **kwargs):
+    @t.overload
+    def __call__(self, func: FuncT, *args: t.Any, **kwargs: t.Any) -> FuncT:
+        ...
+
+    @t.overload
+    def __call__(self, *args: t.Any, **kwargs: t.Any) -> t.Any:
+        ...
+
+    def __call__(self, *args: t.Any, **kwargs: t.Any) -> t.Any:
         """Pass `*args` and `**kwargs` to the handler's function if it exists."""
         if hasattr(self, "func"):
             return self.func(*args, **kwargs)
@@ -1252,7 +1263,7 @@ class EventHandler(BaseDescriptor):
 
 
 class ObserveHandler(EventHandler):
-    def __init__(self, names, type):
+    def __init__(self, names: t.Any, type: t.Any) -> None:
         self.trait_names = names
         self.type = type
 
@@ -1261,7 +1272,7 @@ class ObserveHandler(EventHandler):
 
 
 class ValidateHandler(EventHandler):
-    def __init__(self, names):
+    def __init__(self, names: t.Any) -> None:
         self.trait_names = names
 
     def instance_init(self, inst):
@@ -1269,7 +1280,7 @@ class ValidateHandler(EventHandler):
 
 
 class DefaultHandler(EventHandler):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.trait_name = name
 
     def class_init(self, cls, name):
@@ -1337,7 +1348,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         self._cross_validation_lock = False
         super(HasTraits, self).setup_instance(*args, **kwargs)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None:
         # Allow trait values to be set using keyword arguments.
         # We need to use setattr for this to trigger validation and
         # notifications.
@@ -2024,7 +2035,7 @@ class Type(ClassBasedTraitType[G, S]):
             help: str | None = ...,
             config: t.Any | None = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -2037,7 +2048,7 @@ class Type(ClassBasedTraitType[G, S]):
             help: str | None = ...,
             config: t.Any | None = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -2050,7 +2061,7 @@ class Type(ClassBasedTraitType[G, S]):
             help: str | None = ...,
             config: t.Any | None = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -2063,10 +2074,19 @@ class Type(ClassBasedTraitType[G, S]):
             help: str | None = ...,
             config: t.Any | None = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
-    def __init__(self, default_value=Undefined, klass=None, allow_none=False, **kwargs):
+    def __init__(
+        self,
+        default_value: t.Any = Undefined,
+        klass: t.Any = None,
+        allow_none: bool = False,
+        read_only: bool | None = None,
+        help: str | None = None,
+        config: t.Any | None = None,
+        **kwargs: t.Any,
+    ) -> None:
         """Construct a Type trait
 
         A Type trait specifies that its values must be subclasses of
@@ -2108,7 +2128,14 @@ class Type(ClassBasedTraitType[G, S]):
 
         self.klass = klass
 
-        super().__init__(new_default_value, allow_none=allow_none, **kwargs)
+        super().__init__(
+            new_default_value,
+            allow_none=allow_none,
+            read_only=read_only,
+            help=help,
+            config=config,
+            **kwargs,
+        )
 
     def validate(self, obj, value):
         """Validates that the value is a valid object instance."""
@@ -2277,7 +2304,7 @@ class Instance(ClassBasedTraitType[T, T]):
         self.default_args = args
         self.default_kwargs = kw
 
-        super().__init__(allow_none=allow_none, **kwargs)
+        super().__init__(allow_none=allow_none, read_only=read_only, help=help, **kwargs)
 
     def validate(self, obj, value):
         assert self.klass is not None
@@ -2359,7 +2386,7 @@ class This(ClassBasedTraitType[t.Optional[T], t.Optional[T]]):
 
     info_text = "an instance of the same type as the receiver or None"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: t.Any) -> None:
         super().__init__(None, **kwargs)
 
     def validate(self, obj, value):
@@ -2376,7 +2403,7 @@ class This(ClassBasedTraitType[t.Optional[T], t.Optional[T]]):
 class Union(TraitType[t.Any, t.Any]):
     """A trait type representing a Union type."""
 
-    def __init__(self, trait_types, **kwargs):
+    def __init__(self, trait_types: t.Any, **kwargs: t.Any) -> None:
         """Construct a Union  trait.
 
         This trait allows values that are allowed by at least one of the
@@ -2470,52 +2497,52 @@ class Any(TraitType[t.Optional[t.Any], t.Optional[t.Any]]):
         @t.overload
         def __init__(
             self: Any,
-            default_value: str = ...,
+            default_value: t.Any = ...,
             *,
             allow_none: Literal[False],
             read_only: bool | None = ...,
             help: str | None = ...,
             config: t.Any | None = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
         def __init__(
             self: Any,
-            default_value: str = ...,
+            default_value: t.Any = ...,
             *,
             allow_none: Literal[True],
             read_only: bool | None = ...,
             help: str | None = ...,
             config: t.Any | None = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
         def __init__(
             self: Any,
-            default_value: str = ...,
+            default_value: t.Any = ...,
             *,
             allow_none: Literal[True, False] = ...,
             help: str | None = ...,
             read_only: bool | None = False,
             config: t.Any = None,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         def __init__(
             self: Any,
-            default_value: str = ...,
+            default_value: t.Any = ...,
             *,
-            allow_none: bool | None = False,
+            allow_none: bool = False,
             help: str | None = "",
             read_only: bool | None = False,
             config: t.Any = None,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -2577,7 +2604,7 @@ class Int(TraitType[G, S]):
         help: str | None = ...,
         config: t.Any | None = ...,
         **kwargs: t.Any,
-    ):
+    ) -> None:
         ...
 
     @t.overload
@@ -2589,13 +2616,28 @@ class Int(TraitType[G, S]):
         help: str | None = ...,
         config: t.Any | None = ...,
         **kwargs: t.Any,
-    ):
+    ) -> None:
         ...
 
-    def __init__(self, default_value=Undefined, allow_none=False, **kwargs):
+    def __init__(
+        self,
+        default_value: t.Any = Undefined,
+        allow_none: bool = False,
+        read_only: bool | None = None,
+        help: str | None = None,
+        config: t.Any | None = None,
+        **kwargs: t.Any,
+    ) -> None:
         self.min = kwargs.pop("min", None)
         self.max = kwargs.pop("max", None)
-        super().__init__(default_value=default_value, allow_none=allow_none, **kwargs)
+        super().__init__(
+            default_value=default_value,
+            allow_none=allow_none,
+            read_only=read_only,
+            help=help,
+            config=config,
+            **kwargs,
+        )
 
     def validate(self, obj, value):
         if not isinstance(value, int):
@@ -2625,7 +2667,7 @@ class CInt(Int[G, S]):
             help: str | None = ...,
             config: t.Any | None = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -2637,10 +2679,18 @@ class CInt(Int[G, S]):
             help: str | None = ...,
             config: t.Any | None = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
-        def __init__(self, default_value=Undefined, allow_none=False, **kwargs):
+        def __init__(
+            self: CInt[int | None, t.Any],
+            default_value: t.Any | Sentinel | None = ...,
+            allow_none: bool = ...,
+            read_only: bool | None = ...,
+            help: str | None = ...,
+            config: t.Any | None = ...,
+            **kwargs: t.Any,
+        ) -> None:
             ...
 
     def validate(self, obj, value):
@@ -2670,7 +2720,7 @@ class Float(TraitType[G, S]):
         help: str | None = ...,
         config: t.Any | None = ...,
         **kwargs: t.Any,
-    ):
+    ) -> None:
         ...
 
     @t.overload
@@ -2682,13 +2732,28 @@ class Float(TraitType[G, S]):
         help: str | None = ...,
         config: t.Any | None = ...,
         **kwargs: t.Any,
-    ):
+    ) -> None:
         ...
 
-    def __init__(self, default_value=Undefined, allow_none=False, **kwargs):
+    def __init__(
+        self: Float[int | None, int | float | None],
+        default_value: float | Sentinel | None = Undefined,
+        allow_none: bool = False,
+        read_only: bool | None = False,
+        help: str | None = None,
+        config: t.Any | None = None,
+        **kwargs: t.Any,
+    ) -> None:
         self.min = kwargs.pop("min", -float("inf"))
         self.max = kwargs.pop("max", float("inf"))
-        super().__init__(default_value=default_value, allow_none=allow_none, **kwargs)
+        super().__init__(
+            default_value=default_value,
+            allow_none=allow_none,
+            read_only=read_only,
+            help=help,
+            config=config,
+            **kwargs,
+        )
 
     def validate(self, obj, value):
         if isinstance(value, int):
@@ -2720,7 +2785,7 @@ class CFloat(Float[G, S]):
             help: str | None = ...,
             config: t.Any | None = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -2732,10 +2797,18 @@ class CFloat(Float[G, S]):
             help: str | None = ...,
             config: t.Any | None = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
-        def __init__(self, default_value=Undefined, allow_none=False, **kwargs):
+        def __init__(
+            self: CFloat[float | None, t.Any],
+            default_value: t.Any = ...,
+            allow_none: bool = ...,
+            read_only: bool | None = ...,
+            help: str | None = ...,
+            config: t.Any | None = ...,
+            **kwargs: t.Any,
+        ) -> None:
             ...
 
     def validate(self, obj, value):
@@ -2841,7 +2914,7 @@ class Unicode(TraitType[G, S]):
             help: str | None = ...,
             config: t.Any = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -2853,10 +2926,18 @@ class Unicode(TraitType[G, S]):
             help: str | None = ...,
             config: t.Any = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
-        def __init__(self, **kwargs):
+        def __init__(
+            self: Unicode[str | None, str | bytes | None],
+            default_value: str | Sentinel | None = ...,
+            allow_none: bool = ...,
+            read_only: bool | None = ...,
+            help: str | None = ...,
+            config: t.Any = ...,
+            **kwargs: t.Any,
+        ) -> None:
             ...
 
     def validate(self, obj, value):
@@ -2906,7 +2987,7 @@ class CUnicode(Unicode[G, S], TraitType[str, t.Any]):
             help: str | None = ...,
             config: t.Any = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -2918,10 +2999,18 @@ class CUnicode(Unicode[G, S], TraitType[str, t.Any]):
             help: str | None = ...,
             config: t.Any = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
-        def __init__(self, **kwargs):
+        def __init__(
+            self: CUnicode[str | None, t.Any],
+            default_value: str | Sentinel | None = ...,
+            allow_none: bool = ...,
+            read_only: bool | None = ...,
+            help: str | None = ...,
+            config: t.Any = ...,
+            **kwargs: t.Any,
+        ) -> None:
             ...
 
     def validate(self, obj, value):
@@ -2981,7 +3070,7 @@ class Bool(TraitType[G, S]):
             help: str | None = ...,
             config: t.Any = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -2993,10 +3082,18 @@ class Bool(TraitType[G, S]):
             help: str | None = ...,
             config: t.Any = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
-        def __init__(self, **kwargs):
+        def __init__(
+            self: Bool[bool | None, bool | int | None],
+            default_value: bool | Sentinel | None = ...,
+            allow_none: bool = ...,
+            read_only: bool | None = ...,
+            help: str | None = ...,
+            config: t.Any = ...,
+            **kwargs: t.Any,
+        ) -> None:
             ...
 
     def validate(self, obj, value):
@@ -3045,7 +3142,7 @@ class CBool(Bool[G, S]):
             help: str | None = ...,
             config: t.Any = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -3057,10 +3154,18 @@ class CBool(Bool[G, S]):
             help: str | None = ...,
             config: t.Any = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
-        def __init__(self, **kwargs):
+        def __init__(
+            self: CBool[bool | None, t.Any],
+            default_value: bool | Sentinel | None = ...,
+            allow_none: bool = ...,
+            read_only: bool | None = ...,
+            help: str | None = ...,
+            config: t.Any = ...,
+            **kwargs: t.Any,
+        ) -> None:
             ...
 
     def validate(self, obj, value):
@@ -3075,7 +3180,7 @@ class Enum(TraitType[G, S]):
 
     def __init__(
         self: Enum[t.Any, t.Any], values: t.Any, default_value: t.Any = Undefined, **kwargs: t.Any
-    ):
+    ) -> None:
         self.values = values
         if kwargs.get("allow_none", False) and default_value is Undefined:
             default_value = None
@@ -3128,7 +3233,7 @@ class CaselessStrEnum(Enum[G, S]):
         values: t.Any,
         default_value: t.Any = Undefined,
         **kwargs: t.Any,
-    ):
+    ) -> None:
         super().__init__(values, default_value=default_value, **kwargs)
 
     def validate(self, obj, value):
@@ -3166,7 +3271,7 @@ class FuzzyEnum(Enum[G, S]):
         case_sensitive: bool = False,
         substring_matching: bool = False,
         **kwargs: t.Any,
-    ):
+    ) -> None:
         self.case_sensitive = case_sensitive
         self.substring_matching = substring_matching
         super().__init__(values, default_value=default_value, **kwargs)
@@ -3217,44 +3322,49 @@ class Container(Instance[T]):
     @t.overload
     def __init__(
         self: Container[T],
-        kind: type[T],
         *,
         allow_none: Literal[False],
         read_only: bool | None = ...,
         help: str | None = ...,
         config: t.Any | None = ...,
         **kwargs: t.Any,
-    ):
+    ) -> None:
         ...
 
     @t.overload
     def __init__(
         self: Container[T | None],
-        kind: type[T],
         *,
         allow_none: Literal[True],
         read_only: bool | None = ...,
         help: str | None = ...,
         config: t.Any | None = ...,
         **kwargs: t.Any,
-    ):
+    ) -> None:
         ...
 
     @t.overload
     def __init__(
         self: Container[T],
-        kind: type[T],
         *,
+        trait: t.Any = ...,
+        default_value: t.Any = ...,
         help: str = ...,
         read_only: bool = ...,
         config: t.Any = ...,
-        trait: t.Any = ...,
-        default_value: t.Any = ...,
         **kwargs: t.Any,
-    ):
+    ) -> None:
         ...
 
-    def __init__(self, trait=None, default_value=Undefined, **kwargs):
+    def __init__(
+        self,
+        trait: t.Any | None = None,
+        default_value: t.Any = Undefined,
+        help: str | None = None,
+        read_only: bool | None = None,
+        config: t.Any | None = None,
+        **kwargs: t.Any,
+    ) -> None:
         """Create a container trait type from a list, set, or tuple.
 
         The default value is created by doing ``List(default_value)``,
@@ -3324,7 +3434,9 @@ class Container(Instance[T]):
         elif trait is not None:
             raise TypeError("`trait` must be a Trait or None, got %s" % repr_type(trait))
 
-        super().__init__(klass=self.klass, args=args, **kwargs)
+        super().__init__(
+            klass=self.klass, args=args, help=help, read_only=read_only, config=config, **kwargs
+        )
 
     def validate(self, obj, value):
         if isinstance(value, self._cast_types):
@@ -3433,12 +3545,12 @@ class List(Container[t.List[t.Any]]):
 
     def __init__(
         self,
-        trait=None,
-        default_value=Undefined,
-        minlen=0,
-        maxlen=sys.maxsize,
-        **kwargs,
-    ):
+        trait: t.Any = None,
+        default_value: t.Any = Undefined,
+        minlen: int = 0,
+        maxlen: int = sys.maxsize,
+        **kwargs: t.Any,
+    ) -> None:
         """Create a List trait type from a list, set, or tuple.
 
         The default value is created by doing ``list(default_value)``,
@@ -3465,8 +3577,8 @@ class List(Container[t.List[t.Any]]):
         maxlen : Int [ default sys.maxsize ]
             The maximum length of the input list
         """
-        self._minlen = minlen
         self._maxlen = maxlen
+        self._minlen = minlen
         super().__init__(trait=trait, default_value=default_value, **kwargs)
 
     def length_error(self, obj, value):
@@ -3490,10 +3602,10 @@ class List(Container[t.List[t.Any]]):
             return super().set(obj, value)
 
 
-class Set(List):
+class Set(Container[t.Set[t.Any]]):
     """An instance of a Python set."""
 
-    klass = set  # type:ignore[assignment]
+    klass = set
     _cast_types = (tuple, list)
 
     _literal_from_string_pairs = ("[]", "()", "{}")
@@ -3501,12 +3613,12 @@ class Set(List):
     # Redefine __init__ just to make the docstring more accurate.
     def __init__(
         self,
-        trait=None,
-        default_value=Undefined,
-        minlen=0,
-        maxlen=sys.maxsize,
-        **kwargs,
-    ):
+        trait: t.Any = None,
+        default_value: t.Any = Undefined,
+        minlen: int = 0,
+        maxlen: int = sys.maxsize,
+        **kwargs: t.Any,
+    ) -> None:
         """Create a Set trait type from a list, set, or tuple.
 
         The default value is created by doing ``set(default_value)``,
@@ -3533,7 +3645,29 @@ class Set(List):
         maxlen : Int [ default sys.maxsize ]
             The maximum length of the input list
         """
-        super().__init__(trait, default_value, minlen, maxlen, **kwargs)
+        self._maxlen = maxlen
+        self._minlen = minlen
+        super().__init__(trait=trait, default_value=default_value, **kwargs)
+
+    def length_error(self, obj, value):
+        e = (
+            "The '%s' trait of %s instance must be of length %i <= L <= %i, but a value of %s was specified."
+            % (self.name, class_of(obj), self._minlen, self._maxlen, value)
+        )
+        raise TraitError(e)
+
+    def validate_elements(self, obj, value):
+        length = len(value)
+        if length < self._minlen or length > self._maxlen:
+            self.length_error(obj, value)
+
+        return super().validate_elements(obj, value)
+
+    def set(self, obj, value):
+        if isinstance(value, str):
+            return super().set(obj, [value])
+        else:
+            return super().set(obj, value)
 
     def default_value_repr(self):
         # Ensure default value is sorted for a reproducible build
@@ -3549,7 +3683,7 @@ class Tuple(Container[t.Tuple[t.Any, ...]]):
     klass = tuple
     _cast_types = (list,)
 
-    def __init__(self, *traits, **kwargs):
+    def __init__(self, *traits: t.Any, **kwargs: t.Any) -> None:
         """Create a tuple from a list, set, or tuple.
 
         Create a fixed-type tuple with Traits:
@@ -3692,12 +3826,12 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
 
     def __init__(
         self,
-        value_trait=None,
-        per_key_traits=None,
-        key_trait=None,
-        default_value=Undefined,
-        **kwargs,
-    ):
+        value_trait: t.Any = None,
+        per_key_traits: t.Any = None,
+        key_trait: t.Any = None,
+        default_value: t.Any = Undefined,
+        **kwargs: t.Any,
+    ) -> None:
         """Create a dict trait type from a Python dict.
 
         The default value is created by doing ``dict(default_value)``,
@@ -3963,7 +4097,7 @@ class TCPAddress(TraitType[G, S]):
             help: str | None = ...,
             config: t.Any = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         @t.overload
@@ -3975,7 +4109,7 @@ class TCPAddress(TraitType[G, S]):
             help: str | None = ...,
             config: t.Any = ...,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
         def __init__(
@@ -3987,7 +4121,7 @@ class TCPAddress(TraitType[G, S]):
             help: str | None = None,
             config: t.Any = None,
             **kwargs: t.Any,
-        ):
+        ) -> None:
             ...
 
     def validate(self, obj, value):
@@ -4054,7 +4188,9 @@ class UseEnum(TraitType[t.Any, t.Any]):
     default_value: enum.Enum | None = None
     info_text = "Trait type adapter to a Enum class"
 
-    def __init__(self, enum_class, default_value=None, **kwargs):
+    def __init__(
+        self, enum_class: type[t.Any], default_value: t.Any = None, **kwargs: t.Any
+    ) -> None:
         assert issubclass(enum_class, enum.Enum), "REQUIRE: enum.Enum, but was: %r" % enum_class
         allow_none = kwargs.get("allow_none", False)
         if default_value is None and not allow_none:

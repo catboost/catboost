@@ -446,7 +446,7 @@ class Application(SingletonConfigurable):
             self._save_start = self.start
             self.start = self.start_show_config  # type:ignore[method-assign]
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: t.Any) -> None:
         SingletonConfigurable.__init__(self, **kwargs)
         # Ensure my class is in self.classes, so my attributes appear in command line
         # options and config files.

@@ -5,6 +5,7 @@
 
 
 import logging
+import typing as t
 from copy import deepcopy
 from textwrap import dedent
 
@@ -46,7 +47,7 @@ class Configurable(HasTraits):
     config = Instance(Config, (), {})
     parent = Instance("traitlets.config.configurable.Configurable", allow_none=True)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: t.Any) -> None:
         """Create a configurable given a config config.
 
         Parameters

@@ -23,4 +23,4 @@ class TestImportItem(TestCase):
 
         msg = "import_item accepts strings, not '%s'." % NotAString
         with self.assertRaisesRegex(TypeError, msg):
-            import_item(NotAString())
+            import_item(NotAString())  # type:ignore[arg-type]

@@ -2,6 +2,7 @@
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
+from __future__ import annotations
 
 import argparse
 import copy
@@ -236,7 +237,7 @@ class Config(dict):  # type:ignore[type-arg]
 
     """
 
-    def __init__(self, *args, **kwds):
+    def __init__(self, *args: t.Any, **kwds: t.Any) -> None:
         dict.__init__(self, *args, **kwds)
         self._ensure_subconfig()
 
@@ -273,7 +274,7 @@ class Config(dict):  # type:ignore[type-arg]
 
         self.update(to_update)
 
-    def collisions(self, other: "Config") -> t.Dict[str, t.Any]:
+    def collisions(self, other: Config) -> dict[str, t.Any]:
         """Check for collisions between two config objects.
 
         Returns a dict of the form {"Class": {"trait": "collision message"}}`,
@@ -281,7 +282,7 @@ class Config(dict):  # type:ignore[type-arg]
 
         An empty dict indicates no collisions.
         """
-        collisions: t.Dict[str, t.Any] = {}
+        collisions: dict[str, t.Any] = {}
         for section in self:
             if section not in other:
                 continue
@@ -490,7 +491,7 @@ class ConfigLoader:
 
         return get_logger()
 
-    def __init__(self, log=None):
+    def __init__(self, log: t.Any = None) -> None:
         """A base class for config loaders.
 
         log : instance of :class:`logging.Logger` to use.
@@ -532,7 +533,7 @@ class FileConfigLoader(ConfigLoader):
     here.
     """
 
-    def __init__(self, filename, path=None, **kw):
+    def __init__(self, filename: str, path: str | None = None, **kw: t.Any) -> None:
         """Build a config loader for a filename and path.
 
         Parameters
@@ -795,12 +796,12 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
     def __init__(
         self,
-        argv: t.Optional[t.List[str]] = None,
-        aliases: t.Optional[t.Dict[Flags, str]] = None,
-        flags: t.Optional[t.Dict[Flags, str]] = None,
+        argv: list[str] | None = None,
+        aliases: dict[Flags, str] | None = None,
+        flags: dict[Flags, str] | None = None,
         log: t.Any = None,
-        classes: t.Optional[t.List[t.Type[t.Any]]] = None,
-        subcommands: t.Optional[SubcommandsDict] = None,
+        classes: list[type[t.Any]] | None = None,
+        subcommands: SubcommandsDict | None = None,
         *parser_args: t.Any,
         **parser_kw: t.Any,
     ) -> None:
@@ -899,9 +900,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     def _add_arguments(self, aliases, flags, classes):
         raise NotImplementedError("subclasses must implement _add_arguments")
 
-    def _argcomplete(
-        self, classes: t.List[t.Any], subcommands: t.Optional[SubcommandsDict]
-    ) -> None:
+    def _argcomplete(self, classes: list[t.Any], subcommands: SubcommandsDict | None) -> None:
         """If argcomplete is enabled, allow triggering command-line autocompletion"""
         pass
 
@@ -909,7 +908,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
         """self.parser->self.parsed_data"""
         uargs = [cast_unicode(a) for a in args]
 
-        unpacked_aliases: t.Dict[str, str] = {}
+        unpacked_aliases: dict[str, str] = {}
         if self.aliases:
             unpacked_aliases = {}
             for alias, alias_target in self.aliases.items():
@@ -957,7 +956,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 class _FlagAction(argparse.Action):
     """ArgParse action to handle a flag"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None:
         self.flag = kwargs.pop("flag")
         self.alias = kwargs.pop("alias", None)
         kwargs["const"] = Undefined
@@ -983,8 +982,8 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
     parser_class = _KVArgParser  # type:ignore[assignment]
 
     def _add_arguments(self, aliases, flags, classes):
-        alias_flags: t.Dict[str, t.Any] = {}
-        argparse_kwds: t.Dict[str, t.Any]
+        alias_flags: dict[str, t.Any] = {}
+        argparse_kwds: dict[str, t.Any]
         paa = self.parser.add_argument
         self.parser.set_defaults(_flags=[])
         paa("extra_args", nargs="*")
@@ -1108,9 +1107,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
         """
         self.log.warning("Unrecognized alias: '%s', it will have no effect.", arg)
 
-    def _argcomplete(
-        self, classes: t.List[t.Any], subcommands: t.Optional[SubcommandsDict]
-    ) -> None:
+    def _argcomplete(self, classes: list[t.Any], subcommands: SubcommandsDict | None) -> None:
         """If argcomplete is enabled, allow triggering command-line autocompletion"""
         try:
             import argcomplete  # noqa
@@ -1132,7 +1129,7 @@ class KeyValueConfigLoader(KVArgParseConfigLoader):
     Use KVArgParseConfigLoader
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None:
         warnings.warn(
             "KeyValueConfigLoader is deprecated since Traitlets 5.0."
             " Use KVArgParseConfigLoader instead.",
