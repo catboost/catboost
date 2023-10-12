@@ -47,7 +47,7 @@ The columns description file is optional. {{ column-desc__default }}
 ## {{ input_data__title__row-format }}
 
 ```
-<column index (numbering starts from zero)><\t><data type><\t><feature id/name (optional, applicable for {{ cd-file__col-type__Num }} and {{ cd-file__col-type__Categ }} column types only)>
+<column index (numbering starts from zero)><\t><data type><\t><feature id/name (optional, applicable for feature type columns only ({{ cd-file__col-type__Num }}, {{ cd-file__col-type__Categ }}, {{ cd-file__col-type__Text }} and {{ cd-file__col-type__NumVector }})>
 ```
 
 ## {{ input_data__title__peculiarities }}
