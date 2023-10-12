@@ -1,5 +1,6 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
+from __future__ import annotations
 
 import asyncio
 import atexit
@@ -11,10 +12,10 @@ import threading
 import warnings
 from pathlib import Path
 from types import FrameType
-from typing import Awaitable, Callable, List, Optional, TypeVar, Union, cast
+from typing import Any, Awaitable, Callable, TypeVar, cast
 
 
-def ensure_dir_exists(path, mode=0o777):
+def ensure_dir_exists(path: str, mode: int = 0o777) -> None:
     """Ensure that a directory exists
 
     If it doesn't exist, try to create it, protecting against a race condition
@@ -30,7 +31,7 @@ def ensure_dir_exists(path, mode=0o777):
         raise OSError("%r exists but is not a directory" % path)
 
 
-def _get_frame(level: int) -> Optional[FrameType]:
+def _get_frame(level: int) -> FrameType | None:
     """Get the frame at the given stack level."""
     # sys._getframe is much faster than inspect.stack, but isn't guaranteed to
     # exist in all python implementations, so we fall back to inspect.stack()
@@ -50,7 +51,7 @@ def _get_frame(level: int) -> Optional[FrameType]:
 # added in the process. For example, with the deprecation warning in the
 # __init__ below, the appropriate stacklevel will change depending on how deep
 # the inheritance hierarchy is.
-def _external_stacklevel(internal: List[str]) -> int:
+def _external_stacklevel(internal: list[str]) -> int:
     """Find the stacklevel of the first frame that doesn't contain any of the given internal strings
 
     The depth will be 1 at minimum in order to start checking at the caller of
@@ -72,14 +73,14 @@ def _external_stacklevel(internal: List[str]) -> int:
     return level - 1
 
 
-def deprecation(message: str, internal: Union[str, List[str]] = "jupyter_core/") -> None:
+def deprecation(message: str, internal: str | list[str] = "jupyter_core/") -> None:
     """Generate a deprecation warning targeting the first frame that is not 'internal'
 
     internal is a string or list of strings, which if they appear in filenames in the
-    frames, the frames will be considered internal. Changing this can be useful if, for examnple,
+    frames, the frames will be considered internal. Changing this can be useful if, for example,
     we know that our internal code is calling out to another library.
     """
-    _internal: List[str]
+    _internal: list[str]
     _internal = [internal] if isinstance(internal, str) else internal
 
     # stack level of the first external frame from here
@@ -95,17 +96,17 @@ T = TypeVar("T")
 class _TaskRunner:
     """A task runner that runs an asyncio event loop on a background thread."""
 
-    def __init__(self):
-        self.__io_loop: Optional[asyncio.AbstractEventLoop] = None
-        self.__runner_thread: Optional[threading.Thread] = None
+    def __init__(self) -> None:
+        self.__io_loop: asyncio.AbstractEventLoop | None = None
+        self.__runner_thread: threading.Thread | None = None
         self.__lock = threading.Lock()
         atexit.register(self._close)
 
-    def _close(self):
+    def _close(self) -> None:
         if self.__io_loop:
             self.__io_loop.stop()
 
-    def _runner(self):
+    def _runner(self) -> None:
         loop = self.__io_loop
         assert loop is not None  # noqa
         try:
@@ -113,7 +114,7 @@ class _TaskRunner:
         finally:
             loop.close()
 
-    def run(self, coro):
+    def run(self, coro: Any) -> Any:
         """Synchronously run a coroutine on a background thread."""
         with self.__lock:
             name = f"{threading.current_thread().name} - runner"
@@ -125,8 +126,7 @@ class _TaskRunner:
         return fut.result(None)
 
 
-_runner_map = {}
-_loop_map = {}
+_runner_map: dict[str, _TaskRunner] = {}
 
 
 def run_sync(coro: Callable[..., Awaitable[T]]) -> Callable[..., T]:
@@ -146,7 +146,7 @@ def run_sync(coro: Callable[..., Awaitable[T]]) -> Callable[..., T]:
     if not inspect.iscoroutinefunction(coro):
         raise AssertionError
 
-    def wrapped(*args, **kwargs):
+    def wrapped(*args: Any, **kwargs: Any) -> Any:
         name = threading.current_thread().name
         inner = coro(*args, **kwargs)
         try:
@@ -160,16 +160,18 @@ def run_sync(coro: Callable[..., Awaitable[T]]) -> Callable[..., T]:
             pass
 
         # Run the loop for this thread.
-        if name not in _loop_map:
-            _loop_map[name] = asyncio.new_event_loop()
-        loop = _loop_map[name]
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         return loop.run_until_complete(inner)
 
     wrapped.__doc__ = coro.__doc__
     return wrapped
 
 
-async def ensure_async(obj: Union[Awaitable[T], T]) -> T:
+async def ensure_async(obj: Awaitable[T] | T) -> T:
     """Convert a non-awaitable object to a coroutine if needed,
     and await it if it was not already awaited.
 

@@ -6,6 +6,7 @@ This does nothing other than dispatch to subcommands or output path info.
 
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
+from __future__ import annotations
 
 import argparse
 import errno
@@ -16,7 +17,7 @@ import sys
 import sysconfig
 from shutil import which
 from subprocess import Popen
-from typing import List
+from typing import Any
 
 from . import paths
 from .version import __version__
@@ -26,7 +27,7 @@ class JupyterParser(argparse.ArgumentParser):
     """A Jupyter argument parser."""
 
     @property
-    def epilog(self):
+    def epilog(self) -> str | None:
         """Add subcommands to epilog on request
 
         Avoids searching PATH for subcommands unless help output is requested.
@@ -34,11 +35,11 @@ class JupyterParser(argparse.ArgumentParser):
         return "Available subcommands: %s" % " ".join(list_subcommands())
 
     @epilog.setter
-    def epilog(self, x):
+    def epilog(self, x: Any) -> None:
         """Ignore epilog set in Parser.__init__"""
         pass
 
-    def argcomplete(self):
+    def argcomplete(self) -> None:
         """Trigger auto-completion, if enabled"""
         try:
             import argcomplete  # type: ignore[import]
@@ -78,7 +79,7 @@ def jupyter_parser() -> JupyterParser:
     return parser
 
 
-def list_subcommands() -> List[str]:
+def list_subcommands() -> list[str]:
     """List all jupyter subcommands
 
     searches PATH for `jupyter-name`
@@ -108,7 +109,7 @@ def list_subcommands() -> List[str]:
     return sorted(subcommands)
 
 
-def _execvp(cmd, argv):
+def _execvp(cmd: str, argv: list[str]) -> None:
     """execvp, except on Windows where it uses Popen
 
     Python provides execvp on Windows, but its behavior is problematic (Python bug#9148).
@@ -131,7 +132,7 @@ def _execvp(cmd, argv):
         os.execvp(cmd, argv)  # noqa
 
 
-def _jupyter_abspath(subcommand):
+def _jupyter_abspath(subcommand: str) -> str:
     """This method get the abspath of a specified jupyter-subcommand with no
     changes on ENV.
     """
@@ -151,7 +152,7 @@ def _jupyter_abspath(subcommand):
     return abs_path
 
 
-def _path_with_self():
+def _path_with_self() -> list[str]:
     """Put `jupyter`'s dir at the front of PATH
 
     Ensures that /path/to/jupyter subcommand
@@ -189,7 +190,7 @@ def _path_with_self():
     return path_list
 
 
-def _evaluate_argcomplete(parser: JupyterParser) -> List[str]:
+def _evaluate_argcomplete(parser: JupyterParser) -> list[str]:
     """If argcomplete is enabled, trigger autocomplete or return current words
 
     If the first word looks like a subcommand, return the current command
@@ -208,7 +209,7 @@ def _evaluate_argcomplete(parser: JupyterParser) -> List[str]:
         if cwords and len(cwords) > 1 and not cwords[1].startswith("-"):
             # If first completion word looks like a subcommand,
             # increment word from which to start handling arguments
-            increment_argcomplete_index()
+            increment_argcomplete_index()  # type:ignore[no-untyped-call]
             return cwords
         else:
             # Otherwise no subcommand, directly autocomplete and exit
