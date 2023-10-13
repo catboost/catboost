@@ -2,7 +2,36 @@
 
 This is the fastest way to evaluate a model. The library provides a [C API](#c-api) and a simple [C++ wrapper API](#c-plus-plus-wrapper). The C API interface can be accessed from any programming language.
 
-## Build
+## Download
+
+Prebuilt shared library artifacts are available.
+
+{% include [reusage-cli-releases-page](../_includes/work_src/reusage-cli/releases-page.md) %}
+
+|Operating system|CPU architectures|GPU support using [CUDA](https://developer.nvidia.com/cuda-zone)|
+|--------|-----------------|------------|
+| Linux (compatible with [manylinux2014 platform tag](https://peps.python.org/pep-0599/) ) | x86_64 and aarch64 |yes|
+| macOS (versions currently supported by Apple) | x86_64 and arm64 |no|
+| Windows 10 and 11 | x86_64 |yes|
+
+|Operating system|Files|
+|--|-----|
+|Linux|`libcatboostmodel-linux-{cpu_arch}-{release_version}.so`|
+|macOS|`libcatboostmodel-darwin-universal2-{release_version}.dylib`|
+|Windows|`catboostmodel-windows-{cpu_arch}-{release_version}.lib` and `catboostmodel-windows-{cpu_arch}-{release_version}.dll`|
+
+Applying on GPU requires NVIDIA Driver of version 418.xx or higher.
+
+{% note info %}
+
+Only CUDA {{ cuda_version__compiled-packages }} is officially supported in compiled binaries for Windows. [Вuild the binary from a local copy](#build) if GPU support is required and the installed version of CUDA differs from {{ cuda_version__compiled-packages }}. {{ product }} should work fine with CUDA {{ cuda_version__compiled-packages }} and later versions.
+
+All necessary CUDA libraries are statically linked to the Linux and macOS binaries of the {{ product }} applier library, therefore, the only installation necessary is the appropriate version of the CUDA driver.
+
+{% endnote %}
+
+
+## Build from source {#build}
 
 {% note warning %}
 
