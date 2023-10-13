@@ -77,20 +77,13 @@ namespace NPrivate {
 }
 
 /// Assert that does not depend on NDEBUG macro and outputs message like printf
-#define Y_ABORT_UNLESS(expr, ...)                                                                            \
-    do {                                                                                                     \
-        try {                                                                                                \
-            if (Y_UNLIKELY(!(expr))) {                                                                       \
-                Y_HIT_DEBUGGER();                                                                            \
-                /* NOLINTNEXTLINE */                                                                         \
-                ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, #expr, " " __VA_ARGS__);     \
-            }                                                                                                \
-        } catch (...) {                                                                                      \
-            Y_HIT_DEBUGGER();                                                                                \
-            /* NOLINTNEXTLINE */                                                                             \
-            ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, #expr, "Exception during assert" \
-                                                                                   " " __VA_ARGS__);         \
-        }                                                                                                    \
+#define Y_ABORT_UNLESS(expr, ...)                                                                    \
+    do {                                                                                             \
+        if (Y_UNLIKELY(!(expr))) {                                                                   \
+            Y_HIT_DEBUGGER();                                                                        \
+            /* NOLINTNEXTLINE */                                                                     \
+            ::NPrivate::Panic(__SOURCE_FILE_IMPL__, __LINE__, __FUNCTION__, #expr, " " __VA_ARGS__); \
+        }                                                                                            \
     } while (false)
 
 #define Y_ABORT(...) Y_ABORT_UNLESS(false, __VA_ARGS__)
