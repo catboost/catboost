@@ -103,7 +103,7 @@ preds_class = model.predict(train_data)
 ```python
 from catboost import CatBoostClassifier
 # Initialize data
-cat_features = [2]
+cat_features = [3]
 embedding_features=[0, 1]
 train_data = [
     [[0.1, 0.12, 0.33], [1.0, 0.7], 2, "male"],
