@@ -218,7 +218,7 @@ def wcwidth(wc, unicode_version='auto'):
     if _bisearch(ucs, ZERO_WIDTH[_unicode_version]):
         return 0
 
-    # "Wide AastAsian" (and emojis)
+    # "Wide EastAsian" (and emojis)
     return 1 + _bisearch(ucs, WIDE_EASTASIAN[_unicode_version])
 
 
@@ -299,7 +299,9 @@ def _wcmatch_version(given_version):
     _return_str = not _PY3 and isinstance(given_version, str)
 
     if _return_str:
-        unicode_versions = [ucs.encode() for ucs in list_versions()]
+        # avoid list-comprehension to work around a coverage issue:
+        # https://github.com/nedbat/coveragepy/issues/753
+        unicode_versions = list(map(lambda ucs: ucs.encode(), list_versions()))
     else:
         unicode_versions = list_versions()
     latest_version = unicode_versions[-1]
@@ -375,4 +377,4 @@ def _wcmatch_version(given_version):
         # is, 4.1 is returned for given 4.9.9, where 4.1 and 5.0 are available.
         if cmp_next_version > cmp_given:
             return unicode_version
-    assert False, ("Code path unreachable", given_version, unicode_versions)
+    assert False, ("Code path unreachable", given_version, unicode_versions)  # pragma: no cover
