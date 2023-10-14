@@ -901,6 +901,8 @@ items:
       - items:
           - href: concepts/java-package.md
             name: Overview
+          - href: installation/java-installation-build-from-source-maven.md
+            name: Build from source using Maven
           - items:
               - href: concepts/java-reference_catboostmodel.md
                 name: Overview

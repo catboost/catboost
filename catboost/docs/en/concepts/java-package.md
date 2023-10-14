@@ -40,3 +40,5 @@ Class | Description |
 :--- | :---
 [CatBoostModel](java-reference_catboostmodel.md) | Basic model application methods. |
 [CatBoostPredictions](java-reference_catboostpredictions.md) | A wrapper that provides methods for making convenient predictions for certain classes.|
+
+#### [Build from source](../installation/java-installation-build-from-source-maven.md)
