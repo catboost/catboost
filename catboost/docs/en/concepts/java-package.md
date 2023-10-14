@@ -5,6 +5,14 @@
 To apply a previously trained {{ product }} model in Java:
 1. Install the package using a package manager.
 
+    Note that the package contains native code shared libraries inside. The supported platforms are:
+
+    |Operating system|CPU architectures|GPU support using [CUDA](https://developer.nvidia.com/cuda-zone)|
+    |--------|-----------------|------------|
+    | macOS (versions currently supported by Apple) | x86_64 and arm64 |no|
+    | Linux (compatible with [manylinux2014 platform tag](https://peps.python.org/pep-0599/) ) | x86_64 and aarch64 |yes|
+    | Windows 10 and 11 | x86_64 |yes|
+
     Add the following block to the dependencies section of the pom.xml file for Maven:
 
     ```xml
