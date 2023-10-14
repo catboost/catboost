@@ -633,15 +633,15 @@ def VarStore_optimize(self, use_NO_VARIATION_INDEX=True, quantization=1):
     for k, v in front_mapping.items():
         varidx_map[k] = back_mapping[v] if v is not None else NO_VARIATION_INDEX
 
-    # Remove unused regions.
-    self.prune_regions()
-
     # Recalculate things and go home.
     self.VarRegionList.RegionCount = len(self.VarRegionList.Region)
     self.VarDataCount = len(self.VarData)
     for data in self.VarData:
         data.ItemCount = len(data.Item)
         data.optimize()
+
+    # Remove unused regions.
+    self.prune_regions()
 
     return varidx_map
 
