@@ -57,9 +57,8 @@ struct __fn {
   }
 
   template <bidirectional_iterator _Ip>
-  _LIBCPP_HIDE_FROM_ABI
-  constexpr _Ip operator()(_Ip __x, iter_difference_t<_Ip> __n, _Ip ___bound) const {
-    ranges::advance(__x, -__n, ___bound);
+  _LIBCPP_HIDE_FROM_ABI constexpr _Ip operator()(_Ip __x, iter_difference_t<_Ip> __n, _Ip ___bound_iter) const {
+    ranges::advance(__x, -__n, ___bound_iter);
     return __x;
   }
 };
