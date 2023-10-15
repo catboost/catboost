@@ -1006,7 +1006,9 @@ unordered_set<_Value, _Hash, _Pred, _Alloc>::unordered_set(
     : __table_(_VSTD::move(__u.__table_))
 {
     _VSTD::__debug_db_insert_c(this);
-    std::__debug_db_swap(this, std::addressof(__u));
+#if _LIBCPP_DEBUG_LEVEL == 2
+    __get_db()->swap(this, _VSTD::addressof(__u));
+#endif
 }
 
 template <class _Value, class _Hash, class _Pred, class _Alloc>
@@ -1021,8 +1023,10 @@ unordered_set<_Value, _Hash, _Pred, _Alloc>::unordered_set(
         while (__u.size() != 0)
             __table_.__insert_unique(_VSTD::move(__u.__table_.remove(__i++)->__value_));
     }
+#if _LIBCPP_DEBUG_LEVEL == 2
     else
-        std::__debug_db_swap(this, std::addressof(__u));
+        __get_db()->swap(this, _VSTD::addressof(__u));
+#endif
 }
 
 template <class _Value, class _Hash, class _Pred, class _Alloc>
@@ -1643,7 +1647,9 @@ unordered_multiset<_Value, _Hash, _Pred, _Alloc>::unordered_multiset(
     : __table_(_VSTD::move(__u.__table_))
 {
     _VSTD::__debug_db_insert_c(this);
-    std::__debug_db_swap(this, std::addressof(__u));
+#if _LIBCPP_DEBUG_LEVEL == 2
+    __get_db()->swap(this, _VSTD::addressof(__u));
+#endif
 }
 
 template <class _Value, class _Hash, class _Pred, class _Alloc>
@@ -1658,8 +1664,10 @@ unordered_multiset<_Value, _Hash, _Pred, _Alloc>::unordered_multiset(
         while (__u.size() != 0)
             __table_.__insert_multi(_VSTD::move(__u.__table_.remove(__i++)->__value_));
     }
+#if _LIBCPP_DEBUG_LEVEL == 2
     else
-        std::__debug_db_swap(this, std::addressof(__u));
+        __get_db()->swap(this, _VSTD::addressof(__u));
+#endif
 }
 
 template <class _Value, class _Hash, class _Pred, class _Alloc>

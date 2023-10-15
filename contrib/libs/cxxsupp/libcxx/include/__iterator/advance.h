@@ -117,46 +117,47 @@ public:
     }
   }
 
-  // Preconditions: Either `assignable_from<I&, S> || sized_sentinel_for<S, I>` is modeled, or [i, bound_sentinel) denotes a range.
+  // Preconditions: Either `assignable_from<I&, S> || sized_sentinel_for<S, I>` is modeled, or [i, bound) denotes a range.
   template <input_or_output_iterator _Ip, sentinel_for<_Ip> _Sp>
-  _LIBCPP_HIDE_FROM_ABI constexpr void operator()(_Ip& __i, _Sp ___bound_sentinel) const {
-    // If `I` and `S` model `assignable_from<I&, S>`, equivalent to `i = std::move(bound_sentinel)`.
+  _LIBCPP_HIDE_FROM_ABI
+  constexpr void operator()(_Ip& __i, _Sp ___bound) const {
+    // If `I` and `S` model `assignable_from<I&, S>`, equivalent to `i = std::move(bound)`.
     if constexpr (assignable_from<_Ip&, _Sp>) {
-      __i = _VSTD::move(___bound_sentinel);
+      __i = _VSTD::move(___bound);
     }
-    // Otherwise, if `S` and `I` model `sized_sentinel_for<S, I>`, equivalent to `ranges::advance(i, bound_sentinel - i)`.
+    // Otherwise, if `S` and `I` model `sized_sentinel_for<S, I>`, equivalent to `ranges::advance(i, bound - i)`.
     else if constexpr (sized_sentinel_for<_Sp, _Ip>) {
-      (*this)(__i, ___bound_sentinel - __i);
+      (*this)(__i, ___bound - __i);
     }
-    // Otherwise, while `bool(i != bound_sentinel)` is true, increments `i`.
+    // Otherwise, while `bool(i != bound)` is true, increments `i`.
     else {
-      while (__i != ___bound_sentinel) {
+      while (__i != ___bound) {
         ++__i;
       }
     }
   }
 
   // Preconditions:
-  //   * If `n > 0`, [i, bound_sentinel) denotes a range.
-  //   * If `n == 0`, [i, bound_sentinel) or [bound_sentinel, i) denotes a range.
-  //   * If `n < 0`, [bound_sentinel, i) denotes a range, `I` models `bidirectional_iterator`, and `I` and `S` model `same_as<I, S>`.
-  // Returns: `n - M`, where `M` is the difference between the ending and starting position.
+  //   * If `n > 0`, [i, bound) denotes a range.
+  //   * If `n == 0`, [i, bound) or [bound, i) denotes a range.
+  //   * If `n < 0`, [bound, i) denotes a range, `I` models `bidirectional_iterator`, and `I` and `S` model `same_as<I, S>`.
+  // Returns: `n - M`, where `M` is the difference between the the ending and starting position.
   template <input_or_output_iterator _Ip, sentinel_for<_Ip> _Sp>
-  _LIBCPP_HIDE_FROM_ABI constexpr iter_difference_t<_Ip> operator()(_Ip& __i, iter_difference_t<_Ip> __n,
-                                                                    _Sp ___bound_sentinel) const {
+  _LIBCPP_HIDE_FROM_ABI
+  constexpr iter_difference_t<_Ip> operator()(_Ip& __i, iter_difference_t<_Ip> __n, _Sp ___bound) const {
     _LIBCPP_ASSERT((__n >= 0) || (bidirectional_iterator<_Ip> && same_as<_Ip, _Sp>),
                    "If `n < 0`, then `bidirectional_iterator<I> && same_as<I, S>` must be true.");
     // If `S` and `I` model `sized_sentinel_for<S, I>`:
     if constexpr (sized_sentinel_for<_Sp, _Ip>) {
-      // If |n| >= |bound_sentinel - i|, equivalent to `ranges::advance(i, bound_sentinel)`.
+      // If |n| >= |bound - i|, equivalent to `ranges::advance(i, bound)`.
       // __magnitude_geq(a, b) returns |a| >= |b|, assuming they have the same sign.
       auto __magnitude_geq = [](auto __a, auto __b) {
         return __a == 0 ? __b == 0 :
                __a > 0  ? __a >= __b :
                           __a <= __b;
       };
-      if (const auto __M = ___bound_sentinel - __i; __magnitude_geq(__n, __M)) {
-        (*this)(__i, ___bound_sentinel);
+      if (const auto __M = ___bound - __i; __magnitude_geq(__n, __M)) {
+        (*this)(__i, ___bound);
         return __n - __M;
       }
 
@@ -164,16 +165,16 @@ public:
       (*this)(__i, __n);
       return 0;
     } else {
-      // Otherwise, if `n` is non-negative, while `bool(i != bound_sentinel)` is true, increments `i` but at
+      // Otherwise, if `n` is non-negative, while `bool(i != bound)` is true, increments `i` but at
       // most `n` times.
-      while (__i != ___bound_sentinel && __n > 0) {
+      while (__i != ___bound && __n > 0) {
         ++__i;
         --__n;
       }
 
-      // Otherwise, while `bool(i != bound_sentinel)` is true, decrements `i` but at most `-n` times.
+      // Otherwise, while `bool(i != bound)` is true, decrements `i` but at most `-n` times.
       if constexpr (bidirectional_iterator<_Ip> && same_as<_Ip, _Sp>) {
-        while (__i != ___bound_sentinel && __n < 0) {
+        while (__i != ___bound && __n < 0) {
           --__i;
           ++__n;
         }
