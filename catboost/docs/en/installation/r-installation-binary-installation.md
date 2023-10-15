@@ -47,5 +47,3 @@ To install the released {{ r-package }} binary with GPU support:
 
 
 {% include [r__troubleshooting](../_includes/work_src/reusage-installation/r__troubleshooting.md) %}
-
-
