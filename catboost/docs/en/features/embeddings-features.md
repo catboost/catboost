@@ -28,3 +28,7 @@ Choose the implementation for details on the methods and/or parameters used that
 A one-dimensional array of embeddings columns indices (specified as integers) or names (specified as strings).
 
 {% include [reusage-python__cat_features__description__non-catfeatures-text](../_includes/work_src/reusage/python__cat_features__description__non-catfeatures-text.md) %}
+
+## Command-line version binary
+
+Specify `NumVector` for embedding features' columns in [the column description file](../concepts/input-data_column-descfile#numvector) when they are present in the input datasets.
