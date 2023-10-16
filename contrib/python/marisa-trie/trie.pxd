@@ -3,7 +3,7 @@ cimport base
 cimport keyset
 
 
-cdef extern from "<contrib/python/marisa-trie/marisa/trie.h>" namespace "marisa" nogil:
+cdef extern from "<marisa/trie.h>" namespace "marisa" nogil:
 
     cdef cppclass Trie:
         Trie()

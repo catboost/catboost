@@ -1,6 +1,6 @@
 cimport query, key
 
-cdef extern from "<contrib/python/marisa-trie/marisa/agent.h>" namespace "marisa" nogil:
+cdef extern from "<marisa/agent.h>" namespace "marisa" nogil:
     cdef cppclass Agent:
         Agent() except +
 

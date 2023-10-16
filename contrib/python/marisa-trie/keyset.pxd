@@ -1,6 +1,6 @@
 cimport key
 
-cdef extern from "<contrib/python/marisa-trie/marisa/keyset.h>" namespace "marisa" nogil:
+cdef extern from "<marisa/keyset.h>" namespace "marisa" nogil:
     cdef cppclass Keyset:
 
 #        cdef enum constants:

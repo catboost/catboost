@@ -1,4 +1,4 @@
-cdef extern from "<contrib/python/marisa-trie/marisa/base.h>":
+cdef extern from "<marisa/base.h>":
 
     # A dictionary consists of 3 tries in default. Usually more tries make a
     # dictionary space-efficient but time-inefficient.
@@ -57,7 +57,7 @@ cdef extern from "<contrib/python/marisa-trie/marisa/base.h>":
         MARISA_CONFIG_MASK
 
 
-cdef extern from "<contrib/python/marisa-trie/marisa/base.h>" namespace "marisa":
+cdef extern from "<marisa/base.h>" namespace "marisa":
     ctypedef marisa_cache_level CacheLevel
     ctypedef marisa_tail_mode TailMode
     ctypedef marisa_node_order NodeOrder
