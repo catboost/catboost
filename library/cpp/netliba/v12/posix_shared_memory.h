@@ -145,7 +145,7 @@ private:
 
     bool CreateOpen(const TGUID& guid, const size_t size, const bool isCreate) {
         if (size > (size_t)std::numeric_limits<off_t>::max()) { // ftruncate will fail
-            Y_VERIFY_DEBUG(false, "size = %" PRIu64 " is too big for off_t", (ui64)size);
+            Y_DEBUG_ABORT_UNLESS(false, "size = %" PRIu64 " is too big for off_t", (ui64)size);
             errno = EFBIG;
             return false;
         }
@@ -173,7 +173,7 @@ private:
         }
 
         if (IsCreator && ftruncate(Fd, (off_t)size) < 0) {
-            Y_VERIFY_DEBUG(false, "errno = %d (%s)", errno, strerror(errno));
+            Y_DEBUG_ABORT_UNLESS(false, "errno = %d (%s)", errno, strerror(errno));
             return false;
         }
 
@@ -188,7 +188,7 @@ private:
     bool ShmOpen(const TGUID& guid, const int flags) {
         Fd = shm_open(ConvertGuidToName(guid).c_str(), flags, 0666);
         if (Fd < 0) {
-            Y_VERIFY_DEBUG(false, "errno = %d (%s)", errno, strerror(errno));
+            Y_DEBUG_ABORT_UNLESS(false, "errno = %d (%s)", errno, strerror(errno));
             Fd = INVALID_HANDLE_VALUE;
             Guid = TGUID();
             return false;
@@ -206,7 +206,7 @@ private:
 
         Ptr = mmap(nullptr, size, PROT_WRITE | PROT_READ, flags, Fd, 0);
         if (Ptr == MAP_FAILED) {
-            Y_VERIFY_DEBUG(false, "errno = %d (%s)", errno, strerror(errno));
+            Y_DEBUG_ABORT_UNLESS(false, "errno = %d (%s)", errno, strerror(errno));
             Ptr = INVALID_POINTER_VALUE;
             Size = 0;
             return false;

@@ -266,13 +266,13 @@ namespace NNetlibaSocket {
 
     int TAbstractSocket::SetSockOpt(int level, int option_name, const void* option_value, socklen_t option_len) {
         const int rv = setsockopt(S, level, option_name, (const char*)option_value, option_len);
-        Y_VERIFY_DEBUG(rv == 0, "SetSockOpt failed: %s (errno = %d)", LastSystemErrorText(), LastSystemError());
+        Y_DEBUG_ABORT_UNLESS(rv == 0, "SetSockOpt failed: %s (errno = %d)", LastSystemErrorText(), LastSystemError());
         return rv;
     }
 
     int TAbstractSocket::GetSockOpt(int level, int option_name, void* option_value, socklen_t* option_len) {
         const int rv = getsockopt(S, level, option_name, (char*)option_value, option_len);
-        Y_VERIFY_DEBUG(rv == 0, "GetSockOpt failed: %s (errno = %d)", LastSystemErrorText(), LastSystemError());
+        Y_DEBUG_ABORT_UNLESS(rv == 0, "GetSockOpt failed: %s (errno = %d)", LastSystemErrorText(), LastSystemError());
         return rv;
     }
 
