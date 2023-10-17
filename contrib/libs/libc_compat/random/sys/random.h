@@ -6,7 +6,9 @@ extern "C" {
 
 #include <sys/types.h>
 
-#define SYS_getrandom   318
+#if !defined(SYS_getrandom)
+	#define SYS_getrandom   318
+#endif
 
 #define GRND_NONBLOCK	0x0001
 #define GRND_RANDOM		0x0002
