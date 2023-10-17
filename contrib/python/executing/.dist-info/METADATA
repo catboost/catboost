@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: executing
-Version: 1.2.0
+Version: 2.0.0
 Summary: Get the currently executing AST node of a frame, and other information
 Home-page: https://github.com/alexmojaki/executing
 Author: Alex Hall
@@ -8,8 +8,6 @@ Author-email: alex.mojaki@gmail.com
 License: MIT
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python
-Classifier: Programming Language :: Python :: 2
-Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.5
 Classifier: Programming Language :: Python :: 3.6
@@ -18,18 +16,21 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Description-Content-Type: text/markdown
 License-File: LICENSE.txt
-Requires-Dist: typing ; python_version < "3.5"
 Provides-Extra: tests
-Requires-Dist: asttokens ; extra == 'tests'
+Requires-Dist: asttokens >=2.1.0 ; extra == 'tests'
+Requires-Dist: ipython ; extra == 'tests'
 Requires-Dist: pytest ; extra == 'tests'
+Requires-Dist: coverage ; extra == 'tests'
+Requires-Dist: coverage-enable-subprocess ; extra == 'tests'
 Requires-Dist: littleutils ; extra == 'tests'
 Requires-Dist: rich ; (python_version >= "3.11") and extra == 'tests'
 
 # executing
 
-[![Build Status](https://github.com/alexmojaki/executing/workflows/Tests/badge.svg?branch=master)](https://github.com/alexmojaki/executing/actions) [![Coverage Status](https://coveralls.io/repos/github/alexmojaki/executing/badge.svg?branch=master)](https://coveralls.io/github/alexmojaki/executing?branch=master) [![Supports Python versions 2.7 and 3.5+, including PyPy](https://img.shields.io/pypi/pyversions/executing.svg)](https://pypi.python.org/pypi/executing)
+[![Build Status](https://github.com/alexmojaki/executing/workflows/Tests/badge.svg?branch=master)](https://github.com/alexmojaki/executing/actions) [![Coverage Status](https://coveralls.io/repos/github/alexmojaki/executing/badge.svg?branch=master)](https://coveralls.io/github/alexmojaki/executing?branch=master) [![Supports Python versions 3.5+, including PyPy](https://img.shields.io/pypi/pyversions/executing.svg)](https://pypi.python.org/pypi/executing)
 
 This mini-package lets you get information about what a frame is currently doing, particularly the AST node being executed.
 
