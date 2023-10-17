@@ -322,7 +322,7 @@ namespace NNehNetliba {
 
         void SendResponse(const TGUID& reqId, TVector<char>* data) override {
             if (data && data->size() > MAX_PACKET_SIZE) {
-               Y_FAIL(
+               Y_ABORT(
                     "data size is too large; data->size()=%" PRISZT ", MAX_PACKET_SIZE=%" PRISZT,
                     data->size(), MAX_PACKET_SIZE);
             }

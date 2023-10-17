@@ -24,7 +24,7 @@ namespace NPar {
                 if (Y_UNLIKELY(typeid(*obj) != typeid(T))) {
                     const auto objTypeName = TypeName(*obj);
                     const auto expectedTypeName = TypeName<T>();
-                    Y_FAIL("type mismatch: %s != %s", objTypeName.c_str(), expectedTypeName.c_str());
+                    Y_ABORT("type mismatch: %s != %s", objTypeName.c_str(), expectedTypeName.c_str());
                 }
                 Ptr = CastToUserObject(const_cast<IObjectBase*>(obj), (T*)nullptr);
             }
@@ -83,13 +83,13 @@ namespace NPar {
             (void)hostId;
             (void)src;
             (void)dst;
-            Y_FAIL("missing map implementation");
+            Y_ABORT("missing map implementation");
         }
         virtual void DoReduce(TVector<TOutput>* src, TOutput* dst) const {
             CHROMIUM_TRACE_FUNCTION();
             (void)src;
             (void)dst;
-            Y_FAIL("missing reduce implementation");
+            Y_ABORT("missing reduce implementation");
         }
     };
 

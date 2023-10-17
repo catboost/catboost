@@ -9,17 +9,17 @@ struct TNoHeapAlloc {
     // implemented and available for gcc virtual destructors
 protected:
     void operator delete(void*) {
-        Y_FAIL();
+        Y_ABORT();
     }
     void operator delete[](void*) {
-        Y_FAIL();
+        Y_ABORT();
     }
 
     void operator delete(void*, const std::nothrow_t&) {
-        Y_FAIL();
+        Y_ABORT();
     }
     void operator delete[](void*, const std::nothrow_t&) {
-        Y_FAIL();
+        Y_ABORT();
     }
 };
 

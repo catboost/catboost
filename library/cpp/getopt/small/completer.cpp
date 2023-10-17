@@ -122,7 +122,7 @@ namespace NLastGetopt::NComp {
         }
 
         void GenerateZsh(TFormattedOutput&, TCompleterManager&) const override {
-            Y_FAIL("unreachable");
+            Y_ABORT("unreachable");
         }
 
     private:

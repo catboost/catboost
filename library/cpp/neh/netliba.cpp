@@ -403,7 +403,7 @@ namespace {
                 }
 
                 void AddResponse(TUdpHttpResponse*) override {
-                    Y_FAIL("unexpected response in neh netliba server");
+                    Y_ABORT("unexpected response in neh netliba server");
                 }
 
                 void AddCancel(const TGUID& guid) override {
@@ -414,7 +414,7 @@ namespace {
                 }
 
                 void AddRequestAck(const TGUID&) override {
-                    Y_FAIL("unexpected acc in neh netliba server");
+                    Y_ABORT("unexpected acc in neh netliba server");
                 }
 
                 void UpdateInProcess() {

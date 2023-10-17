@@ -64,7 +64,7 @@ namespace NPrivate {
                 return reinterpret_cast<T*>(&StackBasedStorage[0]);
             } else {
                 if constexpr (!UseFallbackAlloc) {
-                    Y_FAIL(
+                    Y_ABORT(
                             "Stack storage overflow. Capacity: %d, requested: %d", (int)CountOnStack, int(n));
                 }
                 return FallbackAllocator().allocate(n);

@@ -278,7 +278,7 @@ void TJUnitProcessor::MakeReportFileName() {
 
     if (ResultReportFileName.empty()) {
         Cerr << "Could not find a vacant file name to write report for path " << FileName << ", maximum number of reports: " << MaxReps << Endl;
-        Y_FAIL("Cannot write report");
+        Y_ABORT("Cannot write report");
     }
 }
 

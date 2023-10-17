@@ -500,7 +500,7 @@ namespace NPar {
                         queryFullTime += (TInstant::Now() - queryInfoPtr->QueryCreationTime).SecondsFloat();
                         queryInfoPtr->Proc->GotResponse(queryInfoPtr->Id, &netEvent.Response->Data);
                     } else {
-                        Y_FAIL();
+                        Y_ABORT();
                     }
                 }
             }

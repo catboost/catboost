@@ -25,7 +25,7 @@ namespace {
 #define Y_VERIFY_SYSERROR(expr)                                           \
     do {                                                                  \
         if (!(expr)) {                                                    \
-            Y_FAIL(#expr ", errno=%d", LastSystemError());                \
+            Y_ABORT(#expr ", errno=%d", LastSystemError());                \
         }                                                                 \
     } while (false)
 
@@ -137,7 +137,7 @@ namespace {
                 }
             }
 
-            Y_FAIL("Cannot get free port!");
+            Y_ABORT("Cannot get free port!");
         }
 
         TVector<NTesting::TPortHolder> GetFreePortsRange(size_t count) const {
@@ -167,7 +167,7 @@ namespace {
                     ports.clear();
                 }
             }
-            Y_FAIL("Cannot get range of %zu ports!", count);
+            Y_ABORT("Cannot get range of %zu ports!", count);
         }
 
         NTesting::TPortHolder GetPort(ui16 port) const {
@@ -176,7 +176,7 @@ namespace {
                 if (ackport) {
                     return NTesting::TPortHolder{std::move(ackport)};
                 }
-                Y_FAIL("Cannot acquire port %hu!", port);
+                Y_ABORT("Cannot acquire port %hu!", port);
             }
             return GetFreePort();
         }

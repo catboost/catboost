@@ -357,7 +357,7 @@ void TContExecutor::RunScheduler() noexcept {
         }
     } catch (...) {
         TBackTrace::FromCurrentException().PrintTo(Cerr);
-        Y_FAIL("Uncaught exception in the scheduler: %s", CurrentExceptionMessage().c_str());
+        Y_ABORT("Uncaught exception in the scheduler: %s", CurrentExceptionMessage().c_str());
     }
 }
 
@@ -372,7 +372,7 @@ void TContExecutor::Pause() {
 void TContExecutor::Exit(TCont* cont) noexcept {
     ScheduleToDelete(cont);
     cont->SwitchTo(&SchedContext_);
-    Y_FAIL("can not return from exit");
+    Y_ABORT("can not return from exit");
 }
 
 TInstant TContExecutor::Now() {

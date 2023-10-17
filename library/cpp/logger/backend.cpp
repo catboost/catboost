@@ -24,7 +24,7 @@ namespace {
                     return;
                 }
             }
-            Y_FAIL("Incorrect pointer for log backend");
+            Y_ABORT("Incorrect pointer for log backend");
         }
 
         void Reopen(bool flush) {

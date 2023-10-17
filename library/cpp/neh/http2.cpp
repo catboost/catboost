@@ -948,7 +948,7 @@ namespace {
                 SuggestPurgeCache();
 
                 if (ExceedHardLimit()) {
-                    Y_FAIL("neh::http2 output connections limit reached");
+                    Y_ABORT("neh::http2 output connections limit reached");
                     //ythrow yexception() << "neh::http2 output connections limit reached";
                 }
             }

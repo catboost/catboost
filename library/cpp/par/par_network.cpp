@@ -182,7 +182,7 @@ namespace NPar {
                         --infoDataPtr->RetriesRest;
                         if (infoDataPtr->RetriesRest < 0) {
                             Singleton<TParLogger>()->OutputLogTailToCout();
-                            Y_FAIL("got unexpected network error, no retries rest");
+                            Y_ABORT("got unexpected network error, no retries rest");
                         }
                         NNeh::IMultiClient::TRequest request(infoDataPtr->NehMessage,
                                                              Timeout(*infoDataPtr).ToDeadLine(), infoDataPtr.Release());
@@ -190,7 +190,7 @@ namespace NPar {
                     } else {
                         if (resp->Data != TStringBuf{"OK"}) {
                             ERROR_LOG << "query info: " << infoDataPtr->ToString() << Endl;
-                            Y_FAIL("reply isn't OK");
+                            Y_ABORT("reply isn't OK");
                         }
                     }
                 } else if (ev.Type == NNeh::IMultiClient::TEvent::Timeout) {
@@ -200,7 +200,7 @@ namespace NPar {
                     --infoDataPtr->RetriesRest;
                     if (infoDataPtr->RetriesRest < 0) {
                         Singleton<TParLogger>()->OutputLogTailToCout();
-                        Y_FAIL("got timeout for some request :(");
+                        Y_ABORT("got timeout for some request :(");
                     }
                     NNeh::IMultiClient::TRequest request(infoDataPtr->NehMessage,
                                                          Timeout(*infoDataPtr).ToDeadLine(), infoDataPtr.Release());
@@ -492,7 +492,7 @@ namespace NPar {
                     std::move(processQueryCallback),
                     std::move(processReplyCallback));
             default:
-                Y_FAIL("Unknown requester type");
+                Y_ABORT("Unknown requester type");
         }
     }
 }
