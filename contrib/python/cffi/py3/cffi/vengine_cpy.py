@@ -1,9 +1,10 @@
 #
 # DEPRECATED: implementation for ffi.verify()
 #
-import sys, imp
+import sys
 from . import model
 from .error import VerificationError
+from . import _imp_emulation as imp
 
 
 class VCPythonEngine(object):

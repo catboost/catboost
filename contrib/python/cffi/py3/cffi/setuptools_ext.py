@@ -8,7 +8,7 @@ except NameError:
     basestring = str
 
 def error(msg):
-    from distutils.errors import DistutilsSetupError
+    from cffi._shimmed_dist_utils import DistutilsSetupError
     raise DistutilsSetupError(msg)
 
 
@@ -104,11 +104,9 @@ def _set_py_limited_api(Extension, kwds):
     return kwds
 
 def _add_c_module(dist, ffi, module_name, source, source_extension, kwds):
-    from distutils.core import Extension
     # We are a setuptools extension. Need this build_ext for py_limited_api.
     from setuptools.command.build_ext import build_ext
-    from distutils.dir_util import mkpath
-    from distutils import log
+    from cffi._shimmed_dist_utils import Extension, log, mkpath
     from cffi import recompiler
 
     allsources = ['$PLACEHOLDER']
@@ -150,10 +148,9 @@ def _add_c_module(dist, ffi, module_name, source, source_extension, kwds):
 
 
 def _add_py_module(dist, ffi, module_name):
-    from distutils.dir_util import mkpath
     from setuptools.command.build_py import build_py
     from setuptools.command.build_ext import build_ext
-    from distutils import log
+    from cffi._shimmed_dist_utils import log, mkpath
     from cffi import recompiler
 
     def generate_mod(py_file):

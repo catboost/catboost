@@ -264,9 +264,10 @@ class PointerType(BaseType):
     def __init__(self, totype, quals=0):
         self.totype = totype
         self.quals = quals
-        extra = qualify(quals, " *&")
+        extra = " *&"
         if totype.is_array_type:
             extra = "(%s)" % (extra.lstrip(),)
+        extra = qualify(quals, extra)
         self.c_name_with_marker = totype.c_name_with_marker.replace('&', extra)
 
     def build_backend_type(self, ffi, finishlist):

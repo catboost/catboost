@@ -622,7 +622,7 @@ class FFI(object):
                 try:
                     import sysconfig
                 except ImportError:    # 2.6
-                    from distutils import sysconfig
+                    from cffi._shimmed_dist_utils import sysconfig
                 template = "python%d.%d"
                 if sysconfig.get_config_var('DEBUG_EXT'):
                     template += sysconfig.get_config_var('DEBUG_EXT')
@@ -658,7 +658,7 @@ class FFI(object):
         self.set_source(module_name, source, source_extension, **kwds)
 
     def distutils_extension(self, tmpdir='build', verbose=True):
-        from distutils.dir_util import mkpath
+        from cffi._shimmed_dist_utils import mkpath
         from .recompiler import recompile
         #
         if not hasattr(self, '_assigned_source'):

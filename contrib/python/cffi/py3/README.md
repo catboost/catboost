@@ -8,7 +8,13 @@ in the doc/ subdirectory.
 Download
 --------
 
-[Download page](https://foss.heptapod.net/pypy/cffi/-/tags)
+[Download page](https://github.com/python-cffi/cffi/releases)
+
+Source Code
+-----------
+
+Source code is publicly available on
+[GitHub](https://github.com/python-cffi/cffi).
 
 Contact
 -------
@@ -18,13 +24,8 @@ Contact
 Testing/development tips
 ------------------------
 
-To run tests under CPython, run::
+To run tests under CPython, run the following in the source root directory::
 
-    pip install pytest     # if you don't have py.test already
-    pip install pycparser
-    python setup.py build_ext -f -i
-    py.test c/ testing/
-
-If you run in another directory (either the tests or another program),
-you should use the environment variable ``PYTHONPATH=/path`` to point
-to the location that contains the ``_cffi_backend.so`` just compiled.
+    pip install pytest
+    pip install -e .  # editable install of CFFI for local development
+    pytest c/ testing/

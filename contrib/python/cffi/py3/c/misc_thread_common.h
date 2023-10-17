@@ -102,6 +102,7 @@ thread_canary_dealloc(ThreadCanaryObj *ob)
        'local_thread_canary' accesses need to be protected with
        the TLS_ZOM_LOCK.
      */
+    //fprintf(stderr, "entering dealloc(%p)\n", ob);
     TLS_ZOM_LOCK();
     if (ob->zombie_next != NULL) {
         //fprintf(stderr, "thread_canary_dealloc(%p): ZOMBIE\n", ob);
@@ -136,6 +137,7 @@ thread_canary_make_zombie(ThreadCanaryObj *ob)
     ob->zombie_prev = last;
     last->zombie_next = ob;
     cffi_zombie_head.zombie_prev = ob;
+    //fprintf(stderr, "thread_canary_make_zombie(%p) DONE\n", ob);
 }
 
 static void
@@ -164,6 +166,15 @@ thread_canary_free_zombies(void)
             break;
         PyThreadState_Clear(tstate);  /* calls thread_canary_dealloc on 'ob',
                                          but now ob->zombie_next == NULL. */
+#if PY_VERSION_HEX >= 0x030C0000
+        /* this might be a bug introduced in 3.12, or just me abusing the
+           API around there.  The issue is that PyThreadState_Delete()
+           called on a random old tstate will clear the *current* thread
+           notion of what PyGILState_GetThisThreadState() should be, at
+           least if the internal 'bound_gilstate' flag is set in the old
+           tstate.  Workaround: clear that flag. */
+        tstate->_status.bound_gilstate = 0;
+#endif
         PyThreadState_Delete(tstate);
         //fprintf(stderr, "thread_canary_free_zombie: cleared and deleted tstate=%p\n", tstate);
     }
@@ -213,9 +224,11 @@ thread_canary_register(PyThreadState *tstate)
     tstate->gilstate_counter++;
     /* ^^^ this means 'tstate' will never be automatically freed by
            PyGILState_Release() */
+    //fprintf(stderr, "CANARY: ready, tstate=%p, tls=%p, canary=%p\n", tstate, tls, canary);
     return;
 
  ignore_error:
+    //fprintf(stderr, "CANARY: IGNORED ERROR\n");
     PyErr_Clear();
 }
 
@@ -334,6 +347,7 @@ static PyGILState_STATE gil_ensure(void)
     */
     PyGILState_STATE result;
     PyThreadState *ts = PyGILState_GetThisThreadState();
+    //fprintf(stderr, "%p: gil_ensure(), tstate=%p, tls=%p\n", get_cffi_tls(), ts, get_cffi_tls());
 
     if (ts != NULL) {
         ts->gilstate_counter++;
@@ -341,9 +355,11 @@ static PyGILState_STATE gil_ensure(void)
             /* common case: 'ts' is our non-current thread state and
                we have to make it current and acquire the GIL */
             PyEval_RestoreThread(ts);
+            //fprintf(stderr, "%p: gil_ensure(), tstate=%p MADE CURRENT\n", get_cffi_tls(), ts);
             return PyGILState_UNLOCKED;
         }
         else {
+            //fprintf(stderr, "%p: gil_ensure(), tstate=%p ALREADY CURRENT\n", get_cffi_tls(), ts);
             return PyGILState_LOCKED;
         }
     }
@@ -353,6 +369,7 @@ static PyGILState_STATE gil_ensure(void)
         assert(result == PyGILState_UNLOCKED);
 
         ts = PyGILState_GetThisThreadState();
+        //fprintf(stderr, "%p: gil_ensure(), made a new tstate=%p\n", get_cffi_tls(), ts);
         assert(ts != NULL);
         assert(ts == get_current_ts());
         assert(ts->gilstate_counter >= 1);
@@ -361,11 +378,13 @@ static PyGILState_STATE gil_ensure(void)
            thread really shuts down */
         thread_canary_register(ts);
 
+        assert(ts == PyGILState_GetThisThreadState());
         return result;
     }
 }
 
 static void gil_release(PyGILState_STATE oldstate)
 {
+    //fprintf(stderr, "%p: gil_release(%d), tls=%p\n", get_cffi_tls(), (int)oldstate, get_cffi_tls());
     PyGILState_Release(oldstate);
 }

@@ -117,7 +117,6 @@ class Verifier(object):
         return basename
 
     def get_extension(self):
-        ffiplatform._hack_at_distutils() # backward compatibility hack
         if not self._has_source:
             with self.ffi._lock:
                 if not self._has_source:

@@ -1481,13 +1481,13 @@ def _unpatch_meths(patchlist):
 def _patch_for_embedding(patchlist):
     if sys.platform == 'win32':
         # we must not remove the manifest when building for embedding!
-        from distutils.msvc9compiler import MSVCCompiler
+        from cffi._shimmed_dist_utils import MSVCCompiler
         _patch_meth(patchlist, MSVCCompiler, '_remove_visual_c_ref',
                     lambda self, manifest_file: manifest_file)
 
     if sys.platform == 'darwin':
         # we must not make a '-bundle', but a '-dynamiclib' instead
-        from distutils.ccompiler import CCompiler
+        from cffi._shimmed_dist_utils import CCompiler
         def my_link_shared_object(self, *args, **kwds):
             if '-bundle' in self.linker_so:
                 self.linker_so = list(self.linker_so)
@@ -1499,7 +1499,7 @@ def _patch_for_embedding(patchlist):
                                              my_link_shared_object)
 
 def _patch_for_target(patchlist, target):
-    from distutils.command.build_ext import build_ext
+    from cffi._shimmed_dist_utils import build_ext
     # if 'target' is different from '*', we need to patch some internal
     # method to just return this 'target' value, instead of having it
     # built from module_name
