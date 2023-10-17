@@ -217,8 +217,12 @@ Other Languages
 History
 =======
 
+0.2.8 *2023-09-30*
+  * Include requirements files in the source distibution (`PR #82`).
+
 0.2.7 *2023-09-28*
   * **Updated** tables to include Unicode Specification 15.1.0.
+  * Include ``bin``, ``docs``, and ``tox.ini`` in the source distribution
 
 0.2.6 *2023-01-14*
   * **Updated** tables to include Unicode Specification 14.0.0 and 15.0.0.
