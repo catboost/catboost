@@ -31,7 +31,7 @@ A text feature.
 
 #### {{ cd-file__col-type__NumVector }}
 
-An array of numbers that represent an embedding feature.
+An array of numbers that represent an embedding feature. Numbers in the string are separated by a single character separator. Its default value is `;`.
 
 #### {{ cd-file__col-type__Auxiliary }}
 
