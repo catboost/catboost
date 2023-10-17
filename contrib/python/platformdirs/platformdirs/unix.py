@@ -175,11 +175,11 @@ class Unix(PlatformDirsABC):
     @property
     def site_runtime_dir(self) -> str:
         """
-        :return: runtime directory shared by users, e.g. ``/run/$appname/$version`` or
+        :return: runtime directory shared by users, e.g. ``/run/$appname/$version`` or \
         ``$XDG_RUNTIME_DIR/$appname/$version``.
 
         Note that this behaves almost exactly like `user_runtime_dir` if ``$XDG_RUNTIME_DIR`` is set, but will
-        fallback to paths associated to the root user instead of a regular logged-in user if it's not set.
+        fall back to paths associated to the root user instead of a regular logged-in user if it's not set.
 
         If you wish to ensure that a logged-in root user path is returned e.g. ``/run/user/0``, use `user_runtime_dir`
         instead.

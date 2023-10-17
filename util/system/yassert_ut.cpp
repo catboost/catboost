@@ -23,8 +23,8 @@ Y_UNIT_TEST_SUITE(YassertTest) {
 
     Y_UNIT_TEST(TestFailCompiles) {
         if (false) {
-            Y_FAIL("%d is a lucky number", 7);
-            Y_FAIL();
+            Y_ABORT("%d is a lucky number", 7);
+            Y_ABORT();
         }
     }
 

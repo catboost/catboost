@@ -1,8 +1,8 @@
 The problem
 ===========
 
-.. image:: https://github.com/platformdirs/platformdirs/workflows/Test/badge.svg
-   :target: https://github.com/platformdirs/platformdirs/actions?query=workflow%3ATest
+.. image:: https://github.com/platformdirs/platformdirs/actions/workflows/check.yml/badge.svg
+   :target: https://github.com/platformdirs/platformdirs/actions
 
 When writing desktop application, finding the right location to store user data
 and configuration varies per platform. Even for single-platform apps, there
