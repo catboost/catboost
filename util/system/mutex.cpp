@@ -95,7 +95,7 @@ public:
         if (result == 0 || result == EBUSY) {
             return result == 0;
         }
-        Y_FAIL("mutex trylock failure (%s)", LastSystemErrorText(result));
+        Y_ABORT("mutex trylock failure (%s)", LastSystemErrorText(result));
 #endif
     }
 

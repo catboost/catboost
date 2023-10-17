@@ -147,7 +147,7 @@ inline TSmallInt IntegerCast(TLargeInt largeInt) noexcept {
     try {
         return SafeIntegerCast<TSmallInt>(largeInt);
     } catch (const yexception& exc) {
-        Y_FAIL("IntegerCast: %s", exc.what());
+        Y_ABORT("IntegerCast: %s", exc.what());
     }
 }
 
