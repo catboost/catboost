@@ -60,16 +60,26 @@ namespace NCB {
             );
         }
 
-        CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
-                  "TCBDsvDataLoader:PairsFilePath does not exist");
-        CB_ENSURE(!Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
-                  "TCBDsvDataLoader:GroupWeightsFilePath does not exist");
-        CB_ENSURE(!Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
-                  "TCBDsvDataLoader:TimestampsFilePath does not exist");
-        CB_ENSURE(!Args.FeatureNamesPath.Inited() || CheckExists(Args.FeatureNamesPath),
-                  "TCBDsvDataLoader:FeatureNamesPath does not exist");
-        CB_ENSURE(!Args.PoolMetaInfoPath.Inited() || CheckExists(Args.PoolMetaInfoPath),
-                  "TCBDsvDataLoader:PoolMetaInfoPath does not exist");
+        CB_ENSURE(
+            !Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
+            "TCBDsvDataLoader:PairsFilePath does not exist"
+        );
+        CB_ENSURE(
+            !Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
+            "TCBDsvDataLoader:GroupWeightsFilePath does not exist"
+        );
+        CB_ENSURE(
+            !Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
+            "TCBDsvDataLoader:TimestampsFilePath does not exist"
+        );
+        CB_ENSURE(
+            !Args.FeatureNamesPath.Inited() || CheckExists(Args.FeatureNamesPath),
+            "TCBDsvDataLoader:FeatureNamesPath does not exist"
+        );
+        CB_ENSURE(
+            !Args.PoolMetaInfoPath.Inited() || CheckExists(Args.PoolMetaInfoPath),
+            "TCBDsvDataLoader:PoolMetaInfoPath does not exist"
+        );
 
         TMaybe<TString> header = LineDataReader->GetHeader();
         TMaybe<TVector<TString>> headerColumns;
@@ -276,7 +286,7 @@ namespace NCB {
                                 CB_ENSURE(token.length() != 0, "empty values not supported for Label");
                                 visitor->AddTarget(targetId, lineIdx, TString(token));
                                 ++targetId;
-                            break;
+                                break;
                             }
                             case EColumn::Weight: {
                                 CB_ENSURE(token.length() != 0, "empty values not supported for weight");
@@ -384,10 +394,13 @@ namespace NCB {
     int GetDsvColumnCount(const TPathWithScheme& pathWithScheme, const TDsvFormatOptions& format, bool ignoreCsvQuoting) {
         CB_ENSURE_INTERNAL(pathWithScheme.Scheme == "dsv", "Unsupported scheme " << pathWithScheme.Scheme);
         TString firstLine;
-        CB_ENSURE(GetLineDataReader(pathWithScheme, format)->ReadLine(&firstLine),
-                  "TCBDsvDataLoader: no data rows in pool");
+        CB_ENSURE(
+            GetLineDataReader(pathWithScheme, format)->ReadLine(&firstLine),
+            "TCBDsvDataLoader: no data rows in pool"
+        );
         return TVector<TString>(
-            NCsvFormat::CsvSplitter(firstLine, format.Delimiter, ignoreCsvQuoting ? '\0' : '"')).size();
+            NCsvFormat::CsvSplitter(firstLine, format.Delimiter, ignoreCsvQuoting ? '\0' : '"')
+        ).size();
     }
 
     namespace {

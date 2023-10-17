@@ -47,14 +47,16 @@ static TVector<TString> GetFeatureNames(
                 "Feature #" << featureIdx << ": name from columns description (\""
                 << featureNamesFromColumnsDescription[featureIdx]
                 << "\") is not equal to name from feature names file (\""
-                << externalFeatureNames[featureIdx] << "\")");
+                << externalFeatureNames[featureIdx] << "\")"
+            );
         }
         for (; featureIdx < featureNamesFromColumnsDescription.size(); ++featureIdx) {
             CB_ENSURE(
                 featureNamesFromColumnsDescription[featureIdx].empty(),
                 "Feature #" << featureIdx << ": name specified in columns description (\""
                 << featureNamesFromColumnsDescription[featureIdx]
-                << "\") but not present in feature names file");
+                << "\") but not present in feature names file"
+            );
         }
 
         return externalFeatureNames;
@@ -94,16 +96,25 @@ namespace NCB {
             );
         }
 
-        CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
-                  "TLibSvmDataLoader:PairsFilePath does not exist");
-        CB_ENSURE(!Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
-                  "TLibSvmDataLoader:GroupWeightsFilePath does not exist");
-        CB_ENSURE(!Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
-                  "TLibSvmDataLoader:TimestampsFilePath does not exist");
-        CB_ENSURE(!Args.FeatureNamesPath.Inited() || CheckExists(Args.FeatureNamesPath),
-                  "TLibSvmDataLoader:FeatureNamesPath does not exist");
-        CB_ENSURE(!Args.PoolMetaInfoPath.Inited() || CheckExists(Args.PoolMetaInfoPath),
-                  "TLibSvmDataLoader:PoolMetaInfoPath does not exist");
+        CB_ENSURE(
+            !Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
+            "TLibSvmDataLoader:PairsFilePath does not exist");
+        CB_ENSURE(
+            !Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
+            "TLibSvmDataLoader:GroupWeightsFilePath does not exist"
+        );
+        CB_ENSURE(
+            !Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
+            "TLibSvmDataLoader:TimestampsFilePath does not exist"
+        );
+        CB_ENSURE(
+            !Args.FeatureNamesPath.Inited() || CheckExists(Args.FeatureNamesPath),
+            "TLibSvmDataLoader:FeatureNamesPath does not exist"
+        );
+        CB_ENSURE(
+            !Args.PoolMetaInfoPath.Inited() || CheckExists(Args.PoolMetaInfoPath),
+            "TLibSvmDataLoader:PoolMetaInfoPath does not exist"
+        );
 
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TLibSvmDataLoader: no data rows");
