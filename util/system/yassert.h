@@ -87,7 +87,6 @@ namespace NPrivate {
     } while (false)
 
 #define Y_ABORT(...) Y_ABORT_UNLESS(false, __VA_ARGS__)
-#define Y_FAIL Y_ABORT
 
 #ifndef NDEBUG
     /// Assert that depend on NDEBUG macro and outputs message like printf
