@@ -1,15 +1,18 @@
+from __future__ import annotations
+
 import os
 import pathlib
+from typing import Sequence
 
 
 # vestigal things from IPython_genutils.
-def cast_unicode(s, encoding="utf-8"):
+def cast_unicode(s: str | bytes, encoding: str = "utf-8") -> str:
     if isinstance(s, bytes):
         return s.decode(encoding, "replace")
     return s
 
 
-def filefind(filename, path_dirs=None):
+def filefind(filename: str, path_dirs: Sequence[str] | None = None) -> str:
     """Find a file by looking through a sequence of paths.
 
     This iterates through a sequence of paths looking for a file and returns
@@ -65,7 +68,7 @@ def filefind(filename, path_dirs=None):
     raise OSError(f"File {filename!r} does not exist in any of the search paths: {path_dirs!r}")
 
 
-def expand_path(s):
+def expand_path(s: str) -> str:
     """Expand $VARS and ~names in a string, like a shell
 
     :Examples:

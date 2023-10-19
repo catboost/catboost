@@ -1,20 +1,23 @@
+from __future__ import annotations
+
 import sys
 from subprocess import PIPE, Popen
-import os
+from typing import Any, Sequence
 
 
-def get_output_error_code(cmd):
+def get_output_error_code(cmd: str | Sequence[str]) -> tuple[str, str, Any]:
     """Get stdout, stderr, and exit code from running a command"""
+    import os
     env = os.environ.copy()
     env["Y_PYTHON_ENTRY_POINT"] = ":main"
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, env=env)  # noqa
     out, err = p.communicate()
-    out = out.decode("utf8", "replace")  # type:ignore
-    err = err.decode("utf8", "replace")  # type:ignore
-    return out, err, p.returncode
+    out_str = out.decode("utf8", "replace")
+    err_str = err.decode("utf8", "replace")
+    return out_str, err_str, p.returncode
 
 
-def check_help_output(pkg, subcommand=None):
+def check_help_output(pkg: str, subcommand: Sequence[str] | None = None) -> tuple[str, str]:
     """test that `python -m PKG [subcommand] -h` works"""
     cmd = [sys.executable, "-m", pkg]
     if subcommand:
@@ -28,7 +31,7 @@ def check_help_output(pkg, subcommand=None):
     return out, err
 
 
-def check_help_all_output(pkg, subcommand=None):
+def check_help_all_output(pkg: str, subcommand: Sequence[str] | None = None) -> tuple[str, str]:
     """test that `python -m PKG --help-all` works"""
     cmd = [sys.executable, "-m", pkg]
     if subcommand:

@@ -8,6 +8,7 @@ from unittest import TestCase
 
 from pytest import mark
 
+from .._warnings import expected_warnings
 from traitlets.config.application import Application
 from traitlets.config.configurable import Configurable, LoggingConfigurable, SingletonConfigurable
 from traitlets.config.loader import Config
@@ -25,8 +26,6 @@ from traitlets.traitlets import (
     validate,
 )
 from traitlets.utils.warnings import _deprecations_shown
-
-from traitlets.tests._warnings import expected_warnings
 
 
 class MyConfigurable(Configurable):

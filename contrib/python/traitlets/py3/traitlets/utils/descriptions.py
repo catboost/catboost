@@ -1,9 +1,18 @@
+from __future__ import annotations
+
 import inspect
 import re
 import types
+from typing import Any
 
 
-def describe(article, value, name=None, verbose=False, capital=False):
+def describe(
+    article: str | None,
+    value: Any,
+    name: str | None = None,
+    verbose: bool = False,
+    capital: bool = False,
+) -> str:
     """Return string that describes a value
 
     Parameters
@@ -110,7 +119,7 @@ def describe(article, value, name=None, verbose=False, capital=False):
         )
 
 
-def _prefix(value):
+def _prefix(value: Any) -> str:
     if isinstance(value, types.MethodType):
         name = describe(None, value.__self__, verbose=True) + "."
     else:
@@ -122,7 +131,7 @@ def _prefix(value):
     return name
 
 
-def class_of(value):
+def class_of(value: Any) -> Any:
     """Returns a string of the value's type with an indefinite article.
 
     For example 'an Image' or 'a PlotValue'.
@@ -133,7 +142,7 @@ def class_of(value):
         return class_of(type(value))
 
 
-def add_article(name, definite=False, capital=False):
+def add_article(name: str, definite: bool = False, capital: bool = False) -> str:
     """Returns the string with a prepended article.
 
     The input does not need to begin with a charater.
@@ -164,7 +173,7 @@ def add_article(name, definite=False, capital=False):
         return result
 
 
-def repr_type(obj):
+def repr_type(obj: Any) -> str:
     """Return a string representation of a value and its type for readable
 
     error messages.

@@ -1,7 +1,7 @@
 from inspect import Parameter, signature
 from unittest import TestCase
 
-from traitlets.traitlets import HasTraits, Int, Unicode
+from traitlets import HasTraits, Int, Unicode
 from traitlets.utils.decorators import signature_has_traits
 
 

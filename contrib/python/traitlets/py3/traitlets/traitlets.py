@@ -38,6 +38,9 @@ Inheritance diagram:
 #
 # Adapted from enthought.traits, Copyright (c) Enthought, Inc.,
 # also under the terms of the Modified BSD License.
+
+# ruff: noqa: ANN001, ANN204, ANN201, ANN003, ANN206, ANN002
+
 from __future__ import annotations
 
 import contextlib
@@ -213,16 +216,16 @@ def parse_notifier_name(names: Sentinel | str | t.Iterable[Sentinel | str]) -> t
 
 
 class _SimpleTest:
-    def __init__(self, value):
+    def __init__(self, value: t.Any) -> None:
         self.value = value
 
-    def __call__(self, test):
-        return test == self.value
+    def __call__(self, test: t.Any) -> bool:
+        return bool(test == self.value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<SimpleTest(%r)" % self.value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__repr__()
 
 
@@ -294,7 +297,7 @@ class link:
 
         self.link()
 
-    def link(self):
+    def link(self) -> None:
         try:
             setattr(
                 self.target[0],
@@ -334,7 +337,7 @@ class link:
                     f"Broken link {self}: the target value changed while updating " "the source."
                 )
 
-    def unlink(self):
+    def unlink(self) -> None:
         self.source[0].unobserve(self._update_target, names=self.source[1])
         self.target[0].unobserve(self._update_source, names=self.target[1])
 
@@ -378,7 +381,7 @@ class directional_link:
         self.source, self.target = source, target
         self.link()
 
-    def link(self):
+    def link(self) -> None:
         try:
             setattr(
                 self.target[0],
@@ -402,7 +405,7 @@ class directional_link:
         with self._busy_updating():
             setattr(self.target[0], self.target[1], self._transform(change.new))
 
-    def unlink(self):
+    def unlink(self) -> None:
         self.source[0].unobserve(self._update, names=self.source[1])
 
 
@@ -1123,7 +1126,7 @@ def observe(*names: Sentinel | str, type: str = "change") -> ObserveHandler:
     return ObserveHandler(names, type=type)
 
 
-def observe_compat(func):
+def observe_compat(func: FuncT) -> FuncT:
     """Backward-compatibility shim decorator for observers
 
     Use with:
@@ -1137,9 +1140,11 @@ def observe_compat(func):
     Allows adoption of new observer API without breaking subclasses that override and super.
     """
 
-    def compatible_observer(self, change_or_name, old=Undefined, new=Undefined):
+    def compatible_observer(
+        self: t.Any, change_or_name: str, old: t.Any = Undefined, new: t.Any = Undefined
+    ) -> t.Any:
         if isinstance(change_or_name, dict):
-            change = change_or_name
+            change = Bunch(change_or_name)
         else:
             clsname = self.__class__.__name__
             warn(
@@ -1156,7 +1161,7 @@ def observe_compat(func):
             )
         return func(self, change)
 
-    return compatible_observer
+    return t.cast(FuncT, compatible_observer)
 
 
 def validate(*names: Sentinel | str) -> ValidateHandler:
@@ -2027,7 +2032,7 @@ class Type(ClassBasedTraitType[G, S]):
 
         @t.overload
         def __init__(
-            self: Type[object, object],
+            self: Type[type, type],
             default_value: Sentinel | None | str = ...,
             klass: None | str = ...,
             allow_none: Literal[False] = ...,
@@ -2040,8 +2045,8 @@ class Type(ClassBasedTraitType[G, S]):
 
         @t.overload
         def __init__(
-            self: Type[object | None, object | None],
-            default_value: S | Sentinel | None | str = ...,
+            self: Type[type | None, type | None],
+            default_value: Sentinel | None | str = ...,
             klass: None | str = ...,
             allow_none: Literal[True] = ...,
             read_only: bool | None = ...,
@@ -2054,7 +2059,7 @@ class Type(ClassBasedTraitType[G, S]):
         @t.overload
         def __init__(
             self: Type[S, S],
-            default_value: S | Sentinel | str = ...,
+            default_value: S = ...,
             klass: type[S] = ...,
             allow_none: Literal[False] = ...,
             read_only: bool | None = ...,
@@ -2067,7 +2072,7 @@ class Type(ClassBasedTraitType[G, S]):
         @t.overload
         def __init__(
             self: Type[S | None, S | None],
-            default_value: S | Sentinel | None | str = ...,
+            default_value: S | None = ...,
             klass: type[S] = ...,
             allow_none: Literal[True] = ...,
             read_only: bool | None = ...,

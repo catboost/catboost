@@ -601,7 +601,7 @@ class TestApplication(TestCase):
             with self.assertRaises(SyntaxError):
                 app.load_config_file(name, path=[td])
 
-    def test_subcommands_instanciation(self):
+    def test_subcommands_instantiation(self):
         """Try all ways to specify how to create sub-apps."""
         app = Root.instance()
         app.parse_command_line(["sub1"])
@@ -695,7 +695,7 @@ def test_cli_multi_scalar(caplog):
 
 class Root(Application):
     subcommands = {
-        "sub1": ("__tests__.config.tests.test_application.Sub1", "import string"),
+        "sub1": ("__tests__.config.test_application.Sub1", "import string"),
     }
 
 

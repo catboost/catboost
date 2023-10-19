@@ -9,7 +9,7 @@ from textwrap import indent as _indent
 from typing import List
 
 
-def indent(val):
+def indent(val: str) -> str:
     res = _indent(val, "    ")
     return res
 

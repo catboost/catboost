@@ -32,6 +32,7 @@ The generated rST syntax looks like this::
 
     Cross reference like this: :configtrait:`Application.log_datefmt`.
 """
+# ruff: noqa: ANN201, ANN001, ANN204, ANN102, ANN003, ANN206, ANN002
 from collections import defaultdict
 from textwrap import dedent
 

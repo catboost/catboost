@@ -2,7 +2,7 @@
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-
+from __future__ import annotations
 
 import functools
 import json
@@ -17,7 +17,6 @@ from contextlib import suppress
 from copy import deepcopy
 from logging.config import dictConfig
 from textwrap import dedent
-from typing import Any, Callable, TypeVar, cast
 
 from traitlets.config.configurable import Configurable, SingletonConfigurable
 from traitlets.config.loader import (
@@ -40,6 +39,7 @@ from traitlets.traitlets import (
     observe,
     observe_compat,
 )
+from traitlets.utils.bunch import Bunch
 from traitlets.utils.nested_update import nested_update
 from traitlets.utils.text import indent, wrap_paragraphs
 
@@ -95,7 +95,11 @@ else:
 
 IS_PYTHONW = sys.executable and sys.executable.endswith("pythonw.exe")
 
-T = TypeVar("T", bound=Callable[..., Any])
+T = t.TypeVar("T", bound=t.Callable[..., t.Any])
+AnyLogger = t.Union[logging.Logger, logging.LoggerAdapter]
+StrDict = t.Dict[str, t.Any]
+ArgvType = t.Optional[t.List[str]]
+ClassesType = t.List[t.Type[Configurable]]
 
 
 def catch_config_error(method: T) -> T:
@@ -108,7 +112,7 @@ def catch_config_error(method: T) -> T:
     """
 
     @functools.wraps(method)
-    def inner(app, *args, **kwargs):
+    def inner(app: Application, *args: t.Any, **kwargs: t.Any) -> t.Any:
         try:
             return method(app, *args, **kwargs)
         except (TraitError, ArgumentError) as e:
@@ -116,7 +120,7 @@ def catch_config_error(method: T) -> T:
             app.log.debug("Config at the time: %s", app.config)
             app.exit(1)
 
-    return cast(T, inner)
+    return t.cast(T, inner)
 
 
 class ApplicationError(Exception):
@@ -136,7 +140,7 @@ class LevelFormatter(logging.Formatter):
     highlevel_limit = logging.WARN
     highlevel_format = " %(levelname)s |"
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         if record.levelno >= self.highlevel_limit:
             record.highlevel = self.highlevel_format % record.__dict__
         else:
@@ -149,35 +153,29 @@ class Application(SingletonConfigurable):
 
     # The name of the application, will usually match the name of the command
     # line application
-    name: t.Union[str, Unicode[str, t.Union[str, bytes]]] = Unicode("application")
+    name: str | Unicode[str, str | bytes] = Unicode("application")
 
     # The description of the application that is printed at the beginning
     # of the help.
-    description: t.Union[str, Unicode[str, t.Union[str, bytes]]] = Unicode(
-        "This is an application."
-    )
+    description: str | Unicode[str, str | bytes] = Unicode("This is an application.")
     # default section descriptions
-    option_description: t.Union[str, Unicode[str, t.Union[str, bytes]]] = Unicode(
-        option_description
-    )
-    keyvalue_description: t.Union[str, Unicode[str, t.Union[str, bytes]]] = Unicode(
-        keyvalue_description
-    )
-    subcommand_description: t.Union[str, Unicode[str, t.Union[str, bytes]]] = Unicode(
-        subcommand_description
-    )
+    option_description: str | Unicode[str, str | bytes] = Unicode(option_description)
+    keyvalue_description: str | Unicode[str, str | bytes] = Unicode(keyvalue_description)
+    subcommand_description: str | Unicode[str, str | bytes] = Unicode(subcommand_description)
 
     python_config_loader_class = PyFileConfigLoader
     json_config_loader_class = JSONFileConfigLoader
 
     # The usage and example string that goes at the end of the help string.
-    examples: t.Union[str, Unicode[str, t.Union[str, bytes]]] = Unicode()
+    examples: str | Unicode[str, str | bytes] = Unicode()
 
     # A sequence of Configurable subclasses whose config=True attributes will
     # be exposed at the command line.
-    classes: t.List[t.Type[t.Any]] = []
+    classes: ClassesType = []
 
-    def _classes_inc_parents(self, classes=None):
+    def _classes_inc_parents(
+        self, classes: ClassesType | None = None
+    ) -> t.Generator[type[Configurable], None, None]:
         """Iterate through configurable classes, including configurable parents
 
         :param classes:
@@ -198,18 +196,16 @@ class Application(SingletonConfigurable):
                     yield parent
 
     # The version string of this application.
-    version: t.Union[str, Unicode[str, t.Union[str, bytes]]] = Unicode("0.0")
+    version: str | Unicode[str, str | bytes] = Unicode("0.0")
 
     # the argv used to initialize the application
-    argv: t.Union[t.List[str], List] = List()
+    argv = List()
 
     # Whether failing to load config files should prevent startup
-    raise_config_file_errors: t.Union[bool, Bool[bool, t.Union[bool, int]]] = Bool(
-        TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR
-    )
+    raise_config_file_errors = Bool(TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR)
 
     # The log level for the application
-    log_level: t.Union[str, int, Enum[t.Any, t.Any]] = Enum(
+    log_level = Enum(
         (0, 10, 20, 30, 40, 50, "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"),
         default_value=logging.WARN,
         help="Set the log level by value or name.",
@@ -217,16 +213,16 @@ class Application(SingletonConfigurable):
 
     _log_formatter_cls = LevelFormatter
 
-    log_datefmt: t.Union[str, Unicode[str, t.Union[str, bytes]]] = Unicode(
+    log_datefmt = Unicode(
         "%Y-%m-%d %H:%M:%S", help="The date format used by logging formatters for %(asctime)s"
     ).tag(config=True)
 
-    log_format: t.Union[str, Unicode[str, t.Union[str, bytes]]] = Unicode(
+    log_format = Unicode(
         "[%(name)s]%(highlevel)s %(message)s",
         help="The Logging format template",
     ).tag(config=True)
 
-    def get_default_logging_config(self):
+    def get_default_logging_config(self) -> StrDict:
         """Return the base logging configuration.
 
         The default is to log to stderr using a StreamHandler, if no default
@@ -239,7 +235,7 @@ class Application(SingletonConfigurable):
         control of logging.
 
         """
-        config: t.Dict[str, t.Any] = {
+        config: StrDict = {
             "version": 1,
             "handlers": {
                 "console": {
@@ -278,7 +274,7 @@ class Application(SingletonConfigurable):
         return config
 
     @observe("log_datefmt", "log_format", "log_level", "logging_config")
-    def _observe_logging_change(self, change):
+    def _observe_logging_change(self, change: Bunch) -> None:
         # convert log level strings to ints
         log_level = self.log_level
         if isinstance(log_level, str):
@@ -286,10 +282,10 @@ class Application(SingletonConfigurable):
         self._configure_logging()
 
     @observe("log", type="default")
-    def _observe_logging_default(self, change):
+    def _observe_logging_default(self, change: Bunch) -> None:
         self._configure_logging()
 
-    def _configure_logging(self):
+    def _configure_logging(self) -> None:
         config = self.get_default_logging_config()
         nested_update(config, self.logging_config or {})
         dictConfig(config)
@@ -297,7 +293,7 @@ class Application(SingletonConfigurable):
         self._logging_configured = True
 
     @default("log")
-    def _log_default(self):
+    def _log_default(self) -> AnyLogger:
         """Start logging for this application."""
         log = logging.getLogger(self.__class__.__name__)
         log.propagate = False
@@ -366,17 +362,13 @@ class Application(SingletonConfigurable):
     #: Values might be like "Class.trait" strings of two-tuples: (Class.trait, help-text),
     #  or just the "Class.trait" string, in which case the help text is inferred from the
     #  corresponding trait
-    aliases: t.Dict[t.Union[str, t.Tuple[str, ...]], t.Union[str, t.Tuple[str, str]]] = {
-        "log-level": "Application.log_level"
-    }
+    aliases: StrDict = {"log-level": "Application.log_level"}
 
     # flags for loading Configurables or store_const style flags
     # flags are loaded from this dict by '--key' flags
     # this must be a dict of two-tuples, the first element being the Config/dict
     # and the second being the help string for the flag
-    flags: t.Dict[
-        t.Union[str, t.Tuple[str, ...]], t.Tuple[t.Union[t.Dict[str, t.Any], Config], str]
-    ] = {
+    flags: StrDict = {
         "debug": (
             {
                 "Application": {
@@ -408,12 +400,12 @@ class Application(SingletonConfigurable):
     # this must be a dict of two-tuples,
     # the first element being the application class/import string
     # and the second being the help string for the subcommand
-    subcommands: t.Union[t.Dict[str, t.Tuple[t.Any, str]], Dict] = Dict()
+    subcommands: dict[str, t.Any] | Dict = Dict()
     # parse_command_line will initialize a subapp, if requested
     subapp = Instance("traitlets.config.application.Application", allow_none=True)
 
     # extra command-line arguments that don't set config values
-    extra_args: t.Union[t.List[str], List] = List(Unicode())
+    extra_args = List(Unicode())
 
     cli_config = Instance(
         Config,
@@ -428,20 +420,20 @@ class Application(SingletonConfigurable):
 
     _loaded_config_files = List()
 
-    show_config: t.Union[bool, Bool[bool, t.Union[bool, int]]] = Bool(
+    show_config = Bool(
         help="Instead of starting the Application, dump configuration to stdout"
     ).tag(config=True)
 
-    show_config_json: t.Union[bool, Bool[bool, t.Union[bool, int]]] = Bool(
+    show_config_json = Bool(
         help="Instead of starting the Application, dump configuration to stdout (as JSON)"
     ).tag(config=True)
 
     @observe("show_config_json")
-    def _show_config_json_changed(self, change):
+    def _show_config_json_changed(self, change: Bunch) -> None:
         self.show_config = change.new
 
     @observe("show_config")
-    def _show_config_changed(self, change):
+    def _show_config_changed(self, change: Bunch) -> None:
         if change.new:
             self._save_start = self.start
             self.start = self.start_show_config  # type:ignore[method-assign]
@@ -460,27 +452,28 @@ class Application(SingletonConfigurable):
 
     @observe("config")
     @observe_compat
-    def _config_changed(self, change):
+    def _config_changed(self, change: Bunch) -> None:
         super()._config_changed(change)
         self.log.debug("Config changed: %r", change.new)
 
     @catch_config_error
-    def initialize(self, argv=None):
+    def initialize(self, argv: ArgvType = None) -> None:
         """Do the basic steps to configure me.
 
         Override in subclasses.
         """
         self.parse_command_line(argv)
 
-    def start(self):
+    def start(self) -> None:
         """Start the app mainloop.
 
         Override in subclasses.
         """
         if self.subapp is not None:
+            assert isinstance(self.subapp, Application)
             return self.subapp.start()
 
-    def start_show_config(self):
+    def start_show_config(self) -> None:
         """start function used when show_config is True"""
         config = self.config.copy()
         # exclude show_config flags from displayed config
@@ -507,28 +500,28 @@ class Application(SingletonConfigurable):
             if not class_config:
                 continue
             print(classname)
-            pformat_kwargs: t.Dict[str, t.Any] = dict(indent=4, compact=True)
+            pformat_kwargs: StrDict = dict(indent=4, compact=True)
 
             for traitname in sorted(class_config):
                 value = class_config[traitname]
                 print(f"  .{traitname} = {pprint.pformat(value, **pformat_kwargs)}")
 
-    def print_alias_help(self):
+    def print_alias_help(self) -> None:
         """Print the alias parts of the help."""
         print("\n".join(self.emit_alias_help()))
 
-    def emit_alias_help(self):
+    def emit_alias_help(self) -> t.Generator[str, None, None]:
         """Yield the lines for alias part of the help."""
         if not self.aliases:
             return
 
-        classdict = {}
+        classdict: dict[str, type[Configurable]] = {}
         for cls in self.classes:
             # include all parents (up to, but excluding Configurable) in available names
             for c in cls.mro()[:-3]:
-                classdict[c.__name__] = c
+                classdict[c.__name__] = t.cast(t.Type[Configurable], c)
 
-        fhelp: t.Optional[str]
+        fhelp: str | None
         for alias, longname in self.aliases.items():
             try:
                 if isinstance(longname, tuple):
@@ -540,27 +533,26 @@ class Application(SingletonConfigurable):
                 cls = classdict[classname]
 
                 trait = cls.class_traits(config=True)[traitname]
-                fhelp = cls.class_get_trait_help(trait, helptext=fhelp).splitlines()
+                fhelp_lines = cls.class_get_trait_help(trait, helptext=fhelp).splitlines()
 
                 if not isinstance(alias, tuple):
-                    alias = (alias,)
+                    alias = (alias,)  # type:ignore[assignment]
                 alias = sorted(alias, key=len)  # type:ignore[assignment]
                 alias = ", ".join(("--%s" if len(m) > 1 else "-%s") % m for m in alias)
 
                 # reformat first line
-                assert fhelp is not None
-                fhelp[0] = fhelp[0].replace("--" + longname, alias)  # type:ignore
-                yield from fhelp
+                fhelp_lines[0] = fhelp_lines[0].replace("--" + longname, alias)
+                yield from fhelp_lines
                 yield indent("Equivalent to: [--%s]" % longname)
             except Exception as ex:
                 self.log.error("Failed collecting help-message for alias %r, due to: %s", alias, ex)
                 raise
 
-    def print_flag_help(self):
+    def print_flag_help(self) -> None:
         """Print the flag part of the help."""
         print("\n".join(self.emit_flag_help()))
 
-    def emit_flag_help(self):
+    def emit_flag_help(self) -> t.Generator[str, None, None]:
         """Yield the lines for the flag part of the help."""
         if not self.flags:
             return
@@ -568,7 +560,7 @@ class Application(SingletonConfigurable):
         for flags, (cfg, fhelp) in self.flags.items():
             try:
                 if not isinstance(flags, tuple):
-                    flags = (flags,)
+                    flags = (flags,)  # type:ignore[assignment]
                 flags = sorted(flags, key=len)  # type:ignore[assignment]
                 flags = ", ".join(("--%s" if len(m) > 1 else "-%s") % m for m in flags)
                 yield flags
@@ -584,11 +576,11 @@ class Application(SingletonConfigurable):
                 self.log.error("Failed collecting help-message for flag %r, due to: %s", flags, ex)
                 raise
 
-    def print_options(self):
+    def print_options(self) -> None:
         """Print the options part of the help."""
         print("\n".join(self.emit_options_help()))
 
-    def emit_options_help(self):
+    def emit_options_help(self) -> t.Generator[str, None, None]:
         """Yield the lines for the options part of the help."""
         if not self.flags and not self.aliases:
             return
@@ -603,11 +595,11 @@ class Application(SingletonConfigurable):
         yield from self.emit_alias_help()
         yield ""
 
-    def print_subcommands(self):
+    def print_subcommands(self) -> None:
         """Print the subcommand part of the help."""
         print("\n".join(self.emit_subcommands_help()))
 
-    def emit_subcommands_help(self):
+    def emit_subcommands_help(self) -> t.Generator[str, None, None]:
         """Yield the lines for the subcommand part of the help."""
         if not self.subcommands:
             return
@@ -624,7 +616,7 @@ class Application(SingletonConfigurable):
                 yield indent(dedent(help.strip()))
         yield ""
 
-    def emit_help_epilogue(self, classes):
+    def emit_help_epilogue(self, classes: bool) -> t.Generator[str, None, None]:
         """Yield the very bottom lines of the help message.
 
         If classes=False (the default), print `--help-all` msg.
@@ -633,14 +625,14 @@ class Application(SingletonConfigurable):
             yield "To see all available configurables, use `--help-all`."
             yield ""
 
-    def print_help(self, classes=False):
+    def print_help(self, classes: bool = False) -> None:
         """Print the help for each Configurable class in self.classes.
 
         If classes=False (the default), only flags and aliases are printed.
         """
         print("\n".join(self.emit_help(classes=classes)))
 
-    def emit_help(self, classes=False):
+    def emit_help(self, classes: bool = False) -> t.Generator[str, None, None]:
         """Yield the help-lines for each Configurable class in self.classes.
 
         If classes=False (the default), only flags and aliases are printed.
@@ -665,28 +657,28 @@ class Application(SingletonConfigurable):
 
         yield from self.emit_help_epilogue(classes)
 
-    def document_config_options(self):
+    def document_config_options(self) -> str:
         """Generate rST format documentation for the config options this application
 
         Returns a multiline string.
         """
         return "\n".join(c.class_config_rst_doc() for c in self._classes_inc_parents())
 
-    def print_description(self):
+    def print_description(self) -> None:
         """Print the application description."""
         print("\n".join(self.emit_description()))
 
-    def emit_description(self):
+    def emit_description(self) -> t.Generator[str, None, None]:
         """Yield lines with the application description."""
         for p in wrap_paragraphs(self.description or self.__doc__ or ""):
             yield p
             yield ""
 
-    def print_examples(self):
+    def print_examples(self) -> None:
         """Print usage and examples (see `emit_examples()`)."""
         print("\n".join(self.emit_examples()))
 
-    def emit_examples(self):
+    def emit_examples(self) -> t.Generator[str, None, None]:
         """Yield lines with the usage and examples.
 
         This usage string goes at the end of the command line help string
@@ -699,12 +691,12 @@ class Application(SingletonConfigurable):
             yield indent(dedent(self.examples.strip()))
             yield ""
 
-    def print_version(self):
+    def print_version(self) -> None:
         """Print the version string."""
         print(self.version)
 
     @catch_config_error
-    def initialize_subcommand(self, subc, argv=None):
+    def initialize_subcommand(self, subc: str, argv: ArgvType = None) -> None:
         """Initialize a subcommand with argv."""
         val = self.subcommands.get(subc)
         assert val is not None
@@ -726,9 +718,9 @@ class Application(SingletonConfigurable):
             raise AssertionError("Invalid mappings for subcommand '%s'!" % subc)
 
         # ... and finally initialize subapp.
-        self.subapp.initialize(argv)
+        self.subapp.initialize(argv)  # type:ignore[union-attr]
 
-    def flatten_flags(self):
+    def flatten_flags(self) -> tuple[dict[str, t.Any], dict[str, t.Any]]:
         """Flatten flags and aliases for loaders, so cl-args override as expected.
 
         This prevents issues such as an alias pointing to InteractiveShell,
@@ -751,11 +743,11 @@ class Application(SingletonConfigurable):
                 mro_tree[parent.__name__].append(clsname)
         # flatten aliases, which have the form:
         # { 'alias' : 'Class.trait' }
-        aliases: t.Dict[str, str] = {}
+        aliases: dict[str, str] = {}
         for alias, longname in self.aliases.items():
             if isinstance(longname, tuple):
                 longname, _ = longname
-            cls, trait = longname.split(".", 1)  # type:ignore
+            cls, trait = longname.split(".", 1)
             children = mro_tree[cls]  # type:ignore[index]
             if len(children) == 1:
                 # exactly one descendent, promote alias
@@ -769,8 +761,8 @@ class Application(SingletonConfigurable):
         # { 'key' : ({'Cls' : {'trait' : value}}, 'help')}
         flags = {}
         for key, (flagdict, help) in self.flags.items():
-            newflag: t.Dict[t.Any, t.Any] = {}
-            for cls, subdict in flagdict.items():  # type:ignore
+            newflag: dict[t.Any, t.Any] = {}
+            for cls, subdict in flagdict.items():
                 children = mro_tree[cls]  # type:ignore[index]
                 # exactly one descendent, promote flag section
                 if len(children) == 1:
@@ -782,18 +774,24 @@ class Application(SingletonConfigurable):
                     newflag[cls] = subdict
 
             if not isinstance(key, tuple):
-                key = (key,)
+                key = (key,)  # type:ignore[assignment]
             for k in key:
                 flags[k] = (newflag, help)
         return flags, aliases
 
-    def _create_loader(self, argv, aliases, flags, classes):
+    def _create_loader(
+        self,
+        argv: list[str] | None,
+        aliases: StrDict,
+        flags: StrDict,
+        classes: ClassesType | None,
+    ) -> KVArgParseConfigLoader:
         return KVArgParseConfigLoader(
             argv, aliases, flags, classes=classes, log=self.log, subcommands=self.subcommands
         )
 
     @classmethod
-    def _get_sys_argv(cls, check_argcomplete: bool = False) -> t.List[str]:
+    def _get_sys_argv(cls, check_argcomplete: bool = False) -> list[str]:
         """Get `sys.argv` or equivalent from `argcomplete`
 
         `argcomplete`'s strategy is to call the python script with no arguments,
@@ -819,7 +817,7 @@ class Application(SingletonConfigurable):
         return sys.argv
 
     @classmethod
-    def _handle_argcomplete_for_subcommand(cls):
+    def _handle_argcomplete_for_subcommand(cls) -> None:
         """Helper for `argcomplete` to recognize `traitlets` subcommands
 
         `argcomplete` does not know that `traitlets` has already consumed subcommands,
@@ -839,7 +837,7 @@ class Application(SingletonConfigurable):
             pass
 
     @catch_config_error
-    def parse_command_line(self, argv=None):
+    def parse_command_line(self, argv: ArgvType = None) -> None:
         """Parse the command line arguments."""
         assert not isinstance(argv, str)
         if argv is None:
@@ -877,7 +875,7 @@ class Application(SingletonConfigurable):
 
         # flatten flags&aliases, so cl-args get appropriate priority:
         flags, aliases = self.flatten_flags()
-        classes = tuple(self._classes_with_config_traits())
+        classes = list(self._classes_with_config_traits())
         loader = self._create_loader(argv, aliases, flags, classes=classes)
         try:
             self.cli_config = deepcopy(loader.load_config())
@@ -890,13 +888,18 @@ class Application(SingletonConfigurable):
         self.extra_args = loader.extra_args
 
     @classmethod
-    def _load_config_files(cls, basefilename, path=None, log=None, raise_config_file_errors=False):
+    def _load_config_files(
+        cls,
+        basefilename: str,
+        path: str | t.Sequence[str | None] | None,
+        log: AnyLogger | None = None,
+        raise_config_file_errors: bool = False,
+    ) -> t.Generator[t.Any, None, None]:
         """Load config files (py,json) by filename and path.
 
         yield each config object in turn.
         """
-
-        if not isinstance(path, list):
+        if isinstance(path, str) or path is None:
             path = [path]
         for current in reversed(path):
             # path list is in descending priority order, so load files backwards:
@@ -904,8 +907,8 @@ class Application(SingletonConfigurable):
             if log:
                 log.debug("Looking for %s in %s", basefilename, current or os.getcwd())
             jsonloader = cls.json_config_loader_class(basefilename + ".json", path=current, log=log)
-            loaded: t.List[t.Any] = []
-            filenames: t.List[str] = []
+            loaded: list[t.Any] = []
+            filenames: list[str] = []
             for loader in [pyloader, jsonloader]:
                 config = None
                 try:
@@ -941,12 +944,14 @@ class Application(SingletonConfigurable):
                     filenames.append(loader.full_filename)
 
     @property
-    def loaded_config_files(self):
+    def loaded_config_files(self) -> list[str]:
         """Currently loaded configuration files"""
         return self._loaded_config_files[:]
 
     @catch_config_error
-    def load_config_file(self, filename, path=None):
+    def load_config_file(
+        self, filename: str, path: str | t.Sequence[str | None] | None = None
+    ) -> None:
         """Load config files by filename and path."""
         filename, ext = os.path.splitext(filename)
         new_config = Config()
@@ -965,7 +970,9 @@ class Application(SingletonConfigurable):
         new_config.merge(self.cli_config)
         self.update_config(new_config)
 
-    def _classes_with_config_traits(self, classes=None):
+    def _classes_with_config_traits(
+        self, classes: ClassesType | None = None
+    ) -> t.Generator[type[Configurable], None, None]:
         """
         Yields only classes with configurable traits, and their subclasses.
 
@@ -987,7 +994,7 @@ class Application(SingletonConfigurable):
             for cls in self._classes_inc_parents(classes)
         )
 
-        def is_any_parent_included(cls):
+        def is_any_parent_included(cls: t.Any) -> bool:
             return any(b in cls_to_config and cls_to_config[b] for b in cls.__bases__)
 
         # Mark "empty" classes for inclusion if their parents own-traits,
@@ -1005,7 +1012,7 @@ class Application(SingletonConfigurable):
             if inc_yes:
                 yield cl
 
-    def generate_config_file(self, classes=None):
+    def generate_config_file(self, classes: ClassesType | None = None) -> str:
         """generate default config file from Configurables"""
         lines = ["# Configuration file for %s." % self.name]
         lines.append("")
@@ -1017,7 +1024,7 @@ class Application(SingletonConfigurable):
             lines.append(cls.class_config_section(config_classes))
         return "\n".join(lines)
 
-    def close_handlers(self):
+    def close_handlers(self) -> None:
         if getattr(self, "_logging_configured", False):
             # don't attempt to close handlers unless they have been opened
             # (note accessing self.log.handlers will create handlers if they
@@ -1027,16 +1034,16 @@ class Application(SingletonConfigurable):
                     handler.close()
             self._logging_configured = False
 
-    def exit(self, exit_status=0):
+    def exit(self, exit_status: int | str | None = 0) -> None:
         self.log.debug("Exiting application: %s" % self.name)
         self.close_handlers()
         sys.exit(exit_status)
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.close_handlers()
 
     @classmethod
-    def launch_instance(cls, argv=None, **kwargs):
+    def launch_instance(cls, argv: ArgvType = None, **kwargs: t.Any) -> None:
         """Launch a global instance of this Application
 
         If a global instance already exists, this reinitializes and starts it
@@ -1054,7 +1061,7 @@ default_aliases = Application.aliases
 default_flags = Application.flags
 
 
-def boolean_flag(name, configurable, set_help="", unset_help=""):
+def boolean_flag(name: str, configurable: str, set_help: str = "", unset_help: str = "") -> StrDict:
     """Helper for building basic --trait, --no-trait flags.
 
     Parameters
@@ -1085,7 +1092,7 @@ def boolean_flag(name, configurable, set_help="", unset_help=""):
     return {name: (setter, set_help), "no-" + name: (unsetter, unset_help)}
 
 
-def get_config():
+def get_config() -> Config:
     """Get the config object for the global Application instance, if there is one
 
     otherwise return an empty config object

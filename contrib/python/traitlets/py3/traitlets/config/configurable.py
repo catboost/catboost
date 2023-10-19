@@ -2,7 +2,7 @@
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-
+from __future__ import annotations
 
 import logging
 import typing as t
@@ -15,12 +15,14 @@ from traitlets.traitlets import (
     Dict,
     HasTraits,
     Instance,
+    TraitType,
     default,
     observe,
     observe_compat,
     validate,
 )
 from traitlets.utils import warnings
+from traitlets.utils.bunch import Bunch
 from traitlets.utils.text import indent, wrap_paragraphs
 
 from .loader import Config, DeferredConfig, LazyConfigValue, _is_section_key
@@ -28,6 +30,11 @@ from .loader import Config, DeferredConfig, LazyConfigValue, _is_section_key
 # -----------------------------------------------------------------------------
 # Helper classes for Configurables
 # -----------------------------------------------------------------------------
+
+if t.TYPE_CHECKING:
+    LoggerType = t.Union[logging.Logger, logging.LoggerAdapter[t.Any]]
+else:
+    LoggerType = t.Any
 
 
 class ConfigurableError(Exception):
@@ -87,7 +94,7 @@ class Configurable(HasTraits):
         # record traits set by config
         config_override_names = set()
 
-        def notice_config_override(change):
+        def notice_config_override(change: Bunch) -> None:
             """Record traits set by both config and kwargs.
 
             They will need to be overridden again after loading config.
@@ -120,7 +127,7 @@ class Configurable(HasTraits):
     # -------------------------------------------------------------------------
 
     @classmethod
-    def section_names(cls):
+    def section_names(cls) -> list[str]:
         """return section names as a list"""
         return [
             c.__name__
@@ -128,7 +135,7 @@ class Configurable(HasTraits):
             if issubclass(c, Configurable) and issubclass(cls, c)
         ]
 
-    def _find_my_config(self, cfg):
+    def _find_my_config(self, cfg: Config) -> t.Any:
         """extract my config from a global Config object
 
         will construct a Config object of only the config values that apply to me
@@ -153,7 +160,9 @@ class Configurable(HasTraits):
                     my_config.merge(c[sname])
         return my_config
 
-    def _load_config(self, cfg, section_names=None, traits=None):
+    def _load_config(
+        self, cfg: Config, section_names: list[str] | None = None, traits: list[str] | None = None
+    ) -> None:
         """load traits from a Config object"""
 
         if traits is None:
@@ -187,7 +196,7 @@ class Configurable(HasTraits):
                         warn = self.log.warning
                     else:
 
-                        def warn(msg):
+                        def warn(msg: t.Any) -> None:
                             return warnings.warn(msg, UserWarning, stacklevel=9)
 
                     matches = get_close_matches(name, traits)
@@ -203,7 +212,7 @@ class Configurable(HasTraits):
 
     @observe("config")
     @observe_compat
-    def _config_changed(self, change):
+    def _config_changed(self, change: Bunch) -> None:
         """Update all the class traits having ``config=True`` in metadata.
 
         For any class trait with a ``config`` metadata attribute that is
@@ -219,7 +228,7 @@ class Configurable(HasTraits):
         section_names = self.section_names()
         self._load_config(change.new, traits=traits, section_names=section_names)
 
-    def update_config(self, config):
+    def update_config(self, config: Config) -> None:
         """Update config and load the new values"""
         # traitlets prior to 4.2 created a copy of self.config in order to trigger change events.
         # Some projects (IPython < 5) relied upon one side effect of this,
@@ -236,7 +245,7 @@ class Configurable(HasTraits):
         # DO NOT trigger full trait-change
 
     @classmethod
-    def class_get_help(cls, inst=None):
+    def class_get_help(cls, inst: HasTraits | None = None) -> str:
         """Get the help string for this class in ReST format.
 
         If `inst` is given, its current trait values will be used in place of
@@ -253,7 +262,12 @@ class Configurable(HasTraits):
         return "\n".join(final_help)
 
     @classmethod
-    def class_get_trait_help(cls, trait, inst=None, helptext=None):
+    def class_get_trait_help(
+        cls,
+        trait: TraitType[t.Any, t.Any],
+        inst: HasTraits | None = None,
+        helptext: str | None = None,
+    ) -> str:
         """Get the helptext string for a single trait.
 
         :param inst:
@@ -291,7 +305,7 @@ class Configurable(HasTraits):
             lines.append(indent("Choices: %s" % trait.info()))
 
         if inst is not None:
-            lines.append(indent(f"Current: {getattr(inst, trait.name)!r}"))
+            lines.append(indent(f"Current: {getattr(inst, trait.name or '')!r}"))
         else:
             try:
                 dvr = trait.default_value_repr()
@@ -305,12 +319,14 @@ class Configurable(HasTraits):
         return "\n".join(lines)
 
     @classmethod
-    def class_print_help(cls, inst=None):
+    def class_print_help(cls, inst: HasTraits | None = None) -> None:
         """Get the help string for a single trait and print it."""
         print(cls.class_get_help(inst))
 
     @classmethod
-    def _defining_class(cls, trait, classes):
+    def _defining_class(
+        cls, trait: TraitType[t.Any, t.Any], classes: t.Sequence[type[HasTraits]]
+    ) -> type[Configurable]:
         """Get the class that defines a trait
 
         For reducing redundant help output in config files.
@@ -338,7 +354,7 @@ class Configurable(HasTraits):
         return defining_cls
 
     @classmethod
-    def class_config_section(cls, classes=None):
+    def class_config_section(cls, classes: t.Sequence[type[HasTraits]] | None = None) -> str:
         """Get the config section for this class.
 
         Parameters
@@ -348,7 +364,7 @@ class Configurable(HasTraits):
             Used to reduce redundant information.
         """
 
-        def c(s):
+        def c(s: str) -> str:
             """return a commented, wrapped block."""
             s = "\n\n".join(wrap_paragraphs(s, 78))
 
@@ -398,7 +414,7 @@ class Configurable(HasTraits):
         return "\n".join(lines)
 
     @classmethod
-    def class_config_rst_doc(cls):
+    def class_config_rst_doc(cls) -> str:
         """Generate rST documentation for this class' config options.
 
         Excludes traits defined on parent classes.
@@ -447,10 +463,10 @@ class LoggingConfigurable(Configurable):
     is to get the logger from the currently running Application.
     """
 
-    log = Any(help="Logger or LoggerAdapter instance")
+    log = Any(help="Logger or LoggerAdapter instance", allow_none=False)
 
     @validate("log")
-    def _validate_log(self, proposal):
+    def _validate_log(self, proposal: Bunch) -> LoggerType:
         if not isinstance(proposal.value, (logging.Logger, logging.LoggerAdapter)):
             # warn about unsupported type, but be lenient to allow for duck typing
             warnings.warn(
@@ -459,18 +475,18 @@ class LoggingConfigurable(Configurable):
                 UserWarning,
                 stacklevel=2,
             )
-        return proposal.value
+        return proposal.value  # type:ignore[no-any-return]
 
     @default("log")
-    def _log_default(self):
+    def _log_default(self) -> LoggerType:
         if isinstance(self.parent, LoggingConfigurable):
             assert self.parent is not None
-            return self.parent.log
+            return t.cast(logging.Logger, self.parent.log)
         from traitlets import log
 
         return log.get_logger()
 
-    def _get_log_handler(self):
+    def _get_log_handler(self) -> logging.Handler | None:
         """Return the default Handler
 
         Returns None if none can be found
@@ -478,13 +494,16 @@ class LoggingConfigurable(Configurable):
         Deprecated, this now returns the first log handler which may or may
         not be the default one.
         """
-        logger = self.log
-        if isinstance(logger, logging.LoggerAdapter):
-            logger = logger.logger
+        if not self.log:
+            return None
+        logger = self.log if isinstance(self.log, logging.Logger) else self.log.logger
         if not getattr(logger, "handlers", None):
             # no handlers attribute or empty handlers list
             return None
-        return logger.handlers[0]
+        return logger.handlers[0]  # type:ignore[no-any-return]
+
+
+CT = t.TypeVar('CT', bound='SingletonConfigurable')
 
 
 class SingletonConfigurable(LoggingConfigurable):
@@ -498,7 +517,7 @@ class SingletonConfigurable(LoggingConfigurable):
     _instance = None
 
     @classmethod
-    def _walk_mro(cls):
+    def _walk_mro(cls) -> t.Generator[type[SingletonConfigurable], None, None]:
         """Walk the cls.mro() for parent classes that are also singletons
 
         For use in instance()
@@ -513,7 +532,7 @@ class SingletonConfigurable(LoggingConfigurable):
                 yield subclass
 
     @classmethod
-    def clear_instance(cls):
+    def clear_instance(cls) -> None:
         """unset _instance for this class and singleton parents."""
         if not cls.initialized():
             return
@@ -524,7 +543,7 @@ class SingletonConfigurable(LoggingConfigurable):
                 subclass._instance = None
 
     @classmethod
-    def instance(cls, *args, **kwargs):
+    def instance(cls: type[CT], *args: t.Any, **kwargs: t.Any) -> CT:
         """Returns a global instance of this class.
 
         This method create a new instance if none have previously been created
@@ -568,6 +587,6 @@ class SingletonConfigurable(LoggingConfigurable):
             )
 
     @classmethod
-    def initialized(cls):
+    def initialized(cls) -> bool:
         """Has an instance been created?"""
         return hasattr(cls, "_instance") and cls._instance is not None

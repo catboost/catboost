@@ -2,12 +2,12 @@
 
 import copy
 from inspect import Parameter, Signature, signature
-from typing import Type, TypeVar
+from typing import Any, Type, TypeVar
 
 from ..traitlets import HasTraits, Undefined
 
 
-def _get_default(value):
+def _get_default(value: Any) -> Any:
     """Get default argument value, given the trait default value."""
     return Parameter.empty if value == Undefined else value
 

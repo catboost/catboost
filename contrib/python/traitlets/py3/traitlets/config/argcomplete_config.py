@@ -15,7 +15,7 @@ except ImportError:
     # This module and its utility methods are written to not crash even
     # if argcomplete is not installed.
     class StubModule:
-        def __getattr__(self, attr):
+        def __getattr__(self, attr: str) -> t.Any:
             if not attr.startswith("__"):
                 raise ModuleNotFoundError("No module named 'argcomplete'")
             raise AttributeError(f"argcomplete stub module has no attribute '{attr}'")
@@ -63,7 +63,7 @@ def get_argcomplete_cwords() -> t.Optional[t.List[str]]:
     return comp_words
 
 
-def increment_argcomplete_index():
+def increment_argcomplete_index() -> None:
     """Assumes ``$_ARGCOMPLETE`` is set and `argcomplete` is importable
 
     Increment the index pointed to by ``$_ARGCOMPLETE``, which is used to
@@ -122,7 +122,7 @@ class ExtendedCompletionFinder(CompletionFinder):
             ]
         return matched_completions
 
-    def inject_class_to_parser(self, cls):
+    def inject_class_to_parser(self, cls: t.Any) -> None:
         """Add dummy arguments to our ArgumentParser for the traits of this class
 
         The argparse-based loader currently does not actually add any class traits to

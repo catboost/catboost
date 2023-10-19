@@ -62,7 +62,7 @@ from traitlets import (
 )
 from traitlets.utils import cast_unicode
 
-from traitlets.tests._warnings import expected_warnings
+from ._warnings import expected_warnings
 
 
 def change_dict(*ordered_values):

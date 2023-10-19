@@ -5,11 +5,12 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
-_logger: logging.Logger | None = None
+_logger: logging.Logger | logging.LoggerAdapter[Any] | None = None
 
 
-def get_logger() -> logging.Logger:
+def get_logger() -> logging.Logger | logging.LoggerAdapter[Any]:
     """Grab the global logger instance.
 
     If a global Application is instantiated, grab its logger.
