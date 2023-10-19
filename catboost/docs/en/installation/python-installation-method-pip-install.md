@@ -22,6 +22,12 @@ To install {{ product }} from pip:
 
     {% endnote %}
 
+    {% note info %}
+
+    Release native binaries for x86_64 CPU architectures are built with SIMD extensions SSE2, SSE3, SSSE3, SSE4 enabled. If you need to run {{ product }} on older CPUs that do not support these instruction sets [build {{ product }} package from source](../installation/python-installation-method-build-from-source.md)
+
+    {% endnote %}
+
 1. Install visualization tools:
     1. {% include [visualization-tools-install-apywidgets-short](../_includes/work_src/reusage-installation/install-apywidgets-short.md) %}
 

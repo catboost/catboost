@@ -13,6 +13,12 @@ To apply a previously trained {{ product }} model in Java:
     | Linux (compatible with [manylinux2014 platform tag](https://peps.python.org/pep-0599/) ) | x86_64 and aarch64 |yes|
     | Windows 10 and 11 | x86_64 |yes|
 
+    {% note info %}
+
+    Release binaries for x86_64 CPU architectures are built with SIMD extensions SSE2, SSE3, SSSE3, SSE4 enabled. If you need to run {{ product }} on older CPUs that do not support these instruction sets build [{{ product }} artifacts yourself](../installation/java-installation-build-from-source-maven.md)
+
+    {% endnote %}
+
     Add the following block to the dependencies section of the pom.xml file for Maven:
 
     ```xml
