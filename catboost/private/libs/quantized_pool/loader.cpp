@@ -477,6 +477,7 @@ TAtomicSharedPtr<NCB::IQuantizedPoolLoader> NCB::TQuantizedPoolLoadersCache::Get
     auto& loadersCache = GetRef();
     TAtomicSharedPtr<IQuantizedPoolLoader> loader = nullptr;
     with_lock(loadersCache.Lock) {
+        CATBOOST_DEBUG_LOG << __PRETTY_FUNCTION__ << ": loaders cache size " << loadersCache.Cache.size() << Endl;
         const auto loaderKey = std::make_pair(pathWithScheme, loadSubset);
         if (!loadersCache.Cache.contains(loaderKey)) {
             loader = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(
@@ -496,6 +497,7 @@ TAtomicSharedPtr<NCB::IQuantizedPoolLoader> NCB::TQuantizedPoolLoadersCache::Get
 bool NCB::TQuantizedPoolLoadersCache::HaveLoader(const TPathWithScheme& pathWithScheme, TDatasetSubset loadSubset) {
     auto& loadersCache = GetRef();
     with_lock(loadersCache.Lock) {
+        CATBOOST_DEBUG_LOG << __PRETTY_FUNCTION__ << ": loaders cache size " << loadersCache.Cache.size() << Endl;
         return loadersCache.Cache.contains(std::make_pair(pathWithScheme, loadSubset));
     }
 }
@@ -503,6 +505,7 @@ bool NCB::TQuantizedPoolLoadersCache::HaveLoader(const TPathWithScheme& pathWith
 bool NCB::TQuantizedPoolLoadersCache::IsEmpty() {
     auto& loadersCache = GetRef();
     with_lock(loadersCache.Lock) {
+        CATBOOST_DEBUG_LOG << __PRETTY_FUNCTION__ << ": loaders cache size " << loadersCache.Cache.size() << Endl;
         return loadersCache.Cache.empty();
     }
 }
@@ -510,6 +513,7 @@ bool NCB::TQuantizedPoolLoadersCache::IsEmpty() {
 void NCB::TQuantizedPoolLoadersCache::DropAllLoaders() {
     auto& loadersCache = GetRef();
     with_lock(loadersCache.Lock) {
+        CATBOOST_DEBUG_LOG << __PRETTY_FUNCTION__ << ": loaders cache size " << loadersCache.Cache.size() << Endl;
         for (auto& keyValue : loadersCache.Cache) {
             CB_ENSURE(
                 keyValue.second.RefCount() <= 1,
