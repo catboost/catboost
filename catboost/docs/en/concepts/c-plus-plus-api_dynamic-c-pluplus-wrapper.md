@@ -32,7 +32,7 @@ All necessary CUDA libraries are statically linked to the Linux and macOS binari
 
 {% note info %}
 
-Release binaries for x86_64 CPU architectures are built with SIMD extensions SSE2, SSE3, SSSE3, SSE4 enabled. If you need to run {{ product }} on older CPUs that do not support these instruction sets [build {{ product }} artifacts yourself](../../../concepts/build-from-source.md)
+Release binaries for x86_64 CPU architectures are built with SIMD extensions SSE2, SSE3, SSSE3, SSE4 enabled. If you need to run {{ product }} on older CPUs that do not support these instruction sets [build {{ product }} artifacts yourself](#build)
 
 {% endnote %}
 
