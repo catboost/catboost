@@ -98,6 +98,10 @@ TWtringBuf CutHttpPrefix(const TWtringBuf url, bool ignorehttps) noexcept {
 }
 
 size_t GetSchemePrefixSize(const TStringBuf url) noexcept {
+    if (url.empty()) {
+        return 0;
+    }
+
     struct TDelim: public str_spn {
         inline TDelim()
             : str_spn("!-/:-@[-`{|}", true)
@@ -433,4 +437,3 @@ bool DoesUrlPathStartWithToken(TStringBuf url, const TStringBuf& token) noexcept
     const bool prefixIsToken = slashAfterPrefix || qMarkAfterPrefix || nothingAfterPrefix;
     return prefixIsToken;
 }
-
