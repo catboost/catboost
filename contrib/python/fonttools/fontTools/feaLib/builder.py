@@ -844,10 +844,15 @@ class Builder(object):
                 feature=None,
             )
             lookups.append(lookup)
-        try:
-            otLookups = [l.build() for l in lookups]
-        except OpenTypeLibError as e:
-            raise FeatureLibError(str(e), e.location) from e
+        otLookups = []
+        for l in lookups:
+            try:
+                otLookups.append(l.build())
+            except OpenTypeLibError as e:
+                raise FeatureLibError(str(e), e.location) from e
+            except Exception as e:
+                location = self.lookup_locations[tag][str(l.lookup_index)].location
+                raise FeatureLibError(str(e), location) from e
         return otLookups
 
     def makeTable(self, tag):

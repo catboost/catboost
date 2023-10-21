@@ -258,7 +258,7 @@ def _memoize(f):
     class memodict(dict):
         def __missing__(self, key):
             ret = f(key)
-            if len(key) == 1:
+            if isinstance(key, int) or len(key) == 1:
                 self[key] = ret
             return ret
 
@@ -271,7 +271,13 @@ def _memoize(f):
 # opposite of what makes sense algorithmically and hence this function.
 @_memoize
 def _reverseBytes(data):
-    if len(data) != 1:
+    r"""
+    >>> bin(ord(_reverseBytes(0b00100111)))
+    '0b11100100'
+    >>> _reverseBytes(b'\x00\xf0')
+    b'\x00\x0f'
+    """
+    if isinstance(data, bytes) and len(data) != 1:
         return bytesjoin(map(_reverseBytes, data))
     byte = byteord(data)
     result = 0

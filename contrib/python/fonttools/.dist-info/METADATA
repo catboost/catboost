@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.43.0
+Version: 4.43.1
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -325,17 +325,16 @@ Acknowledgements
 In alphabetical order:
 
 aschmitz, Olivier Berten, Samyak Bhuta, Erik van Blokland, Petr van Blokland,
-Jelle Bosma, Sascha Brawer, Tom Byrer, Antonio Cavedoni, Frédéric
-Coiffier, Vincent Connare, David Corbett, Simon Cozens, Dave Crossland,
-Simon Daniels, Peter Dekkers, Behdad Esfahbod, Behnam Esfahbod, Hannes
-Famira, Sam Fishman, Matt Fontaine, Takaaki Fuji, Yannis Haralambous, Greg
-Hitchcock, Jeremie Hornus, Khaled Hosny, John Hudson, Denis Moyogo Jacquerye,
-Jack Jansen, Tom Kacvinsky, Jens Kutilek, Antoine Leca, Werner Lemberg, Tal
-Leming, Peter Lofting, Cosimo Lupo, Olli Meier, Masaya Nakamura, Dave Opstad,
-Laurence Penney, Roozbeh Pournader, Garret Rieger, Read Roberts, Colin Rofls,
-Guido van Rossum, Just van Rossum, Andreas Seidel, Georg Seifert, Chris
-Simpkins, Miguel Sousa, Adam Twardoch, Adrien Tétar, Vitaly Volkov,
-Paul Wise.
+Jelle Bosma, Sascha Brawer, Tom Byrer, Antonio Cavedoni, Frédéric Coiffier,
+Vincent Connare, David Corbett, Simon Cozens, Dave Crossland, Simon Daniels,
+Peter Dekkers, Behdad Esfahbod, Behnam Esfahbod, Hannes Famira, Sam Fishman,
+Matt Fontaine, Takaaki Fuji, Rob Hagemans, Yannis Haralambous, Greg Hitchcock,
+Jeremie Hornus, Khaled Hosny, John Hudson, Denis Moyogo Jacquerye, Jack Jansen,
+Tom Kacvinsky, Jens Kutilek, Antoine Leca, Werner Lemberg, Tal Leming, Peter
+Lofting, Cosimo Lupo, Olli Meier, Masaya Nakamura, Dave Opstad, Laurence Penney,
+Roozbeh Pournader, Garret Rieger, Read Roberts, Colin Rofls, Guido van Rossum,
+Just van Rossum, Andreas Seidel, Georg Seifert, Chris Simpkins, Miguel Sousa,
+Adam Twardoch, Adrien Tétar, Vitaly Volkov, Paul Wise.
 
 Copyrights
 ~~~~~~~~~~
@@ -366,6 +365,17 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.43.1 (released 2023-10-06)
+----------------------------
+
+- [EBDT] Fixed TypeError exception in `_reverseBytes` method triggered when dumping
+  some bitmap fonts with `ttx -z bitwise` option (#3162).
+- [v/hhea] Fixed UnboundLocalError exception in ``recalc`` method when no vmtx or hmtx
+  tables are present (#3290).
+- [bezierTools] Fixed incorrectly typed cython local variable leading to TypeError when
+  calling ``calcQuadraticArcLength`` (#3288).
+- [feaLib/otlLib] Better error message when building Coverage table with missing glyph (#3286).
 
 4.43.0 (released 2023-09-29)
 ----------------------------

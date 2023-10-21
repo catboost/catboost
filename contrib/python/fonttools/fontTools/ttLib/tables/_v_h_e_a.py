@@ -50,9 +50,11 @@ class table__v_h_e_a(DefaultTable.DefaultTable):
         return sstruct.pack(vheaFormat, self)
 
     def recalc(self, ttFont):
-        if "vmtx" in ttFont:
-            vmtxTable = ttFont["vmtx"]
-            self.advanceHeightMax = max(adv for adv, _ in vmtxTable.metrics.values())
+        if "vmtx" not in ttFont:
+            return
+
+        vmtxTable = ttFont["vmtx"]
+        self.advanceHeightMax = max(adv for adv, _ in vmtxTable.metrics.values())
 
         boundsHeightDict = {}
         if "glyf" in ttFont:

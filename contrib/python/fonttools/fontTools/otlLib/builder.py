@@ -55,7 +55,11 @@ def buildCoverage(glyphs, glyphMap):
     if not glyphs:
         return None
     self = ot.Coverage()
-    self.glyphs = sorted(set(glyphs), key=glyphMap.__getitem__)
+    try:
+        self.glyphs = sorted(set(glyphs), key=glyphMap.__getitem__)
+    except KeyError as e:
+        raise ValueError(f"Could not find glyph {e} in font") from e
+
     return self
 
 
