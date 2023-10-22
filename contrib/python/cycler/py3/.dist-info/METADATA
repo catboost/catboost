@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: cycler
-Version: 0.12.0
+Version: 0.12.1
 Summary: Composable style cycles
 Author-email: Thomas A Caswell <matplotlib-users@python.org>
 License: Copyright (c) 2015, matplotlib project

@@ -51,7 +51,7 @@ from operator import mul, add
 # Dict, List, Union required for runtime cast calls
 from typing import TypeVar, Generic, Callable, Union, Dict, List, Any, overload, cast
 
-__version__ = "0.12.0"
+__version__ = "0.12.1"
 
 K = TypeVar("K", bound=Hashable)
 L = TypeVar("L", bound=Hashable)
