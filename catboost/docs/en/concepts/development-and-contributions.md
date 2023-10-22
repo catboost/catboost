@@ -66,6 +66,12 @@
   1. Open the `catboost/python-package/ut/medium` directory from the local copy of the {{ product }} repository.
   1. Run `python -m pytest`.
 
+  {% note warning %}
+
+  Tests on GPU with `CUDA` will be run if and only if GPU with CUDA drivers installed is present.
+
+  {% endnote %}
+
 - CatBoost for Apache Spark
 
     See [building CatBoost for Apache Spark from source](../installation/spark-installation-build-from-source-maven.md). Use standard `mvn test` command.
