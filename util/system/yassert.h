@@ -100,5 +100,4 @@ namespace NPrivate {
             }                                         \
         } while (false)
 #endif
-#define Y_VERIFY_DEBUG Y_DEBUG_ABORT_UNLESS
 #define Y_ASSERT(a) Y_DEBUG_ABORT_UNLESS(a)
