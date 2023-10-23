@@ -87,7 +87,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.0_2.12',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '3.0',
@@ -101,7 +101,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.1_2.12',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '3.1',
@@ -115,7 +115,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.2_2.12',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '3.2',
@@ -129,7 +129,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.2_2.13',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.13',
             'scala_version_placeholder': '2.13.5',
             'spark_compat_version_placeholder': '3.2',
@@ -143,7 +143,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.3_2.12',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '3.3',
@@ -157,7 +157,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.3_2.13',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.13',
             'scala_version_placeholder': '2.13.5',
             'spark_compat_version_placeholder': '3.3',
@@ -171,7 +171,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.4_2.12',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '3.4',
@@ -185,7 +185,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.4_2.13',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.0__3.4/scala',
             'scala_compat_version_placeholder': '2.13',
             'scala_version_placeholder': '2.13.5',
             'spark_compat_version_placeholder': '3.4',
@@ -199,7 +199,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.5_2.12',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.5/scala',
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '3.5',
@@ -213,7 +213,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.5_2.13',
         'substitution_dict' : {
-            'version_specific_src_dir': 'spark_3_x/scala',
+            'version_specific_src_dir': 'spark_3.5/scala',
             'scala_compat_version_placeholder': '2.13',
             'scala_version_placeholder': '2.13.5',
             'spark_compat_version_placeholder': '3.5',

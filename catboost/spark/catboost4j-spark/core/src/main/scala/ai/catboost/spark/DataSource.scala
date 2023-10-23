@@ -31,7 +31,7 @@ import org.apache.spark.util.TaskCompletionListener
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 import ai.catboost.CatBoostError
-import ai.catboost.spark.impl.ExpressionEncoderSerializer
+import ai.catboost.spark.impl.{ExpressionEncoderSerializer,RowEncoderConstructor}
 
 
 // copied from org.apache.spark.util because it's private there
@@ -302,13 +302,13 @@ private[spark] object DatasetRowsReaderIterator {
           result.currentOutRow(fieldIdx) = datasetRow.getTimestamp
         }
       }
-      
+
       fieldIdxCounter = fieldIdxCounter + 1
     }
-    
+
     if (options.contains("addSampleId")) {
       val fieldIdx = fieldIdxCounter // to capture fixed value
-      
+
       var sampleId = lineOffset
 
       result.callbacks += {
@@ -536,9 +536,9 @@ private[spark] object CatBoostPairsDataLoader {
   def load(spark: SparkSession, pairsDataPathWithScheme: String) : DataFrame = {
     val pairsPathParts = pairsDataPathWithScheme.split("://", 2)
     val (pairsDataScheme, pairsDataPath) = if (pairsPathParts.size == 1) {
-        ("dsv-flat", pairsPathParts(0)) 
-      } else { 
-        (pairsPathParts(0), pairsPathParts(1)) 
+        ("dsv-flat", pairsPathParts(0))
+      } else {
+        (pairsPathParts(0), pairsPathParts(1))
       }
     if (pairsDataScheme != "dsv-grouped") {
       throw new CatBoostError("Only 'dsv-grouped' scheme is supported for pairs now")
@@ -548,7 +548,7 @@ private[spark] object CatBoostPairsDataLoader {
       StructField("winnerId", LongType, false),
       StructField("loserId", LongType, false)
     )
-    
+
     import spark.implicits._
     val firstLineArray = spark.read.text(pairsDataPath).limit(1).as[String].collect()
     if (firstLineArray.isEmpty) {
@@ -562,17 +562,17 @@ private[spark] object CatBoostPairsDataLoader {
         s"Incorrect number of columns (must be 3 or 4) in pairs file ${pairsDataPath}"
       )
     }
-    
+
     val dfWithStringGroupId = spark.read.schema(StructType(schemaWithGroupIdAsStringFields))
       .option("sep", "\t")
       .csv(pairsDataPath)
-      
+
     def schema = StructType(
       Seq(StructField("groupId", LongType, false)) ++ schemaWithGroupIdAsStringFields.toSeq.tail
     )
-    
+
     dfWithStringGroupId.map(
       row => Row.fromSeq(Seq(native_impl.CalcGroupIdForString(row.getString(0))) ++ row.toSeq.tail)
-    )(RowEncoder(schema))
+    )(RowEncoderConstructor.construct(schema))
   }
 }

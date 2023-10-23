@@ -16,6 +16,7 @@ import org.apache.spark.sql.types._
 import ai.catboost.CatBoostError
 
 import ai.catboost.spark._
+
 import ai.catboost.spark.params.TrainingParamsTrait
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
@@ -36,7 +37,7 @@ object CtrFeatures {
     val dfWithId = df.withColumn("_id", monotonicallyIncreasingId)
     (dfWithId, dfWithId.select("_id").toLocalIterator().asScala.map(row => row.getLong(0)).toArray)
   }
-  
+
   /**
    * @return array of flat feature indices
    */
@@ -45,16 +46,16 @@ object CtrFeatures {
       case (uniqValueCount, i) if (uniqValueCount > oneHotMaxSize) => i
     }
   }
-  
+
   protected def getPreprocessedLearnTarget(
-    pool: Pool, 
+    pool: Pool,
     classTargetPreprocessor: Option[TClassTargetPreprocessor]
   ) : TVector_float = {
     val spark = pool.data.sparkSession
     import spark.implicits._
-    
+
     val labelDf = pool.data.select(pool.getLabelCol)
-    
+
     classTargetPreprocessor match {
       case Some(classTargetPreprocessor) => {
         labelDf.schema(0).dataType match {
@@ -63,12 +64,12 @@ object CtrFeatures {
               labelDf.map(row => row.getAs[Int](0)).toLocalIterator.asScala.toArray
             )
           }
-          case LongType => { 
+          case LongType => {
             classTargetPreprocessor.PreprocessIntTarget(
               labelDf.map(row => row.getAs[Long](0).toInt).toLocalIterator.asScala.toArray
             )
           }
-          case FloatType => { 
+          case FloatType => {
             classTargetPreprocessor.PreprocessFloatTarget(
               labelDf.map(row => row.getAs[Float](0)).toLocalIterator.asScala.toArray
             )
@@ -78,7 +79,7 @@ object CtrFeatures {
               labelDf.map(row => row.getAs[Double](0).toFloat).toLocalIterator.asScala.toArray
             )
           }
-          case StringType => { 
+          case StringType => {
             classTargetPreprocessor.PreprocessStringTarget(
               new TVector_TString(
                 labelDf.map(row => row.getAs[String](0)).toLocalIterator.asScala.toArray
@@ -102,7 +103,7 @@ object CtrFeatures {
       }
     }
   }
-  
+
   def downloadSubsetOfQuantizedFeatures(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool],
@@ -131,7 +132,7 @@ object CtrFeatures {
       )
     )
   }
-  
+
   protected def uploadAndMerge(
     spark: SparkSession,
     schema: StructType,
@@ -154,7 +155,7 @@ object CtrFeatures {
     } else {
       aggregateData.joinWith(df, aggregateData("_id") === df("_id")).map{
         case (row0, row1) => Row(row0.getLong(0), row0.getAs[Array[Byte]](1) ++ row1.getAs[Array[Byte]](1))
-      }(RowEncoder(schema))
+      }(RowEncoderConstructor.construct(schema))
     }
   }
 
@@ -172,13 +173,13 @@ object CtrFeatures {
     serializedLabelConverter: TVector_i8
   ) : (Pool, Array[Pool], CtrsContext) = {
     val spark = quantizedTrainPool.data.sparkSession
-    
+
     // Cache pools data because it's heavily reused here
     quantizedTrainPool.data.cache()
     quantizedEvalPools.map(evalPool => evalPool.data.cache())
-   
+
     val preprocessedLearnTarget = getPreprocessedLearnTarget(quantizedTrainPool, classTargetPreprocessor)
-    
+
     val catBoostOptions = new TCatBoostOptions(ETaskType.CPU)
     native_impl.InitCatBoostOptions(compact(updatedCatBoostJsonParams), catBoostOptions)
     val ctrHelper = native_impl.GetCtrHelper(
@@ -187,30 +188,30 @@ object CtrFeatures {
       preprocessedLearnTarget,
       serializedLabelConverter
     )
-    
+
     val localExecutor = new TLocalExecutor
     localExecutor.Init(SparkHelpers.getThreadCountForDriver(spark))
-    
+
     val targetStatsForCtrs = native_impl.ComputeTargetStatsForCtrs(
       ctrHelper,
-      preprocessedLearnTarget, 
+      preprocessedLearnTarget,
       localExecutor
     )
-    
+
     val (trainWithIds, trainIds) = getDatasetWithIdsAndIds(quantizedTrainPool.data)
-    
+
     val (evalsWithIds, evalsIds) = quantizedEvalPools.map(
       evalPool => getDatasetWithIdsAndIds(evalPool.data)
     ).unzip
-    
+
     val catFeaturesFlatIndicesForCtrs = getCatFeatureFlatIndicesForCtrs(quantizedTrainPool, oneHotMaxSize)
-    
+
     val quantizedFeaturesInfo = quantizedTrainPool.quantizedFeaturesInfo
     val quantizedFeaturesIndices = QuantizedFeaturesIndices(
       quantizedFeaturesInfo.GetFeaturesLayout,
       quantizedFeaturesInfo
     )
-    
+
     var aggregatedMetaData : TPrecomputedOnlineCtrMetaData = null
     var aggregateEstimatedTrainData : DataFrame = null
     var aggregateEstimatedEvalsData : Array[DataFrame] = new Array[DataFrame](quantizedEvalPools.length)
@@ -220,7 +221,7 @@ object CtrFeatures {
         StructField("_estimatedFeatures", BinaryType)
       )
     )
-    
+
     for (catFeatureFlatIdx <- catFeaturesFlatIndicesForCtrs) {
       val (trainColumnData, evalsColumnData) = downloadSubsetOfQuantizedFeatures(
         quantizedTrainPool,
@@ -229,10 +230,10 @@ object CtrFeatures {
         Set[Int](catFeatureFlatIdx),
         localExecutor
       )
-      
+
       val estimatedData = new TEstimatedForCPUObjectsDataProviders
       val estimatedMetaData = new TPrecomputedOnlineCtrMetaData
-      
+
       native_impl.ComputeEstimatedCtrFeatures(
         ctrHelper,
         catBoostOptions,
@@ -240,7 +241,7 @@ object CtrFeatures {
         trainColumnData,
         evalsColumnData,
         localExecutor,
-        estimatedData, 
+        estimatedData,
         estimatedMetaData
       )
       if (aggregatedMetaData == null) {
@@ -275,25 +276,25 @@ object CtrFeatures {
         )
       }
     }.toArray
-    
+
     quantizedTrainPool.data.unpersist()
     quantizedEvalPools.map(evalPool => evalPool.data.unpersist())
-      
+
     (
       trainPoolWithEstimatedFeatures,
       evalPoolsWithEstimatedFeatures,
       new CtrsContext(
         catBoostOptions,
-        ctrHelper, 
+        ctrHelper,
         targetStatsForCtrs,
         preprocessedLearnTarget,
-        aggregatedMetaData.SerializeToJson(), 
+        aggregatedMetaData.SerializeToJson(),
         localExecutor
       )
     )
   }
-  
-  
+
+
   def addCtrProviderToModel(
     model: TFullModel,
     ctrsContext: CtrsContext, // moved into
@@ -305,7 +306,7 @@ object CtrFeatures {
       quantizedFeaturesInfo.GetFeaturesLayout,
       quantizedFeaturesInfo
     )
-    
+
     val finalCtrsCalcer = new TFinalCtrsCalcer(
       model,
       ctrsContext.catBoostOptions,
@@ -316,7 +317,7 @@ object CtrFeatures {
       ctrsContext.localExecutor
     )
     val catFeatureFlatIndicesUsedForCtrs = finalCtrsCalcer.GetCatFeatureFlatIndicesUsedForCtrs.toPrimitiveArray
-    
+
     for (catFeatureFlatIdx <- catFeatureFlatIndicesUsedForCtrs) {
       val (trainColumnData, evalsColumnData) = downloadSubsetOfQuantizedFeatures(
         quantizedTrainPool,
@@ -327,7 +328,7 @@ object CtrFeatures {
       )
       finalCtrsCalcer.ProcessForFeature(catFeatureFlatIdx, trainColumnData, evalsColumnData)
     }
-    
+
     finalCtrsCalcer.GetModelWithCtrData
   }
 }
