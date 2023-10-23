@@ -130,6 +130,7 @@ private:
     UNIT_TEST(TestRecodeAppend);
     UNIT_TEST(TestRecode);
     UNIT_TEST(TestUnicodeLimit);
+    UNIT_TEST(TestCanEncode);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -147,6 +148,8 @@ public:
     void TestRecodeAppend();
     void TestRecode();
     void TestUnicodeLimit();
+
+    void TestCanEncode();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TConversionTest);
@@ -396,4 +399,83 @@ void TConversionTest::TestUnicodeLimit() {
             UNIT_ASSERT(page->unicode[c] < 1 << 16);
         }
     }
+}
+
+static void TestCanEncodeEmpty() {
+    TWtringBuf empty;
+    UNIT_ASSERT(CanBeEncoded(empty, CODES_WIN));
+    UNIT_ASSERT(CanBeEncoded(empty, CODES_YANDEX));
+    UNIT_ASSERT(CanBeEncoded(empty, CODES_UTF8));
+}
+
+static void TestCanEncodeEach(const TWtringBuf& text, ECharset encoding, bool expectedResult) {
+    // char by char
+    for (size_t i = 0; i < text.size(); ++i) {
+        if (CanBeEncoded(text.SubStr(i, 1), encoding) != expectedResult)
+            ythrow yexception() << "assertion failed: encoding " << NameByCharset(encoding)
+                                << " on '" << text.SubStr(i, 1) << "' (expected " << expectedResult << ")";
+    }
+    // whole text
+    UNIT_ASSERT_EQUAL(CanBeEncoded(text, encoding), expectedResult);
+}
+
+void TConversionTest::TestCanEncode() {
+    TestCanEncodeEmpty();
+
+    const TUtf16String lat = u"AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
+    TestCanEncodeEach(lat, CODES_WIN, true);
+    TestCanEncodeEach(lat, CODES_YANDEX, true);
+    TestCanEncodeEach(lat, CODES_UTF8, true);
+
+    const TUtf16String rus = u"АаБбВвГгДдЕеЁёЖжЗзИиЙйКкЛлМмНнОоПпРрСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯя";
+    TestCanEncodeEach(rus, CODES_WIN, true);
+    TestCanEncodeEach(rus, CODES_YANDEX, true);
+    TestCanEncodeEach(rus, CODES_UTF8, true);
+
+    const TUtf16String ukr = u"ҐґЄєІіЇї";
+    TestCanEncodeEach(ukr, CODES_WIN, true);
+    TestCanEncodeEach(ukr, CODES_YANDEX, true);
+    TestCanEncodeEach(ukr, CODES_UTF8, true);
+
+    const TUtf16String pol = u"ĄĆĘŁŃÓŚŹŻąćęłńóśźż";
+    TestCanEncodeEach(pol, CODES_WIN, false);
+    TestCanEncodeEach(pol, CODES_YANDEX, true);
+    TestCanEncodeEach(pol, CODES_UTF_16BE, true);
+
+    const TUtf16String ger = u"ÄäÖöÜüß";
+    TestCanEncodeEach(ger, CODES_WIN, false);
+    TestCanEncodeEach(ger, CODES_YANDEX, true);
+    TestCanEncodeEach(ger, CODES_UTF_16LE, true);
+
+    const TUtf16String fra1 = u"éàèùâêîôûëïç"; // supported in yandex cp
+    const TUtf16String fra2 = u"ÉÀÈÙÂÊÎÔÛËÏŸÿÇ";
+    const TUtf16String fra3 = u"ÆæŒœ";
+    TestCanEncodeEach(fra1 + fra2 + fra3, CODES_WIN, false);
+    TestCanEncodeEach(fra1, CODES_YANDEX, true);
+    TestCanEncodeEach(fra2 + fra3, CODES_YANDEX, false);
+    TestCanEncodeEach(fra1 + fra2 + fra3, CODES_UTF8, true);
+
+    const TUtf16String kaz = u"ӘәҒғҚқҢңӨөҰұҮүҺһ";
+    TestCanEncodeEach(kaz, CODES_WIN, false);
+    TestCanEncodeEach(kaz, CODES_YANDEX, false);
+    TestCanEncodeEach(kaz, CODES_UTF8, true);
+    TestCanEncodeEach(kaz, CODES_KAZWIN, true);
+
+    const TUtf16String tur1 = u"ĞİŞğş";
+    const TUtf16String tur = tur1 + u"ı";
+    TestCanEncodeEach(tur, CODES_WIN, false);
+    TestCanEncodeEach(tur, CODES_YANDEX, false);
+    TestCanEncodeEach(tur, CODES_UTF8, true);
+
+    const TUtf16String chi = u"新隶体新隸體";
+    TestCanEncodeEach(chi, CODES_WIN, false);
+    TestCanEncodeEach(chi, CODES_YANDEX, false);
+    TestCanEncodeEach(chi, CODES_UTF8, true);
+    TestCanEncodeEach(chi, CODES_UTF_16LE, true);
+
+    const TUtf16String jap = u"漢字仮字交じり文";
+    TestCanEncodeEach(jap, CODES_WIN, false);
+    TestCanEncodeEach(jap, CODES_YANDEX, false);
+    TestCanEncodeEach(jap, CODES_UTF8, true);
+    TestCanEncodeEach(jap, CODES_UTF_16BE, true);
 }
