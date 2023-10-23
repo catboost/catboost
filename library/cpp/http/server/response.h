@@ -62,6 +62,12 @@ public:
         return *this;
     }
 
+    THttpResponse& SetContent(TString&& content) {
+        Content = std::move(content);
+
+        return *this;
+    }
+
     TString GetContent() const {
         return Content;
     }
