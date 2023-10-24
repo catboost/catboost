@@ -4,7 +4,7 @@ pkgs: attrs: with pkgs; with pkgs.python311.pkgs; with attrs; rec {
   src = fetchPypi {
     pname = "Cython";
     inherit version;
-    sha256 = "sha256-QcDP0tdU44PJ7rle/8mqSrhH0Ml0cHfd18Dctow7wB8=";
+    hash = "sha256-QcDP0tdU44PJ7rle/8mqSrhH0Ml0cHfd18Dctow7wB8=";
   };
 
   patches = [];
