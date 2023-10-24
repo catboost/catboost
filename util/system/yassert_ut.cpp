@@ -32,4 +32,10 @@ Y_UNIT_TEST_SUITE(YassertTest) {
         Y_ABORT_UNLESS(true, "hi %s", "there");
         Y_ABORT_UNLESS(true);
     }
+
+    Y_UNIT_TEST(TestExceptionVerify) {
+        UNIT_ASSERT_EXCEPTION(
+            []() { Y_ABORT_UNLESS([]() {throw yexception{} << "check"; return false; }(), "hi %s", "there"); }(),
+            yexception);
+    }
 }
