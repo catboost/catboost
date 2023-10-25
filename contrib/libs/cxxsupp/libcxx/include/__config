@@ -141,9 +141,9 @@
 // compatible. This switch removes these workarounds for platforms that don't care
 // about ABI compatibility.
 #  define _LIBCPP_ABI_NO_RANDOM_DEVICE_COMPATIBILITY_LAYOUT
-// Remove basic_string common base
+// Don't export the legacy __basic_string_common class and its methods from the built library.
 #  define _LIBCPP_ABI_DO_NOT_EXPORT_BASIC_STRING_COMMON
-// Remove vector base class
+// Don't export the legacy __vector_base_common class and its methods from the built library.
 #  define _LIBCPP_ABI_DO_NOT_EXPORT_VECTOR_BASE_COMMON
 // According to the Standard, `bitset::operator[] const` returns bool
 #  define _LIBCPP_ABI_BITSET_VECTOR_BOOL_CONST_SUBSCRIPT_RETURN_BOOL
@@ -370,7 +370,7 @@
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || \
     defined(__OpenBSD__) || defined(__DragonFly__) || defined(__sun__)
 #  define _LIBCPP_USING_ARC4_RANDOM
-#elif defined(__wasi__)
+#elif defined(__wasi__) || defined(__EMSCRIPTEN__)
 #  define _LIBCPP_USING_GETENTROPY
 #elif defined(__Fuchsia__)
 #  define _LIBCPP_USING_FUCHSIA_CPRNG
@@ -1088,6 +1088,7 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
       defined(__sun__) || \
       defined(__MVS__) || \
       defined(_AIX) || \
+      defined(__EMSCRIPTEN__) || \
       defined(__CYGWIN__)
 #    define _LIBCPP_HAS_THREAD_API_PTHREAD
 #  elif defined(__Fuchsia__)
@@ -1311,35 +1312,8 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
 #define _LIBCPP_DISABLE_AVAILABILITY
 // End of Yandex-specific
 
-#if defined(_LIBCPP_COMPILER_IBM) || defined(__CUDACC__)
-#define _LIBCPP_HAS_NO_PRAGMA_PUSH_POP_MACRO
-#endif
-
-#if defined(_LIBCPP_HAS_NO_PRAGMA_PUSH_POP_MACRO)
-#  define _LIBCPP_PUSH_MACROS
-#  define _LIBCPP_POP_MACROS
-#else
-  // Don't warn about macro conflicts when we can restore them at the
-  // end of the header.
-#  ifndef _LIBCPP_DISABLE_MACRO_CONFLICT_WARNINGS
-#    define _LIBCPP_DISABLE_MACRO_CONFLICT_WARNINGS
-#  endif
-#  if defined(_LIBCPP_COMPILER_MSVC)
-#    define _LIBCPP_PUSH_MACROS    \
-       __pragma(push_macro("min")) \
-       __pragma(push_macro("max"))
-#    define _LIBCPP_POP_MACROS     \
-       __pragma(pop_macro("min"))  \
-       __pragma(pop_macro("max"))
-#  else
-#    define _LIBCPP_PUSH_MACROS        \
-       _Pragma("push_macro(\"min\")")  \
-       _Pragma("push_macro(\"max\")")
-#    define _LIBCPP_POP_MACROS         \
-       _Pragma("pop_macro(\"min\")")   \
-       _Pragma("pop_macro(\"max\")")
-#  endif
-#endif // defined(_LIBCPP_HAS_NO_PRAGMA_PUSH_POP_MACRO)
+#  define _LIBCPP_PUSH_MACROS _Pragma("push_macro(\"min\")") _Pragma("push_macro(\"max\")")
+#  define _LIBCPP_POP_MACROS _Pragma("pop_macro(\"min\")") _Pragma("pop_macro(\"max\")")
 
 #ifndef _LIBCPP_NO_AUTO_LINK
 #  if defined(_LIBCPP_ABI_MICROSOFT) && !defined(_LIBCPP_BUILDING_LIBRARY)
@@ -1394,28 +1368,6 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
     __attribute__((__format__(archetype, format_string_index, first_format_arg_index)))
 #else
 # define _LIBCPP_ATTRIBUTE_FORMAT(archetype, format_string_index, first_format_arg_index) /* nothing */
-#endif
-
-#if __has_cpp_attribute(msvc::no_unique_address)
-   // MSVC implements [[no_unique_address]] as a silent no-op currently.
-   // (If/when MSVC breaks its C++ ABI, it will be changed to work as intended.)
-   // However, MSVC implements [[msvc::no_unique_address]] which does what
-   // [[no_unique_address]] is supposed to do, in general.
-
-   // Clang-cl does not yet (14.0) implement either [[no_unique_address]] or
-   // [[msvc::no_unique_address]] though. If/when it does implement
-   // [[msvc::no_unique_address]], this should be preferred though.
-#  define _LIBCPP_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
-#elif __has_cpp_attribute(no_unique_address)
-#  define _LIBCPP_NO_UNIQUE_ADDRESS [[no_unique_address]]
-#else
-#  define _LIBCPP_NO_UNIQUE_ADDRESS /* nothing */
-   // Note that this can be replaced by #error as soon as clang-cl
-   // implements msvc::no_unique_address, since there should be no C++20
-   // compiler that doesn't support one of the two attributes at that point.
-   // We geenrally don't want to use this macro outside of C++20-only code,
-   // because using it conditionally in one language version only would make
-   // the ABI inconsistent.
 #endif
 
 #if __has_cpp_attribute(msvc::no_unique_address)
