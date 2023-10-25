@@ -335,7 +335,8 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
             // Should not be present in quantized pool
         case EColumn::Sparse:
             // Not supported by CatBoost at all
-        case EColumn::Prediction: {
+        case EColumn::Prediction:
+        case EColumn::Features: {
             // Can't be present in quantized pool
             ythrow TCatBoostException() << "Unexpected column type " << columnType;
         }

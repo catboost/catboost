@@ -4,6 +4,7 @@
 
 #include <util/ysaveload.h>
 #include <util/generic/string.h>
+#include <util/generic/vector.h>
 
 #include <tuple>
 
@@ -24,7 +25,8 @@ enum class EColumn {
     Sparse,
     Prediction,
     Text,
-    NumVector
+    NumVector,
+    Features
 };
 
 inline bool IsFactorColumn(EColumn column) {
@@ -60,16 +62,22 @@ void ParseOutputColumnByIndex(const TString& outputColumn, ui32* columnNumber, T
 struct TColumn {
     EColumn Type;
     TString Id;
+    TVector<TColumn> SubColumns; // only used for 'Features' column type now
 
 public:
+    explicit TColumn(EColumn columnType = EColumn::Num, const TString& id = TString())
+        : Type(columnType)
+        , Id(id)
+    {}
+
     bool operator==(const TColumn& rhs) const {
-        return (Type == rhs.Type) && (Id == rhs.Id);
+        return (Type == rhs.Type) && (Id == rhs.Id) && (SubColumns == rhs.SubColumns);
     }
 
     bool operator<(const TColumn& rhs) const {
-        return std::tie(Type, Id) < std::tie(rhs.Type, rhs.Id);
+        return std::tie(Type, Id, SubColumns) < std::tie(rhs.Type, rhs.Id, SubColumns);
     }
 
-    Y_SAVELOAD_DEFINE(Type, Id);
-    SAVELOAD(Type, Id);
+    Y_SAVELOAD_DEFINE(Type, Id, SubColumns);
+    SAVELOAD(Type, Id, SubColumns);
 };

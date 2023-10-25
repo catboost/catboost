@@ -169,7 +169,7 @@ TVector<TColumn> ReadCD(IInputStream* in, const TCdParserDefaults& defaults) {
 }
 
 TVector<TColumn> MakeDefaultColumnsDescription(size_t columnsCount) {
-    TVector<TColumn> result(columnsCount, {EColumn::Num, TString()});
+    TVector<TColumn> result(columnsCount);
     result[0].Type = EColumn::Label;
     return result;
 }
