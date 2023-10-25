@@ -37,7 +37,7 @@ from .utils import ensure_dir_exists
 base_aliases: dict[str, t.Any] = {}
 if isinstance(Application.aliases, dict):
     # traitlets 5
-    base_aliases.update(Application.aliases)  # type:ignore[arg-type]
+    base_aliases.update(Application.aliases)
 _jupyter_aliases = {
     "log-level": "Application.log_level",
     "config": "JupyterApp.config_file",
@@ -47,7 +47,7 @@ base_aliases.update(_jupyter_aliases)
 base_flags: dict[str, t.Any] = {}
 if isinstance(Application.flags, dict):
     # traitlets 5
-    base_flags.update(Application.flags)  # type:ignore[arg-type]
+    base_flags.update(Application.flags)
 _jupyter_flags: dict[str, t.Any] = {
     "debug": (
         {"Application": {"log_level": logging.DEBUG}},
@@ -72,8 +72,8 @@ class JupyterApp(Application):
     name = "jupyter"  # override in subclasses
     description = "A Jupyter Application"
 
-    aliases = base_aliases  # type:ignore[assignment]
-    flags = base_flags  # type:ignore[assignment]
+    aliases = base_aliases
+    flags = base_flags
 
     def _log_level_default(self) -> int:
         return logging.INFO
@@ -156,8 +156,6 @@ class JupyterApp(Application):
                 return
 
         config_text = self.generate_config_file()
-        if isinstance(config_text, bytes):
-            config_text = config_text.decode("utf8")
         print("Writing default config to: %s" % config_file)
         ensure_dir_exists(os.path.abspath(os.path.dirname(config_file)), 0o700)
         with open(config_file, mode="w", encoding="utf-8") as f:

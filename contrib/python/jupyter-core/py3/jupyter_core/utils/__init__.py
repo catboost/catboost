@@ -160,12 +160,17 @@ def run_sync(coro: Callable[..., Awaitable[T]]) -> Callable[..., T]:
             pass
 
         # Run the loop for this thread.
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        return loop.run_until_complete(inner)
+        # In Python 3.12, a deprecation warning is raised, which
+        # may later turn into a RuntimeError.  We handle both
+        # cases.
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            return loop.run_until_complete(inner)
 
     wrapped.__doc__ = coro.__doc__
     return wrapped

@@ -209,7 +209,7 @@ def _evaluate_argcomplete(parser: JupyterParser) -> list[str]:
         if cwords and len(cwords) > 1 and not cwords[1].startswith("-"):
             # If first completion word looks like a subcommand,
             # increment word from which to start handling arguments
-            increment_argcomplete_index()  # type:ignore[no-untyped-call]
+            increment_argcomplete_index()
             return cwords
         else:
             # Otherwise no subcommand, directly autocomplete and exit
