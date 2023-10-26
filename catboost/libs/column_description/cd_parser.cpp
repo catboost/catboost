@@ -50,24 +50,39 @@ namespace {
                     "Each line should have two or three columns. This line has " << tokens.size()
                 );
 
-                size_t index = 0;
-                CB_ENSURE(
-                    TryFromString(tokens[0], index),
-                    "Invalid column index: \"" << tokens[0] << "\""
-                );
-                if (defaults.UseDefaultColumnCount) {
-                    CB_ENSURE(
-                        index < columnsCount,
-                        "Invalid column index: " LabeledOutput(index, columnsCount));
-                }
-                CB_ENSURE(!parsedColumns.contains(index), "column specified twice in cd file: " << index);
-                parsedColumns.insert(index);
-
-                columns.resize(Max(columns.size(), index + 1), defaultColumn);
-
                 TStringBuf type = ToCanonicalColumnName(tokens[1]);
-
                 CB_ENSURE(TryFromString<EColumn>(type, columns[index].Type), "unsupported column type " << type);
+
+                TVector<TString> indexTokens;
+
+                try {
+                    StringSplitter(tokens[0]).Split('.').SkipEmpty().Collect(&indexTokens);
+                } catch (const yexception& e) {
+                    CATBOOST_DEBUG_LOG << "Got exception " << e.what() << " while parsing index field " << tokens[0] << Endl;
+                    throw;
+                }
+
+                if (indexTokens.ysize() == 1) {
+                    size_t index = 0;
+                    CB_ENSURE(
+                        TryFromString(tokens[0], index),
+                        "Invalid column index: \"" << tokens[0] << "\""
+                    );
+                    if (defaults.UseDefaultColumnCount) {
+                        CB_ENSURE(
+                            index < columnsCount,
+                            "Invalid column index: " LabeledOutput(index, columnsCount));
+                    }
+                    CB_ENSURE(!parsedColumns.contains(index), "column specified twice in cd file: " << index);
+                    parsedColumns.insert(index);
+
+                    columns.resize(Max(columns.size(), index + 1), defaultColumn);
+                } else if (indexTokens.ysize() == 2) {
+
+                } else {
+                    CB_ENSURE(false, "Index can contains one or two elements. This line has " << indexTokens.size());
+                }
+
                 if (tokens.ysize() == 3) {
                     columns[index].Id = tokens[2];
                 }
