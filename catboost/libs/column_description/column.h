@@ -65,7 +65,7 @@ struct TColumn {
     TVector<TColumn> SubColumns; // only used for 'Features' column type now
 
 public:
-    explicit TColumn(EColumn columnType = EColumn::Num, const TString& id = TString())
+    TColumn(EColumn columnType = EColumn::Num, const TString& id = TString())
         : Type(columnType)
         , Id(id)
     {}
