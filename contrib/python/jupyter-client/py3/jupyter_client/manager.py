@@ -117,7 +117,7 @@ class KernelManager(ConnectionFileMixin):
     # The PyZMQ Context to use for communication with the kernel.
     context: Instance = Instance(zmq.Context)
 
-    @default("context")  # type:ignore[misc]
+    @default("context")
     def _context_default(self) -> zmq.Context:
         self._created_context = True
         return zmq.Context()
@@ -128,11 +128,11 @@ class KernelManager(ConnectionFileMixin):
     )
     client_factory: Type = Type(klass=KernelClient)
 
-    @default("client_factory")  # type:ignore[misc]
+    @default("client_factory")
     def _client_factory_default(self) -> Type:
         return import_item(self.client_class)
 
-    @observe("client_class")  # type:ignore[misc]
+    @observe("client_class")
     def _client_class_changed(self, change: t.Dict[str, DottedObjectName]) -> None:
         self.client_factory = import_item(str(change["new"]))
 
@@ -145,12 +145,12 @@ class KernelManager(ConnectionFileMixin):
 
     kernel_spec_manager: Instance = Instance(kernelspec.KernelSpecManager)
 
-    @default("kernel_spec_manager")  # type:ignore[misc]
+    @default("kernel_spec_manager")
     def _kernel_spec_manager_default(self) -> kernelspec.KernelSpecManager:
         return kernelspec.KernelSpecManager(data_dir=self.data_dir)
 
-    @observe("kernel_spec_manager")  # type:ignore[misc]
-    @observe_compat  # type:ignore[misc]
+    @observe("kernel_spec_manager")
+    @observe_compat
     def _kernel_spec_manager_changed(self, change: t.Dict[str, Instance]) -> None:
         self._kernel_spec = None
 
@@ -170,7 +170,7 @@ class KernelManager(ConnectionFileMixin):
 
     kernel_name: t.Union[str, Unicode] = Unicode(kernelspec.NATIVE_KERNEL_NAME)
 
-    @observe("kernel_name")  # type:ignore[misc]
+    @observe("kernel_name")
     def _kernel_name_changed(self, change: t.Dict[str, str]) -> None:
         self._kernel_spec = None
         if change["new"] == "python":
@@ -190,7 +190,7 @@ class KernelManager(ConnectionFileMixin):
         help="True if the MultiKernelManager should cache ports for this KernelManager instance",
     )
 
-    @default("cache_ports")  # type:ignore[misc]
+    @default("cache_ports")
     def _default_cache_ports(self) -> bool:
         return self.transport == "tcp"
 
@@ -297,7 +297,7 @@ class KernelManager(ConnectionFileMixin):
             "prefix": sys.prefix,
         }
 
-        if self.kernel_spec:
+        if self.kernel_spec:  # type:ignore[truthy-bool]
             ns["resource_dir"] = self.kernel_spec.resource_dir
 
         ns.update(self._launch_args)
@@ -688,14 +688,16 @@ class AsyncKernelManager(KernelManager):
     # The PyZMQ Context to use for communication with the kernel.
     context: Instance = Instance(zmq.asyncio.Context)
 
-    @default("context")  # type:ignore[misc]
+    @default("context")
     def _context_default(self) -> zmq.asyncio.Context:
         self._created_context = True
         return zmq.asyncio.Context()
 
-    def client(self, **kwargs: t.Any) -> AsyncKernelClient:  # type:ignore
+    def client(  # type:ignore[override]
+        self, **kwargs: t.Any
+    ) -> AsyncKernelClient:
         """Get a client for the manager."""
-        return super().client(**kwargs)  # type:ignore
+        return super().client(**kwargs)  # type:ignore[return-value]
 
     _launch_kernel = KernelManager._async_launch_kernel  # type:ignore[assignment]
     start_kernel: t.Callable[

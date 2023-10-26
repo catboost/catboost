@@ -5,7 +5,7 @@ import asyncio
 import os
 import signal
 import sys
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from ..connect import KernelConnectionInfo, LocalPortCache
 from ..launcher import launch_kernel
@@ -40,7 +40,7 @@ class LocalProvisioner(KernelProvisionerBase):  # type:ignore[misc]
         """Poll the provisioner."""
         ret = 0
         if self.process:
-            ret = self.process.poll()
+            ret = self.process.poll()  # type:ignore[unreachable]
         return ret
 
     async def wait(self) -> Optional[int]:
@@ -51,7 +51,7 @@ class LocalProvisioner(KernelProvisionerBase):  # type:ignore[misc]
             # not alive.  If we find the process is no longer alive, complete
             # its cleanup via the blocking wait().  Callers are responsible for
             # issuing calls to wait() using a timeout (see kill()).
-            while await self.poll() is None:
+            while await self.poll() is None:  # type:ignore[unreachable]
                 await asyncio.sleep(0.1)
 
             # Process is no longer alive, wait and clear
@@ -74,7 +74,7 @@ class LocalProvisioner(KernelProvisionerBase):  # type:ignore[misc]
         applicable code on Windows in that case.
         """
         if self.process:
-            if signum == signal.SIGINT and sys.platform == 'win32':
+            if signum == signal.SIGINT and sys.platform == 'win32':  # type:ignore[unreachable]
                 from ..win_interrupt import send_interrupt
 
                 send_interrupt(self.process.win32_interrupt_event)
@@ -95,7 +95,7 @@ class LocalProvisioner(KernelProvisionerBase):  # type:ignore[misc]
     async def kill(self, restart: bool = False) -> None:
         """Kill the provisioner and optionally restart."""
         if self.process:
-            if hasattr(signal, "SIGKILL"):
+            if hasattr(signal, "SIGKILL"):  # type:ignore[unreachable]
                 # If available, give preference to signalling the process-group over `kill()`.
                 try:
                     await self.send_signal(signal.SIGKILL)
@@ -110,7 +110,7 @@ class LocalProvisioner(KernelProvisionerBase):  # type:ignore[misc]
     async def terminate(self, restart: bool = False) -> None:
         """Terminate the provisioner and optionally restart."""
         if self.process:
-            if hasattr(signal, "SIGTERM"):
+            if hasattr(signal, "SIGTERM"):  # type:ignore[unreachable]
                 # If available, give preference to signalling the process group over `terminate()`.
                 try:
                     await self.send_signal(signal.SIGTERM)
@@ -150,6 +150,8 @@ class LocalProvisioner(KernelProvisionerBase):  # type:ignore[misc]
                 self.connection_info['control_port'],
             )
             for port in ports:
+                if TYPE_CHECKING:
+                    assert isinstance(port, int)
                 lpc.return_port(port)
 
     async def pre_launch(self, **kwargs: Any) -> Dict[str, Any]:
@@ -167,10 +169,10 @@ class LocalProvisioner(KernelProvisionerBase):  # type:ignore[misc]
             if km.transport == 'tcp' and not is_local_ip(km.ip):
                 msg = (
                     "Can only launch a kernel on a local interface. "
-                    "This one is not: {}."
+                    f"This one is not: {km.ip}."
                     "Make sure that the '*_address' attributes are "
                     "configured properly. "
-                    "Currently valid addresses are: {}".format(km.ip, local_ips())
+                    f"Currently valid addresses are: {local_ips()}"
                 )
                 raise RuntimeError(msg)
             # build the Popen cmd

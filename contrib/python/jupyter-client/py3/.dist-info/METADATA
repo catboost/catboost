@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: jupyter_client
-Version: 8.3.1
+Version: 8.4.0
 Summary: Jupyter protocol implementation and client libraries
 Project-URL: Homepage, https://jupyter.org
 Project-URL: Documentation, https://jupyter-client.readthedocs.io/
@@ -48,10 +48,6 @@ Classifier: License :: OSI Approved :: BSD License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.8
-Classifier: Programming Language :: Python :: 3.9
-Classifier: Programming Language :: Python :: 3.10
-Classifier: Programming Language :: Python :: 3.11
 Requires-Python: >=3.8
 Requires-Dist: importlib-metadata>=4.8.3; python_version < '3.10'
 Requires-Dist: jupyter-core!=5.0.*,>=4.12

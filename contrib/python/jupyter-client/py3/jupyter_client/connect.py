@@ -341,7 +341,7 @@ class ConnectionFileMixin(LoggingConfigurable):
         to the Kernel, so be careful!""",
     )
 
-    def _ip_default(self):
+    def _ip_default(self) -> str:
         if self.transport == "ipc":
             if self.connection_file:
                 return os.path.splitext(self.connection_file)[0] + "-ipc"
@@ -426,7 +426,7 @@ class ConnectionFileMixin(LoggingConfigurable):
     def blocking_client(self):
         """Make a blocking client connected to my kernel"""
         info = self.get_connection_info()
-        bc = self.blocking_class(parent=self)
+        bc = self.blocking_class(parent=self)  # type:ignore[operator]
         bc.load_connection_info(info)
         return bc
 
@@ -540,7 +540,7 @@ class ConnectionFileMixin(LoggingConfigurable):
             See the connection_file spec for details.
         """
         self.transport = info.get("transport", self.transport)
-        self.ip = info.get("ip", self._ip_default())
+        self.ip = info.get("ip", self._ip_default())  # type:ignore[assignment]
 
         self._record_random_port_names()
         for name in port_names:

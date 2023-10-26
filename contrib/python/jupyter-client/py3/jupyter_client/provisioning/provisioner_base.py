@@ -10,7 +10,7 @@ from traitlets.config import Instance, LoggingConfigurable, Unicode
 from ..connect import KernelConnectionInfo
 
 
-class KernelProvisionerMeta(ABCMeta, type(LoggingConfigurable)):  # type: ignore
+class KernelProvisionerMeta(ABCMeta, type(LoggingConfigurable)):  # type: ignore[misc]
     pass
 
 

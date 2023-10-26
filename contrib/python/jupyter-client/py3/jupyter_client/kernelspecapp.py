@@ -5,12 +5,10 @@ import errno
 import json
 import os.path
 import sys
-import typing as t
 
 from jupyter_core.application import JupyterApp, base_aliases, base_flags
 from traitlets import Bool, Dict, Instance, List, Unicode
 from traitlets.config.application import Application
-from traitlets.config.loader import Config
 
 from . import __version__
 from .kernelspec import KernelSpecManager
@@ -275,7 +273,7 @@ class InstallNativeKernelSpec(JupyterApp):
                         file=sys.stderr,
                     )
                 self.exit(1)
-            self.exit(e)
+            self.exit(e)  # type:ignore[arg-type]
 
 
 class ListProvisioners(JupyterApp):
@@ -321,10 +319,8 @@ class KernelSpecApp(Application):
         }
     )
 
-    aliases: t.Dict[t.Union[str, t.Tuple[str, ...]], t.Union[str, t.Tuple[str, str]]] = {}
-    flags: t.Dict[
-        t.Union[str, t.Tuple[str, ...]], t.Tuple[t.Union[t.Dict[str, t.Any], Config], str]
-    ] = {}
+    aliases = {}
+    flags = {}
 
     def start(self):
         """Start the application."""

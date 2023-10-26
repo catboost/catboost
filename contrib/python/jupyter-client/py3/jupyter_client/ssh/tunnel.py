@@ -24,14 +24,14 @@ try:
 except ImportError:
     paramiko = None  # type:ignore[assignment]
 
-    class SSHException(Exception):  # type: ignore  # noqa
+    class SSHException(Exception):  # type:ignore[no-redef]  # noqa
         pass
 
 else:
     from .forward import forward_tunnel
 
 try:
-    import pexpect  # type: ignore
+    import pexpect  # type: ignore[import]
 except ImportError:
     pexpect = None
 
@@ -102,7 +102,7 @@ def _try_passwordless_openssh(server, keyfile):
 def _try_passwordless_paramiko(server, keyfile):
     """Try passwordless login with paramiko."""
     if paramiko is None:
-        msg = "Paramiko unavailable, "
+        msg = "Paramiko unavailable, "  # type:ignore[unreachable]
         if sys.platform == "win32":
             msg += "Paramiko is required for ssh tunneled connections on Windows."
         else:
@@ -337,7 +337,7 @@ def paramiko_tunnel(
 
     """
     if paramiko is None:
-        msg = "Paramiko not available"
+        msg = "Paramiko not available"  # type:ignore[unreachable]
         raise ImportError(msg)
 
     if password is None and not _try_passwordless_paramiko(server, keyfile):

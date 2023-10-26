@@ -35,7 +35,7 @@ frontend_aliases = set(frontend_aliases_dict.keys())
 frontend_flags = set(frontend_flags_dict.keys())
 
 
-class RunApp(JupyterApp, JupyterConsoleApp):
+class RunApp(JupyterApp, JupyterConsoleApp):  # type:ignore[misc]
     """An Jupyter Console app to run files."""
 
     version = __version__

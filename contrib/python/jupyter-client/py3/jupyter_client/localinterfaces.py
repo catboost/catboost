@@ -151,7 +151,7 @@ def _load_ips_ipconfig():
 
 def _load_ips_netifaces():
     """load ip addresses with netifaces"""
-    import netifaces  # type: ignore
+    import netifaces  # type: ignore[import]
 
     global LOCALHOST
     local_ips = []
