@@ -42,9 +42,14 @@ Y_UNIT_TEST_SUITE(TFlagsTest) {
             UNIT_ASSERT(!(std::is_same<decltype(i), int>::value));
             UNIT_ASSERT_VALUES_EQUAL(sizeof(Enum), sizeof(TFlags<Enum>));
 
+            UNIT_ASSERT(i.HasFlag(Enum::Test1));
+            UNIT_ASSERT(i.HasFlag(Enum::Test4) == false);
             UNIT_ASSERT(i.HasFlags(Enum::Test1));
             UNIT_ASSERT(i.HasFlags(Enum::Test4) == false);
             UNIT_ASSERT(i.HasFlags(Enum::Test1 | Enum::Test4) == false);
+            UNIT_ASSERT(i.HasAnyOfFlags(Enum::Test1));
+            UNIT_ASSERT(i.HasAnyOfFlags(Enum::Test4) == false);
+            UNIT_ASSERT(i.HasAnyOfFlags(Enum::Test1 | Enum::Test4));
 
             i |= Enum::Test4;
             i ^= Enum::Test2;
@@ -53,6 +58,11 @@ Y_UNIT_TEST_SUITE(TFlagsTest) {
             UNIT_ASSERT(i & Enum::Test4);
             UNIT_ASSERT_UNEQUAL(i, ~i);
             UNIT_ASSERT_EQUAL(i, ~~i);
+        }
+        {
+            auto i = Enum::Test1 | Enum::Test2;
+            i.RemoveFlag(Enum::Test1);
+            UNIT_ASSERT_EQUAL(i, TFlags<Enum>(Enum::Test2));
         }
         {
             auto i = Enum::Test1 | Enum::Test2;

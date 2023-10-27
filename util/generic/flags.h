@@ -126,13 +126,13 @@ public:
         return l.Value_ != static_cast<TInt>(r);
     }
 
-    TFlags& operator&=(TFlags mask) {
-        *this = *this & mask;
+    TFlags& operator&=(TFlags flags) {
+        *this = *this & flags;
         return *this;
     }
 
-    TFlags& operator&=(Enum mask) {
-        *this = *this & mask;
+    TFlags& operator&=(Enum value) {
+        *this = *this & value;
         return *this;
     }
 
@@ -141,8 +141,8 @@ public:
         return *this;
     }
 
-    TFlags& operator|=(Enum flags) {
-        *this = *this | flags;
+    TFlags& operator|=(Enum value) {
+        *this = *this | value;
         return *this;
     }
 
@@ -168,8 +168,21 @@ public:
         return Value_;
     }
 
+    constexpr bool HasFlag(Enum value) const {
+        return (Value_ & static_cast<TInt>(value)) == static_cast<TInt>(value);
+    }
+
     constexpr bool HasFlags(TFlags flags) const {
         return (Value_ & flags.Value_) == flags.Value_;
+    }
+
+    constexpr bool HasAnyOfFlags(TFlags flags) const {
+        return (Value_ & flags.Value_) != 0;
+    }
+
+    TFlags RemoveFlag(Enum value) {
+        Value_ &= ~static_cast<TInt>(value);
+        return *this;
     }
 
     TFlags RemoveFlags(TFlags flags) {
