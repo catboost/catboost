@@ -4,6 +4,8 @@
 #include "cast.h"
 #endif
 
+#include "enum.h"
+
 #include <util/string/cast.h>
 #include <util/string/printf.h>
 

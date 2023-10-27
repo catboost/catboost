@@ -1,5 +1,6 @@
 #include <library/cpp/testing/gtest/gtest.h>
 
+#include <library/cpp/yt/misc/cast.h>
 #include <library/cpp/yt/misc/enum.h>
 
 namespace NYT {
@@ -40,6 +41,13 @@ DEFINE_AMBIGUOUS_ENUM_WITH_UNDERLYING_TYPE(EMultipleNames, int,
 DEFINE_ENUM(ECustomString,
     ((A) (1) ("1_a"))
     ((B) (2) ("1_b"))
+);
+
+DEFINE_ENUM_WITH_UNDERLYING_TYPE(ECardinal, char,
+    ((West)  (0))
+    ((North) (1))
+    ((East)  (2))
+    ((South) (3))
 );
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -247,6 +255,29 @@ TEST(TEnumTest, CustomString)
 
     EXPECT_EQ("1_a", ToString(ECustomString::A));
     EXPECT_EQ("1_b", ToString(ECustomString::B));
+}
+
+TEST(TEnumTest, Cast)
+{
+    ECardinal cardinal;
+    {
+        char validValue = 2;
+        EXPECT_TRUE(TryEnumCast(validValue, &cardinal));
+        EXPECT_EQ(cardinal, ECardinal::East);
+    }
+    {
+        char invalidValue = 100;
+        EXPECT_FALSE(TryEnumCast(invalidValue, &cardinal));
+    }
+    {
+        int widerTypeValidValue = 3;
+        EXPECT_TRUE(TryEnumCast(widerTypeValidValue, &cardinal));
+        EXPECT_EQ(cardinal, ECardinal::South);
+    }
+    {
+        int widerTypeInvalueValue = (1 << 8) + 100;
+        EXPECT_FALSE(TryEnumCast(widerTypeInvalueValue, &cardinal));
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
