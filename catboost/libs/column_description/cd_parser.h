@@ -14,22 +14,26 @@ struct TCdParserDefaults {
     TMaybe<EColumn> DefaultColumnType = Nothing();
     int ColumnCount;
 
+public:
     TCdParserDefaults() = default;
     TCdParserDefaults(TMaybe<EColumn> defaultColumnType)
         : UseDefaultColumnCount(false)
-        , DefaultColumnType(defaultColumnType) {}
+        , DefaultColumnType(defaultColumnType)
+    {}
     TCdParserDefaults(TMaybe<EColumn> defaultColumnType, int columnCount)
         : UseDefaultColumnCount(true)
         , DefaultColumnType(defaultColumnType)
-        , ColumnCount(columnCount) {}
+        , ColumnCount(columnCount)
+    {}
 };
 
 class ICdProvider {
 public:
+    virtual ~ICdProvider() = 0;
+
     // if columnsCount is undefined - return all known columns
     virtual TVector<TColumn> GetColumnsDescription(TMaybe<ui32> columnsCount) const = 0;
     virtual bool Inited() const = 0;
-    virtual ~ICdProvider() = 0;
 };
 
 THolder<ICdProvider> MakeCdProviderFromArray(const TVector<TColumn>& columnsDescription);

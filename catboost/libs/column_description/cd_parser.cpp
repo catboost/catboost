@@ -40,13 +40,15 @@ namespace {
                 try {
                     StringSplitter(line).Split('\t').SkipEmpty().Collect(&tokens);
                 } catch (const yexception& e) {
-                    CATBOOST_DEBUG_LOG << "Got exception " << e.what() << " while parsing feature descriptions line " << line << Endl;
+                    CATBOOST_DEBUG_LOG << "Got exception " << e.what() << " while parsing feature descriptions line "
+                        << line << Endl;
                     break;
                 }
                 if (tokens.empty()) {
                     continue;
                 }
-                CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
+                CB_ENSURE(
+                    tokens.ysize() == 2 || tokens.ysize() == 3,
                     "Each line should have two or three columns. This line has " << tokens.size()
                 );
 
@@ -55,20 +57,16 @@ namespace {
                 try {
                     StringSplitter(tokens[0]).Split('.').SkipEmpty().Collect(&indexTokens);
                 } catch (const yexception& e) {
-                    CATBOOST_DEBUG_LOG << "Got exception " << e.what() << " while parsing index field " << tokens[0] << Endl;
+                    CATBOOST_DEBUG_LOG << "Got exception " << e.what() << " while parsing index field "
+                        << tokens[0] << Endl;
                     throw;
                 }
 
                 if (indexTokens.ysize() == 1) {
                     size_t index = 0;
-                    CB_ENSURE(
-                        TryFromString(tokens[0], index),
-                        "Invalid column index: \"" << tokens[0] << "\""
-                    );
+                    CB_ENSURE(TryFromString(tokens[0], index), "Invalid column index: \"" << tokens[0] << "\"");
                     if (defaults.UseDefaultColumnCount) {
-                        CB_ENSURE(
-                            index < columnsCount,
-                            "Invalid column index: " LabeledOutput(index, columnsCount));
+                        CB_ENSURE(index < columnsCount, "Invalid column index: " LabeledOutput(index, columnsCount));
                     }
                     CB_ENSURE(!parsedColumns.contains(index), "column specified twice in cd file: " << index);
                     parsedColumns.insert(index);
@@ -101,7 +99,8 @@ namespace {
     class TCdFromFileProvider : public ICdProvider {
     public:
         TCdFromFileProvider(const NCB::TPathWithScheme& cdFilePath)
-            : CdFilePath(cdFilePath) {}
+            : CdFilePath(cdFilePath)
+        {}
 
         TVector<TColumn> GetColumnsDescription(TMaybe<ui32> columnsCount) const override;
 
@@ -115,7 +114,8 @@ namespace {
     class TCdFromArrayProvider : public ICdProvider {
     public:
         TCdFromArrayProvider(const TVector<TColumn>& columnsDescription)
-            : ColumnsDescription(columnsDescription) {}
+            : ColumnsDescription(columnsDescription)
+        {}
 
         TVector<TColumn> GetColumnsDescription(TMaybe<ui32> columnsCount) const override {
             if (columnsCount) {
@@ -156,15 +156,10 @@ TVector<TColumn> TCdFromFileProvider::GetColumnsDescription(TMaybe<ui32> columns
     if (CdFilePath.Inited()) {
         columnsDescription = ReadCD(
             CdFilePath,
-            columnsCount.Defined() ?
-                TCdParserDefaults(EColumn::Num, *columnsCount) :
-                TCdParserDefaults(EColumn::Num)
+            columnsCount.Defined() ? TCdParserDefaults(EColumn::Num, *columnsCount) : TCdParserDefaults(EColumn::Num)
         );
     } else {
-        columnsDescription.assign(
-            columnsCount.Defined() ? *columnsCount : ui32(1),
-            TColumn{EColumn::Num, TString()}
-        );
+        columnsDescription.assign(columnsCount.Defined() ? *columnsCount : ui32(1), TColumn{EColumn::Num, TString()});
         columnsDescription[0].Type = EColumn::Label;
     }
     return columnsDescription;
