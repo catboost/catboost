@@ -11,14 +11,17 @@ namespace NCB {
     public:
         explicit TCalcMetricDataProvider(const TDataProviderPtr datasetPart)
             : DataProvider(datasetPart)
-            {}
+        {}
 
         TVector<TVector<double>> GetApproxes(NPar::TLocalExecutor* localExecutor) const;
         TVector<TSharedVector<float>> GetLabels(NPar::TLocalExecutor* localExecutor) const;
         TSharedWeights<float> GetWeights(NPar::TLocalExecutor* localExecutor) const;
         TMaybe<TSharedVector<TQueryInfo>> GetQueriesInfo() const;
 
-        void ExtractApproxesToBackOfVector(TVector<TVector<double>>* approxesPtr, NPar::TLocalExecutor* localExecutor) const;
+        void ExtractApproxesToBackOfVector(
+            TVector<TVector<double>>* approxesPtr,
+            NPar::TLocalExecutor* localExecutor
+        ) const;
 
     private:
         const TDataProviderPtr DataProvider;
@@ -29,8 +32,8 @@ namespace NCB {
         bool isClass,
         bool isMultiClass,
         bool isMultiLabel,
-        NPar::ILocalExecutor* localExecutor)
-    {
+        NPar::ILocalExecutor* localExecutor
+    ) {
         TVector<NJson::TJsonValue> outputClassLabels;
         return ConvertTarget(
             maybeRawTarget,
@@ -74,17 +77,13 @@ namespace NCB {
         }
     }
 
-    TVector<TVector<double>> TCalcMetricDataProvider::GetApproxes(
-        NPar::TLocalExecutor* localExecutor
-    ) const {
+    TVector<TVector<double>> TCalcMetricDataProvider::GetApproxes(NPar::TLocalExecutor* localExecutor) const {
         TVector<TVector<double>> approx;
         ExtractApproxesToBackOfVector(&approx, localExecutor);
         return approx;
     }
 
-    TVector<TSharedVector<float>> TCalcMetricDataProvider::GetLabels(
-        NPar::TLocalExecutor* localExecutor
-    ) const {
+    TVector<TSharedVector<float>> TCalcMetricDataProvider::GetLabels(NPar::TLocalExecutor* localExecutor) const {
         const auto& targetData = DataProvider->RawTargetData;
         return ConvertTargetForCalcMetric(
             targetData.GetTarget(),
@@ -100,7 +99,8 @@ namespace NCB {
             DataProvider->RawTargetData.GetWeights(),
             DataProvider->RawTargetData.GetGroupWeights(),
             /*isForGpu*/ false,
-            localExecutor);
+            localExecutor
+        );
         return weights;
     }
 
@@ -206,7 +206,8 @@ namespace NCB {
             Target[targetIdx].insert(
                 Target[targetIdx].end(),
                 labels[targetIdx]->begin(),
-                labels[targetIdx]->end());
+                labels[targetIdx]->end()
+            );
         }
     }
 
@@ -268,7 +269,8 @@ namespace NCB {
                 auto subStats = ConsumeCalcMetricsData(
                     additiveMetrics,
                     datasetPart,
-                    &executor);
+                    &executor
+                );
                 if (!nonAdditiveMetrics.empty()) {
                     nonAdditiveMetricData.SaveProcessedData(datasetPart, &executor);
                 }
@@ -349,7 +351,9 @@ namespace NCB {
         for (auto [ind, column] : nonAuxiliaryColumnsDescription) {
             CB_ENSURE(
                 ind < columnCount,
-                "Index of " << ToString(column) << " column (" << ind << ") is invalid, and should belong to [0, column count)");
+                "Index of " << ToString(column)
+                    << " column (" << ind << ") is invalid, and should belong to [0, column count)"
+            );
         }
     }
 
