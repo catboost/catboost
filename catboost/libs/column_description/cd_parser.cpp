@@ -50,9 +50,6 @@ namespace {
                     "Each line should have two or three columns. This line has " << tokens.size()
                 );
 
-                TStringBuf type = ToCanonicalColumnName(tokens[1]);
-                CB_ENSURE(TryFromString<EColumn>(type, columns[index].Type), "unsupported column type " << type);
-
                 TVector<TString> indexTokens;
 
                 try {
@@ -77,14 +74,17 @@ namespace {
                     parsedColumns.insert(index);
 
                     columns.resize(Max(columns.size(), index + 1), defaultColumn);
+
+                    TStringBuf type = ToCanonicalColumnName(tokens[1]);
+                    CB_ENSURE(TryFromString<EColumn>(type, columns[index].Type), "unsupported column type " << type);
+
+                    if (tokens.ysize() == 3) {
+                        columns[index].Id = tokens[2];
+                    }
                 } else if (indexTokens.ysize() == 2) {
 
                 } else {
                     CB_ENSURE(false, "Index can contains one or two elements. This line has " << indexTokens.size());
-                }
-
-                if (tokens.ysize() == 3) {
-                    columns[index].Id = tokens[2];
                 }
             } catch (const TCatBoostException& e) {
                 throw TCatBoostException() << "Incorrect CD file. Invalid line number #" << lineNumber
