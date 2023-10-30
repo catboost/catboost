@@ -57,13 +57,10 @@ The {{ product }} repository contains [several tutorials]({{ github-repo-tutoria
 - how to train a ranking model
 - how to perform hyperparameter search
 
-#### Coursera tutorials
+#### Courses
 
-[Coursera](https://www.coursera.org/) provides several lectures and a programming assignment as a part of the [How to Win a Data Science Competition: Learn from Top Kagglers](https://www.coursera.org/learn/competitive-data-science) specialization.
+Check out a free part of the [Introduction to Competitive Data Science](https://stepik.org/course/108888/promo) course. The assignment helps to explore all basic functions and implementation features of the {{ product }} [Python package](python-quickstart.md) and understand how to win a Data Science Competition. (in Russian)
 
-The assignment helps to explore all basic functions of the {{ product }} [Python package](python-quickstart.md).
-
-The results can be submitted to Coursera for further validation.
 
 #### Applying {{ product }} models in {{ other-products__clickhouse }}
 
