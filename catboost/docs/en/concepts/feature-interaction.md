@@ -32,8 +32,7 @@ See the [{{ title__InternalInteraction }}](output-data_feature-analysis_feature
 
 {% cut "{{ title__fstr__calculation-principle }}" %}
 
-
-$interaction(f_{1}, f_{2}) = \sum_{trees} \left |\sum_{leafs: split(f_1)=split(f_2)} LeafValue { } - \sum_{leafs: split(f_1)\ne split(f_2)}LeafValue \right |$
+$interaction(f_{1}, f_{2}) = \sum_{trees} \left |\sum_{leafs: split(f_1)=split(f_2)} LeafValue { } - \sum_{leafs: split(f_1) \neq split(f_2)}LeafValue \right |$
 
 {% endcut %}
 
