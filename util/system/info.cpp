@@ -38,6 +38,7 @@ static int getloadavg(double* loadavg, int nelem) {
 #include <util/string/ascii.h>
 #include <util/string/cast.h>
 #include <util/string/strip.h>
+#include <util/string/split.h>
 #include <util/stream/file.h>
 #include <util/generic/yexception.h>
 
@@ -49,15 +50,15 @@ In nanny - Runtime -> Instance spec -> Advanced settings -> Cgroupfs settings: M
 
 In deploy - Stage - Edit stage - Box - Cgroupfs settings: Mount mode = Read only
 */
-static inline double CgroupCpus() {
+static inline double CgroupV1Cpus(const char* cpuCfsQuotaUsPath, const char* cfsPeriodUsPath) {
     try {
-        double q = FromString<int32_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_quota_us").ReadAll()));
+        double q = FromString<int32_t>(StripString(TFileInput(cpuCfsQuotaUsPath).ReadAll()));
 
         if (q <= 0) {
             return 0;
         }
 
-        double p = FromString<int32_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_period_us").ReadAll()));
+        double p = FromString<int32_t>(StripString(TFileInput(cfsPeriodUsPath).ReadAll()));
 
         if (p <= 0) {
             return 0;
@@ -67,6 +68,47 @@ static inline double CgroupCpus() {
     } catch (...) {
         return 0;
     }
+}
+
+/*
+In cgroups v2 there isn't a dedicated "cpu" directory under /sys/fs/cgroup,
+so the approximation of the number of CPUs may use the cpu.max file.
+The format is the following:
+
+$MAX $PERIOD
+Which indicates that the group may consume up to $MAX in each $PERIOD duration.
+
+The "max" value could be either the string "max" or a number. In the first case
+our approximation doesn't work so we can bail out earlier.
+*/
+static inline double CgroupV2Cpus(const char* cpuMaxPath) {
+    try {
+        TVector<TString> cgroupCpuMax = StringSplitter(TFileInput(cpuMaxPath).ReadAll()).Split(' ').Take(2);
+        double max = FromString<int32_t>(StripString(cgroupCpuMax[0]));
+        double period = FromString<int32_t>(StripString(cgroupCpuMax[1]));
+
+        if (max <= 0 || period <= 0) {
+            return 0;
+        }
+
+        return max / period;
+    } catch (...) {
+        return 0;
+    }
+}
+
+static inline double CgroupCpus() {
+    auto cgroup2Cpus = CgroupV2Cpus("/sys/fs/cgroup/cpu.max");
+    if (cgroup2Cpus > 0) {
+        return cgroup2Cpus;
+    }
+    auto cgroups1Cpus = CgroupV1Cpus(
+        "/sys/fs/cgroup/cpu/cpu.cfs_quota_us",
+        "/sys/fs/cgroup/cpu/cpu.cfs_period_us");
+    if (cgroups1Cpus > 0) {
+        return cgroups1Cpus;
+    }
+    return 0;
 }
 #endif
 
