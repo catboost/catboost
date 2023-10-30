@@ -26,6 +26,7 @@ public:
     using difference_type = std::ptrdiff_t;
     using value_type = TValue;
     using reference = TValue&;
+    using const_reference = const TValue&;
     using pointer = std::remove_reference_t<TValue>*;
     using iterator_category = std::conditional_t<NIteratorPrivate::HasRandomAccess<TIterator>(),
         std::random_access_iterator_tag, std::input_iterator_tag>;
@@ -107,7 +108,7 @@ public:
     using const_iterator = TIterator;
     using value_type = typename TIterator::value_type;
     using reference = typename TIterator::reference;
-    using const_reference = typename TIterator::reference;
+    using const_reference = typename TIterator::const_reference;
 
     TInputMappedRange(TContainer&& container, TMapper&& mapper)
         : Container(std::forward<TContainer>(container))
