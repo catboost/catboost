@@ -93,7 +93,7 @@ archive_random(void *buf, size_t nbytes)
 	status = BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_RNG_ALGORITHM, NULL, 0);
 	if (!BCRYPT_SUCCESS(status))
 		return ARCHIVE_FAILED;
-	status = BCryptGenRandom(hAlg, buf, nbytes, 0);
+	status = BCryptGenRandom(hAlg, buf, (ULONG)nbytes, 0);
 	BCryptCloseAlgorithmProvider(hAlg, 0);
 	if (!BCRYPT_SUCCESS(status))
 		return ARCHIVE_FAILED;
