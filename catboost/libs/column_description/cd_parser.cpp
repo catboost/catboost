@@ -24,6 +24,27 @@ namespace {
         }
     }
 
+    void ProcessColumnAfterIndex(
+        TStringBuf srcDescription,
+        const TColumn& defaultColumn,
+        size_t index,
+        TArrayRef<TString> tokens,
+        TVector<TColumn>* columns,
+        TSet<size_t>* parsedColumns
+    ) {
+        CB_ENSURE(!parsedColumns->contains(index), "column specified twice in " << srcDescription << ": " << index);
+        parsedColumns->insert(index);
+
+        columns->resize(Max(columns->size(), index + 1), defaultColumn);
+
+        TStringBuf type = ToCanonicalColumnName(tokens[1]);
+        CB_ENSURE(TryFromString<EColumn>(type, (*columns)[index].Type), "unsupported column type " << type);
+
+        if (tokens.ysize() == 3) {
+            (*columns)[index].Id = tokens[2];
+        }
+    }
+
 
     template <class TReadLineFunc>
     TVector<TColumn> ReadCDImpl(TReadLineFunc readLineFunc, const TCdParserDefaults& defaults) {
@@ -68,19 +89,36 @@ namespace {
                     if (defaults.UseDefaultColumnCount) {
                         CB_ENSURE(index < columnsCount, "Invalid column index: " LabeledOutput(index, columnsCount));
                     }
-                    CB_ENSURE(!parsedColumns.contains(index), "column specified twice in cd file: " << index);
-                    parsedColumns.insert(index);
-
-                    columns.resize(Max(columns.size(), index + 1), defaultColumn);
-
-                    TStringBuf type = ToCanonicalColumnName(tokens[1]);
-                    CB_ENSURE(TryFromString<EColumn>(type, columns[index].Type), "unsupported column type " << type);
-
-                    if (tokens.ysize() == 3) {
-                        columns[index].Id = tokens[2];
-                    }
+                    ProcessColumnAfterIndex("file", defaultColumn, index, tokens, &columns, &parsedColumns);
                 } else if (indexTokens.ysize() == 2) {
+                    size_t metaColumnIndex = 0;
+                    CB_ENSURE(
+                        TryFromString(indexTokens[0], metaColumnIndex),
+                        "Invalid meta column index: \"" << indexTokens[0] << "\""
+                    );
+                    CB_ENSURE(
+                        metaColumnIndex < columns.size(),
+                        "Invalid meta column index: " << LabeledOutput(metaColumnIndex, columns.size())
+                    );
+                    CB_ENSURE(
+                        columns[metaColumnIndex].Type == EColumn::Features,
+                        "Column with index " << metaColumnIndex << " is not a Features meta column"
+                    );
+                    size_t subIndex = 0;
+                    CB_ENSURE(
+                        TryFromString(indexTokens[1], subIndex),
+                        "Invalid sub column index: \"" << indexTokens[1] << "\""
+                    );
 
+                    TSet<size_t> parsedSubColumns;
+                    ProcessColumnAfterIndex(
+                        "file for Features metacolumn",
+                        defaultColumn,
+                        subIndex,
+                        tokens,
+                        &columns[metaColumnIndex].SubColumns,
+                        &parsedSubColumns
+                    );
                 } else {
                     CB_ENSURE(false, "Index can contains one or two elements. This line has " << indexTokens.size());
                 }
