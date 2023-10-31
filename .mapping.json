@@ -1,4 +1,5 @@
 {
+  ".":"catboost/github_toplevel/",
   ".gitattributes":"catboost/github_toplevel/.gitattributes",
   ".gitignore":"catboost/github_toplevel/.gitignore",
   "AUTHORS":"catboost/github_toplevel/AUTHORS",
