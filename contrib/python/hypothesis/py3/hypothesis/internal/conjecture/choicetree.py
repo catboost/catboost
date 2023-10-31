@@ -89,7 +89,7 @@ class Chooser:
                     node.children[i] = DeadNode
                     node.live_child_count -= 1
         assert node.live_child_count == 0
-        raise DeadBranch()
+        raise DeadBranch
 
     def finish(self) -> Sequence[int]:
         """Record the decisions made in the underlying tree and return

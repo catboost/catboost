@@ -8,19 +8,6 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
-import hashlib
-import math
-from itertools import islice
-
-from hypothesis import HealthCheck, settings
-from hypothesis.errors import HypothesisException
-from hypothesis.internal.conjecture.data import ConjectureResult, Status
-from hypothesis.internal.conjecture.dfa.lstar import LStar
-from hypothesis.internal.conjecture.shrinking.learned_dfas import (
-    SHRINKING_DFAS,
-    __file__ as learned_dfa_file,
-)
-
 """
 This is a module for learning new DFAs that help normalize test
 functions. That is, given a test function that sometimes shrinks
@@ -28,6 +15,22 @@ to one thing and sometimes another, this module is designed to
 help learn new DFA-based shrink passes that will cause it to
 always shrink to the same thing.
 """
+
+import hashlib
+import math
+from itertools import islice
+from pathlib import Path
+
+from hypothesis import HealthCheck, settings
+from hypothesis.errors import HypothesisException
+from hypothesis.internal.conjecture.data import ConjectureResult, Status
+from hypothesis.internal.conjecture.dfa.lstar import LStar
+from hypothesis.internal.conjecture.shrinking.learned_dfas import (
+    SHRINKING_DFAS,
+    __file__ as _learned_dfa_file,
+)
+
+learned_dfa_file = Path(_learned_dfa_file)
 
 
 class FailedToNormalise(HypothesisException):
@@ -38,8 +41,7 @@ def update_learned_dfas():
     """Write any modifications to the SHRINKING_DFAS dictionary
     back to the learned DFAs file."""
 
-    with open(learned_dfa_file) as i:
-        source = i.read()
+    source = learned_dfa_file.read_text(encoding="utf-8")
 
     lines = source.splitlines()
 
@@ -60,8 +62,7 @@ def update_learned_dfas():
     new_source = "\n".join(lines) + "\n"
 
     if new_source != source:
-        with open(learned_dfa_file, "w") as o:
-            o.write(new_source)
+        learned_dfa_file.write_text(new_source, encoding="utf-8")
 
 
 def learn_a_new_dfa(runner, u, v, predicate):

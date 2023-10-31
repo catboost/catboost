@@ -162,7 +162,7 @@ class GenericCache:
 
         Returns the score to associate with the key.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def on_access(self, key, value, score):
         """Called every time a key that is already in the map is read or

@@ -12,7 +12,7 @@ import math
 from decimal import Decimal
 from fractions import Fraction
 from sys import float_info
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 from hypothesis.control import reject
 from hypothesis.errors import InvalidArgument
@@ -168,7 +168,8 @@ def integers(
 
 SMALLEST_SUBNORMAL = next_up(0.0)
 SIGNALING_NAN = int_to_float(0x7FF8_0000_0000_0001)  # nonzero mantissa
-assert math.isnan(SIGNALING_NAN) and math.copysign(1, SIGNALING_NAN) == 1
+assert math.isnan(SIGNALING_NAN)
+assert math.copysign(1, SIGNALING_NAN) == 1
 
 NASTY_FLOATS = sorted(
     [
@@ -263,11 +264,15 @@ class FloatStrategy(SearchStrategy):
         if _sign_aware_lte(0.0, max_value):
             pos_min = max(min_value, smallest_nonzero_magnitude)
             allow_zero = _sign_aware_lte(min_value, 0.0)
-            self.pos_clamper = make_float_clamper(pos_min, max_value, allow_zero)
+            self.pos_clamper = make_float_clamper(
+                pos_min, max_value, allow_zero=allow_zero
+            )
         if _sign_aware_lte(min_value, -0.0):
             neg_max = min(max_value, -smallest_nonzero_magnitude)
             allow_zero = _sign_aware_lte(-0.0, max_value)
-            self.neg_clamper = make_float_clamper(-neg_max, -min_value, allow_zero)
+            self.neg_clamper = make_float_clamper(
+                -neg_max, -min_value, allow_zero=allow_zero
+            )
 
         self.forced_sign_bit: Optional[int] = None
         if (self.pos_clamper is None) != (self.neg_clamper is None):
@@ -378,7 +383,7 @@ def floats(
     allow_nan: Optional[bool] = None,
     allow_infinity: Optional[bool] = None,
     allow_subnormal: Optional[bool] = None,
-    width: int = 64,
+    width: Literal[16, 32, 64] = 64,
     exclude_min: bool = False,
     exclude_max: bool = False,
 ) -> SearchStrategy[float]:
@@ -423,13 +428,11 @@ def floats(
     if allow_nan is None:
         allow_nan = bool(min_value is None and max_value is None)
     elif allow_nan and (min_value is not None or max_value is not None):
-        raise InvalidArgument(
-            f"Cannot have allow_nan={allow_nan!r}, with min_value or max_value"
-        )
+        raise InvalidArgument(f"Cannot have {allow_nan=}, with min_value or max_value")
 
     if width not in (16, 32, 64):
         raise InvalidArgument(
-            f"Got width={width!r}, but the only valid values "
+            f"Got {width=}, but the only valid values "
             "are the integers 16, 32, and 64."
         )
 
@@ -472,7 +475,7 @@ def floats(
                 "writeup - and good luck!"
             )
         raise FloatingPointError(
-            f"Got allow_subnormal={allow_subnormal!r}, but we can't represent "
+            f"Got {allow_subnormal=}, but we can't represent "
             f"subnormal floats right now, in violation of the IEEE-754 floating-point "
             f"specification.  {ftz_msg}"
         )
@@ -488,18 +491,18 @@ def floats(
     if min_value != min_arg:
         raise InvalidArgument(
             f"min_value={min_arg!r} cannot be exactly represented as a float "
-            f"of width {width} - use min_value={min_value!r} instead."
+            f"of width {width} - use {min_value=} instead."
         )
     if max_value != max_arg:
         raise InvalidArgument(
             f"max_value={max_arg!r} cannot be exactly represented as a float "
-            f"of width {width} - use max_value={max_value!r} instead."
+            f"of width {width} - use {max_value=} instead."
         )
 
     if exclude_min and (min_value is None or min_value == math.inf):
-        raise InvalidArgument(f"Cannot exclude min_value={min_value!r}")
+        raise InvalidArgument(f"Cannot exclude {min_value=}")
     if exclude_max and (max_value is None or max_value == -math.inf):
-        raise InvalidArgument(f"Cannot exclude max_value={max_value!r}")
+        raise InvalidArgument(f"Cannot exclude {max_value=}")
 
     assumed_allow_subnormal = allow_subnormal is None or allow_subnormal
     if min_value is not None and (
@@ -508,7 +511,8 @@ def floats(
         min_value = next_up_normal(min_value, width, assumed_allow_subnormal)
         if min_value == min_arg:
             assert min_value == min_arg == 0
-            assert is_negative(min_arg) and not is_negative(min_value)
+            assert is_negative(min_arg)
+            assert not is_negative(min_value)
             min_value = next_up_normal(min_value, width, assumed_allow_subnormal)
         assert min_value > min_arg  # type: ignore
     if max_value is not None and (
@@ -517,7 +521,8 @@ def floats(
         max_value = next_down_normal(max_value, width, assumed_allow_subnormal)
         if max_value == max_arg:
             assert max_value == max_arg == 0
-            assert is_negative(max_value) and not is_negative(max_arg)
+            assert is_negative(max_value)
+            assert not is_negative(max_arg)
             max_value = next_down_normal(max_value, width, assumed_allow_subnormal)
         assert max_value < max_arg  # type: ignore
 
@@ -543,7 +548,7 @@ def floats(
             "and max_value=%r" % (width, min_arg, max_arg)
         )
         if exclude_min or exclude_max:
-            msg += f", exclude_min={exclude_min!r} and exclude_max={exclude_max!r}"
+            msg += f", {exclude_min=} and {exclude_max=}"
         raise InvalidArgument(msg)
 
     if allow_infinity is None:
@@ -551,8 +556,7 @@ def floats(
     elif allow_infinity:
         if min_value is not None and max_value is not None:
             raise InvalidArgument(
-                f"Cannot have allow_infinity={allow_infinity!r}, "
-                "with both min_value and max_value"
+                f"Cannot have {allow_infinity=}, with both min_value and max_value"
             )
     elif min_value == math.inf:
         if min_arg == math.inf:

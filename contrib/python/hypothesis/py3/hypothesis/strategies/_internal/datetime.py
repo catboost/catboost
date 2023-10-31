@@ -9,10 +9,10 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 
 import datetime as dt
-import os.path
 from calendar import monthrange
 from functools import lru_cache
 from importlib import resources
+from pathlib import Path
 from typing import Optional
 
 from hypothesis.errors import InvalidArgument
@@ -215,13 +215,13 @@ def datetimes(
     check_type(dt.datetime, min_value, "min_value")
     check_type(dt.datetime, max_value, "max_value")
     if min_value.tzinfo is not None:
-        raise InvalidArgument(f"min_value={min_value!r} must not have tzinfo")
+        raise InvalidArgument(f"{min_value=} must not have tzinfo")
     if max_value.tzinfo is not None:
-        raise InvalidArgument(f"max_value={max_value!r} must not have tzinfo")
+        raise InvalidArgument(f"{max_value=} must not have tzinfo")
     check_valid_interval(min_value, max_value, "min_value", "max_value")
     if not isinstance(timezones, SearchStrategy):
         raise InvalidArgument(
-            f"timezones={timezones!r} must be a SearchStrategy that can "
+            f"{timezones=} must be a SearchStrategy that can "
             "provide tzinfo for datetimes (either None or dt.tzinfo objects)"
         )
     return DatetimeStrategy(min_value, max_value, timezones, allow_imaginary)
@@ -258,9 +258,9 @@ def times(
     check_type(dt.time, min_value, "min_value")
     check_type(dt.time, max_value, "max_value")
     if min_value.tzinfo is not None:
-        raise InvalidArgument(f"min_value={min_value!r} must not have tzinfo")
+        raise InvalidArgument(f"{min_value=} must not have tzinfo")
     if max_value.tzinfo is not None:
-        raise InvalidArgument(f"max_value={max_value!r} must not have tzinfo")
+        raise InvalidArgument(f"{max_value=} must not have tzinfo")
     check_valid_interval(min_value, max_value, "min_value", "max_value")
     return TimeStrategy(min_value, max_value, timezones)
 
@@ -342,7 +342,7 @@ def timedeltas(
 def _valid_key_cacheable(tzpath, key):
     assert isinstance(tzpath, tuple)  # zoneinfo changed, better update this function!
     for root in tzpath:
-        if os.path.exists(os.path.join(root, key)):  # pragma: no branch
+        if Path(root).joinpath(key).exists():  # pragma: no branch
             # No branch because most systems only have one TZPATH component.
             return True
     else:  # pragma: no cover
@@ -411,7 +411,7 @@ def timezone_keys(
             "Run `pip install hypothesis[zoneinfo]` and try again."
         )
 
-    available_timezones = ("UTC",) + tuple(sorted(zoneinfo.available_timezones()))
+    available_timezones = ("UTC", *sorted(zoneinfo.available_timezones()))
 
     # TODO: filter out alias and deprecated names if disallowed
 

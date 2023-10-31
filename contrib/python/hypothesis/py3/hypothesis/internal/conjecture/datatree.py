@@ -283,18 +283,18 @@ class DataTree:
                         n_bits, forced=node.values[i] if i in node.forced else None
                     )
                     if v != previous:
-                        raise PreviouslyUnseenBehaviour()
+                        raise PreviouslyUnseenBehaviour
                 if isinstance(node.transition, Conclusion):
                     t = node.transition
                     data.conclude_test(t.status, t.interesting_origin)
                 elif node.transition is None:
-                    raise PreviouslyUnseenBehaviour()
+                    raise PreviouslyUnseenBehaviour
                 elif isinstance(node.transition, Branch):
                     v = data.draw_bits(node.transition.bit_length)
                     try:
                         node = node.transition.children[v]
                     except KeyError as err:
-                        raise PreviouslyUnseenBehaviour() from err
+                        raise PreviouslyUnseenBehaviour from err
                 else:
                     assert isinstance(node.transition, Killed)
                     data.observer.kill_branch()

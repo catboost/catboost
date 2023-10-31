@@ -117,12 +117,16 @@ class LazyStrategy(SearchStrategy):
         return self.__wrapped_strategy
 
     def filter(self, condition):
+        try:
+            repr_ = f"{self!r}{_repr_filter(condition)}"
+        except Exception:
+            repr_ = None
         return LazyStrategy(
             self.function,
             self.__args,
             self.__kwargs,
-            self.__filters + (condition,),
-            force_repr=f"{self!r}{_repr_filter(condition)}",
+            (*self.__filters, condition),
+            force_repr=repr_,
         )
 
     def do_validate(self):

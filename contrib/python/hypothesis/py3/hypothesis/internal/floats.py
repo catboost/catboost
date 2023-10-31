@@ -119,6 +119,7 @@ assert width_smallest_normals[64] == float_info.min
 def make_float_clamper(
     min_float: float = 0.0,
     max_float: float = math.inf,
+    *,
     allow_zero: bool = False,  # Allows +0.0 (even if minfloat > 0)
 ) -> Optional[Callable[[float], float]]:
     """

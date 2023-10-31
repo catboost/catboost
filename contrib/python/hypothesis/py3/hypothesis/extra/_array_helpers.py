@@ -275,10 +275,10 @@ def broadcastable_shapes(
 # We are unsure if gufuncs allow frozen dimensions to be optional, but it's
 # easy enough to support here - and so we will unless we learn otherwise.
 _DIMENSION = r"\w+\??"  # Note that \w permits digits too!
-_SHAPE = r"\((?:{0}(?:,{0})".format(_DIMENSION) + r"{0,31})?\)"
-_ARGUMENT_LIST = "{0}(?:,{0})*".format(_SHAPE)
+_SHAPE = rf"\((?:{_DIMENSION}(?:,{_DIMENSION}){{0,31}})?\)"
+_ARGUMENT_LIST = f"{_SHAPE}(?:,{_SHAPE})*"
 _SIGNATURE = rf"^{_ARGUMENT_LIST}->{_SHAPE}$"
-_SIGNATURE_MULTIPLE_OUTPUT = r"^{0}->{0}$".format(_ARGUMENT_LIST)
+_SIGNATURE_MULTIPLE_OUTPUT = rf"^{_ARGUMENT_LIST}->{_ARGUMENT_LIST}$"
 
 
 class _GUfuncSig(NamedTuple):
@@ -286,7 +286,7 @@ class _GUfuncSig(NamedTuple):
     result_shape: Shape
 
 
-def _hypothesis_parse_gufunc_signature(signature, all_checks=True):
+def _hypothesis_parse_gufunc_signature(signature):
     # Disable all_checks to better match the Numpy version, for testing
     if not re.match(_SIGNATURE, signature):
         if re.match(_SIGNATURE_MULTIPLE_OUTPUT, signature):
@@ -294,7 +294,7 @@ def _hypothesis_parse_gufunc_signature(signature, all_checks=True):
                 "Hypothesis does not yet support generalised ufunc signatures "
                 "with multiple output arrays - mostly because we don't know of "
                 "anyone who uses them!  Please get in touch with us to fix that."
-                f"\n (signature={signature!r})"
+                f"\n ({signature=})"
             )
         if re.match(
             (
@@ -305,7 +305,7 @@ def _hypothesis_parse_gufunc_signature(signature, all_checks=True):
             signature,
         ):
             raise InvalidArgument(
-                f"signature={signature!r} matches Numpy's regex for gufunc signatures, "
+                f"{signature=} matches Numpy's regex for gufunc signatures, "
                 f"but contains shapes with more than {NDIM_MAX} dimensions and is thus invalid."
             )
         raise InvalidArgument(f"{signature!r} is not a valid gufunc signature")
@@ -315,34 +315,29 @@ def _hypothesis_parse_gufunc_signature(signature, all_checks=True):
     )
     assert len(output_shapes) == 1
     result_shape = output_shapes[0]
-    if all_checks:
-        # Check that there are no names in output shape that do not appear in inputs.
-        # (kept out of parser function for easier generation of test values)
-        # We also disallow frozen optional dimensions - this is ambiguous as there is
-        # no way to share an un-named dimension between shapes.  Maybe just padding?
-        # Anyway, we disallow it pending clarification from upstream.
-        frozen_optional_err = (
-            "Got dimension %r, but handling of frozen optional dimensions "
-            "is ambiguous.  If you known how this should work, please "
-            "contact us to get this fixed and documented (signature=%r)."
-        )
-        only_out_err = (
-            "The %r dimension only appears in the output shape, and is "
-            "not frozen, so the size is not determined (signature=%r)."
-        )
-        names_in = {n.strip("?") for shp in input_shapes for n in shp}
-        names_out = {n.strip("?") for n in result_shape}
-        for shape in input_shapes + (result_shape,):
-            for name in shape:
-                try:
-                    int(name.strip("?"))
-                    if "?" in name:
-                        raise InvalidArgument(frozen_optional_err % (name, signature))
-                except ValueError:
-                    if name.strip("?") in (names_out - names_in):
-                        raise InvalidArgument(
-                            only_out_err % (name, signature)
-                        ) from None
+    # Check that there are no names in output shape that do not appear in inputs.
+    # (kept out of parser function for easier generation of test values)
+    # We also disallow frozen optional dimensions - this is ambiguous as there is
+    # no way to share an un-named dimension between shapes.  Maybe just padding?
+    # Anyway, we disallow it pending clarification from upstream.
+    for shape in (*input_shapes, result_shape):
+        for name in shape:
+            try:
+                int(name.strip("?"))
+                if "?" in name:
+                    raise InvalidArgument(
+                        f"Got dimension {name!r}, but handling of frozen optional dimensions "
+                        "is ambiguous.  If you known how this should work, please "
+                        "contact us to get this fixed and documented ({signature=})."
+                    )
+            except ValueError:
+                names_in = {n.strip("?") for shp in input_shapes for n in shp}
+                names_out = {n.strip("?") for n in result_shape}
+                if name.strip("?") in (names_out - names_in):
+                    raise InvalidArgument(
+                        "The {name!r} dimension only appears in the output shape, and is "
+                        "not frozen, so the size is not determined ({signature=})."
+                    ) from None
     return _GUfuncSig(input_shapes=input_shapes, result_shape=result_shape)
 
 
@@ -408,7 +403,7 @@ def mutually_broadcastable_shapes(
             )
         check_type(str, signature, "signature")
         parsed_signature = _hypothesis_parse_gufunc_signature(signature)
-        all_shapes = parsed_signature.input_shapes + (parsed_signature.result_shape,)
+        all_shapes = (*parsed_signature.input_shapes, parsed_signature.result_shape)
         sig_dims = min(len(s) for s in all_shapes)
         num_shapes = len(parsed_signature.input_shapes)
 
@@ -540,7 +535,7 @@ class MutuallyBroadcastableShapesStrategy(st.SearchStrategy):
         # that we can do an accurate per-shape length cap.
         dims = {}
         shapes = []
-        for shape in self.signature.input_shapes + (self.signature.result_shape,):
+        for shape in (*self.signature.input_shapes, self.signature.result_shape):
             shapes.append([])
             for name in shape:
                 if name.isdigit():
@@ -614,7 +609,7 @@ class MutuallyBroadcastableShapesStrategy(st.SearchStrategy):
             if not any(use):
                 break
 
-        result_shape = result_shape[: max(map(len, [self.base_shape] + shapes))]
+        result_shape = result_shape[: max(map(len, [self.base_shape, *shapes]))]
 
         assert len(shapes) == self.num_shapes
         assert all(self.min_dims <= len(s) <= self.max_dims for s in shapes)

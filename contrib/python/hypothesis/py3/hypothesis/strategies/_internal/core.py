@@ -8,6 +8,7 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+import codecs
 import enum
 import math
 import operator
@@ -17,29 +18,34 @@ import string
 import sys
 import typing
 import warnings
+from contextvars import ContextVar
 from decimal import Context, Decimal, localcontext
 from fractions import Fraction
 from functools import lru_cache, reduce
-from inspect import Parameter, Signature, isabstract, isclass, signature
+from inspect import Parameter, Signature, isabstract, isclass
 from types import FunctionType
 from typing import (
-    TYPE_CHECKING,
     Any,
     AnyStr,
     Callable,
+    Collection,
     Dict,
     FrozenSet,
     Hashable,
     Iterable,
     List,
+    Literal,
     Optional,
     Pattern,
+    Protocol,
     Sequence,
     Set,
     Tuple,
     Type,
     TypeVar,
     Union,
+    get_args,
+    get_origin,
     overload,
 )
 from uuid import UUID
@@ -55,7 +61,10 @@ from hypothesis.errors import (
     SmallSearchSpaceWarning,
 )
 from hypothesis.internal.cathetus import cathetus
-from hypothesis.internal.charmap import as_general_categories
+from hypothesis.internal.charmap import (
+    as_general_categories,
+    categories as all_categories,
+)
 from hypothesis.internal.compat import (
     Concatenate,
     ParamSpec,
@@ -113,6 +122,7 @@ from hypothesis.strategies._internal.recursive import RecursiveStrategy
 from hypothesis.strategies._internal.shared import SharedStrategy
 from hypothesis.strategies._internal.strategies import (
     Ex,
+    Ex_Inv,
     SampledFromStrategy,
     T,
     one_of,
@@ -128,18 +138,13 @@ from hypothesis.vendor.pretty import RepresentationPrinter
 
 if sys.version_info >= (3, 10):
     from types import EllipsisType as EllipsisType
+    from typing import TypeAlias as TypeAlias
 elif typing.TYPE_CHECKING:  # pragma: no cover
     from builtins import ellipsis as EllipsisType
+
+    from typing_extensions import TypeAlias
 else:
     EllipsisType = type(Ellipsis)  # pragma: no cover
-
-
-if sys.version_info >= (3, 8):
-    from typing import Protocol
-elif TYPE_CHECKING:
-    from typing_extensions import Protocol
-else:  # pragma: no cover
-    Protocol = object
 
 
 @cacheable
@@ -158,20 +163,20 @@ def sampled_from(elements: Sequence[T]) -> SearchStrategy[T]:  # pragma: no cove
     ...
 
 
-@overload  # noqa: F811
+@overload
 def sampled_from(elements: Type[enum.Enum]) -> SearchStrategy[Any]:  # pragma: no cover
     # `SearchStrategy[Enum]` is unreliable due to metaclass issues.
     ...
 
 
-@overload  # noqa: F811
+@overload
 def sampled_from(
     elements: Union[Type[enum.Enum], Sequence[Any]]
 ) -> SearchStrategy[Any]:  # pragma: no cover
     ...
 
 
-@defines_strategy(try_non_lazy=True)  # noqa: F811
+@defines_strategy(try_non_lazy=True)
 def sampled_from(
     elements: Union[Type[enum.Enum], Sequence[Any]]
 ) -> SearchStrategy[Any]:
@@ -209,10 +214,13 @@ def sampled_from(
         raise InvalidArgument("Cannot sample from a length-zero sequence.")
     if len(values) == 1:
         return just(values[0])
-    if isinstance(elements, type) and issubclass(elements, enum.Enum):
-        repr_ = f"sampled_from({elements.__module__}.{elements.__name__})"
-    else:
-        repr_ = f"sampled_from({elements!r})"
+    try:
+        if isinstance(elements, type) and issubclass(elements, enum.Enum):
+            repr_ = f"sampled_from({elements.__module__}.{elements.__name__})"
+        else:
+            repr_ = f"sampled_from({elements!r})"
+    except Exception:  # pragma: no cover
+        repr_ = None
     if isclass(elements) and issubclass(elements, enum.Flag):
         # Combinations of enum.Flag members are also members.  We generate
         # these dynamically, because static allocation takes O(2^n) memory.
@@ -285,7 +293,7 @@ def lists(
     if unique_by is not None:
         if not (callable(unique_by) or isinstance(unique_by, tuple)):
             raise InvalidArgument(
-                f"unique_by={unique_by!r} is not a callable or tuple of callables"
+                f"{unique_by=} is not a callable or tuple of callables"
             )
         if callable(unique_by):
             unique_by = (unique_by,)
@@ -329,7 +337,7 @@ def lists(
             elements = SampledFromStrategy(
                 sorted(range(elements.start, elements.end + 1), key=abs)
                 if elements.end < 0 or elements.start > 0
-                else list(range(0, elements.end + 1))
+                else list(range(elements.end + 1))
                 + list(range(-1, elements.start - 1, -1))
             )
 
@@ -337,7 +345,7 @@ def lists(
             element_count = len(elements.elements)
             if min_size > element_count:
                 raise InvalidArgument(
-                    f"Cannot create a collection of min_size={min_size!r} unique "
+                    f"Cannot create a collection of {min_size=} unique "
                     f"elements with values drawn from only {element_count} distinct "
                     "elements"
                 )
@@ -521,16 +529,64 @@ def dictionaries(
     ).map(dict_class)
 
 
+# See https://en.wikipedia.org/wiki/Unicode_character_property#General_Category
+CategoryName: "TypeAlias" = Literal[
+    "L",  #  Letter
+    "Lu",  # Letter, uppercase
+    "Ll",  # Letter, lowercase
+    "Lt",  # Letter, titlecase
+    "Lm",  # Letter, modifier
+    "Lo",  # Letter, other
+    "M",  #  Mark
+    "Mn",  # Mark, nonspacing
+    "Mc",  # Mark, spacing combining
+    "Me",  # Mark, enclosing
+    "N",  #  Number
+    "Nd",  # Number, decimal digit
+    "Nl",  # Number, letter
+    "No",  # Number, other
+    "P",  #  Punctuation
+    "Pc",  # Punctuation, connector
+    "Pd",  # Punctuation, dash
+    "Ps",  # Punctuation, open
+    "Pe",  # Punctuation, close
+    "Pi",  # Punctuation, initial quote
+    "Pf",  # Punctuation, final quote
+    "Po",  # Punctuation, other
+    "S",  #  Symbol
+    "Sm",  # Symbol, math
+    "Sc",  # Symbol, currency
+    "Sk",  # Symbol, modifier
+    "So",  # Symbol, other
+    "Z",  #  Separator
+    "Zs",  # Separator, space
+    "Zl",  # Separator, line
+    "Zp",  # Separator, paragraph
+    "C",  #  Other
+    "Cc",  # Other, control
+    "Cf",  # Other, format
+    "Cs",  # Other, surrogate
+    "Co",  # Other, private use
+    "Cn",  # Other, not assigned
+]
+
+
 @cacheable
 @defines_strategy(force_reusable_values=True)
 def characters(
     *,
-    whitelist_categories: Optional[Sequence[str]] = None,
-    blacklist_categories: Optional[Sequence[str]] = None,
-    blacklist_characters: Optional[Sequence[str]] = None,
+    codec: Optional[str] = None,
     min_codepoint: Optional[int] = None,
     max_codepoint: Optional[int] = None,
-    whitelist_characters: Optional[Sequence[str]] = None,
+    categories: Optional[Collection[CategoryName]] = None,
+    exclude_categories: Optional[Collection[CategoryName]] = None,
+    exclude_characters: Optional[Collection[str]] = None,
+    include_characters: Optional[Collection[str]] = None,
+    # Note: these arguments are deprecated aliases for backwards compatibility
+    blacklist_categories: Optional[Collection[CategoryName]] = None,
+    whitelist_categories: Optional[Collection[CategoryName]] = None,
+    blacklist_characters: Optional[Collection[str]] = None,
+    whitelist_characters: Optional[Collection[str]] = None,
 ) -> SearchStrategy[str]:
     r"""Generates characters, length-one :class:`python:str`\ ings,
     following specified filtering rules.
@@ -538,19 +594,21 @@ def characters(
     - When no filtering rules are specified, any character can be produced.
     - If ``min_codepoint`` or ``max_codepoint`` is specified, then only
       characters having a codepoint in that range will be produced.
-    - If ``whitelist_categories`` is specified, then only characters from those
+    - If ``categories`` is specified, then only characters from those
       Unicode categories will be produced. This is a further restriction,
       characters must also satisfy ``min_codepoint`` and ``max_codepoint``.
-    - If ``blacklist_categories`` is specified, then any character from those
-      categories will not be produced.  Any overlap between
-      ``whitelist_categories`` and ``blacklist_categories`` will raise an
-      exception, as each character can only belong to a single class.
-    - If ``whitelist_characters`` is specified, then any additional characters
+    - If ``exclude_categories`` is specified, then any character from those
+      categories will not be produced.  You must not pass both ``categories``
+      and ``exclude_categories``; these arguments are alternative ways to
+      specify exactly the same thing.
+    - If ``include_characters`` is specified, then any additional characters
       in that list will also be produced.
-    - If ``blacklist_characters`` is specified, then any characters in
+    - If ``exclude_characters`` is specified, then any characters in
       that list will be not be produced. Any overlap between
-      ``whitelist_characters`` and ``blacklist_characters`` will raise an
+      ``include_characters`` and ``exclude_characters`` will raise an
       exception.
+    - If ``codec`` is specified, only characters in the specified `codec encodings`_
+      will be produced.
 
     The ``_codepoint`` arguments must be integers between zero and
     :obj:`python:sys.maxunicode`.  The ``_characters`` arguments must be
@@ -563,7 +621,17 @@ def characters(
     can be given to match all corresponding categories, for example ``'P'``
     for characters in any punctuation category.
 
+    We allow codecs from the :mod:`codecs` module and their aliases, platform
+    specific and user-registered codecs if they are available, and
+    `python-specific text encodings`_ (but not text or binary transforms).
+    ``include_characters`` which cannot be encoded using this codec will
+    raise an exception.  If non-encodable codepoints or categories are
+    explicitly allowed, the ``codec`` argument will exclude them without
+    raising an exception.
+
     .. _general category: https://wikipedia.org/wiki/Unicode_character_property
+    .. _codec encodings: https://docs.python.org/3/library/codecs.html#encodings-and-unicode
+    .. _python-specific text encodings: https://docs.python.org/3/library/codecs.html#python-specific-encodings
 
     Examples from this strategy shrink towards the codepoint for ``'0'``,
     or the first allowable codepoint after it if ``'0'`` is excluded.
@@ -571,60 +639,117 @@ def characters(
     check_valid_size(min_codepoint, "min_codepoint")
     check_valid_size(max_codepoint, "max_codepoint")
     check_valid_interval(min_codepoint, max_codepoint, "min_codepoint", "max_codepoint")
+
+    if categories is not None and exclude_categories is not None:
+        raise InvalidArgument(
+            f"Pass at most one of {categories=} and {exclude_categories=} - "
+            "these arguments both specify which categories are allowed, so it "
+            "doesn't make sense to use both in a single call."
+        )
+
+    # Handle deprecation of whitelist/blacklist arguments
+    has_old_arg = any(v is not None for k, v in locals().items() if "list" in k)
+    has_new_arg = any(v is not None for k, v in locals().items() if "lude" in k)
+    if has_old_arg and has_new_arg:
+        raise InvalidArgument(
+            "The deprecated blacklist/whitelist arguments cannot be used in "
+            "the same call as their replacement include/exclude arguments."
+        )
+    if blacklist_categories is not None:
+        exclude_categories = blacklist_categories
+    if whitelist_categories is not None:
+        categories = whitelist_categories
+    if blacklist_characters is not None:
+        exclude_characters = blacklist_characters
+    if whitelist_characters is not None:
+        include_characters = whitelist_characters
+
     if (
         min_codepoint is None
         and max_codepoint is None
-        and whitelist_categories is None
-        and blacklist_categories is None
-        and whitelist_characters is not None
+        and categories is None
+        and exclude_categories is None
+        and include_characters is not None
+        and codec is None
     ):
         raise InvalidArgument(
             "Nothing is excluded by other arguments, so passing only "
-            f"whitelist_characters={whitelist_characters!r} would have no effect.  "
-            "Also pass whitelist_categories=(), or use "
-            f"sampled_from({whitelist_characters!r}) instead."
+            f"{include_characters=} would have no effect.  "
+            "Also pass categories=(), or use "
+            f"sampled_from({include_characters!r}) instead."
         )
-    blacklist_characters = blacklist_characters or ""
-    whitelist_characters = whitelist_characters or ""
-    overlap = set(blacklist_characters).intersection(whitelist_characters)
+    exclude_characters = exclude_characters or ""
+    include_characters = include_characters or ""
+    overlap = set(exclude_characters).intersection(include_characters)
     if overlap:
         raise InvalidArgument(
             f"Characters {sorted(overlap)!r} are present in both "
-            f"whitelist_characters={whitelist_characters!r}, and "
-            f"blacklist_characters={blacklist_characters!r}"
+            f"{include_characters=} and {exclude_characters=}"
         )
-    blacklist_categories = as_general_categories(
-        blacklist_categories, "blacklist_categories"
-    )
-    if (
-        whitelist_categories is not None
-        and not whitelist_categories
-        and not whitelist_characters
-    ):
+    categories = as_general_categories(categories, "categories")
+    exclude_categories = as_general_categories(exclude_categories, "exclude_categories")
+    if categories is not None and not categories and not include_characters:
         raise InvalidArgument(
-            "When whitelist_categories is an empty collection and there are "
-            "no characters specified in whitelist_characters, nothing can "
+            "When `categories` is an empty collection and there are "
+            "no characters specified in include_characters, nothing can "
             "be generated by the characters() strategy."
         )
-    whitelist_categories = as_general_categories(
-        whitelist_categories, "whitelist_categories"
-    )
-    both_cats = set(blacklist_categories or ()).intersection(whitelist_categories or ())
+    both_cats = set(exclude_categories or ()).intersection(categories or ())
     if both_cats:
+        # Note: we check that exactly one of `categories` or `exclude_categories` is
+        # passed above, but retain this older check for the deprecated arguments.
         raise InvalidArgument(
             f"Categories {sorted(both_cats)!r} are present in both "
-            f"whitelist_categories={whitelist_categories!r}, and "
-            f"blacklist_categories={blacklist_categories!r}"
+            f"{categories=} and {exclude_categories=}"
         )
+    elif exclude_categories is not None:
+        categories = set(all_categories()) - set(exclude_categories)
+    del exclude_categories
 
-    return OneCharStringStrategy(
-        whitelist_categories=whitelist_categories,
-        blacklist_categories=blacklist_categories,
-        blacklist_characters=blacklist_characters,
+    if codec is not None:
+        try:
+            codec = codecs.lookup(codec).name
+            # Check this is not a str-to-str or bytes-to-bytes codec; see
+            # https://docs.python.org/3/library/codecs.html#binary-transforms
+            "".encode(codec)
+        except LookupError:
+            raise InvalidArgument(f"{codec=} is not valid on this system") from None
+        except Exception:
+            raise InvalidArgument(f"{codec=} is not a valid codec") from None
+
+        for char in include_characters:
+            try:
+                char.encode(encoding=codec, errors="strict")
+            except UnicodeEncodeError:
+                raise InvalidArgument(
+                    f"Character {char!r} in {include_characters=} "
+                    f"cannot be encoded with {codec=}"
+                ) from None
+
+        # ascii and utf-8 are sufficient common that we have faster special handling
+        if codec == "ascii":
+            if (max_codepoint is None) or (max_codepoint > 127):
+                max_codepoint = 127
+            codec = None
+        elif codec == "utf-8":
+            if categories is None:
+                categories = all_categories()
+            categories = tuple(c for c in categories if c != "Cs")
+
+    return OneCharStringStrategy.from_characters_args(
+        categories=categories,
+        exclude_characters=exclude_characters,
         min_codepoint=min_codepoint,
         max_codepoint=max_codepoint,
-        whitelist_characters=whitelist_characters,
+        include_characters=include_characters,
+        codec=codec,
     )
+
+
+# Hide the deprecated aliases from documentation and casual inspection
+characters.__signature__ = (__sig := get_signature(characters)).replace(  # type: ignore
+    parameters=[p for p in __sig.parameters.values() if "list" not in p.name]
+)
 
 
 # Cache size is limited by sys.maxunicode, but passing None makes it slightly faster.
@@ -643,9 +768,7 @@ def _check_is_single_character(c):
 @cacheable
 @defines_strategy(force_reusable_values=True)
 def text(
-    alphabet: Union[Sequence[str], SearchStrategy[str]] = characters(
-        blacklist_categories=("Cs",)
-    ),
+    alphabet: Union[Collection[str], SearchStrategy[str]] = characters(codec="utf-8"),
     *,
     min_size: int = 0,
     max_size: Optional[int] = None,
@@ -691,7 +814,7 @@ def text(
                 f"which leads to violation of size constraints:  {not_one_char!r}"
             )
         char_strategy = (
-            characters(whitelist_categories=(), whitelist_characters=alphabet)
+            characters(categories=(), include_characters=alphabet)
             if alphabet
             else nothing()
         )
@@ -700,10 +823,32 @@ def text(
     return TextStrategy(char_strategy, min_size=min_size, max_size=max_size)
 
 
+@overload
+def from_regex(
+    regex: Union[bytes, Pattern[bytes]],
+    *,
+    fullmatch: bool = False,
+) -> SearchStrategy[bytes]:  # pragma: no cover
+    ...
+
+
+@overload
+def from_regex(
+    regex: Union[str, Pattern[str]],
+    *,
+    fullmatch: bool = False,
+    alphabet: Union[str, SearchStrategy[str]] = characters(codec="utf-8"),
+) -> SearchStrategy[str]:  # pragma: no cover
+    ...
+
+
 @cacheable
 @defines_strategy()
 def from_regex(
-    regex: Union[AnyStr, Pattern[AnyStr]], *, fullmatch: bool = False
+    regex: Union[AnyStr, Pattern[AnyStr]],
+    *,
+    fullmatch: bool = False,
+    alphabet: Union[str, SearchStrategy[str], None] = None,
 ) -> SearchStrategy[AnyStr]:
     r"""Generates strings that contain a match for the given regex (i.e. ones
     for which :func:`python:re.search` will return a non-None result).
@@ -729,15 +874,40 @@ def from_regex(
     Alternatively, passing ``fullmatch=True`` will ensure that the whole
     string is a match, as if you had used the ``\A`` and ``\Z`` markers.
 
+    The ``alphabet=`` argument constrains the characters in the generated
+    string, as for :func:`text`, and is only supported for unicode strings.
+
     Examples from this strategy shrink towards shorter strings and lower
     character values, with exact behaviour that may depend on the pattern.
     """
+    check_type((str, bytes, re.Pattern), regex, "regex")
     check_type(bool, fullmatch, "fullmatch")
+    pattern = regex.pattern if isinstance(regex, re.Pattern) else regex
+    if alphabet is not None:
+        check_type((str, SearchStrategy), alphabet, "alphabet")
+        if not isinstance(pattern, str):
+            raise InvalidArgument("alphabet= is not supported for bytestrings")
+
+        if isinstance(alphabet, str):
+            alphabet = characters(categories=(), include_characters=alphabet)
+        char_strategy = unwrap_strategies(alphabet)
+        if isinstance(char_strategy, SampledFromStrategy):
+            alphabet = characters(
+                categories=(),
+                include_characters=alphabet.elements,  # type: ignore
+            )
+        elif not isinstance(char_strategy, OneCharStringStrategy):
+            raise InvalidArgument(
+                f"{alphabet=} must be a sampled_from() or characters() strategy"
+            )
+    elif isinstance(pattern, str):
+        alphabet = characters(codec="utf-8")
+
     # TODO: We would like to move this to the top level, but pending some major
     # refactoring it's hard to do without creating circular imports.
     from hypothesis.strategies._internal.regex import regex_strategy
 
-    return regex_strategy(regex, fullmatch)
+    return regex_strategy(regex, fullmatch, alphabet=alphabet)
 
 
 @cacheable
@@ -783,6 +953,9 @@ def randoms(
       would occur with very low probability when it is set to True, and this
       flag should only be set to True when your code relies on the distribution
       of values for correctness.
+
+    For managing global state, see the :func:`~hypothesis.strategies.random_module`
+    strategy and :func:`~hypothesis.register_random` function.
     """
     check_type(bool, note_method_calls, "note_method_calls")
     check_type(bool, use_true_random, "use_true_random")
@@ -818,16 +991,16 @@ class RandomModule(SearchStrategy):
 @cacheable
 @defines_strategy()
 def random_module() -> SearchStrategy[RandomSeeder]:
-    """The Hypothesis engine handles PRNG state for the stdlib and Numpy random
-    modules internally, always seeding them to zero and restoring the previous
-    state after the test.
+    """Hypothesis always seeds global PRNGs before running a test, and restores the
+    previous state afterwards.
 
     If having a fixed seed would unacceptably weaken your tests, and you
     cannot use a ``random.Random`` instance provided by
     :func:`~hypothesis.strategies.randoms`, this strategy calls
     :func:`python:random.seed` with an arbitrary integer and passes you
     an opaque object whose repr displays the seed value for debugging.
-    If ``numpy.random`` is available, that state is also managed.
+    If ``numpy.random`` is available, that state is also managed, as is anything
+    managed by :func:`hypothesis.register_random`.
 
     Examples from these strategy shrink to seeds closer to zero.
     """
@@ -888,14 +1061,12 @@ class BuildsStrategy(SearchStrategy):
         return f"builds({', '.join(bits)})"
 
 
-# The ideal signature builds(target, /, *args, **kwargs) is unfortunately a
-# SyntaxError before Python 3.8 so we emulate it with manual argument unpacking.
-# Note that for the benefit of documentation and introspection tools, we set the
-# __signature__ attribute to show the semantic rather than actual signature.
 @cacheable
 @defines_strategy()
 def builds(
-    *callable_and_args: Union[Callable[..., Ex], SearchStrategy[Any]],
+    target: Callable[..., Ex],
+    /,
+    *args: SearchStrategy[Any],
     **kwargs: Union[SearchStrategy[Any], EllipsisType],
 ) -> SearchStrategy[Ex]:
     """Generates values by drawing from ``args`` and ``kwargs`` and passing
@@ -919,12 +1090,6 @@ def builds(
     Examples from this strategy shrink by shrinking the argument values to
     the callable.
     """
-    if not callable_and_args:
-        raise InvalidArgument(  # pragma: no cover
-            "builds() must be passed a callable as the first positional "
-            "argument, but no positional arguments were given."
-        )
-    target, args = callable_and_args[0], callable_and_args[1:]
     if not callable(target):
         raise InvalidArgument(
             "The first positional argument to builds() must be a callable "
@@ -958,44 +1123,21 @@ def builds(
             from hypothesis.strategies._internal.types import _global_type_lookup
 
             for kw, t in infer_for.items():
-                if (
-                    getattr(t, "__module__", None) in ("builtins", "typing")
-                    or t in _global_type_lookup
-                ):
+                if t in _global_type_lookup:
                     kwargs[kw] = from_type(t)
                 else:
                     # We defer resolution of these type annotations so that the obvious
-                    # approach to registering recursive types just works.  See
+                    # approach to registering recursive types just works.  I.e.,
+                    # if we're inside `register_type_strategy(cls, builds(cls, ...))`
+                    # and `...` contains recursion on `cls`.  See
                     # https://github.com/HypothesisWorks/hypothesis/issues/3026
                     kwargs[kw] = deferred(lambda t=t: from_type(t))  # type: ignore
     return BuildsStrategy(target, args, kwargs)
 
 
-if sys.version_info[:2] >= (3, 8):
-    # See notes above definition - this signature is compatible and better
-    # matches the semantics of the function.  Great for documentation!
-    sig = signature(builds)
-    args, kwargs = sig.parameters.values()
-    builds = define_function_signature(
-        name=builds.__name__,
-        docstring=builds.__doc__,
-        signature=sig.replace(
-            parameters=[
-                Parameter(
-                    name="target",
-                    kind=Parameter.POSITIONAL_ONLY,
-                    annotation=Callable[..., Ex],
-                ),
-                args.replace(name="args", annotation=SearchStrategy[Any]),
-                kwargs,
-            ]
-        ),
-    )(builds)
-
-
 @cacheable
 @defines_strategy(never_lazy=True)
-def from_type(thing: Type[Ex]) -> SearchStrategy[Ex]:
+def from_type(thing: Type[Ex_Inv]) -> SearchStrategy[Ex_Inv]:
     """Looks up the appropriate search strategy for the given type.
 
     ``from_type`` is used internally to fill in missing arguments to
@@ -1050,7 +1192,7 @@ def from_type(thing: Type[Ex]) -> SearchStrategy[Ex]:
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error")
-            return _from_type(thing, [])
+            return _from_type(thing)
     except Exception:
         return _from_type_deferred(thing)
 
@@ -1060,20 +1202,32 @@ def _from_type_deferred(thing: Type[Ex]) -> SearchStrategy[Ex]:
     # underlying strategy wherever possible, as a form of user education, but
     # would prefer to fall back to the default "from_type(...)" repr instead of
     # "deferred(...)" for recursive types or invalid arguments.
+    try:
+        thing_repr = nicerepr(thing)
+        if hasattr(thing, "__module__"):
+            module_prefix = f"{thing.__module__}."
+            if not thing_repr.startswith(module_prefix):
+                thing_repr = module_prefix + thing_repr
+        repr_ = f"from_type({thing_repr})"
+    except Exception:  # pragma: no cover
+        repr_ = None
     return LazyStrategy(
-        lambda thing: deferred(lambda: _from_type(thing, [])),
+        lambda thing: deferred(lambda: _from_type(thing)),
         (thing,),
         {},
-        force_repr=f"from_type({thing!r})",
+        force_repr=repr_,
     )
 
 
-def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy[Ex]:
+_recurse_guard: ContextVar = ContextVar("recurse_guard")
+
+
+def _from_type(thing: Type[Ex]) -> SearchStrategy[Ex]:
     # TODO: We would like to move this to the top level, but pending some major
     # refactoring it's hard to do without creating circular imports.
     from hypothesis.strategies._internal import types
 
-    def as_strategy(strat_or_callable, thing, final=True):
+    def as_strategy(strat_or_callable, thing):
         # User-provided strategies need some validation, and callables even more
         # of it.  We do this in three places, hence the helper function
         if not isinstance(strat_or_callable, SearchStrategy):
@@ -1081,6 +1235,8 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
             strategy = strat_or_callable(thing)
         else:
             strategy = strat_or_callable
+        if strategy is NotImplemented:
+            return NotImplemented
         if not isinstance(strategy, SearchStrategy):
             raise ResolutionFailed(
                 f"Error: {thing} was registered for {nicerepr(strat_or_callable)}, "
@@ -1092,11 +1248,17 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
 
     def from_type_guarded(thing):
         """Returns the result of producer, or ... if recursion on thing is encountered"""
+        try:
+            recurse_guard = _recurse_guard.get()
+        except LookupError:
+            # We can't simply define the contextvar with default=[], as the
+            # default object would be shared across contexts
+            _recurse_guard.set(recurse_guard := [])
         if thing in recurse_guard:
             raise RewindRecursive(thing)
         recurse_guard.append(thing)
         try:
-            return _from_type(thing, recurse_guard)
+            return _from_type(thing)
         except RewindRecursive as rr:
             if rr.target != thing:
                 raise
@@ -1117,12 +1279,21 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
             # Check if we have an explicitly registered strategy for this thing,
             # resolve it so, and otherwise resolve as for the base type.
             if thing in types._global_type_lookup:
-                return as_strategy(types._global_type_lookup[thing], thing)
-            return _from_type(thing.__supertype__, recurse_guard)
+                strategy = as_strategy(types._global_type_lookup[thing], thing)
+                if strategy is not NotImplemented:
+                    return strategy
+            return _from_type(thing.__supertype__)
         # Unions are not instances of `type` - but we still want to resolve them!
         if types.is_a_union(thing):
             args = sorted(thing.__args__, key=types.type_sorting_key)
-            return one_of([_from_type(t, recurse_guard) for t in args])
+            return one_of([_from_type(t) for t in args])
+    # We also have a special case for TypeVars.
+    # They are represented as instances like `~T` when they come here.
+    # We need to work with their type instead.
+    if isinstance(thing, TypeVar) and type(thing) in types._global_type_lookup:
+        strategy = as_strategy(types._global_type_lookup[type(thing)], thing)
+        if strategy is not NotImplemented:
+            return strategy
     if not types.is_a_type(thing):
         if isinstance(thing, str):
             # See https://github.com/HypothesisWorks/hypothesis/issues/3016
@@ -1132,7 +1303,7 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
                 "`from __future__ import annotations` instead of forward-reference "
                 "strings."
             )
-        raise InvalidArgument(f"thing={thing!r} must be a type")  # pragma: no cover
+        raise InvalidArgument(f"{thing=} must be a type")  # pragma: no cover
     if thing in types.NON_RUNTIME_TYPES:
         # Some code like `st.from_type(TypeAlias)` does not make sense.
         # Because there are types in python that do not exist in runtime.
@@ -1147,7 +1318,9 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
     # convert empty results into an explicit error.
     try:
         if thing in types._global_type_lookup:
-            return as_strategy(types._global_type_lookup[thing], thing)
+            strategy = as_strategy(types._global_type_lookup[thing], thing)
+            if strategy is not NotImplemented:
+                return strategy
     except TypeError:  # pragma: no cover
         # This is due to a bizarre divergence in behaviour under Python 3.9.0:
         # typing.Callable[[], foo] has __args__ = (foo,) but collections.abc.Callable
@@ -1165,7 +1338,7 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
         optional = set(getattr(thing, "__optional_keys__", ()))
         anns = {}
         for k, v in get_type_hints(thing).items():
-            origin = getattr(v, "__origin__", None)
+            origin = get_origin(v)
             if origin in types.RequiredTypes + types.NotRequiredTypes:
                 if origin in types.NotRequiredTypes:
                     optional.add(k)
@@ -1190,11 +1363,6 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
             mapping={k: v for k, v in anns.items() if k not in optional},
             optional={k: v for k, v in anns.items() if k in optional},
         )
-    # We also have a special case for TypeVars.
-    # They are represented as instances like `~T` when they come here.
-    # We need to work with their type instead.
-    if isinstance(thing, TypeVar) and type(thing) in types._global_type_lookup:
-        return as_strategy(types._global_type_lookup[type(thing)], thing)
 
     # If there's no explicitly registered strategy, maybe a subtype of thing
     # is registered - if so, we can resolve it to the subclass strategy.
@@ -1203,8 +1371,8 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
     # subclass and instance checks.
     if isinstance(thing, types.typing_root_type) or (
         sys.version_info[:2] >= (3, 9)
-        and isinstance(getattr(thing, "__origin__", None), type)
-        and getattr(thing, "__args__", None)
+        and isinstance(get_origin(thing), type)
+        and get_args(thing)
     ):
         return types.from_typing_type(thing)
     # If it's not from the typing module, we get all registered types that are
@@ -1212,11 +1380,16 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
     # type.  For example, `Number -> integers() | floats()`, but bools() is
     # not included because bool is a subclass of int as well as Number.
     strategies = [
-        as_strategy(v, thing, final=False)
-        for k, v in sorted(types._global_type_lookup.items(), key=repr)
-        if isinstance(k, type)
-        and issubclass(k, thing)
-        and sum(types.try_issubclass(k, typ) for typ in types._global_type_lookup) == 1
+        s
+        for s in (
+            as_strategy(v, thing)
+            for k, v in sorted(types._global_type_lookup.items(), key=repr)
+            if isinstance(k, type)
+            and issubclass(k, thing)
+            and sum(types.try_issubclass(k, typ) for typ in types._global_type_lookup)
+            == 1
+        )
+        if s is not NotImplemented
     ]
     if any(not s.is_empty for s in strategies):
         return one_of(strategies)
@@ -1266,6 +1439,7 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
                 "to resolve to a strategy which can generate more than one value, "
                 "or silence this warning.",
                 SmallSearchSpaceWarning,
+                stacklevel=2,
             )
         return builds(thing, **kwargs)
     # And if it's an abstract type, we'll resolve to a union of subclasses instead.
@@ -1278,13 +1452,13 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
     subclass_strategies = nothing()
     for sc in subclasses:
         try:
-            subclass_strategies |= _from_type(sc, recurse_guard)
+            subclass_strategies |= _from_type(sc)
         except Exception:
             pass
     if subclass_strategies.is_empty:
         # We're unable to resolve subclasses now, but we might be able to later -
         # so we'll just go back to the mixed distribution.
-        return sampled_from(subclasses).flatmap(lambda t: _from_type(t, recurse_guard))
+        return sampled_from(subclasses).flatmap(_from_type)
     return subclass_strategies
 
 
@@ -1321,16 +1495,16 @@ def fractions(
 
     if max_denominator is not None:
         if max_denominator < 1:
-            raise InvalidArgument(f"max_denominator={max_denominator!r} must be >= 1")
+            raise InvalidArgument(f"{max_denominator=} must be >= 1")
         if min_value is not None and min_value.denominator > max_denominator:
             raise InvalidArgument(
-                f"The min_value={min_value!r} has a denominator greater than the "
-                f"max_denominator={max_denominator!r}"
+                f"The {min_value=} has a denominator greater than the "
+                f"{max_denominator=}"
             )
         if max_value is not None and max_value.denominator > max_denominator:
             raise InvalidArgument(
-                f"The max_value={max_value!r} has a denominator greater than the "
-                f"max_denominator={max_denominator!r}"
+                f"The {max_value=} has a denominator greater than the "
+                f"{max_denominator=}"
             )
 
     if min_value is not None and min_value == max_value:
@@ -1390,9 +1564,7 @@ def _as_finite_decimal(
     if value.is_infinite() and (value < 0 if "min" in name else value > 0):
         if allow_infinity or allow_infinity is None:
             return None
-        raise InvalidArgument(
-            f"allow_infinity={allow_infinity!r}, but {name}={value!r}"
-        )
+        raise InvalidArgument(f"{allow_infinity=}, but {name}={value!r}")
     # This could be infinity, quiet NaN, or signalling NaN
     raise InvalidArgument(f"Invalid {name}={value!r}")
 
@@ -1430,7 +1602,7 @@ def decimals(
     # Convert min_value and max_value to Decimal values, and validate args
     check_valid_integer(places, "places")
     if places is not None and places < 0:
-        raise InvalidArgument(f"places={places!r} may not be negative")
+        raise InvalidArgument(f"{places=} may not be negative")
     min_value = _as_finite_decimal(min_value, "min_value", allow_infinity)
     max_value = _as_finite_decimal(max_value, "max_value", allow_infinity)
     check_valid_interval(min_value, max_value, "min_value", "max_value")
@@ -1460,7 +1632,7 @@ def decimals(
         if min_num is not None and max_num is not None and min_num > max_num:
             raise InvalidArgument(
                 f"There are no decimals with {places} places between "
-                f"min_value={min_value!r} and max_value={max_value!r}"
+                f"{min_value=} and {max_value=}"
             )
         strat = integers(min_num, max_num).map(int_to_decimal)
     else:
@@ -1578,7 +1750,7 @@ class DrawFn(Protocol):
     def __init__(self):
         raise TypeError("Protocols cannot be instantiated")  # pragma: no cover
 
-    # On Python 3.8+, Protocol overrides our signature for __init__,
+    # Protocol overrides our signature for __init__,
     # so we override it right back to make the docs look nice.
     __signature__: Signature = Signature(parameters=[])
 
@@ -1679,7 +1851,7 @@ def complex_numbers(
     allow_infinity: Optional[bool] = None,
     allow_nan: Optional[bool] = None,
     allow_subnormal: bool = True,
-    width: int = 128,
+    width: Literal[32, 64, 128] = 128,
 ) -> SearchStrategy[complex]:
     """Returns a strategy that generates :class:`~python:complex`
     numbers.
@@ -1726,21 +1898,17 @@ def complex_numbers(
     if allow_infinity is None:
         allow_infinity = bool(max_magnitude is None)
     elif allow_infinity and max_magnitude is not None:
-        raise InvalidArgument(
-            f"Cannot have allow_infinity={allow_infinity!r} with "
-            f"max_magnitude={max_magnitude!r}"
-        )
+        raise InvalidArgument(f"Cannot have {allow_infinity=} with {max_magnitude=}")
     if allow_nan is None:
         allow_nan = bool(min_magnitude == 0 and max_magnitude is None)
     elif allow_nan and not (min_magnitude == 0 and max_magnitude is None):
         raise InvalidArgument(
-            f"Cannot have allow_nan={allow_nan!r}, min_magnitude={min_magnitude!r} "
-            f"max_magnitude={max_magnitude!r}"
+            f"Cannot have {allow_nan=}, {min_magnitude=}, {max_magnitude=}"
         )
     check_type(bool, allow_subnormal, "allow_subnormal")
     if width not in (32, 64, 128):
         raise InvalidArgument(
-            f"width={width!r}, but must be 32, 64 or 128 (other complex dtypes "
+            f"{width=}, but must be 32, 64 or 128 (other complex dtypes "
             "such as complex192 or complex256 are not supported)"
             # For numpy, these types would be supported (but not by CPython):
             # https://numpy.org/doc/stable/reference/arrays.scalars.html#complex-floating-point-types
@@ -1836,7 +2004,7 @@ def _maybe_nil_uuids(draw, uuid):
 @cacheable
 @defines_strategy(force_reusable_values=True)
 def uuids(
-    *, version: Optional[int] = None, allow_nil: bool = False
+    *, version: Optional[Literal[1, 2, 3, 4, 5]] = None, allow_nil: bool = False
 ) -> SearchStrategy[UUID]:
     """Returns a strategy that generates :class:`UUIDs <uuid.UUID>`.
 
@@ -1853,7 +2021,7 @@ def uuids(
     check_type(bool, allow_nil, "allow_nil")
     if version not in (None, 1, 2, 3, 4, 5):
         raise InvalidArgument(
-            f"version={version!r}, but version must be in "
+            f"{version=}, but version must be in "
             "(None, 1, 2, 3, 4, 5) to pass to the uuid.UUID constructor."
         )
     random_uuids = shared(
@@ -1987,7 +2155,10 @@ def register_type_strategy(
     for an argument with a default value.
 
     ``strategy`` may be a search strategy, or a function that takes a type and
-    returns a strategy (useful for generic types).
+    returns a strategy (useful for generic types). The function may return
+    :data:`NotImplemented` to conditionally not provide a strategy for the type
+    (the type will still be resolved by other methods, if possible, as if the
+    function was not registered).
 
     Note that you may not register a parametrised generic type (such as
     ``MyCollection[int]``) directly, because the resolution logic does not
@@ -2000,26 +2171,25 @@ def register_type_strategy(
     from hypothesis.strategies._internal import types
 
     if not types.is_a_type(custom_type):
-        raise InvalidArgument(f"custom_type={custom_type!r} must be a type")
+        raise InvalidArgument(f"{custom_type=} must be a type")
     if custom_type in types.NON_RUNTIME_TYPES:
         raise InvalidArgument(
-            f"custom_type={custom_type!r} is not allowed to be registered, "
+            f"{custom_type=} is not allowed to be registered, "
             f"because there is no such thing as a runtime instance of {custom_type!r}"
         )
     elif not (isinstance(strategy, SearchStrategy) or callable(strategy)):
         raise InvalidArgument(
-            "strategy=%r must be a SearchStrategy, or a function that takes "
+            f"{strategy=} must be a SearchStrategy, or a function that takes "
             "a generic type and returns a specific SearchStrategy"
         )
     elif isinstance(strategy, SearchStrategy) and strategy.is_empty:
-        raise InvalidArgument("strategy=%r must not be empty")
+        raise InvalidArgument(f"{strategy=} must not be empty")
     elif types.has_type_arguments(custom_type):
-        origin = getattr(custom_type, "__origin__", None)
         raise InvalidArgument(
             f"Cannot register generic type {custom_type!r}, because it has type "
             "arguments which would not be handled.  Instead, register a function "
-            f"for {origin!r} which can inspect specific type objects and return a "
-            "strategy."
+            f"for {get_origin(custom_type)!r} which can inspect specific type "
+            "objects and return a strategy."
         )
     if (
         "pydantic.generics" in sys.modules

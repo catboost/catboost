@@ -43,7 +43,7 @@ assert _comment.startswith("#")
 
 # Remove special-use domain names from the list. For more discussion
 # see https://github.com/HypothesisWorks/hypothesis/pull/3572
-TOP_LEVEL_DOMAINS = ["COM"] + sorted((d for d in _tlds if d != "ARPA"), key=len)
+TOP_LEVEL_DOMAINS = ["COM", *sorted((d for d in _tlds if d != "ARPA"), key=len)]
 
 
 class DomainNameStrategy(st.SearchStrategy):

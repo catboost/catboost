@@ -40,16 +40,16 @@ class HypothesisRandom(Random):
         return self.__copy__()
 
     def __repr__(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def seed(self, seed):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def getstate(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def setstate(self, state):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def _hypothesis_log_random(self, method, kwargs, result):
         if not (self.__note_method_calls and should_note()):
@@ -62,7 +62,7 @@ class HypothesisRandom(Random):
         report(f"{self!r}.{method}({argstr}) -> {result!r}")
 
     def _hypothesis_do_random(self, method, kwargs):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 RANDOM_METHODS = [
@@ -97,15 +97,15 @@ RANDOM_METHODS = [
 
 # Fake shims to get a good signature
 def getrandbits(self, n: int) -> int:  # type: ignore
-    raise NotImplementedError()
+    raise NotImplementedError
 
 
 def random(self) -> float:  # type: ignore
-    raise NotImplementedError()
+    raise NotImplementedError
 
 
 def _randbelow(self, n: int) -> int:  # type: ignore
-    raise NotImplementedError()
+    raise NotImplementedError
 
 
 STUBS = {f.__name__: f for f in [getrandbits, random, _randbelow]}
@@ -212,7 +212,7 @@ class ArtificialRandom(HypothesisRandom):
             original = list(seq)
             for i, i2 in enumerate(result):
                 seq[i] = original[i2]
-            return
+            return None
         return result
 
     def _hypothesis_do_random(self, method, kwargs):
@@ -223,7 +223,7 @@ class ArtificialRandom(HypothesisRandom):
         elif method == "shuffle":
             key = (method, len(kwargs["x"]))
         else:
-            key = (method,) + tuple(sorted(kwargs))
+            key = (method, *sorted(kwargs))
 
         try:
             result, self.__state = self.__state.next_states[key]
@@ -296,14 +296,17 @@ class ArtificialRandom(HypothesisRandom):
                     f"Sample size {k} not in expected range 0 <= k <= {len(seq)}"
                 )
 
-            result = self.__data.draw(
-                lists(
-                    sampled_from(range(len(seq))),
-                    min_size=k,
-                    max_size=k,
-                    unique=True,
+            if k == 0:
+                result = []
+            else:
+                result = self.__data.draw(
+                    lists(
+                        sampled_from(range(len(seq))),
+                        min_size=k,
+                        max_size=k,
+                        unique=True,
+                    )
                 )
-            )
 
         elif method == "getrandbits":
             result = self.__data.draw_bits(kwargs["n"])
@@ -388,7 +391,7 @@ def convert_kwargs(name, kwargs):
         if args[-1] is signature.parameters[name].default:
             args.pop()
         else:
-            break  # pragma: no cover  # Only on Python < 3.8
+            break
 
     return (args, kwargs)
 

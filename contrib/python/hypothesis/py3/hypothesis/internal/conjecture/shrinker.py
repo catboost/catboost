@@ -244,7 +244,7 @@ class Shrinker:
 
     """
 
-    def derived_value(fn):  # noqa: B902
+    def derived_value(fn):
         """It's useful during shrinking to have access to derived values of
         the current shrink target.
 
@@ -308,7 +308,7 @@ class Shrinker:
 
     def cached(self, *keys):
         def accept(f):
-            cache_key = (f.__name__,) + keys
+            cache_key = (f.__name__, *keys)
             try:
                 return self.cached_calculations[cache_key]
             except KeyError:
@@ -412,7 +412,7 @@ class Shrinker:
         result = self.engine.cached_test_function(buffer)
         self.incorporate_test_data(result)
         if self.calls - self.calls_at_last_shrink >= self.max_stall:
-            raise StopShrinking()
+            raise StopShrinking
         return result
 
     def debug(self, msg):
@@ -547,7 +547,7 @@ class Shrinker:
 
                 # Turns out this was a variable-length part, so grab the infix...
                 if result.status == Status.OVERRUN:
-                    continue  # pragma: no cover
+                    continue  # pragma: no cover  # flakily covered
                 if not (
                     len(buf_attempt_fixed) == len(result.buffer)
                     and result.buffer.endswith(buffer[end:])
@@ -568,12 +568,8 @@ class Shrinker:
                     chunks[(start, end)].append(result.buffer[start:res_end])
                     result = self.engine.cached_test_function(buf_attempt_fixed)
 
-                    if (
-                        result.status == Status.OVERRUN
-                        or len(buf_attempt_fixed) != len(result.buffer)
-                        or not result.buffer.endswith(buffer[end:])
-                    ):
-                        raise NotImplementedError("This should never happen")
+                    if result.status == Status.OVERRUN:
+                        continue  # pragma: no cover  # flakily covered
                 else:
                     chunks[(start, end)].append(result.buffer[start:end])
 
@@ -1553,7 +1549,7 @@ class ShrinkPass:
     shrinks = attr.ib(default=0)
     deletions = attr.ib(default=0)
 
-    def step(self, random_order=False):
+    def step(self, *, random_order=False):
         tree = self.shrinker.shrink_pass_choice_trees[self]
         if tree.exhausted:
             return False

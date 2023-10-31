@@ -22,10 +22,7 @@ from hypothesis.errors import HypothesisWarning, InvalidArgument
 from hypothesis.internal.compat import GRAALPY, PYPY
 
 if TYPE_CHECKING:
-    if sys.version_info >= (3, 8):
-        from typing import Protocol
-    else:
-        from typing_extensions import Protocol
+    from typing import Protocol
 
     # we can't use this at runtime until from_type supports
     # protocols -- breaks ghostwriter tests
@@ -113,7 +110,7 @@ def register_random(r: RandomLike) -> None:
            register_random(rng)
     """
     if not (hasattr(r, "seed") and hasattr(r, "getstate") and hasattr(r, "setstate")):
-        raise InvalidArgument(f"r={r!r} does not have all the required methods")
+        raise InvalidArgument(f"{r=} does not have all the required methods")
 
     if r in RANDOMS_TO_MANAGE.values():
         return
@@ -127,18 +124,17 @@ def register_random(r: RandomLike) -> None:
                     f"`register_random` was passed `r={r}` which will be "
                     "garbage collected immediately after `register_random` creates a "
                     "weakref to it. This will prevent Hypothesis from managing this "
-                    "source of RNG. See the docs for `register_random` for more "
+                    "PRNG. See the docs for `register_random` for more "
                     "details."
                 )
             else:
                 warnings.warn(
-                    HypothesisWarning(
-                        "It looks like `register_random` was passed an object "
-                        "that could be garbage collected immediately after "
-                        "`register_random` creates a weakref to it. This will "
-                        "prevent Hypothesis from managing this source of RNG. "
-                        "See the docs for `register_random` for more details."
-                    )
+                    "It looks like `register_random` was passed an object that could "
+                    "be garbage collected immediately after `register_random` creates "
+                    "a weakref to it. This will prevent Hypothesis from managing this "
+                    "PRNG. See the docs for `register_random` for more details.",
+                    HypothesisWarning,
+                    stacklevel=2,
                 )
 
     RANDOMS_TO_MANAGE[next(_RKEY)] = r
@@ -156,7 +152,8 @@ def get_seeder_and_restorer(
     to force determinism on simulation or scheduling frameworks which avoid
     using the global random state.  See e.g. #1709.
     """
-    assert isinstance(seed, int) and 0 <= seed < 2**32
+    assert isinstance(seed, int)
+    assert 0 <= seed < 2**32
     states: dict = {}
 
     if "numpy" in sys.modules:

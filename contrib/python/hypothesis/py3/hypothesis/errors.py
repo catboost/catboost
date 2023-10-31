@@ -129,6 +129,7 @@ def __getattr__(name):
             "instead, or `exceptiongroup.BaseExceptionGroup` before Python 3.11",
             since="2022-08-02",
             has_codemod=False,  # This would be a great PR though!
+            stacklevel=1,
         )
         return BaseExceptionGroup
 

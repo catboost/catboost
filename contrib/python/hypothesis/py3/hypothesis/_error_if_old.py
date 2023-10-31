@@ -13,11 +13,11 @@ import sys
 from hypothesis.version import __version__
 
 message = """
-Hypothesis {} requires Python 3.7 or later.
+Hypothesis {} requires Python 3.8 or later.
 
 This can only happen if your packaging toolchain is older than python_requires.
 See https://packaging.python.org/guides/distributing-packages-using-setuptools/
 """
 
-if sys.version_info[:2] < (3, 7):
+if sys.version_info[:2] < (3, 8):
     raise Exception(message.format(__version__))

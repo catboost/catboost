@@ -14,6 +14,7 @@ anything that lives here, please move it."""
 
 import array
 import sys
+import warnings
 from random import Random
 from typing import (
     Callable,
@@ -29,6 +30,8 @@ from typing import (
     Union,
     overload,
 )
+
+from hypothesis.errors import HypothesisWarning
 
 ARRAY_CODES = ["B", "H", "I", "L", "Q", "O"]
 
@@ -269,6 +272,42 @@ def stack_depth_of_caller() -> int:
         frame = frame.f_back  # type: ignore[assignment]
         size += 1
     return size
+
+
+class ensure_free_stackframes:
+    """Context manager that ensures there are at least N free stackframes (for
+    a reasonable value of N).
+    """
+
+    def __enter__(self):
+        cur_depth = stack_depth_of_caller()
+        self.old_maxdepth = sys.getrecursionlimit()
+        # The default CPython recursionlimit is 1000, but pytest seems to bump
+        # it to 3000 during test execution. Let's make it something reasonable:
+        self.new_maxdepth = cur_depth + 2000
+        # Because we add to the recursion limit, to be good citizens we also
+        # add a check for unbounded recursion.  The default limit is typically
+        # 1000/3000, so this can only ever trigger if something really strange
+        # is happening and it's hard to imagine an
+        # intentionally-deeply-recursive use of this code.
+        assert cur_depth <= 1000, (
+            "Hypothesis would usually add %d to the stack depth of %d here, "
+            "but we are already much deeper than expected.  Aborting now, to "
+            "avoid extending the stack limit in an infinite loop..."
+            % (self.new_maxdepth - self.old_maxdepth, self.old_maxdepth)
+        )
+        sys.setrecursionlimit(self.new_maxdepth)
+
+    def __exit__(self, *args, **kwargs):
+        if self.new_maxdepth == sys.getrecursionlimit():
+            sys.setrecursionlimit(self.old_maxdepth)
+        else:  # pragma: no cover
+            warnings.warn(
+                "The recursion limit will not be reset, since it was changed "
+                "from another thread or during execution of a test.",
+                HypothesisWarning,
+                stacklevel=2,
+            )
 
 
 def find_integer(f: Callable[[int], bool]) -> int:

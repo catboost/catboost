@@ -35,16 +35,6 @@ from hypothesis.strategies._internal.strategies import Ex, check_strategy
 from hypothesis.strategies._internal.utils import cacheable, defines_strategy
 
 try:
-    from pandas.api.types import is_categorical_dtype
-except ImportError:
-
-    def is_categorical_dtype(dt):
-        if isinstance(dt, np.dtype):
-            return False
-        return dt == "category"
-
-
-try:
     from pandas.core.arrays.integer import IntegerDtype
 except ImportError:
     IntegerDtype = ()
@@ -79,20 +69,20 @@ def elements_and_dtype(elements, dtype, source=None):
                     f"At least one of {prefix}elements or {prefix}dtype must be provided."
                 )
 
-    with check("is_categorical_dtype"):
-        if is_categorical_dtype(dtype):
+    with check("isinstance(dtype, CategoricalDtype)"):
+        if pandas.api.types.CategoricalDtype.is_dtype(dtype):
             raise InvalidArgument(
                 f"{prefix}dtype is categorical, which is currently unsupported"
             )
 
     if isinstance(dtype, type) and issubclass(dtype, IntegerDtype):
         raise InvalidArgument(
-            f"Passed dtype={dtype!r} is a dtype class, please pass in an instance of this class."
+            f"Passed {dtype=} is a dtype class, please pass in an instance of this class."
             "Otherwise it would be treated as dtype=object"
         )
 
     if isinstance(dtype, type) and np.dtype(dtype).kind == "O" and dtype is not object:
-        err_msg = f"Passed dtype={dtype!r} is not a valid Pandas dtype."
+        err_msg = f"Passed {dtype=} is not a valid Pandas dtype."
         if issubclass(dtype, datetime):
             err_msg += ' To generate valid datetimes, pass `dtype="datetime64[ns]"`'
             raise InvalidArgument(err_msg)
@@ -104,11 +94,12 @@ def elements_and_dtype(elements, dtype, source=None):
             "dtype=object for now, but this will be an error in a future version.",
             since="2021-12-31",
             has_codemod=False,
+            stacklevel=1,
         )
 
     if isinstance(dtype, st.SearchStrategy):
         raise InvalidArgument(
-            f"Passed dtype={dtype!r} is a strategy, but we require a concrete dtype "
+            f"Passed {dtype=} is a strategy, but we require a concrete dtype "
             "here.  See https://stackoverflow.com/q/74355937 for workaround patterns."
         )
 
@@ -653,7 +644,7 @@ def data_frames(
                                 value, (float, int, str, bool, datetime, timedelta)
                             ):
                                 raise ValueError(
-                                    f"Failed to add value={value!r} to column "
+                                    f"Failed to add {value=} to column "
                                     f"{c.name} with dtype=None.  Maybe passing "
                                     "dtype=object would help?"
                                 ) from err

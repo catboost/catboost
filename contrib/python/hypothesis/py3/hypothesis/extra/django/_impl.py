@@ -11,8 +11,7 @@
 import sys
 import unittest
 from functools import partial
-from inspect import Parameter, signature
-from typing import TYPE_CHECKING, Optional, Type, Union
+from typing import TYPE_CHECKING, Optional, Type, TypeVar, Union
 
 from django import forms as df, test as dt
 from django.contrib.staticfiles import testing as dst
@@ -22,7 +21,6 @@ from django.db import IntegrityError, models as dm
 from hypothesis import reject, strategies as st
 from hypothesis.errors import InvalidArgument
 from hypothesis.extra.django._fields import from_field
-from hypothesis.internal.reflection import define_function_signature
 from hypothesis.strategies._internal.utils import defines_strategy
 
 if sys.version_info >= (3, 10):
@@ -31,6 +29,8 @@ elif TYPE_CHECKING:
     from builtins import ellipsis as EllipsisType
 else:
     EllipsisType = type(Ellipsis)
+
+ModelT = TypeVar("ModelT", bound=dm.Model)
 
 
 class HypothesisTestCase:
@@ -66,8 +66,8 @@ class StaticLiveServerTestCase(HypothesisTestCase, dst.StaticLiveServerTestCase)
 
 @defines_strategy()
 def from_model(
-    *model: Type[dm.Model], **field_strategies: Union[st.SearchStrategy, EllipsisType]
-) -> st.SearchStrategy:
+    model: Type[ModelT], /, **field_strategies: Union[st.SearchStrategy, EllipsisType]
+) -> st.SearchStrategy[ModelT]:
     """Return a strategy for examples of ``model``.
 
     .. warning::
@@ -93,17 +93,10 @@ def from_model(
     ``...`` (:obj:`python:Ellipsis`) as a keyword argument to infer a strategy for
     a field which has a default value instead of using the default.
     """
-    if len(model) == 1:
-        m_type = model[0]
-    elif len(model) > 1:
-        raise TypeError("Too many positional arguments")
-    else:
-        raise TypeError("Missing required positional argument `model`")
+    if not issubclass(model, dm.Model):
+        raise InvalidArgument(f"{model=} must be a subtype of Model")
 
-    if not issubclass(m_type, dm.Model):
-        raise InvalidArgument(f"model={model!r} must be a subtype of Model")
-
-    fields_by_name = {f.name: f for f in m_type._meta.concrete_fields}
+    fields_by_name = {f.name: f for f in model._meta.concrete_fields}
     for name, value in sorted(field_strategies.items()):
         if value is ...:
             field_strategies[name] = from_field(fields_by_name[name])
@@ -116,31 +109,18 @@ def from_model(
             field_strategies[name] = from_field(field)
 
     for field in field_strategies:
-        if m_type._meta.get_field(field).primary_key:
+        if model._meta.get_field(field).primary_key:
             # The primary key is generated as part of the strategy. We
             # want to find any existing row with this primary key and
             # overwrite its contents.
             kwargs = {field: field_strategies.pop(field)}
             kwargs["defaults"] = st.fixed_dictionaries(field_strategies)  # type: ignore
-            return _models_impl(st.builds(m_type.objects.update_or_create, **kwargs))
+            return _models_impl(st.builds(model.objects.update_or_create, **kwargs))
 
     # The primary key is not generated as part of the strategy, so we
     # just match against any row that has the same value for all
     # fields.
-    return _models_impl(st.builds(m_type.objects.get_or_create, **field_strategies))
-
-
-if sys.version_info[:2] >= (3, 8):
-    # See notes above definition of st.builds() - this signature is compatible
-    # and better matches the semantics of the function.  Great for documentation!
-    sig = signature(from_model)
-    params = list(sig.parameters.values())
-    params[0] = params[0].replace(kind=Parameter.POSITIONAL_ONLY)
-    from_model = define_function_signature(
-        name=from_model.__name__,
-        docstring=from_model.__doc__,
-        signature=sig.replace(parameters=params),
-    )(from_model)
+    return _models_impl(st.builds(model.objects.get_or_create, **field_strategies))
 
 
 @st.composite
@@ -187,7 +167,7 @@ def from_form(
     # ImageField
     form_kwargs = form_kwargs or {}
     if not issubclass(form, df.BaseForm):
-        raise InvalidArgument(f"form={form!r} must be a subtype of Form")
+        raise InvalidArgument(f"{form=} must be a subtype of Form")
 
     # Forms are a little bit different from models. Model classes have
     # all their fields defined, whereas forms may have different fields

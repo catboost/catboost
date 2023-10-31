@@ -66,26 +66,26 @@ def tuples() -> SearchStrategy[Tuple[()]]:  # pragma: no cover
     ...
 
 
-@overload  # noqa: F811
+@overload
 def tuples(__a1: SearchStrategy[Ex]) -> SearchStrategy[Tuple[Ex]]:  # pragma: no cover
     ...
 
 
-@overload  # noqa: F811
+@overload
 def tuples(
     __a1: SearchStrategy[Ex], __a2: SearchStrategy[T]
 ) -> SearchStrategy[Tuple[Ex, T]]:  # pragma: no cover
     ...
 
 
-@overload  # noqa: F811
+@overload
 def tuples(
     __a1: SearchStrategy[Ex], __a2: SearchStrategy[T], __a3: SearchStrategy[T3]
 ) -> SearchStrategy[Tuple[Ex, T, T3]]:  # pragma: no cover
     ...
 
 
-@overload  # noqa: F811
+@overload
 def tuples(
     __a1: SearchStrategy[Ex],
     __a2: SearchStrategy[T],
@@ -95,7 +95,7 @@ def tuples(
     ...
 
 
-@overload  # noqa: F811
+@overload
 def tuples(
     __a1: SearchStrategy[Ex],
     __a2: SearchStrategy[T],
@@ -106,7 +106,7 @@ def tuples(
     ...
 
 
-@overload  # noqa: F811
+@overload
 def tuples(
     *args: SearchStrategy[Any],
 ) -> SearchStrategy[Tuple[Any, ...]]:  # pragma: no cover
@@ -115,7 +115,7 @@ def tuples(
 
 @cacheable
 @defines_strategy()
-def tuples(*args: SearchStrategy[Any]) -> SearchStrategy[Tuple[Any, ...]]:  # noqa: F811
+def tuples(*args: SearchStrategy[Any]) -> SearchStrategy[Tuple[Any, ...]]:
     """Return a strategy which generates a tuple of the same length as args by
     generating the value at index i from args[i].
 
@@ -234,12 +234,12 @@ class UniqueListStrategy(ListStrategy):
         while elements.more():
             value = filtered.do_filtered_draw(data)
             if value is filter_not_satisfied:
-                elements.reject("Aborted test because unable to satisfy {filtered!r}")
+                elements.reject(f"Aborted test because unable to satisfy {filtered!r}")
             else:
                 for key, seen in zip(self.keys, seen_sets):
                     seen.add(key(value))
                 if self.tuple_suffixes is not None:
-                    value = (value,) + data.draw(self.tuple_suffixes)
+                    value = (value, *data.draw(self.tuple_suffixes))
                 result.append(value)
         assert self.max_size >= len(result) >= self.min_size
         return result
@@ -271,7 +271,7 @@ class UniqueSampledListStrategy(UniqueListStrategy):
                 for key, seen in zip(self.keys, seen_sets):
                     seen.add(key(value))
                 if self.tuple_suffixes is not None:
-                    value = (value,) + data.draw(self.tuple_suffixes)
+                    value = (value, *data.draw(self.tuple_suffixes))
                 result.append(value)
             else:
                 should_draw.reject(

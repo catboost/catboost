@@ -56,8 +56,10 @@ UNHELPFUL_LOCATIONS = (
     f"{sep}re{sep}__init__.py",  # refactored in Python 3.11
     f"{sep}warnings.py",
     # Quite rarely, the first AFNP line is in Pytest's internals.
+    f"{sep}_pytest{sep}assertion{sep}__init__.py",
     f"{sep}_pytest{sep}assertion{sep}rewrite.py",
     f"{sep}_pytest{sep}_io{sep}saferepr.py",
+    f"{sep}pluggy{sep}_result.py",
 )
 
 

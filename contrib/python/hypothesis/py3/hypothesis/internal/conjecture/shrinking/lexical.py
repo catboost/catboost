@@ -39,12 +39,11 @@ class Lexical(Shrinker):
     def current_int(self):
         return int_from_bytes(self.current)
 
-    def minimize_as_integer(self, full=False):
+    def minimize_as_integer(self):
         Integer.shrink(
             self.current_int,
             lambda c: c == self.current_int or self.incorporate_int(c),
             random=self.random,
-            full=full,
         )
 
     def partial_sort(self):

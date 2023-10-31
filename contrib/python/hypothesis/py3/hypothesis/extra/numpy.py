@@ -13,6 +13,7 @@ import math
 from typing import (
     TYPE_CHECKING,
     Any,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -578,7 +579,9 @@ def dtype_factory(kind, sizes, valid_sizes, endianness):
 
 @defines_dtype_strategy
 def unsigned_integer_dtypes(
-    *, endianness: str = "?", sizes: Sequence[int] = (8, 16, 32, 64)
+    *,
+    endianness: str = "?",
+    sizes: Sequence[Literal[8, 16, 32, 64]] = (8, 16, 32, 64),
 ) -> st.SearchStrategy[np.dtype]:
     """Return a strategy for unsigned integer dtypes.
 
@@ -594,7 +597,9 @@ def unsigned_integer_dtypes(
 
 @defines_dtype_strategy
 def integer_dtypes(
-    *, endianness: str = "?", sizes: Sequence[int] = (8, 16, 32, 64)
+    *,
+    endianness: str = "?",
+    sizes: Sequence[Literal[8, 16, 32, 64]] = (8, 16, 32, 64),
 ) -> st.SearchStrategy[np.dtype]:
     """Return a strategy for signed integer dtypes.
 
@@ -606,7 +611,9 @@ def integer_dtypes(
 
 @defines_dtype_strategy
 def floating_dtypes(
-    *, endianness: str = "?", sizes: Sequence[int] = (16, 32, 64)
+    *,
+    endianness: str = "?",
+    sizes: Sequence[Literal[16, 32, 64, 96, 128]] = (16, 32, 64),
 ) -> st.SearchStrategy[np.dtype]:
     """Return a strategy for floating-point dtypes.
 
@@ -622,7 +629,9 @@ def floating_dtypes(
 
 @defines_dtype_strategy
 def complex_number_dtypes(
-    *, endianness: str = "?", sizes: Sequence[int] = (64, 128)
+    *,
+    endianness: str = "?",
+    sizes: Sequence[Literal[64, 128, 192, 256]] = (64, 128),
 ) -> st.SearchStrategy[np.dtype]:
     """Return a strategy for complex-number dtypes.
 
@@ -885,7 +894,7 @@ def basic_indices(
     check_type(tuple, shape, "shape")
     check_argument(
         all(isinstance(x, int) and x >= 0 for x in shape),
-        f"shape={shape!r}, but all dimensions must be non-negative integers.",
+        f"{shape=}, but all dimensions must be non-negative integers.",
     )
     check_type(bool, allow_ellipsis, "allow_ellipsis")
     check_type(bool, allow_newaxis, "allow_newaxis")
@@ -934,7 +943,7 @@ def integer_array_indices(
     shape: Shape,
     *,
     result_shape: st.SearchStrategy[Shape] = array_shapes(),
-    dtype: D = np.int_,
+    dtype: D = np.dtype(int),
 ) -> "st.SearchStrategy[Tuple[NDArray[D], ...]]":
     """Return a search strategy for tuples of integer-arrays that, when used
     to index into an array of shape ``shape``, given an array whose shape
@@ -978,11 +987,11 @@ def integer_array_indices(
     check_type(tuple, shape, "shape")
     check_argument(
         shape and all(isinstance(x, int) and x > 0 for x in shape),
-        f"shape={shape!r} must be a non-empty tuple of integers > 0",
+        f"{shape=} must be a non-empty tuple of integers > 0",
     )
     check_strategy(result_shape, "result_shape")
     check_argument(
-        np.issubdtype(dtype, np.integer), f"dtype={dtype!r} must be an integer dtype"
+        np.issubdtype(dtype, np.integer), f"{dtype=} must be an integer dtype"
     )
     signed = np.issubdtype(dtype, np.signedinteger)
 

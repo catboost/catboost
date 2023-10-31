@@ -33,7 +33,6 @@ from libcst import matchers as m
 from libcst.codemod import CodemodContext, VisitorBasedCodemodCommand
 
 from hypothesis.configuration import storage_directory
-from hypothesis.extra.codemods import _native_parser
 from hypothesis.version import __version__
 
 try:
@@ -68,30 +67,17 @@ def indent(text: str, prefix: str) -> str:
 class AddExamplesCodemod(VisitorBasedCodemodCommand):
     DESCRIPTION = "Add explicit examples to failing tests."
 
-    @classmethod
-    def refactor(cls, code, fn_examples, *, strip_via=(), dec="example"):
+    def __init__(self, context, fn_examples, strip_via=(), dec="example", width=88):
         """Add @example() decorator(s) for failing test(s).
 
         `code` is the source code of the module where the test functions are defined.
         `fn_examples` is a dict of function name to list-of-failing-examples.
         """
-        assert not isinstance(strip_via, str), "expected a collection of strings"
-        dedented, prefix = dedent(code)
-        with _native_parser():
-            mod = cst.parse_module(dedented)
-        modded = (
-            cls(CodemodContext(), fn_examples, prefix, strip_via, dec)
-            .transform_module(mod)
-            .code
-        )
-        return indent(modded, prefix=prefix)
-
-    def __init__(self, context, fn_examples, prefix="", strip_via=(), dec="example"):
         assert fn_examples, "This codemod does nothing without fn_examples."
         super().__init__(context)
 
         self.decorator_func = cst.parse_expression(dec)
-        self.line_length = 88 - len(prefix)  # to match Black's default formatting
+        self.line_length = width
         value_in_strip_via = m.MatchIfTrue(lambda x: literal_eval(x.value) in strip_via)
         self.strip_matching = m.Call(
             m.Attribute(m.Call(), m.Name("via")),
@@ -158,10 +144,14 @@ def get_patch_for(func, failing_examples, *, strip_via=()):
     # The printed examples might include object reprs which are invalid syntax,
     # so we parse here and skip over those.  If _none_ are valid, there's no patch.
     call_nodes = []
-    for ex, via in failing_examples:
+    for ex, via in set(failing_examples):
         with suppress(Exception):
             node = cst.parse_expression(ex)
             assert isinstance(node, cst.Call), node
+            # Check for st.data(), which doesn't support explicit examples
+            data = m.Arg(m.Call(m.Name("data"), args=[m.Arg(m.Ellipsis())]))
+            if m.matches(node, m.Call(args=[m.ZeroOrMore(), data, m.ZeroOrMore()])):
+                return None
             call_nodes.append((node, via))
     if not call_nodes:
         return None
@@ -175,13 +165,20 @@ def get_patch_for(func, failing_examples, *, strip_via=()):
         decorator_func = "example"
 
     # Do the codemod and return a triple containing location and replacement info.
-    after = AddExamplesCodemod.refactor(
-        before,
+    dedented, prefix = dedent(before)
+    try:
+        node = cst.parse_module(dedented)
+    except Exception:  # pragma: no cover
+        # inspect.getsource() sometimes returns a decorator alone, which is invalid
+        return None
+    after = AddExamplesCodemod(
+        CodemodContext(),
         fn_examples={func.__name__: call_nodes},
         strip_via=strip_via,
         dec=decorator_func,
-    )
-    return (str(fname), before, after)
+        width=88 - len(prefix),  # to match Black's default formatting
+    ).transform_module(node)
+    return (str(fname), before, indent(after.code, prefix=prefix))
 
 
 def make_patch(triples, *, msg="Hypothesis: add explicit examples", when=None):
@@ -209,7 +206,7 @@ def make_patch(triples, *, msg="Hypothesis: add explicit examples", when=None):
 
 
 def save_patch(patch: str, *, slug: str = "") -> Path:  # pragma: no cover
-    assert re.fullmatch(r"|[a-z]+-", slug), f"malformed slug={slug!r}"
+    assert re.fullmatch(r"|[a-z]+-", slug), f"malformed {slug=}"
     now = date.today().isoformat()
     cleaned = re.sub(r"^Date: .+?$", "", patch, count=1, flags=re.MULTILINE)
     hash8 = hashlib.sha1(cleaned.encode()).hexdigest()[:8]

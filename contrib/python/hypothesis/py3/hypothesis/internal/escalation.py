@@ -74,7 +74,7 @@ def escalate_hypothesis_internal_error():
 
     filepath = None if tb is None else traceback.extract_tb(tb)[-1][0]
     if is_hypothesis_file(filepath) and not isinstance(
-        e, (HypothesisException,) + HYPOTHESIS_CONTROL_EXCEPTIONS
+        e, (HypothesisException, *HYPOTHESIS_CONTROL_EXCEPTIONS)
     ):
         raise
 
@@ -142,7 +142,7 @@ def _get_exceptioninfo():
         with contextlib.suppress(Exception):
             # From Pytest 7, __init__ warns on direct calls.
             return sys.modules["pytest"].ExceptionInfo.from_exc_info
-    if "_pytest._code" in sys.modules:  # pragma: no cover  # old versions only
+    if "_pytest._code" in sys.modules:  # old versions only
         with contextlib.suppress(Exception):
             return sys.modules["_pytest._code"].ExceptionInfo
     return None  # pragma: no cover  # coverage tests always use pytest

@@ -15,6 +15,7 @@ from random import shuffle
 from typing import (
     Any,
     Callable,
+    ClassVar,
     Dict,
     Generic,
     List,
@@ -421,7 +422,7 @@ class SearchStrategy(Generic[Ex]):
             self.validate_called = False
             raise
 
-    LABELS: Dict[type, int] = {}
+    LABELS: ClassVar[Dict[type, int]] = {}
 
     @property
     def class_label(self):
@@ -484,14 +485,14 @@ class SampledFromStrategy(SearchStrategy):
         return type(self)(
             self.elements,
             repr_=self.repr_,
-            transformations=self._transformations + (("map", pack),),
+            transformations=(*self._transformations, ("map", pack)),
         )
 
     def filter(self, condition):
         return type(self)(
             self.elements,
             repr_=self.repr_,
-            transformations=self._transformations + (("filter", condition),),
+            transformations=(*self._transformations, ("filter", condition)),
         )
 
     def __repr__(self):
@@ -697,26 +698,26 @@ def one_of(
     ...
 
 
-@overload  # noqa: F811
+@overload
 def one_of(__a1: SearchStrategy[Ex]) -> SearchStrategy[Ex]:  # pragma: no cover
     ...
 
 
-@overload  # noqa: F811
+@overload
 def one_of(
     __a1: SearchStrategy[Ex], __a2: SearchStrategy[T]
 ) -> SearchStrategy[Union[Ex, T]]:  # pragma: no cover
     ...
 
 
-@overload  # noqa: F811
+@overload
 def one_of(
     __a1: SearchStrategy[Ex], __a2: SearchStrategy[T], __a3: SearchStrategy[T3]
 ) -> SearchStrategy[Union[Ex, T, T3]]:  # pragma: no cover
     ...
 
 
-@overload  # noqa: F811
+@overload
 def one_of(
     __a1: SearchStrategy[Ex],
     __a2: SearchStrategy[T],
@@ -726,7 +727,7 @@ def one_of(
     ...
 
 
-@overload  # noqa: F811
+@overload
 def one_of(
     __a1: SearchStrategy[Ex],
     __a2: SearchStrategy[T],
@@ -737,7 +738,7 @@ def one_of(
     ...
 
 
-@overload  # noqa: F811
+@overload
 def one_of(*args: SearchStrategy[Any]) -> SearchStrategy[Any]:  # pragma: no cover
     ...
 
@@ -745,7 +746,7 @@ def one_of(*args: SearchStrategy[Any]) -> SearchStrategy[Any]:  # pragma: no cov
 @defines_strategy(never_lazy=True)
 def one_of(
     *args: Union[Sequence[SearchStrategy[Any]], SearchStrategy[Any]]
-) -> SearchStrategy[Any]:  # noqa: F811
+) -> SearchStrategy[Any]:
     # Mypy workaround alert:  Any is too loose above; the return parameter
     # should be the union of the input parameters.  Unfortunately, Mypy <=0.600
     # raises errors due to incompatible inputs instead.  See #1270 for links.
@@ -810,10 +811,7 @@ class MappedSearchStrategy(SearchStrategy[Ex]):
 
     def __repr__(self):
         if not hasattr(self, "_cached_repr"):
-            self._cached_repr = "{!r}.map({})".format(
-                self.mapped_strategy,
-                get_pretty_function_description(self.pack),
-            )
+            self._cached_repr = f"{self.mapped_strategy!r}.map({get_pretty_function_description(self.pack)})"
         return self._cached_repr
 
     def do_validate(self):
@@ -840,7 +838,7 @@ class MappedSearchStrategy(SearchStrategy[Ex]):
                     return result
                 except UnsatisfiedAssumption:
                     data.stop_example(discard=True)
-        raise UnsatisfiedAssumption()
+        raise UnsatisfiedAssumption
 
     @property
     def branches(self) -> List[SearchStrategy[Ex]]:

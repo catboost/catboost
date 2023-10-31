@@ -17,7 +17,15 @@ class Shrinker:
     and simpler."""
 
     def __init__(
-        self, initial, predicate, random, full=False, debug=False, name=None, **kwargs
+        self,
+        initial,
+        predicate,
+        random,
+        *,
+        full=False,
+        debug=False,
+        name=None,
+        **kwargs,
     ):
         self.setup(**kwargs)
         self.current = self.make_immutable(initial)
@@ -110,9 +118,7 @@ class Shrinker:
         self.check_invariants(value)
         if not self.left_is_better(value, self.current):
             if value != self.current and (value == value):
-                self.debug(
-                    f"Rejected {value!r} as worse than self.current={self.current!r}"
-                )
+                self.debug(f"Rejected {value!r} as worse than {self.current=}")
             return False
         if value in self.__seen:
             return False
@@ -148,7 +154,7 @@ class Shrinker:
 
         Does nothing by default.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def short_circuit(self):
         """Possibly attempt to do some shrinking.
@@ -156,14 +162,14 @@ class Shrinker:
         If this returns True, the ``run`` method will terminate early
         without doing any more work.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def left_is_better(self, left, right):
         """Returns True if the left is strictly simpler than the right
         according to the standards of this shrinker."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def run_step(self):
         """Run a single step of the main shrink loop, attempting to improve the
         current value."""
-        raise NotImplementedError()
+        raise NotImplementedError

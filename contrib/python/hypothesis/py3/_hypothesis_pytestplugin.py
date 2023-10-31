@@ -91,7 +91,7 @@ if tuple(map(int, pytest.__version__.split(".")[:2])) < (4, 6):  # pragma: no co
         Note that the pytest developers no longer support your version either!
         Disabling the Hypothesis pytest plugin...
     """
-    warnings.warn(PYTEST_TOO_OLD_MESSAGE % (pytest.__version__,))
+    warnings.warn(PYTEST_TOO_OLD_MESSAGE % (pytest.__version__,), stacklevel=1)
 
 else:
 
@@ -168,7 +168,7 @@ else:
             and Phase.explain not in settings.default.phases
         ):
             name = f"{settings._current_profile}-with-explain-phase"
-            phases = settings.default.phases + (Phase.explain,)
+            phases = (*settings.default.phases, Phase.explain)
             settings.register_profile(name, phases=phases)
             settings.load_profile(name)
 
@@ -191,9 +191,9 @@ else:
         from hypothesis.internal.detection import is_hypothesis_test
 
         # See https://github.com/pytest-dev/pytest/issues/9159
-        # TODO: add `pytest_version >= (7, 2) or` once the issue above is fixed.
         core.pytest_shows_exceptiongroups = (
-            item.config.getoption("tbstyle", "auto") == "native"
+            getattr(pytest, "version_tuple", ())[:2] >= (7, 2)
+            or item.config.getoption("tbstyle", "auto") == "native"
         )
         core.running_under_pytest = True
 
@@ -221,12 +221,12 @@ else:
                 ("reproduce_example", "_hypothesis_internal_use_reproduce_failure"),
             ]:
                 if hasattr(item.obj, attribute):
-                    from hypothesis.errors import InvalidArgument  # noqa: F811
+                    from hypothesis.errors import InvalidArgument
 
                     raise_hypothesis_usage_error(message % (name,))
             yield
         else:
-            from hypothesis import HealthCheck, settings
+            from hypothesis import HealthCheck, settings as Settings
             from hypothesis.internal.escalation import current_pytest_item
             from hypothesis.internal.healthcheck import fail_health_check
             from hypothesis.reporting import with_reporter
@@ -237,16 +237,15 @@ else:
             # work, the test object is probably something weird
             # (e.g a stateful test wrapper), so we skip the function-scoped
             # fixture check.
-            settings = getattr(  # noqa: F811
-                item.obj, "_hypothesis_internal_use_settings", None
+            settings = getattr(
+                item.obj, "_hypothesis_internal_use_settings", Settings.default
             )
 
             # Check for suspicious use of function-scoped fixtures, but only
             # if the corresponding health check is not suppressed.
-            if (
-                settings is not None
-                and HealthCheck.function_scoped_fixture
-                not in settings.suppress_health_check
+            fixture_params = False
+            if not set(settings.suppress_health_check).issuperset(
+                {HealthCheck.function_scoped_fixture, HealthCheck.differing_executors}
             ):
                 # Warn about function-scoped fixtures, excluding autouse fixtures because
                 # the advice is probably not actionable and the status quo seems OK...
@@ -258,6 +257,7 @@ else:
                     if argnames is None:
                         argnames = frozenset(signature(item.function).parameters)
                     for fx in fx_defs:
+                        fixture_params |= bool(fx.params)
                         if fx.argname in argnames:
                             active_fx = item._request._get_active_fixturedef(fx.argname)
                             if active_fx.scope == "function":
@@ -267,7 +267,18 @@ else:
                                     HealthCheck.function_scoped_fixture,
                                 )
 
-            if item.get_closest_marker("parametrize") is not None:
+            if fixture_params or (item.get_closest_marker("parametrize") is not None):
+                # Disable the differing_executors health check due to false alarms:
+                # see https://github.com/HypothesisWorks/hypothesis/issues/3733
+                from hypothesis import settings as Settings
+
+                fn = getattr(item.obj, "__func__", item.obj)
+                fn._hypothesis_internal_use_settings = Settings(
+                    parent=settings,
+                    suppress_health_check={HealthCheck.differing_executors}
+                    | set(settings.suppress_health_check),
+                )
+
                 # Give every parametrized test invocation a unique database key
                 key = item.nodeid.encode()
                 item.obj.hypothesis.inner_test._hypothesis_internal_add_digest = key
@@ -329,8 +340,9 @@ else:
             # If there's an HTML report, include our summary stats for each test
             pytest_html = item.config.pluginmanager.getplugin("html")
             if pytest_html is not None:  # pragma: no cover
-                report.extra = getattr(report, "extra", []) + [
-                    pytest_html.extras.text(stats, name="Hypothesis stats")
+                report.extra = [
+                    *getattr(report, "extra", []),
+                    pytest_html.extras.text(stats, name="Hypothesis stats"),
                 ]
 
         # This doesn't intrinsically have anything to do with the terminalreporter;

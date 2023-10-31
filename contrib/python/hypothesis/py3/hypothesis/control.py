@@ -13,6 +13,7 @@ from collections import defaultdict
 from typing import NoReturn, Union
 
 from hypothesis import Verbosity, settings
+from hypothesis._settings import note_deprecation
 from hypothesis.errors import InvalidArgument, UnsatisfiedAssumption
 from hypothesis.internal.compat import BaseExceptionGroup
 from hypothesis.internal.conjecture.data import ConjectureData
@@ -24,7 +25,13 @@ from hypothesis.vendor.pretty import IDKey
 
 
 def reject() -> NoReturn:
-    raise UnsatisfiedAssumption()
+    if _current_build_context.value is None:
+        note_deprecation(
+            "Using `reject` outside a property-based test is deprecated",
+            since="2023-09-25",
+            has_codemod=False,
+        )
+    raise UnsatisfiedAssumption
 
 
 def assume(condition: object) -> bool:
@@ -34,8 +41,14 @@ def assume(condition: object) -> bool:
     This allows you to specify properties that you *assume* will be
     true, and let Hypothesis try to avoid similar examples in future.
     """
+    if _current_build_context.value is None:
+        note_deprecation(
+            "Using `assume` outside a property-based test is deprecated",
+            since="2023-09-25",
+            has_codemod=False,
+        )
     if not condition:
-        raise UnsatisfiedAssumption()
+        raise UnsatisfiedAssumption
     return True
 
 
@@ -62,7 +75,7 @@ def current_build_context() -> "BuildContext":
 
 
 class BuildContext:
-    def __init__(self, data, is_final=False, close_on_capture=True):
+    def __init__(self, data, *, is_final=False, close_on_capture=True):
         assert isinstance(data, ConjectureData)
         self.data = data
         self.tasks = []
@@ -206,7 +219,7 @@ def target(observation: Union[int, float], *, label: str = "") -> Union[int, flo
     """
     check_type((int, float), observation, "observation")
     if not math.isfinite(observation):
-        raise InvalidArgument(f"observation={observation!r} must be a finite float.")
+        raise InvalidArgument(f"{observation=} must be a finite float.")
     check_type(str, label, "label")
 
     context = _current_build_context.value
@@ -215,12 +228,12 @@ def target(observation: Union[int, float], *, label: str = "") -> Union[int, flo
             "Calling target() outside of a test is invalid.  "
             "Consider guarding this call with `if currently_in_test_context(): ...`"
         )
-    verbose_report(f"Saw target(observation={observation!r}, label={label!r})")
+    verbose_report(f"Saw target({observation!r}, {label=})")
 
     if label in context.data.target_observations:
         raise InvalidArgument(
-            f"Calling target({observation!r}, label={label!r}) would overwrite "
-            f"target({context.data.target_observations[label]!r}, label={label!r})"
+            f"Calling target({observation!r}, {label=}) would overwrite "
+            f"target({context.data.target_observations[label]!r}, {label=})"
         )
     else:
         context.data.target_observations[label] = observation

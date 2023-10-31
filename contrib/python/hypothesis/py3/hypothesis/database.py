@@ -15,6 +15,7 @@ import os
 import sys
 import warnings
 from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 from hashlib import sha384
 from os import getenv
 from pathlib import Path, PurePath
@@ -23,7 +24,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from zipfile import BadZipFile, ZipFile
 
-from hypothesis.configuration import mkdir_p, storage_directory
+from hypothesis.configuration import storage_directory
 from hypothesis.errors import HypothesisException, HypothesisWarning
 from hypothesis.utils.conventions import not_set
 
@@ -37,16 +38,16 @@ __all__ = [
 ]
 
 
-def _usable_dir(path):
+def _usable_dir(path: Path) -> bool:
     """
     Returns True iff the desired path can be used as database path because
     either the directory exists and can be used, or its root directory can
     be used and we can make the directory as needed.
     """
-    while not os.path.exists(path):
+    while not path.exists():
         # Loop terminates because the root dir ('/' on unix) always exists.
-        path = os.path.dirname(path)
-    return os.path.isdir(path) and os.access(path, os.R_OK | os.W_OK | os.X_OK)
+        path = path.parent
+    return path.is_dir() and os.access(path, os.R_OK | os.W_OK | os.X_OK)
 
 
 def _db_for_path(path=None):
@@ -61,11 +62,11 @@ def _db_for_path(path=None):
         path = storage_directory("examples")
         if not _usable_dir(path):  # pragma: no cover
             warnings.warn(
-                HypothesisWarning(
-                    "The database setting is not configured, and the default "
-                    "location is unusable - falling back to an in-memory "
-                    f"database for this session.  path={path!r}"
-                )
+                "The database setting is not configured, and the default "
+                "location is unusable - falling back to an in-memory "
+                f"database for this session.  {path=}",
+                HypothesisWarning,
+                stacklevel=3,
             )
             return InMemoryExampleDatabase()
     if path in (None, ":memory:"):
@@ -188,33 +189,31 @@ class DirectoryBasedExampleDatabase(ExampleDatabase):
     the :class:`~hypothesis.database.MultiplexedDatabase` helper.
     """
 
-    def __init__(self, path: str) -> None:
-        self.path = path
-        self.keypaths: Dict[bytes, str] = {}
+    def __init__(self, path: os.PathLike) -> None:
+        self.path = Path(path)
+        self.keypaths: Dict[bytes, Path] = {}
 
     def __repr__(self) -> str:
         return f"DirectoryBasedExampleDatabase({self.path!r})"
 
-    def _key_path(self, key: bytes) -> str:
+    def _key_path(self, key: bytes) -> Path:
         try:
             return self.keypaths[key]
         except KeyError:
             pass
-        directory = os.path.join(self.path, _hash(key))
-        self.keypaths[key] = directory
-        return directory
+        self.keypaths[key] = self.path / _hash(key)
+        return self.keypaths[key]
 
     def _value_path(self, key, value):
-        return os.path.join(self._key_path(key), _hash(value))
+        return self._key_path(key) / _hash(value)
 
     def fetch(self, key: bytes) -> Iterable[bytes]:
         kp = self._key_path(key)
-        if not os.path.exists(kp):
+        if not kp.is_dir():
             return
         for path in os.listdir(kp):
             try:
-                with open(os.path.join(kp, path), "rb") as i:
-                    yield i.read()
+                yield (kp / path).read_bytes()
             except OSError:
                 pass
 
@@ -222,18 +221,17 @@ class DirectoryBasedExampleDatabase(ExampleDatabase):
         # Note: we attempt to create the dir in question now. We
         # already checked for permissions, but there can still be other issues,
         # e.g. the disk is full
-        mkdir_p(self._key_path(key))
+        self._key_path(key).mkdir(exist_ok=True, parents=True)
         path = self._value_path(key, value)
-        if not os.path.exists(path):
+        if not path.exists():
             suffix = binascii.hexlify(os.urandom(16)).decode("ascii")
-            tmpname = path + "." + suffix
-            with open(tmpname, "wb") as o:
-                o.write(value)
+            tmpname = path.with_suffix(f"{path.suffix}.{suffix}")
+            tmpname.write_bytes(value)
             try:
-                os.rename(tmpname, path)
+                tmpname.rename(path)
             except OSError:  # pragma: no cover
-                os.unlink(tmpname)
-            assert not os.path.exists(tmpname)
+                tmpname.unlink()
+            assert not tmpname.exists()
 
     def move(self, src: bytes, dest: bytes, value: bytes) -> None:
         if src == dest:
@@ -250,7 +248,7 @@ class DirectoryBasedExampleDatabase(ExampleDatabase):
 
     def delete(self, key: bytes, value: bytes) -> None:
         try:
-            os.unlink(self._value_path(key, value))
+            self._value_path(key, value).unlink()
         except OSError:
             pass
 
@@ -413,14 +411,12 @@ class GitHubArtifactDatabase(ExampleDatabase):
         repo: str,
         artifact_name: str = "hypothesis-example-db",
         cache_timeout: timedelta = timedelta(days=1),
-        path: Optional[Path] = None,
+        path: Optional[os.PathLike] = None,
     ):
         self.owner = owner
         self.repo = repo
         self.artifact_name = artifact_name
         self.cache_timeout = cache_timeout
-
-        self.keypaths: Dict[bytes, PurePath] = {}
 
         # Get the GitHub token from the environment
         # It's unnecessary to use a token if the repo is public
@@ -431,7 +427,7 @@ class GitHubArtifactDatabase(ExampleDatabase):
                 storage_directory(f"github-artifacts/{self.artifact_name}/")
             )
         else:
-            self.path = path
+            self.path = Path(path)
 
         # We don't want to initialize the cache until we need to
         self._initialized: bool = False
@@ -488,11 +484,11 @@ class GitHubArtifactDatabase(ExampleDatabase):
                         self._access_cache[keypath].add(PurePath(filename))
         except BadZipFile:
             warnings.warn(
-                HypothesisWarning(
-                    "The downloaded artifact from GitHub is invalid. "
-                    "This could be because the artifact was corrupted, "
-                    "or because the artifact was not created by Hypothesis. "
-                )
+                "The downloaded artifact from GitHub is invalid. "
+                "This could be because the artifact was corrupted, "
+                "or because the artifact was not created by Hypothesis. ",
+                HypothesisWarning,
+                stacklevel=3,
             )
             self._disabled = True
 
@@ -500,7 +496,7 @@ class GitHubArtifactDatabase(ExampleDatabase):
 
     def _initialize_db(self) -> None:
         # Create the cache directory if it doesn't exist
-        mkdir_p(str(self.path))
+        self.path.mkdir(exist_ok=True, parents=True)
 
         # Get all artifacts
         cached_artifacts = sorted(
@@ -534,18 +530,17 @@ class GitHubArtifactDatabase(ExampleDatabase):
                 self._artifact = new_artifact
             elif found_artifact is not None:
                 warnings.warn(
-                    HypothesisWarning(
-                        "Using an expired artifact as a fallback for the database: "
-                        f"{found_artifact}"
-                    )
+                    "Using an expired artifact as a fallback for the database: "
+                    f"{found_artifact}",
+                    HypothesisWarning,
+                    stacklevel=2,
                 )
                 self._artifact = found_artifact
             else:
                 warnings.warn(
-                    HypothesisWarning(
-                        "Couldn't acquire a new or existing artifact. "
-                        "Disabling database."
-                    )
+                    "Couldn't acquire a new or existing artifact. Disabling database.",
+                    HypothesisWarning,
+                    stacklevel=2,
                 )
                 self._disabled = True
                 return
@@ -561,11 +556,11 @@ class GitHubArtifactDatabase(ExampleDatabase):
                 "Authorization": f"Bearer {self.token}",
             },
         )
+        warning_message = None
         response_bytes: Optional[bytes] = None
         try:
-            response = urlopen(request)
-            response_bytes = response.read()
-            warning_message = None
+            with urlopen(request) as response:
+                response_bytes = response.read()
         except HTTPError as e:
             if e.code == 401:
                 warning_message = (
@@ -587,7 +582,7 @@ class GitHubArtifactDatabase(ExampleDatabase):
             )
 
         if warning_message is not None:
-            warnings.warn(HypothesisWarning(warning_message))
+            warnings.warn(warning_message, HypothesisWarning, stacklevel=4)
             return None
 
         return response_bytes
@@ -620,25 +615,21 @@ class GitHubArtifactDatabase(ExampleDatabase):
         timestamp = datetime.now(timezone.utc).isoformat().replace(":", "_")
         artifact_path = self.path / f"{timestamp}.zip"
         try:
-            with open(artifact_path, "wb") as f:
-                f.write(artifact_bytes)
+            artifact_path.write_bytes(artifact_bytes)
         except OSError:
             warnings.warn(
-                HypothesisWarning("Could not save the latest artifact from GitHub. ")
+                "Could not save the latest artifact from GitHub. ",
+                HypothesisWarning,
+                stacklevel=3,
             )
             return None
 
         return artifact_path
 
-    def _key_path(self, key: bytes) -> PurePath:
-        try:
-            return self.keypaths[key]
-        except KeyError:
-            pass
-
-        directory = PurePath(_hash(key) + "/")
-        self.keypaths[key] = directory
-        return directory
+    @staticmethod
+    @lru_cache
+    def _key_path(key: bytes) -> PurePath:
+        return PurePath(_hash(key) + "/")
 
     def fetch(self, key: bytes) -> Iterable[bytes]:
         if self._disabled:

@@ -9,28 +9,23 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 
 import os
+from pathlib import Path
 
-__hypothesis_home_directory_default = os.path.join(os.getcwd(), ".hypothesis")
+__hypothesis_home_directory_default = Path.cwd() / ".hypothesis"
 
 __hypothesis_home_directory = None
 
 
 def set_hypothesis_home_dir(directory):
     global __hypothesis_home_directory
-    __hypothesis_home_directory = directory
-
-
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError:
-        pass
+    __hypothesis_home_directory = None if directory is None else Path(directory)
 
 
 def storage_directory(*names):
     global __hypothesis_home_directory
     if not __hypothesis_home_directory:
-        __hypothesis_home_directory = os.getenv("HYPOTHESIS_STORAGE_DIRECTORY")
+        if where := os.getenv("HYPOTHESIS_STORAGE_DIRECTORY"):
+            __hypothesis_home_directory = Path(where)
     if not __hypothesis_home_directory:
         __hypothesis_home_directory = __hypothesis_home_directory_default
-    return os.path.join(__hypothesis_home_directory, *names)
+    return __hypothesis_home_directory.joinpath(*names)

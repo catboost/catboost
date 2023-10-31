@@ -20,7 +20,17 @@ import inspect
 import os
 import warnings
 from enum import Enum, EnumMeta, IntEnum, unique
-from typing import TYPE_CHECKING, Any, Collection, Dict, List, Optional, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Collection,
+    Dict,
+    List,
+    Optional,
+    TypeVar,
+    Union,
+)
 
 import attr
 
@@ -128,7 +138,7 @@ class settings(metaclass=settingsMeta):
     """
 
     __definitions_are_locked = False
-    _profiles: Dict[str, "settings"] = {}
+    _profiles: ClassVar[Dict[str, "settings"]] = {}
     __module__ = "hypothesis"
 
     def __getattr__(self, name):
@@ -162,7 +172,7 @@ class settings(metaclass=settingsMeta):
             if database not in (not_set, None):  # type: ignore
                 raise InvalidArgument(
                     "derandomize=True implies database=None, so passing "
-                    f"database={database!r} too is invalid."
+                    f"{database=} too is invalid."
                 )
             database = None
 
@@ -191,7 +201,7 @@ class settings(metaclass=settingsMeta):
         if not callable(_test):
             raise InvalidArgument(
                 "settings objects can be called as a decorator with @given, "
-                f"but decorated test={test!r} is not callable."
+                f"but decorated {test=} is not callable."
             )
         if inspect.isclass(test):
             from hypothesis.stateful import RuleBasedStateMachine
@@ -231,6 +241,7 @@ class settings(metaclass=settingsMeta):
         cls,
         name,
         description,
+        *,
         default,
         options=None,
         validator=None,
@@ -468,6 +479,7 @@ class HealthCheck(Enum, metaclass=HealthCheckMeta):
             "`Healthcheck.all()` is deprecated; use `list(HealthCheck)` instead.",
             since="2023-04-16",
             has_codemod=True,
+            stacklevel=1,
         )
         return list(HealthCheck)
 
@@ -518,6 +530,18 @@ class HealthCheck(Enum, metaclass=HealthCheckMeta):
     This check requires the :ref:`Hypothesis pytest plugin<pytest-plugin>`,
     which is enabled by default when running Hypothesis inside pytest."""
 
+    differing_executors = 10
+    """Checks if :func:`@given <hypothesis.given>` has been applied to a test
+    which is executed by different :ref:`executors<custom-function-execution>`.
+    If your test function is defined as a method on a class, that class will be
+    your executor, and subclasses executing an inherited test is a common way
+    for things to go wrong.
+
+    The correct fix is often to bring the executor instance under the control
+    of hypothesis by explicit parametrization over, or sampling from,
+    subclasses, or to refactor so that :func:`@given <hypothesis.given>` is
+    specified on leaf subclasses."""
+
 
 @unique
 class Verbosity(IntEnum):
@@ -548,9 +572,7 @@ def _validate_phases(phases):
 
 settings._define_setting(
     "phases",
-    # We leave the `explain` phase disabled by default, for speed and brevity
-    # TODO: consider default-enabling this in CI?
-    default=_validate_phases(set(Phase) - {Phase.explain}),
+    default=tuple(Phase),
     description=(
         "Control which phases should be run. "
         "See :ref:`the full documentation for more details <phases>`"
@@ -601,6 +623,7 @@ def validate_health_check_suppressions(suppressions):
                 f"The {s.name} health check is deprecated, because this is always an error.",
                 since="2023-03-15",
                 has_codemod=False,
+                stacklevel=2,
             )
     return suppressions
 
@@ -687,16 +710,18 @@ The default is ``True`` if the ``CI`` or ``TF_BUILD`` env vars are set, ``False`
 settings.lock_further_definitions()
 
 
-def note_deprecation(message: str, *, since: str, has_codemod: bool) -> None:
+def note_deprecation(
+    message: str, *, since: str, has_codemod: bool, stacklevel: int = 0
+) -> None:
     if since != "RELEASEDAY":
-        date = datetime.datetime.strptime(since, "%Y-%m-%d").date()
+        date = datetime.date.fromisoformat(since)
         assert datetime.date(2021, 1, 1) <= date
     if has_codemod:
         message += (
             "\n    The `hypothesis codemod` command-line tool can automatically "
             "refactor your code to fix this warning."
         )
-    warnings.warn(HypothesisDeprecationWarning(message), stacklevel=2)
+    warnings.warn(HypothesisDeprecationWarning(message), stacklevel=2 + stacklevel)
 
 
 settings.register_profile("default", settings())

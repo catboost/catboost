@@ -14,62 +14,7 @@ import platform
 import sys
 import typing
 from functools import partial
-from typing import Any, ForwardRef, Tuple
-
-try:
-    from typing import get_args as get_args
-except ImportError:
-    # remove at Python 3.7 end-of-life
-    from collections.abc import Callable as _Callable
-
-    def get_args(
-        tp: Any,
-    ) -> Tuple[Any, ...]:  # pragma: no cover
-        """
-        Examples
-        --------
-        >>> assert get_args(int) == ()
-        >>> assert get_args(Dict[str, int]) == (str, int)
-        >>> assert get_args(Union[int, Union[T, int], str][int]) == (int, str)
-        >>> assert get_args(Union[int, Tuple[T, int]][str]) == (int, Tuple[str, int])
-        >>> assert get_args(Callable[[], T][int]) == ([], int)
-        """
-        if hasattr(tp, "__origin__") and hasattr(tp, "__args__"):
-            args = tp.__args__
-            if (
-                getattr(tp, "__origin__", None) is _Callable
-                and args
-                and args[0] is not Ellipsis
-            ):
-                args = (list(args[:-1]), args[-1])
-            return args
-        return ()
-
-
-try:
-    from typing import get_origin as get_origin
-except ImportError:
-    # remove at Python 3.7 end-of-life
-    from collections.abc import Callable as _Callable  # noqa: F811
-
-    def get_origin(tp: Any) -> typing.Optional[Any]:  # type: ignore # pragma: no cover
-        """Get the unsubscripted version of a type.
-        This supports generic types, Callable, Tuple, Union, Literal, Final and ClassVar.
-        Return None for unsupported types. Examples::
-            get_origin(Literal[42]) is Literal
-            get_origin(int) is None
-            get_origin(ClassVar[int]) is ClassVar
-            get_origin(Generic) is Generic
-            get_origin(Generic[T]) is Generic
-            get_origin(Union[T, int]) is Union
-            get_origin(List[Tuple[T, T]][int]) == list
-        """
-        if hasattr(tp, "__origin__"):
-            return tp.__origin__
-        if tp is typing.Generic:
-            return typing.Generic
-        return None
-
+from typing import Any, ForwardRef, get_args
 
 try:
     BaseExceptionGroup = BaseExceptionGroup
@@ -96,6 +41,15 @@ else:
 PYPY = platform.python_implementation() == "PyPy"
 GRAALPY = platform.python_implementation() == "GraalVM"
 WINDOWS = platform.system() == "Windows"
+
+
+def add_note(exc, note):
+    try:
+        exc.add_note(note)
+    except AttributeError:
+        if not hasattr(exc, "__notes__"):
+            exc.__notes__ = []
+        exc.__notes__.append(note)
 
 
 def escape_unicode_characters(s: str) -> str:
@@ -130,7 +84,7 @@ def is_typed_named_tuple(cls):
 
 
 def _hint_and_args(x):
-    return (x,) + get_args(x)
+    return (x, *get_args(x))
 
 
 def get_type_hints(thing):
@@ -202,49 +156,6 @@ def get_type_hints(thing):
         pass
 
     return hints
-
-
-def update_code_location(code, newfile, newlineno):
-    """Take a code object and lie shamelessly about where it comes from.
-
-    Why do we want to do this? It's for really shallow reasons involving
-    hiding the hypothesis_temporary_module code from test runners like
-    pytest's verbose mode. This is a vastly disproportionate terrible
-    hack that I've done purely for vanity, and if you're reading this
-    code you're probably here because it's broken something and now
-    you're angry at me. Sorry.
-    """
-    if hasattr(code, "replace"):
-        # Python 3.8 added positional-only params (PEP 570), and thus changed
-        # the layout of code objects.  In beta1, the `.replace()` method was
-        # added to facilitate future-proof code.  See BPO-37032 for details.
-        return code.replace(co_filename=newfile, co_firstlineno=newlineno)
-
-    else:  # pragma: no cover
-        # This field order is accurate for 3.5 - 3.7, but not 3.8 when a new field
-        # was added for positional-only arguments.  However it also added a .replace()
-        # method that we use instead of field indices, so they're fine as-is.
-        CODE_FIELD_ORDER = [
-            "co_argcount",
-            "co_kwonlyargcount",
-            "co_nlocals",
-            "co_stacksize",
-            "co_flags",
-            "co_code",
-            "co_consts",
-            "co_names",
-            "co_varnames",
-            "co_filename",
-            "co_name",
-            "co_firstlineno",
-            "co_lnotab",
-            "co_freevars",
-            "co_cellvars",
-        ]
-        unpacked = [getattr(code, name) for name in CODE_FIELD_ORDER]
-        unpacked[CODE_FIELD_ORDER.index("co_filename")] = newfile
-        unpacked[CODE_FIELD_ORDER.index("co_firstlineno")] = newlineno
-        return type(code)(*unpacked)
 
 
 # Under Python 2, math.floor and math.ceil returned floats, which cannot

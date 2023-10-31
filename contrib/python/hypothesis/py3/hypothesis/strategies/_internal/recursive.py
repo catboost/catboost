@@ -57,7 +57,7 @@ class LimitedStrategy(SearchStrategy):
     def do_draw(self, data):
         assert self.currently_capped
         if self.marker <= 0:
-            raise LimitReached()
+            raise LimitReached
         self.marker -= 1
         return data.draw(self.base_strategy)
 

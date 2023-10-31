@@ -83,7 +83,7 @@ import types
 import warnings
 from collections import OrderedDict, defaultdict
 from itertools import permutations, zip_longest
-from keyword import iskeyword
+from keyword import iskeyword as _iskeyword
 from string import ascii_lowercase
 from textwrap import dedent, indent
 from typing import (
@@ -103,18 +103,21 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    get_args,
+    get_origin,
 )
 
 import black
 
 from hypothesis import Verbosity, find, settings, strategies as st
 from hypothesis.errors import InvalidArgument, SmallSearchSpaceWarning
-from hypothesis.internal.compat import get_args, get_origin, get_type_hints
+from hypothesis.internal.compat import get_type_hints
 from hypothesis.internal.reflection import get_signature, is_mock
 from hypothesis.internal.validation import check_type
 from hypothesis.provisional import domains
 from hypothesis.strategies._internal.collections import ListStrategy
 from hypothesis.strategies._internal.core import BuildsStrategy
+from hypothesis.strategies._internal.deferred import DeferredStrategy
 from hypothesis.strategies._internal.flatmapped import FlatMapStrategy
 from hypothesis.strategies._internal.lazy import LazyStrategy, unwrap_strategies
 from hypothesis.strategies._internal.strategies import (
@@ -155,7 +158,6 @@ except {exceptions}:
 
 Except = Union[Type[Exception], Tuple[Type[Exception], ...]]
 ImportSet = Set[Union[str, Tuple[str, str]]]
-RE_TYPES = (type(re.compile(".")), type(re.match(".", "abc")))
 _quietly_settings = settings(
     database=None,
     deadline=None,
@@ -259,6 +261,13 @@ def _type_from_doc_fragment(token: str) -> Optional[type]:
     return getattr(sys.modules.get(mod, None), name, None)
 
 
+def _strip_typevars(type_):
+    with contextlib.suppress(Exception):
+        if {type(a) for a in get_args(type_)} == {TypeVar}:
+            return get_origin(type_)
+    return type_
+
+
 def _strategy_for(param: inspect.Parameter, docstring: str) -> st.SearchStrategy:
     # Example types in docstrings:
     # - `:type a: sequence of integers`
@@ -294,7 +303,7 @@ def _strategy_for(param: inspect.Parameter, docstring: str) -> st.SearchStrategy
                 t = _type_from_doc_fragment(token)
                 if isinstance(t, type) or is_generic_type(t):
                     assert t is not None
-                    types.append(t)
+                    types.append(_strip_typevars(t))
         if (
             param.default is not inspect.Parameter.empty
             and param.default not in elements
@@ -425,10 +434,9 @@ def _guess_strategy_by_argname(name: str) -> st.SearchStrategy:
         return st.nothing()
 
     if (
-        name.endswith("_name")
+        name.endswith(("_name", "label"))
         or (name.endswith("name") and "_" not in name)
         or ("string" in name and "as" not in name)
-        or name.endswith("label")
         or name in STRING_NAMES
     ):
         return st.text()
@@ -473,7 +481,7 @@ def _get_params(func: Callable) -> Dict[str, inspect.Parameter]:
                 if arg.startswith("*") or arg == "...":
                     kind = inspect.Parameter.KEYWORD_ONLY
                     continue  # we omit *varargs, if there are any
-                if iskeyword(arg.lstrip("*")) or not arg.lstrip("*").isidentifier():
+                if _iskeyword(arg.lstrip("*")) or not arg.lstrip("*").isidentifier():
                     print(repr(args))
                     break  # skip all subsequent params if this name is invalid
                 params.append(inspect.Parameter(name=arg, kind=kind))
@@ -578,7 +586,7 @@ def _assert_eq(style: str, a: str, b: str) -> str:
 
 def _imports_for_object(obj):
     """Return the imports for `obj`, which may be empty for e.g. lambdas"""
-    if isinstance(obj, RE_TYPES):
+    if isinstance(obj, (re.Pattern, re.Match)):
         return {"re"}
     try:
         if is_generic_type(obj):
@@ -659,6 +667,8 @@ def _valid_syntax_repr(strategy):
     # Flatten and de-duplicate any one_of strategies, whether that's from resolving
     # a Union type or combining inputs to multiple functions.
     try:
+        if isinstance(strategy, DeferredStrategy):
+            strategy = strategy.wrapped_strategy
         if isinstance(strategy, OneOfStrategy):
             seen = set()
             elems = []
@@ -672,6 +682,15 @@ def _valid_syntax_repr(strategy):
         # Trivial special case because the wrapped repr for text() is terrible.
         if strategy == st.text().wrapped_strategy:
             return set(), "text()"
+        # Remove any typevars; we don't exploit them so they're just clutter here
+        if (
+            isinstance(strategy, LazyStrategy)
+            and strategy.function.__name__ == st.from_type.__name__
+            and strategy._LazyStrategy__representation is None
+        ):
+            strategy._LazyStrategy__args = tuple(
+                _strip_typevars(a) for a in strategy._LazyStrategy__args
+            )
         # Return a syntactically-valid strategy repr, including fixing some
         # strategy reprs and replacing invalid syntax reprs with `"nothing()"`.
         # String-replace to hide the special case in from_type() for Decimal('snan')
@@ -698,6 +717,11 @@ def _get_module_helper(obj):
     # The goal is to show location from which obj should usually be accessed, rather
     # than what we assume is an internal submodule which defined it.
     module_name = obj.__module__
+
+    # if "collections.abc" is used don't use the deprecated aliases in "collections"
+    if module_name == "collections.abc":
+        return module_name
+
     dots = [i for i, c in enumerate(module_name) if c == "."] + [None]
     for idx in dots:
         if getattr(sys.modules.get(module_name[:idx]), obj.__name__, None) is obj:
@@ -721,7 +745,7 @@ def _get_module(obj):
     raise RuntimeError(f"Could not find module for ufunc {obj.__name__} ({obj!r}")
 
 
-def _get_qualname(obj, include_module=False):
+def _get_qualname(obj, *, include_module=False):
     # Replacing angle-brackets for objects defined in `.<locals>.`
     qname = getattr(obj, "__qualname__", obj.__name__)
     qname = qname.replace("<", "_").replace(">", "_").replace(" ", "")
@@ -771,7 +795,7 @@ def _st_strategy_names(s: str) -> str:
     sets() too.
     """
     names = "|".join(sorted(st.__all__, key=len, reverse=True))
-    return re.sub(pattern=rf"\b(?:{names})\(", repl=r"st.\g<0>", string=s)
+    return re.sub(pattern=rf"\b(?:{names})\b[^= ]", repl=r"st.\g<0>", string=s)
 
 
 def _make_test_body(
@@ -795,7 +819,7 @@ def _make_test_body(
         given_strategies = given_strategies or _get_strategies(
             *funcs, pass_result_to_next_func=ghost in ("idempotent", "roundtrip")
         )
-        reprs = [((k,) + _valid_syntax_repr(v)) for k, v in given_strategies.items()]
+        reprs = [((k, *_valid_syntax_repr(v))) for k, v in given_strategies.items()]
         imports = imports.union(*(imp for _, imp, _ in reprs))
         given_args = ", ".join(f"{k}={v}" for k, _, v in reprs)
     given_args = _st_strategy_names(given_args)
@@ -963,14 +987,14 @@ def _parameter_to_annotation(parameter: Any) -> Optional[_AnnotationData]:
                 set(),
             )
 
-        type_name = f"{parameter.__module__}.{parameter.__name__}"
+        type_name = _get_qualname(parameter, include_module=True)
 
         # the types.UnionType does not support type arguments and needs to be translated
         if type_name == "types.UnionType":
             return _AnnotationData("typing.Union", {"typing"})
     else:
         if hasattr(parameter, "__module__") and hasattr(parameter, "__name__"):
-            type_name = f"{parameter.__module__}.{parameter.__name__}"
+            type_name = _get_qualname(parameter, include_module=True)
         else:
             type_name = str(parameter)
 
@@ -981,6 +1005,8 @@ def _parameter_to_annotation(parameter: Any) -> Optional[_AnnotationData]:
         return _AnnotationData(type_name, set(type_name.rsplit(".", maxsplit=1)[:-1]))
 
     arg_types = get_args(parameter)
+    if {type(a) for a in arg_types} == {TypeVar}:
+        arg_types = ()
 
     # typing types get translated to classes that don't support generics
     origin_annotation: Optional[_AnnotationData]
@@ -1017,13 +1043,14 @@ def _make_test(imports: ImportSet, body: str) -> str:
     # Discarding "builtins." and "__main__" probably isn't particularly useful
     # for user code, but important for making a good impression in demos.
     body = body.replace("builtins.", "").replace("__main__.", "")
+    body = body.replace("hypothesis.strategies.", "st.")
     if "st.from_type(typing." in body:
         imports.add("typing")
     imports |= {("hypothesis", "given"), ("hypothesis", "strategies as st")}
     if "        reject()\n" in body:
         imports.add(("hypothesis", "reject"))
 
-    do_not_import = {"builtins", "__main__"}
+    do_not_import = {"builtins", "__main__", "hypothesis.strategies"}
     direct = {f"import {i}" for i in imports - do_not_import if isinstance(i, str)}
     from_imports = defaultdict(set)
     for module, name in {i for i in imports if isinstance(i, tuple)}:
@@ -1305,7 +1332,7 @@ def fuzz(
     or :func:`~hypothesis.strategies.binary`.  After that, you have a test!
     """
     if not callable(func):
-        raise InvalidArgument(f"Got non-callable func={func!r}")
+        raise InvalidArgument(f"Got non-callable {func=}")
     except_ = _check_except(except_)
     _check_style(style)
 
@@ -1365,7 +1392,7 @@ def idempotent(
             assert result == repeat, (result, repeat)
     """
     if not callable(func):
-        raise InvalidArgument(f"Got non-callable func={func!r}")
+        raise InvalidArgument(f"Got non-callable {func=}")
     except_ = _check_except(except_)
     _check_style(style)
 
@@ -1604,14 +1631,14 @@ def binary_operation(
         )
     """
     if not callable(func):
-        raise InvalidArgument(f"Got non-callable func={func!r}")
+        raise InvalidArgument(f"Got non-callable {func=}")
     except_ = _check_except(except_)
     _check_style(style)
     check_type(bool, associative, "associative")
     check_type(bool, commutative, "commutative")
     if distributes_over is not None and not callable(distributes_over):
         raise InvalidArgument(
-            f"distributes_over={distributes_over!r} must be an operation which "
+            f"{distributes_over=} must be an operation which "
             f"distributes over {func.__name__}"
         )
     if not any([associative, commutative, identity, distributes_over]):
@@ -1787,7 +1814,7 @@ def ufunc(
         hypothesis write numpy.matmul
     """
     if not _is_probably_ufunc(func):
-        raise InvalidArgument(f"func={func!r} does not seem to be a ufunc")
+        raise InvalidArgument(f"{func=} does not seem to be a ufunc")
     except_ = _check_except(except_)
     _check_style(style)
 

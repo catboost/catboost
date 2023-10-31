@@ -8,15 +8,12 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
-import sys
-
-if sys.version_info[:2] < (3, 8):
-    raise RuntimeError("The Array API standard requires Python 3.8 or later")
-
 import math
+import sys
 from numbers import Real
 from types import SimpleNamespace
 from typing import (
+    TYPE_CHECKING,
     Any,
     Iterable,
     Iterator,
@@ -64,13 +61,16 @@ from hypothesis.internal.validation import (
 from hypothesis.strategies._internal.strategies import check_strategy
 from hypothesis.strategies._internal.utils import defines_strategy
 
+if TYPE_CHECKING:
+    from typing import TypeAlias
+
 __all__ = [
     "make_strategies_namespace",
 ]
 
 
 RELEASED_VERSIONS = ("2021.12", "2022.12")
-NOMINAL_VERSIONS = RELEASED_VERSIONS + ("draft",)
+NOMINAL_VERSIONS = (*RELEASED_VERSIONS, "draft")
 assert sorted(NOMINAL_VERSIONS) == list(NOMINAL_VERSIONS)  # sanity check
 NominalVersion = Literal["2021.12", "2022.12", "draft"]
 assert get_args(NominalVersion) == NOMINAL_VERSIONS  # sanity check
@@ -83,7 +83,7 @@ FLOAT_NAMES = ("float32", "float64")
 REAL_NAMES = ALL_INT_NAMES + FLOAT_NAMES
 COMPLEX_NAMES = ("complex64", "complex128")
 NUMERIC_NAMES = REAL_NAMES + COMPLEX_NAMES
-DTYPE_NAMES = ("bool",) + NUMERIC_NAMES
+DTYPE_NAMES = ("bool", *NUMERIC_NAMES)
 
 DataType = TypeVar("DataType")
 
@@ -118,6 +118,7 @@ def warn_on_missing_dtypes(xp: Any, stubs: List[str]) -> None:
         f"Array module {xp.__name__} does not have the following "
         f"dtypes in its namespace: {f_stubs}",
         HypothesisWarning,
+        stacklevel=3,
     )
 
 
@@ -454,9 +455,7 @@ class ArrayStrategy(st.SearchStrategy):
                 else:
                     self.check_set_value(val, val_0d, self.elements_strategy)
 
-        result = self.xp.reshape(result, self.shape)
-
-        return result
+        return self.xp.reshape(result, self.shape)
 
 
 def _arrays(
@@ -563,7 +562,7 @@ def _arrays(
         raise InvalidArgument(f"shape={shape} is not a valid shape or strategy")
     check_argument(
         all(isinstance(x, int) and x >= 0 for x in shape),
-        f"shape={shape!r}, but all dimensions must be non-negative integers.",
+        f"{shape=}, but all dimensions must be non-negative integers.",
     )
 
     if elements is None:
@@ -659,8 +658,13 @@ def numeric_dtype_names(base_name: str, sizes: Sequence[int]) -> Iterator[str]:
         yield f"{base_name}{size}"
 
 
+IntSize: "TypeAlias" = Literal[8, 16, 32, 64]
+FltSize: "TypeAlias" = Literal[32, 64]
+CpxSize: "TypeAlias" = Literal[64, 128]
+
+
 def _integer_dtypes(
-    xp: Any, *, sizes: Union[int, Sequence[int]] = (8, 16, 32, 64)
+    xp: Any, *, sizes: Union[IntSize, Sequence[IntSize]] = (8, 16, 32, 64)
 ) -> st.SearchStrategy[DataType]:
     """Return a strategy for signed integer dtype objects.
 
@@ -678,7 +682,7 @@ def _integer_dtypes(
 
 
 def _unsigned_integer_dtypes(
-    xp: Any, *, sizes: Union[int, Sequence[int]] = (8, 16, 32, 64)
+    xp: Any, *, sizes: Union[IntSize, Sequence[IntSize]] = (8, 16, 32, 64)
 ) -> st.SearchStrategy[DataType]:
     """Return a strategy for unsigned integer dtype objects.
 
@@ -698,7 +702,7 @@ def _unsigned_integer_dtypes(
 
 
 def _floating_dtypes(
-    xp: Any, *, sizes: Union[int, Sequence[int]] = (32, 64)
+    xp: Any, *, sizes: Union[FltSize, Sequence[FltSize]] = (32, 64)
 ) -> st.SearchStrategy[DataType]:
     """Return a strategy for real-valued floating-point dtype objects.
 
@@ -716,7 +720,7 @@ def _floating_dtypes(
 
 
 def _complex_dtypes(
-    xp: Any, *, sizes: Union[int, Sequence[int]] = (64, 128)
+    xp: Any, *, sizes: Union[CpxSize, Sequence[CpxSize]] = (64, 128)
 ) -> st.SearchStrategy[DataType]:
     """Return a strategy for complex dtype objects.
 
@@ -802,7 +806,7 @@ def indices(
     check_type(tuple, shape, "shape")
     check_argument(
         all(isinstance(x, int) and x >= 0 for x in shape),
-        f"shape={shape!r}, but all dimensions must be non-negative integers.",
+        f"{shape=}, but all dimensions must be non-negative integers.",
     )
     check_type(bool, allow_newaxis, "allow_newaxis")
     check_type(bool, allow_ellipsis, "allow_ellipsis")
@@ -896,7 +900,7 @@ def make_strategies_namespace(
         check_argument(
             isinstance(xp.__array_api_version__, str)
             and xp.__array_api_version__ in RELEASED_VERSIONS,
-            f"xp.__array_api_version__={xp.__array_api_version__!r}, but it must "
+            f"{xp.__array_api_version__=}, but it must "
             f"be a valid version string {RELEASED_VERSIONS}. {not_available_msg}",
         )
         api_version = xp.__array_api_version__
@@ -904,7 +908,7 @@ def make_strategies_namespace(
     else:
         check_argument(
             isinstance(api_version, str) and api_version in NOMINAL_VERSIONS,
-            f"api_version={api_version!r}, but it must be None, or a valid version "
+            f"{api_version=}, but it must be None, or a valid version "
             f"string in {RELEASED_VERSIONS}. {not_available_msg}",
         )
         inferred_version = False
@@ -915,6 +919,7 @@ def make_strategies_namespace(
         warn(
             f"Could not determine whether module {xp.__name__} is an Array API library",
             HypothesisWarning,
+            stacklevel=2,
         )
 
     try:
@@ -938,7 +943,7 @@ def make_strategies_namespace(
     ) -> st.SearchStrategy[Union[bool, int, float, complex]]:
         return _from_dtype(
             xp,
-            api_version,  # type: ignore[arg-type]
+            api_version,
             dtype,
             min_value=min_value,
             max_value=max_value,
@@ -962,7 +967,7 @@ def make_strategies_namespace(
     ) -> st.SearchStrategy:
         return _arrays(
             xp,
-            api_version,  # type: ignore[arg-type]
+            api_version,
             dtype,
             shape,
             elements=elements,
@@ -972,7 +977,7 @@ def make_strategies_namespace(
 
     @defines_strategy()
     def scalar_dtypes() -> st.SearchStrategy[DataType]:
-        return _scalar_dtypes(xp, api_version)  # type: ignore[arg-type]
+        return _scalar_dtypes(xp, api_version)
 
     @defines_strategy()
     def boolean_dtypes() -> st.SearchStrategy[DataType]:
@@ -984,23 +989,23 @@ def make_strategies_namespace(
 
     @defines_strategy()
     def numeric_dtypes() -> st.SearchStrategy[DataType]:
-        return _numeric_dtypes(xp, api_version)  # type: ignore[arg-type]
+        return _numeric_dtypes(xp, api_version)
 
     @defines_strategy()
     def integer_dtypes(
-        *, sizes: Union[int, Sequence[int]] = (8, 16, 32, 64)
+        *, sizes: Union[IntSize, Sequence[IntSize]] = (8, 16, 32, 64)
     ) -> st.SearchStrategy[DataType]:
         return _integer_dtypes(xp, sizes=sizes)
 
     @defines_strategy()
     def unsigned_integer_dtypes(
-        *, sizes: Union[int, Sequence[int]] = (8, 16, 32, 64)
+        *, sizes: Union[IntSize, Sequence[IntSize]] = (8, 16, 32, 64)
     ) -> st.SearchStrategy[DataType]:
         return _unsigned_integer_dtypes(xp, sizes=sizes)
 
     @defines_strategy()
     def floating_dtypes(
-        *, sizes: Union[int, Sequence[int]] = (32, 64)
+        *, sizes: Union[FltSize, Sequence[FltSize]] = (32, 64)
     ) -> st.SearchStrategy[DataType]:
         return _floating_dtypes(xp, sizes=sizes)
 
@@ -1017,7 +1022,7 @@ def make_strategies_namespace(
     class StrategiesNamespace(SimpleNamespace):
         def __init__(self, **kwargs):
             for attr in ["name", "api_version"]:
-                if attr not in kwargs.keys():
+                if attr not in kwargs:
                     raise ValueError(f"'{attr}' kwarg required")
             super().__init__(**kwargs)
 
@@ -1061,7 +1066,7 @@ def make_strategies_namespace(
 
         @defines_strategy()
         def complex_dtypes(
-            *, sizes: Union[int, Sequence[int]] = (64, 128)
+            *, sizes: Union[CpxSize, Sequence[CpxSize]] = (64, 128)
         ) -> st.SearchStrategy[DataType]:
             return _complex_dtypes(xp, sizes=sizes)
 

@@ -27,7 +27,7 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable
 from unittest.mock import _patch as PatchType
 
-from hypothesis.internal.compat import PYPY, is_typed_named_tuple, update_code_location
+from hypothesis.internal.compat import PYPY, is_typed_named_tuple
 from hypothesis.utils.conventions import not_set
 from hypothesis.vendor.pretty import pretty
 
@@ -61,7 +61,7 @@ def _clean_source(src: str) -> bytes:
     # lines - i.e. any decorators, so that adding `@example()`s keeps the same key.
     try:
         funcdef = ast.parse(src).body[0]
-        if sys.version_info[:2] == (3, 7) or (sys.version_info[:2] == (3, 8) and PYPY):
+        if sys.version_info[:2] == (3, 8) and PYPY:
             # We can't get a line number of the (async) def here, so as a best-effort
             # approximation we'll use str.split instead and hope for the best.
             tag = "async def " if isinstance(funcdef, ast.AsyncFunctionDef) else "def "
@@ -88,13 +88,17 @@ def function_digest(function):
     multiple processes and is prone to changing significantly in response to
     minor changes to the function.
 
-    No guarantee of uniqueness though it usually will be.
+    No guarantee of uniqueness though it usually will be. Digest collisions
+    lead to unfortunate but not fatal problems during database replay.
     """
     hasher = hashlib.sha384()
     try:
         src = inspect.getsource(function)
     except (OSError, TypeError):
         # If we can't actually get the source code, try for the name as a fallback.
+        # NOTE: We might want to change this to always adding function.__qualname__,
+        # to differentiate f.x. two classes having the same function implementation
+        # with class-dependent behaviour.
         try:
             hasher.update(function.__name__.encode())
         except AttributeError:
@@ -266,7 +270,7 @@ def is_first_param_referenced_in_function(f):
         tree = ast.parse(textwrap.dedent(inspect.getsource(f)))
     except Exception:
         return True  # Assume it's OK unless we know otherwise
-    name = list(get_signature(f).parameters)[0]
+    name = next(iter(get_signature(f).parameters))
     return any(
         isinstance(node, ast.Name)
         and node.id == name
@@ -335,10 +339,10 @@ def extract_lambda_source(f):
                 break
             except SyntaxError:
                 continue
-    if tree is None and source.startswith("@"):
-        # This will always eventually find a valid expression because
-        # the decorator must be a valid Python function call, so will
-        # eventually be syntactically valid and break out of the loop.
+    if tree is None and source.startswith(("@", ".")):
+        # This will always eventually find a valid expression because the
+        # decorator or chained operator must be a valid Python function call,
+        # so will eventually be syntactically valid and break out of the loop.
         # Thus, this loop can never terminate normally.
         for i in range(len(source) + 1):
             p = source[1:i]
@@ -420,8 +424,7 @@ def extract_lambda_source(f):
     source = WHITESPACE.sub(" ", source)
     source = SPACE_FOLLOWS_OPEN_BRACKET.sub("(", source)
     source = SPACE_PRECEDES_CLOSE_BRACKET.sub(")", source)
-    source = source.strip()
-    return source
+    return source.strip()
 
 
 def get_pretty_function_description(f):
@@ -452,7 +455,7 @@ def nicerepr(v):
         return re.sub(r"(\[)~([A-Z][a-z]*\])", r"\g<1>\g<2>", pretty(v))
 
 
-def repr_call(f, args, kwargs, reorder=True):
+def repr_call(f, args, kwargs, *, reorder=True):
     # Note: for multi-line pretty-printing, see RepresentationPrinter.repr_call()
     if reorder:
         args, kwargs = convert_positional_arguments(f, args, kwargs)
@@ -520,7 +523,7 @@ def define_function_signature(name, docstring, signature):
     for a in signature.parameters:
         check_valid_identifier(a)
 
-    used_names = list(signature.parameters) + [name]
+    used_names = {*signature.parameters, name}
 
     newsig = signature.replace(
         parameters=[
@@ -608,8 +611,11 @@ def impersonate(target):
     """
 
     def accept(f):
-        f.__code__ = update_code_location(
-            f.__code__, target.__code__.co_filename, target.__code__.co_firstlineno
+        # Lie shamelessly about where this code comes from, to hide the hypothesis
+        # internals from pytest, ipython, and other runtime introspection.
+        f.__code__ = f.__code__.replace(
+            co_filename=target.__code__.co_filename,
+            co_firstlineno=target.__code__.co_firstlineno,
         )
         f.__name__ = target.__name__
         f.__module__ = target.__module__
