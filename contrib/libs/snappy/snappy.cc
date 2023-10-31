@@ -60,7 +60,7 @@
 #endif
 #endif  // !defined(SNAPPY_HAVE_NEON_CRC32)
 
-#if SNAPPY_HAVE_BMI2 || SNAPPY_HAVE_X86_CRC32
+#if SNAPPY_HAVE_BMI2 || SNAPPY_HAVE_X86_CRC32 || (defined(__x86_64__) && defined(__AVX__))
 // Please do not replace with <x86intrin.h>. or with headers that assume more
 // advanced SSE versions without checking with all the OWNERS.
 #include <immintrin.h>
