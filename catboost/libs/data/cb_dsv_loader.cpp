@@ -89,7 +89,9 @@ namespace NCB {
 
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TCBDsvDataLoader: no data rows in pool");
-        const ui32 columnsCount = TVector<TString>(NCsvFormat::CsvSplitter(firstLine, FieldDelimiter, CsvSplitterQuote)).size();
+        const ui32 columnsCount = TVector<TString>(
+            NCsvFormat::CsvSplitter(firstLine, FieldDelimiter, CsvSplitterQuote)
+        ).size();
 
         auto columnsDescription = TDataColumnsMetaInfo{ CreateColumnsDescription(columnsCount) };
         auto targetCount = columnsDescription.CountColumns(EColumn::Label);
@@ -209,12 +211,17 @@ namespace NCB {
             size_t tokenIdx = 0;
             try {
                 const bool floatFeaturesOnly = catFeatures.empty() && textFeatures.empty();
-                auto splitter = NCsvFormat::CsvSplitter(line, FieldDelimiter, floatFeaturesOnly ? '\0' : CsvSplitterQuote);
+                auto splitter = NCsvFormat::CsvSplitter(
+                    line,
+                    FieldDelimiter,
+                    floatFeaturesOnly ? '\0' : CsvSplitterQuote
+                );
                 do {
                     TStringBuf token = splitter.Consume();
                     CB_ENSURE(
                         tokenIdx < columnsDescription.size(),
-                        "wrong column count: found token " << token << " with id more than " << columnsDescription.ysize() << " values:\n" << line
+                        "wrong column count: found token " << token << " with id more than "
+                        << columnsDescription.ysize() << " values:\n" << line
                     );
                     try {
                         switch (columnsDescription[tokenIdx].Type) {
@@ -235,7 +242,8 @@ namespace NCB {
                                     {
                                         CB_ENSURE(
                                             false,
-                                            "Factor " << featureId << "=" << token << " cannot be parsed as hashed categorical value."
+                                            "Factor " << featureId << "=" << token << " cannot be parsed as "
+                                            "hashed categorical value."
                                             " Try correcting column description file."
                                         );
                                     }
@@ -391,7 +399,11 @@ namespace NCB {
         }
     }
 
-    int GetDsvColumnCount(const TPathWithScheme& pathWithScheme, const TDsvFormatOptions& format, bool ignoreCsvQuoting) {
+    int GetDsvColumnCount(
+        const TPathWithScheme& pathWithScheme,
+        const TDsvFormatOptions& format,
+        bool ignoreCsvQuoting
+    ) {
         CB_ENSURE_INTERNAL(pathWithScheme.Scheme == "dsv", "Unsupported scheme " << pathWithScheme.Scheme);
         TString firstLine;
         CB_ENSURE(

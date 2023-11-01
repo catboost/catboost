@@ -47,33 +47,56 @@ namespace NCB {
             constexpr auto prefix = "RawFormulaVal"sv;
             if (token.StartsWith(prefix)) {
                 if (token.size() > prefix.size()) {
-                    CB_ENSURE(token.substr(prefix.size(), CLASS_NAME_DELIMITER.size()) == CLASS_NAME_DELIMITER,
-                                "Wrong baseline column name " <<  token <<  ", should be 'RawFormulaVal[:Class=<class_name>]'");
-                    CB_ENSURE(!noClassName, "Inconsistent RawFormulaVal header specification - some columns contain class name and some do not");
+                    CB_ENSURE(
+                        token.substr(prefix.size(), CLASS_NAME_DELIMITER.size()) == CLASS_NAME_DELIMITER,
+                        "Wrong baseline column name " <<  token <<  ", should be 'RawFormulaVal[:Class=<class_name>]'"
+                    );
+                    CB_ENSURE(
+                        !noClassName,
+                        "Inconsistent RawFormulaVal header specification - some columns contain class name and some "
+                        "do not"
+                    );
 
                     auto className = token.substr(prefix.size() + CLASS_NAME_DELIMITER.size());
                     if (!args.ClassNames.empty()) {
-                        CB_ENSURE(args.ClassNames[BaselineIndexes_.size()] == className, "Unknown class name " << className);
+                        CB_ENSURE(
+                            args.ClassNames[BaselineIndexes_.size()] == className,
+                            "Unknown class name " << className
+                        );
                     } else {
-                        CB_ENSURE(!IsIn(ClassNames_, className), "Class name " << className << " is not unique in baseline header");
+                        CB_ENSURE(
+                            !IsIn(ClassNames_, className),
+                            "Class name " << className << " is not unique in baseline header"
+                        );
                         ClassNames_.push_back(className);
                     }
                 } else {
-                    CB_ENSURE_INTERNAL(args.ClassNames.empty(), "Dataset contain classes but baseline file header does not specify them");
-                    CB_ENSURE(ClassNames_.empty(), "Inconsistent RawFormulaVal header specification - some columns contain class name and some do not");
+                    CB_ENSURE_INTERNAL(
+                        args.ClassNames.empty(),
+                        "Dataset contain classes but baseline file header does not specify them"
+                    );
+                    CB_ENSURE(
+                        ClassNames_.empty(),
+                        "Inconsistent RawFormulaVal header specification - some columns contain class name and some "
+                        "do not"
+                    );
                     noClassName = true;
                 }
                 BaselineIndexes_.push_back(columnIdx);
             }
             ++columnIdx;
         }
-        CB_ENSURE(!BaselineIndexes_.empty(), "Baseline file header should contain at least one 'RawFormulaVal[:Class=class_name]' value");
+        CB_ENSURE(
+            !BaselineIndexes_.empty(),
+            "Baseline file header should contain at least one 'RawFormulaVal[:Class=class_name]' value"
+        );
 
         if (!args.ClassNames.empty()) {
             CB_ENSURE(
                 (BaselineIndexes_.size() == 1 && (args.ClassNames.size() == 2)) ||
                 (BaselineIndexes_.size() == args.ClassNames.size()),
-                "Baseline file header for multiclass should contain one 'RawFormulaVal' value or several 'RawFormulaVal:Class=class_name' values"
+                "Baseline file header for multiclass should contain one 'RawFormulaVal' value or several "
+                "'RawFormulaVal:Class=class_name' values"
             );
         }
     }
@@ -104,7 +127,10 @@ namespace NCB {
         for (const TStringBuf token : StringSplitter(line).Split(DELIMITER_)) {
             Y_DEFER { ++columnIdx; };
 
-            CB_ENSURE(columnIdx < BaselineSize_, "Too many columns in baseline file line " << LabeledOutput(*objectIdx));
+            CB_ENSURE(
+                columnIdx < BaselineSize_,
+                "Too many columns in baseline file line " << LabeledOutput(*objectIdx)
+            );
 
             if (baselineIdx >= BaselineIndexes_.size() || columnIdx != BaselineIndexes_[baselineIdx]) {
                 continue;
@@ -113,7 +139,11 @@ namespace NCB {
             CB_ENSURE(!token.empty(), "Empty token in baseline file line " << LabeledOutput(*objectIdx));
 
             float baseline;
-            CB_ENSURE(TryFromString(token, baseline), "Failed to parse float " << LabeledOutput(token) << " in baseline file line " << LabeledOutput(*objectIdx));
+            CB_ENSURE(
+                TryFromString(token, baseline),
+                "Failed to parse float " << LabeledOutput(token) << " in baseline file line "
+                << LabeledOutput(*objectIdx)
+            );
             data->Baseline[baselineIdx] = baseline;
 
             ++baselineIdx;
@@ -138,7 +168,10 @@ namespace NCB {
             if (classLabels->empty()) {
                 classLabels->assign(classNamesFromBaselineFile.begin(), classNamesFromBaselineFile.end());
             } else {
-                CB_ENSURE(NCB::ClassLabelsToStrings(*classLabels) == classNamesFromBaselineFile, "Inconsistent class names in baseline file");
+                CB_ENSURE(
+                    NCB::ClassLabelsToStrings(*classLabels) == classNamesFromBaselineFile,
+                    "Inconsistent class names in baseline file"
+                );
             }
         }
     }

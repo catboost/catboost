@@ -29,7 +29,10 @@ ui32 TDataColumnsMetaInfo::CountColumns(const EColumn columnType) const {
 void TDataColumnsMetaInfo::Validate() const {
     CB_ENSURE(CountColumns(EColumn::Weight) <= 1, "Too many Weight columns.");
     CB_ENSURE(CountColumns(EColumn::SampleId) <= 1, "Too many SampleId columns.");
-    CB_ENSURE(CountColumns(EColumn::GroupId) <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is a synonym for GroupId.");
+    CB_ENSURE(
+        CountColumns(EColumn::GroupId) <= 1,
+        "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is a synonym for GroupId."
+    );
     CB_ENSURE(CountColumns(EColumn::GroupWeight) <= 1, "Too many GroupWeight columns.");
     CB_ENSURE(CountColumns(EColumn::SubgroupId) <= 1, "Too many SubgroupId columns.");
     CB_ENSURE(CountColumns(EColumn::Timestamp) <= 1, "Too many Timestamp columns.");
@@ -60,7 +63,10 @@ TDataMetaInfo::TDataMetaInfo(
     if (TargetCount) {
         CB_ENSURE(TargetType != ERawTargetType::None, "data has target columns, but target type specified as None");
     } else {
-        CB_ENSURE(TargetType == ERawTargetType::None, "data has no target columns, but target type specified as not None");
+        CB_ENSURE(
+            TargetType == ERawTargetType::None,
+            "data has no target columns, but target type specified as not None"
+        );
     }
 
     BaselineCount = additionalBaselineCount ? *additionalBaselineCount : ColumnsInfo->CountColumns(EColumn::Baseline);
@@ -141,7 +147,8 @@ void TDataMetaInfo::Validate() const {
         } else {
             CB_ENSURE(
                 BaselineCount == ClassLabels.size(),
-                "Baseline columns count " << BaselineCount << " and class labels count "  << ClassLabels.size() << " are not equal"
+                "Baseline columns count " << BaselineCount << " and class labels count "
+                << ClassLabels.size() << " are not equal"
             );
         }
     }
