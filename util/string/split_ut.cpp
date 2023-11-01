@@ -305,8 +305,11 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
 
 template <typename I, typename C>
 void TestStringSplitterCount(I* str, C delim, size_t good) {
-    size_t res = StringSplitter(str).Split(delim).Count();
+    auto split = StringSplitter(str).Split(delim);
+    size_t res = split.Count();
     UNIT_ASSERT_VALUES_EQUAL(res, good);
+    res = split.Count();
+    UNIT_ASSERT_VALUES_EQUAL(res, 0);
 }
 
 Y_UNIT_TEST_SUITE(StringSplitter) {
