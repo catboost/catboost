@@ -180,11 +180,16 @@ class Preview(Enum):
     # for https://github.com/psf/black/issues/3117 to be fixed.
     string_processing = auto()
     parenthesize_conditional_expressions = auto()
+    parenthesize_long_type_hints = auto()
+    respect_magic_trailing_comma_in_return_type = auto()
     skip_magic_trailing_comma_in_subscript = auto()
     wrap_long_dict_values_in_parens = auto()
     wrap_multiple_context_managers_in_parens = auto()
     dummy_implementations = auto()
     walrus_subscript = auto()
+    module_docstring_newlines = auto()
+    accept_raw_docstrings = auto()
+    fix_power_op_line_length = auto()
 
 
 class Deprecated(UserWarning):

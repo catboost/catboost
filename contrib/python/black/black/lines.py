@@ -193,11 +193,16 @@ class Line:
     @property
     def is_triple_quoted_string(self) -> bool:
         """Is the line a triple quoted string?"""
-        return (
-            bool(self)
-            and self.leaves[0].type == token.STRING
-            and self.leaves[0].value.startswith(('"""', "'''"))
-        )
+        if not self or self.leaves[0].type != token.STRING:
+            return False
+        value = self.leaves[0].value
+        if value.startswith(('"""', "'''")):
+            return True
+        if Preview.accept_raw_docstrings in self.mode and value.startswith(
+            ("r'''", 'r"""', "R'''", 'R"""')
+        ):
+            return True
+        return False
 
     @property
     def opens_block(self) -> bool:
@@ -550,6 +555,15 @@ class EmptyLineTracker:
             if self.previous_line is None
             else before - previous_after
         )
+        if (
+            Preview.module_docstring_newlines in current_line.mode
+            and self.previous_block
+            and self.previous_block.previous_block is None
+            and len(self.previous_block.original_line.leaves) == 1
+            and self.previous_block.original_line.is_triple_quoted_string
+        ):
+            before = 1
+
         block = LinesBlock(
             mode=self.mode,
             previous_block=self.previous_block,

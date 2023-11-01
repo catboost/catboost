@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: black
-Version: 23.9.1
+Version: 23.10.0
 Summary: The uncompromising code formatter.
 Project-URL: Changelog, https://github.com/psf/black/blob/main/CHANGES.md
 Project-URL: Homepage, https://github.com/psf/black
@@ -82,7 +82,7 @@ Try it out now using the [Black Playground](https://black.vercel.app). Watch the
 
 ### Installation
 
-_Black_ can be installed by running `pip install black`. It requires Python 3.7+ to run.
+_Black_ can be installed by running `pip install black`. It requires Python 3.8+ to run.
 If you want to format Jupyter Notebooks, install with `pip install "black[jupyter]"`.
 
 If you can't wait for the latest _hotness_ and want to install from GitHub, use:
@@ -320,6 +320,43 @@ And if you _really_ need to slap somebody, do it with a fish while dancing.
 
 <!-- Major changes to documentation and policies. Small docs changes
      don't need a changelog entry. -->
+
+## 23.10.0
+
+### Stable style
+
+- Fix comments getting removed from inside parenthesized strings (#3909)
+
+### Preview style
+
+- Fix long lines with power operators getting split before the line length (#3942)
+- Long type hints are now wrapped in parentheses and properly indented when split across
+  multiple lines (#3899)
+- Magic trailing commas are now respected in return types. (#3916)
+- Require one empty line after module-level docstrings. (#3932)
+- Treat raw triple-quoted strings as docstrings (#3947)
+
+### Configuration
+
+- Fix cache versioning logic when `BLACK_CACHE_DIR` is set (#3937)
+
+### Parser
+
+- Fix bug where attributes named `type` were not acccepted inside `match` statements
+  (#3950)
+- Add support for PEP 695 type aliases containing lambdas and other unusual expressions
+  (#3949)
+
+### Output
+
+- Black no longer attempts to provide special errors for attempting to format Python 2
+  code (#3933)
+- Black will more consistently print stacktraces on internal errors in verbose mode
+  (#3938)
+
+### Integrations
+
+- The action output displayed in the job summary is now wrapped in Markdown (#3914)
 
 ## 23.9.1
 
