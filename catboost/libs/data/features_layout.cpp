@@ -157,19 +157,32 @@ TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
     TVector<ui32> embeddingFeatureIndices;
 
     ui32 featureIdx = 0;
+
+    auto processFeatureColumn = [&](const auto& column) {
+        if (!featureNames) {
+            finalFeatureNames.push_back(column.Id);
+        }
+        if ((column.Type == EColumn::Categ) || (column.Type == EColumn::HashedCateg)) {
+            catFeatureIndices.push_back(featureIdx);
+        } else if (column.Type == EColumn::Text) {
+            textFeatureIndices.push_back(featureIdx);
+        } else if (column.Type == EColumn::NumVector) {
+            embeddingFeatureIndices.push_back(featureIdx);
+        }
+        ++featureIdx;
+    };
+
     for (const auto& column : columns) {
         if (IsFactorColumn(column.Type)) {
-            if (!featureNames) {
-                finalFeatureNames.push_back(column.Id);
+            processFeatureColumn(column);
+        } else if (column.Type == EColumn::Features) {
+            for (const auto& subColumn : column.SubColumns) {
+                if (IsFactorColumn(subColumn.Type)) {
+                    processFeatureColumn(subColumn);
+                } else {
+                    CB_ENSURE(false, "Non-feature sub column in Features column");
+                }
             }
-            if ((column.Type == EColumn::Categ) || (column.Type == EColumn::HashedCateg)) {
-                catFeatureIndices.push_back(featureIdx);
-            } else if (column.Type == EColumn::Text) {
-                textFeatureIndices.push_back(featureIdx);
-            } else if (column.Type == EColumn::NumVector) {
-                embeddingFeatureIndices.push_back(featureIdx);
-            }
-            ++featureIdx;
         }
     }
     return MakeIntrusive<TFeaturesLayout>(
