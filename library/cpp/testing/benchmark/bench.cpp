@@ -8,6 +8,7 @@
 #include <library/cpp/linear_regression/linear_regression.h>
 #include <library/cpp/threading/poor_man_openmp/thread_helper.h>
 
+#include <util/generic/ptr.h>
 #include <util/system/hp_timer.h>
 #include <util/system/info.h>
 #include <util/stream/output.h>
@@ -23,6 +24,7 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/intrlist.h>
 #include <util/stream/format.h>
+#include <util/stream/file.h>
 #include <util/system/yield.h>
 
 using re2::RE2;
@@ -299,20 +301,25 @@ namespace {
 
     class TConsoleReporter: public IReporter {
     public:
+        TConsoleReporter(IOutputStream& outputStream) : OutputStream(outputStream) {
+        }
+
         ~TConsoleReporter() override {
         }
 
         void Report(TResult&& r) override {
             with_lock (STDOUT_LOCK) {
-                Cout << r;
+                OutputStream << r;
             }
         }
+    private:
+        IOutputStream& OutputStream;
     };
 
     class TCSVReporter: public IReporter {
     public:
-        TCSVReporter() {
-            Cout << "Name\tSamples\tIterations\tRun_time\tPer_iteration_sec\tPer_iteration_cycles" << Endl;
+        TCSVReporter(IOutputStream& outputStream) : OutputStream(outputStream) {
+            outputStream << "Name\tSamples\tIterations\tRun_time\tPer_iteration_sec\tPer_iteration_cycles" << Endl;
         }
 
         ~TCSVReporter() override {
@@ -320,32 +327,37 @@ namespace {
 
         void Report(TResult&& r) override {
             with_lock (STDOUT_LOCK) {
-                Cout << r.TestName
+                OutputStream << r.TestName
                      << '\t' << r.Samples
                      << '\t' << r.Iterations
                      << '\t' << r.RunTime;
 
-                Cout << '\t';
+                OutputStream << '\t';
                 if (r.CyclesPerIteration) {
-                    Cout << TCycleTimer::FmtTime(*r.CyclesPerIteration);
+                    OutputStream << TCycleTimer::FmtTime(*r.CyclesPerIteration);
                 } else {
-                    Cout << '-';
+                    OutputStream << '-';
                 }
 
-                Cout << '\t';
+                OutputStream << '\t';
                 if (r.SecondsPerIteration) {
-                    Cout << DoFmtTime(*r.SecondsPerIteration);
+                    OutputStream << DoFmtTime(*r.SecondsPerIteration);
                 } else {
-                    Cout << '-';
+                    OutputStream << '-';
                 }
 
-                Cout << Endl;
+                OutputStream << Endl;
             }
         }
+    private:
+        IOutputStream& OutputStream;
     };
 
     class TJSONReporter: public IReporter {
     public:
+        TJSONReporter(IOutputStream& outputStream) : OutputStream(outputStream) {
+        }
+
         ~TJSONReporter() override {
         }
 
@@ -380,10 +392,11 @@ namespace {
                 bench.AppendValue(benchReport);
             }
 
-            Cout << report << Endl;
+            OutputStream << report << Endl;
         }
 
     private:
+        IOutputStream& OutputStream;
         TAdaptiveLock ResultsLock_;
         TVector<TResult> Results_;
     };
@@ -421,26 +434,26 @@ namespace {
         TAdaptiveLock ResultsLock_;
     };
 
-    THolder<IReporter> MakeReporter(const EOutFormat type) {
+    THolder<IReporter> MakeReporter(const EOutFormat type, IOutputStream& outputStream) {
         switch (type) {
             case F_CONSOLE:
-                return MakeHolder<TConsoleReporter>();
+                return MakeHolder<TConsoleReporter>(outputStream);
 
             case F_CSV:
-                return MakeHolder<TCSVReporter>();
+                return MakeHolder<TCSVReporter>(outputStream);
 
             case F_JSON:
-                return MakeHolder<TJSONReporter>();
+                return MakeHolder<TJSONReporter>(outputStream);
 
             default:
                 break;
         }
 
-        return MakeHolder<TConsoleReporter>(); // make compiler happy
+        return MakeHolder<TConsoleReporter>(outputStream); // make compiler happy
     }
 
-    THolder<IReporter> MakeOrderedReporter(const EOutFormat type) {
-        return MakeHolder<TOrderedReporter>(MakeReporter(type));
+    THolder<IReporter> MakeOrderedReporter(const EOutFormat type, IOutputStream& outputStream) {
+        return MakeHolder<TOrderedReporter>(MakeReporter(type, outputStream));
     }
 
     void EnumerateTests(TVector<ITestRunner*>& tests) {
@@ -519,6 +532,11 @@ namespace {
                 .DefaultValue("console")
                 .Help("output format (console|csv|json)");
 
+            opts.AddLongOption('r', "report_path")
+                .StoreResult(&ReportPath)
+                .Optional()
+                .Help("path to save report");
+
             opts.SetFreeArgDefaultTitle("REGEXP", "RE2 regular expression to filter tests");
 
             const TOptsParseResult parseResult{&opts, argc, argv};
@@ -548,6 +566,7 @@ namespace {
         TVector<THolder<RE2>> Filters;
         size_t Threads = 0;
         EOutFormat OutFormat;
+        std::string ReportPath;
     };
 }
 
@@ -581,8 +600,17 @@ int NBench::Main(int argc, char** argv) {
         timeBudget = 5.0 * tests.size();
     }
 
+
+    THolder<IOutputStream> outputHolder;
+    IOutputStream* outputStream = &Cout;
+
+    if (opts.ReportPath != "") {
+        TString filePath(opts.ReportPath);
+        outputHolder.Reset(outputStream = new TFileOutput(filePath));
+    }
+
     const TOptions testOpts = {timeBudget / tests.size()};
-    const auto reporter = MakeOrderedReporter(opts.OutFormat);
+    const auto reporter = MakeOrderedReporter(opts.OutFormat, *outputStream);
 
     std::function<void(ITestRunner**)> func = [&](ITestRunner** it) {
         auto&& res = (*it)->Run(testOpts);
