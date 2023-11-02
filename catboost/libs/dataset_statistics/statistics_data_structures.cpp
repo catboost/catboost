@@ -90,7 +90,7 @@ bool TFloatFeatureStatistics::operator==(const TFloatFeatureStatistics& rhs) con
             rhs.Underflow,
             rhs.Overflow,
             rhs.Sum,
-            SumSqr,
+            rhs.SumSqr,
             rhs.ObjectCount
         )
     );
