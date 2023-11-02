@@ -286,7 +286,9 @@ erase_if(vector<T, Allocator>& c, Predicate pred);    // C++20
 #include <__format/enable_insertable.h>
 #include <__functional/hash.h>
 #include <__functional/unary_function.h>
+#include <__iterator/advance.h>
 #include <__iterator/iterator_traits.h>
+#include <__iterator/reverse_iterator.h>
 #include <__iterator/wrap_iter.h>
 #include <__memory/allocate_at_least.h>
 #include <__split_buffer>
@@ -304,9 +306,6 @@ erase_if(vector<T, Allocator>& c, Predicate pred);    // C++20
 #include <stdexcept>
 #include <type_traits>
 #include <version>
-
-// TODO: remove these headers
-#include <typeinfo>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -643,14 +642,14 @@ public:
 
     bool __invariants() const;
 
-#if _LIBCPP_DEBUG_LEVEL == 2
+#ifdef _LIBCPP_ENABLE_DEBUG_MODE
 
     bool __dereferenceable(const const_iterator* __i) const;
     bool __decrementable(const const_iterator* __i) const;
     bool __addable(const const_iterator* __i, ptrdiff_t __n) const;
     bool __subscriptable(const const_iterator* __i, ptrdiff_t __n) const;
 
-#endif // _LIBCPP_DEBUG_LEVEL == 2
+#endif // _LIBCPP_ENABLE_DEBUG_MODE
 
 private:
     pointer __begin_ = nullptr;
@@ -1388,15 +1387,17 @@ vector<_Tp, _Allocator>::assign(size_type __n, const_reference __u)
     std::__debug_db_invalidate_all(this);
 }
 
+// We need to save the make_iter function and replace all constructor calls with it
+// Made to support pointer iterators
 template <class _Tp, class _Allocator>
 inline _LIBCPP_INLINE_VISIBILITY
 typename vector<_Tp, _Allocator>::iterator
 vector<_Tp, _Allocator>::__make_iter(pointer __p) _NOEXCEPT
 {
-#if _LIBCPP_DEBUG_LEVEL == 2
-    return iterator(this, __p);
-#else
+#if _YNDX_LIBCPP_MAKE_STRING_ITERATOR_POINTERS == 1
     return iterator(__p);
+#else
+    return iterator(this, __p);
 #endif
 }
 
@@ -1405,10 +1406,10 @@ inline _LIBCPP_INLINE_VISIBILITY
 typename vector<_Tp, _Allocator>::const_iterator
 vector<_Tp, _Allocator>::__make_iter(const_pointer __p) const _NOEXCEPT
 {
-#if _LIBCPP_DEBUG_LEVEL == 2
-    return const_iterator(this, __p);
-#else
+#if _YNDX_LIBCPP_MAKE_STRING_ITERATOR_POINTERS == 1
     return const_iterator(__p);
+#else
+    return const_iterator(this, __p);
 #endif
 }
 
@@ -1831,7 +1832,7 @@ vector<_Tp, _Allocator>::insert(const_iterator __position, _InputIterator __firs
     }
     __p = _VSTD::rotate(__p, __old_last, this->__end_);
     insert(__make_iter(__p), _VSTD::make_move_iterator(__v.begin()),
-                             _VSTD::make_move_iterator(__v.end()));
+                                _VSTD::make_move_iterator(__v.end()));
     return begin() + __off;
 }
 
@@ -1884,23 +1885,6 @@ vector<_Tp, _Allocator>::insert(const_iterator __position, _ForwardIterator __fi
     return __make_iter(__p);
 }
 
-#if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
-
-template <class _Tp, class _Allocator>
-void
-vector<_Tp, _Allocator>::resize_uninitialized(size_type __sz)
-{
-    size_type __cs = size();
-    if (__cs < __sz)
-        this->__append_uninitialized(__sz - __cs);
-    else if (__cs > __sz) {
-        this->__end_ = this->__begin_ + __sz;
-        __annotate_shrink(__cs);
-    }
-}
-
-#endif
-
 template <class _Tp, class _Allocator>
 void
 vector<_Tp, _Allocator>::resize(size_type __sz)
@@ -1922,6 +1906,23 @@ vector<_Tp, _Allocator>::resize(size_type __sz, const_reference __x)
     else if (__cs > __sz)
         this->__destruct_at_end(this->__begin_ + __sz);
 }
+
+#if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
+
+template <class _Tp, class _Allocator>
+void
+vector<_Tp, _Allocator>::resize_uninitialized(size_type __sz)
+{
+    size_type __cs = size();
+    if (__cs < __sz)
+        this->__append_uninitialized(__sz - __cs);
+    else if (__cs > __sz) {
+        this->__end_ = this->__begin_ + __sz;
+        __annotate_shrink(__cs);
+    }
+}
+
+#endif
 
 template <class _Tp, class _Allocator>
 void
@@ -1966,7 +1967,7 @@ vector<_Tp, _Allocator>::__invariants() const
     return true;
 }
 
-#if _LIBCPP_DEBUG_LEVEL == 2
+#ifdef _LIBCPP_ENABLE_DEBUG_MODE
 
 template <class _Tp, class _Allocator>
 bool
@@ -1998,13 +1999,13 @@ vector<_Tp, _Allocator>::__subscriptable(const const_iterator* __i, ptrdiff_t __
     return this->__begin_ <= __p && __p < this->__end_;
 }
 
-#endif // _LIBCPP_DEBUG_LEVEL == 2
+#endif // _LIBCPP_ENABLE_DEBUG_MODE
 
 template <class _Tp, class _Allocator>
 inline _LIBCPP_INLINE_VISIBILITY
 void
 vector<_Tp, _Allocator>::__invalidate_iterators_past(pointer __new_last) {
-#if _LIBCPP_DEBUG_LEVEL == 2
+#ifdef _LIBCPP_ENABLE_DEBUG_MODE
   __c_node* __c = __get_db()->__find_c_and_lock(this);
   for (__i_node** __p = __c->end_; __p != __c->beg_; ) {
     --__p;

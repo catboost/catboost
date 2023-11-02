@@ -178,11 +178,6 @@ template<class T>
 #include <type_traits>
 #include <version>
 
-// TODO: remove these headers
-#include <__memory/allocator_arg_t.h>
-#include <__memory/uses_allocator.h>
-#include <typeinfo>
-
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
 #endif
@@ -393,9 +388,9 @@ struct __optional_storage_base : __optional_destruct_base<_Tp>
     }
 };
 
-// optional<T&> is currently required ill-formed, however it may to be in the
-// future. For this reason it has already been implemented to ensure we can
-// make the change in an ABI compatible manner.
+// optional<T&> is currently required to be ill-formed. However, it may
+// be allowed in the future. For this reason, it has already been implemented
+// to ensure we can make the change in an ABI-compatible manner.
 template <class _Tp>
 struct __optional_storage_base<_Tp, true>
 {

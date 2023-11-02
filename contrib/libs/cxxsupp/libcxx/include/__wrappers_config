@@ -40,6 +40,7 @@
 
 // should be removed in https://st.yandex-team.ru/IGNIETFERRO-1955
 #define _LIBCPP_ENABLE_CXX20_REMOVED_ALLOCATOR_MEMBERS
+// #define _LIBCPP_ENABLE_CXX20_REMOVED_ALLOCATOR_VOID_SPECIALIZATION
 
 // should be removed in https://st.yandex-team.ru/IGNIETFERRO-1956
 #define _LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS
