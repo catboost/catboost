@@ -34,12 +34,6 @@ public:
         , OutOfDomainValuesCount(0)
     {}
 
-    TVector<float> GetBorders() const;
-    TVector<float> GetBins() const;
-    TVector<ui64> GetExactHistogram() const;
-
-    bool operator==(const TBorders& rhs) const;
-
     TBorders(const TVector<float>& borders)
         : HistogramType(EHistogramType::Borders)
         , Borders(borders)
@@ -53,6 +47,12 @@ public:
         , MaxValue(maxValue)
         , OutOfDomainValuesCount(0)
     {}
+
+    bool operator==(const TBorders& rhs) const;
+
+    TVector<float> GetBorders() const;
+    TVector<float> GetBins() const;
+    TVector<ui64> GetExactHistogram() const;
 
     ui32 Size() const;
 
@@ -117,12 +117,22 @@ public:
 struct TFloatFeatureHistogram {
 public:
     TFloatFeatureHistogram()
-        : Nans(0), MinusInf(0), PlusInf(0)
+        : Nans(0)
+        , MinusInf(0)
+        , PlusInf(0)
     {}
 
     TFloatFeatureHistogram(const TBorders& borders)
-        : Borders(borders), Nans(0), MinusInf(0), PlusInf(0)
+        : Borders(borders)
+        , Nans(0)
+        , MinusInf(0)
+        , PlusInf(0)
     {}
+
+    bool operator==(const TFloatFeatureHistogram& a) const {
+        return std::tie(Histogram, Borders, Nans, MinusInf, PlusInf) ==
+               std::tie(a.Histogram, a.Borders, a.Nans, a.MinusInf, a.PlusInf);
+    }
 
     void Update(TFloatFeatureHistogram &histograms);
 
@@ -140,11 +150,6 @@ public:
     void ConvertBitToUniform();
 
     NJson::TJsonValue ToJson() const;
-
-    bool operator==(const TFloatFeatureHistogram& a) const {
-        return std::tie(Histogram, Borders, Nans, MinusInf, PlusInf) ==
-               std::tie(a.Histogram, a.Borders, a.Nans, a.MinusInf, a.PlusInf);
-    }
 
     Y_SAVELOAD_DEFINE(
         Histogram,

@@ -25,7 +25,7 @@ namespace NCB {
 
 using TFeatureCustomBorders = THashMap<ui32, std::pair<double, double>>;
 
-template<typename T>
+template <typename T>
 NJson::TJsonValue AggregateStatistics(const TVector<T>& data) {
     TVector<NJson::TJsonValue> statistics;
     for (const auto& item : data) {
@@ -77,6 +77,7 @@ struct TFloatFeatureStatistics : public IStatistics {
 
     SAVELOAD(MinValue, MaxValue, CustomMin, CustomMax, OutOfDomainValuesCount, Underflow, Overflow, Sum, SumSqr, ObjectCount);
 
+public:
     double MinValue;
     double MaxValue;
     TMaybe<double> CustomMin;
@@ -92,7 +93,10 @@ private:
 };
 
 struct TSampleIdStatistics : public IStatistics {
-    TSampleIdStatistics() : ObjectCount(0), SumLen(0) {}
+    TSampleIdStatistics()
+        : ObjectCount(0)
+        , SumLen(0)
+    {}
 
     TSampleIdStatistics(TSampleIdStatistics&&) noexcept = default;
 
@@ -117,6 +121,7 @@ struct TSampleIdStatistics : public IStatistics {
 
     SAVELOAD(SumLen, ObjectCount);
 
+public:
     ui64 ObjectCount;
     ui64 SumLen;
 private:
@@ -133,6 +138,10 @@ struct TCatFeatureStatistics: public IStatistics {
         : ImperfectHashSet(a.ImperfectHashSet)
     {}
 
+    bool operator==(const TCatFeatureStatistics& rhs) const {
+        return ImperfectHashSet == rhs.ImperfectHashSet;
+    }
+
     void Update(TStringBuf value);
     void Update(ui32 value);
 
@@ -140,14 +149,11 @@ struct TCatFeatureStatistics: public IStatistics {
 
     void Update(const TCatFeatureStatistics& update);
 
-    bool operator==(const TCatFeatureStatistics& rhs) const {
-        return ImperfectHashSet == rhs.ImperfectHashSet;
-    }
-
     Y_SAVELOAD_DEFINE(ImperfectHashSet);
 
     SAVELOAD(ImperfectHashSet);
 
+public:
     TSet<ui32> ImperfectHashSet;
 
 private:
@@ -167,22 +173,23 @@ struct TTextFeatureStatistics: public IStatistics {
         , Example(a.Example)
     {}
 
-    void Update(TStringBuf value);
-
-    NJson::TJsonValue ToJson() const override;
-
-    void Update(const TTextFeatureStatistics& update);
-
     bool operator==(const TTextFeatureStatistics& rhs) const {
         return (
             std::tie(IsConst, Example) == std::tie(rhs.IsConst, rhs.Example)
         );
     }
 
+    void Update(TStringBuf value);
+
+    NJson::TJsonValue ToJson() const override;
+
+    void Update(const TTextFeatureStatistics& update);
+
     Y_SAVELOAD_DEFINE(IsConst, Example);
 
     SAVELOAD(IsConst, Example);
 
+public:
     bool IsConst;
     TMaybe<TString> Example;
 private:
@@ -196,7 +203,17 @@ struct TStringTargetStatistic : public IStatistics {
     TStringTargetStatistic() = default;
 
     TStringTargetStatistic(const TStringTargetStatistic& a)
-        : StringTargets(a.StringTargets), IntegerTargets(a.IntegerTargets), TargetType(a.TargetType) {}
+        : StringTargets(a.StringTargets)
+        , IntegerTargets(a.IntegerTargets)
+        , TargetType(a.TargetType)
+    {}
+
+    bool operator==(const TStringTargetStatistic& a) const {
+        return (
+            std::tie(TargetType, StringTargets, IntegerTargets) ==
+            std::tie(a.TargetType, a.StringTargets, a.IntegerTargets)
+        );
+    }
 
     void Update(TStringBuf feature);
 
@@ -221,13 +238,7 @@ struct TStringTargetStatistic : public IStatistics {
         return result;
     }
 
-    bool operator==(const TStringTargetStatistic& a) const {
-        return (
-            std::tie(TargetType, StringTargets, IntegerTargets) ==
-            std::tie(a.TargetType, a.StringTargets, a.IntegerTargets)
-        );
-    }
-
+public:
     THashMap<TString, ui64> StringTargets;
     THashMap<ui32, ui64> IntegerTargets;
     ERawTargetType TargetType;
@@ -238,6 +249,8 @@ struct TTargetsStatistics : public IStatistics {
 public:
     TTargetsStatistics() {};
 
+    bool operator==(const TTargetsStatistics& a) const;
+
     void Init(const TDataMetaInfo& metaInfo, const TFeatureCustomBorders& customBorders);
 
     NJson::TJsonValue ToJson() const override;
@@ -245,8 +258,6 @@ public:
     void Update(ui32 flatTargetIdx, TStringBuf value);
 
     void Update(ui32 flatTargetIdx, float value);
-
-    bool operator==(const TTargetsStatistics& a) const;
 
     void Update(const TTargetsStatistics& update) {
         CB_ENSURE(FloatTargetStatistics.size() == update.FloatTargetStatistics.size());
@@ -290,15 +301,17 @@ public:
         TargetCount
     );
 
+public:
     TVector<TFloatTargetStatistic> FloatTargetStatistics;
     TVector<TStringTargetStatistic> StringTargetStatistics;
     ERawTargetType TargetType;
     ui32 TargetCount;
-
 };
 
 struct TFeatureStatistics : public IStatistics {
 public:
+    bool operator==(const TFeatureStatistics& a) const;
+
     Y_SAVELOAD_DEFINE(
         FloatFeatureStatistics,
         CatFeatureStatistics,
@@ -322,8 +335,6 @@ public:
     NJson::TJsonValue ToJson() const override;
 
     void Update(const TFeatureStatistics& update);
-
-    bool operator==(const TFeatureStatistics& a) const;
 };
 
 struct TGroupwiseStats {
@@ -339,6 +350,11 @@ struct TGroupwiseStats {
 
     TGroupwiseStats& operator=(TGroupwiseStats& rhs);
     TGroupwiseStats& operator=(TGroupwiseStats&& rhs);
+
+    bool operator==(const TGroupwiseStats& a) const {
+        return std::tie(GroupsTotalSize, GroupsTotalSqrSize, GroupsMaxSize, GroupsCount) ==
+            std::tie(a.GroupsTotalSize, a.GroupsTotalSqrSize, a.GroupsMaxSize, a.GroupsCount);
+    }
 
     double GetAverageGroupSize() const {
         return static_cast<long double>(GroupsTotalSize) / static_cast<long double>(GroupsCount);
@@ -370,11 +386,7 @@ struct TGroupwiseStats {
         GroupsCount
     );
 
-    bool operator==(const TGroupwiseStats& a) const {
-        return std::tie(GroupsTotalSize, GroupsTotalSqrSize, GroupsMaxSize, GroupsCount) ==
-            std::tie(a.GroupsTotalSize, a.GroupsTotalSqrSize, a.GroupsMaxSize, a.GroupsCount);
-    }
-
+public:
     // for updating: groupId -> size
     THashMap<TGroupId, ui64> GroupSizes;
 
@@ -389,6 +401,25 @@ private:
 
 struct TDatasetStatistics {
 public:
+    bool operator==(const TDatasetStatistics& a) const {
+        return std::tie(
+            FeatureStatistics,
+            TargetsStatistics,
+            SampleIdStatistics,
+            GroupwiseStats,
+            TargetHistogram,
+            ClassNames
+        )
+        == std::tie(
+            a.FeatureStatistics,
+            a.TargetsStatistics,
+            a.SampleIdStatistics,
+            a.GroupwiseStats,
+            a.TargetHistogram,
+            a.ClassNames
+        );
+    }
+
     Y_SAVELOAD_DEFINE(
         FeatureStatistics,
         TargetsStatistics,
@@ -407,11 +438,6 @@ public:
         ClassNames
     );
 
-    bool operator==(const TDatasetStatistics& a) const {
-        return std::tie(FeatureStatistics, TargetsStatistics, SampleIdStatistics, GroupwiseStats, TargetHistogram, ClassNames) ==
-               std::tie(a.FeatureStatistics, a.TargetsStatistics, a.SampleIdStatistics, a.GroupwiseStats, a.TargetHistogram, a.ClassNames);
-    }
-
     TFeatureStatistics FeatureStatistics;
     TTargetsStatistics TargetsStatistics;
     TSampleIdStatistics SampleIdStatistics;
@@ -420,9 +446,10 @@ public:
     TMaybe<TVector<TFloatFeatureHistogram>> TargetHistogram;
     TVector<TString> ClassNames;
 
-    void Init(const TDataMetaInfo& metaInfo,
-              const TFeatureCustomBorders& customBorders,
-              const TFeatureCustomBorders& targetCustomBorders
+    void Init(
+        const TDataMetaInfo& metaInfo,
+        const TFeatureCustomBorders& customBorders,
+        const TFeatureCustomBorders& targetCustomBorders
     ) {
         FeatureStatistics.Init(metaInfo, customBorders);
         TargetsStatistics.Init(metaInfo, targetCustomBorders);

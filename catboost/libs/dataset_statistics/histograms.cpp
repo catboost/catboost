@@ -97,17 +97,13 @@ bool TFloatFeatureHistogram::ProcessNotNummeric(float value) {
     return false;
 }
 
-void TFloatFeatureHistogram::CalcHistogramWithBorders(
-    const TVector<float>& featureColumnPtr
-) {
+void TFloatFeatureHistogram::CalcHistogramWithBorders(const TVector<float>& featureColumnPtr) {
     Borders.CheckHistogramType(EHistogramType::Borders);
     TVector<float> featureColumnCopy(featureColumnPtr);
     CalcHistogramWithBorders(&featureColumnCopy);
 }
 
-void TFloatFeatureHistogram::CalcHistogramWithBorders(
-    TVector<float>* featureColumnPtr
-) {
+void TFloatFeatureHistogram::CalcHistogramWithBorders(TVector<float>* featureColumnPtr) {
     Borders.CheckHistogramType(EHistogramType::Borders);
     TVector<float>& features = *featureColumnPtr;
     Histogram.resize(Borders.Size());
@@ -221,10 +217,7 @@ void THistograms::Update(THistograms& histograms) {
     }
 }
 
-void THistograms::AddFloatFeatureUniformHistogram(
-    ui32 featureId,
-    TConstArrayRef<float> features
-) {
+void THistograms::AddFloatFeatureUniformHistogram(ui32 featureId, TConstArrayRef<float> features) {
     CB_ENSURE_INTERNAL(
         featureId < FloatFeatureHistogram.size(),
         "FeaturedId " << featureId << " is bigger then FloatFeatureHistogram size " << FloatFeatureHistogram.size()
@@ -263,11 +256,7 @@ ui32 TBorders::Size() const {
     return 0;
 }
 
-static TVector<float> GetUniformBorders(
-    ui32 maxBorderCount,
-    float minValue,
-    float maxValue
-) {
+static TVector<float> GetUniformBorders(ui32 maxBorderCount, float minValue, float maxValue) {
     if (maxBorderCount == 0) {
         return {};
     }

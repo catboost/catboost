@@ -69,8 +69,30 @@ void TFloatFeatureStatistics::Update(float feature) {
 
 bool TFloatFeatureStatistics::operator==(const TFloatFeatureStatistics& rhs) const {
     return (
-        std::tie(MinValue, MaxValue, CustomMin, CustomMax, OutOfDomainValuesCount, Underflow, Overflow, Sum, SumSqr, ObjectCount) ==
-        std::tie(rhs.MinValue, rhs.MaxValue, rhs.CustomMin, rhs.CustomMax, rhs.OutOfDomainValuesCount, rhs.Underflow, rhs.Overflow, rhs.Sum, SumSqr, rhs.ObjectCount)
+        std::tie(
+            MinValue,
+            MaxValue,
+            CustomMin,
+            CustomMax,
+            OutOfDomainValuesCount,
+            Underflow,
+            Overflow,
+            Sum,
+            SumSqr,
+            ObjectCount
+        ) ==
+        std::tie(
+            rhs.MinValue,
+            rhs.MaxValue,
+            rhs.CustomMin,
+            rhs.CustomMax,
+            rhs.OutOfDomainValuesCount,
+            rhs.Underflow,
+            rhs.Overflow,
+            rhs.Sum,
+            SumSqr,
+            rhs.ObjectCount
+        )
     );
 }
 
