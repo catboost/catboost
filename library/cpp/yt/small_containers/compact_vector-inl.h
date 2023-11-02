@@ -992,19 +992,19 @@ bool operator<(const TCompactVector<T, LhsN>& lhs, const TCompactVector<T, RhsN>
     return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+template <class T, size_t N>
+void swap(TCompactVector<T, N>& lhs, TCompactVector<T, N>& rhs) // NOLINT
+{
+    lhs.swap(rhs);
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT
 
 namespace std {
-
-////////////////////////////////////////////////////////////////////////////////
-
-template <class T, size_t N>
-void swap(NYT::TCompactVector<T, N>& lhs, NYT::TCompactVector<T, N>& rhs)
-{
-    lhs.swap(rhs);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 
