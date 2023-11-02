@@ -548,14 +548,18 @@ def execute(
 
     def get_out_stream(stream, default_name):
         mode = 'w+t' if text else 'w+b'
-        open_kwargs = {'errors': 'ignore', 'encoding': 'utf-8'} if text else {}
+        open_kwargs = {'errors': 'ignore', 'encoding': 'utf-8'} if text else {'buffering': 0}
         if stream is None:
             # No stream is supplied: open new temp file
             return _get_command_output_file(command, default_name, mode, open_kwargs), False
 
         if isinstance(stream, six.string_types):
+            is_block = stream.startswith('/dev/')
+            if is_block:
+                mode = 'w+b'
+                open_kwargs = {'buffering': 0}
             # User filename is supplied: open file for writing
-            return io.open(stream, mode, **open_kwargs), stream.startswith('/dev/')
+            return io.open(stream, mode, **open_kwargs), is_block
 
         # Open file or PIPE sentinel is supplied
         is_pipe = stream == subprocess.PIPE
