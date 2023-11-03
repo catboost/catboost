@@ -13,14 +13,16 @@
 #include <util/generic/vector.h>
 #include <util/stream/fwd.h>
 
-using namespace NCB;
+
+namespace NCB {
 
 class TDatasetStatisticsFullVisitor: public IRawObjectsOrderDataVisitor {
 public:
     TDatasetStatisticsFullVisitor(
         const TDataProviderBuilderOptions& options,
         bool isLocal,
-        NPar::ILocalExecutor* /*localExecutor*/)
+        NPar::ILocalExecutor* /*localExecutor*/
+    )
         : InBlock(false)
         , ObjectCount(0)
         , NextCursor(0)
@@ -161,7 +163,8 @@ public:
 
     void AddAllCatFeatures(
         ui32 localObjectIdx,
-        TConstPolymorphicValuesSparseArray<ui32, ui32> features) override {
+        TConstPolymorphicValuesSparseArray<ui32, ui32> features
+    ) override {
         CB_ENSURE(false, "Not implemented");
         Y_UNUSED(localObjectIdx, features);
     }
@@ -173,11 +176,15 @@ public:
     }
 
     void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) override {
-        DatasetStatistics.FeatureStatistics.TextFeatureStatistics[GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)].Update(feature);
+        DatasetStatistics.FeatureStatistics.TextFeatureStatistics[
+            GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)
+        ].Update(feature);
         Y_UNUSED(localObjectIdx);
     }
     void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) override {
-        DatasetStatistics.FeatureStatistics.TextFeatureStatistics[GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)].Update(feature);
+        DatasetStatistics.FeatureStatistics.TextFeatureStatistics[
+            GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx)
+        ].Update(feature);
         Y_UNUSED(localObjectIdx);
     }
     void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef<TString> features) override {
@@ -185,7 +192,8 @@ public:
     }
     void AddAllTextFeatures(
         ui32 localObjectIdx,
-        TConstPolymorphicValuesSparseArray<TString, ui32> features) override {
+        TConstPolymorphicValuesSparseArray<TString, ui32> features
+    ) override {
         CB_ENSURE(false, "Not implemented");
         Y_UNUSED(localObjectIdx, features);
     }
@@ -193,7 +201,8 @@ public:
     void AddEmbeddingFeature(
         ui32 localObjectIdx,
         ui32 flatFeatureIdx,
-        TMaybeOwningConstArrayHolder<float> feature) override {
+        TMaybeOwningConstArrayHolder<float> feature
+    ) override {
         Y_UNUSED(flatFeatureIdx, localObjectIdx, feature);
     }
 
@@ -291,6 +300,13 @@ public:
         Y_UNUSED(timestamps);
     }
 
+    void OutputResult(const TString& outputPath) const;
+
+    const TDatasetStatistics& GetDatasetStatistics() const;
+    const TVector<TVector<float>>& GetFloatTarget() const {
+        return FloatTarget;
+    }
+
 private:
     template <EFeatureType FeatureType>
     ui32 GetInternalFeatureIdx(ui32 flatFeatureIdx) const {
@@ -318,14 +334,6 @@ private:
     TFeatureCustomBorders CustomBorders;
     TFeatureCustomBorders TargetCustomBorders;
     bool ConvertStringTargets;
-
-public:
-    void OutputResult(const TString& outputPath) const;
-
-    const TDatasetStatistics& GetDatasetStatistics() const;
-    const TVector<TVector<float>>& GetFloatTarget() const {
-        return FloatTarget;
-    }
 };
 
 class TDatasetStatisticsOnlyGroupVisitor: public IRawObjectsOrderDataVisitor {
@@ -439,14 +447,16 @@ public:
     }
     void AddAllTextFeatures(
         ui32 localObjectIdx,
-        TConstPolymorphicValuesSparseArray<TString, ui32> features) override {
+        TConstPolymorphicValuesSparseArray<TString, ui32> features
+    ) override {
         Y_UNUSED(localObjectIdx, features);
     }
 
     void AddEmbeddingFeature(
         ui32 localObjectIdx,
         ui32 flatFeatureIdx,
-        TMaybeOwningConstArrayHolder<float> feature) override {
+        TMaybeOwningConstArrayHolder<float> feature
+    ) override {
         Y_UNUSED(flatFeatureIdx, localObjectIdx, feature);
     }
 
@@ -515,6 +525,10 @@ public:
         Y_UNUSED(timestamps);
     }
 
+    void OutputResult(const TString& outputPath) const;
+
+    const TGroupwiseStats& GetGroupwiseStats() const;
+
 private:
     ui32 ObjectCount;
     ui32 NextCursor;
@@ -524,9 +538,6 @@ private:
     bool IsLocal;
 
     TGroupwiseStats GroupwiseStats;
-
-public:
-    void OutputResult(const TString& outputPath) const;
-
-    const TGroupwiseStats& GetGroupwiseStats() const;
 };
+
+}

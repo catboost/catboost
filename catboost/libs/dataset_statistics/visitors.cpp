@@ -3,6 +3,7 @@
 #include <catboost/libs/helpers/json_helpers.h>
 
 using namespace NJson;
+using namespace NCB;
 
 void TDatasetStatisticsFullVisitor::OutputResult(const TString& outputPath) const {
     TFileOutput output(outputPath);
