@@ -398,7 +398,7 @@ class YaTestTags(Enum):
 
 
 class ServiceTags(Enum):
-    AnyTag = "ya:__any_tag"
+    AnyTag = "ya:anytag"
 
 
 class Status(object):
