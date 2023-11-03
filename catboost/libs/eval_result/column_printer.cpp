@@ -29,7 +29,14 @@ namespace NCB {
               && !IsUncertaintyPredictionType(predictionType);
         for (const auto& raws : rawValues) {
             const auto& approx = callMakeExternalApprox ? MakeExternalApprox(raws, visibleLabelsHelper) : raws;
-            auto approxes = PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, executor, binClassLogitThreshold);
+            auto approxes = PrepareEval(
+                predictionType,
+                ensemblesCount,
+                lossFunctionName,
+                approx,
+                executor,
+                binClassLogitThreshold
+            );
             const auto& headers = CreatePredictionTypeHeader(
                 approx.size(),
                 isMultiTarget,
@@ -42,19 +49,13 @@ namespace NCB {
             );
             if (!lossFunctionName.empty() && IsMultiLabelObjective(lossFunctionName)) {
                 for (int i = 0; i < approxes.ysize(); ++i) {
-                    result->push_back(MakeHolder<TArrayPrinter<double>>(
-                        std::move(approxes[i]),
-                        headers[i]
-                    ));
+                    result->push_back(MakeHolder<TArrayPrinter<double>>(std::move(approxes[i]), headers[i]));
                 }
             } else {
                 for (int i = 0; i < approxes.ysize(); ++i) {
-                    result->push_back(MakeHolder<TEvalPrinter>(
-                        predictionType,
-                        headers[i],
-                        approxes[i],
-                        visibleLabelsHelper
-                    ));
+                    result->push_back(
+                        MakeHolder<TEvalPrinter>(predictionType, headers[i], approxes[i], visibleLabelsHelper)
+                    );
                 }
             }
             if (evalParameters) {
@@ -124,7 +125,8 @@ namespace NCB {
         const TString& lossFunctionName,
         size_t ensemblesCount,
         ui32 startTreeIndex,
-        std::pair<size_t, size_t>* evalParameters) {
+        std::pair<size_t, size_t>* evalParameters
+    ) {
 
         TMaybe<ELossFunction> lossFunction = Nothing();
         if (!lossFunctionName.empty()) {
@@ -145,7 +147,8 @@ namespace NCB {
             );
         }
 
-        const ui32 classCount = (predictionType == EPredictionType::Class && !isMultiLabel) ? 1 : approxDimension;
+        const ui32 classCount
+            = (predictionType == EPredictionType::Class && !isMultiLabel) ? 1 : approxDimension;
         TVector<TString> headers;
         headers.reserve(classCount);
         for (ui32 classId = 0; classId < classCount; ++classId) {

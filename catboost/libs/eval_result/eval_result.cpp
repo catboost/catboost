@@ -74,9 +74,10 @@ namespace NCB {
         RawValues[0] = std::move(rawValues);
     }
 
-    void ValidateColumnOutput(const TVector<TString>& outputColumns,
-                              const TDataProvider& pool,
-                              bool CV_mode)
+    void ValidateColumnOutput(
+        const TVector<TString>& outputColumns,
+        const TDataProvider& pool,
+        bool cvMode)
     {
         THashSet<TString> featureIds;
         for (const auto& featureMetaInfo : pool.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
@@ -98,25 +99,46 @@ namespace NCB {
             if (TryFromString<EColumn>(ToCanonicalColumnName(name), columnType)) {
                 switch (columnType) {
                     case (EColumn::Label):
-                        CB_ENSURE(pool.MetaInfo.TargetCount > 0, "bad output column name " << name << " (No target/label info in pool)");
+                        CB_ENSURE(
+                            pool.MetaInfo.TargetCount > 0,
+                            "bad output column name " << name << " (No target/label info in pool)"
+                        );
                         break;
                     case (EColumn::Baseline):
-                        CB_ENSURE(pool.MetaInfo.BaselineCount > 0, "bad output column name " << name << " (No baseline info in pool)");
+                        CB_ENSURE(
+                            pool.MetaInfo.BaselineCount > 0,
+                            "bad output column name " << name << " (No baseline info in pool)"
+                        );
                         break;
                     case (EColumn::Weight):
-                        CB_ENSURE(pool.MetaInfo.HasWeights, "bad output column name " << name << " (No WeightId info in pool)");
+                        CB_ENSURE(
+                            pool.MetaInfo.HasWeights,
+                            "bad output column name " << name << " (No WeightId info in pool)"
+                        );
                         break;
                     case (EColumn::GroupId):
-                        CB_ENSURE(pool.MetaInfo.HasGroupId, "bad output column name " << name << " (No GroupId info in pool)");
+                        CB_ENSURE(
+                            pool.MetaInfo.HasGroupId,
+                            "bad output column name " << name << " (No GroupId info in pool)"
+                        );
                         break;
                     case (EColumn::SubgroupId):
-                        CB_ENSURE(pool.MetaInfo.HasSubgroupIds, "bad output column name " << name << " (No SubgroupIds info in pool)");
+                        CB_ENSURE(
+                            pool.MetaInfo.HasSubgroupIds,
+                            "bad output column name " << name << " (No SubgroupIds info in pool)"
+                        );
                         break;
                     case (EColumn::Timestamp):
-                        CB_ENSURE(pool.MetaInfo.HasTimestamp, "bad output column name " << name << " (No Timestamp info in pool)");
+                        CB_ENSURE(
+                            pool.MetaInfo.HasTimestamp,
+                            "bad output column name " << name << " (No Timestamp info in pool)"
+                        );
                         break;
                     default:
-                        CB_ENSURE(columnType != EColumn::Auxiliary && !IsFactorColumn(columnType), "bad output column type " << name);
+                        CB_ENSURE(
+                            columnType != EColumn::Auxiliary && !IsFactorColumn(columnType),
+                            "bad output column type " << name
+                        );
                         break;
                 }
                 continue;
@@ -124,7 +146,10 @@ namespace NCB {
 
             if (!name.compare(0, BaselinePrefix.length(), BaselinePrefix)) {
                 size_t baselineInd = FromString<int>(name.substr(BaselinePrefix.length()));
-                CB_ENSURE(baselineInd < pool.MetaInfo.BaselineCount, "bad output column name " << name << ", Baseline columns count: " << pool.MetaInfo.BaselineCount);
+                CB_ENSURE(
+                    baselineInd < pool.MetaInfo.BaselineCount,
+                    "bad output column name " << name << ", Baseline columns count: " << pool.MetaInfo.BaselineCount
+                );
                 continue;
             }
 
@@ -133,14 +158,18 @@ namespace NCB {
                 ui32 columnNumber;
                 TString columnName;
                 ParseOutputColumnByIndex(name, &columnNumber, &columnName);
-                CB_ENSURE(columnNumber < pool.MetaInfo.FeaturesLayout->GetExternalFeatureCount(),
-                        "column number " << columnNumber << " is out of range");
+                CB_ENSURE(
+                    columnNumber < pool.MetaInfo.FeaturesLayout->GetExternalFeatureCount(),
+                    "column number " << columnNumber << " is out of range"
+                );
             } else {
                 CB_ENSURE(featureIds.contains(name), "Pool doesn't has column with name `" << name << "`.");
-                CB_ENSURE(notQuantizedPool,
-                          "Raw feature values are not available for quantized pools");
+                CB_ENSURE(
+                    notQuantizedPool,
+                    "Raw feature values are not available for quantized pools"
+                );
             }
-            CB_ENSURE(!CV_mode, "can't output pool column in cross validation mode");
+            CB_ENSURE(!cvMode, "can't output pool column in cross validation mode");
         }
         CB_ENSURE(hasPrediction, "No prediction type chosen in output-column header");
     }
@@ -172,16 +201,18 @@ namespace NCB {
         for (const auto& outputColumn : outputColumns) {
             EPredictionType type;
             if (TryFromString<EPredictionType>(outputColumn, type)) {
-                PushBackEvalPrinters(evalResult.GetRawValuesConstRef(),
-                                     type,
-                                     lossFunctionName,
-                                     isMultiTarget,
-                                     evalResult.GetEnsemblesCount(),
-                                     visibleLabelsHelper,
-                                     evalParameters,
-                                     &columnPrinter,
-                                     executor,
-                                     binClassLogitThreshold);
+                PushBackEvalPrinters(
+                    evalResult.GetRawValuesConstRef(),
+                    type,
+                    lossFunctionName,
+                    isMultiTarget,
+                    evalResult.GetEnsemblesCount(),
+                    visibleLabelsHelper,
+                    evalParameters,
+                    &columnPrinter,
+                    executor,
+                    binClassLogitThreshold
+                );
                 continue;
             }
             EColumn outputType;
@@ -220,13 +251,16 @@ namespace NCB {
                 }
                 if (outputType == EColumn::SampleId) {
                     if (testFileWhichOf.second > 1) {
-                        columnPrinter.push_back(MakeHolder<TPrefixPrinter<TString>>(ToString(testFileWhichOf.first), "EvalSet", ":"));
+                        columnPrinter.push_back(
+                            MakeHolder<TPrefixPrinter<TString>>(ToString(testFileWhichOf.first), "EvalSet", ":")
+                        );
                     }
                     columnPrinter.push_back(
                         (THolder<IColumnPrinter>)MakeHolder<TDocIdPrinter>(
                             poolColumnsPrinter,
                             docIdOffset,
-                            outputColumn)
+                            outputColumn
+                        )
                     );
                     if (dynamic_cast<TDocIdPrinter*>(&*(columnPrinter.back()))->NeedPrinterPtr()) {
                         *needColumnsPrinterPtr = true;
@@ -234,7 +268,9 @@ namespace NCB {
                     continue;
                 }
                 if (outputType == EColumn::Timestamp) {
-                    columnPrinter.push_back(MakeHolder<TArrayPrinter<ui64>>(*pool.ObjectsData->GetTimestamp(), outputColumn));
+                    columnPrinter.push_back(
+                        MakeHolder<TArrayPrinter<ui64>>(*pool.ObjectsData->GetTimestamp(), outputColumn)
+                    );
                     continue;
                 }
                 if (outputType == EColumn::Weight) {
@@ -247,7 +283,8 @@ namespace NCB {
                             poolColumnsPrinter,
                             outputType,
                             docIdOffset,
-                            outputColumn)
+                            outputColumn
+                        )
                     );
                     *needColumnsPrinterPtr = true;
                     continue;
@@ -274,7 +311,9 @@ namespace NCB {
             if (!outputColumn.compare(0, BaselinePrefix.length(), BaselinePrefix)) {
                 int idx = FromString<int>(outputColumn.substr(BaselinePrefix.length()));
                 // NonOwning
-                columnPrinter.push_back(MakeHolder<TArrayPrinter<float>>((*pool.RawTargetData.GetBaseline())[idx], outputColumn));
+                columnPrinter.push_back(
+                    MakeHolder<TArrayPrinter<float>>((*pool.RawTargetData.GetBaseline())[idx], outputColumn)
+                );
                 continue;
             }
             if (outputColumn[0] == '#') {
@@ -293,8 +332,10 @@ namespace NCB {
                 *needColumnsPrinterPtr = true;
             } else {
                 auto it = featureIdToDesc.find(outputColumn);
-                CB_ENSURE(it != featureIdToDesc.end(),
-                          "output column [" << outputColumn << "] not found in featureIds");
+                CB_ENSURE(
+                    it != featureIdToDesc.end(),
+                    "output column [" << outputColumn << "] not found in featureIds"
+                );
 
                 const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(pool.ObjectsData.Get());
                 CB_ENSURE(
@@ -355,7 +396,8 @@ namespace NCB {
             docIdOffset,
             &needPoolColumnsPrinter,
             evalParameters,
-            binClassLogitThreshold);
+            binClassLogitThreshold
+        );
 
         if (writeHeader) {
             TString delimiter = "";
@@ -396,7 +438,8 @@ namespace NCB {
         if (testSetPath.Inited()) {
             poolColumnsPrinter = GetProcessor<IPoolColumnsPrinter>(
                 testSetPath,
-                TPoolColumnsPrinterPullArgs{testSetPath, testSetFormat, pool.MetaInfo.ColumnsInfo}).Release();
+                TPoolColumnsPrinterPullArgs{testSetPath, testSetFormat, pool.MetaInfo.ColumnsInfo}
+            ).Release();
         }
         OutputEvalResultToFile(
             evalResult,
@@ -411,7 +454,8 @@ namespace NCB {
             writeHeader,
             docIdOffset,
             {},
-            binClassLogitThreshold);
+            binClassLogitThreshold
+        );
     }
 
 } // namespace NCB

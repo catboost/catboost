@@ -12,6 +12,7 @@ namespace NCB {
         TVector<double> LossValues;             // Loss value at each point of graph
         TVector<ui32> MainIndices;              // indices with precise loss value after model fitting (without using fstr)
 
+    public:
         Y_SAVELOAD_DEFINE(
             RemovedEntitiesCount,
             LossValues,
@@ -30,6 +31,7 @@ namespace NCB {
         TFeaturesSelectionLossGraph FeaturesTagsLossGraph;
         TFeaturesSelectionLossGraph FeaturesTagsCostGraph;
 
+    public:
         Y_SAVELOAD_DEFINE(
             SelectedFeatures,
             SelectedFeaturesNames,

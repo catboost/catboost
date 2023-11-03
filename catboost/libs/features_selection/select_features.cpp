@@ -34,7 +34,8 @@ namespace NCB {
                 TTrainerFactory::Has(ETaskType::GPU),
                 "Can't load GPU learning library. "
                 "Module was not compiled or driver is incompatible with package. "
-                "Please install latest NVDIA driver and check again");
+                "Please install latest NVDIA driver and check again"
+            );
         }
 
         auto checkCountConsistency = [] (
@@ -70,7 +71,11 @@ namespace NCB {
 
             const ui32 featureCount = pools.Learn->MetaInfo.GetFeatureCount();
             for (const ui32 feature : featuresForSelect) {
-                CB_ENSURE(feature < featureCount, "Tested feature " << feature << " is not present; dataset contains only " << featureCount << " features");
+                CB_ENSURE(
+                    feature < featureCount,
+                    "Tested feature " << feature << " is not present; dataset contains only " << featureCount
+                    << " features"
+                );
             }
         } else { // ByTags
             const auto& featuresTagsForSelect = featuresSelectOptions.FeaturesTagsForSelect.Get();
@@ -117,7 +122,8 @@ namespace NCB {
         if (poolLoadParams && poolLoadParams->BordersFile) {
             LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
                 poolLoadParams->BordersFile,
-                quantizedFeaturesInfo.Get());
+                quantizedFeaturesInfo.Get()
+            );
         }
 
         for (auto testPoolIdx : xrange(pools.Test.size())) {
@@ -128,7 +134,8 @@ namespace NCB {
             CheckCompatibleForApply(
                 *learnFeaturesLayout,
                 *testPool.MetaInfo.FeaturesLayout,
-                TStringBuilder() << "test dataset #" << testPoolIdx);
+                TStringBuilder() << "test dataset #" << testPoolIdx
+            );
         }
 
         TString tmpDir;
@@ -293,8 +300,10 @@ namespace NCB {
             &catBoostOptions
         );
 
-        InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
-                                     &catBoostOptions.MetricOptions->EvalMetric);
+        InitializeEvalMetricIfNotSet(
+            catBoostOptions.MetricOptions->ObjectiveMetric,
+            &catBoostOptions.MetricOptions->EvalMetric
+        );
 
         UpdateMetricPeriodOption(catBoostOptions, &outputFileOptions);
 

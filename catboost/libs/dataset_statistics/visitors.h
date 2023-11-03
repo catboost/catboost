@@ -260,7 +260,8 @@ public:
         CB_ENSURE(InProcess, "Attempt to Finish without starting processing");
         CB_ENSURE(
             !IsLocal || NextCursor >= ObjectCount,
-            "processed object count is less than than specified in metadata: " << NextCursor << "<" << ObjectCount);
+            "processed object count is less than than specified in metadata: " << NextCursor << "<"
+            << ObjectCount);
 
         if (DatasetStatistics.GroupwiseStats.Defined()) {
             DatasetStatistics.GroupwiseStats->Flush();
@@ -268,7 +269,7 @@ public:
 
         if (ObjectCount != 0) {
             CATBOOST_INFO_LOG << "Object info sizes: " << ObjectCount << " "
-                              << MetaInfo.FeaturesLayout->GetExternalFeatureCount() << Endl;
+                << MetaInfo.FeaturesLayout->GetExternalFeatureCount() << Endl;
         } else {
             // should this be an error?
             CATBOOST_ERROR_LOG << "No objects info loaded" << Endl;
@@ -488,7 +489,8 @@ public:
         CB_ENSURE(InProcess, "Attempt to Finish without starting processing");
         CB_ENSURE(
             !IsLocal || NextCursor >= ObjectCount,
-            "processed object count is less than than specified in metadata: " << NextCursor << "<" << ObjectCount);
+            "processed object count is less than than specified in metadata: " << NextCursor << "<"
+            << ObjectCount);
 
         GroupwiseStats.Flush();
 

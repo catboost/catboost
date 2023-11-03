@@ -23,7 +23,8 @@ namespace NCB {
 
     class TEvalResult {
     public:
-        TEvalResult(size_t ensemblesCount = 1) : EnsemblesCount(ensemblesCount){
+        TEvalResult(size_t ensemblesCount = 1)
+            : EnsemblesCount(ensemblesCount) {
             RawValues.resize(1);
         }
 
@@ -43,7 +44,7 @@ namespace NCB {
     void ValidateColumnOutput(
         const TVector<TString>& outputColumns,
         const TDataProvider& pool,
-        bool CV_mode=false);
+        bool cvMode=false);
 
     TIntrusivePtr<IPoolColumnsPrinter> CreatePoolColumnPrinter(
         const TPathWithScheme& testSetPath,

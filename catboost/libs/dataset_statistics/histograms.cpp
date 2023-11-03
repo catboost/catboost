@@ -16,7 +16,9 @@ void TFloatFeatureHistogram::Update(TFloatFeatureHistogram& histograms) {
     Nans += histograms.Nans;
     MinusInf += histograms.MinusInf;
     PlusInf += histograms.PlusInf;
-    if (Borders.HistogramType == histograms.Borders.HistogramType && Borders.HistogramType == EHistogramType::Exact) {
+    if (Borders.HistogramType == histograms.Borders.HistogramType
+        && Borders.HistogramType == EHistogramType::Exact)
+    {
         for (auto const &imap: histograms.Borders.BitHistogram) {
             Borders.BitHistogram[imap.first] += imap.second;
         }
@@ -220,7 +222,8 @@ void THistograms::Update(THistograms& histograms) {
 void THistograms::AddFloatFeatureUniformHistogram(ui32 featureId, TConstArrayRef<float> features) {
     CB_ENSURE_INTERNAL(
         featureId < FloatFeatureHistogram.size(),
-        "FeaturedId " << featureId << " is bigger then FloatFeatureHistogram size " << FloatFeatureHistogram.size()
+        "FeaturedId " << featureId << " is bigger then FloatFeatureHistogram size "
+        << FloatFeatureHistogram.size()
     );
     FloatFeatureHistogram[featureId].CalcUniformHistogram(features);
 }
@@ -231,7 +234,8 @@ bool TBorders::operator==(const TBorders& rhs) const {
     }
     switch (HistogramType) {
         case EHistogramType::Uniform:
-            return MaxBorderCount == rhs.MaxBorderCount && MinValue == rhs.MinValue && MaxValue == rhs.MaxValue;
+            return MaxBorderCount == rhs.MaxBorderCount && MinValue == rhs.MinValue &&
+                MaxValue == rhs.MaxValue;
         case EHistogramType::Borders:
             return EqualBorders(rhs.Borders);
         case EHistogramType::Exact:
@@ -303,7 +307,9 @@ TVector<ui64> TBorders::GetExactHistogram() const {
     return histogram;
 }
 
-THistograms NCB::InitHistograms(const TVector<size_t>& borderCounts, const TFeatureStatistics& featuresStatistics) {
+THistograms NCB::InitHistograms(
+    const TVector<size_t>& borderCounts,
+    const TFeatureStatistics& featuresStatistics) {
     auto floatFeatureCount = featuresStatistics.FloatFeatureStatistics.size();
 
     TVector<TBorders> borders;

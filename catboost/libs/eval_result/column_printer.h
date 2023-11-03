@@ -29,6 +29,7 @@ namespace NCB {
 
     class IColumnPrinter {
     public:
+        virtual ~IColumnPrinter() = default;
         virtual void OutputValue(IOutputStream* outstream, size_t docIndex) = 0;
         virtual void OutputHeader(IOutputStream* outstream) = 0;
         virtual void GetValue(size_t docIndex, TColumnPrinterOuputType* result) = 0;
@@ -36,7 +37,6 @@ namespace NCB {
             return "\t";
         }
         virtual std::type_index GetOutputType() = 0;
-        virtual ~IColumnPrinter() = default;
     };
 
 
@@ -154,7 +154,12 @@ namespace NCB {
 
     class TFeatureColumnPrinter: public IColumnPrinter {
     public:
-        TFeatureColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, int featureId, TString columnName, ui64 docIdOffset)
+        TFeatureColumnPrinter(
+            TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
+            int featureId,
+            TString columnName,
+            ui64 docIdOffset
+        )
             : PrinterPtr(printerPtr)
             , FeatureId(featureId)
             , ColumnName(std::move(columnName))
@@ -191,9 +196,11 @@ namespace NCB {
 
     class TCatFeaturePrinter: public IColumnPrinter {
     public:
-        TCatFeaturePrinter(TMaybeOwningArrayHolder<ui32>&& hashedValues,
-                           const THashMap<ui32, TString>& hashToString,
-                           const TString& header)
+        TCatFeaturePrinter(
+            TMaybeOwningArrayHolder<ui32>&& hashedValues,
+            const THashMap<ui32, TString>& hashToString,
+            const TString& header
+        )
             : HashedValues(std::move(hashedValues))
             , HashToString(hashToString)
             , Header(header)
@@ -230,7 +237,8 @@ namespace NCB {
             const EPredictionType predictionType,
             const TString& header,
             const TVector<double>& approx,
-            const TExternalLabelsHelper& visibleLabelsHelper)
+            const TExternalLabelsHelper& visibleLabelsHelper
+        )
             : PredictionType(predictionType)
             , Header(header)
             , Approx(approx)
@@ -239,7 +247,9 @@ namespace NCB {
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
             if (PredictionType == EPredictionType::Class) {
-                *outStream << VisibleLabelsHelper.GetVisibleClassNameFromClass(static_cast<int>(Approx[docIndex]));
+                *outStream << VisibleLabelsHelper.GetVisibleClassNameFromClass(
+                    static_cast<int>(Approx[docIndex])
+                );
             } else {
                 *outStream << Approx[docIndex];
             }
@@ -398,5 +408,6 @@ namespace NCB {
         const TString& lossFunctionName,
         size_t ensemblesCount,
         ui32 startTreeIndex = 0,
-        std::pair<size_t, size_t>* evalParameters = nullptr);
+        std::pair<size_t, size_t>* evalParameters = nullptr
+    );
 } // namespace NCB

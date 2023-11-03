@@ -47,11 +47,17 @@ struct TFloatFeatureStatistics : public IStatistics {
     TFloatFeatureStatistics();
 
     TFloatFeatureStatistics(const TFloatFeatureStatistics& a)
-        : MinValue(a.MinValue), MaxValue(a.MaxValue)
-        , CustomMin(a.CustomMin), CustomMax(a.CustomMax), OutOfDomainValuesCount(a.OutOfDomainValuesCount)
-        , Underflow(a.Underflow), Overflow(a.Overflow)
-        , Sum(a.Sum), SumSqr(a.SumSqr), ObjectCount(a.ObjectCount)
-        {}
+        : MinValue(a.MinValue)
+        , MaxValue(a.MaxValue)
+        , CustomMin(a.CustomMin)
+        , CustomMax(a.CustomMax)
+        , OutOfDomainValuesCount(a.OutOfDomainValuesCount)
+        , Underflow(a.Underflow)
+        , Overflow(a.Overflow)
+        , Sum(a.Sum)
+        , SumSqr(a.SumSqr)
+        , ObjectCount(a.ObjectCount)
+    {}
 
     void Update(float feature);
 
@@ -73,9 +79,31 @@ struct TFloatFeatureStatistics : public IStatistics {
     double GetMinBorder() const;
     double GetMaxBorder() const;
 
-    Y_SAVELOAD_DEFINE(MinValue, MaxValue, CustomMin, CustomMax, OutOfDomainValuesCount, Underflow, Overflow, Sum, SumSqr, ObjectCount);
+    Y_SAVELOAD_DEFINE(
+        MinValue,
+        MaxValue,
+        CustomMin,
+        CustomMax,
+        OutOfDomainValuesCount,
+        Underflow,
+        Overflow,
+        Sum,
+        SumSqr,
+        ObjectCount
+    );
 
-    SAVELOAD(MinValue, MaxValue, CustomMin, CustomMax, OutOfDomainValuesCount, Underflow, Overflow, Sum, SumSqr, ObjectCount);
+    SAVELOAD(
+        MinValue,
+        MaxValue,
+        CustomMin,
+        CustomMax,
+        OutOfDomainValuesCount,
+        Underflow,
+        Overflow,
+        Sum,
+        SumSqr,
+        ObjectCount
+    );
 
 public:
     double MinValue;
@@ -105,17 +133,17 @@ struct TSampleIdStatistics : public IStatistics {
         , SumLen(a.SumLen)
     {}
 
-    void Update(const TString& value);
-
-    NJson::TJsonValue ToJson() const override;
-
-    void Update(const TSampleIdStatistics& update);
-
     bool operator==(const TSampleIdStatistics& rhs) const {
         return (
             std::tie(SumLen, ObjectCount) == std::tie(rhs.SumLen, rhs.ObjectCount)
         );
     }
+
+    void Update(const TString& value);
+
+    NJson::TJsonValue ToJson() const override;
+
+    void Update(const TSampleIdStatistics& update);
 
     Y_SAVELOAD_DEFINE(SumLen, ObjectCount);
 
