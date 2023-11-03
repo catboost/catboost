@@ -21,13 +21,15 @@ target_sources_custom(library-cpp-fast_exp
   SRCS
   ${CMAKE_SOURCE_DIR}/library/cpp/fast_exp/fast_exp_avx2.cpp
   CUSTOM_FLAGS
-  /arch:AVX2
-  /DAVX2_ENABLED=1
+  -mavx2
+  -mfma
+  -mbmi
+  -mbmi2
 )
 target_sources_custom(library-cpp-fast_exp
   .sse2
   SRCS
   ${CMAKE_SOURCE_DIR}/library/cpp/fast_exp/fast_exp_sse2.cpp
   CUSTOM_FLAGS
-  /D__SSE2__=1
+  -msse2
 )

@@ -10,6 +10,8 @@
 add_library(contrib-libs-tbb)
 target_compile_options(contrib-libs-tbb PRIVATE
   -D__TBB_BUILD
+  -mrtm
+  -mwaitpkg
   -DUSE_WINTHREAD
   -D__TBB_USE_ITT_NOTIFY
   -DDO_ITT_NOTIFY

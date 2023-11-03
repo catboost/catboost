@@ -6,9 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(libcxxmsvc)
+add_subdirectory(builtins)
+add_subdirectory(libcxx)
 
 add_library(contrib-libs-cxxsupp INTERFACE)
 target_link_libraries(contrib-libs-cxxsupp INTERFACE
-  libs-cxxsupp-libcxxmsvc
+  libs-cxxsupp-libcxx
 )
