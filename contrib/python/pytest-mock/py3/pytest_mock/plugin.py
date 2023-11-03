@@ -66,11 +66,19 @@ class MockerFixture:
         self.call = mock_module.call
         self.ANY = mock_module.ANY
         self.DEFAULT = mock_module.DEFAULT
-        self.create_autospec = mock_module.create_autospec
         self.sentinel = mock_module.sentinel
         self.mock_open = mock_module.mock_open
         if hasattr(mock_module, "seal"):
             self.seal = mock_module.seal
+
+    def create_autospec(
+        self, spec: Any, spec_set: bool = False, instance: bool = False, **kwargs: Any
+    ) -> MockType:
+        m: MockType = self.mock_module.create_autospec(
+            spec, spec_set, instance, **kwargs
+        )
+        self._patches_and_mocks.append((None, m))
+        return m
 
     def resetall(
         self, *, return_value: bool = False, side_effect: bool = False
@@ -102,7 +110,8 @@ class MockerFixture:
         times.
         """
         for p, m in reversed(self._patches_and_mocks):
-            p.stop()
+            if p is not None:
+                p.stop()
         self._patches_and_mocks.clear()
 
     def stop(self, mock: unittest.mock.MagicMock) -> None:

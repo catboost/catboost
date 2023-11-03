@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pytest-mock
-Version: 3.11.1
+Version: 3.12.0
 Summary: Thin-wrapper around the mock package for easier use with pytest
 Home-page: https://github.com/pytest-dev/pytest-mock/
 Author: Bruno Oliveira
@@ -18,17 +18,17 @@ Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Topic :: Software Development :: Testing
-Requires-Python: >=3.7
+Requires-Python: >=3.8
 Description-Content-Type: text/x-rst
 License-File: LICENSE
-Requires-Dist: pytest (>=5.0)
+Requires-Dist: pytest >=5.0
 Provides-Extra: dev
 Requires-Dist: pre-commit ; extra == 'dev'
 Requires-Dist: tox ; extra == 'dev'
