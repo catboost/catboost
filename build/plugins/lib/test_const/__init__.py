@@ -43,10 +43,10 @@ YT_RUN_TEST_TAR_NAME = "yt_run_test.tar"
 COVERAGE_CFLAGS = ["-fprofile-instr-generate", "-fcoverage-mapping", "-DCLANG_COVERAGE"]
 COVERAGE_LDFLAGS = ["-fprofile-instr-generate", "-fcoverage-mapping"]
 
-CANON_BACKEND_KEY = "canondata_backend"
+CANON_BACKEND_KEY = "{canondata_backend}"
 DEFAULT_CANONIZATION_BACKEND = "storage.yandex-team.ru/get-devtools"
 MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
-BACKEND_URI_PREFIX = 'https://{' + CANON_BACKEND_KEY + '}/'
+BACKEND_URI_PREFIX = 'https://' + CANON_BACKEND_KEY + '/'
 MDS_SCHEME = 'mds'
 CANON_MDS_RESOURCE_REGEX = re.compile(re.escape(MDS_URI_PREFIX) + r'(.*?)($|#)')
 CANON_BACKEND_RESOURCE_REGEX = re.compile(re.escape(BACKEND_URI_PREFIX) + r'(.*?)($|#)')
