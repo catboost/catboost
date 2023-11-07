@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/data_processing_options.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <util/generic/string.h>
@@ -1036,7 +1037,13 @@ TString TPrecisionCachingMetric::GetDescription() const {
 }
 
 double TPrecisionCachingMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1;
+    if (error.Stats[1] == 0) {
+        CATBOOST_WARNING_LOG << "Number of the positive class predictions is 0. "
+            "Setting Precision metric value to the default 0\n";
+        return 0.0;
+    } else {
+        return error.Stats[0] / error.Stats[1];
+    }
 }
 
 void TPrecisionCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
