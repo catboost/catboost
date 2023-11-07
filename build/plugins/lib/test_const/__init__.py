@@ -83,7 +83,6 @@ REGULAR_TEST_TYPES = [
     "go_test",
     "gtest",
     "hermione",
-    "hermione_beta",
     "java",
     "jest",
     "py2test",
