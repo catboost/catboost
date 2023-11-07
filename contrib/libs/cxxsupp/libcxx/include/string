@@ -539,13 +539,11 @@ basic_string<char32_t> operator "" s( const char32_t *str, size_t len );        
 #include <__utility/swap.h>
 #include <__utility/unreachable.h>
 #include <climits>
-#include <compare>
+#include <cstdint>
 #include <cstdio>  // EOF
 #include <cstdlib>
 #include <cstring>
-#include <initializer_list>
 #include <iosfwd>
-#include <iterator> // TODO: Remove this include
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -557,9 +555,18 @@ basic_string<char32_t> operator "" s( const char32_t *str, size_t len );        
 #  include <cwchar>
 #endif
 
-#ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
-#  include <cstdint>
-#endif
+// standard-mandated includes
+
+// [iterator.range]
+#include <__iterator/access.h>
+#include <__iterator/data.h>
+#include <__iterator/empty.h>
+#include <__iterator/reverse_access.h>
+#include <__iterator/size.h>
+
+// [string.syn]
+#include <compare>
+#include <initializer_list>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -625,11 +632,8 @@ struct __can_be_converted_to_string_view : public _BoolConstant<
 #ifndef _LIBCPP_HAS_NO_CHAR8_T
 typedef basic_string<char8_t> u8string;
 #endif
-
-#ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
 typedef basic_string<char16_t> u16string;
 typedef basic_string<char32_t> u32string;
-#endif
 
 struct __uninitialized_size_tag {};
 
@@ -639,10 +643,8 @@ class
 #ifndef _LIBCPP_HAS_NO_CHAR8_T
     _LIBCPP_PREFERRED_NAME(u8string)
 #endif
-#ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
     _LIBCPP_PREFERRED_NAME(u16string)
     _LIBCPP_PREFERRED_NAME(u32string)
-#endif
     basic_string
 {
     static_assert(sizeof(_CharT) <= 4, "libc++ implementation of std::basic_string does not support extra-wide character types");

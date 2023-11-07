@@ -53,7 +53,6 @@ namespace ranges {
     indirect_strict_weak_order<projected<iterator_t<R>, Proj>> Comp = ranges::less>
   constexpr borrowed_iterator_t<R> ranges::max_element(R&& r, Comp comp = {}, Proj proj = {});             // since C++20
 
-
   template <input_iterator I1, sentinel_for<_I1> S1, input_iterator I2, sentinel_for<_I2> S2,
           class Pred = ranges::equal_to, class Proj1 = identity, class Proj2 = identity>
     requires indirectly_comparable<I1, I2, Pred, Proj1, Proj2>
@@ -283,6 +282,17 @@ namespace ranges {
     requires permutable<iterator_t<R>>
     constexpr borrowed_iterator_t<R> ranges::reverse(R&& r);                                // since C++20
 
+  template<random_access_iterator I, sentinel_for<I> S, class Comp = ranges::less,
+            class Proj = identity>
+    requires sortable<I, Comp, Proj>
+    constexpr I
+      sort(I first, S last, Comp comp = {}, Proj proj = {});                                // since C++20
+
+  template<random_access_range R, class Comp = ranges::less, class Proj = identity>
+    requires sortable<iterator_t<R>, Comp, Proj>
+    constexpr borrowed_iterator_t<R>
+      sort(R&& r, Comp comp = {}, Proj proj = {});                                          // since C++20
+
   template<class T, output_iterator<const T&> O, sentinel_for<O> S>
     constexpr O ranges::fill(O first, S last, const T& value);                              // since C++20
 
@@ -423,6 +433,22 @@ namespace ranges {
     requires indirectly_writable<iterator_t<R>, const T&>
     constexpr borrowed_iterator_t<R>
       ranges::replace_if(R&& r, Pred pred, const T& new_value, Proj proj = {});                     // since C++20
+
+  template<input_iterator I1, sentinel_for<I1> S1, input_iterator I2, sentinel_for<I2> S2,
+           class Proj1 = identity, class Proj2 = identity,
+           indirect_strict_weak_order<projected<I1, Proj1>,
+                                      projected<I2, Proj2>> Comp = ranges::less>
+    constexpr bool
+      ranges::lexicographical_compare(I1 first1, S1 last1, I2 first2, S2 last2,
+                                      Comp comp = {}, Proj1 proj1 = {}, Proj2 proj2 = {});    // since C++20
+
+  template<input_range R1, input_range R2, class Proj1 = identity,
+           class Proj2 = identity,
+           indirect_strict_weak_order<projected<iterator_t<R1>, Proj1>,
+                                      projected<iterator_t<R2>, Proj2>> Comp = ranges::less>
+    constexpr bool
+      ranges::lexicographical_compare(R1&& r1, R2&& r2, Comp comp = {},
+                                      Proj1 proj1 = {}, Proj2 proj2 = {});                    // since C++20
 
 }
 
@@ -1067,8 +1093,6 @@ template <class BidirectionalIterator, class Compare>
 #include <__debug>
 #include <cstddef>
 #include <cstring>
-#include <initializer_list>
-#include <iterator> // TODO: Remove this include
 #include <memory>
 #include <type_traits>
 #include <version>
@@ -1162,6 +1186,7 @@ template <class BidirectionalIterator, class Compare>
 #include <__algorithm/ranges_is_partitioned.h>
 #include <__algorithm/ranges_is_sorted.h>
 #include <__algorithm/ranges_is_sorted_until.h>
+#include <__algorithm/ranges_lexicographical_compare.h>
 #include <__algorithm/ranges_lower_bound.h>
 #include <__algorithm/ranges_max.h>
 #include <__algorithm/ranges_max_element.h>
@@ -1174,6 +1199,7 @@ template <class BidirectionalIterator, class Compare>
 #include <__algorithm/ranges_replace.h>
 #include <__algorithm/ranges_replace_if.h>
 #include <__algorithm/ranges_reverse.h>
+#include <__algorithm/ranges_sort.h>
 #include <__algorithm/ranges_swap_ranges.h>
 #include <__algorithm/ranges_transform.h>
 #include <__algorithm/ranges_upper_bound.h>
@@ -1210,6 +1236,9 @@ template <class BidirectionalIterator, class Compare>
 #include <__algorithm/unique_copy.h>
 #include <__algorithm/unwrap_iter.h>
 #include <__algorithm/upper_bound.h>
+
+// standard-mandated includes
+#include <initializer_list>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
