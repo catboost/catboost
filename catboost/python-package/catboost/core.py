@@ -582,7 +582,8 @@ class Pool(_PoolBase):
         feature_tags=None,
         thread_count=-1,
         log_cout=sys.stdout,
-        log_cerr=sys.stderr
+        log_cerr=sys.stderr,
+        data_can_be_none=False
     ):
         """
         Pool is an internal data structure that is used by CatBoost.
@@ -801,6 +802,8 @@ class Pool(_PoolBase):
 
                 self._init(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
                            group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
+        elif not data_can_be_none:
+            raise CatBoostError("'data' parameter can't be None")
         super(Pool, self).__init__()
 
     def _check_files(self, data, column_description, pairs):
@@ -1060,13 +1063,13 @@ class Pool(_PoolBase):
     def slice(self, rindex):
         if not isinstance(rindex, ARRAY_TYPES):
             raise CatBoostError("Invalid rindex type={} : must be list or numpy.ndarray".format(type(rindex)))
-        slicedPool = Pool(None)
+        slicedPool = Pool(None, data_can_be_none=True)
         slicedPool._take_slice(self, rindex)
         return slicedPool
 
     def train_eval_split(self, has_time, is_classification, eval_fraction, save_eval_pool):
-        train_pool = Pool(None)
-        eval_pool = Pool(None)
+        train_pool = Pool(None, data_can_be_none=True)
+        eval_pool = Pool(None, data_can_be_none=True)
         self._train_eval_split(train_pool, eval_pool, has_time, is_classification, eval_fraction, save_eval_pool)
         return train_pool, eval_pool
 
