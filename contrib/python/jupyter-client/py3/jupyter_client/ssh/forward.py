@@ -85,7 +85,7 @@ class Handler(socketserver.BaseRequestHandler):
         logger.debug("Tunnel closed ")
 
 
-def forward_tunnel(local_port, remote_host, remote_port, transport):
+def forward_tunnel(local_port: int, remote_host: str, remote_port: int, transport: t.Any) -> None:
     """Forward an ssh tunnel."""
 
     # this is a little convoluted, but lets me configure things for the Handler

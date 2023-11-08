@@ -3,14 +3,17 @@ utils:
 - provides utility wrappers to run asynchronous functions in a blocking environment.
 - vendor functions from ipython_genutils that should be retired at some point.
 """
+from __future__ import annotations
+
 import os
+from typing import Sequence
 
 from jupyter_core.utils import ensure_async, run_sync  # noqa: F401  # noqa: F401
 
 from .session import utcnow  # noqa
 
 
-def _filefind(filename, path_dirs=None):
+def _filefind(filename: str, path_dirs: str | Sequence[str] | None = None) -> str:
     """Find a file by looking through a sequence of paths.
 
     This iterates through a sequence of paths looking for a file and returns
@@ -64,7 +67,7 @@ def _filefind(filename, path_dirs=None):
     raise OSError(msg)
 
 
-def _expand_path(s):
+def _expand_path(s: str) -> str:
     """Expand $VARS and ~names in a string, like a shell
 
     :Examples:

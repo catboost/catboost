@@ -113,7 +113,7 @@ class KernelClient(ConnectionFileMixin):
     # flag for whether execute requests should be allowed to call raw_input:
     allow_stdin: bool = True
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Handle garbage collection.  Destroy context if applicable."""
         if (
             self._created_context
@@ -511,7 +511,7 @@ class KernelClient(ConnectionFileMixin):
         if output_hook is None and "IPython" in sys.modules:
             from IPython import get_ipython
 
-            ip = get_ipython()
+            ip = get_ipython()  # type:ignore[no-untyped-call]
             in_kernel = getattr(ip, "kernel", False)
             if in_kernel:
                 output_hook = partial(

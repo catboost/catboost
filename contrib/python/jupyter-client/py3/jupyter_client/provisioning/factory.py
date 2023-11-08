@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 
 # See compatibility note on `group` keyword in https://docs.python.org/3/library/importlib.metadata.html#entry-points
 if sys.version_info < (3, 10):  # pragma: no cover
-    from importlib_metadata import EntryPoint, entry_points
+    from importlib_metadata import EntryPoint, entry_points  # type:ignore[import-not-found]
 else:  # pragma: no cover
     from importlib.metadata import EntryPoint, entry_points
 
@@ -43,7 +43,7 @@ class KernelProvisionerFactory(SingletonConfigurable):
     )
 
     @default('default_provisioner_name')
-    def _default_provisioner_name_default(self):
+    def _default_provisioner_name_default(self) -> str:
         """The default provisioner name."""
         return getenv(self.default_provisioner_name_env, "local-provisioner")
 

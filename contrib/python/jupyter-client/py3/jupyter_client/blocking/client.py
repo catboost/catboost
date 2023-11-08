@@ -4,6 +4,10 @@ Useful for test suites and blocking terminal interfaces.
 """
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
+from __future__ import annotations
+
+import typing as t
+
 from traitlets import Type
 
 from ..channels import HBChannel, ZMQSocketChannel
@@ -11,10 +15,10 @@ from ..client import KernelClient, reqrep
 from ..utils import run_sync
 
 
-def wrapped(meth, channel):
+def wrapped(meth: t.Callable, channel: str) -> t.Callable:
     """Wrap a method on a channel and handle replies."""
 
-    def _(self, *args, **kwargs):
+    def _(self: BlockingKernelClient, *args: t.Any, **kwargs: t.Any) -> t.Any:
         reply = kwargs.pop("reply", False)
         timeout = kwargs.pop("timeout", None)
         msg_id = meth(self, *args, **kwargs)

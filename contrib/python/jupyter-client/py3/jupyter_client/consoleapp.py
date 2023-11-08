@@ -370,7 +370,7 @@ class JupyterConsoleApp(ConnectionFileMixin):
 class IPythonConsoleApp(JupyterConsoleApp):
     """An app to manage an ipython console."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None:
         """Initialize the app."""
         warnings.warn("IPythonConsoleApp is deprecated. Use JupyterConsoleApp", stacklevel=2)
         super().__init__(*args, **kwargs)

@@ -61,7 +61,7 @@ utc = timezone.utc
 # -----------------------------------------------------------------------------
 
 
-def squash_unicode(obj):
+def squash_unicode(obj: t.Any) -> t.Any:
     """coerce unicode back to bytestrings."""
     if isinstance(obj, dict):
         for key in list(obj.keys()):
@@ -89,7 +89,7 @@ MAX_BYTES = 1024
 # disallow nan, because it's not actually valid JSON
 
 
-def json_packer(obj):
+def json_packer(obj: t.Any) -> bytes:
     """Convert a json object to a bytes."""
     try:
         return json.dumps(
@@ -117,14 +117,14 @@ def json_packer(obj):
         return packed
 
 
-def json_unpacker(s):
+def json_unpacker(s: str | bytes) -> t.Any:
     """Convert a json bytes or string to an object."""
     if isinstance(s, bytes):
         s = s.decode("utf8", "replace")
     return json.loads(s)
 
 
-def pickle_packer(o):
+def pickle_packer(o: t.Any) -> bytes:
     """Pack an object using the pickle module."""
     return pickle.dumps(squash_dates(o), PICKLE_PROTOCOL)
 
@@ -226,10 +226,10 @@ class SessionFactory(LoggingConfigurable):
 
     loop = Instance("tornado.ioloop.IOLoop")
 
-    def _loop_default(self):
+    def _loop_default(self) -> IOLoop:
         return IOLoop.current()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: t.Any) -> None:
         """Initialize a session factory."""
         super().__init__(**kwargs)
 
@@ -359,7 +359,7 @@ class Session(Configurable):
     )
 
     @observe("packer")
-    def _packer_changed(self, change):
+    def _packer_changed(self, change: t.Any) -> None:
         new = change["new"]
         if new.lower() == "json":
             self.pack = json_packer
@@ -380,7 +380,7 @@ class Session(Configurable):
     )
 
     @observe("unpacker")
-    def _unpacker_changed(self, change):
+    def _unpacker_changed(self, change: t.Any) -> None:
         new = change["new"]
         if new.lower() == "json":
             self.pack = json_packer
@@ -401,7 +401,7 @@ class Session(Configurable):
         return u
 
     @observe("session")
-    def _session_changed(self, change):
+    def _session_changed(self, change: t.Any) -> None:
         self.bsession = self.session.encode("ascii")
 
     # bsession is the session as bytes
@@ -431,7 +431,7 @@ class Session(Configurable):
         return new_id_bytes()
 
     @observe("key")
-    def _key_changed(self, change):
+    def _key_changed(self, change: t.Any) -> None:
         self._new_auth()
 
     signature_scheme = Unicode(
@@ -442,7 +442,7 @@ class Session(Configurable):
     )
 
     @observe("signature_scheme")
-    def _signature_scheme_changed(self, change):
+    def _signature_scheme_changed(self, change: t.Any) -> None:
         new = change["new"]
         if not new.startswith("hmac-"):
             raise TraitError("signature_scheme must start with 'hmac-', got %r" % new)
@@ -479,7 +479,7 @@ class Session(Configurable):
     keyfile = Unicode("", config=True, help="""path to file containing execution key.""")
 
     @observe("keyfile")
-    def _keyfile_changed(self, change):
+    def _keyfile_changed(self, change: t.Any) -> None:
         with open(change["new"], "rb") as f:
             self.key = f.read().strip()
 
@@ -491,7 +491,7 @@ class Session(Configurable):
     pack = Any(default_packer)  # the actual packer function
 
     @observe("pack")
-    def _pack_changed(self, change):
+    def _pack_changed(self, change: t.Any) -> None:
         new = change["new"]
         if not callable(new):
             raise TypeError("packer must be callable, not %s" % type(new))
@@ -499,7 +499,7 @@ class Session(Configurable):
     unpack = Any(default_unpacker)  # the actual packer function
 
     @observe("unpack")
-    def _unpack_changed(self, change):
+    def _unpack_changed(self, change: t.Any) -> None:
         # unpacker is not checked - it is assumed to be
         new = change["new"]
         if not callable(new):
@@ -525,7 +525,7 @@ class Session(Configurable):
         """,
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: t.Any) -> None:
         """create a Session object
 
         Parameters
@@ -588,7 +588,7 @@ class Session(Configurable):
         """
         # make a copy
         new_session = type(self)()
-        for name in self.traits():
+        for name in self.traits():  # type:ignore[no-untyped-call]
             setattr(new_session, name, getattr(self, name))
         # fork digest_history
         new_session.digest_history = set()

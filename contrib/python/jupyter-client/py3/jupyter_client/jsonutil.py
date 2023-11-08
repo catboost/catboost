@@ -9,7 +9,7 @@ import warnings
 from binascii import b2a_base64
 from collections.abc import Iterable
 from datetime import datetime
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from dateutil.parser import parse as _dateutil_parse
 from dateutil.tz import tzlocal
@@ -67,7 +67,7 @@ def parse_date(s: Optional[str]) -> Optional[Union[str, datetime]]:
     return s
 
 
-def extract_dates(obj):
+def extract_dates(obj: Any) -> Any:
     """extract ISO8601 dates from unpacked JSON"""
     if isinstance(obj, dict):
         new_obj = {}  # don't clobber
@@ -81,7 +81,7 @@ def extract_dates(obj):
     return obj
 
 
-def squash_dates(obj):
+def squash_dates(obj: Any) -> Any:
     """squash datetime objects into ISO8601 strings"""
     if isinstance(obj, dict):
         obj = dict(obj)  # don't clobber
@@ -94,7 +94,7 @@ def squash_dates(obj):
     return obj
 
 
-def date_default(obj):
+def date_default(obj: Any) -> Any:
     """DEPRECATED: Use jupyter_client.jsonutil.json_default"""
     warnings.warn(
         "date_default is deprecated since jupyter_client 7.0.0."
@@ -104,7 +104,7 @@ def date_default(obj):
     return json_default(obj)
 
 
-def json_default(obj):
+def json_default(obj: Any) -> Any:
     """default function for packing objects in JSON."""
     if isinstance(obj, datetime):
         obj = _ensure_tzinfo(obj)
@@ -128,7 +128,7 @@ def json_default(obj):
 # Copy of the old ipykernel's json_clean
 # This is temporary, it should be removed when we deprecate support for
 # non-valid JSON messages
-def json_clean(obj):
+def json_clean(obj: Any) -> Any:
     # types that are 'atomic' and ok in json as-is.
     atomic_ok = (str, type(None))
 

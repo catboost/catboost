@@ -1,10 +1,13 @@
 """Apps for managing kernel specs."""
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
+from __future__ import annotations
+
 import errno
 import json
 import os.path
 import sys
+import typing as t
 
 from jupyter_core.application import JupyterApp, base_aliases, base_flags
 from traitlets import Bool, Dict, Instance, List, Unicode
@@ -35,21 +38,21 @@ class ListKernelSpecs(JupyterApp):
         "debug": base_flags["debug"],
     }
 
-    def _kernel_spec_manager_default(self):
+    def _kernel_spec_manager_default(self) -> KernelSpecManager:
         return KernelSpecManager(parent=self, data_dir=self.data_dir)
 
-    def start(self):
+    def start(self) -> dict[str, t.Any] | None:  # type:ignore[override]
         """Start the application."""
         paths = self.kernel_spec_manager.find_kernel_specs()
         specs = self.kernel_spec_manager.get_all_specs()
         if not self.json_output:
             if not specs:
                 print("No kernels available")
-                return
+                return None
             # pad to width of longest kernel name
             name_len = len(sorted(paths, key=lambda name: len(name))[-1])
 
-            def path_key(item):
+            def path_key(item: t.Any) -> t.Any:
                 """sort key function for Jupyter path priority"""
                 path = item[1]
                 for idx, prefix in enumerate(self.jupyter_path):
@@ -83,13 +86,13 @@ class InstallKernelSpec(JupyterApp):
     usage = "jupyter kernelspec install SOURCE_DIR [--options]"
     kernel_spec_manager = Instance(KernelSpecManager)
 
-    def _kernel_spec_manager_default(self):
+    def _kernel_spec_manager_default(self) -> KernelSpecManager:
         return KernelSpecManager(data_dir=self.data_dir)
 
     sourcedir = Unicode()
     kernel_name = Unicode("", config=True, help="Install the kernel spec with this name")
 
-    def _kernel_name_default(self):
+    def _kernel_name_default(self) -> str:
         return os.path.basename(self.sourcedir)
 
     user = Bool(
@@ -131,7 +134,7 @@ class InstallKernelSpec(JupyterApp):
         "debug": base_flags["debug"],
     }
 
-    def parse_command_line(self, argv):
+    def parse_command_line(self, argv: None | list[str]) -> None:  # type:ignore[override]
         """Parse the command line args."""
         super().parse_command_line(argv)
         # accept positional arg as profile name
@@ -141,7 +144,7 @@ class InstallKernelSpec(JupyterApp):
             print("No source directory specified.", file=sys.stderr)
             self.exit(1)
 
-    def start(self):
+    def start(self) -> None:
         """Start the application."""
         if self.user and self.prefix:
             self.exit("Can't specify both user and prefix. Please choose one or the other.")
@@ -177,7 +180,7 @@ class RemoveKernelSpec(JupyterApp):
 
     kernel_spec_manager = Instance(KernelSpecManager)
 
-    def _kernel_spec_manager_default(self):
+    def _kernel_spec_manager_default(self) -> KernelSpecManager:
         return KernelSpecManager(data_dir=self.data_dir, parent=self)
 
     flags = {
@@ -185,7 +188,7 @@ class RemoveKernelSpec(JupyterApp):
     }
     flags.update(JupyterApp.flags)
 
-    def parse_command_line(self, argv):
+    def parse_command_line(self, argv: list[str] | None) -> None:  # type:ignore[override]
         """Parse the command line args."""
         super().parse_command_line(argv)
         # accept positional arg as profile name
@@ -194,7 +197,7 @@ class RemoveKernelSpec(JupyterApp):
         else:
             self.exit("No kernelspec specified.")
 
-    def start(self):
+    def start(self) -> None:
         """Start the application."""
         self.kernel_spec_manager.ensure_native_kernel = False
         spec_paths = self.kernel_spec_manager.find_kernel_specs()
@@ -231,7 +234,7 @@ class InstallNativeKernelSpec(JupyterApp):
     description = """[DEPRECATED] Install the IPython kernel spec directory for this Python."""
     kernel_spec_manager = Instance(KernelSpecManager)
 
-    def _kernel_spec_manager_default(self):  # pragma: no cover
+    def _kernel_spec_manager_default(self) -> KernelSpecManager:  # pragma: no cover
         return KernelSpecManager(data_dir=self.data_dir)
 
     user = Bool(
@@ -251,7 +254,7 @@ class InstallNativeKernelSpec(JupyterApp):
         "debug": base_flags["debug"],
     }
 
-    def start(self):  # pragma: no cover
+    def start(self) -> None:  # pragma: no cover
         """Start the application."""
         self.log.warning(
             "`jupyter kernelspec install-self` is DEPRECATED as of 4.0."
@@ -263,7 +266,9 @@ class InstallNativeKernelSpec(JupyterApp):
             print("ipykernel not available, can't install its spec.", file=sys.stderr)
             self.exit(1)
         try:
-            kernelspec.install(self.kernel_spec_manager, user=self.user)
+            kernelspec.install(
+                self.kernel_spec_manager, user=self.user
+            )  # type:ignore[no-untyped-call]
         except OSError as e:
             if e.errno == errno.EACCES:
                 print(e, file=sys.stderr)
@@ -282,7 +287,7 @@ class ListProvisioners(JupyterApp):
     version = __version__
     description = """List available provisioners for use in kernel specifications."""
 
-    def start(self):
+    def start(self) -> None:
         """Start the application."""
         kfp = KernelProvisionerFactory.instance(parent=self)
         print("Available kernel provisioners:")
@@ -322,7 +327,7 @@ class KernelSpecApp(Application):
     aliases = {}
     flags = {}
 
-    def start(self):
+    def start(self) -> None:
         """Start the application."""
         if self.subapp is None:
             print("No subcommand specified. Must specify one of: %s" % list(self.subcommands))

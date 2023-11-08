@@ -54,7 +54,7 @@ class HBChannel(Thread):
         context: t.Optional[zmq.Context] = None,
         session: t.Optional[Session] = None,
         address: t.Union[t.Tuple[str, int], str] = "",
-    ):
+    ) -> None:
         """Create the heartbeat monitor thread.
 
         Parameters
