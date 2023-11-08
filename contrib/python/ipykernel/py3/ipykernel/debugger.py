@@ -40,7 +40,7 @@ except Exception as e:
         raise e
 
 
-# Required for backwards compatiblity
+# Required for backwards compatibility
 ROUTING_ID = getattr(zmq, "ROUTING_ID", None) or zmq.IDENTITY
 
 
@@ -644,7 +644,7 @@ class Debugger:
         repr_data = {}
         repr_metadata = {}
         if not self.stopped_threads:
-            # The code did not hit a breakpoint, we use the intepreter
+            # The code did not hit a breakpoint, we use the interpreter
             # to get the rich representation of the variable
             result = get_ipython().user_expressions({var_name: var_name})[var_name]
             if result.get("status", "error") == "ok":

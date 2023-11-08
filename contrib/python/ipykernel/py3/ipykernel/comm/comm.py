@@ -33,6 +33,7 @@ class BaseComm(comm.base_comm.BaseComm):
         if self.kernel is None:
             self.kernel = Kernel.instance()
 
+        assert self.kernel.session is not None
         self.kernel.session.send(
             self.kernel.iopub_socket,
             msg_type,

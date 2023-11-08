@@ -429,7 +429,7 @@ def loop_asyncio_exit(kernel):
         close_loop()
 
     elif not loop.is_closed():
-        loop.run_until_complete(close_loop)  # type:ignore
+        loop.run_until_complete(close_loop)  # type:ignore[arg-type]
         loop.close()
 
 
@@ -566,8 +566,12 @@ def enable_gui(gui, kernel=None):
             make_qt_app_for_kernel(gui, kernel)
 
     loop = loop_map[gui]
-    if loop and kernel.eventloop is not None and kernel.eventloop is not loop:
-        msg = "Cannot activate multiple GUI eventloops"
+    if (
+        loop
+        and kernel.eventloop is not None
+        and kernel.eventloop is not loop  # type:ignore[unreachable]
+    ):
+        msg = "Cannot activate multiple GUI eventloops"  # type:ignore[unreachable]
         raise RuntimeError(msg)
     kernel.eventloop = loop
     # We set `eventloop`; the function the user chose is executed in `Kernel.enter_eventloop`, thus

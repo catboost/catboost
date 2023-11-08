@@ -3,6 +3,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import annotations
+
 import errno
 import json
 import os
@@ -10,6 +12,7 @@ import shutil
 import stat
 import sys
 import tempfile
+from typing import Any
 
 from jupyter_client.kernelspec import KernelSpecManager
 from traitlets import Unicode
@@ -27,7 +30,11 @@ KERNEL_NAME = "python%i" % sys.version_info[0]
 RESOURCES = pjoin(os.path.dirname(__file__), "resources")
 
 
-def make_ipkernel_cmd(mod="ipykernel_launcher", executable=None, extra_arguments=None):
+def make_ipkernel_cmd(
+    mod: str = "ipykernel_launcher",
+    executable: str | None = None,
+    extra_arguments: list[str] | None = None,
+) -> list[str]:
     """Build Popen command list for launching an IPython kernel.
 
     Parameters
@@ -52,7 +59,7 @@ def make_ipkernel_cmd(mod="ipykernel_launcher", executable=None, extra_arguments
     return arguments
 
 
-def get_kernel_dict(extra_arguments=None):
+def get_kernel_dict(extra_arguments: list[str] | None = None) -> dict[str, Any]:
     """Construct dict for kernel.json"""
     return {
         "argv": make_ipkernel_cmd(extra_arguments=extra_arguments),
@@ -62,7 +69,11 @@ def get_kernel_dict(extra_arguments=None):
     }
 
 
-def write_kernel_spec(path=None, overrides=None, extra_arguments=None):
+def write_kernel_spec(
+    path: str | None = None,
+    overrides: dict[str, Any] | None = None,
+    extra_arguments: list[str] | None = None,
+) -> str:
     """Write a kernel spec directory to `path`
 
     If `path` is not specified, a temporary directory is created.
@@ -93,14 +104,14 @@ def write_kernel_spec(path=None, overrides=None, extra_arguments=None):
 
 
 def install(
-    kernel_spec_manager=None,
-    user=False,
-    kernel_name=KERNEL_NAME,
-    display_name=None,
-    prefix=None,
-    profile=None,
-    env=None,
-):
+    kernel_spec_manager: KernelSpecManager | None = None,
+    user: bool = False,
+    kernel_name: str = KERNEL_NAME,
+    display_name: str | None = None,
+    prefix: str | None = None,
+    profile: str | None = None,
+    env: dict[str, str] | None = None,
+) -> str:
     """Install the IPython kernelspec for Jupyter
 
     Parameters
@@ -136,7 +147,7 @@ def install(
         # kernel_name is specified and display_name is not
         # default display_name to kernel_name
         display_name = kernel_name
-    overrides = {}
+    overrides: dict[str, Any] = {}
     if display_name:
         overrides["display_name"] = display_name
     if profile:
@@ -154,7 +165,7 @@ def install(
     )
     # cleanup afterward
     shutil.rmtree(path)
-    return dest
+    return dest  # type:ignore[no-any-return]
 
 
 # Entrypoint
@@ -167,13 +178,13 @@ class InstallIPythonKernelSpecApp(Application):
 
     name = Unicode("ipython-kernel-install")
 
-    def initialize(self, argv=None):
+    def initialize(self, argv: list[str] | None = None) -> None:
         """Initialize the app."""
         if argv is None:
             argv = sys.argv[1:]
         self.argv = argv
 
-    def start(self):
+    def start(self) -> None:
         """Start the app."""
         import argparse
 

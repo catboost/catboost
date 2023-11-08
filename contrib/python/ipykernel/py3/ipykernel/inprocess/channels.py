@@ -18,7 +18,7 @@ class InProcessChannel:
     proxy_methods: List[object] = []
 
     def __init__(self, client=None):
-        """Initialze the channel."""
+        """Initialize the channel."""
         super().__init__()
         self.client = client
         self._is_alive = False

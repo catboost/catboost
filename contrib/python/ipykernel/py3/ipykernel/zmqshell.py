@@ -27,7 +27,7 @@ from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magics import CodeMagics, MacroToEdit  # type:ignore[attr-defined]
 from IPython.core.usage import default_banner
-from IPython.display import Javascript, display  # type:ignore[attr-defined]
+from IPython.display import Javascript, display
 from IPython.utils import openpy
 from IPython.utils.process import arg_split, system  # type:ignore[attr-defined]
 from jupyter_client.session import Session, extract_header
@@ -115,6 +115,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         # Use 2-stage process to send a message,
         # in order to put it through the transform
         # hooks before potentially sending.
+        assert self.session is not None
         msg = self.session.msg(msg_type, json_clean(content), parent=self.parent_header)
 
         # Each transform either returns a new
@@ -123,7 +124,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         for hook in self._hooks:
             msg = hook(msg)
             if msg is None:
-                return
+                return  # type:ignore[unreachable]
 
         self.session.send(
             self.pub_socket,
@@ -144,13 +145,14 @@ class ZMQDisplayPublisher(DisplayPublisher):
         """
         content = dict(wait=wait)
         self._flush_streams()
+        assert self.session is not None
         msg = self.session.msg("clear_output", json_clean(content), parent=self.parent_header)
 
         # see publish() for details on how this works
         for hook in self._hooks:
             msg = hook(msg)
             if msg is None:
-                return
+                return  # type:ignore[unreachable]
 
         self.session.send(
             self.pub_socket,
@@ -376,6 +378,7 @@ class KernelMagics(Magics):
         if jupyter_runtime_dir() == os.path.dirname(connection_file):
             connection_file = os.path.basename(connection_file)
 
+        assert isinstance(info, str)
         print(info + "\n")
         print(
             f"Paste the above JSON into a file, and connect with:\n"
@@ -523,8 +526,8 @@ class ZMQInteractiveShell(InteractiveShell):
             )
 
             self._data_pub = self.data_pub_class(parent=self)  # type:ignore[has-type]
-            self._data_pub.session = self.display_pub.session
-            self._data_pub.pub_socket = self.display_pub.pub_socket
+            self._data_pub.session = self.display_pub.session  # type:ignore[attr-defined]
+            self._data_pub.pub_socket = self.display_pub.pub_socket  # type:ignore[attr-defined]
         return self._data_pub
 
     @data_pub.setter
@@ -538,7 +541,7 @@ class ZMQInteractiveShell(InteractiveShell):
             source="ask_exit",
             keepkernel=self.keepkernel_on_exit,
         )
-        self.payload_manager.write_payload(payload)
+        self.payload_manager.write_payload(payload)  # type:ignore[union-attr]
 
     def run_cell(self, *args, **kwargs):
         """Run a cell."""
@@ -560,14 +563,14 @@ class ZMQInteractiveShell(InteractiveShell):
         # Send exception info over pub socket for other clients than the caller
         # to pick up
         topic = None
-        if dh.topic:
-            topic = dh.topic.replace(b"execute_result", b"error")
+        if dh.topic:  # type:ignore[attr-defined]
+            topic = dh.topic.replace(b"execute_result", b"error")  # type:ignore[attr-defined]
 
-        dh.session.send(
-            dh.pub_socket,
+        dh.session.send(  # type:ignore[attr-defined]
+            dh.pub_socket,  # type:ignore[attr-defined]
             "error",
             json_clean(exc_content),
-            dh.parent_header,
+            dh.parent_header,  # type:ignore[attr-defined]
             ident=topic,
         )
 
@@ -583,13 +586,13 @@ class ZMQInteractiveShell(InteractiveShell):
             text=text,
             replace=replace,
         )
-        self.payload_manager.write_payload(payload)
+        self.payload_manager.write_payload(payload)  # type:ignore[union-attr]
 
     def set_parent(self, parent):
         """Set the parent header for associating output with its triggering input"""
         self.parent_header = parent
-        self.displayhook.set_parent(parent)
-        self.display_pub.set_parent(parent)
+        self.displayhook.set_parent(parent)  # type:ignore[attr-defined]
+        self.display_pub.set_parent(parent)  # type:ignore[attr-defined]
         if hasattr(self, "_data_pub"):
             self.data_pub.set_parent(parent)
         try:
@@ -609,7 +612,7 @@ class ZMQInteractiveShell(InteractiveShell):
         """Initialize magics."""
         super().init_magics()
         self.register_magics(KernelMagics)
-        self.magics_manager.register_alias("ed", "edit")
+        self.magics_manager.register_alias("ed", "edit")  # type:ignore[union-attr]
 
     def init_virtualenv(self):
         """Initialize virtual environment."""

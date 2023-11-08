@@ -89,12 +89,12 @@ kernel_flags.update(
 )
 
 # inherit flags&aliases for any IPython shell apps
-kernel_aliases.update(shell_aliases)  # type:ignore[arg-type]
+kernel_aliases.update(shell_aliases)
 kernel_flags.update(shell_flags)
 
 # inherit flags&aliases for Sessions
-kernel_aliases.update(session_aliases)  # type:ignore[arg-type]
-kernel_flags.update(session_flags)  # type:ignore[arg-type]
+kernel_aliases.update(session_aliases)
+kernel_flags.update(session_flags)
 
 _ctrl_c_message = """\
 NOTE: When using the `ipython kernel` entry point, Ctrl-C will not work.
@@ -124,7 +124,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
         klass="ipykernel.kernelbase.Kernel",
         help="""The Kernel subclass to be used.
 
-    This should allow easy re-use of the IPKernelApp entry point
+    This should allow easy reuse of the IPKernelApp entry point
     to configure and launch kernels other than IPython's own.
     """,
     ).tag(config=True)
@@ -275,6 +275,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
             # original file had port number 0, we update with the actual port
             # used.
             existing_connection_info = get_connection_info(cf, unpack=True)
+            assert isinstance(existing_connection_info, dict)
             connection_info = dict(existing_connection_info, **connection_info)
             if connection_info == existing_connection_info:
                 self.log.debug("Connection file %s with current information already exists", cf)
@@ -460,9 +461,9 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
         if self.no_stdout or self.no_stderr:
             blackhole = open(os.devnull, "w")  # noqa
             if self.no_stdout:
-                sys.stdout = sys.__stdout__ = blackhole  # type:ignore
+                sys.stdout = sys.__stdout__ = blackhole  # type:ignore[misc]
             if self.no_stderr:
-                sys.stderr = sys.__stderr__ = blackhole  # type:ignore
+                sys.stderr = sys.__stderr__ = blackhole  # type:ignore[misc]
 
     def init_io(self):
         """Redirect input streams and set a display hook."""
@@ -547,7 +548,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
         control_stream = ZMQStream(self.control_socket, self.control_thread.io_loop)
         debugpy_stream = ZMQStream(self.debugpy_socket, self.control_thread.io_loop)
         self.control_thread.start()
-        kernel_factory = self.kernel_class.instance
+        kernel_factory = self.kernel_class.instance  # type:ignore[attr-defined]
 
         kernel = kernel_factory(
             parent=self,
@@ -634,7 +635,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
         but it is still preferable to run the Selector in the main thread
         instead of the background.
 
-        do this as early as possible to make it a low priority and overrideable
+        do this as early as possible to make it a low priority and overridable
 
         ref: https://github.com/tornadoweb/tornado/issues/2608
 
@@ -670,8 +671,8 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
 
         if hasattr(debugger, "InterruptiblePdb"):
             # Only available in newer IPython releases:
-            debugger.Pdb = debugger.InterruptiblePdb  # type:ignore
-            pdb.Pdb = debugger.Pdb  # type:ignore
+            debugger.Pdb = debugger.InterruptiblePdb  # type:ignore[misc]
+            pdb.Pdb = debugger.Pdb  # type:ignore[assignment,misc]
             pdb.set_trace = debugger.set_trace  # type:ignore[assignment]
 
     @catch_config_error

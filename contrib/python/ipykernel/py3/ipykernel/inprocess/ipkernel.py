@@ -47,11 +47,11 @@ class InProcessKernel(IPythonKernel):
     # Kernel interface
     # -------------------------------------------------------------------------
 
-    shell_class = Type(allow_none=True)
+    shell_class = Type(allow_none=True)  # type:ignore[assignment]
     _underlying_iopub_socket = Instance(DummySocket, ())
     iopub_thread: IOPubThread = Instance(IOPubThread)  # type:ignore[assignment]
 
-    shell_stream = Instance(DummySocket, ())
+    shell_stream = Instance(DummySocket, ())  # type:ignore[arg-type]
 
     @default("iopub_thread")
     def _default_iopub_thread(self):
@@ -72,7 +72,8 @@ class InProcessKernel(IPythonKernel):
         super().__init__(**traits)
 
         self._underlying_iopub_socket.observe(self._io_dispatch, names=["message_sent"])
-        self.shell.kernel = self
+        if self.shell:
+            self.shell.kernel = self
 
     async def execute_request(self, stream, ident, parent):
         """Override for temporary IO redirection."""
@@ -81,7 +82,8 @@ class InProcessKernel(IPythonKernel):
 
     def start(self):
         """Override registration of dispatchers for streams."""
-        self.shell.exit_now = False
+        if self.shell:
+            self.shell.exit_now = False
 
     def _abort_queues(self):
         """The in-process kernel doesn't abort requests."""
@@ -99,6 +101,7 @@ class InProcessKernel(IPythonKernel):
 
         # Send the input request.
         content = json_clean(dict(prompt=prompt, password=password))
+        assert self.session is not None
         msg = self.session.msg("input_request", content, parent)
         for frontend in self.frontends:
             if frontend.session.session == parent["header"]["session"]:
@@ -111,7 +114,7 @@ class InProcessKernel(IPythonKernel):
         # Await a response.
         while self.raw_input_str is None:
             frontend.stdin_channel.process_events()
-        return self.raw_input_str
+        return self.raw_input_str  # type:ignore[unreachable]
 
     # -------------------------------------------------------------------------
     # Protected interface
@@ -132,6 +135,7 @@ class InProcessKernel(IPythonKernel):
     def _io_dispatch(self, change):
         """Called when a message is sent to the IO socket."""
         assert self.iopub_socket.io_thread is not None
+        assert self.session is not None
         ident, msg = self.session.recv(self.iopub_socket.io_thread.socket, copy=False)
         for frontend in self.frontends:
             frontend.iopub_channel.call_handlers(msg)

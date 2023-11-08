@@ -29,7 +29,7 @@ from .zmqshell import ZMQInteractiveShell
 try:
     from IPython.core.interactiveshell import _asyncio_runner  # type:ignore[attr-defined]
 except ImportError:
-    _asyncio_runner = None  # type:ignore
+    _asyncio_runner = None  # type:ignore[assignment]
 
 try:
     from IPython.core.completer import provisionalcompleter as _provisionalcompleter
@@ -126,21 +126,21 @@ class IPythonKernel(KernelBase):
             kernel=self,
             compiler_class=XCachingCompiler,
         )
-        self.shell.displayhook.session = self.session
+        self.shell.displayhook.session = self.session  # type:ignore[attr-defined]
 
         jupyter_session_name = os.environ.get('JPY_SESSION_NAME')
         if jupyter_session_name:
             self.shell.user_ns['__session__'] = jupyter_session_name
 
-        self.shell.displayhook.pub_socket = self.iopub_socket
-        self.shell.displayhook.topic = self._topic("execute_result")
-        self.shell.display_pub.session = self.session
-        self.shell.display_pub.pub_socket = self.iopub_socket
+        self.shell.displayhook.pub_socket = self.iopub_socket  # type:ignore[attr-defined]
+        self.shell.displayhook.topic = self._topic("execute_result")  # type:ignore[attr-defined]
+        self.shell.display_pub.session = self.session  # type:ignore[attr-defined]
+        self.shell.display_pub.pub_socket = self.iopub_socket  # type:ignore[attr-defined]
 
         self.comm_manager = comm.get_comm_manager()
 
         assert isinstance(self.comm_manager, HasTraits)
-        self.shell.configurables.append(self.comm_manager)
+        self.shell.configurables.append(self.comm_manager)  # type:ignore[arg-type]
         comm_msg_types = ["comm_open", "comm_msg", "comm_close"]
         for msg_type in comm_msg_types:
             self.shell_handlers[msg_type] = getattr(self.comm_manager, msg_type)
@@ -206,7 +206,8 @@ class IPythonKernel(KernelBase):
 
     @property
     def banner(self):
-        return self.shell.banner
+        if self.shell:
+            return self.shell.banner
 
     async def poll_stopped_queue(self):
         """Poll the stopped queue."""
@@ -215,7 +216,8 @@ class IPythonKernel(KernelBase):
 
     def start(self):
         """Start the kernel."""
-        self.shell.exit_now = False
+        if self.shell:
+            self.shell.exit_now = False
         if self.debugpy_stream is None:
             self.log.warning("debugpy_stream undefined, debugging will not be enabled")
         else:
@@ -231,7 +233,7 @@ class IPythonKernel(KernelBase):
         about the parent message.
         """
         super().set_parent(ident, parent, channel)
-        if channel == "shell":
+        if channel == "shell" and self.shell:
             self.shell.set_parent(parent)
 
     def init_metadata(self, parent):
@@ -284,7 +286,8 @@ class IPythonKernel(KernelBase):
 
     @property
     def execution_count(self):
-        return self.shell.execution_count
+        if self.shell:
+            return self.shell.execution_count
 
     @execution_count.setter
     def execution_count(self, value):
@@ -328,7 +331,7 @@ class IPythonKernel(KernelBase):
             # use add_callback for thread safety
             self.io_loop.add_callback(set_sigint_result)
 
-        # set the custom sigint hander during this context
+        # set the custom sigint handler during this context
         save_sigint = signal.signal(signal.SIGINT, handle_sigint)
         try:
             yield
@@ -348,6 +351,7 @@ class IPythonKernel(KernelBase):
     ):
         """Handle code execution."""
         shell = self.shell  # we'll need this a lot here
+        assert shell is not None
 
         self._forward_input(allow_stdin)
 
@@ -371,13 +375,13 @@ class IPythonKernel(KernelBase):
             # not just asyncio
             preprocessing_exc_tuple = None
             try:
-                transformed_cell = self.shell.transform_cell(code)
+                transformed_cell = shell.transform_cell(code)
             except Exception:
                 transformed_cell = code
                 preprocessing_exc_tuple = sys.exc_info()
 
             if (
-                _asyncio_runner
+                _asyncio_runner  # type:ignore[truthy-bool]
                 and shell.loop_runner is _asyncio_runner
                 and asyncio.get_event_loop().is_running()
                 and should_run_async(
@@ -488,6 +492,7 @@ class IPythonKernel(KernelBase):
             cursor_pos = len(code)
         line, offset = line_at_cursor(code, cursor_pos)
         line_cursor = cursor_pos - offset
+        assert self.shell is not None
         txt, matches = self.shell.complete("", line, line_cursor)
         return {
             "matches": matches,
@@ -509,6 +514,7 @@ class IPythonKernel(KernelBase):
         if cursor_pos is None:
             cursor_pos = len(code)
         with _provisionalcompleter():
+            assert self.shell is not None
             raw_completions = self.shell.Completer.completions(code, cursor_pos)
             completions = list(_rectify_completions(code, raw_completions))
 
@@ -548,6 +554,7 @@ class IPythonKernel(KernelBase):
         reply_content: t.Dict[str, t.Any] = {"status": "ok"}
         reply_content["data"] = {}
         reply_content["metadata"] = {}
+        assert self.shell is not None
         try:
             if release.version_info >= (8,):
                 # `omit_sections` keyword will be available in IPython 8, see
@@ -581,6 +588,7 @@ class IPythonKernel(KernelBase):
         unique=False,
     ):
         """Handle code history."""
+        assert self.shell is not None
         if hist_access_type == "tail":
             hist = self.shell.history_manager.get_tail(
                 n, raw=raw, output=output, include_latest=True
@@ -605,7 +613,8 @@ class IPythonKernel(KernelBase):
 
     def do_shutdown(self, restart):
         """Handle kernel shutdown."""
-        self.shell.exit_now = True
+        if self.shell:
+            self.shell.exit_now = True
         return dict(status="ok", restart=restart)
 
     def do_is_complete(self, code):
@@ -613,6 +622,7 @@ class IPythonKernel(KernelBase):
         transformer_manager = getattr(self.shell, "input_transformer_manager", None)
         if transformer_manager is None:
             # input_splitter attribute is deprecated
+            assert self.shell is not None
             transformer_manager = self.shell.input_splitter
         status, indent_spaces = transformer_manager.check_complete(code)
         r = {"status": status}
@@ -628,6 +638,7 @@ class IPythonKernel(KernelBase):
             from .serialize import serialize_object, unpack_apply_message
 
         shell = self.shell
+        assert shell is not None
         try:
             working = shell.user_ns
 
@@ -652,6 +663,7 @@ class IPythonKernel(KernelBase):
                 for key in ns:
                     working.pop(key)
 
+            assert self.session is not None
             result_buf = serialize_object(
                 result,
                 buffer_threshold=self.session.buffer_threshold,
@@ -686,7 +698,8 @@ class IPythonKernel(KernelBase):
 
     def do_clear(self):
         """Clear the kernel."""
-        self.shell.reset(False)
+        if self.shell:
+            self.shell.reset(False)
         return dict(status="ok")
 
 
