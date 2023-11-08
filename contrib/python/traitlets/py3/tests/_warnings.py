@@ -38,7 +38,7 @@ def all_warnings():
     """
 
     # Whenever a warning is triggered, Python adds a __warningregistry__
-    # member to the *calling* module.  The exercize here is to find
+    # member to the *calling* module.  The exercise here is to find
     # and eradicate all those breadcrumbs that were left lying around.
     #
     # We proceed by first searching all parent calling frames and explicitly
@@ -88,7 +88,7 @@ def expected_warnings(matching):
     Raises a ValueError if any match was not found or an unexpected
     warning was raised.
     Allows for three types of behaviors: "and", "or", and "optional" matches.
-    This is done to accomodate different build enviroments or loop conditions
+    This is done to accommodate different build environments or loop conditions
     that may produce different warnings.  The behaviors can be combined.
     If you pass multiple patterns, you get an orderless "and", where all of the
     warnings must be raised.

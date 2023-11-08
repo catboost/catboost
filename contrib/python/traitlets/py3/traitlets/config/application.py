@@ -298,7 +298,7 @@ class Application(SingletonConfigurable):
         log = logging.getLogger(self.__class__.__name__)
         log.propagate = False
         _log = log  # copied from Logger.hasHandlers() (new in Python 3.2)
-        while _log:
+        while _log is not None:
             if _log.handlers:
                 return log
             if not _log.propagate:
@@ -337,21 +337,21 @@ class Application(SingletonConfigurable):
             .. code-block:: python
 
                c.Application.logging_config = {
-                   'handlers': {
-                       'file': {
-                           'class': 'logging.FileHandler',
-                           'level': 'DEBUG',
-                           'filename': '<path/to/file>',
+                   "handlers": {
+                       "file": {
+                           "class": "logging.FileHandler",
+                           "level": "DEBUG",
+                           "filename": "<path/to/file>",
                        }
                    },
-                   'loggers': {
-                       '<application-name>': {
-                           'level': 'DEBUG',
+                   "loggers": {
+                       "<application-name>": {
+                           "level": "DEBUG",
                            # NOTE: if you don't list the default "console"
                            # handler here then it will be disabled
-                           'handlers': ['console', 'file'],
+                           "handlers": ["console", "file"],
                        },
-                   }
+                   },
                }
 
         """,
@@ -535,7 +535,7 @@ class Application(SingletonConfigurable):
                 trait = cls.class_traits(config=True)[traitname]
                 fhelp_lines = cls.class_get_trait_help(trait, helptext=fhelp).splitlines()
 
-                if not isinstance(alias, tuple):
+                if not isinstance(alias, tuple):  # type:ignore[unreachable]
                     alias = (alias,)  # type:ignore[assignment]
                 alias = sorted(alias, key=len)  # type:ignore[assignment]
                 alias = ", ".join(("--%s" if len(m) > 1 else "-%s") % m for m in alias)
@@ -559,7 +559,7 @@ class Application(SingletonConfigurable):
 
         for flags, (cfg, fhelp) in self.flags.items():
             try:
-                if not isinstance(flags, tuple):
+                if not isinstance(flags, tuple):  # type:ignore[unreachable]
                     flags = (flags,)  # type:ignore[assignment]
                 flags = sorted(flags, key=len)  # type:ignore[assignment]
                 flags = ", ".join(("--%s" if len(m) > 1 else "-%s") % m for m in flags)
@@ -643,7 +643,7 @@ class Application(SingletonConfigurable):
 
         if classes:
             help_classes = self._classes_with_config_traits()
-            if help_classes:
+            if help_classes is not None:
                 yield "Class options"
                 yield "============="
                 for p in wrap_paragraphs(self.keyvalue_description):
@@ -752,7 +752,7 @@ class Application(SingletonConfigurable):
             if len(children) == 1:
                 # exactly one descendent, promote alias
                 cls = children[0]  # type:ignore[assignment]
-            if not isinstance(aliases, tuple):
+            if not isinstance(aliases, tuple):  # type:ignore[unreachable]
                 alias = (alias,)  # type:ignore[assignment]
             for al in alias:
                 aliases[al] = ".".join([cls, trait])  # type:ignore[list-item]
@@ -773,7 +773,7 @@ class Application(SingletonConfigurable):
                 else:
                     newflag[cls] = subdict
 
-            if not isinstance(key, tuple):
+            if not isinstance(key, tuple):  # type:ignore[unreachable]
                 key = (key,)  # type:ignore[assignment]
             for k in key:
                 flags[k] = (newflag, help)

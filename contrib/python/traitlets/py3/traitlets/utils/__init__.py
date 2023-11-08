@@ -16,7 +16,7 @@ def filefind(filename: str, path_dirs: Sequence[str] | None = None) -> str:
     """Find a file by looking through a sequence of paths.
 
     This iterates through a sequence of paths looking for a file and returns
-    the full, absolute path of the first occurence of the file.  If no set of
+    the full, absolute path of the first occurrence of the file.  If no set of
     path dirs is given, the filename is tested as is, after running through
     :func:`expandvars` and :func:`expanduser`.  Thus a simple call::
 

@@ -176,7 +176,7 @@ class LazyConfigValue(HasTraits):
         after applying any insert / extend / update changes
         """
         if self._value is not None:
-            return self._value
+            return self._value  # type:ignore[unreachable]
         value = copy.deepcopy(initial)
         if isinstance(value, list):
             for idx, obj in self._inserts:
@@ -860,7 +860,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             arguments from. If not given, the instance's self.argv attribute
             (given at construction time) is used.
         flags
-            Deprecated in traitlets 5.0, instanciate the config loader with the flags.
+            Deprecated in traitlets 5.0, instantiate the config loader with the flags.
 
         """
 
@@ -914,7 +914,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             for alias, alias_target in self.aliases.items():
                 if alias in self.flags:
                     continue
-                if not isinstance(alias, tuple):
+                if not isinstance(alias, tuple):  # type:ignore[unreachable]
                     alias = (alias,)  # type:ignore[assignment]
                 for al in alias:
                     if len(al) == 1:
@@ -1057,7 +1057,9 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
                 action = paa(*keys, **argparse_kwds)
                 if argcompleter is not None:
                     # argcomplete's completers are callables returning list of completion strings
-                    action.completer = functools.partial(argcompleter, key=key)  # type: ignore
+                    action.completer = functools.partial(  # type:ignore[attr-defined]
+                        argcompleter, key=key
+                    )
 
     def _convert_to_config(self):
         """self.parsed_data->self.config, parse unrecognized extra args via KVLoader."""

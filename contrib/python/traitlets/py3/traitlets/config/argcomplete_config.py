@@ -10,7 +10,7 @@ import typing as t
 
 try:
     import argcomplete
-    from argcomplete import CompletionFinder  # type:ignore
+    from argcomplete import CompletionFinder
 except ImportError:
     # This module and its utility methods are written to not crash even
     # if argcomplete is not installed.
@@ -20,8 +20,8 @@ except ImportError:
                 raise ModuleNotFoundError("No module named 'argcomplete'")
             raise AttributeError(f"argcomplete stub module has no attribute '{attr}'")
 
-    argcomplete = StubModule()  # type:ignore
-    CompletionFinder = object  # type:ignore
+    argcomplete = StubModule()  # type:ignore[assignment]
+    CompletionFinder = object  # type:ignore[assignment, misc]
 
 
 def get_argcomplete_cwords() -> t.Optional[t.List[str]]:
@@ -45,9 +45,7 @@ def get_argcomplete_cwords() -> t.Optional[t.List[str]]:
             cword_suffix,
             comp_words,
             last_wordbreak_pos,
-        ) = argcomplete.split_line(  # type:ignore
-            comp_line, comp_point
-        )
+        ) = argcomplete.split_line(comp_line, comp_point)
     except ModuleNotFoundError:
         return None
 
@@ -75,9 +73,7 @@ def increment_argcomplete_index() -> None:
         os.environ["_ARGCOMPLETE"] = str(int(os.environ["_ARGCOMPLETE"]) + 1)
     except Exception:
         try:
-            argcomplete.debug(  # type:ignore
-                "Unable to increment $_ARGCOMPLETE", os.environ["_ARGCOMPLETE"]
-            )
+            argcomplete.debug("Unable to increment $_ARGCOMPLETE", os.environ["_ARGCOMPLETE"])
         except (KeyError, ModuleNotFoundError):
             pass
 
@@ -153,7 +149,7 @@ class ExtendedCompletionFinder(CompletionFinder):
     def _get_completions(
         self, comp_words: t.List[str], cword_prefix: str, *args: t.Any
     ) -> t.List[str]:
-        """Overriden to dynamically append --Class.trait arguments if appropriate
+        """Overridden to dynamically append --Class.trait arguments if appropriate
 
         Warning:
             This does not (currently) support completions of the form
@@ -200,7 +196,7 @@ class ExtendedCompletionFinder(CompletionFinder):
         # Instead, check if comp_words only consists of the script,
         # if so check if any subcommands start with cword_prefix.
         if self.subcommands and len(comp_words) == 1:
-            argcomplete.debug("Adding subcommands for", cword_prefix)  # type:ignore
+            argcomplete.debug("Adding subcommands for", cword_prefix)
             completions.extend(subc for subc in self.subcommands if subc.startswith(cword_prefix))
 
         return completions
@@ -208,7 +204,7 @@ class ExtendedCompletionFinder(CompletionFinder):
     def _get_option_completions(
         self, parser: argparse.ArgumentParser, cword_prefix: str
     ) -> t.List[str]:
-        """Overriden to add --Class. completions when appropriate"""
+        """Overridden to add --Class. completions when appropriate"""
         completions: t.List[str]
         completions = super()._get_option_completions(parser, cword_prefix)
         if cword_prefix.endswith("."):
@@ -217,7 +213,7 @@ class ExtendedCompletionFinder(CompletionFinder):
         matched_completions = self.match_class_completions(cword_prefix)
         if len(matched_completions) > 1:
             completions.extend(opt for cls, opt in matched_completions)
-        # If there is exactly one match, we would expect it to have aleady
+        # If there is exactly one match, we would expect it to have already
         # been handled by the options dynamically added in _get_completions().
         # However, maybe there's an edge cases missed here, for example if the
         # matched class has no configurable traits.

@@ -20,7 +20,7 @@ def describe(
     article : str or None
         A definite or indefinite article. If the article is
         indefinite (i.e. "a" or "an") the appropriate one
-        will be infered. Thus, the arguments of ``describe``
+        will be inferred. Thus, the arguments of ``describe``
         can themselves represent what the resulting string
         will actually look like. If None, then no article
         will be prepended to the result. For non-articled
@@ -31,7 +31,7 @@ def describe(
     name : str or None (default: None)
         Only applies when ``article`` is "the" - this
         ``name`` is a definite reference to the value.
-        By default one will be infered from the value's
+        By default one will be inferred from the value's
         type and repr methods.
     verbose : bool (default: False)
         Whether the name should be concise or verbose. When
@@ -145,7 +145,7 @@ def class_of(value: Any) -> Any:
 def add_article(name: str, definite: bool = False, capital: bool = False) -> str:
     """Returns the string with a prepended article.
 
-    The input does not need to begin with a charater.
+    The input does not need to begin with a character.
 
     Parameters
     ----------

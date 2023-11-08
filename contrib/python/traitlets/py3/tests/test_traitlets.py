@@ -2013,7 +2013,7 @@ class TestLink(TestCase):
         a = A(value=9)
         b = A(value=8)
 
-        # Conenct the two classes.
+        # Connect the two classes.
         c = link((a, "value"), (b, "value"))
 
         # Make sure the values are the same at the point of linking.
@@ -2038,7 +2038,7 @@ class TestLink(TestCase):
         a = A(value=9)
         b = B(count=8)
 
-        # Conenct the two classes.
+        # Connect the two classes.
         c = link((a, "value"), (b, "count"))
 
         # Make sure the values are the same at the point of linking.
@@ -2126,7 +2126,7 @@ class TestLink(TestCase):
         a = A(value=9)
         b = A(value=8)
 
-        # Conenct the two classes.
+        # Connect the two classes.
         c = link((a, "value"), (b, "value"), transform=(lambda x: 2 * x, lambda x: int(x / 2.0)))
 
         # Make sure the values are correct at the point of linking.
@@ -2178,7 +2178,7 @@ class TestDirectionalLink(TestCase):
         a = A(value=9)
         b = A(value=8)
 
-        # Conenct the two classes.
+        # Connect the two classes.
         c = directional_link((a, "value"), (b, "value"))
 
         # Make sure the values are the same at the point of linking.
@@ -2201,7 +2201,7 @@ class TestDirectionalLink(TestCase):
         a = A(value=9)
         b = A(value=8)
 
-        # Conenct the two classes.
+        # Connect the two classes.
         c = directional_link((a, "value"), (b, "value"), lambda x: 2 * x)
 
         # Make sure the values are correct at the point of linking.
@@ -2227,7 +2227,7 @@ class TestDirectionalLink(TestCase):
         a = A(value=9)
         b = B(count=8)
 
-        # Conenct the two classes.
+        # Connect the two classes.
         c = directional_link((a, "value"), (b, "count"))
 
         # Make sure the values are the same at the point of linking.

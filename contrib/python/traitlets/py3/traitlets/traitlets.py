@@ -234,7 +234,7 @@ def getmembers(object, predicate=None):
 
     This is useful when there are descriptor based attributes that for
     some reason raise AttributeError even though they exist.  This happens
-    in zope.inteface with the __provides__ attribute.
+    in zope.interface with the __provides__ attribute.
     """
     results = []
     for key in dir(object):
@@ -437,9 +437,9 @@ class BaseDescriptor:
     """
 
     name: str | None = None
-    this_class: type[t.Any] | None = None
+    this_class: type[HasTraits] | None = None
 
-    def class_init(self, cls, name):
+    def class_init(self, cls: type[HasTraits], name: str | None) -> None:
         """Part of the initialization which may depend on the underlying
         HasDescriptors class.
 
@@ -452,18 +452,18 @@ class BaseDescriptor:
         self.this_class = cls
         self.name = name
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[HasTraits]) -> None:
         # Instead of HasDescriptors.setup_instance calling
         # every instance_init, we opt in by default.
         # This gives descriptors a change to opt out for
         # performance reasons.
         # Because most traits do not need instance_init,
         # and it will otherwise be called for every HasTrait instance
-        # beging created, this otherwise gives a significant performance
+        # being created, this otherwise gives a significant performance
         # pentalty. Most TypeTraits in traitlets opt out.
         cls._instance_inits.append(self.instance_init)
 
-    def instance_init(self, obj):
+    def instance_init(self, obj: t.Any) -> None:
         """Part of the initialization which may depend on the underlying
         HasDescriptors instance.
 
@@ -497,7 +497,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
     allow_none: bool = False
     read_only: bool = False
     info_text: str = "any value"
-    default_value: t.Any | None = Undefined
+    default_value: t.Any = Undefined
 
     def __init__(
         self: TraitType[G, S],
@@ -567,7 +567,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         if help is not None:
             self.metadata["help"] = help
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> G | None:
         """Get a value from a config string
 
         such as an environment variable or CLI arguments.
@@ -581,9 +581,9 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         """
         if self.allow_none and s == "None":
             return None
-        return s
+        return s  # type:ignore[return-value]
 
-    def default(self, obj=None):
+    def default(self, obj: t.Any = None) -> G | None:
         """The default generator for this trait
 
         Notes
@@ -599,7 +599,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
             # Undefined will raise in TraitType.get
             return self.default_value
 
-    def get_default_value(self):
+    def get_default_value(self) -> G | None:
         """DEPRECATED: Retrieve the static default value for this trait.
         Use self.default_value instead
         """
@@ -610,7 +610,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         )
         return self.default_value
 
-    def init_default_value(self, obj):
+    def init_default_value(self, obj: t.Any) -> G:
         """DEPRECATED: Set the static default value for the trait type."""
         warn(
             "init_default_value is deprecated in traitlets 4.0, and may be removed in the future",
@@ -622,8 +622,9 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         return value
 
     def get(self, obj: HasTraits, cls: t.Any = None) -> G | None:
+        assert self.name is not None
         try:
-            value = obj._trait_values[self.name]  # type: ignore
+            value = obj._trait_values[self.name]  # type: ignore[index]
         except KeyError:
             # Check for a dynamic initializer.
             default = obj.trait_defaults(self.name)
@@ -643,7 +644,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
                 value = self._validate(obj, default)
             finally:
                 obj._cross_validation_lock = _cross_validation_lock
-            obj._trait_values[self.name] = value  # type: ignore
+            obj._trait_values[self.name] = value  # type: ignore[index]
             obj._notify_observers(
                 Bunch(
                     name=self.name,
@@ -652,12 +653,12 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
                     type="default",
                 )
             )
-            return value  # type: ignore
+            return value
         except Exception as e:
             # This should never be reached.
             raise TraitError("Unexpected error in TraitType: default value not set properly") from e
         else:
-            return value  # type: ignore
+            return value
 
     if t.TYPE_CHECKING:
         # This gives ok type information, but not specific enough (e.g. it will)
@@ -718,8 +719,9 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         else:
             return t.cast(G, self.get(obj, cls))  # the G should encode the Optional
 
-    def set(self, obj, value):
+    def set(self, obj: HasTraits, value: S) -> None:
         new_value = self._validate(obj, value)
+        assert self.name is not None
         try:
             old_value = obj._trait_values[self.name]
         except KeyError:
@@ -804,7 +806,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
             the deepest).
         info : str (default: None)
             A description of the expected value. By
-            default this is infered from this trait's
+            default this is inferred from this trait's
             ``info`` method.
         """
         if error is not None:
@@ -965,7 +967,7 @@ class MetaHasDescriptors(type):
     instantiated and sets their name attribute.
     """
 
-    def __new__(mcls, name, bases, classdict):  # noqa
+    def __new__(mcls, name, bases, classdict, **kwds):  # noqa
         """Create the HasDescriptors class."""
         for k, v in classdict.items():
             # ----------------------------------------------------------------
@@ -981,11 +983,11 @@ class MetaHasDescriptors(type):
                 classdict[k] = v()
             # ----------------------------------------------------------------
 
-        return super().__new__(mcls, name, bases, classdict)
+        return super().__new__(mcls, name, bases, classdict, **kwds)
 
-    def __init__(cls, name: str, bases: t.Any, classdict: t.Any) -> None:
+    def __init__(cls, name: str, bases: t.Any, classdict: t.Any, **kwds) -> None:
         """Finish initializing the HasDescriptors class."""
-        super().__init__(name, bases, classdict)
+        super().__init__(name, bases, classdict, **kwds)
         cls.setup_class(classdict)
 
     def setup_class(cls, classdict):
@@ -999,11 +1001,11 @@ class MetaHasDescriptors(type):
         cls._instance_inits = []
         for k, v in classdict.items():
             if isinstance(v, BaseDescriptor):
-                v.class_init(cls, k)
+                v.class_init(cls, k)  # type:ignore[arg-type]
 
         for _, v in getmembers(cls):
             if isinstance(v, BaseDescriptor):
-                v.subclass_init(cls)
+                v.subclass_init(cls)  # type:ignore[arg-type]
                 cls._descriptors.append(v)
 
 
@@ -1143,8 +1145,8 @@ def observe_compat(func: FuncT) -> FuncT:
     def compatible_observer(
         self: t.Any, change_or_name: str, old: t.Any = Undefined, new: t.Any = Undefined
     ) -> t.Any:
-        if isinstance(change_or_name, dict):
-            change = Bunch(change_or_name)
+        if isinstance(change_or_name, dict):  # type:ignore[unreachable]
+            change = Bunch(change_or_name)  # type:ignore[unreachable]
         else:
             clsname = self.__class__.__name__
             warn(
@@ -1414,7 +1416,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
                 stacklevel=2,
             )
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict[str, t.Any]:
         d = self.__dict__.copy()
         # event handlers stored on an instance are
         # expected to be reinstantiated during a
@@ -1426,7 +1428,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
 
         return d
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict[str, t.Any]) -> None:
         self.__dict__ = state.copy()
 
         # event handlers are reassigned to self
@@ -1507,7 +1509,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
                     self.set_trait(name, value)
             except TraitError as e:
                 # Roll back in case of TraitError during final cross validation.
-                self.notify_change = lambda x: None  # type:ignore[method-assign]
+                self.notify_change = lambda x: None  # type:ignore[method-assign, assignment]
                 for name, changes in cache.items():
                     for change in changes[::-1]:
                         # TODO: Separate in a rollback function per notification type.
@@ -1539,15 +1541,15 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
             )
         )
 
-    def notify_change(self, change):
+    def notify_change(self, change: Bunch) -> None:
         """Notify observers of a change event"""
         return self._notify_observers(change)
 
-    def _notify_observers(self, event):
+    def _notify_observers(self, event: Bunch) -> None:
         """Notify observers of any event"""
         if not isinstance(event, Bunch):
             # cast to bunch if given a dict
-            event = Bunch(event)
+            event = Bunch(event)  # type:ignore[unreachable]
         name, type = event['name'], event['type']
 
         callables = []
@@ -1756,7 +1758,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         for name in names:
             self._trait_validators[name] = handler
 
-    def add_traits(self, **traits):
+    def add_traits(self, **traits: t.Any) -> None:
         """Dynamically add trait attributes to the HasTraits instance."""
         cls = self.__class__
         attrs = {"__module__": cls.__module__}
@@ -1768,7 +1770,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         for trait in traits.values():
             trait.instance_init(self)
 
-    def set_trait(self, name, value):
+    def set_trait(self, name: str, value: t.Any) -> None:
         """Forcibly sets trait attribute, including read-only attributes."""
         cls = self.__class__
         if not self.has_trait(name):
@@ -1777,7 +1779,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
             getattr(cls, name).set(self, value)
 
     @classmethod
-    def class_trait_names(cls, **metadata):
+    def class_trait_names(cls: type[HasTraits], **metadata: t.Any) -> list[str]:
         """Get a list of all the names of this class' traits.
 
         This method is just like the :meth:`trait_names` method,
@@ -1786,7 +1788,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         return list(cls.class_traits(**metadata))
 
     @classmethod
-    def class_traits(cls, **metadata):
+    def class_traits(cls: type[HasTraits], **metadata: t.Any) -> dict[str, TraitType]:
         """Get a ``dict`` of all the traits of this class.  The dictionary
         is keyed on the name and the values are the TraitType objects.
 
@@ -1820,7 +1822,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         return result
 
     @classmethod
-    def class_own_traits(cls, **metadata):
+    def class_own_traits(cls: type[HasTraits], **metadata: t.Any) -> dict[str, TraitType]:
         """Get a dict of all the traitlets defined on this class, not a parent.
 
         Works like `class_traits`, except for excluding traits from parents.
@@ -1832,11 +1834,11 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
             if getattr(sup, n, None) is not t
         }
 
-    def has_trait(self, name):
+    def has_trait(self, name: str) -> bool:
         """Returns True if the object has a trait with the specified name."""
         return name in self._traits
 
-    def trait_has_value(self, name):
+    def trait_has_value(self, name: str) -> bool:
         """Returns True if the specified trait has a value.
 
         This will return false even if ``getattr`` would return a
@@ -1851,14 +1853,15 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
             class MyClass(HasTraits):
                 i = Int()
 
+
             mc = MyClass()
             assert not mc.trait_has_value("i")
-            mc.i # generates a default value
+            mc.i  # generates a default value
             assert mc.trait_has_value("i")
         """
         return name in self._trait_values
 
-    def trait_values(self, **metadata):
+    def trait_values(self, **metadata: t.Any) -> dict[str, t.Any]:
         """A ``dict`` of trait names and their values.
 
         The metadata kwargs allow functions to be passed in which
@@ -1892,7 +1895,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
             return getattr(self.__class__, method_name)
         return self._all_trait_default_generators[name]
 
-    def trait_defaults(self, *names, **metadata):
+    def trait_defaults(self, *names: str, **metadata: t.Any) -> dict[str, t.Any]:
         """Return a trait's default value or a dictionary of them
 
         Notes
@@ -1914,11 +1917,11 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
             defaults[n] = self._get_trait_default_generator(n)(self)
         return defaults
 
-    def trait_names(self, **metadata):
+    def trait_names(self, **metadata: t.Any) -> list[str]:
         """Get a list of all the names of this class' traits."""
         return list(self.traits(**metadata))
 
-    def traits(self, **metadata):
+    def traits(self, **metadata: t.Any) -> dict[str, TraitType]:
         """Get a ``dict`` of all the traits of this class.  The dictionary
         is keyed on the name and the values are the TraitType objects.
 
@@ -1949,7 +1952,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
 
         return result
 
-    def trait_metadata(self, traitname, key, default=None):
+    def trait_metadata(self, traitname: str, key: str, default: t.Any = None) -> t.Any:
         """Get metadata values for trait by key."""
         try:
             trait = getattr(self.__class__, traitname)
@@ -1964,7 +1967,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
             return trait.metadata.get(key, default)
 
     @classmethod
-    def class_own_trait_events(cls, name):
+    def class_own_trait_events(cls: type[HasTraits], name: str) -> dict[str, EventHandler]:
         """Get a dict of all event handlers defined on this class, not a parent.
 
         Works like ``event_handlers``, except for excluding traits from parents.
@@ -1977,7 +1980,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         }
 
     @classmethod
-    def trait_events(cls, name=None):
+    def trait_events(cls: type[HasTraits], name: str | None = None) -> dict[str, EventHandler]:
         """Get a ``dict`` of all the event handlers of this class.
 
         Parameters
@@ -3670,7 +3673,12 @@ class Set(Container[t.Set[t.Any]]):
 
     def set(self, obj, value):
         if isinstance(value, str):
-            return super().set(obj, [value])
+            return super().set(
+                obj,
+                set(
+                    value,
+                ),
+            )
         else:
             return super().set(obj, value)
 
@@ -3993,7 +4001,7 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
                     self.element_error(obj, v, active_value_trait, "Values")
             validated[key] = v
 
-        return self.klass(validated)  # type:ignore
+        return self.klass(validated)  # type:ignore[misc,operator]
 
     def class_init(self, cls, name):
         if isinstance(self._value_trait, TraitType):
@@ -4174,19 +4182,22 @@ class UseEnum(TraitType[t.Any, t.Any]):
         import enum
         from traitlets import HasTraits, UseEnum
 
+
         class Color(enum.Enum):
-            red = 1         # -- IMPLICIT: default_value
+            red = 1  # -- IMPLICIT: default_value
             blue = 2
             green = 3
+
 
         class MyEntity(HasTraits):
             color = UseEnum(Color, default_value=Color.blue)
 
+
         entity = MyEntity(color=Color.red)
-        entity.color = Color.green    # USE: Enum-value (preferred)
-        entity.color = "green"        # USE: name (as string)
+        entity.color = Color.green  # USE: Enum-value (preferred)
+        entity.color = "green"  # USE: name (as string)
         entity.color = "Color.green"  # USE: scoped-name (as string)
-        entity.color = 3              # USE: number (as int)
+        entity.color = 3  # USE: number (as int)
         assert entity.color is Color.green
     """
 

@@ -14,7 +14,7 @@ import sys
 import typing as t
 from io import StringIO
 from tempfile import TemporaryDirectory
-from unittest import TestCase
+from unittest import TestCase, mock
 
 import pytest
 from pytest import mark
@@ -24,11 +24,6 @@ from traitlets.config.application import Application
 from traitlets.config.configurable import Configurable
 from traitlets.config.loader import Config, KVArgParseConfigLoader
 from traitlets.tests.utils import check_help_all_output, check_help_output, get_output_error_code
-
-try:
-    from unittest import mock
-except ImportError:
-    from unittest import mock
 
 pjoin = os.path.join
 
@@ -665,7 +660,7 @@ class TestApplication(TestCase):
             with self.assertRaises(AttributeError):
                 app.loaded_config_files = "/foo"  # type:ignore
 
-            # ensure it can't be udpated via append
+            # ensure it can't be updated via append
             app.loaded_config_files.append("/bar")
             self.assertEqual(len(app.loaded_config_files), 1)
 
