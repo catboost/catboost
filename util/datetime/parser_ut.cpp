@@ -281,6 +281,13 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
         UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(637487058), p.GetResult(TInstant::Zero()));
     }
 
+    Y_UNIT_TEST(TestIso8601BeforeEpoch) {
+        TIso8601DateTimeParser p;
+        static constexpr TStringBuf timestamp = "0001-01-01T00:00:00Z";
+        UNIT_ASSERT(p.ParsePart(timestamp.begin(), timestamp.size()));
+        UNIT_ASSERT_VALUES_EQUAL(p.GetDateTimeFields().Year, 1);
+    }
+
     Y_UNIT_TEST(TestIso8601Correct) {
         bool ret;
         time_t t;
