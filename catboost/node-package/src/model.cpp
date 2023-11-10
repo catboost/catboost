@@ -85,7 +85,7 @@ void TModel::SetPredictionType(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
 
     if (!NHelper::Check(env, info.Length() >= 1, "Wrong number of arguments") ||
-        !NHelper::Check(env, info[0].IsString(), "File name string is required")) {
+        !NHelper::Check(env, info[0].IsString(), "predictionType argument must have string type")) {
         return;
     }
 
