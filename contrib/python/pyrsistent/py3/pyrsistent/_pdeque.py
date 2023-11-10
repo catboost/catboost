@@ -1,10 +1,13 @@
 from collections.abc import Sequence, Hashable
 from itertools import islice, chain
 from numbers import Integral
+from typing import TypeVar, Generic
 from pyrsistent._plist import plist
 
+T_co = TypeVar('T_co', covariant=True)
 
-class PDeque(object):
+
+class PDeque(Generic[T_co]):
     """
     Persistent double ended queue (deque). Allows quick appends and pops in both ends. Implemented
     using two persistent lists.
@@ -175,7 +178,7 @@ class PDeque(object):
         return False
 
     def __hash__(self):
-        return  hash(tuple(self))
+        return hash(tuple(self))
 
     def __len__(self):
         return self._length
@@ -275,7 +278,7 @@ class PDeque(object):
             try:
                 # This is severely inefficient with a double reverse, should perhaps implement a remove_last()?
                 return PDeque(self._left_list,
-                               self._right_list.reverse().remove(elem).reverse(), self._length - 1)
+                              self._right_list.reverse().remove(elem).reverse(), self._length - 1)
             except ValueError as e:
                 raise ValueError('{0} not found in PDeque'.format(elem)) from e
 

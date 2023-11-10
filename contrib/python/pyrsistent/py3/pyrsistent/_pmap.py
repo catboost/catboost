@@ -1,8 +1,12 @@
 from collections.abc import Mapping, Hashable
 from itertools import chain
+from typing import Generic, TypeVar
+
 from pyrsistent._pvector import pvector
 from pyrsistent._transformations import transform
 
+KT = TypeVar('KT')
+VT_co = TypeVar('VT_co', covariant=True)
 class PMapView:
     """View type for the persistent map/dict type `PMap`.
 
@@ -103,7 +107,7 @@ class PMapItems(PMapView):
         elif not isinstance(x, type(self)): return False
         else: return self._map == x._map
 
-class PMap(object):
+class PMap(Generic[KT, VT_co]):
     """
     Persistent map/dict. Tries to follow the same naming conventions as the built in dict where feasible.
 
@@ -409,7 +413,8 @@ class PMap(object):
                 for k, v in bucket:
                     if k == key:
                         if v is not val:
-                            new_bucket = [(k2, v2) if k2 != k else (k2, val) for k2, v2 in bucket]
+                            # Use `not (k2 == k)` rather than `!=` to avoid relying on a well implemented `__ne__`, see #268.
+                            new_bucket = [(k2, v2) if not (k2 == k) else (k2, val) for k2, v2 in bucket]
                             self._buckets_evolver[index] = new_bucket
 
                         return self
@@ -472,10 +477,12 @@ class PMap(object):
             index, bucket = PMap._get_bucket(self._buckets_evolver, key)
 
             if bucket:
-                new_bucket = [(k, v) for (k, v) in bucket if k != key]
-                if len(bucket) > len(new_bucket):
+                # Use `not (k == key)` rather than `!=` to avoid relying on a well implemented `__ne__`, see #268.
+                new_bucket = [(k, v) for (k, v) in bucket if not (k == key)]
+                size_diff = len(bucket) - len(new_bucket)
+                if size_diff > 0:
                     self._buckets_evolver[index] = new_bucket if new_bucket else None
-                    self._size -= 1
+                    self._size -= size_diff
                     return self
 
             raise KeyError('{0}'.format(key))

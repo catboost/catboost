@@ -127,6 +127,10 @@ def _update_structure(structure, kvs, path, command):
         for k, v in kvs:
             is_empty = False
             if v is _EMPTY_SENTINEL:
+                if command is discard:
+                    # If nothing there when discarding just move on, do not introduce new nodes
+                    continue
+
                 # Allow expansion of structure but make sure to cover the case
                 # when an empty pmap is added as leaf node. See #154.
                 is_empty = True

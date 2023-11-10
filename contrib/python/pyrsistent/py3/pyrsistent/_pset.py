@@ -1,9 +1,12 @@
 from collections.abc import Set, Hashable
 import sys
+from typing import TypeVar, Generic
 from pyrsistent._pmap import pmap
 
+T_co = TypeVar('T_co', covariant=True)
 
-class PSet(object):
+
+class PSet(Generic[T_co]):
     """
     Persistent set implementation. Built on top of the persistent map. The set supports all operations
     in the Set protocol and is Hashable.

@@ -1,13 +1,16 @@
 from collections.abc import Container, Iterable, Sized, Hashable
 from functools import reduce
+from typing import Generic, TypeVar
 from pyrsistent._pmap import pmap
+
+T_co = TypeVar('T_co', covariant=True)
 
 
 def _add_to_counters(counters, element):
     return counters.set(element, counters.get(element, 0) + 1)
 
 
-class PBag(object):
+class PBag(Generic[T_co]):
     """
     A persistent bag/multiset type.
 

@@ -579,7 +579,7 @@ In this regard, thaw operates as the inverse of freeze so will thaw values insid
 Compatibility
 -------------
 
-Pyrsistent is developed and tested on Python 3.7+ and PyPy3.
+Pyrsistent is developed and tested on Python 3.8+ and PyPy3.
 
 Performance
 -----------
@@ -718,6 +718,12 @@ dscrofts https://github.com/dscrofts
 Andy Reagan https://github.com/andyreagan
 
 Aaron Durant https://github.com/Aaron-Durant
+
+Joshua Munn https://github.com/jams2
+
+Lukas https://github.com/lukasK9999
+
+Arshad https://github.com/arshad-ml
 
 Contributing
 ------------

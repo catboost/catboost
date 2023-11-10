@@ -1,6 +1,9 @@
 from collections.abc import Sequence, Hashable
 from numbers import Integral
 from functools import reduce
+from typing import Generic, TypeVar
+
+T_co = TypeVar('T_co', covariant=True)
 
 
 class _PListBuilder(object):
@@ -219,7 +222,7 @@ class _PListBase(object):
         raise ValueError('{0} not found in PList'.format(elem))
 
 
-class PList(_PListBase):
+class PList(Generic[T_co], _PListBase):
     """
     Classical Lisp style singly linked list. Adding elements to the head using cons is O(1).
     Element access is O(k) where k is the position of the element in the list. Taking the

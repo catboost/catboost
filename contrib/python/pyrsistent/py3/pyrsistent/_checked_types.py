@@ -2,10 +2,15 @@ from enum import Enum
 
 from abc import abstractmethod, ABCMeta
 from collections.abc import Iterable
+from typing import TypeVar, Generic
 
 from pyrsistent._pmap import PMap, pmap
 from pyrsistent._pset import PSet, pset
 from pyrsistent._pvector import PythonPVector, python_pvector
+
+T_co = TypeVar('T_co', covariant=True)
+KT = TypeVar('KT')
+VT_co = TypeVar('VT_co', covariant=True)
 
 
 class CheckedType(object):
@@ -271,7 +276,7 @@ def _checked_type_create(cls, source_data, _factory_fields=None, ignore_extra=Fa
 
     return cls(source_data)
 
-class CheckedPVector(PythonPVector, CheckedType, metaclass=_CheckedTypeMeta):
+class CheckedPVector(Generic[T_co], PythonPVector, CheckedType, metaclass=_CheckedTypeMeta):
     """
     A CheckedPVector is a PVector which allows specifying type and invariant checks.
 
@@ -357,7 +362,7 @@ class CheckedPVector(PythonPVector, CheckedType, metaclass=_CheckedTypeMeta):
         return CheckedPVector.Evolver(self.__class__, self)
 
 
-class CheckedPSet(PSet, CheckedType, metaclass=_CheckedTypeMeta):
+class CheckedPSet(PSet[T_co], CheckedType, metaclass=_CheckedTypeMeta):
     """
     A CheckedPSet is a PSet which allows specifying type and invariant checks.
 
@@ -455,7 +460,7 @@ class _CheckedMapTypeMeta(type):
 _UNDEFINED_CHECKED_PMAP_SIZE = object()
 
 
-class CheckedPMap(PMap, CheckedType, metaclass=_CheckedMapTypeMeta):
+class CheckedPMap(PMap[KT, VT_co], CheckedType, metaclass=_CheckedMapTypeMeta):
     """
     A CheckedPMap is a PMap which allows specifying type and invariant checks.
 

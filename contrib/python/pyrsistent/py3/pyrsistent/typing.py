@@ -36,36 +36,38 @@ try:
     ]
 
     T = TypeVar('T')
+    T_co = TypeVar('T_co', covariant=True)
     KT = TypeVar('KT')
     VT = TypeVar('VT')
+    VT_co = TypeVar('VT_co', covariant=True)
 
-    class CheckedPMap(Mapping[KT, VT], Hashable):
+    class CheckedPMap(Mapping[KT, VT_co], Hashable):
         pass
 
     # PSet.add and PSet.discard have different type signatures than that of Set.
-    class CheckedPSet(Generic[T], Hashable):
+    class CheckedPSet(Generic[T_co], Hashable):
         pass
 
-    class CheckedPVector(Sequence[T], Hashable):
+    class CheckedPVector(Sequence[T_co], Hashable):
         pass
 
-    class PBag(Container[T], Iterable[T], Sized, Hashable):
+    class PBag(Container[T_co], Iterable[T_co], Sized, Hashable):
         pass
 
-    class PDeque(Sequence[T], Hashable):
+    class PDeque(Sequence[T_co], Hashable):
         pass
 
-    class PList(Sequence[T], Hashable):
+    class PList(Sequence[T_co], Hashable):
         pass
 
-    class PMap(Mapping[KT, VT], Hashable):
+    class PMap(Mapping[KT, VT_co], Hashable):
         pass
 
     # PSet.add and PSet.discard have different type signatures than that of Set.
-    class PSet(Generic[T], Hashable):
+    class PSet(Generic[T_co], Hashable):
         pass
 
-    class PVector(Sequence[T], Hashable):
+    class PVector(Sequence[T_co], Hashable):
         pass
 
     class PVectorEvolver(Generic[T]):
