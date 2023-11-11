@@ -32,7 +32,7 @@ else:  # pragma: win32 no cover # noqa: PLR5501
         if warnings is not None:
             warnings.warn("only soft file lock is available", stacklevel=2)
 
-if TYPE_CHECKING:  # noqa: SIM108
+if TYPE_CHECKING:
     FileLock = SoftFileLock
 else:
     #: Alias for the lock, which should be used for the current platform.
