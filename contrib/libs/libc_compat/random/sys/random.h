@@ -7,7 +7,19 @@ extern "C" {
 #include <sys/types.h>
 
 #if !defined(SYS_getrandom)
-	#define SYS_getrandom   318
+#if defined(__x86_64__)
+    #define SYS_getrandom 318
+#elif defined(__i386__)
+    #define SYS_getrandom 355
+#elif defined(__aarch64__)
+    #define SYS_getrandom 278
+#elif defined(__arm__)
+    #define SYS_getrandom 384
+#elif defined(__powerpc__)
+    #define SYS_getrandom 359
+#else
+#error Unsupported platform
+#endif
 #endif
 
 #define GRND_NONBLOCK	0x0001
