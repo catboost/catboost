@@ -1,17 +1,15 @@
 TIFF Software Distribution
 --------------------------
-This file is just a placeholder; all the documentation is now in
-HTML in the html directory.  To view the documentation point your
-favorite WWW viewer at html/index.html; 
+This file is just a placeholder; the entire documentation is now located
+as reStructuredText in the doc directory. To view the documentation
+as HTML, visit https://libtiff.gitlab.io/libtiff/ or
+http://www.simplesystems.org/libtiff/ or within the release package
+in the doc/html-prebuilt directory. The manual pages are
+located at doc/man-prebuilt.
 
-e.g.
+The release package can be downloaded at
 
-    firefox html/index.html
-
-If you don't have an HTML viewer then you can read the HTML source
-or fetch a PostScript version of this documentation from the directory
-
-    http://download.osgeo.org/libtiff/
+http://download.osgeo.org/libtiff/
 
 If you can't hack either of these options then basically what you
 want to do is:

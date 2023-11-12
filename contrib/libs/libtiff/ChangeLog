@@ -1,3 +1,369 @@
+2023-09-05  Even Rouault  <even.rouault@spatialys.com>
+
+	libtiff v4.6.0 released
+
+2023-09-05  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix_600' into 'master'
+	CMake: fix build with -Dstrip-chopping=off (fixes #600)
+
+	See merge request libtiff/libtiff!527
+
+2023-09-05  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'georgthegreat-master-patch-87447' into 'master'
+	Fix using __attribute__ libtiff with clang-for-windows
+
+	See merge request libtiff/libtiff!525
+
+2023-09-05  Yuriy Chernyshov  <georgthegreat@gmail.com>
+
+	Fix using __attribute__ libtiff with clang-for-windows.
+
+2023-09-05  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'manpage_TIFFField_docu_update' into 'master'
+	manpages: TiffField functions documentation updated with return behaviour for...
+
+	See merge request libtiff/libtiff!526
+
+2023-09-05  Even Rouault  <even.rouault@spatialys.com>
+
+	CMake: fix build with -Dstrip-chopping=off (fixes #600)
+
+2023-09-03  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'consistently_update_TIFF-version_from_configure-ac' into 'master'
+	Update CMake and autoconf scripts to consistently update LibTIFF version...
+
+	See merge request libtiff/libtiff!456
+
+2023-09-03  Su Laus  <sulau@freenet.de>
+
+	Update CMake and autoconf scripts to consistently update LibTIFF version defines and references in various files when version definition in configure.ac has been changed.
+	- Move in tiffvers.h from .\libtiff source directory to .\libtiff  build directory.
+	- Remove unused version information from tif_config.h
+	- With every CMake build the version defines (e.g. 4.5.1) within tiffvers.h are consistently updated from configure.ac. The version release-date is taken from file RELEASE-DATE.
+	- The files VERSION and RELEASE-DATE are only updated with a special CMake target build: cmake --build . --target tiff_release.
+
+	- For autotools, version information is updated from configure.ac with ./autogen.sh. LIBTIFF_RELEASE_DATE is taken form file RELEASE-DATE.
+	- ./configure generates tiffvers.h with the cached version information and LIBTIFF_RELEASE_DATE.
+	- "make release" updates tiffvers.h and VERSION file with cached version info and RELEASE-DATE file and tiffves.h with the current date.
+
+2023-08-28  Su_Laus  <sulau@freenet.de>
+
+	manpages: TiffField functions documentation updated with return behaviour for not defined tags and determination of write-/read-count size.
+
+2023-08-22  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'change_long_to_int32_t_in_two_test_apps' into 'master'
+	Change "long" to "int32_t" in two test apps, because can be either int32_t or...
+
+	See merge request libtiff/libtiff!524
+
+2023-08-21  Su_Laus  <sulau@freenet.de>
+
+	Change "long" to "int32_t" in two test apps, because can be either int32_t or int64_t, depending on compiler and system.
+
+2023-08-16  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'CI_CMake_static_build' into 'master'
+	Add static build for CI/CD to run testcases which need private interface functions.
+
+	See merge request libtiff/libtiff!521
+
+2023-08-16  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix_#597_tiffset_different_signedness' into 'master'
+	tiffset fix #597: warning: comparison of integer expressions of different signedness.
+
+	Closes #597
+
+	See merge request libtiff/libtiff!523
+
+2023-08-16  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'tiffcp_remove_i_option' into 'master'
+	tiffcp: remove -i option (ignore errors)
+
+	See merge request libtiff/libtiff!522
+
+2023-08-16  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'move_tools_to_unsupported_a_archive' into 'master'
+	Move most TIFF tools to archive and keep some as unsupported (see #580).
+
+	See merge request libtiff/libtiff!520
+
+2023-08-16  Su Laus  <sulau@freenet.de>
+
+	Move most TIFF tools to archive and keep some as unsupported (see #580).
+
+2023-08-12  Su_Laus  <sulau@freenet.de>
+
+	Add static build for CI/CD to run testcases which need private interface functions.
+
+	tiffset fix #597: warning: comparison of integer expressions of different signedness.
+
+	Remove -i option (ignore errors) from tiffcp, because almost all fuzzer issues were consequential errors from ignored errors because of the "-i" option.
+
+2023-08-11  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix_585_test_write_read_tags_autoconf' into 'master'
+	Add missing test_write_read_tags.c and test_transferfunction_write_read.c in...
+
+	Closes #585
+
+	See merge request libtiff/libtiff!519
+
+2023-07-24  Even Rouault  <even.rouault@spatialys.com>
+
+	Fix copy paste error.
+
+2023-07-23  Su_Laus  <sulau@freenet.de>
+
+	Add missing test_write_read_tags.c and test_transferfunction_write_read.c in tarball (fixes #585) and correct „long“ issue.
+	Don't use "long" because can be int32_t or int64_t, depending on compiler and system.
+
+2023-07-20  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'clang-format-tools' into 'master'
+	Automatically format with clang-format
+
+	See merge request libtiff/libtiff!518
+
+2023-07-20  Timothy Lyanguzov  <timothy.lyanguzov@sap.com>
+
+	Automatically format with clang-format.
+
+2023-07-20  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix_589' into 'master'
+	TiffConfig.cmake.in: set TIFF_INCLUDE_DIR, TIFF_INCLUDE_DIRS and...
+
+	Closes #589
+
+	See merge request libtiff/libtiff!514
+
+2023-07-20  Even Rouault  <even.rouault@spatialys.com>
+
+	TiffConfig.cmake.in: set TIFF_INCLUDE_DIR, TIFF_INCLUDE_DIRS and...
+
+2023-07-19  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'master-patch-6fc6' into 'master'
+	raw2tiff: fix integer overflow and bypass of the check (fixes #592)
+
+	See merge request libtiff/libtiff!516
+
+2023-07-19  Arie Haenel  <arie.haenel@jct.ac.il>
+
+	raw2tiff: fix integer overflow and bypass of the check (fixes #592)
+
+2023-07-19  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'master-patch-05a4' into 'master'
+	tiffcp: fix memory corruption (overflow) on hostile images (fixes #591)
+
+	See merge request libtiff/libtiff!515
+
+2023-07-19  Arie Haenel  <arie.haenel@jct.ac.il>
+
+	tiffcp: fix memory corruption (overflow) on hostile images (fixes #591)
+
+2023-07-17  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix-numtrunc' into 'master'
+	fix numtrunc at tiff_dirread.c
+
+	See merge request libtiff/libtiff!512
+
+2023-07-17  headshog  <craaaaaachind@gmail.com>
+
+	TIFFReadDirectoryCheckOrder: avoid integer overflow.
+	When it occurs, it should be harmless in practice though
+
+2023-07-17  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'webp_lossless_exact' into 'master'
+	WebP codec: turn exact mode when creating lossless files to avoid altering...
+
+	See merge request libtiff/libtiff!511
+
+2023-07-11  Even Rouault  <even.rouault@spatialys.com>
+
+	WebP codec: turn exact mode when creating lossless files to avoid altering R,G,B values in areas where alpha=0
+	Fixes https://github.com/OSGeo/gdal/issues/8038
+
+2023-07-05  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'webp_reg_fix' into 'master'
+	WebP decoder: fix error when reading a 3-band blob in a RGBA image
+
+	See merge request libtiff/libtiff!510
+
+2023-07-05  Even Rouault  <even.rouault@spatialys.com>
+
+	WebP decoder: fix error when reading a 3-band blob in a RGBA image.
+	Fixes regression of 350ff161c8a61b6483a1e4689e09cd47dd0dd5f9 (master only)
+
+2023-06-26  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'appveyor_fix' into 'master'
+	.appveyor.yml: workaround build error
+
+	See merge request libtiff/libtiff!509
+
+2023-06-26  Even Rouault  <even.rouault@spatialys.com>
+
+	.appveyor.yml: workaround build error.
+
+2023-06-26  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'tif_webp_warning_fixes' into 'master'
+	tif_webp.c: fix signed vs unsigned comparison warnings (fix previous commit)
+
+	See merge request libtiff/libtiff!508
+
+2023-06-26  Even Rouault  <even.rouault@spatialys.com>
+
+	tif_webp.c: fix signed vs unsigned comparison warnings (fix previous commit)
+
+2023-06-26  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix_TransferFunction_writing' into 'master'
+	Fix TransferFunction writing of only two transfer functions.
+
+	See merge request libtiff/libtiff!502
+
+2023-06-26  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix_581_582' into 'master'
+	WebP decoder: validate WebP blob width, height, band count against TIFF parameters
+
+	Closes #582 et #581
+
+	See merge request libtiff/libtiff!507
+
+2023-06-19  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'warning_cmake_config_file' into 'master'
+	v4.5.1 release note: add warning about CMake config file being preview
+
+	See merge request libtiff/libtiff!506
+
+2023-06-17  Even Rouault  <even.rouault@spatialys.com>
+
+	WebP decoder: validate WebP blob width, height, band count against TIFF parameters
+	to avoid use of uninitialized variable, or decoding corrupted content
+	without explicit error
+
+	Fixes #581, fixes #582
+
+2023-06-15  Even Rouault  <even.rouault@spatialys.com>
+
+	v4.5.1 release note: add warning about CMake config file being preview.
+
+2023-06-14  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'HOWTO-RELEASE-gitlab-release' into 'master'
+	HOWTO-RELEASE: mention creating a gitlab release
+
+	See merge request libtiff/libtiff!505
+
+2023-06-14  Even Rouault  <even.rouault@spatialys.com>
+
+	HOWTO-RELEASE: mention creating a gitlab release.
+
+2023-06-10  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'TIFFOpenWExt_O_RDWR' into 'master'
+	TIFFOpenWExt(): mode r+ in the Windows implementation adjusted to that of Linux
+
+	See merge request libtiff/libtiff!504
+
+2023-06-10  Even Rouault  <even.rouault@spatialys.com>
+
+	TIFFOpenWExt(): mode r+ in the Windows implementation adjusted to that of Linux
+
+2023-06-10  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix_ossfuzz_59751' into 'master'
+	TIFFReadDirectory(): fix crash when reading tag TIFFTAG_EP_BATTERYLEVEL
+
+	See merge request libtiff/libtiff!503
+
+2023-06-10  Even Rouault  <even.rouault@spatialys.com>
+
+	TIFFReadDirectory(): fix crash when reading tag TIFFTAG_EP_BATTERYLEVEL.
+	Fixes https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=59751
+
+	In 738e0409 (refs #575), we disabled DNG / EP tags, but there was a
+	special proessing for TIFFTAG_EP_BATTERYLEVEL that must be disabled
+	since the tag is no longer defined.
+
+2023-06-09  Su_Laus  <sulau@freenet.de>
+
+	Fix TransferFunction writing of only two transfer functions. The TIFFWriteDirectoryTagTransferfunction() function writes in some cases only two transfer functions, although only exactly one or exactly three transfer functions are allowed. This then leads to an error when reading. --> TIFFReadDirectory: Warning, Incorrect count for "TransferFunction"; tag ignored.
+	This MR corrects the behaviour of TIFFWriteDirectoryTagTransferfunction() accordingly. Furthermore, a possible buffer overflow is avoided.
+
+2023-06-09  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix_win_build' into 'master'
+	Fix Windows build
+
+	Closes #578
+
+	See merge request libtiff/libtiff!501
+
+2023-06-09  Even Rouault  <even.rouault@spatialys.com>
+
+	cmake/PkgConfig.cmake: avoid CMake error when prefix or suffix is empty.
+
+	Add tif_win32_versioninfo.rc and tif_tools_versioninfo.rc to EXTRA_DIST.
+
+2023-06-09  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix_coverity_build' into 'master'
+	build/gitlab-ci: fix coverity_build()
+
+	See merge request libtiff/libtiff!499
+
+2023-06-09  Even Rouault  <even.rouault@spatialys.com>
+
+	build/gitlab-ci: fix coverity_build()
+
+2023-06-09  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'v4.5.1rc1_preparation' into 'master'
+	Prepare release 4.5.1
+
+	See merge request libtiff/libtiff!498
+
+2023-06-09  Even Rouault  <even.rouault@spatialys.com>
+
+	Prepare for v4.5.1 release.
+
+	Merge remote-tracking branch 'sulaus/Rel_4.5.1_preparation'
+
+2023-06-09  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'disable_dng_tags' into 'master'
+	tif_dirinfo.c: disable DNG 1.2->1.6 tags
+
+	Closes #575
+
+	See merge request libtiff/libtiff!497
+
+2023-06-09  Even Rouault  <even.rouault@spatialys.com>
+
+	Merge branch 'fix_577' into 'master'
+	CMake related fixes
+
+	Closes #577
+
+	See merge request libtiff/libtiff!496
+
 2023-06-09  Even Rouault  <even.rouault@spatialys.com>
 
 	libtiff v4.5.1 released

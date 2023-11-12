@@ -5034,7 +5034,7 @@ static void TIFFReadDirectoryCheckOrder(TIFF *tif, TIFFDirEntry *dir,
                                         uint16_t dircount)
 {
     static const char module[] = "TIFFReadDirectoryCheckOrder";
-    uint16_t m;
+    uint32_t m;
     uint16_t n;
     TIFFDirEntry *o;
     m = 0;

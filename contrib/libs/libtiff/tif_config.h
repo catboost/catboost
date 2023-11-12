@@ -40,18 +40,6 @@
 /* Define to 1 if you have the `getopt' function. */
 #define HAVE_GETOPT 1
 
-/* Define to 1 if you have the <GLUT/glut.h> header file. */
-/* #undef HAVE_GLUT_GLUT_H */
-
-/* Define to 1 if you have the <GL/glut.h> header file. */
-/* #undef HAVE_GL_GLUT_H */
-
-/* Define to 1 if you have the <GL/glu.h> header file. */
-/* #undef HAVE_GL_GLU_H */
-
-/* Define to 1 if you have the <GL/gl.h> header file. */
-/* #undef HAVE_GL_GL_H */
-
 /* Define to 1 if you have the <io.h> header file. */
 /* #undef HAVE_IO_H */
 
@@ -60,12 +48,6 @@
 
 /* Define to 1 if you have the `mmap' function. */
 #define HAVE_MMAP 1
-
-/* Define to 1 if you have the <OpenGL/glu.h> header file. */
-/* #undef HAVE_OPENGL_GLU_H */
-
-/* Define to 1 if you have the <OpenGL/gl.h> header file. */
-/* #undef HAVE_OPENGL_GL_H */
 
 /* Define to 1 if you have the `setmode' function. */
 /* #undef HAVE_SETMODE */
@@ -95,22 +77,16 @@
 #define PACKAGE "LibTIFF Software"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "tiff@lists.maptools.org"
+#define PACKAGE_BUGREPORT "tiff@lists.osgeo.org"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "LibTIFF Software"
-
-/* Define to the full name and version of this package. */
-#define PACKAGE_STRING "LibTIFF Software 4.5.1"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "tiff"
 
 /* Define to the home page for this package. */
 #define PACKAGE_URL ""
-
-/* Define to the version of this package. */
-#define PACKAGE_VERSION "4.5.1"
 
 /* Size of size_t */
 #define SIZEOF_SIZE_T 8
@@ -123,9 +99,6 @@
 
 /* define to use win32 IO system */
 /* #undef USE_WIN32_FILEIO */
-
-/* Version number of package */
-#define VERSION "4.5.1"
 
 /* Support WEBP compression */
 #define WEBP_SUPPORT 1
