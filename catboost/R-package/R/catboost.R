@@ -29,6 +29,8 @@ NULL
 #' @param label The label vector or label matrix
 #' @param cat_features A vector of categorical features indices.
 #' The indices are zero based and can differ from the given in the Column descriptions file.
+#' If data parameter is data.frame don't use cat_features, categorical features are determined automatically
+#' from data.frame column types.
 #' @param column_description The path to the input file that contains the column descriptions.
 #' @param pairs A file path, matrix or data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
 #' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.

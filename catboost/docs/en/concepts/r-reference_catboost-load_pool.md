@@ -70,6 +70,9 @@ A vector of categorical features indices.
 
 The indices are zero-based and can differ from the ones given in the [columns description](../concepts/input-data_column-descfile.md) file.
 
+If `data` parameter is `data.frame` don't use `cat_features`, categorical features are determined automatically
+ from `data.frame` column types.
+
 
 **Default value**
 
