@@ -136,6 +136,7 @@ enum ELanguage: unsigned {
     LANG_BRE = 119,         // Breton
     LANG_SAH = 120,         // Yakut
     LANG_KAZ_LAT = 121,     // Latin Kazakh
+    LANG_KJH = 122,         // Khakas
     LANG_MAX
 };
 
