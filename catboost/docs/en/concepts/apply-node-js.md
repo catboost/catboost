@@ -49,7 +49,3 @@ prediction = model.predict([
 );
 console.log(prediction);
 ```
-
-## Release procedure
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md).

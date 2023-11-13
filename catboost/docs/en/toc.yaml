@@ -945,6 +945,8 @@ items:
         name: Java
       - href: concepts/export-coreml.md
         name: CoreML
+      - href: concepts/apply-node-js.md
+        name: Node.js
       - href: concepts/apply-onnx-ml.md
         name: ONNX
       - href: concepts/apply-rust.md

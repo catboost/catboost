@@ -34,6 +34,8 @@ links:
         href: concepts/c-plus-plus-api
       - title: Java
         href: concepts/java-package
+      - title: Node.js
+        href: concepts/apply-node-js
       - title: Rust
         href: concepts/apply-rust
       - title: Calculate metrics
