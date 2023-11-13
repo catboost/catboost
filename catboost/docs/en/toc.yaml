@@ -1081,6 +1081,8 @@ items:
             name: Transforming categorical features to numerical features
           - href: concepts/algorithm-main-stages_text-to-numeric.md
             name: Transforming text features to numerical features
+          - href: concepts/algorithm-main-stages_embedding-to-numeric.md
+            name: Transforming embedding features to numerical features
           - href: concepts/algorithm-main-stages_choose-tree-structure.md
             name: Choosing the tree structure
           - href: concepts/algorithm-main-stages_bootstrap-options.md

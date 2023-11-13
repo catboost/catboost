@@ -96,7 +96,7 @@ Text features are transformed to numerical. The transformation method generally 
     6 | [22, 25, 26, 21]
     7 | [22, 27, 12, 28, 29, 24, 4]
 
-    {% endcut %}        
+    {% endcut %}
 
 1. **Estimating numerical features**
 
