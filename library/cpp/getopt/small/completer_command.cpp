@@ -64,7 +64,7 @@ namespace NLastGetopt {
             "completions to `~/.zfunc`:"
             "\n"
             "\n"
-            "    $ mkdir -p ~/.zfunc"
+            "    $ mkdir -m755 -p ~/.zfunc"
             "\n"
             "    $ {command} {completion} zsh > ~/.zfunc/_{command}"
             "\n"
