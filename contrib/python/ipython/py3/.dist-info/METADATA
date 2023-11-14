@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.16.1
+Version: 8.17.1
 Summary: IPython: Productive Interactive Computing
 Home-page: https://ipython.org
 Author: The IPython Development Team
@@ -26,11 +26,9 @@ Classifier: Topic :: System :: Shells
 Requires-Python: >=3.9
 Description-Content-Type: text/x-rst
 License-File: LICENSE
-Requires-Dist: backcall
 Requires-Dist: decorator
 Requires-Dist: jedi >=0.13
 Requires-Dist: matplotlib-inline
-Requires-Dist: pickleshare
 Requires-Dist: prompt-toolkit !=3.0.37,<3.1.0,>=3.0.30
 Requires-Dist: pygments >=2.4.0
 Requires-Dist: stack-data
@@ -55,6 +53,7 @@ Requires-Dist: exceptiongroup ; extra == 'all'
 Requires-Dist: pytest <7.1 ; extra == 'all'
 Requires-Dist: pytest-asyncio ; extra == 'all'
 Requires-Dist: testpath ; extra == 'all'
+Requires-Dist: pickleshare ; extra == 'all'
 Requires-Dist: nbconvert ; extra == 'all'
 Requires-Dist: nbformat ; extra == 'all'
 Requires-Dist: ipywidgets ; extra == 'all'
@@ -63,7 +62,7 @@ Requires-Dist: ipyparallel ; extra == 'all'
 Requires-Dist: qtconsole ; extra == 'all'
 Requires-Dist: curio ; extra == 'all'
 Requires-Dist: matplotlib !=3.2.0 ; extra == 'all'
-Requires-Dist: numpy >=1.21 ; extra == 'all'
+Requires-Dist: numpy >=1.22 ; extra == 'all'
 Requires-Dist: pandas ; extra == 'all'
 Requires-Dist: trio ; extra == 'all'
 Provides-Extra: black
@@ -82,6 +81,7 @@ Requires-Dist: exceptiongroup ; extra == 'doc'
 Requires-Dist: pytest <7.1 ; extra == 'doc'
 Requires-Dist: pytest-asyncio ; extra == 'doc'
 Requires-Dist: testpath ; extra == 'doc'
+Requires-Dist: pickleshare ; extra == 'doc'
 Provides-Extra: kernel
 Requires-Dist: ipykernel ; extra == 'kernel'
 Provides-Extra: nbconvert
@@ -100,14 +100,16 @@ Provides-Extra: test
 Requires-Dist: pytest <7.1 ; extra == 'test'
 Requires-Dist: pytest-asyncio ; extra == 'test'
 Requires-Dist: testpath ; extra == 'test'
+Requires-Dist: pickleshare ; extra == 'test'
 Provides-Extra: test_extra
 Requires-Dist: pytest <7.1 ; extra == 'test_extra'
 Requires-Dist: pytest-asyncio ; extra == 'test_extra'
 Requires-Dist: testpath ; extra == 'test_extra'
+Requires-Dist: pickleshare ; extra == 'test_extra'
 Requires-Dist: curio ; extra == 'test_extra'
 Requires-Dist: matplotlib !=3.2.0 ; extra == 'test_extra'
 Requires-Dist: nbformat ; extra == 'test_extra'
-Requires-Dist: numpy >=1.21 ; extra == 'test_extra'
+Requires-Dist: numpy >=1.22 ; extra == 'test_extra'
 Requires-Dist: pandas ; extra == 'test_extra'
 Requires-Dist: trio ; extra == 'test_extra'
 
