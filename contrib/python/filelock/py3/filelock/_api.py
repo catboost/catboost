@@ -87,6 +87,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         thread_local: bool = True,  # noqa: ARG003, FBT001, FBT002
         *,
         is_singleton: bool = False,
+        **kwargs: dict[str, Any],  # capture remaining kwargs for subclasses  # noqa: ARG003
     ) -> Self:
         """Create a new lock object or if specified return the singleton instance for the lock file."""
         if not is_singleton:
