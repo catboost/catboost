@@ -78,7 +78,7 @@ class JupyterApp(Application):
     def _log_level_default(self) -> int:
         return logging.INFO
 
-    jupyter_path: list[str] | List = List(Unicode())
+    jupyter_path = List(Unicode())
 
     def _jupyter_path_default(self) -> list[str]:
         return jupyter_path()
@@ -165,7 +165,7 @@ class JupyterApp(Application):
         """Migrate config/data from IPython 3"""
         try:  # let's see if we can open the marker file
             # for reading and updating (writing)
-            f_marker = open(os.path.join(self.config_dir, "migrated"), 'r+')  # noqa
+            f_marker = open(os.path.join(self.config_dir, "migrated"), "r+")  # noqa
         except PermissionError:  # not readable and/or writable
             return  # so let's give up migration in such an environment
         except FileNotFoundError:  # cannot find the marker file

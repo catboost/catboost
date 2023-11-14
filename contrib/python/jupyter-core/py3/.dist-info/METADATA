@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: jupyter_core
-Version: 5.4.0
+Version: 5.5.0
 Summary: Jupyter core package. A base package on which Jupyter projects rely.
 Project-URL: Homepage, https://jupyter.org
 Project-URL: Documentation, https://jupyter-core.readthedocs.io/
@@ -52,6 +52,7 @@ Requires-Dist: pywin32>=300; sys_platform == 'win32' and platform_python_impleme
 Requires-Dist: traitlets>=5.3
 Provides-Extra: docs
 Requires-Dist: myst-parser; extra == 'docs'
+Requires-Dist: pydata-sphinx-theme; extra == 'docs'
 Requires-Dist: sphinx-autodoc-typehints; extra == 'docs'
 Requires-Dist: sphinxcontrib-github-alt; extra == 'docs'
 Requires-Dist: sphinxcontrib-spelling; extra == 'docs'

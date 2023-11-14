@@ -25,8 +25,13 @@ from .utils import deprecation
 
 pjoin = os.path.join
 
-# Capitalize Jupyter in paths only on Windows and MacOS
-APPNAME = "Jupyter" if sys.platform in ("win32", "darwin") else "jupyter"
+# Capitalize Jupyter in paths only on Windows and MacOS (when not in Homebrew)
+if sys.platform == "win32" or (
+    sys.platform == "darwin" and not sys.prefix.startswith("/opt/homebrew")
+):
+    APPNAME = "Jupyter"
+else:
+    APPNAME = "jupyter"
 
 # UF_HIDDEN is a stat flag not defined in the stat module.
 # It is used by BSD to indicate hidden files.
@@ -83,7 +88,7 @@ def _do_i_own(path: str) -> bool:
     except Exception:  # noqa
         pass
 
-    if hasattr(os, 'geteuid'):
+    if hasattr(os, "geteuid"):
         try:
             st = p.stat()
             return st.st_uid == os.geteuid()
