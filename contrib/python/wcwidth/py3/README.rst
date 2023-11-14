@@ -216,9 +216,14 @@ Other Languages
 =======
 History
 =======
+0.2.9 *2023-10-30*
+  * **Bugfix** zero-width characters used in Emoji ZWJ sequences, Balinese,
+    Jamo, Devanagari, Tamil, Kannada and others (`PR #91`_).
+  * **Updated** to include `Specification <Specification_from_pypi>`_ of
+    character measurements.
 
 0.2.8 *2023-09-30*
-  * Include requirements files in the source distibution (`PR #82`).
+  * Include requirements files in the source distibution (`PR #82`_).
 
 0.2.7 *2023-09-28*
   * **Updated** tables to include Unicode Specification 15.1.0.
@@ -296,6 +301,7 @@ https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c::
  * for any purpose and without fee is hereby granted. The author
  * disclaims all warranties with regard to this software.
 
+.. _`Specification_from_pypi`: https://wcwidth.readthedocs.io/en/latest/specs.html
 .. _`tox`: https://tox.wiki/en/latest/
 .. _`prospector`: https://github.com/landscapeio/prospector
 .. _`combining`: https://en.wikipedia.org/wiki/Combining_character
@@ -311,6 +317,8 @@ https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c::
 .. _`PR #18`: https://github.com/jquast/wcwidth/pull/18
 .. _`PR #30`: https://github.com/jquast/wcwidth/pull/30
 .. _`PR #35`: https://github.com/jquast/wcwidth/pull/35
+.. _`PR #82`: https://github.com/jquast/wcwidth/pull/82
+.. _`PR #91`: https://github.com/jquast/wcwidth/pull/91
 .. _`jquast/blessed`: https://github.com/jquast/blessed
 .. _`selectel/pyte`: https://github.com/selectel/pyte
 .. _`thomasballinger/curtsies`: https://github.com/thomasballinger/curtsies
