@@ -199,7 +199,7 @@ class Application(SingletonConfigurable):
     version: str | Unicode[str, str | bytes] = Unicode("0.0")
 
     # the argv used to initialize the application
-    argv = List()
+    argv: list[str] | List[str] = List()
 
     # Whether failing to load config files should prevent startup
     raise_config_file_errors = Bool(TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR)
@@ -241,7 +241,7 @@ class Application(SingletonConfigurable):
                 "console": {
                     "class": "logging.StreamHandler",
                     "formatter": "console",
-                    "level": logging.getLevelName(self.log_level),
+                    "level": logging.getLevelName(self.log_level),  # type:ignore[arg-type]
                     "stream": "ext://sys.stderr",
                 },
             },
@@ -278,7 +278,7 @@ class Application(SingletonConfigurable):
         # convert log level strings to ints
         log_level = self.log_level
         if isinstance(log_level, str):
-            self.log_level = getattr(logging, log_level)
+            self.log_level = t.cast(int, getattr(logging, log_level))
         self._configure_logging()
 
     @observe("log", type="default")
@@ -400,7 +400,7 @@ class Application(SingletonConfigurable):
     # this must be a dict of two-tuples,
     # the first element being the application class/import string
     # and the second being the help string for the subcommand
-    subcommands: dict[str, t.Any] | Dict = Dict()
+    subcommands: dict[str, t.Any] | Dict[str, t.Any] = Dict()
     # parse_command_line will initialize a subapp, if requested
     subapp = Instance("traitlets.config.application.Application", allow_none=True)
 
@@ -418,7 +418,7 @@ class Application(SingletonConfigurable):
         """,
     )
 
-    _loaded_config_files = List()
+    _loaded_config_files: List[str] = List()
 
     show_config = Bool(
         help="Instead of starting the Application, dump configuration to stdout"

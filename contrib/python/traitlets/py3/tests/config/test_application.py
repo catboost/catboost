@@ -130,7 +130,7 @@ class TestApplication(TestCase):
         self.assertEqual(app.config_file, "")
 
     def test_app_name_set_via_constructor(self):
-        app = MyApp(name='set_via_constructor')
+        app = MyApp(name="set_via_constructor")
         assert app.name == "set_via_constructor"
 
     def test_mro_discovery(self):

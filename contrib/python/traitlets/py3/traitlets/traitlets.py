@@ -39,8 +39,6 @@ Inheritance diagram:
 # Adapted from enthought.traits, Copyright (c) Enthought, Inc.,
 # also under the terms of the Modified BSD License.
 
-# ruff: noqa: ANN001, ANN204, ANN201, ANN003, ANN206, ANN002
-
 from __future__ import annotations
 
 import contextlib
@@ -64,6 +62,11 @@ SequenceTypes = (list, tuple, set, frozenset)
 
 # backward compatibility, use to differ between Python 2 and 3.
 ClassTypes = (type,)
+
+if t.TYPE_CHECKING:
+    from typing_extensions import TypeVar
+else:
+    from typing import TypeVar
 
 # exports:
 
@@ -166,11 +169,11 @@ class TraitError(Exception):
 # -----------------------------------------------------------------------------
 
 
-def isidentifier(s):
-    return s.isidentifier()
+def isidentifier(s: t.Any) -> bool:
+    return t.cast(bool, s.isidentifier())
 
 
-def _safe_literal_eval(s):
+def _safe_literal_eval(s: str) -> t.Any:
     """Safely evaluate an expression
 
     Returns original string if eval fails.
@@ -183,7 +186,7 @@ def _safe_literal_eval(s):
         return s
 
 
-def is_trait(t):
+def is_trait(t: t.Any) -> bool:
     """Returns whether the given value is an instance or subclass of TraitType."""
     return isinstance(t, TraitType) or (isinstance(t, type) and issubclass(t, TraitType))
 
@@ -229,7 +232,7 @@ class _SimpleTest:
         return self.__repr__()
 
 
-def getmembers(object, predicate=None):
+def getmembers(object: t.Any, predicate: t.Any = None) -> list[tuple[str, t.Any]]:
     """A safe version of inspect.getmembers that handles missing attributes.
 
     This is useful when there are descriptor based attributes that for
@@ -249,7 +252,7 @@ def getmembers(object, predicate=None):
     return results
 
 
-def _validate_link(*tuples):
+def _validate_link(*tuples: t.Any) -> None:
     """Validate arguments for traitlet link functions"""
     for tup in tuples:
         if not len(tup) == 2:
@@ -310,14 +313,14 @@ class link:
             self.target[0].observe(self._update_source, names=self.target[1])
 
     @contextlib.contextmanager
-    def _busy_updating(self):
+    def _busy_updating(self) -> t.Any:
         self.updating = True
         try:
             yield
         finally:
             self.updating = False
 
-    def _update_target(self, change):
+    def _update_target(self, change: t.Any) -> None:
         if self.updating:
             return
         with self._busy_updating():
@@ -327,7 +330,7 @@ class link:
                     f"Broken link {self}: the source value changed while updating " "the target."
                 )
 
-    def _update_source(self, change):
+    def _update_source(self, change: t.Any) -> None:
         if self.updating:
             return
         with self._busy_updating():
@@ -392,14 +395,14 @@ class directional_link:
             self.source[0].observe(self._update, names=self.source[1])
 
     @contextlib.contextmanager
-    def _busy_updating(self):
+    def _busy_updating(self) -> t.Any:
         self.updating = True
         try:
             yield
         finally:
             self.updating = False
 
-    def _update(self, change):
+    def _update(self, change: t.Any) -> None:
         if self.updating:
             return
         with self._busy_updating():
@@ -476,9 +479,9 @@ class BaseDescriptor:
         pass
 
 
-G = t.TypeVar("G")
-S = t.TypeVar("S")
-T = t.TypeVar("T")
+G = TypeVar("G")
+S = TypeVar("S")
+T = TypeVar("T")
 
 
 # Self from typing extension doesn't work well with mypy https://github.com/python/mypy/pull/14041
@@ -486,6 +489,9 @@ T = t.TypeVar("T")
 # Self = t.TypeVar("Self", bound="TraitType[Any, Any]")
 if t.TYPE_CHECKING:
     from typing_extensions import Literal, Self
+
+    K = TypeVar("K", default=str)
+    V = TypeVar("V", default=t.Any)
 
 
 # We use a type for the getter (G) and setter (G) because we allow
@@ -592,12 +598,12 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         in the same way that dynamic defaults defined by ``@default`` are.
         """
         if self.default_value is not Undefined:
-            return self.default_value
+            return t.cast(G, self.default_value)
         elif hasattr(self, "make_dynamic_default"):
-            return self.make_dynamic_default()
+            return t.cast(G, self.make_dynamic_default())
         else:
             # Undefined will raise in TraitType.get
-            return self.default_value
+            return t.cast(G, self.default_value)
 
     def get_default_value(self) -> G | None:
         """DEPRECATED: Retrieve the static default value for this trait.
@@ -608,9 +614,9 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
             DeprecationWarning,
             stacklevel=2,
         )
-        return self.default_value
+        return t.cast(G, self.default_value)
 
-    def init_default_value(self, obj: t.Any) -> G:
+    def init_default_value(self, obj: t.Any) -> G | None:
         """DEPRECATED: Set the static default value for the trait type."""
         warn(
             "init_default_value is deprecated in traitlets 4.0, and may be removed in the future",
@@ -621,10 +627,10 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         obj._trait_values[self.name] = value
         return value
 
-    def get(self, obj: HasTraits, cls: t.Any = None) -> G | None:
+    def get(self, obj: HasTraits, cls: type[t.Any] | None = None) -> G | None:
         assert self.name is not None
         try:
-            value = obj._trait_values[self.name]  # type: ignore[index]
+            value = obj._trait_values[self.name]
         except KeyError:
             # Check for a dynamic initializer.
             default = obj.trait_defaults(self.name)
@@ -644,7 +650,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
                 value = self._validate(obj, default)
             finally:
                 obj._cross_validation_lock = _cross_validation_lock
-            obj._trait_values[self.name] = value  # type: ignore[index]
+            obj._trait_values[self.name] = value
             obj._notify_observers(
                 Bunch(
                     name=self.name,
@@ -653,50 +659,12 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
                     type="default",
                 )
             )
-            return value
+            return t.cast(G, value)
         except Exception as e:
             # This should never be reached.
             raise TraitError("Unexpected error in TraitType: default value not set properly") from e
         else:
-            return value
-
-    if t.TYPE_CHECKING:
-        # This gives ok type information, but not specific enough (e.g. it will)
-        # always be a TraitType, not a subclass, like Bool.
-        @t.overload
-        def __new__(  # type: ignore[misc]
-            cls,
-            default_value: S | Sentinel = Undefined,
-            allow_none: Literal[False] = ...,
-            read_only: bool | None = None,
-            help: str | None = None,
-            config: t.Any = None,
-            **kwargs: t.Any,
-        ) -> TraitType[G, S]:
-            ...
-
-        @t.overload
-        def __new__(
-            cls,
-            default_value: S | None | Sentinel = Undefined,
-            allow_none: Literal[True] = ...,
-            read_only: bool | None = None,
-            help: str | None = None,
-            config: t.Any = None,
-            **kwargs: t.Any,
-        ) -> TraitType[G | None, S]:
-            ...
-
-        def __new__(  # type: ignore[no-untyped-def, misc]
-            cls,
-            default_value: S | None | Sentinel = Undefined,
-            allow_none: Literal[True, False] = False,
-            read_only=None,
-            help=None,
-            config=None,
-            **kwargs,
-        ) -> TraitType[G | None, S] | TraitType[G, S]:
-            ...
+            return t.cast(G, value)
 
     @t.overload
     def __get__(self, obj: None, cls: type[t.Any]) -> Self:
@@ -749,16 +717,16 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         else:
             self.set(obj, value)
 
-    def _validate(self, obj, value):
+    def _validate(self, obj: t.Any, value: t.Any) -> G | None:
         if value is None and self.allow_none:
             return value
         if hasattr(self, "validate"):
             value = self.validate(obj, value)
         if obj._cross_validation_lock is False:
             value = self._cross_validate(obj, value)
-        return value
+        return t.cast(G, value)
 
-    def _cross_validate(self, obj, value):
+    def _cross_validate(self, obj: t.Any, value: t.Any) -> G | None:
         if self.name in obj._trait_validators:
             proposal = Bunch({"trait": self, "value": value, "owner": obj})
             value = obj._trait_validators[self.name](obj, proposal)
@@ -772,18 +740,24 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
                 "use @validate decorator instead.",
             )
             value = cross_validate(value, self)
-        return value
+        return t.cast(G, value)
 
-    def __or__(self, other):
+    def __or__(self, other: TraitType[t.Any, t.Any]) -> Union:
         if isinstance(other, Union):
             return Union([self, *other.trait_types])
         else:
             return Union([self, other])
 
-    def info(self):
+    def info(self) -> str:
         return self.info_text
 
-    def error(self, obj, value, error=None, info=None):
+    def error(
+        self,
+        obj: HasTraits | None,
+        value: t.Any,
+        error: Exception | None = None,
+        info: str | None = None,
+    ) -> t.NoReturn:
         """Raise a TraitError
 
         Parameters
@@ -828,8 +802,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
                     )
                 else:
                     error.args = (
-                        "The '{}' trait contains {} which "
-                        "expected {}, not {}.".format(
+                        "The '{}' trait contains {} which " "expected {}, not {}.".format(
                             self.name,
                             chain,
                             error.args[1],
@@ -848,18 +821,18 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
                     e = "The '{}' trait of {} instance expected {}, not {}.".format(
                         self.name,
                         class_of(obj),
-                        self.info(),
+                        info or self.info(),
                         describe("the", value),
                     )
                 else:
                     e = "The '{}' trait expected {}, not {}.".format(
                         self.name,
-                        self.info(),
+                        info or self.info(),
                         describe("the", value),
                     )
                 raise TraitError(e)
 
-    def get_metadata(self, key, default=None):
+    def get_metadata(self, key: str, default: t.Any = None) -> t.Any:
         """DEPRECATED: Get a metadata value.
 
         Use .metadata[key] or .metadata.get(key, default) instead.
@@ -871,7 +844,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         warn("Deprecated in traitlets 4.1, " + msg, DeprecationWarning, stacklevel=2)
         return self.metadata.get(key, default)
 
-    def set_metadata(self, key, value):
+    def set_metadata(self, key: str, value: t.Any) -> None:
         """DEPRECATED: Set a metadata key/value.
 
         Use .metadata[key] = value instead.
@@ -908,7 +881,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         self.metadata.update(metadata)
         return self
 
-    def default_value_repr(self):
+    def default_value_repr(self) -> str:
         return repr(self.default_value)
 
 
@@ -932,14 +905,14 @@ class _CallbackWrapper:
         if self.nargs > 4:
             raise TraitError("a trait changed callback must have 0-4 arguments.")
 
-    def __eq__(self, other):
+    def __eq__(self, other: t.Any) -> bool:
         # The wrapper is equal to the wrapped element
         if isinstance(other, _CallbackWrapper):
-            return self.cb == other.cb
+            return bool(self.cb == other.cb)
         else:
-            return self.cb == other
+            return bool(self.cb == other)
 
-    def __call__(self, change):
+    def __call__(self, change: Bunch) -> None:
         # The wrapper is callable
         if self.nargs == 0:
             self.cb()
@@ -953,7 +926,7 @@ class _CallbackWrapper:
             self.cb(change.name, change.old, change.new, change.owner)
 
 
-def _callback_wrapper(cb):
+def _callback_wrapper(cb: t.Any) -> _CallbackWrapper:
     if isinstance(cb, _CallbackWrapper):
         return cb
     else:
@@ -967,7 +940,13 @@ class MetaHasDescriptors(type):
     instantiated and sets their name attribute.
     """
 
-    def __new__(mcls, name, bases, classdict, **kwds):  # noqa
+    def __new__(
+        mcls: type[MetaHasDescriptors],  # noqa: N804
+        name: str,
+        bases: tuple[type, ...],
+        classdict: dict[str, t.Any],
+        **kwds: t.Any,
+    ) -> MetaHasDescriptors:
         """Create the HasDescriptors class."""
         for k, v in classdict.items():
             # ----------------------------------------------------------------
@@ -985,12 +964,14 @@ class MetaHasDescriptors(type):
 
         return super().__new__(mcls, name, bases, classdict, **kwds)
 
-    def __init__(cls, name: str, bases: t.Any, classdict: t.Any, **kwds) -> None:
+    def __init__(
+        cls, name: str, bases: tuple[type, ...], classdict: dict[str, t.Any], **kwds: t.Any
+    ) -> None:
         """Finish initializing the HasDescriptors class."""
         super().__init__(name, bases, classdict, **kwds)
         cls.setup_class(classdict)
 
-    def setup_class(cls, classdict):
+    def setup_class(cls: MetaHasDescriptors, classdict: dict[str, t.Any]) -> None:
         """Setup descriptor instance on the class
 
         This sets the :attr:`this_class` and :attr:`name` attributes of each
@@ -998,7 +979,7 @@ class MetaHasDescriptors(type):
         calling their :attr:`class_init` method.
         """
         cls._descriptors = []
-        cls._instance_inits = []
+        cls._instance_inits: list[t.Any] = []
         for k, v in classdict.items():
             if isinstance(v, BaseDescriptor):
                 v.class_init(cls, k)  # type:ignore[arg-type]
@@ -1012,9 +993,9 @@ class MetaHasDescriptors(type):
 class MetaHasTraits(MetaHasDescriptors):
     """A metaclass for HasTraits."""
 
-    def setup_class(cls, classdict):  # noqa
+    def setup_class(cls: MetaHasTraits, classdict: dict[str, t.Any]) -> None:  # noqa
         # for only the current class
-        cls._trait_default_generators = {}
+        cls._trait_default_generators: dict[str, t.Any] = {}
         # also looking at base classes
         cls._all_trait_default_generators = {}
         cls._traits = {}
@@ -1263,26 +1244,26 @@ class EventHandler(BaseDescriptor):
         else:
             return self._init_call(*args, **kwargs)
 
-    def __get__(self, inst, cls=None):
+    def __get__(self, inst: t.Any, cls: t.Any = None) -> types.MethodType | EventHandler:
         if inst is None:
             return self
         return types.MethodType(self.func, inst)
 
 
 class ObserveHandler(EventHandler):
-    def __init__(self, names: t.Any, type: t.Any) -> None:
+    def __init__(self, names: tuple[Sentinel | str, ...], type: str = "") -> None:
         self.trait_names = names
         self.type = type
 
-    def instance_init(self, inst):
+    def instance_init(self, inst: HasTraits) -> None:
         inst.observe(self, self.trait_names, type=self.type)
 
 
 class ValidateHandler(EventHandler):
-    def __init__(self, names: t.Any) -> None:
+    def __init__(self, names: tuple[Sentinel | str, ...]) -> None:
         self.trait_names = names
 
-    def instance_init(self, inst):
+    def instance_init(self, inst: HasTraits) -> None:
         inst._register_validator(self, self.trait_names)
 
 
@@ -1290,7 +1271,7 @@ class DefaultHandler(EventHandler):
     def __init__(self, name: str) -> None:
         self.trait_name = name
 
-    def class_init(self, cls, name):
+    def class_init(self, cls: type[HasTraits], name: str | None) -> None:
         super().class_init(cls, name)
         cls._trait_default_generators[self.trait_name] = self
 
@@ -1313,7 +1294,7 @@ class HasDescriptors(metaclass=MetaHasDescriptors):
         inst.setup_instance(*args, **kwargs)
         return inst
 
-    def setup_instance(*args, **kwargs):
+    def setup_instance(*args: t.Any, **kwargs: t.Any) -> None:
         """
         This is called **before** self.__init__ is called.
         """
@@ -1321,7 +1302,7 @@ class HasDescriptors(metaclass=MetaHasDescriptors):
         self = args[0]
         args = args[1:]
 
-        self._cross_validation_lock = False  # type:ignore[attr-defined]
+        self._cross_validation_lock = False
         cls = self.__class__
         # Let descriptors performance initialization when a HasDescriptor
         # instance is created. This allows registration of observers and
@@ -1335,13 +1316,13 @@ class HasDescriptors(metaclass=MetaHasDescriptors):
 class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
     _trait_values: dict[str, t.Any]
     _static_immutable_initial_values: dict[str, t.Any]
-    _trait_notifiers: dict[str, t.Any]
-    _trait_validators: dict[str, t.Any]
+    _trait_notifiers: dict[str | Sentinel, t.Any]
+    _trait_validators: dict[str | Sentinel, t.Any]
     _cross_validation_lock: bool
     _traits: dict[str, t.Any]
     _all_trait_default_generators: dict[str, t.Any]
 
-    def setup_instance(*args, **kwargs):
+    def setup_instance(*args: t.Any, **kwargs: t.Any) -> None:
         # Pass self as args[0] to allow "self" as keyword argument
         self = args[0]
         args = args[1:]
@@ -1365,7 +1346,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         if kwargs:
             # this is a simplified (and faster) version of
             # the hold_trait_notifications(self) context manager
-            def ignore(*_ignore_args):
+            def ignore(change: Bunch) -> None:
                 pass
 
             self.notify_change = ignore  # type:ignore[method-assign]
@@ -1389,7 +1370,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
             for key in changed:
                 value = self._traits[key]._cross_validate(self, getattr(self, key))
                 self.set_trait(key, value)
-                changes[key]['new'] = value
+                changes[key]["new"] = value
             self._cross_validation_lock = False
             # Restore method retrieval from class
             del self.notify_change
@@ -1447,7 +1428,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
 
     @property
     @contextlib.contextmanager
-    def cross_validation_lock(self):
+    def cross_validation_lock(self) -> t.Any:
         """
         A contextmanager for running a block with our cross validation lock set
         to True.
@@ -1466,7 +1447,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
                 self._cross_validation_lock = False
 
     @contextlib.contextmanager
-    def hold_trait_notifications(self):
+    def hold_trait_notifications(self) -> t.Any:
         """Context manager for bundling trait change notifications and cross
         validation.
 
@@ -1478,9 +1459,9 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
             yield
             return
         else:
-            cache: dict[str, t.Any] = {}
+            cache: dict[str, list[Bunch]] = {}
 
-            def compress(past_changes, change):
+            def compress(past_changes: list[Bunch] | None, change: Bunch) -> list[Bunch]:
                 """Merges the provided change with the last if possible."""
                 if past_changes is None:
                     return [change]
@@ -1492,7 +1473,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
                         past_changes.append(change)
                     return past_changes
 
-            def hold(change):
+            def hold(change: Bunch) -> None:
                 name = change.name
                 cache[name] = compress(cache.get(name), change)
 
@@ -1530,7 +1511,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
                     for change in changes:
                         self.notify_change(change)
 
-    def _notify_trait(self, name, old_value, new_value):
+    def _notify_trait(self, name: str, old_value: t.Any, new_value: t.Any) -> None:
         self.notify_change(
             Bunch(
                 name=name,
@@ -1550,23 +1531,19 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         if not isinstance(event, Bunch):
             # cast to bunch if given a dict
             event = Bunch(event)  # type:ignore[unreachable]
-        name, type = event['name'], event['type']
+        name, type = event["name"], event["type"]
 
         callables = []
         if name in self._trait_notifiers:
             callables.extend(self._trait_notifiers.get(name, {}).get(type, []))
             callables.extend(self._trait_notifiers.get(name, {}).get(All, []))
-        if All in self._trait_notifiers:  # type:ignore[comparison-overlap]
-            callables.extend(
-                self._trait_notifiers.get(All, {}).get(type, [])  # type:ignore[call-overload]
-            )
-            callables.extend(
-                self._trait_notifiers.get(All, {}).get(All, [])  # type:ignore[call-overload]
-            )
+        if All in self._trait_notifiers:
+            callables.extend(self._trait_notifiers.get(All, {}).get(type, []))
+            callables.extend(self._trait_notifiers.get(All, {}).get(All, []))
 
         # Now static ones
         magic_name = "_%s_changed" % name
-        if event['type'] == "change" and hasattr(self, magic_name):
+        if event["type"] == "change" and hasattr(self, magic_name):
             class_value = getattr(self.__class__, magic_name)
             if not isinstance(class_value, ObserveHandler):
                 deprecated_method(
@@ -1592,7 +1569,9 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
 
             c(event)
 
-    def _add_notifiers(self, handler, name, type):
+    def _add_notifiers(
+        self, handler: t.Callable[..., t.Any], name: Sentinel | str, type: str | Sentinel
+    ) -> None:
         if name not in self._trait_notifiers:
             nlist: list[t.Any] = []
             self._trait_notifiers[name] = {type: nlist}
@@ -1605,7 +1584,9 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         if handler not in nlist:
             nlist.append(handler)
 
-    def _remove_notifiers(self, handler, name, type):
+    def _remove_notifiers(
+        self, handler: t.Callable[..., t.Any] | None, name: Sentinel | str, type: str | Sentinel
+    ) -> None:
         try:
             if handler is None:
                 del self._trait_notifiers[name][type]
@@ -1614,7 +1595,12 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         except KeyError:
             pass
 
-    def on_trait_change(self, handler=None, name=None, remove=False):
+    def on_trait_change(
+        self,
+        handler: EventHandler | None = None,
+        name: Sentinel | str | None = None,
+        remove: bool = False,
+    ) -> None:
         """DEPRECATED: Setup a handler to be called when a trait changes.
 
         This is used to setup dynamic notifications of trait changes.
@@ -1717,14 +1703,16 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         """Remove trait change handlers of any type for the specified name.
         If name is not specified, removes all trait notifiers."""
         if name is All:
-            self._trait_notifiers: dict[str, t.Any] = {}
+            self._trait_notifiers = {}
         else:
             try:
                 del self._trait_notifiers[name]
             except KeyError:
                 pass
 
-    def _register_validator(self, handler, names):
+    def _register_validator(
+        self, handler: t.Callable[..., None], names: tuple[str | Sentinel, ...]
+    ) -> None:
         """Setup a handler to be called when a trait should be cross validated.
 
         This is used to setup dynamic notifications for cross-validation.
@@ -1788,7 +1776,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         return list(cls.class_traits(**metadata))
 
     @classmethod
-    def class_traits(cls: type[HasTraits], **metadata: t.Any) -> dict[str, TraitType]:
+    def class_traits(cls: type[HasTraits], **metadata: t.Any) -> dict[str, TraitType[t.Any, t.Any]]:
         """Get a ``dict`` of all the traits of this class.  The dictionary
         is keyed on the name and the values are the TraitType objects.
 
@@ -1822,7 +1810,9 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         return result
 
     @classmethod
-    def class_own_traits(cls: type[HasTraits], **metadata: t.Any) -> dict[str, TraitType]:
+    def class_own_traits(
+        cls: type[HasTraits], **metadata: t.Any
+    ) -> dict[str, TraitType[t.Any, t.Any]]:
         """Get a dict of all the traitlets defined on this class, not a parent.
 
         Works like `class_traits`, except for excluding traits from parents.
@@ -1883,7 +1873,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         """
         return {name: getattr(self, name) for name in self.trait_names(**metadata)}
 
-    def _get_trait_default_generator(self, name):
+    def _get_trait_default_generator(self, name: str) -> t.Any:
         """Return default generator for a given trait
 
         Walk the MRO to resolve the correct default generator according to inheritance.
@@ -1895,7 +1885,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
             return getattr(self.__class__, method_name)
         return self._all_trait_default_generators[name]
 
-    def trait_defaults(self, *names: str, **metadata: t.Any) -> dict[str, t.Any]:
+    def trait_defaults(self, *names: str, **metadata: t.Any) -> dict[str, t.Any] | Sentinel:
         """Return a trait's default value or a dictionary of them
 
         Notes
@@ -1907,7 +1897,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
                 raise TraitError(f"'{n}' is not a trait of '{type(self).__name__}' instances")
 
         if len(names) == 1 and len(metadata) == 0:
-            return self._get_trait_default_generator(names[0])(self)
+            return t.cast(Sentinel, self._get_trait_default_generator(names[0])(self))
 
         trait_names = self.trait_names(**metadata)
         trait_names.extend(names)
@@ -1921,7 +1911,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         """Get a list of all the names of this class' traits."""
         return list(self.traits(**metadata))
 
-    def traits(self, **metadata: t.Any) -> dict[str, TraitType]:
+    def traits(self, **metadata: t.Any) -> dict[str, TraitType[t.Any, t.Any]]:
         """Get a ``dict`` of all the traits of this class.  The dictionary
         is keyed on the name and the values are the TraitType objects.
 
@@ -2021,7 +2011,7 @@ class ClassBasedTraitType(TraitType[G, S]):
     Instance and This.
     """
 
-    def _resolve_string(self, string):
+    def _resolve_string(self, string: str) -> t.Any:
         """
         Resolve a string supplied for a type into an actual object.
         """
@@ -2063,7 +2053,7 @@ class Type(ClassBasedTraitType[G, S]):
         def __init__(
             self: Type[S, S],
             default_value: S = ...,
-            klass: type[S] = ...,
+            klass: S = ...,
             allow_none: Literal[False] = ...,
             read_only: bool | None = ...,
             help: str | None = ...,
@@ -2076,7 +2066,7 @@ class Type(ClassBasedTraitType[G, S]):
         def __init__(
             self: Type[S | None, S | None],
             default_value: S | None = ...,
-            klass: type[S] = ...,
+            klass: S = ...,
             allow_none: Literal[True] = ...,
             read_only: bool | None = ...,
             help: str | None = ...,
@@ -2145,7 +2135,7 @@ class Type(ClassBasedTraitType[G, S]):
             **kwargs,
         )
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         """Validates that the value is a valid object instance."""
         if isinstance(value, str):
             try:
@@ -2157,13 +2147,13 @@ class Type(ClassBasedTraitType[G, S]):
                 ) from e
         try:
             if issubclass(value, self.klass):  # type:ignore[arg-type]
-                return value
+                return t.cast(G, value)
         except Exception:
             pass
 
         self.error(obj, value)
 
-    def info(self):
+    def info(self) -> str:
         """Returns a description of the trait."""
         if isinstance(self.klass, str):
             klass = self.klass
@@ -2174,18 +2164,18 @@ class Type(ClassBasedTraitType[G, S]):
             return result + " or None"
         return result
 
-    def instance_init(self, obj):
+    def instance_init(self, obj: t.Any) -> None:
         # we can't do this in subclass_init because that
         # might be called before all imports are done.
         self._resolve_classes()
 
-    def _resolve_classes(self):
+    def _resolve_classes(self) -> None:
         if isinstance(self.klass, str):
             self.klass = self._resolve_string(self.klass)
         if isinstance(self.default_value, str):
             self.default_value = self._resolve_string(self.default_value)
 
-    def default_value_repr(self):
+    def default_value_repr(self) -> str:
         value = self.default_value
         assert value is not None
         if isinstance(value, str):
@@ -2314,14 +2304,16 @@ class Instance(ClassBasedTraitType[T, T]):
 
         super().__init__(allow_none=allow_none, read_only=read_only, help=help, **kwargs)
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> T | None:
         assert self.klass is not None
-        if isinstance(value, self.klass):  # type:ignore[arg-type]
+        if self.allow_none and value is None:
             return value
+        if isinstance(value, self.klass):  # type:ignore[arg-type]
+            return t.cast(T, value)
         else:
             self.error(obj, value)
 
-    def info(self):
+    def info(self) -> str:
         if isinstance(self.klass, str):
             result = add_article(self.klass)
         else:
@@ -2330,28 +2322,26 @@ class Instance(ClassBasedTraitType[T, T]):
             result += " or None"
         return result
 
-    def instance_init(self, obj):
+    def instance_init(self, obj: t.Any) -> None:
         # we can't do this in subclass_init because that
         # might be called before all imports are done.
         self._resolve_classes()
 
-    def _resolve_classes(self):
+    def _resolve_classes(self) -> None:
         if isinstance(self.klass, str):
             self.klass = self._resolve_string(self.klass)
 
-    def make_dynamic_default(self):
+    def make_dynamic_default(self) -> T | None:
         if (self.default_args is None) and (self.default_kwargs is None):
             return None
         assert self.klass is not None
-        return self.klass(
-            *(self.default_args or ()), **(self.default_kwargs or {})
-        )  # type:ignore[operator]
+        return self.klass(*(self.default_args or ()), **(self.default_kwargs or {}))  # type:ignore[operator]
 
-    def default_value_repr(self):
+    def default_value_repr(self) -> str:
         return repr(self.make_dynamic_default())
 
-    def from_string(self, s):
-        return _safe_literal_eval(s)
+    def from_string(self, s: str) -> T | None:
+        return t.cast(T, _safe_literal_eval(s))
 
 
 class ForwardDeclaredMixin:
@@ -2359,7 +2349,7 @@ class ForwardDeclaredMixin:
     Mixin for forward-declared versions of Instance and Type.
     """
 
-    def _resolve_string(self, string):
+    def _resolve_string(self, string: str) -> t.Any:
         """
         Find the specified class name by looking for it in the module in which
         our this_class attribute was defined.
@@ -2397,7 +2387,7 @@ class This(ClassBasedTraitType[t.Optional[T], t.Optional[T]]):
     def __init__(self, **kwargs: t.Any) -> None:
         super().__init__(None, **kwargs)
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> HasTraits | None:
         # What if value is a superclass of obj.__class__?  This is
         # complicated if it was the superclass that defined the This
         # trait.
@@ -2443,7 +2433,7 @@ class Union(TraitType[t.Any, t.Any]):
         self.info_text = " or ".join([tt.info() for tt in self.trait_types])
         super().__init__(**kwargs)
 
-    def default(self, obj=None):
+    def default(self, obj: t.Any = None) -> t.Any:
         default = super().default(obj)
         for trait in self.trait_types:
             if default is Undefined:
@@ -2452,18 +2442,18 @@ class Union(TraitType[t.Any, t.Any]):
                 break
         return default
 
-    def class_init(self, cls, name):
+    def class_init(self, cls: type[HasTraits], name: str | None) -> None:
         for trait_type in reversed(self.trait_types):
             trait_type.class_init(cls, None)
         super().class_init(cls, name)
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         for trait_type in reversed(self.trait_types):
             trait_type.subclass_init(cls)
         # explicitly not calling super().subclass_init(cls)
         # to opt out of instance_init
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> t.Any:
         with obj.cross_validation_lock:
             for trait_type in self.trait_types:
                 try:
@@ -2476,13 +2466,13 @@ class Union(TraitType[t.Any, t.Any]):
                     continue
         self.error(obj, value)
 
-    def __or__(self, other):
+    def __or__(self, other: t.Any) -> Union:
         if isinstance(other, Union):
             return Union(self.trait_types + other.trait_types)
         else:
             return Union([*self.trait_types, other])
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> t.Any:
         for trait_type in self.trait_types:
             try:
                 v = trait_type.from_string(s)
@@ -2568,11 +2558,13 @@ class Any(TraitType[t.Optional[t.Any], t.Optional[t.Any]]):
     allow_none = True
     info_text = "any value"
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         pass  # fully opt out of instance_init
 
 
-def _validate_bounds(trait, obj, value):
+def _validate_bounds(
+    trait: Int[t.Any, t.Any] | Float[t.Any, t.Any], obj: t.Any, value: t.Any
+) -> t.Any:
     """
     Validate that a number to be applied to a trait is between bounds.
 
@@ -2647,17 +2639,17 @@ class Int(TraitType[G, S]):
             **kwargs,
         )
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         if not isinstance(value, int):
             self.error(obj, value)
-        return _validate_bounds(self, obj, value)
+        return t.cast(G, _validate_bounds(self, obj, value))
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> G:
         if self.allow_none and s == "None":
-            return None
-        return int(s)
+            return t.cast(G, None)
+        return t.cast(G, int(s))
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         pass  # fully opt out of instance_init
 
 
@@ -2701,12 +2693,12 @@ class CInt(Int[G, S]):
         ) -> None:
             ...
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         try:
             value = int(value)
         except Exception:
             self.error(obj, value)
-        return _validate_bounds(self, obj, value)
+        return t.cast(G, _validate_bounds(self, obj, value))
 
 
 Long, CLong = Int, CInt
@@ -2763,19 +2755,19 @@ class Float(TraitType[G, S]):
             **kwargs,
         )
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         if isinstance(value, int):
             value = float(value)
         if not isinstance(value, float):
             self.error(obj, value)
-        return _validate_bounds(self, obj, value)
+        return t.cast(G, _validate_bounds(self, obj, value))
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> G:
         if self.allow_none and s == "None":
-            return None
-        return float(s)
+            return t.cast(G, None)
+        return t.cast(G, float(s))
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         pass  # fully opt out of instance_init
 
 
@@ -2819,12 +2811,12 @@ class CFloat(Float[G, S]):
         ) -> None:
             ...
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         try:
             value = float(value)
         except Exception:
             self.error(obj, value)
-        return _validate_bounds(self, obj, value)
+        return t.cast(G, _validate_bounds(self, obj, value))
 
 
 class Complex(TraitType[complex, t.Union[complex, float, int]]):
@@ -2833,26 +2825,26 @@ class Complex(TraitType[complex, t.Union[complex, float, int]]):
     default_value = 0.0 + 0.0j
     info_text = "a complex number"
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> complex | None:
         if isinstance(value, complex):
             return value
         if isinstance(value, (float, int)):
             return complex(value)
         self.error(obj, value)
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> complex | None:
         if self.allow_none and s == "None":
             return None
         return complex(s)
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         pass  # fully opt out of instance_init
 
 
 class CComplex(Complex, TraitType[complex, t.Any]):
     """A casting version of the complex number trait."""
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> complex | None:
         try:
             return complex(value)
         except Exception:
@@ -2868,12 +2860,12 @@ class Bytes(TraitType[bytes, bytes]):
     default_value = b""
     info_text = "a bytes object"
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> bytes | None:
         if isinstance(value, bytes):
             return value
         self.error(obj, value)
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> bytes | None:
         if self.allow_none and s == "None":
             return None
         if len(s) >= 3:
@@ -2891,14 +2883,14 @@ class Bytes(TraitType[bytes, bytes]):
                     break
         return s.encode("utf8")
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         pass  # fully opt out of instance_init
 
 
 class CBytes(Bytes, TraitType[bytes, t.Any]):
     """A casting version of the byte string trait."""
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> bytes | None:
         try:
             return bytes(value)
         except Exception:
@@ -2948,20 +2940,20 @@ class Unicode(TraitType[G, S]):
         ) -> None:
             ...
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         if isinstance(value, str):
-            return value
+            return t.cast(G, value)
         if isinstance(value, bytes):
             try:
-                return value.decode("ascii", "strict")
+                return t.cast(G, value.decode("ascii", "strict"))
             except UnicodeDecodeError as e:
                 msg = "Could not decode {!r} for unicode trait '{}' of {} instance."
                 raise TraitError(msg.format(value, self.name, class_of(obj))) from e
         self.error(obj, value)
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> G:
         if self.allow_none and s == "None":
-            return None
+            return t.cast(G, None)
         s = os.path.expanduser(s)
         if len(s) >= 2:
             # handle deprecated "1"
@@ -2975,9 +2967,9 @@ class Unicode(TraitType[G, S]):
                         DeprecationWarning,
                         stacklevel=2,
                     )
-        return s
+        return t.cast(G, s)
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         pass  # fully opt out of instance_init
 
 
@@ -3021,9 +3013,9 @@ class CUnicode(Unicode[G, S], TraitType[str, t.Any]):
         ) -> None:
             ...
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         try:
-            return str(value)
+            return t.cast(G, str(value))
         except Exception:
             self.error(obj, value)
 
@@ -3037,14 +3029,14 @@ class ObjectName(TraitType[str, str]):
 
     coerce_str = staticmethod(lambda _, s: s)
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> str:
         value = self.coerce_str(obj, value)
 
         if isinstance(value, str) and isidentifier(value):
             return value
         self.error(obj, value)
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> str | None:
         if self.allow_none and s == "None":
             return None
         return s
@@ -3053,7 +3045,7 @@ class ObjectName(TraitType[str, str]):
 class DottedObjectName(ObjectName):
     """A string holding a valid dotted object name in Python, such as A.b3._c"""
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> str:
         value = self.coerce_str(obj, value)
 
         if isinstance(value, str) and all(isidentifier(a) for a in value.split(".")):
@@ -3104,31 +3096,31 @@ class Bool(TraitType[G, S]):
         ) -> None:
             ...
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         if isinstance(value, bool):
-            return value
+            return t.cast(G, value)
         elif isinstance(value, int):
             if value == 1:
-                return True
+                return t.cast(G, True)
             elif value == 0:
-                return False
+                return t.cast(G, False)
         self.error(obj, value)
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> G:
         if self.allow_none and s == "None":
-            return None
+            return t.cast(G, None)
         s = s.lower()
         if s in {"true", "1"}:
-            return True
+            return t.cast(G, True)
         elif s in {"false", "0"}:
-            return False
+            return t.cast(G, False)
         else:
             raise ValueError("%r is not 1, 0, true, or false")
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         pass  # fully opt out of instance_init
 
-    def argcompleter(self, **kwargs):
+    def argcompleter(self, **kwargs: t.Any) -> list[str]:
         """Completion hints for argcomplete"""
         completions = ["true", "1", "false", "0"]
         if self.allow_none:
@@ -3176,96 +3168,136 @@ class CBool(Bool[G, S]):
         ) -> None:
             ...
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         try:
-            return bool(value)
+            return t.cast(G, bool(value))
         except Exception:
             self.error(obj, value)
 
 
-class Enum(TraitType[G, S]):
+class Enum(TraitType[G, G]):
     """An enum whose value must be in a given sequence."""
 
+    if t.TYPE_CHECKING:
+
+        @t.overload
+        def __init__(
+            self: Enum[G],
+            values: t.Sequence[G],
+            default_value: G | Sentinel = ...,
+            allow_none: Literal[False] = ...,
+            read_only: bool | None = ...,
+            help: str | None = ...,
+            config: t.Any = ...,
+            **kwargs: t.Any,
+        ) -> None:
+            ...
+
+        @t.overload
+        def __init__(
+            self: Enum[G | None],
+            values: t.Sequence[G] | None,
+            default_value: G | Sentinel | None = ...,
+            allow_none: Literal[True] = ...,
+            read_only: bool | None = ...,
+            help: str | None = ...,
+            config: t.Any = ...,
+            **kwargs: t.Any,
+        ) -> None:
+            ...
+
     def __init__(
-        self: Enum[t.Any, t.Any], values: t.Any, default_value: t.Any = Undefined, **kwargs: t.Any
+        self: Enum[G],
+        values: t.Sequence[G] | None,
+        default_value: G | Sentinel | None = Undefined,
+        allow_none: bool = False,
+        read_only: bool | None = None,
+        help: str | None = None,
+        config: t.Any = None,
+        **kwargs: t.Any,
     ) -> None:
         self.values = values
-        if kwargs.get("allow_none", False) and default_value is Undefined:
+        if allow_none is True and default_value is Undefined:
             default_value = None
+        kwargs["allow_none"] = allow_none
+        kwargs["read_only"] = read_only
+        kwargs["help"] = help
+        kwargs["config"] = config
         super().__init__(default_value, **kwargs)
 
-    def validate(self, obj, value):
-        if value in self.values:
-            return value
+    def validate(self, obj: t.Any, value: t.Any) -> G:
+        if self.values and value in self.values:
+            return t.cast(G, value)
         self.error(obj, value)
 
-    def _choices_str(self, as_rst=False):
+    def _choices_str(self, as_rst: bool = False) -> str:
         """Returns a description of the trait choices (not none)."""
-        choices = self.values
+        choices = self.values or []
         if as_rst:
-            choices = "|".join("``%r``" % x for x in choices)
+            choice_str = "|".join("``%r``" % x for x in choices)
         else:
-            choices = repr(list(choices))
-        return choices
+            choice_str = repr(list(choices))
+        return choice_str
 
-    def _info(self, as_rst=False):
+    def _info(self, as_rst: bool = False) -> str:
         """Returns a description of the trait."""
         none = " or %s" % ("`None`" if as_rst else "None") if self.allow_none else ""
         return f"any of {self._choices_str(as_rst)}{none}"
 
-    def info(self):
+    def info(self) -> str:
         return self._info(as_rst=False)
 
-    def info_rst(self):
+    def info_rst(self) -> str:
         return self._info(as_rst=True)
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> G:
         try:
             return self.validate(None, s)
         except TraitError:
-            return _safe_literal_eval(s)
+            return t.cast(G, _safe_literal_eval(s))
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         pass  # fully opt out of instance_init
 
-    def argcompleter(self, **kwargs):
+    def argcompleter(self, **kwargs: t.Any) -> list[str]:
         """Completion hints for argcomplete"""
-        return [str(v) for v in self.values]
+        return [str(v) for v in self.values or []]
 
 
-class CaselessStrEnum(Enum[G, S]):
+class CaselessStrEnum(Enum[G]):
     """An enum of strings where the case should be ignored."""
 
     def __init__(
-        self: CaselessStrEnum[t.Any, t.Any],
+        self: CaselessStrEnum[t.Any],
         values: t.Any,
         default_value: t.Any = Undefined,
         **kwargs: t.Any,
     ) -> None:
         super().__init__(values, default_value=default_value, **kwargs)
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         if not isinstance(value, str):
             self.error(obj, value)
 
-        for v in self.values:
+        for v in self.values or []:
+            assert isinstance(v, str)
             if v.lower() == value.lower():
-                return v
+                return t.cast(G, v)
         self.error(obj, value)
 
-    def _info(self, as_rst=False):
+    def _info(self, as_rst: bool = False) -> str:
         """Returns a description of the trait."""
         none = " or %s" % ("`None`" if as_rst else "None") if self.allow_none else ""
         return f"any of {self._choices_str(as_rst)} (case-insensitive){none}"
 
-    def info(self):
+    def info(self) -> str:
         return self._info(as_rst=False)
 
-    def info_rst(self):
+    def info_rst(self) -> str:
         return self._info(as_rst=True)
 
 
-class FuzzyEnum(Enum[G, S]):
+class FuzzyEnum(Enum[G]):
     """An case-ignoring enum matching choices by unique prefixes/substrings."""
 
     case_sensitive = False
@@ -3273,7 +3305,7 @@ class FuzzyEnum(Enum[G, S]):
     substring_matching = False
 
     def __init__(
-        self: FuzzyEnum[t.Any, t.Any],
+        self: FuzzyEnum[t.Any],
         values: t.Any,
         default_value: t.Any = Undefined,
         case_sensitive: bool = False,
@@ -3284,16 +3316,16 @@ class FuzzyEnum(Enum[G, S]):
         self.substring_matching = substring_matching
         super().__init__(values, default_value=default_value, **kwargs)
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         if not isinstance(value, str):
             self.error(obj, value)
 
         conv_func = (lambda c: c) if self.case_sensitive else lambda c: c.lower()
         substring_matching = self.substring_matching
         match_func = (lambda v, c: v in c) if substring_matching else (lambda v, c: c.startswith(v))
-        value = conv_func(value)
-        choices = self.values
-        matches = [match_func(value, conv_func(c)) for c in choices]
+        value = conv_func(value)  # type:ignore[no-untyped-call]
+        choices = self.values or []
+        matches = [match_func(value, conv_func(c)) for c in choices]  # type:ignore[no-untyped-call]
         if sum(matches) == 1:
             for v, m in zip(choices, matches):
                 if m:
@@ -3301,17 +3333,17 @@ class FuzzyEnum(Enum[G, S]):
 
         self.error(obj, value)
 
-    def _info(self, as_rst=False):
+    def _info(self, as_rst: bool = False) -> str:
         """Returns a description of the trait."""
         none = " or %s" % ("`None`" if as_rst else "None") if self.allow_none else ""
         case = "sensitive" if self.case_sensitive else "insensitive"
         substr = "substring" if self.substring_matching else "prefix"
         return f"any case-{case} {substr} of {self._choices_str(as_rst)}{none}"
 
-    def info(self):
+    def info(self) -> str:
         return self._info(as_rst=False)
 
-    def info_rst(self):
+    def info_rst(self) -> str:
         return self._info(as_rst=True)
 
 
@@ -3324,7 +3356,7 @@ class Container(Instance[T]):
     klass: type[T] | None = None
     _cast_types: t.Any = ()
     _valid_defaults = SequenceTypes
-    _trait = None
+    _trait: t.Any = None
     _literal_from_string_pairs: t.Any = ("[]", "()")
 
     @t.overload
@@ -3446,7 +3478,7 @@ class Container(Instance[T]):
             klass=self.klass, args=args, help=help, read_only=read_only, config=config, **kwargs
         )
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> T | None:
         if isinstance(value, self._cast_types):
             assert self.klass is not None
             value = self.klass(value)  # type:ignore[call-arg]
@@ -3456,12 +3488,12 @@ class Container(Instance[T]):
 
         value = self.validate_elements(obj, value)
 
-        return value
+        return t.cast(T, value)
 
-    def validate_elements(self, obj, value):
+    def validate_elements(self, obj: t.Any, value: t.Any) -> T | None:
         validated = []
         if self._trait is None or isinstance(self._trait, Any):
-            return value
+            return t.cast(T, value)
         for v in value:
             try:
                 v = self._trait._validate(obj, v)
@@ -3472,18 +3504,18 @@ class Container(Instance[T]):
         assert self.klass is not None
         return self.klass(validated)  # type:ignore[call-arg]
 
-    def class_init(self, cls, name):
+    def class_init(self, cls: type[t.Any], name: str | None) -> None:
         if isinstance(self._trait, TraitType):
             self._trait.class_init(cls, None)
         super().class_init(cls, name)
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         if isinstance(self._trait, TraitType):
             self._trait.subclass_init(cls)
         # explicitly not calling super().subclass_init(cls)
         # to opt out of instance_init
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> T | None:
         """Load value from a single string"""
         if not isinstance(s, str):
             raise TraitError(f"Expected string, got {s!r}")
@@ -3493,7 +3525,7 @@ class Container(Instance[T]):
             test = None
         return self.validate(None, test)
 
-    def from_string_list(self, s_list):
+    def from_string_list(self, s_list: list[str]) -> T | None:
         """Return the value from a list of config strings
 
         This is where we parse CLI configuration
@@ -3527,34 +3559,34 @@ class Container(Instance[T]):
             item_from_string = self.item_from_string
         else:
             # backward-compat: allow item_from_string to ignore index arg
-            def item_from_string(s, index=None):
-                return self.item_from_string(s)
+            def item_from_string(s: str, index: int | None = None) -> T | str:
+                return t.cast(T, self.item_from_string(s))
 
         return self.klass(  # type:ignore[call-arg]
             [item_from_string(s, index=idx) for idx, s in enumerate(s_list)]
         )
 
-    def item_from_string(self, s, index=None):
+    def item_from_string(self, s: str, index: int | None = None) -> T | str:
         """Cast a single item from a string
 
         Evaluated when parsing CLI configuration from a string
         """
         if self._trait:
-            return self._trait.from_string(s)
+            return t.cast(T, self._trait.from_string(s))
         else:
             return s
 
 
-class List(Container[t.List[t.Any]]):
+class List(Container[t.List[T]]):
     """An instance of a Python list."""
 
-    klass = list
+    klass = list  # type:ignore[assignment]
     _cast_types: t.Any = (tuple,)
 
     def __init__(
         self,
-        trait: t.Any = None,
-        default_value: t.Any = Undefined,
+        trait: t.List[T] | t.Tuple[T] | t.Set[T] | Sentinel | TraitType[T, t.Any] | None = None,
+        default_value: t.List[T] | t.Tuple[T] | t.Set[T] | Sentinel | None = Undefined,
         minlen: int = 0,
         maxlen: int = sys.maxsize,
         **kwargs: t.Any,
@@ -3589,23 +3621,23 @@ class List(Container[t.List[t.Any]]):
         self._minlen = minlen
         super().__init__(trait=trait, default_value=default_value, **kwargs)
 
-    def length_error(self, obj, value):
+    def length_error(self, obj: t.Any, value: t.Any) -> None:
         e = (
             "The '%s' trait of %s instance must be of length %i <= L <= %i, but a value of %s was specified."
             % (self.name, class_of(obj), self._minlen, self._maxlen, value)
         )
         raise TraitError(e)
 
-    def validate_elements(self, obj, value):
+    def validate_elements(self, obj: t.Any, value: t.Any) -> t.Any:
         length = len(value)
         if length < self._minlen or length > self._maxlen:
             self.length_error(obj, value)
 
         return super().validate_elements(obj, value)
 
-    def set(self, obj, value):
+    def set(self, obj: t.Any, value: t.Any) -> None:
         if isinstance(value, str):
-            return super().set(obj, [value])
+            return super().set(obj, [value])  # type:ignore[list-item]
         else:
             return super().set(obj, value)
 
@@ -3657,21 +3689,21 @@ class Set(Container[t.Set[t.Any]]):
         self._minlen = minlen
         super().__init__(trait=trait, default_value=default_value, **kwargs)
 
-    def length_error(self, obj, value):
+    def length_error(self, obj: t.Any, value: t.Any) -> None:
         e = (
             "The '%s' trait of %s instance must be of length %i <= L <= %i, but a value of %s was specified."
             % (self.name, class_of(obj), self._minlen, self._maxlen, value)
         )
         raise TraitError(e)
 
-    def validate_elements(self, obj, value):
+    def validate_elements(self, obj: t.Any, value: t.Any) -> t.Any:
         length = len(value)
         if length < self._minlen or length > self._maxlen:
             self.length_error(obj, value)
 
         return super().validate_elements(obj, value)
 
-    def set(self, obj, value):
+    def set(self, obj: t.Any, value: t.Any) -> None:
         if isinstance(value, str):
             return super().set(
                 obj,
@@ -3682,9 +3714,9 @@ class Set(Container[t.Set[t.Any]]):
         else:
             return super().set(obj, value)
 
-    def default_value_repr(self):
+    def default_value_repr(self) -> str:
         # Ensure default value is sorted for a reproducible build
-        list_repr = repr(sorted(self.make_dynamic_default()))
+        list_repr = repr(sorted(self.make_dynamic_default() or []))
         if list_repr == "[]":
             return "set()"
         return "{" + list_repr[1:-1] + "}"
@@ -3773,7 +3805,7 @@ class Tuple(Container[t.Tuple[t.Any, ...]]):
             args = None
         super(Container, self).__init__(klass=self.klass, args=args, **kwargs)
 
-    def item_from_string(self, s, index):
+    def item_from_string(self, s: str, index: int) -> t.Any:  # type:ignore[override]
         """Cast a single item from a string
 
         Evaluated when parsing CLI configuration from a string
@@ -3784,7 +3816,7 @@ class Tuple(Container[t.Tuple[t.Any, ...]]):
             return s
         return self._traits[index].from_string(s)
 
-    def validate_elements(self, obj, value):
+    def validate_elements(self, obj: t.Any, value: t.Any) -> t.Any:
         if not self._traits:
             # nothing to validate
             return value
@@ -3805,13 +3837,13 @@ class Tuple(Container[t.Tuple[t.Any, ...]]):
                 validated.append(v)
         return tuple(validated)
 
-    def class_init(self, cls, name):
+    def class_init(self, cls: type[t.Any], name: str | None) -> None:
         for trait in self._traits:
             if isinstance(trait, TraitType):
                 trait.class_init(cls, None)
         super(Container, self).class_init(cls, name)
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         for trait in self._traits:
             if isinstance(trait, TraitType):
                 trait.subclass_init(cls)
@@ -3819,7 +3851,7 @@ class Tuple(Container[t.Tuple[t.Any, ...]]):
         # to opt out of instance_init
 
 
-class Dict(Instance[t.Dict[t.Any, t.Any]]):
+class Dict(Instance["dict[K, V]"]):
     """An instance of a Python dict.
 
     One or more traits can be passed to the constructor
@@ -3839,10 +3871,10 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
 
     def __init__(
         self,
-        value_trait: t.Any = None,
+        value_trait: TraitType[t.Any, t.Any] | dict[K, V] | Sentinel | None = None,
         per_key_traits: t.Any = None,
-        key_trait: t.Any = None,
-        default_value: t.Any = Undefined,
+        key_trait: TraitType[t.Any, t.Any] | None = None,
+        default_value: dict[K, V] | Sentinel | None = Undefined,
         **kwargs: t.Any,
     ) -> None:
         """Create a dict trait type from a Python dict.
@@ -3911,6 +3943,7 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
         # Handling positional arguments
         if default_value is Undefined and value_trait is not None:
             if not is_trait(value_trait):
+                assert not isinstance(value_trait, TraitType)
                 default_value = value_trait
                 value_trait = None
 
@@ -3934,7 +3967,7 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
         # Case where a type of TraitType is provided rather than an instance
         if is_trait(value_trait):
             if isinstance(value_trait, type):
-                warn(
+                warn(  # type:ignore[unreachable]
                     "Traits should be given as instances, not types (for example, `Int()`, not `Int`)"
                     " Passing types is deprecated in traitlets 4.1.",
                     DeprecationWarning,
@@ -3949,7 +3982,7 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
 
         if is_trait(key_trait):
             if isinstance(key_trait, type):
-                warn(
+                warn(  # type:ignore[unreachable]
                     "Traits should be given as instances, not types (for example, `Int()`, not `Int`)"
                     " Passing types is deprecated in traitlets 4.1.",
                     DeprecationWarning,
@@ -3964,21 +3997,23 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
 
         super().__init__(klass=dict, args=args, **kwargs)
 
-    def element_error(self, obj, element, validator, side="Values"):
+    def element_error(
+        self, obj: t.Any, element: t.Any, validator: t.Any, side: str = "Values"
+    ) -> None:
         e = (
             side
             + f" of the '{self.name}' trait of {class_of(obj)} instance must be {validator.info()}, but a value of {repr_type(element)} was specified."
         )
         raise TraitError(e)
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> dict[K, V] | None:
         value = super().validate(obj, value)
         if value is None:
             return value
-        value = self.validate_elements(obj, value)
-        return value
+        value_dict = self.validate_elements(obj, value)
+        return value_dict
 
-    def validate_elements(self, obj, value):
+    def validate_elements(self, obj: t.Any, value: dict[t.Any, t.Any]) -> dict[K, V] | None:
         per_key_override = self._per_key_traits or {}
         key_trait = self._key_trait
         value_trait = self._value_trait
@@ -4003,7 +4038,7 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
 
         return self.klass(validated)  # type:ignore[misc,operator]
 
-    def class_init(self, cls, name):
+    def class_init(self, cls: type[t.Any], name: str | None) -> None:
         if isinstance(self._value_trait, TraitType):
             self._value_trait.class_init(cls, None)
         if isinstance(self._key_trait, TraitType):
@@ -4013,7 +4048,7 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
                 trait.class_init(cls, None)
         super().class_init(cls, name)
 
-    def subclass_init(self, cls):
+    def subclass_init(self, cls: type[t.Any]) -> None:
         if isinstance(self._value_trait, TraitType):
             self._value_trait.subclass_init(cls)
         if isinstance(self._key_trait, TraitType):
@@ -4024,19 +4059,19 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
         # explicitly not calling super().subclass_init(cls)
         # to opt out of instance_init
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> dict[K, V] | None:
         """Load value from a single string"""
         if not isinstance(s, str):
             raise TypeError(f"from_string expects a string, got {s!r} of type {type(s)}")
         try:
-            return self.from_string_list([s])
+            return t.cast("dict[K, V]", self.from_string_list([s]))
         except Exception:
             test = _safe_literal_eval(s)
             if isinstance(test, dict):
                 return test
             raise
 
-    def from_string_list(self, s_list):
+    def from_string_list(self, s_list: list[str]) -> t.Any:
         """Return a dict from a list of config strings.
 
         This is where we parse CLI configuration.
@@ -4062,7 +4097,7 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
             combined.update(d)
         return combined
 
-    def item_from_string(self, s):
+    def item_from_string(self, s: str) -> dict[K, V]:
         """Cast a single-key dict from a string.
 
         Evaluated when parsing CLI configuration from a string.
@@ -4087,7 +4122,7 @@ class Dict(Instance[t.Dict[t.Any, t.Any]]):
         value_trait = (self._per_key_traits or {}).get(key, self._value_trait)
         if value_trait:
             value = value_trait.from_string(value)
-        return {key: value}
+        return t.cast("dict[K, V]", {key: value})
 
 
 class TCPAddress(TraitType[G, S]):
@@ -4137,23 +4172,23 @@ class TCPAddress(TraitType[G, S]):
         ) -> None:
             ...
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> G:
         if isinstance(value, tuple):
             if len(value) == 2:
                 if isinstance(value[0], str) and isinstance(value[1], int):
                     port = value[1]
                     if port >= 0 and port <= 65535:
-                        return value
+                        return t.cast(G, value)
         self.error(obj, value)
 
-    def from_string(self, s):
+    def from_string(self, s: str) -> G:
         if self.allow_none and s == "None":
-            return None
+            return t.cast(G, None)
         if ":" not in s:
             raise ValueError("Require `ip:port`, got %r" % s)
-        ip, port = s.split(":", 1)
-        port = int(port)
-        return (ip, port)
+        ip, port_str = s.split(":", 1)
+        port = int(port_str)
+        return t.cast(G, (ip, port))
 
 
 class CRegExp(TraitType["re.Pattern[t.Any]", t.Union["re.Pattern[t.Any]", str]]):
@@ -4164,7 +4199,7 @@ class CRegExp(TraitType["re.Pattern[t.Any]", t.Union["re.Pattern[t.Any]", str]])
 
     info_text = "a regular expression"
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> re.Pattern[t.Any] | None:
         try:
             return re.compile(value)
         except Exception:
@@ -4215,7 +4250,7 @@ class UseEnum(TraitType[t.Any, t.Any]):
         self.enum_class = enum_class
         self.name_prefix = enum_class.__name__ + "."
 
-    def select_by_number(self, value, default=Undefined):
+    def select_by_number(self, value: int, default: t.Any = Undefined) -> t.Any:
         """Selects enum-value by using its number-constant."""
         assert isinstance(value, int)
         enum_members = self.enum_class.__members__
@@ -4225,7 +4260,7 @@ class UseEnum(TraitType[t.Any, t.Any]):
         # -- NOT FOUND:
         return default
 
-    def select_by_name(self, value, default=Undefined):
+    def select_by_name(self, value: str, default: t.Any = Undefined) -> t.Any:
         """Selects enum-value by using its name or scoped-name."""
         assert isinstance(value, str)
         if value.startswith(self.name_prefix):
@@ -4233,7 +4268,7 @@ class UseEnum(TraitType[t.Any, t.Any]):
             value = value.replace(self.name_prefix, "", 1)
         return self.enum_class.__members__.get(value, default)
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> t.Any:
         if isinstance(value, self.enum_class):
             return value
         elif isinstance(value, int):
@@ -4253,7 +4288,7 @@ class UseEnum(TraitType[t.Any, t.Any]):
                 return self.default_value
         self.error(obj, value)
 
-    def _choices_str(self, as_rst=False):
+    def _choices_str(self, as_rst: bool = False) -> str:
         """Returns a description of the trait choices (not none)."""
         choices = self.enum_class.__members__.keys()
         if as_rst:
@@ -4261,15 +4296,15 @@ class UseEnum(TraitType[t.Any, t.Any]):
         else:
             return repr(list(choices))  # Listify because py3.4- prints odict-class
 
-    def _info(self, as_rst=False):
+    def _info(self, as_rst: bool = False) -> str:
         """Returns a description of the trait."""
         none = " or %s" % ("`None`" if as_rst else "None") if self.allow_none else ""
         return f"any of {self._choices_str(as_rst)}{none}"
 
-    def info(self):
+    def info(self) -> str:
         return self._info(as_rst=False)
 
-    def info_rst(self):
+    def info_rst(self) -> str:
         return self._info(as_rst=True)
 
 
@@ -4283,7 +4318,7 @@ class Callable(TraitType[t.Callable[..., t.Any], t.Callable[..., t.Any]]):
 
     info_text = "a callable"
 
-    def validate(self, obj, value):
+    def validate(self, obj: t.Any, value: t.Any) -> t.Any:
         if callable(value):
             return value
         else:

@@ -133,21 +133,21 @@ class TestArgcomplete:
     def test_complete_simple_app(self, argcomplete_on):
         app = ArgcompleteApp()
         expected = [
-            '--help',
-            '--debug',
-            '--show-config',
-            '--show-config-json',
-            '--log-level',
-            '--Application.',
-            '--ArgcompleteApp.',
+            "--help",
+            "--debug",
+            "--show-config",
+            "--show-config-json",
+            "--log-level",
+            "--Application.",
+            "--ArgcompleteApp.",
         ]
         assert set(self.run_completer(app, "app --")) == set(expected)
 
         # completing class traits
         assert set(self.run_completer(app, "app --App")) > {
-            '--Application.show_config',
-            '--Application.log_level',
-            '--Application.log_format',
+            "--Application.show_config",
+            "--Application.log_level",
+            "--Application.log_format",
         }
 
     def test_complete_custom_completers(self, argcomplete_on):
@@ -195,9 +195,9 @@ class TestArgcomplete:
         app = MainApp()
         try:
             assert set(self.run_completer(app, "app subapp1 --Sub")) > {
-                '--SubApp1.show_config',
-                '--SubApp1.log_level',
-                '--SubApp1.log_format',
+                "--SubApp1.show_config",
+                "--SubApp1.log_level",
+                "--SubApp1.log_format",
             }
         finally:
             SubApp1.clear_instance()
@@ -206,8 +206,8 @@ class TestArgcomplete:
         app = MainApp()
         try:
             assert set(self.run_completer(app, "app subapp2 --")) > {
-                '--Application.',
-                '--SubApp2.',
+                "--Application.",
+                "--SubApp2.",
             }
         finally:
             SubApp2.clear_instance()
@@ -215,5 +215,5 @@ class TestArgcomplete:
     def test_complete_subcommands_main(self, argcomplete_on):
         app = MainApp()
         completions = set(self.run_completer(app, "app --"))
-        assert completions > {'--Application.', '--MainApp.'}
+        assert completions > {"--Application.", "--MainApp."}
         assert "--SubApp1." not in completions and "--SubApp2." not in completions

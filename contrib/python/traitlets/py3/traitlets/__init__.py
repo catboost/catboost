@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 
-class Sentinel(traitlets.Sentinel):  # type:ignore[name-defined]
+class Sentinel(traitlets.Sentinel):  # type:ignore[name-defined, misc]
     def __init__(self, *args: _t.Any, **kwargs: _t.Any) -> None:
         super().__init__(*args, **kwargs)
         warn(
