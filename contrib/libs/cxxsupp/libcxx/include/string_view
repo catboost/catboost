@@ -234,11 +234,6 @@ namespace std {
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4455 )
-#endif
-
 _LIBCPP_PUSH_MACROS
 #include <__undef_macros>
 
@@ -974,10 +969,6 @@ inline namespace literals
 } // namespace literals
 #endif
 _LIBCPP_END_NAMESPACE_STD
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 
 _LIBCPP_POP_MACROS
 

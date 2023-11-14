@@ -191,11 +191,6 @@ struct __mu_return_impl<_Ti, false, false, false, _TupleUj>
     typedef _Ti& type;
 };
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4296 )
-#endif
-
 template <class _Ti, class _TupleUj>
 struct __mu_return
     : public __mu_return_impl<_Ti,
@@ -206,10 +201,6 @@ struct __mu_return
                               _TupleUj>
 {
 };
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 
 template <class _Fp, class _BoundArgs, class _TupleUj>
 struct __is_valid_bind_return
@@ -272,11 +263,6 @@ __apply_functor(_Fp& __f, _BoundArgs& __bound_args, __tuple_indices<_Indx...>,
     return _VSTD::__invoke(__f, _VSTD::__mu(_VSTD::get<_Indx>(__bound_args), __args)...);
 }
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4296 )
-#endif
-
 template<class _Fp, class ..._BoundArgs>
 class __bind
 #if _LIBCPP_STD_VER <= 17 || !defined(_LIBCPP_ABI_NO_BINDER_BASES)
@@ -322,10 +308,6 @@ public:
                                    tuple<_Args&&...>(_VSTD::forward<_Args>(__args)...));
         }
 };
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 
 #if defined(__CUDACC__) && defined(_MSC_VER)
 #   define Y_CUDAFE_MSVC_BUG

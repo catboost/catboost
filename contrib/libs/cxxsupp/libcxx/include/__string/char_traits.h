@@ -207,7 +207,7 @@ struct _LIBCPP_TEMPLATE_VIS char_traits<char>
     static inline size_t _LIBCPP_CONSTEXPR_AFTER_CXX14 length(const char_type* __s)  _NOEXCEPT {
       // GCC currently does not support __builtin_strlen during constant evaluation.
       // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70816
-#if defined(_LIBCPP_COMPILER_GCC) || defined(_LIBCPP_COMPILER_MSVC)
+#ifdef _LIBCPP_COMPILER_GCC
       if (__libcpp_is_constant_evaluated()) {
         size_t __i = 0;
         for (; __s[__i] != char_type('\0'); ++__i)

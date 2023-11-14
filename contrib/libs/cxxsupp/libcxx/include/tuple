@@ -460,23 +460,6 @@ struct _LIBCPP_DECLSPEC_EMPTY_BASES __tuple_impl<__tuple_indices<_Indx...>, _Tp.
             __tuple_leaf<_Ul, _Tl>()...
             {}
 
-#if defined(__NVCC__) && defined(_LIBCPP_COMPILER_MSVC)
-    // Yandex-specific: specialize the preceding constructor for the
-    // case of empty _Ul and _Tl to work around nvcc+msvc bug
-    // compiling libcxx std::map<int, int> m; m[1] = 2.
-    template <size_t ..._Uf, class ..._Tf,
-              class ..._Up>
-        _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
-        explicit
-        __tuple_impl(__tuple_indices<_Uf...>, __tuple_types<_Tf...>,
-                     __tuple_indices<>, __tuple_types<>,
-                     _Up&&... __u)
-                     _NOEXCEPT_((__all<is_nothrow_constructible<_Tf, _Up>::value...>::value)) :
-            __tuple_leaf<_Uf, _Tf>(_VSTD::forward<_Up>(__u))...
-            {}
-    // End of Yandex-specific
-#endif
-
     template <class _Alloc, size_t ..._Uf, class ..._Tf,
               size_t ..._Ul, class ..._Tl, class ..._Up>
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11

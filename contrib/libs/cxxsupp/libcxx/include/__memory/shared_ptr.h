@@ -102,7 +102,6 @@ _ValueType __libcpp_acquire_load(_ValueType const* __value) {
 #endif
 }
 
-#ifndef _LIBCPP_COMPILER_MSVC
 template <class _Tp>
 inline _LIBCPP_INLINE_VISIBILITY _Tp
 __libcpp_atomic_refcount_increment(_Tp& __t) _NOEXCEPT
@@ -124,7 +123,6 @@ __libcpp_atomic_refcount_decrement(_Tp& __t) _NOEXCEPT
     return __t -= 1;
 #endif
 }
-#endif
 
 class _LIBCPP_EXCEPTION_ABI bad_weak_ptr
     : public std::exception

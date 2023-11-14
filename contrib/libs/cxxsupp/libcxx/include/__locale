@@ -271,11 +271,6 @@ public:
         return do_compare(__lo1, __hi1, __lo2, __hi2);
     }
 
-// Disable double inline warning.
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4141 )
-#endif
     // FIXME(EricWF): The _LIBCPP_ALWAYS_INLINE is needed on Windows to work
     // around a dllimport bug that expects an external instantiation.
     _LIBCPP_INLINE_VISIBILITY
@@ -284,9 +279,6 @@ public:
     {
         return do_transform(__lo, __hi);
     }
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 
     _LIBCPP_INLINE_VISIBILITY
     long hash(const char_type* __lo, const char_type* __hi) const

@@ -91,10 +91,6 @@ struct __hash_node_base
     _LIBCPP_INLINE_VISIBILITY __hash_node_base() _NOEXCEPT : __next_(nullptr) {}
 };
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning( push )
-#pragma warning( disable: 4624 )
-#endif // _LIBCPP_COMPILER_MSVC
 template <class _Tp, class _VoidPtr>
 struct _LIBCPP_STANDALONE_DEBUG __hash_node
     : public __hash_node_base
@@ -107,9 +103,6 @@ struct _LIBCPP_STANDALONE_DEBUG __hash_node
     size_t            __hash_;
     __node_value_type __value_;
 };
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning( pop )
-#endif // _LIBCPP_COMPILER_MSVC
 
 inline _LIBCPP_INLINE_VISIBILITY
 bool

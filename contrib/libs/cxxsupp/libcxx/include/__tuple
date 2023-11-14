@@ -355,70 +355,6 @@ using __apply_cv_t _LIBCPP_NODEBUG = __apply_cv_mf<
 // _Sp defaults to 0 and _Ep defaults to tuple_size<_Tuple>.  If _Tuple is a
 // lvalue_reference type, then __tuple_types<_Types&...> is the result.
 
-#ifdef _LIBCPP_COMPILER_MSVC
-
-template<class _TupleTypes, class _Tp>
-struct __make_tuple_types_append_front;
-
-template<class ..._Types, class _Tp>
-struct __make_tuple_types_append_front<__tuple_types<_Types...>, _Tp> {
-    using type = __tuple_types<_Tp, _Types...>;
-};
-
-template<class _TupleTypes, class _Apply, size_t _Ep, size_t _Sp, class = void>
-struct __make_tuple_types_flat;
-
-template<class _Tuple, class _Apply>
-struct __make_tuple_types_flat<_Tuple, _Apply, 0, 0, void> {
-    using type = __tuple_types<>;
-};
-
-template<template<class...> class _Tuple, class _Tp, class ..._Types, class _Apply, size_t _Ep>
-struct __make_tuple_types_flat<_Tuple<_Tp, _Types...>, _Apply, _Ep, 0, enable_if_t<(_Ep > 0)>> {
-    using type = typename __make_tuple_types_append_front<
-        typename __make_tuple_types_flat<__tuple_types<_Types...>, _Apply, _Ep - 1, 0>::type,
-        typename _Apply::template __apply<_Tp>>::type;
-};
-
-template<template <class...> class _Tuple, class _Tp, class ..._Types, class _Apply, size_t _Ep, size_t _Sp>
-struct __make_tuple_types_flat<_Tuple<_Tp, _Types...>, _Apply, _Ep, _Sp, enable_if_t<(_Ep > 0 && _Sp > 0)>> {
-    using type = typename __make_tuple_types_flat<__tuple_types<_Types...>, _Apply, _Ep - 1, _Sp - 1>::type;
-};
-
-template<class _Tp, size_t _Np, class _Apply, size_t _Ep>
-struct __make_tuple_types_flat<array<_Tp, _Np>, _Apply, _Ep, 0, enable_if_t<(_Ep > 0)>> {
-    using type = typename __make_tuple_types_append_front<
-        typename __make_tuple_types_flat<array<_Tp, _Np>, _Apply, _Ep - 1, 0>::type,
-        typename _Apply::template __apply<_Tp>>::type;
-};
-
-template<class _Tp, size_t _Np, class _Apply, size_t _Ep, size_t _Sp>
-struct __make_tuple_types_flat<array<_Tp, _Np>, _Apply, _Ep, _Sp, enable_if_t<(_Sp > 0)>> {
-    using type = typename __make_tuple_types_flat<array<_Tp, _Np>, _Apply, _Ep - _Sp, 0>::type;
-};
-
-template<class _Tp,
-         size_t _Ep = tuple_size<remove_reference_t<_Tp>>::value,
-         size_t _Sp = 0,
-         bool _SameSize = (_Ep == tuple_size<typename remove_reference<_Tp>::type>::value)>
-struct __make_tuple_types {
-    static_assert(_Sp <= _Ep, "__make_tuple_types input error");
-    using _RawTp = typename remove_cv<typename remove_reference<_Tp>::type>::type;
-    using type = typename __make_tuple_types_flat<_RawTp, __apply_cv_t<_Tp>, _Ep, _Sp>::type;
-};
-
-template <class ..._Types, size_t _Ep>
-struct __make_tuple_types<tuple<_Types...>, _Ep, 0, true> {
-  typedef __tuple_types<_Types...> type;
-};
-
-template <class ..._Types, size_t _Ep>
-struct __make_tuple_types<__tuple_types<_Types...>, _Ep, 0, true> {
-  typedef __tuple_types<_Types...> type;
-};
-
-#else
-
 template <class _TupleTypes, class _TupleIndices>
 struct __make_tuple_types_flat;
 
@@ -462,8 +398,6 @@ struct __make_tuple_types<__tuple_types<_Types...>, _Ep, 0, true> {
   typedef _LIBCPP_NODEBUG __tuple_types<_Types...> type;
 };
 
-#endif // _LIBCPP_COMPILER_MSVC
-
 template <bool ..._Preds>
 struct __all_dummy;
 
@@ -506,14 +440,12 @@ struct __tuple_convertible<_Tp, _Up, true, true,
 // __tuple_constructible
 
 template <class _Tp, class _Up, bool = __tuple_like<typename remove_reference<_Tp>::type>::value,
-                                bool = __tuple_like<_Up>::value,
-                                class = void>
+                                bool = __tuple_like<_Up>::value>
 struct __tuple_constructible
     : public false_type {};
 
 template <class _Tp, class _Up>
-struct __tuple_constructible<_Tp, _Up, true, true,
-                             typename enable_if<(tuple_size<typename remove_reference<_Tp>::type>::value == tuple_size<_Up>::value)>::type>
+struct __tuple_constructible<_Tp, _Up, true, true>
     : public __tuple_sfinae_base::__constructible<
       typename __make_tuple_types<_Tp>::type
     , typename __make_tuple_types<_Up>::type
@@ -523,14 +455,12 @@ struct __tuple_constructible<_Tp, _Up, true, true,
 // __tuple_assignable
 
 template <class _Tp, class _Up, bool = __tuple_like<typename remove_reference<_Tp>::type>::value,
-                                bool = __tuple_like<_Up>::value,
-                                class = void>
+                                bool = __tuple_like<_Up>::value>
 struct __tuple_assignable
     : public false_type {};
 
 template <class _Tp, class _Up>
-struct __tuple_assignable<_Tp, _Up, true, true,
-                          typename enable_if<(tuple_size<typename remove_reference<_Tp>::type>::value == tuple_size<_Up>::value)>::type>
+struct __tuple_assignable<_Tp, _Up, true, true>
     : public __tuple_sfinae_base::__assignable<
       typename __make_tuple_types<_Tp>::type
     , typename __make_tuple_types<_Up&>::type

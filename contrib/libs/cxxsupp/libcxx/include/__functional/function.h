@@ -969,18 +969,11 @@ class _LIBCPP_TEMPLATE_VIS function<_Rp(_ArgTypes...)>
 
     __func __f_;
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4348 )
-#endif
     template <class _Fp, bool = _And<
         _IsNotSame<__uncvref_t<_Fp>, function>,
         __invokable<_Fp, _ArgTypes...>
     >::value>
     struct __callable;
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
     template <class _Fp>
         struct __callable<_Fp, true>
         {

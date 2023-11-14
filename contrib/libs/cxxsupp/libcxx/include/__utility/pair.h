@@ -140,24 +140,16 @@ struct _LIBCPP_TEMPLATE_VIS pair
             _EnableExplicitDefaultConstructor<_Dummy>::value
     >::type* = nullptr>
     explicit _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
-    pair()
-// danlark@ if you remove this define, MSVC gets into ICE
-#if !defined(_LIBCPP_COMPILER_MSVC)
-    _NOEXCEPT_(is_nothrow_default_constructible<first_type>::value &&
-               is_nothrow_default_constructible<second_type>::value)
-#endif
+    pair() _NOEXCEPT_(is_nothrow_default_constructible<first_type>::value &&
+                      is_nothrow_default_constructible<second_type>::value)
         : first(), second() {}
 
     template<bool _Dummy = true, typename enable_if<
              _EnableImplicitDefaultConstructor<_Dummy>::value
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
-    pair()
-// danlark@ if you remove this define, MSVC gets into ICE
-#if !defined(_LIBCPP_COMPILER_MSVC)
-    _NOEXCEPT_(is_nothrow_default_constructible<first_type>::value &&
-               is_nothrow_default_constructible<second_type>::value)
-#endif
+    pair() _NOEXCEPT_(is_nothrow_default_constructible<first_type>::value &&
+                      is_nothrow_default_constructible<second_type>::value)
         : first(), second() {}
 
     template <bool _Dummy = true, typename enable_if<
@@ -319,9 +311,9 @@ private:
 #ifndef _LIBCPP_CXX03_LANG
     template <class... _Args1, class... _Args2, size_t... _I1, size_t... _I2>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-        pair(piecewise_construct_t,
-             tuple<_Args1...>& __first_args, tuple<_Args2...>& __second_args,
-             __tuple_indices<_I1...>, __tuple_indices<_I2...>);
+    pair(piecewise_construct_t,
+         tuple<_Args1...>& __first_args, tuple<_Args2...>& __second_args,
+         __tuple_indices<_I1...>, __tuple_indices<_I2...>);
 #endif
 };
 

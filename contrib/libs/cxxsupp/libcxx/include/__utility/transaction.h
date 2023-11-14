@@ -76,10 +76,7 @@ struct __transaction {
     }
 
     _LIBCPP_HIDE_FROM_ABI
-#if !defined(_LIBCPP_COMPILER_MSVC)
-    _LIBCPP_CONSTEXPR_AFTER_CXX17
-#endif
-    ~__transaction() {
+    _LIBCPP_CONSTEXPR_AFTER_CXX17 ~__transaction() {
         if (!__completed_)
             __rollback_();
     }

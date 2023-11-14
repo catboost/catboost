@@ -135,28 +135,16 @@ inline _LIBCPP_INLINE_VISIBILITY long long abs(long long __x) _NOEXCEPT {
 
 #if !defined(__sun__)
 inline _LIBCPP_INLINE_VISIBILITY float abs(float __lcpp_x) _NOEXCEPT {
-#ifdef _LIBCPP_COMPILER_MSVC
-  return fabsf(__lcpp_x);
-#else
   return __builtin_fabsf(__lcpp_x); // Use builtins to prevent needing math.h
-#endif
 }
 
 inline _LIBCPP_INLINE_VISIBILITY double abs(double __lcpp_x) _NOEXCEPT {
-#ifdef _LIBCPP_COMPILER_MSVC
-  return fabs(__lcpp_x);
-#else
   return __builtin_fabs(__lcpp_x);
-#endif
 }
 
 inline _LIBCPP_INLINE_VISIBILITY long double
 abs(long double __lcpp_x) _NOEXCEPT {
-#ifdef _LIBCPP_COMPILER_MSVC
-  return fabsl(__lcpp_x);
-#else
   return __builtin_fabsl(__lcpp_x);
-#endif
 }
 #endif // !defined(__sun__)
 

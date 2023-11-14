@@ -891,13 +891,7 @@ _Tp __cxx_atomic_fetch_xor(__cxx_atomic_base_impl<_Tp>* __a, _Tp __pattern,
 
 #define __cxx_atomic_is_lock_free(__s) __atomic_is_lock_free(__s, 0)
 
-#elif defined(_LIBCPP_HAS_C_ATOMIC_IMP) || defined(_LIBCPP_COMPILER_MSVC)
-
-#if defined(_LIBCPP_COMPILER_MSVC)
-_LIBCPP_END_NAMESPACE_STD
-#include <__support/win32/atomic_win32.h>
-_LIBCPP_BEGIN_NAMESPACE_STD
-#endif
+#elif defined(_LIBCPP_HAS_C_ATOMIC_IMP)
 
 template <typename _Tp>
 struct __cxx_atomic_base_impl {
@@ -915,10 +909,6 @@ struct __cxx_atomic_base_impl {
 
 #define __cxx_atomic_is_lock_free(__s) __c11_atomic_is_lock_free(__s)
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4141 )
-#endif
 _LIBCPP_INLINE_VISIBILITY inline
 void __cxx_atomic_thread_fence(memory_order __order) _NOEXCEPT {
     __c11_atomic_thread_fence(static_cast<__memory_order_underlying_t>(__order));
@@ -928,9 +918,6 @@ _LIBCPP_INLINE_VISIBILITY inline
 void __cxx_atomic_signal_fence(memory_order __order) _NOEXCEPT {
     __c11_atomic_signal_fence(static_cast<__memory_order_underlying_t>(__order));
 }
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 
 template<class _Tp>
 _LIBCPP_INLINE_VISIBILITY
@@ -978,20 +965,12 @@ _Tp __cxx_atomic_exchange(__cxx_atomic_base_impl<_Tp> * __a, _Tp __value, memory
     return __c11_atomic_exchange(&__a->__a_value, __value, static_cast<__memory_order_underlying_t>(__order));
 }
 
-// Disable double inline warning
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4141 )
-#endif
 _LIBCPP_INLINE_VISIBILITY inline _LIBCPP_CONSTEXPR memory_order __to_failure_order(memory_order __order) {
   // Avoid switch statement to make this a constexpr.
   return __order == memory_order_release ? memory_order_relaxed:
          (__order == memory_order_acq_rel ? memory_order_acquire:
              __order);
 }
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 
 template<class _Tp>
 _LIBCPP_INLINE_VISIBILITY
@@ -1674,14 +1653,7 @@ struct __atomic_base  // false
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
     __atomic_base(_Tp __d) _NOEXCEPT : __a_(__d) {}
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4522 )
-#endif
     __atomic_base(const __atomic_base&) = delete;
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 };
 
 #if defined(__cpp_lib_atomic_is_always_lock_free)
@@ -2463,16 +2435,9 @@ typedef struct atomic_flag
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
     atomic_flag(bool __b) _NOEXCEPT : __a_(__b) {} // EXTENSION
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4522 )
-#endif
     atomic_flag(const atomic_flag&) = delete;
     atomic_flag& operator=(const atomic_flag&) = delete;
     atomic_flag& operator=(const atomic_flag&) volatile = delete;
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 
 } atomic_flag;
 

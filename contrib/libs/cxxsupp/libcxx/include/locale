@@ -1688,13 +1688,6 @@ public:
     enum dateorder {no_order, dmy, mdy, ymd, ydm};
 };
 
-#ifdef _LIBCPP_COMPILER_MSVC
-// __time_get_c_storage should only be used for private inheritance to avoid
-// problems with non-virtual destructor
-#pragma warning ( push )
-#pragma warning ( disable : 4265 )
-#endif
-
 template <class _CharT>
 class _LIBCPP_TEMPLATE_VIS __time_get_c_storage
 {
@@ -1712,10 +1705,6 @@ protected:
     _LIBCPP_INLINE_VISIBILITY
     ~__time_get_c_storage() {}
 };
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 
 template <> _LIBCPP_FUNC_VIS const string* __time_get_c_storage<char>::__weeks() const;
 template <> _LIBCPP_FUNC_VIS const string* __time_get_c_storage<char>::__months() const;

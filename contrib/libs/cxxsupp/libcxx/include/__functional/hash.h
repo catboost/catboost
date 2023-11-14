@@ -411,20 +411,12 @@ struct _PairT {
   size_t second;
 };
 
-// Disable double inline warning.
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4141 )
-#endif
 _LIBCPP_INLINE_VISIBILITY
 inline size_t __hash_combine(size_t __lhs, size_t __rhs) _NOEXCEPT {
     typedef __scalar_hash<_PairT> _HashT;
     const _PairT __p = {__lhs, __rhs};
     return _HashT()(__p);
 }
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 
 _LIBCPP_SUPPRESS_DEPRECATED_PUSH
 template<class _Tp>

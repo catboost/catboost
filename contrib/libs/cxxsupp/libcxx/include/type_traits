@@ -761,17 +761,6 @@ template <size_t _Len, size_t _Align = __find_max_align<__all_types, _Len>::valu
     using aligned_storage_t = typename aligned_storage<_Len, _Align>::type;
 #endif
 
-// MSVC compiler doesn't support more that 4 byte alignment on the stack on Win32.
-// If you try to pass parameter which is aligned by alignas to 8 or more bytes
-// on Win32, MSVC throws compile error C2719.
-// To avoid this compile error we delete all alignas specializations and use
-// union alignment instead. Just like for double, this will mean that 8 bytes
-// aligned types will only be aligned to 4 bytes on the stack.
-// Larger alignments will generate assert error which is allowed by the standard
-// since it is implementation-defined behavior. Default _Align argument will never
-// be more than 8 bytes on Win32 and so will not generate assert errors.
-#if !(defined(_LIBCPP_COMPILER_MSVC) && defined(_M_IX86))
-
 #define _CREATE_ALIGNED_STORAGE_SPECIALIZATION(n) \
 template <size_t _Len>\
 struct _LIBCPP_TEMPLATE_VIS aligned_storage<_Len, n>\
@@ -802,7 +791,6 @@ _CREATE_ALIGNED_STORAGE_SPECIALIZATION(0x4000);
 #endif // !defined(_LIBCPP_OBJECT_FORMAT_COFF)
 
 #undef _CREATE_ALIGNED_STORAGE_SPECIALIZATION
-#endif  // !(defined(_LIBCPP_COMPILER_MSVC) && defined(_M_IX86))
 
 
 // aligned_union

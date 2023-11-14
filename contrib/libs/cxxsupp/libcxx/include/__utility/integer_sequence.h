@@ -61,16 +61,9 @@ struct __make_integer_sequence_checked
     static_assert(is_integral<_Tp>::value,
                   "std::make_integer_sequence can only be instantiated with an integral type" );
     static_assert(0 <= _Ep, "std::make_integer_sequence must have a non-negative sequence length");
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4296 )
-#endif
     // Workaround GCC bug by preventing bad installations when 0 <= _Ep
     // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68929
     typedef _LIBCPP_NODEBUG __make_integer_sequence_unchecked<_Tp, 0 <= _Ep ? _Ep : 0> type;
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 };
 
 template <class _Tp, _Tp _Ep>

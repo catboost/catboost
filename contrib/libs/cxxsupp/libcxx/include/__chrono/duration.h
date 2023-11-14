@@ -528,12 +528,6 @@ operator%(const duration<_Rep1, _Period1>& __lhs, const duration<_Rep2, _Period2
 } // namespace chrono
 
 #if _LIBCPP_STD_VER > 11
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( push )
-#pragma warning ( disable : 4455)
-#endif
-
 // Suffixes for duration literals [time.duration.literals]
 inline namespace literals
 {
@@ -607,10 +601,6 @@ inline namespace literals
 
 } // namespace chrono_literals
 } // namespace literals
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#pragma warning ( pop )
-#endif
 
 namespace chrono { // hoist the literals into namespace std::chrono
    using namespace literals::chrono_literals;

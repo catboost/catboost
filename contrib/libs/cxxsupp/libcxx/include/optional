@@ -733,7 +733,7 @@ public:
     template <class _InPlaceT, class... _Args, class = enable_if_t<
           _And<
               _IsSame<_InPlaceT, in_place_t>,
-            is_constructible<value_type, _Args...>
+              is_constructible<value_type, _Args...>
             >::value
         >
     >
