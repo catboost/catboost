@@ -155,6 +155,7 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         os.path.join('contrib', 'tools', 'cython'),
         os.path.join('contrib', 'tools', 'flatc'),
         os.path.join('contrib', 'tools', 'protoc'),
+        os.path.join('contrib', 'tools', 'swig'),
         'tools',
         'util',
     ]
