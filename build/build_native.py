@@ -399,7 +399,13 @@ def get_cuda_root_dir(cuda_root_dir_option):
 def add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir):
     cuda_bin_dir = os.path.join(cuda_root_dir, 'bin')
     if platform.system().lower() == 'windows':
-        build_environ['Path'] = cuda_bin_dir + ';' + build_environ['Path']
+        if 'Path' in build_environ:
+            path_env_name = 'Path'
+        elif 'PATH' in build_environ:
+            path_env_name = 'PATH'
+        else:
+            raise RuntimeError('no PATH environment variable')
+        build_environ[path_env_name] = cuda_bin_dir + ';' + build_environ[path_env_name]
     else:
         build_environ['PATH'] = cuda_bin_dir + ':' + build_environ['PATH']
 
