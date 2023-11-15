@@ -517,6 +517,7 @@ namespace std
 #include <__type_traits/void_t.h>
 #include <__utility/declval.h>
 #include <cstddef>
+#include <cstdint>
 #include <version>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -533,36 +534,6 @@ template <class _Tp> struct _LIBCPP_TEMPLATE_VIS hash;
 template <bool _Cond, class _Ret = void>
 using __lazy_enable_if _LIBCPP_NODEBUG = __enable_if_t<_Cond, _Ret>;
 #endif
-
-template <bool> struct _MetaBase;
-template <>
-struct _MetaBase<true> {
-  template <template <class...> class _FirstFn, template <class...> class, class ..._Args>
-  using _SelectApplyImpl _LIBCPP_NODEBUG = _FirstFn<_Args...>;
-  template <class _First, class...>
-  using _FirstImpl _LIBCPP_NODEBUG = _First;
-  template <class, class _Second, class...>
-  using _SecondImpl _LIBCPP_NODEBUG = _Second;
-};
-
-template <>
-struct _MetaBase<false> {
-  template <template <class...> class, template <class...> class _SecondFn, class ..._Args>
-  using _SelectApplyImpl _LIBCPP_NODEBUG = _SecondFn<_Args...>;
-};
-
-// Workaround for MSVC. Sometimes compiler thinks that sizeof...(Type) is parameter pack rather than the number.
-// So it doesn't allow sizeof...(Type) in expression that goes into the boolean template parameter of _MetaBase.
-// This simple wrapper allows us to hide sizeof... from the compiler.
-template<class... _Pack>
-struct _Sizeof {
-    static constexpr size_t value = sizeof...(_Pack);
-};
-
-template <class ..._Args>
-using _FirstType _LIBCPP_NODEBUG = typename _MetaBase<(sizeof...(_Args) >= 1)>::template _FirstImpl<_Args...>;
-template <class ..._Args>
-using _SecondType _LIBCPP_NODEBUG = typename _MetaBase<(sizeof...(_Args) >= 2)>::template _SecondImpl<_Args...>;
 
 template <template <class...> class _Func, class ..._Args>
 struct _Lazy : _Func<_Args...> {};
@@ -581,6 +552,14 @@ template <class _Tp, bool>
 struct _LIBCPP_TEMPLATE_VIS __dependent_type : public _Tp {};
 
 // is_same
+
+// Workaround for MSVC. Sometimes compiler thinks that sizeof...(Type) is parameter pack rather than the number.
+// So it doesn't allow sizeof...(Type) in expression that goes into the boolean template parameter of _MetaBase.
+// This simple wrapper allows us to hide sizeof... from the compiler.
+template<class... _Pack>
+struct _Sizeof {
+    static constexpr size_t value = sizeof...(_Pack);
+};
 
 template <class _Tp>
 using __test_for_primary_template = __enable_if_t<
@@ -1016,6 +995,29 @@ typename make_unsigned<_Tp>::type __to_unsigned_like(_Tp __x) noexcept {
 }
 #endif
 
+template <class _Tp, class _Up>
+using __copy_unsigned_t = __conditional_t<is_unsigned<_Tp>::value, typename make_unsigned<_Up>::type, _Up>;
+
+/// Helper to promote an integral to smallest 32, 64, or 128 bit representation.
+///
+/// The restriction is the same as the integral version of to_char.
+template <class _Tp>
+#if _LIBCPP_STD_VER > 17
+  requires (is_signed_v<_Tp> || is_unsigned_v<_Tp> || is_same_v<_Tp, char>)
+#endif
+using __make_32_64_or_128_bit_t =
+  __copy_unsigned_t<_Tp,
+    __conditional_t<sizeof(_Tp) <= sizeof(int32_t),    int32_t,
+    __conditional_t<sizeof(_Tp) <= sizeof(int64_t),    int64_t,
+#ifndef _LIBCPP_HAS_NO_INT128
+    __conditional_t<sizeof(_Tp) <= sizeof(__int128_t), __int128_t,
+    /* else */                                         void>
+#else
+    /* else */                                         void
+#endif
+    > >
+  >;
+
 #if _LIBCPP_STD_VER > 17
 // Let COND_RES(X, Y) be:
 template <class _Tp, class _Up>
@@ -1363,90 +1365,11 @@ struct __is_implicitly_default_constructible<_Tp, decltype(__test_implicit_defau
 #if _LIBCPP_STD_VER <= 17 || defined(_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS)
 template <class _Callable> class _LIBCPP_DEPRECATED_IN_CXX17 result_of;
 
-#ifndef _LIBCPP_CXX03_LANG
-
 template <class _Fp, class ..._Args>
 class _LIBCPP_TEMPLATE_VIS result_of<_Fp(_Args...)>
     : public __invoke_of<_Fp, _Args...>
 {
 };
-
-#else // C++03
-
-template <class _Fn, bool, bool>
-class __result_of
-{
-};
-
-template <class _Fn, class ..._Args>
-class __result_of<_Fn(_Args...), true, false>
-{
-public:
-    typedef decltype(declval<_Fn>()(declval<_Args>()...)) type;
-};
-
-template <class _MP, class _Tp, bool _IsMemberFunctionPtr>
-struct __result_of_mp;
-
-// member function pointer
-
-template <class _MP, class _Tp>
-struct __result_of_mp<_MP, _Tp, true>
-{
-    using type = typename __member_pointer_traits<_MP>::_ReturnType;
-};
-
-// member data pointer
-
-template <class _MP, class _Tp, bool>
-struct __result_of_mdp;
-
-template <class _Rp, class _Class, class _Tp>
-struct __result_of_mdp<_Rp _Class::*, _Tp, false>
-{
-    using type = typename __apply_cv<decltype(*declval<_Tp>()), _Rp>::type&;
-};
-
-template <class _Rp, class _Class, class _Tp>
-struct __result_of_mdp<_Rp _Class::*, _Tp, true>
-{
-    using type = typename __apply_cv<_Tp, _Rp>::type&;
-};
-
-template <class _Rp, class _Class, class _Tp>
-struct __result_of_mp<_Rp _Class::*, _Tp, false>
-    : public __result_of_mdp<_Rp _Class::*, _Tp,
-            is_base_of<_Class, typename remove_reference<_Tp>::type>::value>
-{
-};
-
-template <class _Fn, class _Tp>
-class __result_of<_Fn(_Tp), false, true>  // _Fn must be member pointer
-    : public __result_of_mp<typename remove_reference<_Fn>::type,
-                            _Tp,
-                            is_member_function_pointer<typename remove_reference<_Fn>::type>::value>
-{
-};
-
-template <class _Fn, class _Tp, class ..._Args>
-class __result_of<_Fn(_Tp, _Args...), false, true>  // _Fn must be member pointer
-    : public __result_of_mp<typename remove_reference<_Fn>::type,
-                            _Tp,
-                            is_member_function_pointer<typename remove_reference<_Fn>::type>::value>
-{
-};
-
-template <class _Fn, class ..._Args>
-class _LIBCPP_TEMPLATE_VIS result_of<_Fn(_Args...)>
-    : public __result_of<_Fn(_Args...),
-                         is_class<typename remove_reference<_Fn>::type>::value ||
-                         is_function<typename remove_pointer<typename remove_reference<_Fn>::type>::type>::value,
-                         is_member_pointer<typename remove_reference<_Fn>::type>::value
-                        >
-{
-};
-
-#endif // C++03
 
 #if _LIBCPP_STD_VER > 11
 template <class _Tp> using result_of_t _LIBCPP_DEPRECATED_IN_CXX17 = typename result_of<_Tp>::type;

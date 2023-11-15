@@ -546,6 +546,12 @@ erase_if(multimap<Key, T, Compare, Allocator>& c, Predicate pred);  // C++20
 #include <type_traits>
 #include <version>
 
+#ifndef _LIBCPP_REMOVE_TRANSITIVE_INCLUDES
+#  include <functional>
+#  include <iterator>
+#  include <utility>
+#endif
+
 // standard-mandated includes
 
 // [iterator.range]
@@ -979,24 +985,15 @@ public:
     static_assert((is_same<typename allocator_type::value_type, value_type>::value),
                   "Allocator::value_type must be same type as value_type");
 
-_LIBCPP_SUPPRESS_DEPRECATED_PUSH
     class _LIBCPP_TEMPLATE_VIS value_compare
-#if defined(_LIBCPP_ENABLE_CXX20_REMOVED_BINDER_TYPEDEFS)
-        : public binary_function<value_type, value_type, bool>
-#endif
+        : public __binary_function<value_type, value_type, bool>
     {
-_LIBCPP_SUPPRESS_DEPRECATED_POP
         friend class map;
     protected:
         key_compare comp;
 
         _LIBCPP_INLINE_VISIBILITY value_compare(key_compare c) : comp(c) {}
     public:
-#if _LIBCPP_STD_VER <= 17 || defined(_LIBCPP_ENABLE_CXX20_REMOVED_BINDER_TYPEDEFS)
-        _LIBCPP_DEPRECATED_IN_CXX17 typedef bool result_type;
-        _LIBCPP_DEPRECATED_IN_CXX17 typedef value_type first_argument_type;
-        _LIBCPP_DEPRECATED_IN_CXX17 typedef value_type second_argument_type;
-#endif
         _LIBCPP_INLINE_VISIBILITY
         bool operator()(const value_type& __x, const value_type& __y) const
             {return comp(__x.first, __y.first);}
@@ -1764,13 +1761,9 @@ public:
     static_assert((is_same<typename allocator_type::value_type, value_type>::value),
                   "Allocator::value_type must be same type as value_type");
 
-_LIBCPP_SUPPRESS_DEPRECATED_PUSH
     class _LIBCPP_TEMPLATE_VIS value_compare
-#if defined(_LIBCPP_ENABLE_CXX20_REMOVED_BINDER_TYPEDEFS)
-        : public binary_function<value_type, value_type, bool>
-#endif
+        : public __binary_function<value_type, value_type, bool>
     {
-_LIBCPP_SUPPRESS_DEPRECATED_POP
         friend class multimap;
     protected:
         key_compare comp;
@@ -1778,11 +1771,6 @@ _LIBCPP_SUPPRESS_DEPRECATED_POP
         _LIBCPP_INLINE_VISIBILITY
         value_compare(key_compare c) : comp(c) {}
     public:
-#if _LIBCPP_STD_VER <= 17 || defined(_LIBCPP_ENABLE_CXX20_REMOVED_BINDER_TYPEDEFS)
-        _LIBCPP_DEPRECATED_IN_CXX17 typedef bool result_type;
-        _LIBCPP_DEPRECATED_IN_CXX17 typedef value_type first_argument_type;
-        _LIBCPP_DEPRECATED_IN_CXX17 typedef value_type second_argument_type;
-#endif
         _LIBCPP_INLINE_VISIBILITY
         bool operator()(const value_type& __x, const value_type& __y) const
             {return comp(__x.first, __y.first);}

@@ -45,6 +45,9 @@ template <bool _Bp, class _IfRes, class _ElseRes>
 using conditional_t = typename conditional<_Bp, _IfRes, _ElseRes>::type;
 #endif
 
+// Helper so we can use "conditional_t" in all language versions.
+template <bool _Bp, class _If, class _Then> using __conditional_t = typename conditional<_Bp, _If, _Then>::type;
+
 _LIBCPP_END_NAMESPACE_STD
 
 #endif // _LIBCPP___TYPE_TRAITS_CONDITIONAL_H
