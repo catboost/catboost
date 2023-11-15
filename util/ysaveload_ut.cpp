@@ -22,6 +22,7 @@ static inline char* AllocateFromPool(TMemoryPool& pool, size_t len) {
 class TSaveLoadTest: public TTestBase {
     UNIT_TEST_SUITE(TSaveLoadTest);
     UNIT_TEST(TestSaveLoad)
+    UNIT_TEST(TestSaveLoadEmptyStruct)
     UNIT_TEST(TestNewStyle)
     UNIT_TEST(TestNewNewStyle)
     UNIT_TEST(TestList)
@@ -59,6 +60,10 @@ class TSaveLoadTest: public TTestBase {
         ui32 Int;
 
         Y_SAVELOAD_DEFINE(Str, Int);
+    };
+
+    struct TNewNewStyleEmptyHelper {
+        Y_SAVELOAD_DEFINE();
     };
 
 private:
@@ -373,6 +378,14 @@ private:
             UNIT_ASSERT_EQUAL(twoIter->second, 2);
             UNIT_ASSERT_EQUAL((++twoIter)->second, 22);
         }
+    }
+
+    inline void TestSaveLoadEmptyStruct() {
+        TBufferStream S_;
+        TNewNewStyleEmptyHelper h;
+
+        Save(&S_, h);
+        Load(&S_, h);
     }
 
     void TestList() {
