@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.17.1
+Version: 8.17.2
 Summary: IPython: Productive Interactive Computing
 Home-page: https://ipython.org
 Author: The IPython Development Team
@@ -51,7 +51,7 @@ Requires-Dist: pytest <7 ; extra == 'all'
 Requires-Dist: typing-extensions ; extra == 'all'
 Requires-Dist: exceptiongroup ; extra == 'all'
 Requires-Dist: pytest <7.1 ; extra == 'all'
-Requires-Dist: pytest-asyncio ; extra == 'all'
+Requires-Dist: pytest-asyncio <0.22 ; extra == 'all'
 Requires-Dist: testpath ; extra == 'all'
 Requires-Dist: pickleshare ; extra == 'all'
 Requires-Dist: nbconvert ; extra == 'all'
@@ -79,7 +79,7 @@ Requires-Dist: pytest <7 ; extra == 'doc'
 Requires-Dist: typing-extensions ; extra == 'doc'
 Requires-Dist: exceptiongroup ; extra == 'doc'
 Requires-Dist: pytest <7.1 ; extra == 'doc'
-Requires-Dist: pytest-asyncio ; extra == 'doc'
+Requires-Dist: pytest-asyncio <0.22 ; extra == 'doc'
 Requires-Dist: testpath ; extra == 'doc'
 Requires-Dist: pickleshare ; extra == 'doc'
 Provides-Extra: kernel
@@ -98,12 +98,12 @@ Requires-Dist: qtconsole ; extra == 'qtconsole'
 Provides-Extra: terminal
 Provides-Extra: test
 Requires-Dist: pytest <7.1 ; extra == 'test'
-Requires-Dist: pytest-asyncio ; extra == 'test'
+Requires-Dist: pytest-asyncio <0.22 ; extra == 'test'
 Requires-Dist: testpath ; extra == 'test'
 Requires-Dist: pickleshare ; extra == 'test'
 Provides-Extra: test_extra
 Requires-Dist: pytest <7.1 ; extra == 'test_extra'
-Requires-Dist: pytest-asyncio ; extra == 'test_extra'
+Requires-Dist: pytest-asyncio <0.22 ; extra == 'test_extra'
 Requires-Dist: testpath ; extra == 'test_extra'
 Requires-Dist: pickleshare ; extra == 'test_extra'
 Requires-Dist: curio ; extra == 'test_extra'
