@@ -97,7 +97,7 @@ def setup_hnsw_submodule(argv, extensions):
 def get_setup_requires(argv):
     setup_requires = ['wheel']
     if ('build_widget' in argv) or (not ('--no-widget' in argv)):
-        setup_requires += ['jupyterlab']
+        setup_requires += ['jupyterlab (>=3.0.6, == 3.*)']
     return setup_requires
 
 
