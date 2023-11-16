@@ -219,7 +219,7 @@ multiple Python versions on the same system, the version being used to run the s
 
  When using bash, global completion requires bash support for ``complete -D``, which was introduced in bash 4.2. Since
  Mac OS ships with an outdated version of Bash (3.2), you can either use zsh or install a newer version of bash using
- `Homebrew <http://brew.sh/>`_ (``brew install bash`` - you will also need to add ``/usr/local/bin/bash`` to
+ `Homebrew <http://brew.sh/>`_ (``brew install bash`` - you will also need to add ``/opt/homebrew/bin/bash`` to
  ``/etc/shells``, and run ``chsh`` to change your shell). You can check the version of the running copy of bash with
  ``echo $BASH_VERSION``.
 

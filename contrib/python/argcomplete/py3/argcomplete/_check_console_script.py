@@ -14,14 +14,8 @@ Intended to be invoked by argcomplete's global completion function.
 import os
 import sys
 
-try:
-    from importlib.metadata import entry_points as importlib_entry_points
-    from importlib.metadata import EntryPoint
-    use_entry_points_backport = False
-except ImportError:
-    from importlib_metadata import entry_points as importlib_entry_points  # type:ignore
-    from importlib_metadata import EntryPoint # type:ignore
-    use_entry_points_backport = True
+from importlib.metadata import entry_points as importlib_entry_points
+from importlib.metadata import EntryPoint
 
 from ._check_module import ArgcompleteMarkerNotFound, find
 from typing import Iterable
@@ -37,10 +31,9 @@ def main():
 
     entry_points : Iterable[EntryPoint] = importlib_entry_points() # type:ignore
 
-    # The importlib_metadata backport returns a tuple of entry point objects
-    # whereas the official library returns a SelectableGroups object
-    # Python 3.12+ behaves like the importlib_metadata backport
-    if not use_entry_points_backport and sys.version_info < (3, 12):
+    # Python 3.12+ returns a tuple of entry point objects
+    # whereas <=3.11 returns a SelectableGroups object
+    if sys.version_info < (3, 12):
         entry_points = entry_points["console_scripts"] # type:ignore
 
     entry_points = [ep for ep in entry_points \

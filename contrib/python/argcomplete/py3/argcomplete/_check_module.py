@@ -15,7 +15,7 @@ try:
 except ImportError:
     import typing as t
     from collections import namedtuple
-    from imp import find_module
+    from imp import find_module  # type:ignore
 
     ModuleSpec = namedtuple("ModuleSpec", ["origin", "has_location", "submodule_search_locations"])
 
