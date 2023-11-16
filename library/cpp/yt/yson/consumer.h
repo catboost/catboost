@@ -31,7 +31,7 @@ struct IYsonConsumer
     /*!
      *  \param value A scalar value.
      */
-    virtual void OnUint64Scalar(ui64 scalar) = 0;
+    virtual void OnUint64Scalar(ui64 value) = 0;
 
     //! The current item is an FP scalar (IDoubleNode).
     /*!
