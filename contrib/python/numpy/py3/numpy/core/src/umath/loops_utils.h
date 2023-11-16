@@ -76,7 +76,7 @@ is_mem_overlap(const void *src, npy_intp src_step, const void *dst, npy_intp dst
  * The recursion depth is O(lg n) as well.
  * when updating also update similar complex floats summation
  */
-static NPY_INLINE npy_float
+static inline npy_float
 FLOAT_pairwise_sum(char *a, npy_intp n, npy_intp stride)
 {
     if (n < 8) {
@@ -151,7 +151,7 @@ FLOAT_pairwise_sum(char *a, npy_intp n, npy_intp stride)
  * The recursion depth is O(lg n) as well.
  * when updating also update similar complex floats summation
  */
-static NPY_INLINE npy_double
+static inline npy_double
 DOUBLE_pairwise_sum(char *a, npy_intp n, npy_intp stride)
 {
     if (n < 8) {
@@ -226,7 +226,7 @@ DOUBLE_pairwise_sum(char *a, npy_intp n, npy_intp stride)
  * The recursion depth is O(lg n) as well.
  * when updating also update similar complex floats summation
  */
-static NPY_INLINE npy_longdouble
+static inline npy_longdouble
 LONGDOUBLE_pairwise_sum(char *a, npy_intp n, npy_intp stride)
 {
     if (n < 8) {
@@ -301,7 +301,7 @@ LONGDOUBLE_pairwise_sum(char *a, npy_intp n, npy_intp stride)
  * The recursion depth is O(lg n) as well.
  * when updating also update similar complex floats summation
  */
-static NPY_INLINE npy_float
+static inline npy_float
 HALF_pairwise_sum(char *a, npy_intp n, npy_intp stride)
 {
     if (n < 8) {
@@ -372,7 +372,7 @@ HALF_pairwise_sum(char *a, npy_intp n, npy_intp stride)
 
 #line 154
 /* similar to pairwise sum of real floats */
-static NPY_INLINE void
+static inline void
 CFLOAT_pairwise_sum(npy_float *rr, npy_float * ri, char * a, npy_intp n,
                     npy_intp stride)
 {
@@ -446,7 +446,7 @@ CFLOAT_pairwise_sum(npy_float *rr, npy_float * ri, char * a, npy_intp n,
 
 #line 154
 /* similar to pairwise sum of real floats */
-static NPY_INLINE void
+static inline void
 CDOUBLE_pairwise_sum(npy_double *rr, npy_double * ri, char * a, npy_intp n,
                     npy_intp stride)
 {
@@ -520,7 +520,7 @@ CDOUBLE_pairwise_sum(npy_double *rr, npy_double * ri, char * a, npy_intp n,
 
 #line 154
 /* similar to pairwise sum of real floats */
-static NPY_INLINE void
+static inline void
 CLONGDOUBLE_pairwise_sum(npy_longdouble *rr, npy_longdouble * ri, char * a, npy_intp n,
                     npy_intp stride)
 {

@@ -13,10 +13,12 @@ if sys.platform == 'win32' and os.path.isdir(extra_dll_dir):
 
 lapack_armpl_info={}
 lapack_mkl_info={}
+lapack_ssl2_info={}
 openblas_lapack_info={'libraries': ['lapack', 'lapacke', 'blas', 'cblas', 'lapack', 'lapacke', 'blas', 'cblas'], 'library_dirs': ['/var/empty/lapack-3/lib', '/var/empty/blas-3/lib'], 'language': 'c', 'define_macros': [('HAVE_CBLAS', None)], 'runtime_library_dirs': ['/var/empty/lapack-3/lib', '/var/empty/blas-3/lib']}
 lapack_opt_info={'libraries': ['lapack', 'lapacke', 'blas', 'cblas', 'lapack', 'lapacke', 'blas', 'cblas'], 'library_dirs': ['/var/empty/lapack-3/lib', '/var/empty/blas-3/lib'], 'language': 'c', 'define_macros': [('HAVE_CBLAS', None)], 'runtime_library_dirs': ['/var/empty/lapack-3/lib', '/var/empty/blas-3/lib']}
 blas_armpl_info={}
 blas_mkl_info={}
+blas_ssl2_info={}
 blis_info={}
 openblas_info={'libraries': ['lapack', 'lapacke', 'blas', 'cblas', 'lapack', 'lapacke', 'blas', 'cblas'], 'library_dirs': ['/var/empty/lapack-3/lib', '/var/empty/blas-3/lib'], 'language': 'c', 'define_macros': [('HAVE_CBLAS', None)], 'runtime_library_dirs': ['/var/empty/lapack-3/lib', '/var/empty/blas-3/lib']}
 blas_opt_info={'libraries': ['lapack', 'lapacke', 'blas', 'cblas', 'lapack', 'lapacke', 'blas', 'cblas'], 'library_dirs': ['/var/empty/lapack-3/lib', '/var/empty/blas-3/lib'], 'language': 'c', 'define_macros': [('HAVE_CBLAS', None)], 'runtime_library_dirs': ['/var/empty/lapack-3/lib', '/var/empty/blas-3/lib']}

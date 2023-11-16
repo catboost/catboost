@@ -399,7 +399,7 @@ vsx4_divisor_s64(const npyv_s64 vscalar)
 
 #line 170
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_contig_u8(char **args, npy_intp len)
 {
     npyv_lanetype_u8 *src1 = (npyv_lanetype_u8 *) args[0];
@@ -467,7 +467,7 @@ vsx4_simd_fmod_contig_u8(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_by_scalar_contig_u8(char **args, npy_intp len)
 {
     npyv_lanetype_u8 *src1  = (npyv_lanetype_u8 *) args[0];
@@ -509,7 +509,7 @@ vsx4_simd_fmod_by_scalar_contig_u8(char **args, npy_intp len)
 }
 
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_contig_u8(char **args, npy_intp len)
 {
     npyv_lanetype_u8 *src1 = (npyv_lanetype_u8 *) args[0];
@@ -577,7 +577,7 @@ vsx4_simd_remainder_contig_u8(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_by_scalar_contig_u8(char **args, npy_intp len)
 {
     npyv_lanetype_u8 *src1  = (npyv_lanetype_u8 *) args[0];
@@ -619,7 +619,7 @@ vsx4_simd_remainder_by_scalar_contig_u8(char **args, npy_intp len)
 }
 
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_contig_u8(char **args, npy_intp len)
 {
     npyv_lanetype_u8 *src1 = (npyv_lanetype_u8 *) args[0];
@@ -687,7 +687,7 @@ vsx4_simd_divmod_contig_u8(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_by_scalar_contig_u8(char **args, npy_intp len)
 {
     npyv_lanetype_u8 *src1  = (npyv_lanetype_u8 *) args[0];
@@ -731,7 +731,7 @@ vsx4_simd_divmod_by_scalar_contig_u8(char **args, npy_intp len)
 
 #line 170
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_contig_u16(char **args, npy_intp len)
 {
     npyv_lanetype_u16 *src1 = (npyv_lanetype_u16 *) args[0];
@@ -799,7 +799,7 @@ vsx4_simd_fmod_contig_u16(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_by_scalar_contig_u16(char **args, npy_intp len)
 {
     npyv_lanetype_u16 *src1  = (npyv_lanetype_u16 *) args[0];
@@ -841,7 +841,7 @@ vsx4_simd_fmod_by_scalar_contig_u16(char **args, npy_intp len)
 }
 
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_contig_u16(char **args, npy_intp len)
 {
     npyv_lanetype_u16 *src1 = (npyv_lanetype_u16 *) args[0];
@@ -909,7 +909,7 @@ vsx4_simd_remainder_contig_u16(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_by_scalar_contig_u16(char **args, npy_intp len)
 {
     npyv_lanetype_u16 *src1  = (npyv_lanetype_u16 *) args[0];
@@ -951,7 +951,7 @@ vsx4_simd_remainder_by_scalar_contig_u16(char **args, npy_intp len)
 }
 
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_contig_u16(char **args, npy_intp len)
 {
     npyv_lanetype_u16 *src1 = (npyv_lanetype_u16 *) args[0];
@@ -1019,7 +1019,7 @@ vsx4_simd_divmod_contig_u16(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_by_scalar_contig_u16(char **args, npy_intp len)
 {
     npyv_lanetype_u16 *src1  = (npyv_lanetype_u16 *) args[0];
@@ -1063,7 +1063,7 @@ vsx4_simd_divmod_by_scalar_contig_u16(char **args, npy_intp len)
 
 #line 170
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_contig_u32(char **args, npy_intp len)
 {
     npyv_lanetype_u32 *src1 = (npyv_lanetype_u32 *) args[0];
@@ -1131,7 +1131,7 @@ vsx4_simd_fmod_contig_u32(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_by_scalar_contig_u32(char **args, npy_intp len)
 {
     npyv_lanetype_u32 *src1  = (npyv_lanetype_u32 *) args[0];
@@ -1173,7 +1173,7 @@ vsx4_simd_fmod_by_scalar_contig_u32(char **args, npy_intp len)
 }
 
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_contig_u32(char **args, npy_intp len)
 {
     npyv_lanetype_u32 *src1 = (npyv_lanetype_u32 *) args[0];
@@ -1241,7 +1241,7 @@ vsx4_simd_remainder_contig_u32(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_by_scalar_contig_u32(char **args, npy_intp len)
 {
     npyv_lanetype_u32 *src1  = (npyv_lanetype_u32 *) args[0];
@@ -1283,7 +1283,7 @@ vsx4_simd_remainder_by_scalar_contig_u32(char **args, npy_intp len)
 }
 
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_contig_u32(char **args, npy_intp len)
 {
     npyv_lanetype_u32 *src1 = (npyv_lanetype_u32 *) args[0];
@@ -1351,7 +1351,7 @@ vsx4_simd_divmod_contig_u32(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_by_scalar_contig_u32(char **args, npy_intp len)
 {
     npyv_lanetype_u32 *src1  = (npyv_lanetype_u32 *) args[0];
@@ -1395,7 +1395,7 @@ vsx4_simd_divmod_by_scalar_contig_u32(char **args, npy_intp len)
 
 #line 170
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_contig_u64(char **args, npy_intp len)
 {
     npyv_lanetype_u64 *src1 = (npyv_lanetype_u64 *) args[0];
@@ -1463,7 +1463,7 @@ vsx4_simd_fmod_contig_u64(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_by_scalar_contig_u64(char **args, npy_intp len)
 {
     npyv_lanetype_u64 *src1  = (npyv_lanetype_u64 *) args[0];
@@ -1505,7 +1505,7 @@ vsx4_simd_fmod_by_scalar_contig_u64(char **args, npy_intp len)
 }
 
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_contig_u64(char **args, npy_intp len)
 {
     npyv_lanetype_u64 *src1 = (npyv_lanetype_u64 *) args[0];
@@ -1573,7 +1573,7 @@ vsx4_simd_remainder_contig_u64(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_by_scalar_contig_u64(char **args, npy_intp len)
 {
     npyv_lanetype_u64 *src1  = (npyv_lanetype_u64 *) args[0];
@@ -1615,7 +1615,7 @@ vsx4_simd_remainder_by_scalar_contig_u64(char **args, npy_intp len)
 }
 
 #line 174
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_contig_u64(char **args, npy_intp len)
 {
     npyv_lanetype_u64 *src1 = (npyv_lanetype_u64 *) args[0];
@@ -1683,7 +1683,7 @@ vsx4_simd_divmod_contig_u64(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_by_scalar_contig_u64(char **args, npy_intp len)
 {
     npyv_lanetype_u64 *src1  = (npyv_lanetype_u64 *) args[0];
@@ -1728,7 +1728,7 @@ vsx4_simd_divmod_by_scalar_contig_u64(char **args, npy_intp len)
 
 #line 291
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_contig_s8(char **args, npy_intp len)
 {
     npyv_lanetype_s8 *src1 = (npyv_lanetype_s8 *) args[0];
@@ -1846,7 +1846,7 @@ vsx4_simd_fmod_contig_s8(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_by_scalar_contig_s8(char **args, npy_intp len)
 {
     npyv_lanetype_s8 *src1  = (npyv_lanetype_s8 *) args[0];
@@ -1941,7 +1941,7 @@ vsx4_simd_fmod_by_scalar_contig_s8(char **args, npy_intp len)
 }
 
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_contig_s8(char **args, npy_intp len)
 {
     npyv_lanetype_s8 *src1 = (npyv_lanetype_s8 *) args[0];
@@ -2059,7 +2059,7 @@ vsx4_simd_remainder_contig_s8(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_by_scalar_contig_s8(char **args, npy_intp len)
 {
     npyv_lanetype_s8 *src1  = (npyv_lanetype_s8 *) args[0];
@@ -2154,7 +2154,7 @@ vsx4_simd_remainder_by_scalar_contig_s8(char **args, npy_intp len)
 }
 
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_contig_s8(char **args, npy_intp len)
 {
     npyv_lanetype_s8 *src1 = (npyv_lanetype_s8 *) args[0];
@@ -2272,7 +2272,7 @@ vsx4_simd_divmod_contig_s8(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_by_scalar_contig_s8(char **args, npy_intp len)
 {
     npyv_lanetype_s8 *src1  = (npyv_lanetype_s8 *) args[0];
@@ -2369,7 +2369,7 @@ vsx4_simd_divmod_by_scalar_contig_s8(char **args, npy_intp len)
 
 #line 291
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_contig_s16(char **args, npy_intp len)
 {
     npyv_lanetype_s16 *src1 = (npyv_lanetype_s16 *) args[0];
@@ -2487,7 +2487,7 @@ vsx4_simd_fmod_contig_s16(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_by_scalar_contig_s16(char **args, npy_intp len)
 {
     npyv_lanetype_s16 *src1  = (npyv_lanetype_s16 *) args[0];
@@ -2582,7 +2582,7 @@ vsx4_simd_fmod_by_scalar_contig_s16(char **args, npy_intp len)
 }
 
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_contig_s16(char **args, npy_intp len)
 {
     npyv_lanetype_s16 *src1 = (npyv_lanetype_s16 *) args[0];
@@ -2700,7 +2700,7 @@ vsx4_simd_remainder_contig_s16(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_by_scalar_contig_s16(char **args, npy_intp len)
 {
     npyv_lanetype_s16 *src1  = (npyv_lanetype_s16 *) args[0];
@@ -2795,7 +2795,7 @@ vsx4_simd_remainder_by_scalar_contig_s16(char **args, npy_intp len)
 }
 
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_contig_s16(char **args, npy_intp len)
 {
     npyv_lanetype_s16 *src1 = (npyv_lanetype_s16 *) args[0];
@@ -2913,7 +2913,7 @@ vsx4_simd_divmod_contig_s16(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_by_scalar_contig_s16(char **args, npy_intp len)
 {
     npyv_lanetype_s16 *src1  = (npyv_lanetype_s16 *) args[0];
@@ -3010,7 +3010,7 @@ vsx4_simd_divmod_by_scalar_contig_s16(char **args, npy_intp len)
 
 #line 291
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_contig_s32(char **args, npy_intp len)
 {
     npyv_lanetype_s32 *src1 = (npyv_lanetype_s32 *) args[0];
@@ -3128,7 +3128,7 @@ vsx4_simd_fmod_contig_s32(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_by_scalar_contig_s32(char **args, npy_intp len)
 {
     npyv_lanetype_s32 *src1  = (npyv_lanetype_s32 *) args[0];
@@ -3223,7 +3223,7 @@ vsx4_simd_fmod_by_scalar_contig_s32(char **args, npy_intp len)
 }
 
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_contig_s32(char **args, npy_intp len)
 {
     npyv_lanetype_s32 *src1 = (npyv_lanetype_s32 *) args[0];
@@ -3341,7 +3341,7 @@ vsx4_simd_remainder_contig_s32(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_by_scalar_contig_s32(char **args, npy_intp len)
 {
     npyv_lanetype_s32 *src1  = (npyv_lanetype_s32 *) args[0];
@@ -3436,7 +3436,7 @@ vsx4_simd_remainder_by_scalar_contig_s32(char **args, npy_intp len)
 }
 
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_contig_s32(char **args, npy_intp len)
 {
     npyv_lanetype_s32 *src1 = (npyv_lanetype_s32 *) args[0];
@@ -3554,7 +3554,7 @@ vsx4_simd_divmod_contig_s32(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_by_scalar_contig_s32(char **args, npy_intp len)
 {
     npyv_lanetype_s32 *src1  = (npyv_lanetype_s32 *) args[0];
@@ -3651,7 +3651,7 @@ vsx4_simd_divmod_by_scalar_contig_s32(char **args, npy_intp len)
 
 #line 291
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_contig_s64(char **args, npy_intp len)
 {
     npyv_lanetype_s64 *src1 = (npyv_lanetype_s64 *) args[0];
@@ -3769,7 +3769,7 @@ vsx4_simd_fmod_contig_s64(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_fmod_by_scalar_contig_s64(char **args, npy_intp len)
 {
     npyv_lanetype_s64 *src1  = (npyv_lanetype_s64 *) args[0];
@@ -3864,7 +3864,7 @@ vsx4_simd_fmod_by_scalar_contig_s64(char **args, npy_intp len)
 }
 
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_contig_s64(char **args, npy_intp len)
 {
     npyv_lanetype_s64 *src1 = (npyv_lanetype_s64 *) args[0];
@@ -3982,7 +3982,7 @@ vsx4_simd_remainder_contig_s64(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_remainder_by_scalar_contig_s64(char **args, npy_intp len)
 {
     npyv_lanetype_s64 *src1  = (npyv_lanetype_s64 *) args[0];
@@ -4077,7 +4077,7 @@ vsx4_simd_remainder_by_scalar_contig_s64(char **args, npy_intp len)
 }
 
 #line 295
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_contig_s64(char **args, npy_intp len)
 {
     npyv_lanetype_s64 *src1 = (npyv_lanetype_s64 *) args[0];
@@ -4195,7 +4195,7 @@ vsx4_simd_divmod_contig_s64(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-static NPY_INLINE void
+static inline void
 vsx4_simd_divmod_by_scalar_contig_s64(char **args, npy_intp len)
 {
     npyv_lanetype_s64 *src1  = (npyv_lanetype_s64 *) args[0];

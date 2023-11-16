@@ -265,7 +265,7 @@ Classifier: Operating System :: MacOS
 Requires-Python: >=3.7,<3.11
 Description-Content-Type: text/x-rst
 License-File: LICENSE.txt
-Requires-Dist: numpy (<1.25.0,>=1.16.5)
+Requires-Dist: numpy (<1.26.0,>=1.16.5)
 Provides-Extra: dev
 Requires-Dist: mypy ; extra == 'dev'
 Requires-Dist: typing-extensions ; extra == 'dev'

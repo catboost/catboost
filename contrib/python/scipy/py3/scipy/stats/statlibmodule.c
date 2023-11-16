@@ -1,5 +1,5 @@
 /* File: statlibmodule.c
- * This file is auto-generated with f2py (version:1.24.4).
+ * This file is auto-generated with f2py (version:1.25.2).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -614,18 +614,18 @@ PyMODINIT_FUNC PyInit_statlib(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module statlib (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.24.4");
+    s = PyUnicode_FromString("1.25.2");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module 'statlib' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
+        "This module 'statlib' is auto-generated with f2py (version:1.25.2).\nFunctions:\n"
 "    a,w,pw,ifault = swilk(x,a,init=0,n1=n)\n"
 "    astart,a1,ifault = gscale(test,other)\n"
 "    ifault = prho(n,is)\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.24.4");
+    s = PyUnicode_FromString("1.25.2");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     statlib_error = PyErr_NewException ("statlib.error", NULL, NULL);

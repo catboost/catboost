@@ -19,6 +19,9 @@
 #include <Python.h>
 
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
+#if defined(NPY_INTERNAL_BUILD)
+#undef NPY_INTERNAL_BUILD
+#endif
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
 #include "numpy/npy_math.h"
@@ -29,6 +32,9 @@
 #include "npy_cpu_features.h"
 #include "npy_cpu_dispatch.h"
 #include "numpy/npy_cpu.h"
+#include "npy_import.h"
+#include "numpy/experimental_dtype_api.h"
+
 
 /*
  *****************************************************************************
@@ -86,7 +92,7 @@ always_error_loop(
 
 char *inner1d_signature = "(i),(i)->()";
 
-#line 84
+#line 90
 
 /*
  *  This implements the function
@@ -113,7 +119,7 @@ LONG_inner1d(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 
 
-#line 84
+#line 90
 
 /*
  *  This implements the function
@@ -143,7 +149,7 @@ DOUBLE_inner1d(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 
 char *innerwt_signature = "(i),(i),(i)->()";
 
-#line 118
+#line 124
 
 
 /*
@@ -172,7 +178,7 @@ LONG_innerwt(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 
 
-#line 118
+#line 124
 
 
 /*
@@ -206,7 +212,7 @@ char *matrix_multiply_signature = "(m,n),(n,p)->(m,p)";
 /* for use with matrix_multiply code, but different signature */
 char *matmul_signature = "(m?,n),(n,p?)->(m?,p?)";
 
-#line 156
+#line 162
 
 /*
  *  This implements the function
@@ -267,7 +273,7 @@ FLOAT_matrix_multiply(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 156
+#line 162
 
 /*
  *  This implements the function
@@ -328,7 +334,7 @@ DOUBLE_matrix_multiply(char **args, npy_intp const *dimensions, npy_intp const *
 }
 
 
-#line 156
+#line 162
 
 /*
  *  This implements the function
@@ -392,7 +398,7 @@ LONG_matrix_multiply(char **args, npy_intp const *dimensions, npy_intp const *st
 
 char *cross1d_signature = "(3),(3)->(3)";
 
-#line 224
+#line 230
 
 /*
  *  This implements the cross product:
@@ -424,7 +430,7 @@ LONG_cross1d(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 
 
-#line 224
+#line 230
 
 /*
  *  This implements the cross product:
@@ -459,7 +465,7 @@ DOUBLE_cross1d(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 
 char *euclidean_pdist_signature = "(n,d)->(p)";
 
-#line 264
+#line 270
 
 /*
  *  This implements the function
@@ -499,7 +505,7 @@ FLOAT_euclidean_pdist(char **args, npy_intp const *dimensions, npy_intp const *s
                     ptr_this += stride_d;
                     ptr_that += stride_d;
                 }
-                *(npy_float *)data_out = npy_sqrtf(out);
+                *(npy_float *)data_out = sqrtf(out);
                 data_that += stride_n;
                 data_out += stride_p;
             }
@@ -509,7 +515,7 @@ FLOAT_euclidean_pdist(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 264
+#line 270
 
 /*
  *  This implements the function
@@ -549,7 +555,7 @@ DOUBLE_euclidean_pdist(char **args, npy_intp const *dimensions, npy_intp const *
                     ptr_this += stride_d;
                     ptr_that += stride_d;
                 }
-                *(npy_double *)data_out = npy_sqrt(out);
+                *(npy_double *)data_out = sqrt(out);
                 data_that += stride_n;
                 data_out += stride_p;
             }
@@ -567,7 +573,7 @@ char *cumsum_signature = "(i)->(i)";
  *        out[n] = sum_i^n in[i]
  */
 
-#line 326
+#line 332
 
 static void
 LONG_cumsum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
@@ -587,7 +593,7 @@ LONG_cumsum(char **args, npy_intp const *dimensions, npy_intp const *steps, void
 }
 
 
-#line 326
+#line 332
 
 static void
 DOUBLE_cumsum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
@@ -604,6 +610,55 @@ DOUBLE_cumsum(char **args, npy_intp const *dimensions, npy_intp const *steps, vo
             *(npy_double *)op = cumsum;
         }
     END_OUTER_LOOP
+}
+
+
+
+static int
+INT32_negative(PyArrayMethod_Context *NPY_UNUSED(context),
+               char **args, npy_intp const *dimensions,
+               npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    npy_intp di = dimensions[0];
+    npy_intp i;
+    npy_intp is=steps[0], os=steps[1];
+    char *ip=args[0], *op=args[1];
+    for (i = 0; i < di; i++, ip += is, op += os) {
+        if (i == 3) {
+            *(int32_t *)op = - 100;
+        } else {
+            *(int32_t *)op = - *(int32_t *)ip;
+        }
+    }
+    return 0;
+}
+
+
+static int
+INT32_negative_indexed(PyArrayMethod_Context *NPY_UNUSED(context),
+                           char * const*args, npy_intp const *dimensions,
+                           npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    npy_intp is1 = steps[0], isindex = steps[1];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    int32_t *indexed;
+    for(i = 0; i < n; i++, indxp += isindex) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (int32_t *)(ip1 + is1 * indx);
+        if (i == 3) {
+            *indexed = -200;
+        } else {
+            *indexed = - *indexed;
+        }
+    }
+    return 0;
 }
 
 
@@ -911,28 +966,28 @@ UMath_Tests_test_dispatch(PyObject *NPY_UNUSED(dummy), PyObject *NPY_UNUSED(dumm
     if (dict == NULL) {
         return NULL;
     }
-    #line 652
+    #line 707
     item = PyUnicode_FromString(highest_func);
     if (item == NULL || PyDict_SetItemString(dict, "func", item) < 0) {
         goto err;
     }
     Py_DECREF(item);
     
-#line 652
+#line 707
     item = PyUnicode_FromString(highest_var);
     if (item == NULL || PyDict_SetItemString(dict, "var", item) < 0) {
         goto err;
     }
     Py_DECREF(item);
     
-#line 652
+#line 707
     item = PyUnicode_FromString(highest_func_xb);
     if (item == NULL || PyDict_SetItemString(dict, "func_xb", item) < 0) {
         goto err;
     }
     Py_DECREF(item);
     
-#line 652
+#line 707
     item = PyUnicode_FromString(highest_var_xb);
     if (item == NULL || PyDict_SetItemString(dict, "var_xb", item) < 0) {
         goto err;
@@ -953,6 +1008,43 @@ err:
     Py_XDECREF(item);
     Py_DECREF(dict);
     return NULL;
+}
+
+static int
+add_INT32_negative_indexed(PyObject *module, PyObject *dict) {
+    if (import_experimental_dtype_api(__EXPERIMENTAL_DTYPE_API_VERSION) < 0) {
+        return -1;
+    }
+
+    PyObject * negative = PyUFunc_FromFuncAndData(NULL, NULL, NULL, 0, 1, 1,
+                                    PyUFunc_Zero, "indexed_negative", NULL, 0);
+    if (negative == NULL) {
+        return -1;
+    }
+    PyArray_DTypeMeta *dtypes[] = {&PyArray_Int32DType, &PyArray_Int32DType};
+
+    PyType_Slot slots[] = {
+        {NPY_METH_contiguous_indexed_loop, INT32_negative_indexed},
+        {NPY_METH_strided_loop, INT32_negative},
+        {0, NULL}
+    };
+
+    PyArrayMethod_Spec spec = {
+        .name = "negative_indexed_loop",
+        .nin = 1,
+        .nout = 1,
+        .dtypes = dtypes,
+        .slots = slots,
+        .flags = NPY_METH_NO_FLOATINGPOINT_ERRORS
+    };
+
+    if (PyUFunc_AddLoopFromSpec(negative, &spec) < 0) {
+        Py_DECREF(negative);
+        return -1;
+    }
+    PyDict_SetItemString(dict, "indexed_negative", negative);
+    Py_DECREF(negative);
+    return 0;
 }
 
 static PyMethodDef UMath_TestsMethods[] = {
@@ -1011,6 +1103,14 @@ PyMODINIT_FUNC PyInit__umath_tests(void) {
 
     /* Load the ufunc operators into the module's namespace */
     if (addUfuncs(d) < 0) {
+        Py_DECREF(m);
+        PyErr_Print();
+        PyErr_SetString(PyExc_RuntimeError,
+                        "cannot load _umath_tests module.");
+        return NULL;
+    }
+
+    if (add_INT32_negative_indexed(m, d) < 0) {
         Py_DECREF(m);
         PyErr_Print();
         PyErr_SetString(PyExc_RuntimeError,

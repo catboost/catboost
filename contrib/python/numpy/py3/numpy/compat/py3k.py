@@ -47,9 +47,6 @@ def asstr(s):
     return str(s)
 
 def isfileobj(f):
-    return isinstance(f, (io.FileIO, io.BufferedReader, io.BufferedWriter))
-
-def _isfileobj(f):
     if not isinstance(f, (io.FileIO, io.BufferedReader, io.BufferedWriter)):
         return False
     try:

@@ -9197,7 +9197,7 @@ no_unroll:
 #endif // NPY_SIMD_F32
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F32
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_FLOAT_rint_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f32 src0 = *(npyv_lanetype_f32*)src;
@@ -9247,7 +9247,7 @@ no_unroll:
 #endif // NPY_SIMD_F32
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F32
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_FLOAT_floor_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f32 src0 = *(npyv_lanetype_f32*)src;
@@ -9297,7 +9297,7 @@ no_unroll:
 #endif // NPY_SIMD_F32
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F32
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_FLOAT_ceil_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f32 src0 = *(npyv_lanetype_f32*)src;
@@ -9347,7 +9347,7 @@ no_unroll:
 #endif // NPY_SIMD_F32
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F32
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_FLOAT_trunc_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f32 src0 = *(npyv_lanetype_f32*)src;
@@ -9397,7 +9397,7 @@ no_unroll:
 #endif // NPY_SIMD_F32
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F32
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_FLOAT_sqrt_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f32 src0 = *(npyv_lanetype_f32*)src;
@@ -9447,7 +9447,7 @@ no_unroll:
 #endif // NPY_SIMD_F32
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F32
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_FLOAT_absolute_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f32 src0 = *(npyv_lanetype_f32*)src;
@@ -9497,7 +9497,7 @@ no_unroll:
 #endif // NPY_SIMD_F32
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F32
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_FLOAT_square_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f32 src0 = *(npyv_lanetype_f32*)src;
@@ -9547,7 +9547,7 @@ no_unroll:
 #endif // NPY_SIMD_F32
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F32
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_FLOAT_reciprocal_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f32 src0 = *(npyv_lanetype_f32*)src;
@@ -9599,7 +9599,7 @@ no_unroll:
 #endif // NPY_SIMD_F64
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F64
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_DOUBLE_rint_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f64 src0 = *(npyv_lanetype_f64*)src;
@@ -9649,7 +9649,7 @@ no_unroll:
 #endif // NPY_SIMD_F64
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F64
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_DOUBLE_floor_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f64 src0 = *(npyv_lanetype_f64*)src;
@@ -9699,7 +9699,7 @@ no_unroll:
 #endif // NPY_SIMD_F64
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F64
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_DOUBLE_ceil_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f64 src0 = *(npyv_lanetype_f64*)src;
@@ -9749,7 +9749,7 @@ no_unroll:
 #endif // NPY_SIMD_F64
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F64
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_DOUBLE_trunc_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f64 src0 = *(npyv_lanetype_f64*)src;
@@ -9799,7 +9799,7 @@ no_unroll:
 #endif // NPY_SIMD_F64
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F64
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_DOUBLE_sqrt_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f64 src0 = *(npyv_lanetype_f64*)src;
@@ -9849,7 +9849,7 @@ no_unroll:
 #endif // NPY_SIMD_F64
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F64
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_DOUBLE_absolute_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f64 src0 = *(npyv_lanetype_f64*)src;
@@ -9899,7 +9899,7 @@ no_unroll:
 #endif // NPY_SIMD_F64
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F64
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_DOUBLE_square_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f64 src0 = *(npyv_lanetype_f64*)src;
@@ -9949,7 +9949,7 @@ no_unroll:
 #endif // NPY_SIMD_F64
     for (; len > 0; --len, src += src_step, dst += dst_step) {
     #if NPY_SIMD_F64
-        // to guarantee the same precsion and fp/domain errors for both scalars and vectors
+        // to guarantee the same precision and fp/domain errors for both scalars and vectors
         simd_DOUBLE_reciprocal_CONTIG_CONTIG(src, 0, dst, 0, 1);
     #else
         const npyv_lanetype_f64 src0 = *(npyv_lanetype_f64*)src;

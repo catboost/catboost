@@ -249,7 +249,7 @@ fma_scalef_ps(__m256 poly, __m256 quadrant)
 
 #ifdef SIMD_AVX512F
 
-NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
+NPY_FINLINE __mmask16
 avx512_get_full_load_mask_ps(void)
 {
     return 0xFFFF;
@@ -1488,7 +1488,7 @@ AVX512F_log_DOUBLE(npy_double * op,
 
 #ifdef SIMD_AVX512_SKX
 #line 1149
-static NPY_INLINE void
+static inline void
 AVX512_SKX_ldexp_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
     const npy_intp stride_ip1 = steps[0]/(npy_intp)sizeof(npy_float);
@@ -1557,7 +1557,7 @@ AVX512_SKX_ldexp_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *
     }
 }
 
-static NPY_INLINE void
+static inline void
 AVX512_SKX_frexp_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
     const npy_intp stride_ip1 = steps[0]/(npy_intp)sizeof(npy_float);
@@ -1635,7 +1635,7 @@ AVX512_SKX_frexp_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *
 }
 
 #line 1149
-static NPY_INLINE void
+static inline void
 AVX512_SKX_ldexp_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
     const npy_intp stride_ip1 = steps[0]/(npy_intp)sizeof(npy_double);
@@ -1704,7 +1704,7 @@ AVX512_SKX_ldexp_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const 
     }
 }
 
-static NPY_INLINE void
+static inline void
 AVX512_SKX_frexp_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
     const npy_intp stride_ip1 = steps[0]/(npy_intp)sizeof(npy_double);

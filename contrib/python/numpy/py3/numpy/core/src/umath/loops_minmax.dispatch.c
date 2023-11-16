@@ -6961,6 +6961,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ubyte *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ubyte *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ubyte *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -7111,6 +7134,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ubyte *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ubyte *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ubyte *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -7265,6 +7311,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ubyte *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ubyte *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ubyte *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -7415,6 +7484,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ubyte *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ubyte *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ubyte *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -7639,6 +7731,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ushort *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ushort *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ushort *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -7789,6 +7904,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ushort *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ushort *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ushort *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -7943,6 +8081,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ushort *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ushort *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ushort *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -8093,6 +8254,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ushort *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ushort *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ushort *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -8317,6 +8501,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_uint *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_uint *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_uint *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -8467,6 +8674,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_uint *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_uint *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_uint *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -8621,6 +8851,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_uint *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_uint *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_uint *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -8771,6 +9024,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_uint *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_uint *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_uint *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -8995,6 +9271,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ulong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ulong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ulong *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -9145,6 +9444,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ulong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ulong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ulong *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -9299,6 +9621,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ulong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ulong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ulong *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -9449,6 +9794,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ulong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ulong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ulong *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -9673,6 +10041,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ulonglong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ulonglong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ulonglong *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -9823,6 +10214,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ulonglong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ulonglong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ulonglong *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -9977,6 +10391,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ulonglong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ulonglong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ulonglong *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -10127,6 +10564,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_ulonglong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ulonglong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_ulonglong *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -10351,6 +10811,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_byte *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_byte *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_byte *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -10501,6 +10984,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_byte *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_byte *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_byte *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -10655,6 +11161,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_byte *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_byte *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_byte *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -10805,6 +11334,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_byte *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_byte *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_byte *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -11029,6 +11581,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_short *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_short *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_short *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -11179,6 +11754,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_short *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_short *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_short *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -11333,6 +11931,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_short *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_short *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_short *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -11483,6 +12104,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_short *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_short *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_short *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -11707,6 +12351,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_int *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_int *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_int *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -11857,6 +12524,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_int *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_int *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_int *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -12011,6 +12701,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_int *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_int *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_int *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -12161,6 +12874,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_int *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_int *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_int *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -12385,6 +13121,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_long *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_long *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_long *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -12535,6 +13294,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_long *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_long *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_long *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -12689,6 +13471,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_long *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_long *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_long *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -12839,6 +13644,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_long *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_long *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_long *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -13063,6 +13891,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_longlong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_longlong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_longlong *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -13213,6 +14064,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_longlong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_longlong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_longlong *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -13367,6 +14241,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_longlong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_longlong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_longlong *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -13517,6 +14414,29 @@ clear_fp:
 #if 0
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_longlong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_longlong *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_longlong *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -13741,6 +14661,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_float *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -13891,6 +14834,29 @@ clear_fp:
 #if 1
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_float *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -14045,6 +15011,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_float *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -14195,6 +15184,29 @@ clear_fp:
 #if 1
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_float *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -14419,6 +15431,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_double *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -14569,6 +15604,29 @@ clear_fp:
 #if 1
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_double *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -14723,6 +15781,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_double *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -14873,6 +15954,29 @@ clear_fp:
 #if 1
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_double *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -15097,6 +16201,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_maximum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_longdouble *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_longdouble *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_longdouble *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -15247,6 +16374,29 @@ clear_fp:
 #if 1
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_minimum_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_longdouble *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_longdouble *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_longdouble *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP
@@ -15401,6 +16551,29 @@ clear_fp:
 #endif
 }
 
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_fmax_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_longdouble *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_longdouble *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_longdouble *)value);
+    }
+    return 0;
+}
+
 #undef SCALAR_OP
 
 #endif // !fp_only || (is_fp && fp_only)
@@ -15551,6 +16724,29 @@ clear_fp:
 #if 1
     npy_clear_floatstatus_barrier((char*)dimensions);
 #endif
+}
+
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_fmin_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char *const *args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp n = dimensions[0];
+    npy_intp shape = steps[3];
+    npy_intp i;
+    npy_longdouble *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_longdouble *)(ip1 + is1 * indx);
+        *indexed = SCALAR_OP(*indexed, *(npy_longdouble *)value);
+    }
+    return 0;
 }
 
 #undef SCALAR_OP

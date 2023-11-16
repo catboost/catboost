@@ -1,5 +1,5 @@
 /* File: _arpackmodule.c
- * This file is auto-generated with f2py (version:1.24.4).
+ * This file is auto-generated with f2py (version:1.25.2).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -478,16 +478,23 @@ character_from_pyobj(character* v, PyObject *obj, const char *errmess) {
         }
     }
     {
+        /* TODO: This error (and most other) error handling needs cleaning. */
         char mess[F2PY_MESSAGE_BUFFER_SIZE];
         strcpy(mess, errmess);
         PyObject* err = PyErr_Occurred();
         if (err == NULL) {
             err = PyExc_TypeError;
+            Py_INCREF(err);
+        }
+        else {
+            Py_INCREF(err);
+            PyErr_Clear();
         }
         sprintf(mess + strlen(mess),
                 " -- expected str|bytes|sequence-of-str-or-bytes, got ");
         f2py_describe(obj, mess + strlen(mess));
         PyErr_SetString(err, mess);
+        Py_DECREF(err);
     }
     return 0;
 }
@@ -5308,11 +5315,11 @@ PyMODINIT_FUNC PyInit__arpack(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _arpack (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.24.4");
+    s = PyUnicode_FromString("1.25.2");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_arpack' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
+        "This module '_arpack' is auto-generated with f2py (version:1.25.2).\nFunctions:\n"
 "    ido,tol,resid,v,iparam,ipntr,info = ssaupd(ido,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,n=len(resid),ncv=shape(v,1),ldv=shape(v,0),lworkl=len(workl))\n"
 "    ido,tol,resid,v,iparam,ipntr,info = dsaupd(ido,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,n=len(resid),ncv=shape(v,1),ldv=shape(v,0),lworkl=len(workl))\n"
 "    d,z,info = sseupd(rvec,howmny,select,sigma,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,ldz=shape(z,0),n=len(resid),ncv=len(select),ldv=shape(v,0),lworkl=len(workl))\n"
@@ -5328,7 +5335,7 @@ PyMODINIT_FUNC PyInit__arpack(void) {
 "COMMON blocks:\n""  /debug/ logfil,ndigit,mgetv0,msaupd,msaup2,msaitr,mseigt,msapps,msgets,mseupd,mnaupd,mnaup2,mnaitr,mneigh,mnapps,mngets,mneupd,mcaupd,mcaup2,mcaitr,mceigh,mcapps,mcgets,mceupd\n""  /timing/ nopx,nbx,nrorth,nitref,nrstrt,tsaupd,tsaup2,tsaitr,tseigt,tsgets,tsapps,tsconv,tnaupd,tnaup2,tnaitr,tneigh,tngets,tnapps,tnconv,tcaupd,tcaup2,tcaitr,tceigh,tcgets,tcapps,tcconv,tmvopx,tmvbx,tgetv0,titref,trvec\n"".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.24.4");
+    s = PyUnicode_FromString("1.25.2");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _arpack_error = PyErr_NewException ("_arpack.error", NULL, NULL);

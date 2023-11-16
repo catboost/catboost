@@ -257,7 +257,8 @@ def test_load_padded_dtype(tmpdir, dt):
 def test_python2_python3_interoperability():
     fname = 'win64python2.npy'
     path = os.path.join(yatest.common.source_path('contrib/python/numpy/py3/numpy/lib/tests'), 'data', fname)
-    data = np.load(path)
+    with pytest.warns(UserWarning, match="Reading.*this warning\\."):
+        data = np.load(path)
     assert_array_equal(data, np.ones(2))
 
 def test_pickle_python2_python3():
@@ -746,8 +747,7 @@ def test_metadata_dtype(dt, fail):
     else:
         arr2 = np.load(buf)
         # BUG: assert_array_equal does not check metadata
-        from numpy.lib.format import _has_metadata
+        from numpy.lib.utils import drop_metadata
         assert_array_equal(arr, arr2)
-        assert _has_metadata(arr.dtype)
-        assert not _has_metadata(arr2.dtype)
-
+        assert drop_metadata(arr.dtype) is not arr.dtype
+        assert drop_metadata(arr2.dtype) is arr2.dtype

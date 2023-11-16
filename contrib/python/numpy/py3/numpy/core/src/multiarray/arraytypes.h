@@ -346,5 +346,403 @@ NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int LONGDOUBLE_argmin,
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT int BOOL_argmax,
     (npy_bool *ip, npy_intp n, npy_intp *max_ind, PyArrayObject *aip))
 
+
+/*
+ * Define DType and scalar type names and aliases as used in Python.
+ */
+
+#line 91
+#define NPY_BOOL_name "bool_"
+#define NPY_BOOL_Name "Bool"
+
+
+#line 91
+#define NPY_HALF_name "float16"
+#define NPY_HALF_Name "Float16"
+
+
+#line 91
+#define NPY_FLOAT_name "float32"
+#define NPY_FLOAT_Name "Float32"
+
+
+#line 91
+#define NPY_DOUBLE_name "float64"
+#define NPY_DOUBLE_Name "Float64"
+
+
+#line 91
+#define NPY_LONGDOUBLE_name "longdouble"
+#define NPY_LONGDOUBLE_Name "LongDouble"
+
+
+#line 91
+#define NPY_CFLOAT_name "complex64"
+#define NPY_CFLOAT_Name "Complex64"
+
+
+#line 91
+#define NPY_CDOUBLE_name "complex128"
+#define NPY_CDOUBLE_Name "Complex128"
+
+
+#line 91
+#define NPY_CLONGDOUBLE_name "clongdouble"
+#define NPY_CLONGDOUBLE_Name "CLongDouble"
+
+
+#line 91
+#define NPY_STRING_name "bytes_"
+#define NPY_STRING_Name "Bytes"
+
+
+#line 91
+#define NPY_UNICODE_name "str_"
+#define NPY_UNICODE_Name "Str"
+
+
+#line 91
+#define NPY_VOID_name "void"
+#define NPY_VOID_Name "Void"
+
+
+#line 91
+#define NPY_OBJECT_name "object_"
+#define NPY_OBJECT_Name "Object"
+
+
+#line 91
+#define NPY_DATETIME_name "datetime64"
+#define NPY_DATETIME_Name "DateTime64"
+
+
+#line 91
+#define NPY_TIMEDELTA_name "timedelta64"
+#define NPY_TIMEDELTA_Name "TimeDelta64"
+
+
+
+
+/*
+ * Give integers different names when they are the same size (gh-9799).
+ * `intX` always refers to the first int of that size in the sequence
+ * `['LONG', 'LONGLONG', 'INT', 'SHORT', 'BYTE']`.
+ * Unfortunately, since the bitsize names are not strictly fixed, we add
+ * the C name for all integer types (as aliases).
+ *
+ * Right now, we do not define the C aliases for floats (which are always
+ * the same).
+ */
+
+#if NPY_SIZEOF_BYTE == NPY_SIZEOF_SHORT
+    #define BYTE_not_size_named
+#endif
+#if NPY_SIZEOF_SHORT == NPY_SIZEOF_INT
+    #define SHORT_not_size_named
+#endif
+#if NPY_SIZEOF_INT == NPY_SIZEOF_LONG
+    #define INT_not_size_named
+#endif
+#if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONG
+    #define LONGLONG_not_size_named
+#endif
+
+
+#line 133
+
+#ifdef BYTE_not_size_named
+    #define NPY_BYTE_name "byte"
+    #define NPY_BYTE_Name "Byte"
+#else
+    /* The C-name is considered just an alias for these: */
+    #define NPY_BYTE_alias "byte"
+    #define NPY_BYTE_Alias "Byte"
+
+    /* The bitsof macro includes math, so cannot be stringified */
+    #if NPY_BITSOF_BYTE == 8
+        #define NPY_BYTE_name "int8"
+        #define NPY_BYTE_Name "Int8"
+    #elif NPY_BITSOF_BYTE == 16
+        #define NPY_BYTE_name "int16"
+        #define NPY_BYTE_Name "Int16"
+    #elif NPY_BITSOF_BYTE == 32
+        #define NPY_BYTE_name "int32"
+        #define NPY_BYTE_Name "Int32"
+    #elif NPY_BITSOF_BYTE == 64
+        #define NPY_BYTE_name "int64"
+        #define NPY_BYTE_Name "Int64"
+    #else
+        #error "need to fix integer bit-length name code"
+    #endif
+#endif
+
+
+#line 133
+
+#ifdef SHORT_not_size_named
+    #define NPY_SHORT_name "short"
+    #define NPY_SHORT_Name "Short"
+#else
+    /* The C-name is considered just an alias for these: */
+    #define NPY_SHORT_alias "short"
+    #define NPY_SHORT_Alias "Short"
+
+    /* The bitsof macro includes math, so cannot be stringified */
+    #if NPY_BITSOF_SHORT == 8
+        #define NPY_SHORT_name "int8"
+        #define NPY_SHORT_Name "Int8"
+    #elif NPY_BITSOF_SHORT == 16
+        #define NPY_SHORT_name "int16"
+        #define NPY_SHORT_Name "Int16"
+    #elif NPY_BITSOF_SHORT == 32
+        #define NPY_SHORT_name "int32"
+        #define NPY_SHORT_Name "Int32"
+    #elif NPY_BITSOF_SHORT == 64
+        #define NPY_SHORT_name "int64"
+        #define NPY_SHORT_Name "Int64"
+    #else
+        #error "need to fix integer bit-length name code"
+    #endif
+#endif
+
+
+#line 133
+
+#ifdef INT_not_size_named
+    #define NPY_INT_name "intc"
+    #define NPY_INT_Name "Int"
+#else
+    /* The C-name is considered just an alias for these: */
+    #define NPY_INT_alias "intc"
+    #define NPY_INT_Alias "Int"
+
+    /* The bitsof macro includes math, so cannot be stringified */
+    #if NPY_BITSOF_INT == 8
+        #define NPY_INT_name "int8"
+        #define NPY_INT_Name "Int8"
+    #elif NPY_BITSOF_INT == 16
+        #define NPY_INT_name "int16"
+        #define NPY_INT_Name "Int16"
+    #elif NPY_BITSOF_INT == 32
+        #define NPY_INT_name "int32"
+        #define NPY_INT_Name "Int32"
+    #elif NPY_BITSOF_INT == 64
+        #define NPY_INT_name "int64"
+        #define NPY_INT_Name "Int64"
+    #else
+        #error "need to fix integer bit-length name code"
+    #endif
+#endif
+
+
+#line 133
+
+#ifdef LONG_not_size_named
+    #define NPY_LONG_name "int_"
+    #define NPY_LONG_Name "Long"
+#else
+    /* The C-name is considered just an alias for these: */
+    #define NPY_LONG_alias "int_"
+    #define NPY_LONG_Alias "Long"
+
+    /* The bitsof macro includes math, so cannot be stringified */
+    #if NPY_BITSOF_LONG == 8
+        #define NPY_LONG_name "int8"
+        #define NPY_LONG_Name "Int8"
+    #elif NPY_BITSOF_LONG == 16
+        #define NPY_LONG_name "int16"
+        #define NPY_LONG_Name "Int16"
+    #elif NPY_BITSOF_LONG == 32
+        #define NPY_LONG_name "int32"
+        #define NPY_LONG_Name "Int32"
+    #elif NPY_BITSOF_LONG == 64
+        #define NPY_LONG_name "int64"
+        #define NPY_LONG_Name "Int64"
+    #else
+        #error "need to fix integer bit-length name code"
+    #endif
+#endif
+
+
+#line 133
+
+#ifdef LONGLONG_not_size_named
+    #define NPY_LONGLONG_name "longlong"
+    #define NPY_LONGLONG_Name "LongLong"
+#else
+    /* The C-name is considered just an alias for these: */
+    #define NPY_LONGLONG_alias "longlong"
+    #define NPY_LONGLONG_Alias "LongLong"
+
+    /* The bitsof macro includes math, so cannot be stringified */
+    #if NPY_BITSOF_LONGLONG == 8
+        #define NPY_LONGLONG_name "int8"
+        #define NPY_LONGLONG_Name "Int8"
+    #elif NPY_BITSOF_LONGLONG == 16
+        #define NPY_LONGLONG_name "int16"
+        #define NPY_LONGLONG_Name "Int16"
+    #elif NPY_BITSOF_LONGLONG == 32
+        #define NPY_LONGLONG_name "int32"
+        #define NPY_LONGLONG_Name "Int32"
+    #elif NPY_BITSOF_LONGLONG == 64
+        #define NPY_LONGLONG_name "int64"
+        #define NPY_LONGLONG_Name "Int64"
+    #else
+        #error "need to fix integer bit-length name code"
+    #endif
+#endif
+
+
+#line 133
+
+#ifdef BYTE_not_size_named
+    #define NPY_UBYTE_name "ubyte"
+    #define NPY_UBYTE_Name "UByte"
+#else
+    /* The C-name is considered just an alias for these: */
+    #define NPY_UBYTE_alias "ubyte"
+    #define NPY_UBYTE_Alias "UByte"
+
+    /* The bitsof macro includes math, so cannot be stringified */
+    #if NPY_BITSOF_BYTE == 8
+        #define NPY_UBYTE_name "uint8"
+        #define NPY_UBYTE_Name "UInt8"
+    #elif NPY_BITSOF_BYTE == 16
+        #define NPY_UBYTE_name "uint16"
+        #define NPY_UBYTE_Name "UInt16"
+    #elif NPY_BITSOF_BYTE == 32
+        #define NPY_UBYTE_name "uint32"
+        #define NPY_UBYTE_Name "UInt32"
+    #elif NPY_BITSOF_BYTE == 64
+        #define NPY_UBYTE_name "uint64"
+        #define NPY_UBYTE_Name "UInt64"
+    #else
+        #error "need to fix integer bit-length name code"
+    #endif
+#endif
+
+
+#line 133
+
+#ifdef SHORT_not_size_named
+    #define NPY_USHORT_name "ushort"
+    #define NPY_USHORT_Name "UShort"
+#else
+    /* The C-name is considered just an alias for these: */
+    #define NPY_USHORT_alias "ushort"
+    #define NPY_USHORT_Alias "UShort"
+
+    /* The bitsof macro includes math, so cannot be stringified */
+    #if NPY_BITSOF_SHORT == 8
+        #define NPY_USHORT_name "uint8"
+        #define NPY_USHORT_Name "UInt8"
+    #elif NPY_BITSOF_SHORT == 16
+        #define NPY_USHORT_name "uint16"
+        #define NPY_USHORT_Name "UInt16"
+    #elif NPY_BITSOF_SHORT == 32
+        #define NPY_USHORT_name "uint32"
+        #define NPY_USHORT_Name "UInt32"
+    #elif NPY_BITSOF_SHORT == 64
+        #define NPY_USHORT_name "uint64"
+        #define NPY_USHORT_Name "UInt64"
+    #else
+        #error "need to fix integer bit-length name code"
+    #endif
+#endif
+
+
+#line 133
+
+#ifdef INT_not_size_named
+    #define NPY_UINT_name "uintc"
+    #define NPY_UINT_Name "UInt"
+#else
+    /* The C-name is considered just an alias for these: */
+    #define NPY_UINT_alias "uintc"
+    #define NPY_UINT_Alias "UInt"
+
+    /* The bitsof macro includes math, so cannot be stringified */
+    #if NPY_BITSOF_INT == 8
+        #define NPY_UINT_name "uint8"
+        #define NPY_UINT_Name "UInt8"
+    #elif NPY_BITSOF_INT == 16
+        #define NPY_UINT_name "uint16"
+        #define NPY_UINT_Name "UInt16"
+    #elif NPY_BITSOF_INT == 32
+        #define NPY_UINT_name "uint32"
+        #define NPY_UINT_Name "UInt32"
+    #elif NPY_BITSOF_INT == 64
+        #define NPY_UINT_name "uint64"
+        #define NPY_UINT_Name "UInt64"
+    #else
+        #error "need to fix integer bit-length name code"
+    #endif
+#endif
+
+
+#line 133
+
+#ifdef LONG_not_size_named
+    #define NPY_ULONG_name "uint"
+    #define NPY_ULONG_Name "ULong"
+#else
+    /* The C-name is considered just an alias for these: */
+    #define NPY_ULONG_alias "uint"
+    #define NPY_ULONG_Alias "ULong"
+
+    /* The bitsof macro includes math, so cannot be stringified */
+    #if NPY_BITSOF_LONG == 8
+        #define NPY_ULONG_name "uint8"
+        #define NPY_ULONG_Name "UInt8"
+    #elif NPY_BITSOF_LONG == 16
+        #define NPY_ULONG_name "uint16"
+        #define NPY_ULONG_Name "UInt16"
+    #elif NPY_BITSOF_LONG == 32
+        #define NPY_ULONG_name "uint32"
+        #define NPY_ULONG_Name "UInt32"
+    #elif NPY_BITSOF_LONG == 64
+        #define NPY_ULONG_name "uint64"
+        #define NPY_ULONG_Name "UInt64"
+    #else
+        #error "need to fix integer bit-length name code"
+    #endif
+#endif
+
+
+#line 133
+
+#ifdef LONGLONG_not_size_named
+    #define NPY_ULONGLONG_name "ulonglong"
+    #define NPY_ULONGLONG_Name "ULongLong"
+#else
+    /* The C-name is considered just an alias for these: */
+    #define NPY_ULONGLONG_alias "ulonglong"
+    #define NPY_ULONGLONG_Alias "ULongLong"
+
+    /* The bitsof macro includes math, so cannot be stringified */
+    #if NPY_BITSOF_LONGLONG == 8
+        #define NPY_ULONGLONG_name "uint8"
+        #define NPY_ULONGLONG_Name "UInt8"
+    #elif NPY_BITSOF_LONGLONG == 16
+        #define NPY_ULONGLONG_name "uint16"
+        #define NPY_ULONGLONG_Name "UInt16"
+    #elif NPY_BITSOF_LONGLONG == 32
+        #define NPY_ULONGLONG_name "uint32"
+        #define NPY_ULONGLONG_Name "UInt32"
+    #elif NPY_BITSOF_LONGLONG == 64
+        #define NPY_ULONGLONG_name "uint64"
+        #define NPY_ULONGLONG_Name "UInt64"
+    #else
+        #error "need to fix integer bit-length name code"
+    #endif
+#endif
+
+
+
+#undef BYTE_not_size_named
+#undef SHORT_not_size_named
+#undef INT_not_size_named
+#undef LONGLONG_not_size_named
+
 #endif  /* NUMPY_CORE_SRC_MULTIARRAY_ARRAYTYPES_H_ */
 

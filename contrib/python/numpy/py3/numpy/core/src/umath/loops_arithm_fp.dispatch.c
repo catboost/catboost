@@ -10,7 +10,9 @@
 #line 1
 /*@targets
  ** $maxopt baseline
- ** sse2 avx2 avx512f
+ ** sse2 (avx2 fma3)
+ ** neon asimd
+ ** vsx2 vsx3
  ** vx vxe
  **/
 #define _UMATHMODULE
@@ -24,4453 +26,3475 @@
 // Provides the various *_LOOP macros
 #include "fast_loop_macros.h"
 
-// TODO: replace raw SIMD with NPYV
+/**
+ * TODO:
+ *  - Improve the implementation of SIMD complex absolute,
+ *    current one kinda slow and it can be optimized by
+ *    at least avoiding the division and keep sqrt.
+ *  - Vectorize reductions
+ *  - Add support for ASIMD/VCMLA through universal intrinics.
+ */
+
 //###############################################################################
 //## Real Single/Double precision
 //###############################################################################
 /********************************************************************************
- ** Defining the SIMD kernels
- ********************************************************************************/
-#ifdef NPY_HAVE_SSE2
-#line 42
-#line 48
-static void
-sse2_binary_add_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] + ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) && npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_load_ps(&ip1[i]);
-                __m512 c = _mm512_add_ps(a, a);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_load_ps(&ip1[i]);
-                __m512 b = _mm512_load_ps(&ip2[i]);
-                __m512 c = _mm512_add_ps(a, b);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_load_ps(&ip1[i]);
-            __m512 b = _mm512_loadu_ps(&ip2[i]);
-            __m512 c = _mm512_add_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_loadu_ps(&ip1[i]);
-            __m512 b = _mm512_load_ps(&ip2[i]);
-            __m512 c = _mm512_add_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_loadu_ps(&ip1[i]);
-                __m512 c = _mm512_add_ps(a, a);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_loadu_ps(&ip1[i]);
-                __m512 b = _mm512_loadu_ps(&ip2[i]);
-                __m512 c = _mm512_add_ps(a, b);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-    }
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] + ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_load_ps(&ip1[i]);
-                __m256 c = _mm256_add_ps(a, a);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_load_ps(&ip1[i]);
-                __m256 b = _mm256_load_ps(&ip2[i]);
-                __m256 c = _mm256_add_ps(a, b);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_load_ps(&ip1[i]);
-            __m256 b = _mm256_loadu_ps(&ip2[i]);
-            __m256 c = _mm256_add_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_loadu_ps(&ip1[i]);
-            __m256 b = _mm256_load_ps(&ip2[i]);
-            __m256 c = _mm256_add_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_loadu_ps(&ip1[i]);
-                __m256 c = _mm256_add_ps(a, a);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_loadu_ps(&ip1[i]);
-                __m256 b = _mm256_loadu_ps(&ip2[i]);
-                __m256 c = _mm256_add_ps(a, b);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] + ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_load_ps(&ip1[i]);
-                __m128 c = _mm_add_ps(a, a);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_load_ps(&ip1[i]);
-                __m128 b = _mm_load_ps(&ip2[i]);
-                __m128 c = _mm_add_ps(a, b);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_load_ps(&ip1[i]);
-            __m128 b = _mm_loadu_ps(&ip2[i]);
-            __m128 c = _mm_add_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_loadu_ps(&ip1[i]);
-            __m128 b = _mm_load_ps(&ip2[i]);
-            __m128 c = _mm_add_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_loadu_ps(&ip1[i]);
-                __m128 c = _mm_add_ps(a, a);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_loadu_ps(&ip1[i]);
-                __m128 b = _mm_loadu_ps(&ip2[i]);
-                __m128 c = _mm_add_ps(a, b);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] + ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar1_add_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512 a = _mm512_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] + ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 b = _mm512_load_ps(&ip2[i]);
-            __m512 c = _mm512_add_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 b = _mm512_loadu_ps(&ip2[i]);
-            __m512 c = _mm512_add_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256 a = _mm256_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] + ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 b = _mm256_load_ps(&ip2[i]);
-            __m256 c = _mm256_add_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 b = _mm256_loadu_ps(&ip2[i]);
-            __m256 c = _mm256_add_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128 a = _mm_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] + ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 b = _mm_load_ps(&ip2[i]);
-            __m128 c = _mm_add_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 b = _mm_loadu_ps(&ip2[i]);
-            __m128 c = _mm_add_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] + ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar2_add_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512 b = _mm512_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] + ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_load_ps(&ip1[i]);
-            __m512 c = _mm512_add_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_loadu_ps(&ip1[i]);
-            __m512 c = _mm512_add_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256 b = _mm256_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] + ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_load_ps(&ip1[i]);
-            __m256 c = _mm256_add_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_loadu_ps(&ip1[i]);
-            __m256 c = _mm256_add_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128 b = _mm_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] + ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_load_ps(&ip1[i]);
-            __m128 c = _mm_add_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_loadu_ps(&ip1[i]);
-            __m128 c = _mm_add_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] + ip2[0];
-    }
-}
-
-
-#line 48
-static void
-sse2_binary_subtract_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] - ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) && npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_load_ps(&ip1[i]);
-                __m512 c = _mm512_sub_ps(a, a);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_load_ps(&ip1[i]);
-                __m512 b = _mm512_load_ps(&ip2[i]);
-                __m512 c = _mm512_sub_ps(a, b);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_load_ps(&ip1[i]);
-            __m512 b = _mm512_loadu_ps(&ip2[i]);
-            __m512 c = _mm512_sub_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_loadu_ps(&ip1[i]);
-            __m512 b = _mm512_load_ps(&ip2[i]);
-            __m512 c = _mm512_sub_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_loadu_ps(&ip1[i]);
-                __m512 c = _mm512_sub_ps(a, a);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_loadu_ps(&ip1[i]);
-                __m512 b = _mm512_loadu_ps(&ip2[i]);
-                __m512 c = _mm512_sub_ps(a, b);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-    }
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] - ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_load_ps(&ip1[i]);
-                __m256 c = _mm256_sub_ps(a, a);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_load_ps(&ip1[i]);
-                __m256 b = _mm256_load_ps(&ip2[i]);
-                __m256 c = _mm256_sub_ps(a, b);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_load_ps(&ip1[i]);
-            __m256 b = _mm256_loadu_ps(&ip2[i]);
-            __m256 c = _mm256_sub_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_loadu_ps(&ip1[i]);
-            __m256 b = _mm256_load_ps(&ip2[i]);
-            __m256 c = _mm256_sub_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_loadu_ps(&ip1[i]);
-                __m256 c = _mm256_sub_ps(a, a);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_loadu_ps(&ip1[i]);
-                __m256 b = _mm256_loadu_ps(&ip2[i]);
-                __m256 c = _mm256_sub_ps(a, b);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] - ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_load_ps(&ip1[i]);
-                __m128 c = _mm_sub_ps(a, a);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_load_ps(&ip1[i]);
-                __m128 b = _mm_load_ps(&ip2[i]);
-                __m128 c = _mm_sub_ps(a, b);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_load_ps(&ip1[i]);
-            __m128 b = _mm_loadu_ps(&ip2[i]);
-            __m128 c = _mm_sub_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_loadu_ps(&ip1[i]);
-            __m128 b = _mm_load_ps(&ip2[i]);
-            __m128 c = _mm_sub_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_loadu_ps(&ip1[i]);
-                __m128 c = _mm_sub_ps(a, a);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_loadu_ps(&ip1[i]);
-                __m128 b = _mm_loadu_ps(&ip2[i]);
-                __m128 c = _mm_sub_ps(a, b);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] - ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar1_subtract_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512 a = _mm512_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] - ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 b = _mm512_load_ps(&ip2[i]);
-            __m512 c = _mm512_sub_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 b = _mm512_loadu_ps(&ip2[i]);
-            __m512 c = _mm512_sub_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256 a = _mm256_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] - ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 b = _mm256_load_ps(&ip2[i]);
-            __m256 c = _mm256_sub_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 b = _mm256_loadu_ps(&ip2[i]);
-            __m256 c = _mm256_sub_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128 a = _mm_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] - ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 b = _mm_load_ps(&ip2[i]);
-            __m128 c = _mm_sub_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 b = _mm_loadu_ps(&ip2[i]);
-            __m128 c = _mm_sub_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] - ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar2_subtract_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512 b = _mm512_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] - ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_load_ps(&ip1[i]);
-            __m512 c = _mm512_sub_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_loadu_ps(&ip1[i]);
-            __m512 c = _mm512_sub_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256 b = _mm256_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] - ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_load_ps(&ip1[i]);
-            __m256 c = _mm256_sub_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_loadu_ps(&ip1[i]);
-            __m256 c = _mm256_sub_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128 b = _mm_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] - ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_load_ps(&ip1[i]);
-            __m128 c = _mm_sub_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_loadu_ps(&ip1[i]);
-            __m128 c = _mm_sub_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] - ip2[0];
-    }
-}
-
-
-#line 48
-static void
-sse2_binary_multiply_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] * ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) && npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_load_ps(&ip1[i]);
-                __m512 c = _mm512_mul_ps(a, a);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_load_ps(&ip1[i]);
-                __m512 b = _mm512_load_ps(&ip2[i]);
-                __m512 c = _mm512_mul_ps(a, b);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_load_ps(&ip1[i]);
-            __m512 b = _mm512_loadu_ps(&ip2[i]);
-            __m512 c = _mm512_mul_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_loadu_ps(&ip1[i]);
-            __m512 b = _mm512_load_ps(&ip2[i]);
-            __m512 c = _mm512_mul_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_loadu_ps(&ip1[i]);
-                __m512 c = _mm512_mul_ps(a, a);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_loadu_ps(&ip1[i]);
-                __m512 b = _mm512_loadu_ps(&ip2[i]);
-                __m512 c = _mm512_mul_ps(a, b);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-    }
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] * ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_load_ps(&ip1[i]);
-                __m256 c = _mm256_mul_ps(a, a);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_load_ps(&ip1[i]);
-                __m256 b = _mm256_load_ps(&ip2[i]);
-                __m256 c = _mm256_mul_ps(a, b);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_load_ps(&ip1[i]);
-            __m256 b = _mm256_loadu_ps(&ip2[i]);
-            __m256 c = _mm256_mul_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_loadu_ps(&ip1[i]);
-            __m256 b = _mm256_load_ps(&ip2[i]);
-            __m256 c = _mm256_mul_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_loadu_ps(&ip1[i]);
-                __m256 c = _mm256_mul_ps(a, a);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_loadu_ps(&ip1[i]);
-                __m256 b = _mm256_loadu_ps(&ip2[i]);
-                __m256 c = _mm256_mul_ps(a, b);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] * ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_load_ps(&ip1[i]);
-                __m128 c = _mm_mul_ps(a, a);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_load_ps(&ip1[i]);
-                __m128 b = _mm_load_ps(&ip2[i]);
-                __m128 c = _mm_mul_ps(a, b);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_load_ps(&ip1[i]);
-            __m128 b = _mm_loadu_ps(&ip2[i]);
-            __m128 c = _mm_mul_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_loadu_ps(&ip1[i]);
-            __m128 b = _mm_load_ps(&ip2[i]);
-            __m128 c = _mm_mul_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_loadu_ps(&ip1[i]);
-                __m128 c = _mm_mul_ps(a, a);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_loadu_ps(&ip1[i]);
-                __m128 b = _mm_loadu_ps(&ip2[i]);
-                __m128 c = _mm_mul_ps(a, b);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] * ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar1_multiply_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512 a = _mm512_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] * ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 b = _mm512_load_ps(&ip2[i]);
-            __m512 c = _mm512_mul_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 b = _mm512_loadu_ps(&ip2[i]);
-            __m512 c = _mm512_mul_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256 a = _mm256_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] * ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 b = _mm256_load_ps(&ip2[i]);
-            __m256 c = _mm256_mul_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 b = _mm256_loadu_ps(&ip2[i]);
-            __m256 c = _mm256_mul_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128 a = _mm_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] * ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 b = _mm_load_ps(&ip2[i]);
-            __m128 c = _mm_mul_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 b = _mm_loadu_ps(&ip2[i]);
-            __m128 c = _mm_mul_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] * ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar2_multiply_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512 b = _mm512_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] * ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_load_ps(&ip1[i]);
-            __m512 c = _mm512_mul_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_loadu_ps(&ip1[i]);
-            __m512 c = _mm512_mul_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256 b = _mm256_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] * ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_load_ps(&ip1[i]);
-            __m256 c = _mm256_mul_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_loadu_ps(&ip1[i]);
-            __m256 c = _mm256_mul_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128 b = _mm_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] * ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_load_ps(&ip1[i]);
-            __m128 c = _mm_mul_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_loadu_ps(&ip1[i]);
-            __m128 c = _mm_mul_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] * ip2[0];
-    }
-}
-
-
-#line 48
-static void
-sse2_binary_divide_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] / ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) && npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_load_ps(&ip1[i]);
-                __m512 c = _mm512_div_ps(a, a);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_load_ps(&ip1[i]);
-                __m512 b = _mm512_load_ps(&ip2[i]);
-                __m512 c = _mm512_div_ps(a, b);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_load_ps(&ip1[i]);
-            __m512 b = _mm512_loadu_ps(&ip2[i]);
-            __m512 c = _mm512_div_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_loadu_ps(&ip1[i]);
-            __m512 b = _mm512_load_ps(&ip2[i]);
-            __m512 c = _mm512_div_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_loadu_ps(&ip1[i]);
-                __m512 c = _mm512_div_ps(a, a);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m512 a = _mm512_loadu_ps(&ip1[i]);
-                __m512 b = _mm512_loadu_ps(&ip2[i]);
-                __m512 c = _mm512_div_ps(a, b);
-                _mm512_store_ps(&op[i], c);
-            }
-        }
-    }
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] / ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_load_ps(&ip1[i]);
-                __m256 c = _mm256_div_ps(a, a);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_load_ps(&ip1[i]);
-                __m256 b = _mm256_load_ps(&ip2[i]);
-                __m256 c = _mm256_div_ps(a, b);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_load_ps(&ip1[i]);
-            __m256 b = _mm256_loadu_ps(&ip2[i]);
-            __m256 c = _mm256_div_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_loadu_ps(&ip1[i]);
-            __m256 b = _mm256_load_ps(&ip2[i]);
-            __m256 c = _mm256_div_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_loadu_ps(&ip1[i]);
-                __m256 c = _mm256_div_ps(a, a);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m256 a = _mm256_loadu_ps(&ip1[i]);
-                __m256 b = _mm256_loadu_ps(&ip2[i]);
-                __m256 c = _mm256_div_ps(a, b);
-                _mm256_store_ps(&op[i], c);
-            }
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] / ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_load_ps(&ip1[i]);
-                __m128 c = _mm_div_ps(a, a);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_load_ps(&ip1[i]);
-                __m128 b = _mm_load_ps(&ip2[i]);
-                __m128 c = _mm_div_ps(a, b);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_load_ps(&ip1[i]);
-            __m128 b = _mm_loadu_ps(&ip2[i]);
-            __m128 c = _mm_div_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_loadu_ps(&ip1[i]);
-            __m128 b = _mm_load_ps(&ip2[i]);
-            __m128 c = _mm_div_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_loadu_ps(&ip1[i]);
-                __m128 c = _mm_div_ps(a, a);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_float, vector_size_bytes) {
-                __m128 a = _mm_loadu_ps(&ip1[i]);
-                __m128 b = _mm_loadu_ps(&ip2[i]);
-                __m128 c = _mm_div_ps(a, b);
-                _mm_store_ps(&op[i], c);
-            }
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] / ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar1_divide_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512 a = _mm512_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] / ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 b = _mm512_load_ps(&ip2[i]);
-            __m512 c = _mm512_div_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 b = _mm512_loadu_ps(&ip2[i]);
-            __m512 c = _mm512_div_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256 a = _mm256_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] / ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 b = _mm256_load_ps(&ip2[i]);
-            __m256 c = _mm256_div_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 b = _mm256_loadu_ps(&ip2[i]);
-            __m256 c = _mm256_div_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128 a = _mm_set1_ps(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[0] / ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 b = _mm_load_ps(&ip2[i]);
-            __m128 c = _mm_div_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 b = _mm_loadu_ps(&ip2[i]);
-            __m128 c = _mm_div_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] / ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar2_divide_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512 b = _mm512_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] / ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_load_ps(&ip1[i]);
-            __m512 c = _mm512_div_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m512 a = _mm512_loadu_ps(&ip1[i]);
-            __m512 c = _mm512_div_ps(a, b);
-            _mm512_store_ps(&op[i], c);
-        }
-    }
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256 b = _mm256_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] / ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_load_ps(&ip1[i]);
-            __m256 c = _mm256_div_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m256 a = _mm256_loadu_ps(&ip1[i]);
-            __m256 c = _mm256_div_ps(a, b);
-            _mm256_store_ps(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128 b = _mm_set1_ps(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, vector_size_bytes)
-        op[i] = ip1[i] / ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_load_ps(&ip1[i]);
-            __m128 c = _mm_div_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, vector_size_bytes) {
-            __m128 a = _mm_loadu_ps(&ip1[i]);
-            __m128 c = _mm_div_ps(a, b);
-            _mm_store_ps(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] / ip2[0];
-    }
-}
-
-
-
-#line 42
-#line 48
-static void
-sse2_binary_add_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] + ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) && npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_load_pd(&ip1[i]);
-                __m512d c = _mm512_add_pd(a, a);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_load_pd(&ip1[i]);
-                __m512d b = _mm512_load_pd(&ip2[i]);
-                __m512d c = _mm512_add_pd(a, b);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_load_pd(&ip1[i]);
-            __m512d b = _mm512_loadu_pd(&ip2[i]);
-            __m512d c = _mm512_add_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_loadu_pd(&ip1[i]);
-            __m512d b = _mm512_load_pd(&ip2[i]);
-            __m512d c = _mm512_add_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_loadu_pd(&ip1[i]);
-                __m512d c = _mm512_add_pd(a, a);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_loadu_pd(&ip1[i]);
-                __m512d b = _mm512_loadu_pd(&ip2[i]);
-                __m512d c = _mm512_add_pd(a, b);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-    }
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] + ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_load_pd(&ip1[i]);
-                __m256d c = _mm256_add_pd(a, a);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_load_pd(&ip1[i]);
-                __m256d b = _mm256_load_pd(&ip2[i]);
-                __m256d c = _mm256_add_pd(a, b);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_load_pd(&ip1[i]);
-            __m256d b = _mm256_loadu_pd(&ip2[i]);
-            __m256d c = _mm256_add_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_loadu_pd(&ip1[i]);
-            __m256d b = _mm256_load_pd(&ip2[i]);
-            __m256d c = _mm256_add_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_loadu_pd(&ip1[i]);
-                __m256d c = _mm256_add_pd(a, a);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_loadu_pd(&ip1[i]);
-                __m256d b = _mm256_loadu_pd(&ip2[i]);
-                __m256d c = _mm256_add_pd(a, b);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] + ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_load_pd(&ip1[i]);
-                __m128d c = _mm_add_pd(a, a);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_load_pd(&ip1[i]);
-                __m128d b = _mm_load_pd(&ip2[i]);
-                __m128d c = _mm_add_pd(a, b);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_load_pd(&ip1[i]);
-            __m128d b = _mm_loadu_pd(&ip2[i]);
-            __m128d c = _mm_add_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_loadu_pd(&ip1[i]);
-            __m128d b = _mm_load_pd(&ip2[i]);
-            __m128d c = _mm_add_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_loadu_pd(&ip1[i]);
-                __m128d c = _mm_add_pd(a, a);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_loadu_pd(&ip1[i]);
-                __m128d b = _mm_loadu_pd(&ip2[i]);
-                __m128d c = _mm_add_pd(a, b);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] + ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar1_add_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512d a = _mm512_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] + ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d b = _mm512_load_pd(&ip2[i]);
-            __m512d c = _mm512_add_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d b = _mm512_loadu_pd(&ip2[i]);
-            __m512d c = _mm512_add_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256d a = _mm256_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] + ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d b = _mm256_load_pd(&ip2[i]);
-            __m256d c = _mm256_add_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d b = _mm256_loadu_pd(&ip2[i]);
-            __m256d c = _mm256_add_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128d a = _mm_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] + ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d b = _mm_load_pd(&ip2[i]);
-            __m128d c = _mm_add_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d b = _mm_loadu_pd(&ip2[i]);
-            __m128d c = _mm_add_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] + ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar2_add_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512d b = _mm512_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] + ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_load_pd(&ip1[i]);
-            __m512d c = _mm512_add_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_loadu_pd(&ip1[i]);
-            __m512d c = _mm512_add_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256d b = _mm256_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] + ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_load_pd(&ip1[i]);
-            __m256d c = _mm256_add_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_loadu_pd(&ip1[i]);
-            __m256d c = _mm256_add_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128d b = _mm_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] + ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_load_pd(&ip1[i]);
-            __m128d c = _mm_add_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_loadu_pd(&ip1[i]);
-            __m128d c = _mm_add_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] + ip2[0];
-    }
-}
-
-
-#line 48
-static void
-sse2_binary_subtract_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] - ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) && npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_load_pd(&ip1[i]);
-                __m512d c = _mm512_sub_pd(a, a);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_load_pd(&ip1[i]);
-                __m512d b = _mm512_load_pd(&ip2[i]);
-                __m512d c = _mm512_sub_pd(a, b);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_load_pd(&ip1[i]);
-            __m512d b = _mm512_loadu_pd(&ip2[i]);
-            __m512d c = _mm512_sub_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_loadu_pd(&ip1[i]);
-            __m512d b = _mm512_load_pd(&ip2[i]);
-            __m512d c = _mm512_sub_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_loadu_pd(&ip1[i]);
-                __m512d c = _mm512_sub_pd(a, a);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_loadu_pd(&ip1[i]);
-                __m512d b = _mm512_loadu_pd(&ip2[i]);
-                __m512d c = _mm512_sub_pd(a, b);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-    }
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] - ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_load_pd(&ip1[i]);
-                __m256d c = _mm256_sub_pd(a, a);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_load_pd(&ip1[i]);
-                __m256d b = _mm256_load_pd(&ip2[i]);
-                __m256d c = _mm256_sub_pd(a, b);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_load_pd(&ip1[i]);
-            __m256d b = _mm256_loadu_pd(&ip2[i]);
-            __m256d c = _mm256_sub_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_loadu_pd(&ip1[i]);
-            __m256d b = _mm256_load_pd(&ip2[i]);
-            __m256d c = _mm256_sub_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_loadu_pd(&ip1[i]);
-                __m256d c = _mm256_sub_pd(a, a);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_loadu_pd(&ip1[i]);
-                __m256d b = _mm256_loadu_pd(&ip2[i]);
-                __m256d c = _mm256_sub_pd(a, b);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] - ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_load_pd(&ip1[i]);
-                __m128d c = _mm_sub_pd(a, a);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_load_pd(&ip1[i]);
-                __m128d b = _mm_load_pd(&ip2[i]);
-                __m128d c = _mm_sub_pd(a, b);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_load_pd(&ip1[i]);
-            __m128d b = _mm_loadu_pd(&ip2[i]);
-            __m128d c = _mm_sub_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_loadu_pd(&ip1[i]);
-            __m128d b = _mm_load_pd(&ip2[i]);
-            __m128d c = _mm_sub_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_loadu_pd(&ip1[i]);
-                __m128d c = _mm_sub_pd(a, a);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_loadu_pd(&ip1[i]);
-                __m128d b = _mm_loadu_pd(&ip2[i]);
-                __m128d c = _mm_sub_pd(a, b);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] - ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar1_subtract_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512d a = _mm512_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] - ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d b = _mm512_load_pd(&ip2[i]);
-            __m512d c = _mm512_sub_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d b = _mm512_loadu_pd(&ip2[i]);
-            __m512d c = _mm512_sub_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256d a = _mm256_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] - ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d b = _mm256_load_pd(&ip2[i]);
-            __m256d c = _mm256_sub_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d b = _mm256_loadu_pd(&ip2[i]);
-            __m256d c = _mm256_sub_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128d a = _mm_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] - ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d b = _mm_load_pd(&ip2[i]);
-            __m128d c = _mm_sub_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d b = _mm_loadu_pd(&ip2[i]);
-            __m128d c = _mm_sub_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] - ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar2_subtract_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512d b = _mm512_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] - ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_load_pd(&ip1[i]);
-            __m512d c = _mm512_sub_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_loadu_pd(&ip1[i]);
-            __m512d c = _mm512_sub_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256d b = _mm256_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] - ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_load_pd(&ip1[i]);
-            __m256d c = _mm256_sub_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_loadu_pd(&ip1[i]);
-            __m256d c = _mm256_sub_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128d b = _mm_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] - ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_load_pd(&ip1[i]);
-            __m128d c = _mm_sub_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_loadu_pd(&ip1[i]);
-            __m128d c = _mm_sub_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] - ip2[0];
-    }
-}
-
-
-#line 48
-static void
-sse2_binary_multiply_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] * ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) && npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_load_pd(&ip1[i]);
-                __m512d c = _mm512_mul_pd(a, a);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_load_pd(&ip1[i]);
-                __m512d b = _mm512_load_pd(&ip2[i]);
-                __m512d c = _mm512_mul_pd(a, b);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_load_pd(&ip1[i]);
-            __m512d b = _mm512_loadu_pd(&ip2[i]);
-            __m512d c = _mm512_mul_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_loadu_pd(&ip1[i]);
-            __m512d b = _mm512_load_pd(&ip2[i]);
-            __m512d c = _mm512_mul_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_loadu_pd(&ip1[i]);
-                __m512d c = _mm512_mul_pd(a, a);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_loadu_pd(&ip1[i]);
-                __m512d b = _mm512_loadu_pd(&ip2[i]);
-                __m512d c = _mm512_mul_pd(a, b);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-    }
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] * ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_load_pd(&ip1[i]);
-                __m256d c = _mm256_mul_pd(a, a);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_load_pd(&ip1[i]);
-                __m256d b = _mm256_load_pd(&ip2[i]);
-                __m256d c = _mm256_mul_pd(a, b);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_load_pd(&ip1[i]);
-            __m256d b = _mm256_loadu_pd(&ip2[i]);
-            __m256d c = _mm256_mul_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_loadu_pd(&ip1[i]);
-            __m256d b = _mm256_load_pd(&ip2[i]);
-            __m256d c = _mm256_mul_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_loadu_pd(&ip1[i]);
-                __m256d c = _mm256_mul_pd(a, a);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_loadu_pd(&ip1[i]);
-                __m256d b = _mm256_loadu_pd(&ip2[i]);
-                __m256d c = _mm256_mul_pd(a, b);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] * ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_load_pd(&ip1[i]);
-                __m128d c = _mm_mul_pd(a, a);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_load_pd(&ip1[i]);
-                __m128d b = _mm_load_pd(&ip2[i]);
-                __m128d c = _mm_mul_pd(a, b);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_load_pd(&ip1[i]);
-            __m128d b = _mm_loadu_pd(&ip2[i]);
-            __m128d c = _mm_mul_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_loadu_pd(&ip1[i]);
-            __m128d b = _mm_load_pd(&ip2[i]);
-            __m128d c = _mm_mul_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_loadu_pd(&ip1[i]);
-                __m128d c = _mm_mul_pd(a, a);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_loadu_pd(&ip1[i]);
-                __m128d b = _mm_loadu_pd(&ip2[i]);
-                __m128d c = _mm_mul_pd(a, b);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] * ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar1_multiply_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512d a = _mm512_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] * ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d b = _mm512_load_pd(&ip2[i]);
-            __m512d c = _mm512_mul_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d b = _mm512_loadu_pd(&ip2[i]);
-            __m512d c = _mm512_mul_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256d a = _mm256_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] * ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d b = _mm256_load_pd(&ip2[i]);
-            __m256d c = _mm256_mul_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d b = _mm256_loadu_pd(&ip2[i]);
-            __m256d c = _mm256_mul_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128d a = _mm_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] * ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d b = _mm_load_pd(&ip2[i]);
-            __m128d c = _mm_mul_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d b = _mm_loadu_pd(&ip2[i]);
-            __m128d c = _mm_mul_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] * ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar2_multiply_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512d b = _mm512_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] * ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_load_pd(&ip1[i]);
-            __m512d c = _mm512_mul_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_loadu_pd(&ip1[i]);
-            __m512d c = _mm512_mul_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256d b = _mm256_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] * ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_load_pd(&ip1[i]);
-            __m256d c = _mm256_mul_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_loadu_pd(&ip1[i]);
-            __m256d c = _mm256_mul_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128d b = _mm_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] * ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_load_pd(&ip1[i]);
-            __m128d c = _mm_mul_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_loadu_pd(&ip1[i]);
-            __m128d c = _mm_mul_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] * ip2[0];
-    }
-}
-
-
-#line 48
-static void
-sse2_binary_divide_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] / ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) && npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_load_pd(&ip1[i]);
-                __m512d c = _mm512_div_pd(a, a);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_load_pd(&ip1[i]);
-                __m512d b = _mm512_load_pd(&ip2[i]);
-                __m512d c = _mm512_div_pd(a, b);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_load_pd(&ip1[i]);
-            __m512d b = _mm512_loadu_pd(&ip2[i]);
-            __m512d c = _mm512_div_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_loadu_pd(&ip1[i]);
-            __m512d b = _mm512_load_pd(&ip2[i]);
-            __m512d c = _mm512_div_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_loadu_pd(&ip1[i]);
-                __m512d c = _mm512_div_pd(a, a);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m512d a = _mm512_loadu_pd(&ip1[i]);
-                __m512d b = _mm512_loadu_pd(&ip2[i]);
-                __m512d c = _mm512_div_pd(a, b);
-                _mm512_store_pd(&op[i], c);
-            }
-        }
-    }
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] / ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_load_pd(&ip1[i]);
-                __m256d c = _mm256_div_pd(a, a);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_load_pd(&ip1[i]);
-                __m256d b = _mm256_load_pd(&ip2[i]);
-                __m256d c = _mm256_div_pd(a, b);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_load_pd(&ip1[i]);
-            __m256d b = _mm256_loadu_pd(&ip2[i]);
-            __m256d c = _mm256_div_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_loadu_pd(&ip1[i]);
-            __m256d b = _mm256_load_pd(&ip2[i]);
-            __m256d c = _mm256_div_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_loadu_pd(&ip1[i]);
-                __m256d c = _mm256_div_pd(a, a);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m256d a = _mm256_loadu_pd(&ip1[i]);
-                __m256d b = _mm256_loadu_pd(&ip2[i]);
-                __m256d c = _mm256_div_pd(a, b);
-                _mm256_store_pd(&op[i], c);
-            }
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] / ip2[i];
-    /* lots of specializations, to squeeze out max performance */
-    if (npy_is_aligned(&ip1[i], vector_size_bytes) &&
-            npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_load_pd(&ip1[i]);
-                __m128d c = _mm_div_pd(a, a);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_load_pd(&ip1[i]);
-                __m128d b = _mm_load_pd(&ip2[i]);
-                __m128d c = _mm_div_pd(a, b);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-    }
-    else if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_load_pd(&ip1[i]);
-            __m128d b = _mm_loadu_pd(&ip2[i]);
-            __m128d c = _mm_div_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_loadu_pd(&ip1[i]);
-            __m128d b = _mm_load_pd(&ip2[i]);
-            __m128d c = _mm_div_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        if (ip1 == ip2) {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_loadu_pd(&ip1[i]);
-                __m128d c = _mm_div_pd(a, a);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-        else {
-            LOOP_BLOCKED(npy_double, vector_size_bytes) {
-                __m128d a = _mm_loadu_pd(&ip1[i]);
-                __m128d b = _mm_loadu_pd(&ip2[i]);
-                __m128d c = _mm_div_pd(a, b);
-                _mm_store_pd(&op[i], c);
-            }
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] / ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar1_divide_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512d a = _mm512_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] / ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d b = _mm512_load_pd(&ip2[i]);
-            __m512d c = _mm512_div_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d b = _mm512_loadu_pd(&ip2[i]);
-            __m512d c = _mm512_div_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256d a = _mm256_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] / ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d b = _mm256_load_pd(&ip2[i]);
-            __m256d c = _mm256_div_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d b = _mm256_loadu_pd(&ip2[i]);
-            __m256d c = _mm256_div_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128d a = _mm_set1_pd(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[0] / ip2[i];
-    if (npy_is_aligned(&ip2[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d b = _mm_load_pd(&ip2[i]);
-            __m128d c = _mm_div_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d b = _mm_loadu_pd(&ip2[i]);
-            __m128d c = _mm_div_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] / ip2[i];
-    }
-}
-
-static void
-sse2_binary_scalar2_divide_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-#ifdef NPY_HAVE_AVX512F
-    const npy_intp vector_size_bytes = 64;
-    const __m512d b = _mm512_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] / ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_load_pd(&ip1[i]);
-            __m512d c = _mm512_div_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m512d a = _mm512_loadu_pd(&ip1[i]);
-            __m512d c = _mm512_div_pd(a, b);
-            _mm512_store_pd(&op[i], c);
-        }
-    }
-
-#elif defined NPY_HAVE_AVX2
-    const npy_intp vector_size_bytes = 32;
-    const __m256d b = _mm256_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] / ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_load_pd(&ip1[i]);
-            __m256d c = _mm256_div_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m256d a = _mm256_loadu_pd(&ip1[i]);
-            __m256d c = _mm256_div_pd(a, b);
-            _mm256_store_pd(&op[i], c);
-        }
-    }
-#else
-    const npy_intp vector_size_bytes = 16;
-    const __m128d b = _mm_set1_pd(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, vector_size_bytes)
-        op[i] = ip1[i] / ip2[0];
-    if (npy_is_aligned(&ip1[i], vector_size_bytes)) {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_load_pd(&ip1[i]);
-            __m128d c = _mm_div_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, vector_size_bytes) {
-            __m128d a = _mm_loadu_pd(&ip1[i]);
-            __m128d c = _mm_div_pd(a, b);
-            _mm_store_pd(&op[i], c);
-        }
-    }
-#endif
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] / ip2[0];
-    }
-}
-
-
-
-
-#else // NPY_HAVE_SSE2
-
-#line 370
-#if NPY_SIMD_F32
-#line 377
-
-static void
-simd_binary_add_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] + ip2[i];
-    }
-    /* lots of specializations, to squeeze out max performance */
-    if (ip1 == ip2) {
-        LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-            npyv_f32 a = npyv_load_f32(&ip1[i]);
-            npyv_f32 c = npyv_add_f32(a, a);
-            npyv_store_f32(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-            npyv_f32 a = npyv_load_f32(&ip1[i]);
-            npyv_f32 b = npyv_load_f32(&ip2[i]);
-            npyv_f32 c = npyv_add_f32(a, b);
-            npyv_store_f32(&op[i], c);
-        }
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] + ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar1_add_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    const npyv_f32 v1 = npyv_setall_f32(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[0] + ip2[i];
-    }
-    LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-        npyv_f32 v2 = npyv_load_f32(&ip2[i]);
-        npyv_f32 v3 = npyv_add_f32(v1, v2);
-        npyv_store_f32(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] + ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar2_add_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    const npyv_f32 v2 = npyv_setall_f32(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] + ip2[0];
-    }
-    LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-        npyv_f32 v1 = npyv_load_f32(&ip1[i]);
-        npyv_f32 v3 = npyv_add_f32(v1, v2);
-        npyv_store_f32(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] + ip2[0];
-    }
-}
-
-#line 377
-
-static void
-simd_binary_subtract_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] - ip2[i];
-    }
-    /* lots of specializations, to squeeze out max performance */
-    if (ip1 == ip2) {
-        LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-            npyv_f32 a = npyv_load_f32(&ip1[i]);
-            npyv_f32 c = npyv_sub_f32(a, a);
-            npyv_store_f32(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-            npyv_f32 a = npyv_load_f32(&ip1[i]);
-            npyv_f32 b = npyv_load_f32(&ip2[i]);
-            npyv_f32 c = npyv_sub_f32(a, b);
-            npyv_store_f32(&op[i], c);
-        }
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] - ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar1_subtract_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    const npyv_f32 v1 = npyv_setall_f32(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[0] - ip2[i];
-    }
-    LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-        npyv_f32 v2 = npyv_load_f32(&ip2[i]);
-        npyv_f32 v3 = npyv_sub_f32(v1, v2);
-        npyv_store_f32(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] - ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar2_subtract_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    const npyv_f32 v2 = npyv_setall_f32(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] - ip2[0];
-    }
-    LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-        npyv_f32 v1 = npyv_load_f32(&ip1[i]);
-        npyv_f32 v3 = npyv_sub_f32(v1, v2);
-        npyv_store_f32(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] - ip2[0];
-    }
-}
-
-#line 377
-
-static void
-simd_binary_multiply_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] * ip2[i];
-    }
-    /* lots of specializations, to squeeze out max performance */
-    if (ip1 == ip2) {
-        LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-            npyv_f32 a = npyv_load_f32(&ip1[i]);
-            npyv_f32 c = npyv_mul_f32(a, a);
-            npyv_store_f32(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-            npyv_f32 a = npyv_load_f32(&ip1[i]);
-            npyv_f32 b = npyv_load_f32(&ip2[i]);
-            npyv_f32 c = npyv_mul_f32(a, b);
-            npyv_store_f32(&op[i], c);
-        }
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] * ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar1_multiply_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    const npyv_f32 v1 = npyv_setall_f32(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[0] * ip2[i];
-    }
-    LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-        npyv_f32 v2 = npyv_load_f32(&ip2[i]);
-        npyv_f32 v3 = npyv_mul_f32(v1, v2);
-        npyv_store_f32(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] * ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar2_multiply_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    const npyv_f32 v2 = npyv_setall_f32(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] * ip2[0];
-    }
-    LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-        npyv_f32 v1 = npyv_load_f32(&ip1[i]);
-        npyv_f32 v3 = npyv_mul_f32(v1, v2);
-        npyv_store_f32(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] * ip2[0];
-    }
-}
-
-#line 377
-
-static void
-simd_binary_divide_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] / ip2[i];
-    }
-    /* lots of specializations, to squeeze out max performance */
-    if (ip1 == ip2) {
-        LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-            npyv_f32 a = npyv_load_f32(&ip1[i]);
-            npyv_f32 c = npyv_div_f32(a, a);
-            npyv_store_f32(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-            npyv_f32 a = npyv_load_f32(&ip1[i]);
-            npyv_f32 b = npyv_load_f32(&ip2[i]);
-            npyv_f32 c = npyv_div_f32(a, b);
-            npyv_store_f32(&op[i], c);
-        }
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] / ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar1_divide_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    const npyv_f32 v1 = npyv_setall_f32(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[0] / ip2[i];
-    }
-    LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-        npyv_f32 v2 = npyv_load_f32(&ip2[i]);
-        npyv_f32 v3 = npyv_div_f32(v1, v2);
-        npyv_store_f32(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] / ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar2_divide_FLOAT(npy_float * op, npy_float * ip1, npy_float * ip2, npy_intp n)
-{
-    const npyv_f32 v2 = npyv_setall_f32(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] / ip2[0];
-    }
-    LOOP_BLOCKED(npy_float, NPY_SIMD_WIDTH) {
-        npyv_f32 v1 = npyv_load_f32(&ip1[i]);
-        npyv_f32 v3 = npyv_div_f32(v1, v2);
-        npyv_store_f32(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] / ip2[0];
-    }
-}
-
-#endif /* NPY_SIMD_F32 */
-
-#line 370
-#if NPY_SIMD_F64
-#line 377
-
-static void
-simd_binary_add_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] + ip2[i];
-    }
-    /* lots of specializations, to squeeze out max performance */
-    if (ip1 == ip2) {
-        LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-            npyv_f64 a = npyv_load_f64(&ip1[i]);
-            npyv_f64 c = npyv_add_f64(a, a);
-            npyv_store_f64(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-            npyv_f64 a = npyv_load_f64(&ip1[i]);
-            npyv_f64 b = npyv_load_f64(&ip2[i]);
-            npyv_f64 c = npyv_add_f64(a, b);
-            npyv_store_f64(&op[i], c);
-        }
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] + ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar1_add_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    const npyv_f64 v1 = npyv_setall_f64(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[0] + ip2[i];
-    }
-    LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-        npyv_f64 v2 = npyv_load_f64(&ip2[i]);
-        npyv_f64 v3 = npyv_add_f64(v1, v2);
-        npyv_store_f64(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] + ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar2_add_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    const npyv_f64 v2 = npyv_setall_f64(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] + ip2[0];
-    }
-    LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-        npyv_f64 v1 = npyv_load_f64(&ip1[i]);
-        npyv_f64 v3 = npyv_add_f64(v1, v2);
-        npyv_store_f64(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] + ip2[0];
-    }
-}
-
-#line 377
-
-static void
-simd_binary_subtract_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] - ip2[i];
-    }
-    /* lots of specializations, to squeeze out max performance */
-    if (ip1 == ip2) {
-        LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-            npyv_f64 a = npyv_load_f64(&ip1[i]);
-            npyv_f64 c = npyv_sub_f64(a, a);
-            npyv_store_f64(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-            npyv_f64 a = npyv_load_f64(&ip1[i]);
-            npyv_f64 b = npyv_load_f64(&ip2[i]);
-            npyv_f64 c = npyv_sub_f64(a, b);
-            npyv_store_f64(&op[i], c);
-        }
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] - ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar1_subtract_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    const npyv_f64 v1 = npyv_setall_f64(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[0] - ip2[i];
-    }
-    LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-        npyv_f64 v2 = npyv_load_f64(&ip2[i]);
-        npyv_f64 v3 = npyv_sub_f64(v1, v2);
-        npyv_store_f64(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] - ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar2_subtract_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    const npyv_f64 v2 = npyv_setall_f64(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] - ip2[0];
-    }
-    LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-        npyv_f64 v1 = npyv_load_f64(&ip1[i]);
-        npyv_f64 v3 = npyv_sub_f64(v1, v2);
-        npyv_store_f64(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] - ip2[0];
-    }
-}
-
-#line 377
-
-static void
-simd_binary_multiply_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] * ip2[i];
-    }
-    /* lots of specializations, to squeeze out max performance */
-    if (ip1 == ip2) {
-        LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-            npyv_f64 a = npyv_load_f64(&ip1[i]);
-            npyv_f64 c = npyv_mul_f64(a, a);
-            npyv_store_f64(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-            npyv_f64 a = npyv_load_f64(&ip1[i]);
-            npyv_f64 b = npyv_load_f64(&ip2[i]);
-            npyv_f64 c = npyv_mul_f64(a, b);
-            npyv_store_f64(&op[i], c);
-        }
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] * ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar1_multiply_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    const npyv_f64 v1 = npyv_setall_f64(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[0] * ip2[i];
-    }
-    LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-        npyv_f64 v2 = npyv_load_f64(&ip2[i]);
-        npyv_f64 v3 = npyv_mul_f64(v1, v2);
-        npyv_store_f64(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] * ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar2_multiply_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    const npyv_f64 v2 = npyv_setall_f64(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] * ip2[0];
-    }
-    LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-        npyv_f64 v1 = npyv_load_f64(&ip1[i]);
-        npyv_f64 v3 = npyv_mul_f64(v1, v2);
-        npyv_store_f64(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] * ip2[0];
-    }
-}
-
-#line 377
-
-static void
-simd_binary_divide_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] / ip2[i];
-    }
-    /* lots of specializations, to squeeze out max performance */
-    if (ip1 == ip2) {
-        LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-            npyv_f64 a = npyv_load_f64(&ip1[i]);
-            npyv_f64 c = npyv_div_f64(a, a);
-            npyv_store_f64(&op[i], c);
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-            npyv_f64 a = npyv_load_f64(&ip1[i]);
-            npyv_f64 b = npyv_load_f64(&ip2[i]);
-            npyv_f64 c = npyv_div_f64(a, b);
-            npyv_store_f64(&op[i], c);
-        }
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] / ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar1_divide_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    const npyv_f64 v1 = npyv_setall_f64(ip1[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[0] / ip2[i];
-    }
-    LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-        npyv_f64 v2 = npyv_load_f64(&ip2[i]);
-        npyv_f64 v3 = npyv_div_f64(v1, v2);
-        npyv_store_f64(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[0] / ip2[i];
-    }
-}
-
-static void
-simd_binary_scalar2_divide_DOUBLE(npy_double * op, npy_double * ip1, npy_double * ip2, npy_intp n)
-{
-    const npyv_f64 v2 = npyv_setall_f64(ip2[0]);
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, NPY_SIMD_WIDTH) {
-        op[i] = ip1[i] / ip2[0];
-    }
-    LOOP_BLOCKED(npy_double, NPY_SIMD_WIDTH) {
-        npyv_f64 v1 = npyv_load_f64(&ip1[i]);
-        npyv_f64 v3 = npyv_div_f64(v1, v2);
-        npyv_store_f64(&op[i], v3);
-    }
-    LOOP_BLOCKED_END {
-        op[i] = ip1[i] / ip2[0];
-    }
-}
-
-#endif /* NPY_SIMD_F64 */
-
-#endif // NPY_HAVE_SSE2
-
-#line 450
-#line 454
-static NPY_INLINE int
-run_binary_simd_add_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && defined NPY_HAVE_SSE2
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_float * op = (npy_float *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_scalar1_add_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_scalar2_add_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_add_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#elif NPY_SIMD_F32
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_float * op = (npy_float *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_add_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_add_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_add_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-#line 454
-static NPY_INLINE int
-run_binary_simd_subtract_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && defined NPY_HAVE_SSE2
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_float * op = (npy_float *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_scalar1_subtract_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_scalar2_subtract_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_subtract_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#elif NPY_SIMD_F32
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_float * op = (npy_float *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_subtract_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_subtract_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_subtract_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-#line 454
-static NPY_INLINE int
-run_binary_simd_multiply_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && defined NPY_HAVE_SSE2
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_float * op = (npy_float *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_scalar1_multiply_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_scalar2_multiply_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_multiply_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#elif NPY_SIMD_F32
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_float * op = (npy_float *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_multiply_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_multiply_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_multiply_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-#line 454
-static NPY_INLINE int
-run_binary_simd_divide_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && defined NPY_HAVE_SSE2
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_float * op = (npy_float *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_scalar1_divide_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_scalar2_divide_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_float), vector_size_bytes)) {
-        sse2_binary_divide_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#elif NPY_SIMD_F32
-    npy_float * ip1 = (npy_float *)args[0];
-    npy_float * ip2 = (npy_float *)args[1];
-    npy_float * op = (npy_float *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_divide_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_divide_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_float), NPY_SIMD_WIDTH)) {
-        simd_binary_divide_FLOAT(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 450
-#line 454
-static NPY_INLINE int
-run_binary_simd_add_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && defined NPY_HAVE_SSE2
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_double * op = (npy_double *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_scalar1_add_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_scalar2_add_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_add_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#elif NPY_SIMD_F64
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_double * op = (npy_double *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_add_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_add_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_add_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-#line 454
-static NPY_INLINE int
-run_binary_simd_subtract_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && defined NPY_HAVE_SSE2
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_double * op = (npy_double *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_scalar1_subtract_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_scalar2_subtract_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_subtract_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#elif NPY_SIMD_F64
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_double * op = (npy_double *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_subtract_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_subtract_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_subtract_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-#line 454
-static NPY_INLINE int
-run_binary_simd_multiply_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && defined NPY_HAVE_SSE2
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_double * op = (npy_double *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_scalar1_multiply_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_scalar2_multiply_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_multiply_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#elif NPY_SIMD_F64
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_double * op = (npy_double *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_multiply_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_multiply_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_multiply_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-#line 454
-static NPY_INLINE int
-run_binary_simd_divide_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && defined NPY_HAVE_SSE2
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_double * op = (npy_double *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_scalar1_divide_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_scalar2_divide_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_double), vector_size_bytes)) {
-        sse2_binary_divide_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#elif NPY_SIMD_F64
-    npy_double * ip1 = (npy_double *)args[0];
-    npy_double * ip2 = (npy_double *)args[1];
-    npy_double * op = (npy_double *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_divide_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_divide_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_double), NPY_SIMD_WIDTH)) {
-        simd_binary_divide_DOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 450
-#line 454
-static NPY_INLINE int
-run_binary_simd_add_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && defined NPY_HAVE_SSE2
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_longdouble * op = (npy_longdouble *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_scalar1_add_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_scalar2_add_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_add_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#elif 0
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_longdouble * op = (npy_longdouble *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_add_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_add_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_add_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-#line 454
-static NPY_INLINE int
-run_binary_simd_subtract_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && defined NPY_HAVE_SSE2
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_longdouble * op = (npy_longdouble *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_scalar1_subtract_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_scalar2_subtract_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_subtract_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#elif 0
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_longdouble * op = (npy_longdouble *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_subtract_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_subtract_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_subtract_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-#line 454
-static NPY_INLINE int
-run_binary_simd_multiply_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && defined NPY_HAVE_SSE2
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_longdouble * op = (npy_longdouble *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_scalar1_multiply_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_scalar2_multiply_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_multiply_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#elif 0
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_longdouble * op = (npy_longdouble *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_multiply_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_multiply_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_multiply_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-#line 454
-static NPY_INLINE int
-run_binary_simd_divide_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && defined NPY_HAVE_SSE2
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_longdouble * op = (npy_longdouble *)args[2];
-    npy_intp n = dimensions[0];
-#if defined NPY_HAVE_AVX512F
-    const npy_uintp vector_size_bytes = 64;
-#elif defined NPY_HAVE_AVX2
-    const npy_uintp vector_size_bytes = 32;
-#else
-    const npy_uintp vector_size_bytes = 32;
-#endif
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_scalar1_divide_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_scalar2_divide_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_longdouble), vector_size_bytes)) {
-        sse2_binary_divide_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#elif 0
-    npy_longdouble * ip1 = (npy_longdouble *)args[0];
-    npy_longdouble * ip2 = (npy_longdouble *)args[1];
-    npy_longdouble * op = (npy_longdouble *)args[2];
-    npy_intp n = dimensions[0];
-    /* argument one scalar */
-    if (IS_BLOCKABLE_BINARY_SCALAR1(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar1_divide_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    /* argument two scalar */
-    else if (IS_BLOCKABLE_BINARY_SCALAR2(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_scalar2_divide_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-    else if (IS_BLOCKABLE_BINARY(sizeof(npy_longdouble), NPY_SIMD_WIDTH)) {
-        simd_binary_divide_LONGDOUBLE(op, ip1, ip2, n);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-
-/********************************************************************************
  ** Defining ufunc inner functions
  ********************************************************************************/
-#line 518
-#line 524
+
+/*
+ * clang has a bug that's present at -O1 or greater.  When partially loading a
+ * vector register for a divide operation, the remaining elements are set
+ * to 1 to avoid divide-by-zero.  The partial load is paired with a partial
+ * store after the divide operation.  clang notices that the entire register
+ * is not needed for the store and optimizes out the fill of 1 to the remaining
+ * elements.  This causes either a divide-by-zero or 0/0 with invalid exception
+ * that we were trying to avoid by filling.
+ *
+ * Using a dummy variable marked 'volatile' convinces clang not to ignore
+ * the explicit fill of remaining elements.  If `-ftrapping-math` is
+ * supported, then it'll also avoid the bug.  `-ftrapping-math` is supported
+ * on Apple clang v12+ for x86_64.  It is not currently supported for arm64.
+ * `-ftrapping-math` is set by default of Numpy builds in
+ * numpy/distutils/ccompiler.py.
+ *
+ * Note: Apple clang and clang upstream have different versions that overlap
+ */
+#if defined(__clang__)
+    #if defined(__apple_build_version__)
+    // Apple Clang
+        #if __apple_build_version__ < 12000000
+        // Apple Clang before v12
+        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 1
+        #elif defined(NPY_CPU_X86) || defined(NPY_CPU_AMD64)
+        // Apple Clang after v12, targeting i386 or x86_64
+        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 0
+        #else
+        // Apple Clang after v12, not targeting i386 or x86_64
+        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 1
+        #endif
+    #else
+    // Clang, not Apple Clang
+        #if __clang_major__ < 10
+        // Clang before v10
+        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 1
+        #elif defined(_MSC_VER)
+        // clang-cl has the same bug
+        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 1
+        #elif defined(NPY_CPU_X86) || defined(NPY_CPU_AMD64)
+        // Clang v10+, targeting i386 or x86_64
+        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 0
+        #else
+        // Clang v10+, not targeting i386 or x86_64
+        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 1
+        #endif
+    #endif
+#else
+// Not a Clang compiler
+#define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 0
+#endif
+
+#line 96
+#line 105
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (IS_BINARY_REDUCE) {
-#if 1
-        npy_float * iop1 = (npy_float *)args[0];
-        npy_intp n = dimensions[0];
-
-        *iop1 += FLOAT_pairwise_sum(args[1], n, steps[1]);
-#else
-        BINARY_REDUCE_LOOP(npy_float) {
-            io1 += *(npy_float *)ip2;
+    npy_intp len = dimensions[0];
+    char *src0 = args[0], *src1 = args[1], *dst = args[2];
+    npy_intp ssrc0 = steps[0], ssrc1 = steps[1], sdst = steps[2];
+    // reduce
+    if (ssrc0 == 0 && ssrc0 == sdst && src0 == dst) {
+    #if 1
+        *((npy_float*)src0) += FLOAT_pairwise_sum(src1, len, ssrc1);
+    #else
+        npy_float acc = *((npy_float*)src0);
+        if (ssrc1 == sizeof(npy_float)) {
+            for (; len > 0; --len, src1 += sizeof(npy_float)) {
+                acc += *(npy_float *)src1;
+            }
+        } else {
+            for (; len > 0; --len, src1 += ssrc1) {
+                acc += *(npy_float *)src1;
+            }
         }
-        *((npy_float *)iop1) = io1;
-#endif
+        *((npy_float*)src0) = acc;
+    #endif
+        return;
     }
-    else if (!run_binary_simd_add_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_float *)op1) = in1 + in2;
+#if NPY_SIMD_F32
+    if (len > npyv_nlanes_f32*2 &&
+        !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
+        !is_mem_overlap(src1, ssrc1, dst, sdst, len)
+    ) {
+        const int vstep = npyv_nlanes_u8;
+        const int wstep = vstep * 2;
+        const int hstep = npyv_nlanes_f32;
+        const int lstep = hstep * 2;
+        // lots of specializations, to squeeze out max performance
+        if (ssrc0 == sizeof(npy_float) && ssrc0 == ssrc1 && ssrc0 == sdst) {
+            for (; len >= lstep; len -= lstep, src0 += wstep, src1 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32((const npy_float*)src0);
+                npyv_f32 a1 = npyv_load_f32((const npy_float*)(src0 + vstep));
+                npyv_f32 b0 = npyv_load_f32((const npy_float*)src1);
+                npyv_f32 b1 = npyv_load_f32((const npy_float*)(src1 + vstep));
+                npyv_f32 r0 = npyv_add_f32(a0, b0);
+                npyv_f32 r1 = npyv_add_f32(a1, b1);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            #if 0
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+            #else
+                npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
+                npyv_f32 b = npyv_load_tillz_f32((const npy_float*)src1, len);
+            #endif
+                npyv_f32 r = npyv_add_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for divide and working around clang partial load bug
+            if(len > 0){
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+                npyv_f32 r = npyv_add_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
+        else if (ssrc0 == 0 && ssrc1 == sizeof(npy_float) && sdst == ssrc1) {
+            npyv_f32 a = npyv_setall_f32(*((npy_float*)src0));
+            for (; len >= lstep; len -= lstep, src1 += wstep, dst += wstep) {
+                npyv_f32 b0 = npyv_load_f32((const npy_float*)src1);
+                npyv_f32 b1 = npyv_load_f32((const npy_float*)(src1 + vstep));
+                npyv_f32 r0 = npyv_add_f32(a, b0);
+                npyv_f32 r1 = npyv_add_f32(a, b1);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 0 || 0
+                npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+            #else
+                npyv_f32 b = npyv_load_tillz_f32((const npy_float*)src1, len);
+            #endif
+                npyv_f32 r = npyv_add_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+                npyv_f32 r = npyv_add_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        }
+        else if (ssrc1 == 0 && ssrc0 == sizeof(npy_float) && sdst == ssrc0) {
+            npyv_f32 b = npyv_setall_f32(*((npy_float*)src1));
+            for (; len >= lstep; len -= lstep, src0 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32((const npy_float*)src0);
+                npyv_f32 a1 = npyv_load_f32((const npy_float*)(src0 + vstep));
+                npyv_f32 r0 = npyv_add_f32(a0, b);
+                npyv_f32 r1 = npyv_add_f32(a1, b);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 0 || 0
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+            #else
+                npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
+            #endif
+                npyv_f32 r = npyv_add_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                npyv_f32 r = npyv_add_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        } else {
+            goto loop_scalar;
+        }
+        npyv_cleanup();
+        return;
+    }
+loop_scalar:
+#endif
+    for (; len > 0; --len, src0 += ssrc0, src1 += ssrc1, dst += sdst) {
+        const npy_float a = *((npy_float*)src0);
+        const npy_float b = *((npy_float*)src1);
+        *((npy_float*)dst) = a + b;
     }
 }
 
-#line 524
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_add_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        *indexed = *indexed + *(npy_float *)value;
+    }
+    return 0;
+}
+
+
+#line 105
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (IS_BINARY_REDUCE) {
-#if 0
-        npy_float * iop1 = (npy_float *)args[0];
-        npy_intp n = dimensions[0];
-
-        *iop1 -= FLOAT_pairwise_sum(args[1], n, steps[1]);
-#else
-        BINARY_REDUCE_LOOP(npy_float) {
-            io1 -= *(npy_float *)ip2;
+    npy_intp len = dimensions[0];
+    char *src0 = args[0], *src1 = args[1], *dst = args[2];
+    npy_intp ssrc0 = steps[0], ssrc1 = steps[1], sdst = steps[2];
+    // reduce
+    if (ssrc0 == 0 && ssrc0 == sdst && src0 == dst) {
+    #if 0
+        *((npy_float*)src0) -= FLOAT_pairwise_sum(src1, len, ssrc1);
+    #else
+        npy_float acc = *((npy_float*)src0);
+        if (ssrc1 == sizeof(npy_float)) {
+            for (; len > 0; --len, src1 += sizeof(npy_float)) {
+                acc -= *(npy_float *)src1;
+            }
+        } else {
+            for (; len > 0; --len, src1 += ssrc1) {
+                acc -= *(npy_float *)src1;
+            }
         }
-        *((npy_float *)iop1) = io1;
-#endif
+        *((npy_float*)src0) = acc;
+    #endif
+        return;
     }
-    else if (!run_binary_simd_subtract_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_float *)op1) = in1 - in2;
+#if NPY_SIMD_F32
+    if (len > npyv_nlanes_f32*2 &&
+        !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
+        !is_mem_overlap(src1, ssrc1, dst, sdst, len)
+    ) {
+        const int vstep = npyv_nlanes_u8;
+        const int wstep = vstep * 2;
+        const int hstep = npyv_nlanes_f32;
+        const int lstep = hstep * 2;
+        // lots of specializations, to squeeze out max performance
+        if (ssrc0 == sizeof(npy_float) && ssrc0 == ssrc1 && ssrc0 == sdst) {
+            for (; len >= lstep; len -= lstep, src0 += wstep, src1 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32((const npy_float*)src0);
+                npyv_f32 a1 = npyv_load_f32((const npy_float*)(src0 + vstep));
+                npyv_f32 b0 = npyv_load_f32((const npy_float*)src1);
+                npyv_f32 b1 = npyv_load_f32((const npy_float*)(src1 + vstep));
+                npyv_f32 r0 = npyv_sub_f32(a0, b0);
+                npyv_f32 r1 = npyv_sub_f32(a1, b1);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            #if 0
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+            #else
+                npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
+                npyv_f32 b = npyv_load_tillz_f32((const npy_float*)src1, len);
+            #endif
+                npyv_f32 r = npyv_sub_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for divide and working around clang partial load bug
+            if(len > 0){
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+                npyv_f32 r = npyv_sub_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
+        else if (ssrc0 == 0 && ssrc1 == sizeof(npy_float) && sdst == ssrc1) {
+            npyv_f32 a = npyv_setall_f32(*((npy_float*)src0));
+            for (; len >= lstep; len -= lstep, src1 += wstep, dst += wstep) {
+                npyv_f32 b0 = npyv_load_f32((const npy_float*)src1);
+                npyv_f32 b1 = npyv_load_f32((const npy_float*)(src1 + vstep));
+                npyv_f32 r0 = npyv_sub_f32(a, b0);
+                npyv_f32 r1 = npyv_sub_f32(a, b1);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 0 || 0
+                npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+            #else
+                npyv_f32 b = npyv_load_tillz_f32((const npy_float*)src1, len);
+            #endif
+                npyv_f32 r = npyv_sub_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+                npyv_f32 r = npyv_sub_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        }
+        else if (ssrc1 == 0 && ssrc0 == sizeof(npy_float) && sdst == ssrc0) {
+            npyv_f32 b = npyv_setall_f32(*((npy_float*)src1));
+            for (; len >= lstep; len -= lstep, src0 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32((const npy_float*)src0);
+                npyv_f32 a1 = npyv_load_f32((const npy_float*)(src0 + vstep));
+                npyv_f32 r0 = npyv_sub_f32(a0, b);
+                npyv_f32 r1 = npyv_sub_f32(a1, b);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 0 || 0
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+            #else
+                npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
+            #endif
+                npyv_f32 r = npyv_sub_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                npyv_f32 r = npyv_sub_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        } else {
+            goto loop_scalar;
+        }
+        npyv_cleanup();
+        return;
+    }
+loop_scalar:
+#endif
+    for (; len > 0; --len, src0 += ssrc0, src1 += ssrc1, dst += sdst) {
+        const npy_float a = *((npy_float*)src0);
+        const npy_float b = *((npy_float*)src1);
+        *((npy_float*)dst) = a - b;
     }
 }
 
-#line 524
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_subtract_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        *indexed = *indexed - *(npy_float *)value;
+    }
+    return 0;
+}
+
+
+#line 105
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (IS_BINARY_REDUCE) {
-#if 0
-        npy_float * iop1 = (npy_float *)args[0];
-        npy_intp n = dimensions[0];
-
-        *iop1 *= FLOAT_pairwise_sum(args[1], n, steps[1]);
-#else
-        BINARY_REDUCE_LOOP(npy_float) {
-            io1 *= *(npy_float *)ip2;
+    npy_intp len = dimensions[0];
+    char *src0 = args[0], *src1 = args[1], *dst = args[2];
+    npy_intp ssrc0 = steps[0], ssrc1 = steps[1], sdst = steps[2];
+    // reduce
+    if (ssrc0 == 0 && ssrc0 == sdst && src0 == dst) {
+    #if 0
+        *((npy_float*)src0) *= FLOAT_pairwise_sum(src1, len, ssrc1);
+    #else
+        npy_float acc = *((npy_float*)src0);
+        if (ssrc1 == sizeof(npy_float)) {
+            for (; len > 0; --len, src1 += sizeof(npy_float)) {
+                acc *= *(npy_float *)src1;
+            }
+        } else {
+            for (; len > 0; --len, src1 += ssrc1) {
+                acc *= *(npy_float *)src1;
+            }
         }
-        *((npy_float *)iop1) = io1;
-#endif
+        *((npy_float*)src0) = acc;
+    #endif
+        return;
     }
-    else if (!run_binary_simd_multiply_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_float *)op1) = in1 * in2;
+#if NPY_SIMD_F32
+    if (len > npyv_nlanes_f32*2 &&
+        !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
+        !is_mem_overlap(src1, ssrc1, dst, sdst, len)
+    ) {
+        const int vstep = npyv_nlanes_u8;
+        const int wstep = vstep * 2;
+        const int hstep = npyv_nlanes_f32;
+        const int lstep = hstep * 2;
+        // lots of specializations, to squeeze out max performance
+        if (ssrc0 == sizeof(npy_float) && ssrc0 == ssrc1 && ssrc0 == sdst) {
+            for (; len >= lstep; len -= lstep, src0 += wstep, src1 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32((const npy_float*)src0);
+                npyv_f32 a1 = npyv_load_f32((const npy_float*)(src0 + vstep));
+                npyv_f32 b0 = npyv_load_f32((const npy_float*)src1);
+                npyv_f32 b1 = npyv_load_f32((const npy_float*)(src1 + vstep));
+                npyv_f32 r0 = npyv_mul_f32(a0, b0);
+                npyv_f32 r1 = npyv_mul_f32(a1, b1);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            #if 0
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+            #else
+                npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
+                npyv_f32 b = npyv_load_tillz_f32((const npy_float*)src1, len);
+            #endif
+                npyv_f32 r = npyv_mul_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for divide and working around clang partial load bug
+            if(len > 0){
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+                npyv_f32 r = npyv_mul_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
+        else if (ssrc0 == 0 && ssrc1 == sizeof(npy_float) && sdst == ssrc1) {
+            npyv_f32 a = npyv_setall_f32(*((npy_float*)src0));
+            for (; len >= lstep; len -= lstep, src1 += wstep, dst += wstep) {
+                npyv_f32 b0 = npyv_load_f32((const npy_float*)src1);
+                npyv_f32 b1 = npyv_load_f32((const npy_float*)(src1 + vstep));
+                npyv_f32 r0 = npyv_mul_f32(a, b0);
+                npyv_f32 r1 = npyv_mul_f32(a, b1);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 0 || 1
+                npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+            #else
+                npyv_f32 b = npyv_load_tillz_f32((const npy_float*)src1, len);
+            #endif
+                npyv_f32 r = npyv_mul_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+                npyv_f32 r = npyv_mul_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        }
+        else if (ssrc1 == 0 && ssrc0 == sizeof(npy_float) && sdst == ssrc0) {
+            npyv_f32 b = npyv_setall_f32(*((npy_float*)src1));
+            for (; len >= lstep; len -= lstep, src0 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32((const npy_float*)src0);
+                npyv_f32 a1 = npyv_load_f32((const npy_float*)(src0 + vstep));
+                npyv_f32 r0 = npyv_mul_f32(a0, b);
+                npyv_f32 r1 = npyv_mul_f32(a1, b);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 0 || 1
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+            #else
+                npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
+            #endif
+                npyv_f32 r = npyv_mul_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                npyv_f32 r = npyv_mul_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        } else {
+            goto loop_scalar;
+        }
+        npyv_cleanup();
+        return;
+    }
+loop_scalar:
+#endif
+    for (; len > 0; --len, src0 += ssrc0, src1 += ssrc1, dst += sdst) {
+        const npy_float a = *((npy_float*)src0);
+        const npy_float b = *((npy_float*)src1);
+        *((npy_float*)dst) = a * b;
     }
 }
 
-#line 524
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_multiply_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        *indexed = *indexed * *(npy_float *)value;
+    }
+    return 0;
+}
+
+
+#line 105
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (IS_BINARY_REDUCE) {
-#if 0
-        npy_float * iop1 = (npy_float *)args[0];
-        npy_intp n = dimensions[0];
-
-        *iop1 /= FLOAT_pairwise_sum(args[1], n, steps[1]);
-#else
-        BINARY_REDUCE_LOOP(npy_float) {
-            io1 /= *(npy_float *)ip2;
+    npy_intp len = dimensions[0];
+    char *src0 = args[0], *src1 = args[1], *dst = args[2];
+    npy_intp ssrc0 = steps[0], ssrc1 = steps[1], sdst = steps[2];
+    // reduce
+    if (ssrc0 == 0 && ssrc0 == sdst && src0 == dst) {
+    #if 0
+        *((npy_float*)src0) /= FLOAT_pairwise_sum(src1, len, ssrc1);
+    #else
+        npy_float acc = *((npy_float*)src0);
+        if (ssrc1 == sizeof(npy_float)) {
+            for (; len > 0; --len, src1 += sizeof(npy_float)) {
+                acc /= *(npy_float *)src1;
+            }
+        } else {
+            for (; len > 0; --len, src1 += ssrc1) {
+                acc /= *(npy_float *)src1;
+            }
         }
-        *((npy_float *)iop1) = io1;
-#endif
+        *((npy_float*)src0) = acc;
+    #endif
+        return;
     }
-    else if (!run_binary_simd_divide_FLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1 = *(npy_float *)ip1;
-            const npy_float in2 = *(npy_float *)ip2;
-            *((npy_float *)op1) = in1 / in2;
+#if NPY_SIMD_F32
+    if (len > npyv_nlanes_f32*2 &&
+        !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
+        !is_mem_overlap(src1, ssrc1, dst, sdst, len)
+    ) {
+        const int vstep = npyv_nlanes_u8;
+        const int wstep = vstep * 2;
+        const int hstep = npyv_nlanes_f32;
+        const int lstep = hstep * 2;
+        // lots of specializations, to squeeze out max performance
+        if (ssrc0 == sizeof(npy_float) && ssrc0 == ssrc1 && ssrc0 == sdst) {
+            for (; len >= lstep; len -= lstep, src0 += wstep, src1 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32((const npy_float*)src0);
+                npyv_f32 a1 = npyv_load_f32((const npy_float*)(src0 + vstep));
+                npyv_f32 b0 = npyv_load_f32((const npy_float*)src1);
+                npyv_f32 b1 = npyv_load_f32((const npy_float*)(src1 + vstep));
+                npyv_f32 r0 = npyv_div_f32(a0, b0);
+                npyv_f32 r1 = npyv_div_f32(a1, b1);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            #if 1
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+            #else
+                npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
+                npyv_f32 b = npyv_load_tillz_f32((const npy_float*)src1, len);
+            #endif
+                npyv_f32 r = npyv_div_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for divide and working around clang partial load bug
+            if(len > 0){
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+                npyv_f32 r = npyv_div_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
+        else if (ssrc0 == 0 && ssrc1 == sizeof(npy_float) && sdst == ssrc1) {
+            npyv_f32 a = npyv_setall_f32(*((npy_float*)src0));
+            for (; len >= lstep; len -= lstep, src1 += wstep, dst += wstep) {
+                npyv_f32 b0 = npyv_load_f32((const npy_float*)src1);
+                npyv_f32 b1 = npyv_load_f32((const npy_float*)(src1 + vstep));
+                npyv_f32 r0 = npyv_div_f32(a, b0);
+                npyv_f32 r1 = npyv_div_f32(a, b1);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 1 || 0
+                npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+            #else
+                npyv_f32 b = npyv_load_tillz_f32((const npy_float*)src1, len);
+            #endif
+                npyv_f32 r = npyv_div_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
+                npyv_f32 r = npyv_div_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        }
+        else if (ssrc1 == 0 && ssrc0 == sizeof(npy_float) && sdst == ssrc0) {
+            npyv_f32 b = npyv_setall_f32(*((npy_float*)src1));
+            for (; len >= lstep; len -= lstep, src0 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32((const npy_float*)src0);
+                npyv_f32 a1 = npyv_load_f32((const npy_float*)(src0 + vstep));
+                npyv_f32 r0 = npyv_div_f32(a0, b);
+                npyv_f32 r1 = npyv_div_f32(a1, b);
+                npyv_store_f32((npy_float*)dst, r0);
+                npyv_store_f32((npy_float*)(dst + vstep), r1);
+            }
+        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 1 || 0
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+            #else
+                npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
+            #endif
+                npyv_f32 r = npyv_div_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+                npyv_f32 r = npyv_div_f32(a, b);
+                npyv_store_till_f32((npy_float*)dst, len, r);
+            }
+        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        } else {
+            goto loop_scalar;
+        }
+        npyv_cleanup();
+        return;
+    }
+loop_scalar:
+#endif
+    for (; len > 0; --len, src0 += ssrc0, src1 += ssrc1, dst += sdst) {
+        const npy_float a = *((npy_float*)src0);
+        const npy_float b = *((npy_float*)src1);
+        *((npy_float*)dst) = a / b;
     }
 }
 
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        *indexed = *indexed / *(npy_float *)value;
+    }
+    return 0;
+}
 
-#line 518
-#line 524
+
+
+#line 96
+#line 105
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (IS_BINARY_REDUCE) {
-#if 1
-        npy_double * iop1 = (npy_double *)args[0];
-        npy_intp n = dimensions[0];
-
-        *iop1 += DOUBLE_pairwise_sum(args[1], n, steps[1]);
-#else
-        BINARY_REDUCE_LOOP(npy_double) {
-            io1 += *(npy_double *)ip2;
+    npy_intp len = dimensions[0];
+    char *src0 = args[0], *src1 = args[1], *dst = args[2];
+    npy_intp ssrc0 = steps[0], ssrc1 = steps[1], sdst = steps[2];
+    // reduce
+    if (ssrc0 == 0 && ssrc0 == sdst && src0 == dst) {
+    #if 1
+        *((npy_double*)src0) += DOUBLE_pairwise_sum(src1, len, ssrc1);
+    #else
+        npy_double acc = *((npy_double*)src0);
+        if (ssrc1 == sizeof(npy_double)) {
+            for (; len > 0; --len, src1 += sizeof(npy_double)) {
+                acc += *(npy_double *)src1;
+            }
+        } else {
+            for (; len > 0; --len, src1 += ssrc1) {
+                acc += *(npy_double *)src1;
+            }
         }
-        *((npy_double *)iop1) = io1;
-#endif
+        *((npy_double*)src0) = acc;
+    #endif
+        return;
     }
-    else if (!run_binary_simd_add_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_double *)op1) = in1 + in2;
+#if NPY_SIMD_F64
+    if (len > npyv_nlanes_f64*2 &&
+        !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
+        !is_mem_overlap(src1, ssrc1, dst, sdst, len)
+    ) {
+        const int vstep = npyv_nlanes_u8;
+        const int wstep = vstep * 2;
+        const int hstep = npyv_nlanes_f64;
+        const int lstep = hstep * 2;
+        // lots of specializations, to squeeze out max performance
+        if (ssrc0 == sizeof(npy_double) && ssrc0 == ssrc1 && ssrc0 == sdst) {
+            for (; len >= lstep; len -= lstep, src0 += wstep, src1 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64((const npy_double*)src0);
+                npyv_f64 a1 = npyv_load_f64((const npy_double*)(src0 + vstep));
+                npyv_f64 b0 = npyv_load_f64((const npy_double*)src1);
+                npyv_f64 b1 = npyv_load_f64((const npy_double*)(src1 + vstep));
+                npyv_f64 r0 = npyv_add_f64(a0, b0);
+                npyv_f64 r1 = npyv_add_f64(a1, b1);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            #if 0
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+            #else
+                npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
+                npyv_f64 b = npyv_load_tillz_f64((const npy_double*)src1, len);
+            #endif
+                npyv_f64 r = npyv_add_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for divide and working around clang partial load bug
+            if(len > 0){
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+                npyv_f64 r = npyv_add_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
+        else if (ssrc0 == 0 && ssrc1 == sizeof(npy_double) && sdst == ssrc1) {
+            npyv_f64 a = npyv_setall_f64(*((npy_double*)src0));
+            for (; len >= lstep; len -= lstep, src1 += wstep, dst += wstep) {
+                npyv_f64 b0 = npyv_load_f64((const npy_double*)src1);
+                npyv_f64 b1 = npyv_load_f64((const npy_double*)(src1 + vstep));
+                npyv_f64 r0 = npyv_add_f64(a, b0);
+                npyv_f64 r1 = npyv_add_f64(a, b1);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 0 || 0
+                npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+            #else
+                npyv_f64 b = npyv_load_tillz_f64((const npy_double*)src1, len);
+            #endif
+                npyv_f64 r = npyv_add_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+                npyv_f64 r = npyv_add_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        }
+        else if (ssrc1 == 0 && ssrc0 == sizeof(npy_double) && sdst == ssrc0) {
+            npyv_f64 b = npyv_setall_f64(*((npy_double*)src1));
+            for (; len >= lstep; len -= lstep, src0 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64((const npy_double*)src0);
+                npyv_f64 a1 = npyv_load_f64((const npy_double*)(src0 + vstep));
+                npyv_f64 r0 = npyv_add_f64(a0, b);
+                npyv_f64 r1 = npyv_add_f64(a1, b);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 0 || 0
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+            #else
+                npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
+            #endif
+                npyv_f64 r = npyv_add_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                npyv_f64 r = npyv_add_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        } else {
+            goto loop_scalar;
+        }
+        npyv_cleanup();
+        return;
+    }
+loop_scalar:
+#endif
+    for (; len > 0; --len, src0 += ssrc0, src1 += ssrc1, dst += sdst) {
+        const npy_double a = *((npy_double*)src0);
+        const npy_double b = *((npy_double*)src1);
+        *((npy_double*)dst) = a + b;
     }
 }
 
-#line 524
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_add_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        *indexed = *indexed + *(npy_double *)value;
+    }
+    return 0;
+}
+
+
+#line 105
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (IS_BINARY_REDUCE) {
-#if 0
-        npy_double * iop1 = (npy_double *)args[0];
-        npy_intp n = dimensions[0];
-
-        *iop1 -= DOUBLE_pairwise_sum(args[1], n, steps[1]);
-#else
-        BINARY_REDUCE_LOOP(npy_double) {
-            io1 -= *(npy_double *)ip2;
+    npy_intp len = dimensions[0];
+    char *src0 = args[0], *src1 = args[1], *dst = args[2];
+    npy_intp ssrc0 = steps[0], ssrc1 = steps[1], sdst = steps[2];
+    // reduce
+    if (ssrc0 == 0 && ssrc0 == sdst && src0 == dst) {
+    #if 0
+        *((npy_double*)src0) -= DOUBLE_pairwise_sum(src1, len, ssrc1);
+    #else
+        npy_double acc = *((npy_double*)src0);
+        if (ssrc1 == sizeof(npy_double)) {
+            for (; len > 0; --len, src1 += sizeof(npy_double)) {
+                acc -= *(npy_double *)src1;
+            }
+        } else {
+            for (; len > 0; --len, src1 += ssrc1) {
+                acc -= *(npy_double *)src1;
+            }
         }
-        *((npy_double *)iop1) = io1;
-#endif
+        *((npy_double*)src0) = acc;
+    #endif
+        return;
     }
-    else if (!run_binary_simd_subtract_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_double *)op1) = in1 - in2;
+#if NPY_SIMD_F64
+    if (len > npyv_nlanes_f64*2 &&
+        !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
+        !is_mem_overlap(src1, ssrc1, dst, sdst, len)
+    ) {
+        const int vstep = npyv_nlanes_u8;
+        const int wstep = vstep * 2;
+        const int hstep = npyv_nlanes_f64;
+        const int lstep = hstep * 2;
+        // lots of specializations, to squeeze out max performance
+        if (ssrc0 == sizeof(npy_double) && ssrc0 == ssrc1 && ssrc0 == sdst) {
+            for (; len >= lstep; len -= lstep, src0 += wstep, src1 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64((const npy_double*)src0);
+                npyv_f64 a1 = npyv_load_f64((const npy_double*)(src0 + vstep));
+                npyv_f64 b0 = npyv_load_f64((const npy_double*)src1);
+                npyv_f64 b1 = npyv_load_f64((const npy_double*)(src1 + vstep));
+                npyv_f64 r0 = npyv_sub_f64(a0, b0);
+                npyv_f64 r1 = npyv_sub_f64(a1, b1);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            #if 0
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+            #else
+                npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
+                npyv_f64 b = npyv_load_tillz_f64((const npy_double*)src1, len);
+            #endif
+                npyv_f64 r = npyv_sub_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for divide and working around clang partial load bug
+            if(len > 0){
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+                npyv_f64 r = npyv_sub_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
+        else if (ssrc0 == 0 && ssrc1 == sizeof(npy_double) && sdst == ssrc1) {
+            npyv_f64 a = npyv_setall_f64(*((npy_double*)src0));
+            for (; len >= lstep; len -= lstep, src1 += wstep, dst += wstep) {
+                npyv_f64 b0 = npyv_load_f64((const npy_double*)src1);
+                npyv_f64 b1 = npyv_load_f64((const npy_double*)(src1 + vstep));
+                npyv_f64 r0 = npyv_sub_f64(a, b0);
+                npyv_f64 r1 = npyv_sub_f64(a, b1);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 0 || 0
+                npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+            #else
+                npyv_f64 b = npyv_load_tillz_f64((const npy_double*)src1, len);
+            #endif
+                npyv_f64 r = npyv_sub_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+                npyv_f64 r = npyv_sub_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        }
+        else if (ssrc1 == 0 && ssrc0 == sizeof(npy_double) && sdst == ssrc0) {
+            npyv_f64 b = npyv_setall_f64(*((npy_double*)src1));
+            for (; len >= lstep; len -= lstep, src0 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64((const npy_double*)src0);
+                npyv_f64 a1 = npyv_load_f64((const npy_double*)(src0 + vstep));
+                npyv_f64 r0 = npyv_sub_f64(a0, b);
+                npyv_f64 r1 = npyv_sub_f64(a1, b);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 0 || 0
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+            #else
+                npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
+            #endif
+                npyv_f64 r = npyv_sub_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                npyv_f64 r = npyv_sub_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        } else {
+            goto loop_scalar;
+        }
+        npyv_cleanup();
+        return;
+    }
+loop_scalar:
+#endif
+    for (; len > 0; --len, src0 += ssrc0, src1 += ssrc1, dst += sdst) {
+        const npy_double a = *((npy_double*)src0);
+        const npy_double b = *((npy_double*)src1);
+        *((npy_double*)dst) = a - b;
     }
 }
 
-#line 524
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        *indexed = *indexed - *(npy_double *)value;
+    }
+    return 0;
+}
+
+
+#line 105
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (IS_BINARY_REDUCE) {
-#if 0
-        npy_double * iop1 = (npy_double *)args[0];
-        npy_intp n = dimensions[0];
-
-        *iop1 *= DOUBLE_pairwise_sum(args[1], n, steps[1]);
-#else
-        BINARY_REDUCE_LOOP(npy_double) {
-            io1 *= *(npy_double *)ip2;
+    npy_intp len = dimensions[0];
+    char *src0 = args[0], *src1 = args[1], *dst = args[2];
+    npy_intp ssrc0 = steps[0], ssrc1 = steps[1], sdst = steps[2];
+    // reduce
+    if (ssrc0 == 0 && ssrc0 == sdst && src0 == dst) {
+    #if 0
+        *((npy_double*)src0) *= DOUBLE_pairwise_sum(src1, len, ssrc1);
+    #else
+        npy_double acc = *((npy_double*)src0);
+        if (ssrc1 == sizeof(npy_double)) {
+            for (; len > 0; --len, src1 += sizeof(npy_double)) {
+                acc *= *(npy_double *)src1;
+            }
+        } else {
+            for (; len > 0; --len, src1 += ssrc1) {
+                acc *= *(npy_double *)src1;
+            }
         }
-        *((npy_double *)iop1) = io1;
-#endif
+        *((npy_double*)src0) = acc;
+    #endif
+        return;
     }
-    else if (!run_binary_simd_multiply_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_double *)op1) = in1 * in2;
+#if NPY_SIMD_F64
+    if (len > npyv_nlanes_f64*2 &&
+        !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
+        !is_mem_overlap(src1, ssrc1, dst, sdst, len)
+    ) {
+        const int vstep = npyv_nlanes_u8;
+        const int wstep = vstep * 2;
+        const int hstep = npyv_nlanes_f64;
+        const int lstep = hstep * 2;
+        // lots of specializations, to squeeze out max performance
+        if (ssrc0 == sizeof(npy_double) && ssrc0 == ssrc1 && ssrc0 == sdst) {
+            for (; len >= lstep; len -= lstep, src0 += wstep, src1 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64((const npy_double*)src0);
+                npyv_f64 a1 = npyv_load_f64((const npy_double*)(src0 + vstep));
+                npyv_f64 b0 = npyv_load_f64((const npy_double*)src1);
+                npyv_f64 b1 = npyv_load_f64((const npy_double*)(src1 + vstep));
+                npyv_f64 r0 = npyv_mul_f64(a0, b0);
+                npyv_f64 r1 = npyv_mul_f64(a1, b1);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            #if 0
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+            #else
+                npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
+                npyv_f64 b = npyv_load_tillz_f64((const npy_double*)src1, len);
+            #endif
+                npyv_f64 r = npyv_mul_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for divide and working around clang partial load bug
+            if(len > 0){
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+                npyv_f64 r = npyv_mul_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
+        else if (ssrc0 == 0 && ssrc1 == sizeof(npy_double) && sdst == ssrc1) {
+            npyv_f64 a = npyv_setall_f64(*((npy_double*)src0));
+            for (; len >= lstep; len -= lstep, src1 += wstep, dst += wstep) {
+                npyv_f64 b0 = npyv_load_f64((const npy_double*)src1);
+                npyv_f64 b1 = npyv_load_f64((const npy_double*)(src1 + vstep));
+                npyv_f64 r0 = npyv_mul_f64(a, b0);
+                npyv_f64 r1 = npyv_mul_f64(a, b1);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 0 || 1
+                npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+            #else
+                npyv_f64 b = npyv_load_tillz_f64((const npy_double*)src1, len);
+            #endif
+                npyv_f64 r = npyv_mul_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+                npyv_f64 r = npyv_mul_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        }
+        else if (ssrc1 == 0 && ssrc0 == sizeof(npy_double) && sdst == ssrc0) {
+            npyv_f64 b = npyv_setall_f64(*((npy_double*)src1));
+            for (; len >= lstep; len -= lstep, src0 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64((const npy_double*)src0);
+                npyv_f64 a1 = npyv_load_f64((const npy_double*)(src0 + vstep));
+                npyv_f64 r0 = npyv_mul_f64(a0, b);
+                npyv_f64 r1 = npyv_mul_f64(a1, b);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 0 || 1
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+            #else
+                npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
+            #endif
+                npyv_f64 r = npyv_mul_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                npyv_f64 r = npyv_mul_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        } else {
+            goto loop_scalar;
+        }
+        npyv_cleanup();
+        return;
+    }
+loop_scalar:
+#endif
+    for (; len > 0; --len, src0 += ssrc0, src1 += ssrc1, dst += sdst) {
+        const npy_double a = *((npy_double*)src0);
+        const npy_double b = *((npy_double*)src1);
+        *((npy_double*)dst) = a * b;
     }
 }
 
-#line 524
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        *indexed = *indexed * *(npy_double *)value;
+    }
+    return 0;
+}
+
+
+#line 105
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (IS_BINARY_REDUCE) {
-#if 0
-        npy_double * iop1 = (npy_double *)args[0];
-        npy_intp n = dimensions[0];
-
-        *iop1 /= DOUBLE_pairwise_sum(args[1], n, steps[1]);
-#else
-        BINARY_REDUCE_LOOP(npy_double) {
-            io1 /= *(npy_double *)ip2;
+    npy_intp len = dimensions[0];
+    char *src0 = args[0], *src1 = args[1], *dst = args[2];
+    npy_intp ssrc0 = steps[0], ssrc1 = steps[1], sdst = steps[2];
+    // reduce
+    if (ssrc0 == 0 && ssrc0 == sdst && src0 == dst) {
+    #if 0
+        *((npy_double*)src0) /= DOUBLE_pairwise_sum(src1, len, ssrc1);
+    #else
+        npy_double acc = *((npy_double*)src0);
+        if (ssrc1 == sizeof(npy_double)) {
+            for (; len > 0; --len, src1 += sizeof(npy_double)) {
+                acc /= *(npy_double *)src1;
+            }
+        } else {
+            for (; len > 0; --len, src1 += ssrc1) {
+                acc /= *(npy_double *)src1;
+            }
         }
-        *((npy_double *)iop1) = io1;
-#endif
+        *((npy_double*)src0) = acc;
+    #endif
+        return;
     }
-    else if (!run_binary_simd_divide_DOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1 = *(npy_double *)ip1;
-            const npy_double in2 = *(npy_double *)ip2;
-            *((npy_double *)op1) = in1 / in2;
+#if NPY_SIMD_F64
+    if (len > npyv_nlanes_f64*2 &&
+        !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
+        !is_mem_overlap(src1, ssrc1, dst, sdst, len)
+    ) {
+        const int vstep = npyv_nlanes_u8;
+        const int wstep = vstep * 2;
+        const int hstep = npyv_nlanes_f64;
+        const int lstep = hstep * 2;
+        // lots of specializations, to squeeze out max performance
+        if (ssrc0 == sizeof(npy_double) && ssrc0 == ssrc1 && ssrc0 == sdst) {
+            for (; len >= lstep; len -= lstep, src0 += wstep, src1 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64((const npy_double*)src0);
+                npyv_f64 a1 = npyv_load_f64((const npy_double*)(src0 + vstep));
+                npyv_f64 b0 = npyv_load_f64((const npy_double*)src1);
+                npyv_f64 b1 = npyv_load_f64((const npy_double*)(src1 + vstep));
+                npyv_f64 r0 = npyv_div_f64(a0, b0);
+                npyv_f64 r1 = npyv_div_f64(a1, b1);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            #if 1
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+            #else
+                npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
+                npyv_f64 b = npyv_load_tillz_f64((const npy_double*)src1, len);
+            #endif
+                npyv_f64 r = npyv_div_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for divide and working around clang partial load bug
+            if(len > 0){
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+                npyv_f64 r = npyv_div_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
+        else if (ssrc0 == 0 && ssrc1 == sizeof(npy_double) && sdst == ssrc1) {
+            npyv_f64 a = npyv_setall_f64(*((npy_double*)src0));
+            for (; len >= lstep; len -= lstep, src1 += wstep, dst += wstep) {
+                npyv_f64 b0 = npyv_load_f64((const npy_double*)src1);
+                npyv_f64 b1 = npyv_load_f64((const npy_double*)(src1 + vstep));
+                npyv_f64 r0 = npyv_div_f64(a, b0);
+                npyv_f64 r1 = npyv_div_f64(a, b1);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 1 || 0
+                npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+            #else
+                npyv_f64 b = npyv_load_tillz_f64((const npy_double*)src1, len);
+            #endif
+                npyv_f64 r = npyv_div_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
+                npyv_f64 r = npyv_div_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        }
+        else if (ssrc1 == 0 && ssrc0 == sizeof(npy_double) && sdst == ssrc0) {
+            npyv_f64 b = npyv_setall_f64(*((npy_double*)src1));
+            for (; len >= lstep; len -= lstep, src0 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64((const npy_double*)src0);
+                npyv_f64 a1 = npyv_load_f64((const npy_double*)(src0 + vstep));
+                npyv_f64 r0 = npyv_div_f64(a0, b);
+                npyv_f64 r1 = npyv_div_f64(a1, b);
+                npyv_store_f64((npy_double*)dst, r0);
+                npyv_store_f64((npy_double*)(dst + vstep), r1);
+            }
+        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            const int vstop = hstep - 1;
+        #else
+            const int vstop = 0;
+        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 1 || 0
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+            #else
+                npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
+            #endif
+                npyv_f64 r = npyv_div_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+            // last partial iteration for multiply / divide and working around clang partial load bug
+            if(len > 0){
+                volatile npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+                npyv_f64 r = npyv_div_f64(a, b);
+                npyv_store_till_f64((npy_double*)dst, len, r);
+            }
+        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
+        } else {
+            goto loop_scalar;
+        }
+        npyv_cleanup();
+        return;
+    }
+loop_scalar:
+#endif
+    for (; len > 0; --len, src0 += ssrc0, src1 += ssrc1, dst += sdst) {
+        const npy_double a = *((npy_double*)src0);
+        const npy_double b = *((npy_double*)src1);
+        *((npy_double*)dst) = a / b;
     }
 }
 
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        *indexed = *indexed / *(npy_double *)value;
+    }
+    return 0;
+}
 
+
+
+
+#undef WORKAROUND_CLANG_PARTIAL_LOAD_BUG
 
 //###############################################################################
 //## Complex Single/Double precision
 //###############################################################################
+
 /********************************************************************************
- ** Defining the SIMD kernels
+ ** op intrinics
  ********************************************************************************/
-#if !defined(_MSC_VER) && defined(NPY_HAVE_AVX512F)
-    /**
-     * For somehow MSVC commit aggressive optimization lead
-     * to raises 'RuntimeWarning: invalid value encountered in multiply'
-     *
-     * the issue mainly caused by '_mm512_maskz_loadu_ps', we need to
-     * investigate about it while moving to NPYV.
+
+#if NPY_SIMD_F32
+NPY_FINLINE npyv_f32x2 simd_set2_f32(const float *a)
+{
+    npyv_f32 fill = npyv_reinterpret_f32_u64(npyv_setall_u64(*(npy_uint64*)a));
+    npyv_f32x2 r;
+    r.val[0] = fill;
+    r.val[1] = fill;
+    return r;
+}
+
+NPY_FINLINE npyv_f32
+simd_cconjugate_f32(npyv_f32 x)
+{
+#if NPY_SIMD_BIGENDIAN
+    const npyv_f32 mask = npyv_reinterpret_f32_u64(npyv_setall_u64(0x80000000));
+#else
+    const npyv_f32 mask = npyv_reinterpret_f32_u64(npyv_setall_u64(0x8000000000000000ULL));
+#endif
+    return npyv_xor_f32(x, mask);
+}
+
+NPY_FINLINE npyv_f32
+simd_cmul_f32(npyv_f32 a, npyv_f32 b)
+{
+    npyv_f32 b_rev = npyv_permi128_f32(b, 1, 0, 3, 2);
+    npyv_f32 a_re = npyv_permi128_f32(a, 0, 0, 2, 2);
+    npyv_f32 a_im = npyv_permi128_f32(a, 1, 1, 3, 3);
+    // a_im * b_im, a_im * b_re
+    npyv_f32 ab_iiir = npyv_mul_f32(a_im, b_rev);
+    return npyv_muladdsub_f32(a_re, b, ab_iiir);
+}
+
+NPY_FINLINE npyv_f32
+simd_csquare_f32(npyv_f32 x)
+{ return simd_cmul_f32(x, x); }
+#endif
+
+#if NPY_SIMD_F64
+
+NPY_FINLINE npyv_f64x2 simd_set2_f64(const double *a)
+{
+    npyv_f64 r = npyv_setall_f64(a[0]);
+    npyv_f64 i = npyv_setall_f64(a[1]);
+    return npyv_zip_f64(r, i);
+}
+
+NPY_FINLINE npyv_f64
+simd_cconjugate_f64(npyv_f64 x)
+{
+    const npyv_f64 mask = npyv_reinterpret_f64_u64(npyv_set_u64(
+       0, 0x8000000000000000ULL, 0, 0x8000000000000000ULL,
+       0, 0x8000000000000000ULL, 0, 0x8000000000000000ULL,
+       0, 0x8000000000000000ULL, 0, 0x8000000000000000ULL,
+       0, 0x8000000000000000ULL, 0, 0x8000000000000000ULL,
+       0, 0x8000000000000000ULL, 0, 0x8000000000000000ULL,
+       0, 0x8000000000000000ULL, 0, 0x8000000000000000ULL,
+       0, 0x8000000000000000ULL, 0, 0x8000000000000000ULL,
+       0, 0x8000000000000000ULL, 0, 0x8000000000000000ULL
+    ));
+    return npyv_xor_f64(x, mask);
+}
+
+NPY_FINLINE npyv_f64
+simd_cmul_f64(npyv_f64 a, npyv_f64 b)
+{
+    npyv_f64 b_rev = npyv_permi128_f64(b, 1, 0);
+    npyv_f64 a_re = npyv_permi128_f64(a, 0, 0);
+    npyv_f64 a_im = npyv_permi128_f64(a, 1, 1);
+    // a_im * b_im, a_im * b_re
+    npyv_f64 ab_iiir = npyv_mul_f64(a_im, b_rev);
+    return npyv_muladdsub_f64(a_re, b, ab_iiir);
+}
+
+NPY_FINLINE npyv_f64
+simd_csquare_f64(npyv_f64 x)
+{ return simd_cmul_f64(x, x); }
+#endif
+
+#line 381
+#if NPY_SIMD_F32
+NPY_FINLINE npyv_f32
+simd_cabsolute_f32(npyv_f32 re, npyv_f32 im)
+{
+    const npyv_f32 inf = npyv_setall_f32(NPY_INFINITYF);
+    const npyv_f32 nan = npyv_setall_f32(NPY_NANF);
+
+    re = npyv_abs_f32(re);
+    im = npyv_abs_f32(im);
+    /*
+     * If real or imag = INF, then convert it to inf + j*inf
+     * Handles: inf + j*nan, nan + j*inf
      */
-    #define AVX512F_NOMSVC
-#endif
+    npyv_b32 re_infmask = npyv_cmpeq_f32(re, inf);
+    npyv_b32 im_infmask = npyv_cmpeq_f32(im, inf);
+    im = npyv_select_f32(re_infmask, inf, im);
+    re = npyv_select_f32(im_infmask, inf, re);
+    /*
+     * If real or imag = NAN, then convert it to nan + j*nan
+     * Handles: x + j*nan, nan + j*x
+     */
+    npyv_b32 re_nnanmask = npyv_notnan_f32(re);
+    npyv_b32 im_nnanmask = npyv_notnan_f32(im);
+    im = npyv_select_f32(re_nnanmask, im, nan);
+    re = npyv_select_f32(im_nnanmask, re, nan);
 
-#ifdef AVX512F_NOMSVC
-NPY_FINLINE __mmask16
-avx512_get_full_load_mask_ps(void)
-{
-    return 0xFFFF;
+    npyv_f32 larger  = npyv_max_f32(re, im);
+    npyv_f32 smaller = npyv_min_f32(im, re);
+    /*
+     * Calculate div_mask to prevent 0./0. and inf/inf operations in div
+     */
+    npyv_b32 zeromask = npyv_cmpeq_f32(larger, npyv_zero_f32());
+    npyv_b32 infmask = npyv_cmpeq_f32(smaller, inf);
+    npyv_b32 div_mask = npyv_not_b32(npyv_or_b32(zeromask, infmask));
+
+    npyv_f32 ratio = npyv_ifdivz_f32(div_mask, smaller, larger);
+    npyv_f32 hypot = npyv_sqrt_f32(
+        npyv_muladd_f32(ratio, ratio, npyv_setall_f32(1.0f)
+    ));
+    return npyv_mul_f32(hypot, larger);
 }
+#endif // VECTOR
 
-NPY_FINLINE __mmask8
-avx512_get_full_load_mask_pd(void)
+#line 381
+#if NPY_SIMD_F64
+NPY_FINLINE npyv_f64
+simd_cabsolute_f64(npyv_f64 re, npyv_f64 im)
 {
-    return 0xFF;
+    const npyv_f64 inf = npyv_setall_f64(NPY_INFINITY);
+    const npyv_f64 nan = npyv_setall_f64(NPY_NAN);
+
+    re = npyv_abs_f64(re);
+    im = npyv_abs_f64(im);
+    /*
+     * If real or imag = INF, then convert it to inf + j*inf
+     * Handles: inf + j*nan, nan + j*inf
+     */
+    npyv_b64 re_infmask = npyv_cmpeq_f64(re, inf);
+    npyv_b64 im_infmask = npyv_cmpeq_f64(im, inf);
+    im = npyv_select_f64(re_infmask, inf, im);
+    re = npyv_select_f64(im_infmask, inf, re);
+    /*
+     * If real or imag = NAN, then convert it to nan + j*nan
+     * Handles: x + j*nan, nan + j*x
+     */
+    npyv_b64 re_nnanmask = npyv_notnan_f64(re);
+    npyv_b64 im_nnanmask = npyv_notnan_f64(im);
+    im = npyv_select_f64(re_nnanmask, im, nan);
+    re = npyv_select_f64(im_nnanmask, re, nan);
+
+    npyv_f64 larger  = npyv_max_f64(re, im);
+    npyv_f64 smaller = npyv_min_f64(im, re);
+    /*
+     * Calculate div_mask to prevent 0./0. and inf/inf operations in div
+     */
+    npyv_b64 zeromask = npyv_cmpeq_f64(larger, npyv_zero_f64());
+    npyv_b64 infmask = npyv_cmpeq_f64(smaller, inf);
+    npyv_b64 div_mask = npyv_not_b64(npyv_or_b64(zeromask, infmask));
+
+    npyv_f64 ratio = npyv_ifdivz_f64(div_mask, smaller, larger);
+    npyv_f64 hypot = npyv_sqrt_f64(
+        npyv_muladd_f64(ratio, ratio, npyv_setall_f64(1.0)
+    ));
+    return npyv_mul_f64(hypot, larger);
 }
-NPY_FINLINE __m512
-avx512_masked_load_ps(__mmask16 mask, npy_float* addr)
-{
-    return _mm512_maskz_loadu_ps(mask, (__m512 *)addr);
-}
-
-NPY_FINLINE __m512d
-avx512_masked_load_pd(__mmask8 mask, npy_double* addr)
-{
-    return _mm512_maskz_loadu_pd(mask, (__m512d *)addr);
-}
-
-NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
-avx512_get_partial_load_mask_ps(const npy_int num_elem, const npy_int total_elem)
-{
-    return (0x0001 << num_elem) - 0x0001;
-}
-
-NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask8
-avx512_get_partial_load_mask_pd(const npy_int num_elem, const npy_int total_elem)
-{
-    return (0x01 << num_elem) - 0x01;
-}
-#line 617
-NPY_FINLINE __m512
-avx512_hadd_ps(const __m512 x)
-{
-    return _mm512_add_ps(x, _mm512_permute_ps(x, 0xb1));
-}
-
-NPY_FINLINE __m512
-avx512_hsub_ps(const __m512 x)
-{
-    return _mm512_sub_ps(x, _mm512_permute_ps(x, 0xb1));
-}
-NPY_FINLINE __m512
-avx512_cmul_ps(__m512 x1, __m512 x2)
-{
-    // x1 = r1, i1
-    // x2 = r2, i2
-    __m512 x3  = _mm512_permute_ps(x2, 0xb1);   // i2, r2
-    __m512 x12 = _mm512_mul_ps(x1, x2);            // r1*r2, i1*i2
-    __m512 x13 = _mm512_mul_ps(x1, x3);            // r1*i2, r2*i1
-    __m512 outreal = avx512_hsub_ps(x12);          // r1*r2 - i1*i2, r1*r2 - i1*i2
-    __m512 outimg  = avx512_hadd_ps(x13);          // r1*i2 + i1*r2, r1*i2 + i1*r2
-    return _mm512_mask_blend_ps(0xAAAA, outreal, outimg);
-}
-
-#line 617
-NPY_FINLINE __m512d
-avx512_hadd_pd(const __m512d x)
-{
-    return _mm512_add_pd(x, _mm512_permute_pd(x, 0x55));
-}
-
-NPY_FINLINE __m512d
-avx512_hsub_pd(const __m512d x)
-{
-    return _mm512_sub_pd(x, _mm512_permute_pd(x, 0x55));
-}
-NPY_FINLINE __m512d
-avx512_cmul_pd(__m512d x1, __m512d x2)
-{
-    // x1 = r1, i1
-    // x2 = r2, i2
-    __m512d x3  = _mm512_permute_pd(x2, 0x55);   // i2, r2
-    __m512d x12 = _mm512_mul_pd(x1, x2);            // r1*r2, i1*i2
-    __m512d x13 = _mm512_mul_pd(x1, x3);            // r1*i2, r2*i1
-    __m512d outreal = avx512_hsub_pd(x12);          // r1*r2 - i1*i2, r1*r2 - i1*i2
-    __m512d outimg  = avx512_hadd_pd(x13);          // r1*i2 + i1*r2, r1*i2 + i1*r2
-    return _mm512_mask_blend_pd(0xAA, outreal, outimg);
-}
-
-#endif
-
-#line 657
-#line 661
-#if defined AVX512F_NOMSVC
-static NPY_INLINE void
-AVX512F_add_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-    const npy_intp array_size = dimensions[0];
-    npy_intp num_remaining_elements = 2*array_size;
-    npy_float* ip1 = (npy_float*) args[0];
-    npy_float* ip2 = (npy_float*) args[1];
-    npy_float* op  = (npy_float*) args[2];
-
-    __mmask16 load_mask = avx512_get_full_load_mask_ps();
-
-    while (num_remaining_elements > 0) {
-        if (num_remaining_elements < 16) {
-            load_mask = avx512_get_partial_load_mask_ps(
-                                    num_remaining_elements, 16);
-        }
-        __m512 x1, x2;
-        x1 = avx512_masked_load_ps(load_mask, ip1);
-        x2 = avx512_masked_load_ps(load_mask, ip2);
-
-        __m512 out = _mm512_add_ps(x1, x2);
-
-        _mm512_mask_storeu_ps(op, load_mask, out);
-
-        ip1 += 16;
-        ip2 += 16;
-        op += 16;
-        num_remaining_elements -= 16;
-    }
-}
-#endif // AVX512F_NOMSVC
-
-#line 661
-#if defined AVX512F_NOMSVC
-static NPY_INLINE void
-AVX512F_subtract_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-    const npy_intp array_size = dimensions[0];
-    npy_intp num_remaining_elements = 2*array_size;
-    npy_float* ip1 = (npy_float*) args[0];
-    npy_float* ip2 = (npy_float*) args[1];
-    npy_float* op  = (npy_float*) args[2];
-
-    __mmask16 load_mask = avx512_get_full_load_mask_ps();
-
-    while (num_remaining_elements > 0) {
-        if (num_remaining_elements < 16) {
-            load_mask = avx512_get_partial_load_mask_ps(
-                                    num_remaining_elements, 16);
-        }
-        __m512 x1, x2;
-        x1 = avx512_masked_load_ps(load_mask, ip1);
-        x2 = avx512_masked_load_ps(load_mask, ip2);
-
-        __m512 out = _mm512_sub_ps(x1, x2);
-
-        _mm512_mask_storeu_ps(op, load_mask, out);
-
-        ip1 += 16;
-        ip2 += 16;
-        op += 16;
-        num_remaining_elements -= 16;
-    }
-}
-#endif // AVX512F_NOMSVC
-
-#line 661
-#if defined AVX512F_NOMSVC
-static NPY_INLINE void
-AVX512F_multiply_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-    const npy_intp array_size = dimensions[0];
-    npy_intp num_remaining_elements = 2*array_size;
-    npy_float* ip1 = (npy_float*) args[0];
-    npy_float* ip2 = (npy_float*) args[1];
-    npy_float* op  = (npy_float*) args[2];
-
-    __mmask16 load_mask = avx512_get_full_load_mask_ps();
-
-    while (num_remaining_elements > 0) {
-        if (num_remaining_elements < 16) {
-            load_mask = avx512_get_partial_load_mask_ps(
-                                    num_remaining_elements, 16);
-        }
-        __m512 x1, x2;
-        x1 = avx512_masked_load_ps(load_mask, ip1);
-        x2 = avx512_masked_load_ps(load_mask, ip2);
-
-        __m512 out = avx512_cmul_ps(x1, x2);
-
-        _mm512_mask_storeu_ps(op, load_mask, out);
-
-        ip1 += 16;
-        ip2 += 16;
-        op += 16;
-        num_remaining_elements -= 16;
-    }
-}
-#endif // AVX512F_NOMSVC
-
-
-#line 657
-#line 661
-#if defined AVX512F_NOMSVC
-static NPY_INLINE void
-AVX512F_add_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-    const npy_intp array_size = dimensions[0];
-    npy_intp num_remaining_elements = 2*array_size;
-    npy_double* ip1 = (npy_double*) args[0];
-    npy_double* ip2 = (npy_double*) args[1];
-    npy_double* op  = (npy_double*) args[2];
-
-    __mmask8 load_mask = avx512_get_full_load_mask_pd();
-
-    while (num_remaining_elements > 0) {
-        if (num_remaining_elements < 8) {
-            load_mask = avx512_get_partial_load_mask_pd(
-                                    num_remaining_elements, 8);
-        }
-        __m512d x1, x2;
-        x1 = avx512_masked_load_pd(load_mask, ip1);
-        x2 = avx512_masked_load_pd(load_mask, ip2);
-
-        __m512d out = _mm512_add_pd(x1, x2);
-
-        _mm512_mask_storeu_pd(op, load_mask, out);
-
-        ip1 += 8;
-        ip2 += 8;
-        op += 8;
-        num_remaining_elements -= 8;
-    }
-}
-#endif // AVX512F_NOMSVC
-
-#line 661
-#if defined AVX512F_NOMSVC
-static NPY_INLINE void
-AVX512F_subtract_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-    const npy_intp array_size = dimensions[0];
-    npy_intp num_remaining_elements = 2*array_size;
-    npy_double* ip1 = (npy_double*) args[0];
-    npy_double* ip2 = (npy_double*) args[1];
-    npy_double* op  = (npy_double*) args[2];
-
-    __mmask8 load_mask = avx512_get_full_load_mask_pd();
-
-    while (num_remaining_elements > 0) {
-        if (num_remaining_elements < 8) {
-            load_mask = avx512_get_partial_load_mask_pd(
-                                    num_remaining_elements, 8);
-        }
-        __m512d x1, x2;
-        x1 = avx512_masked_load_pd(load_mask, ip1);
-        x2 = avx512_masked_load_pd(load_mask, ip2);
-
-        __m512d out = _mm512_sub_pd(x1, x2);
-
-        _mm512_mask_storeu_pd(op, load_mask, out);
-
-        ip1 += 8;
-        ip2 += 8;
-        op += 8;
-        num_remaining_elements -= 8;
-    }
-}
-#endif // AVX512F_NOMSVC
-
-#line 661
-#if defined AVX512F_NOMSVC
-static NPY_INLINE void
-AVX512F_multiply_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-    const npy_intp array_size = dimensions[0];
-    npy_intp num_remaining_elements = 2*array_size;
-    npy_double* ip1 = (npy_double*) args[0];
-    npy_double* ip2 = (npy_double*) args[1];
-    npy_double* op  = (npy_double*) args[2];
-
-    __mmask8 load_mask = avx512_get_full_load_mask_pd();
-
-    while (num_remaining_elements > 0) {
-        if (num_remaining_elements < 8) {
-            load_mask = avx512_get_partial_load_mask_pd(
-                                    num_remaining_elements, 8);
-        }
-        __m512d x1, x2;
-        x1 = avx512_masked_load_pd(load_mask, ip1);
-        x2 = avx512_masked_load_pd(load_mask, ip2);
-
-        __m512d out = avx512_cmul_pd(x1, x2);
-
-        _mm512_mask_storeu_pd(op, load_mask, out);
-
-        ip1 += 8;
-        ip2 += 8;
-        op += 8;
-        num_remaining_elements -= 8;
-    }
-}
-#endif // AVX512F_NOMSVC
-
-
-
-#line 701
-#line 704
-static NPY_INLINE int
-run_binary_avx512f_add_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-#if defined AVX512F_NOMSVC
-    if (IS_BINARY_STRIDE_ONE(8, 64)) {
-        AVX512F_add_CFLOAT(args, dimensions, steps);
-        return 1;
-    }
-    else
-        return 0;
-#endif
-    return 0;
-}
-
-#line 704
-static NPY_INLINE int
-run_binary_avx512f_subtract_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-#if defined AVX512F_NOMSVC
-    if (IS_BINARY_STRIDE_ONE(8, 64)) {
-        AVX512F_subtract_CFLOAT(args, dimensions, steps);
-        return 1;
-    }
-    else
-        return 0;
-#endif
-    return 0;
-}
-
-#line 704
-static NPY_INLINE int
-run_binary_avx512f_multiply_CFLOAT(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-#if defined AVX512F_NOMSVC
-    if (IS_BINARY_STRIDE_ONE(8, 64)) {
-        AVX512F_multiply_CFLOAT(args, dimensions, steps);
-        return 1;
-    }
-    else
-        return 0;
-#endif
-    return 0;
-}
-
-
-#line 701
-#line 704
-static NPY_INLINE int
-run_binary_avx512f_add_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-#if defined AVX512F_NOMSVC
-    if (IS_BINARY_STRIDE_ONE(16, 64)) {
-        AVX512F_add_CDOUBLE(args, dimensions, steps);
-        return 1;
-    }
-    else
-        return 0;
-#endif
-    return 0;
-}
-
-#line 704
-static NPY_INLINE int
-run_binary_avx512f_subtract_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-#if defined AVX512F_NOMSVC
-    if (IS_BINARY_STRIDE_ONE(16, 64)) {
-        AVX512F_subtract_CDOUBLE(args, dimensions, steps);
-        return 1;
-    }
-    else
-        return 0;
-#endif
-    return 0;
-}
-
-#line 704
-static NPY_INLINE int
-run_binary_avx512f_multiply_CDOUBLE(char **args, const npy_intp *dimensions, const npy_intp *steps)
-{
-#if defined AVX512F_NOMSVC
-    if (IS_BINARY_STRIDE_ONE(16, 64)) {
-        AVX512F_multiply_CDOUBLE(args, dimensions, steps);
-        return 1;
-    }
-    else
-        return 0;
-#endif
-    return 0;
-}
-
+#endif // VECTOR
 
 
 /********************************************************************************
  ** Defining ufunc inner functions
  ********************************************************************************/
-#line 730
-#line 736
+#line 437
+#line 445
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    // Parenthesis around 1 tells clang dead code is intentional
-    if (IS_BINARY_REDUCE && (1)) {
-        npy_intp n = dimensions[0];
-        npy_float * or = ((npy_float *)args[0]);
-        npy_float * oi = ((npy_float *)args[0]) + 1;
+    npy_intp len = dimensions[0];
+    char *b_src0 = args[0], *b_src1 = args[1], *b_dst = args[2];
+    npy_intp b_ssrc0 = steps[0], b_ssrc1 = steps[1], b_sdst = steps[2];
+#if 1
+    // reduce
+    if (b_ssrc0 == 0 && b_ssrc0 == b_sdst && b_src0 == b_dst &&
+        b_ssrc1 % (sizeof(npy_float)*2) == 0
+    ) {
+        npy_float *rl_im = (npy_float *)b_src0;
         npy_float rr, ri;
-
-        CFLOAT_pairwise_sum(&rr, &ri, args[1], n * 2, steps[1] / 2);
-        *or += rr;
-        *oi += ri;
+        CFLOAT_pairwise_sum(&rr, &ri, b_src1, len * 2, b_ssrc1 / 2);
+        rl_im[0] += rr;
+        rl_im[1] += ri;
         return;
     }
-    if (!run_binary_avx512f_add_CFLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1r = ((npy_float *)ip1)[0];
-            const npy_float in1i = ((npy_float *)ip1)[1];
-            const npy_float in2r = ((npy_float *)ip2)[0];
-            const npy_float in2i = ((npy_float *)ip2)[1];
-            ((npy_float *)op1)[0] = in1r + in2r;
-            ((npy_float *)op1)[1] = in1i + in2i;
+#endif
+#if NPY_SIMD_F32
+    if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
+        is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
+        b_sdst  % sizeof(npy_float) != 0 || b_sdst == 0 ||
+        b_ssrc0 % sizeof(npy_float) != 0 ||
+        b_ssrc1 % sizeof(npy_float) != 0
+    ) {
+        goto loop_scalar;
+    }
+    const npy_float *src0 = (npy_float*)b_src0;
+    const npy_float *src1 = (npy_float*)b_src1;
+          npy_float *dst  = (npy_float*)b_dst;
+
+    const npy_intp ssrc0 = b_ssrc0 / sizeof(npy_float);
+    const npy_intp ssrc1 = b_ssrc1 / sizeof(npy_float);
+    const npy_intp sdst  = b_sdst / sizeof(npy_float);
+
+    const int vstep = npyv_nlanes_f32;
+    const int wstep = vstep * 2;
+    const int hstep = vstep / 2;
+
+    const int loadable0 = npyv_loadable_stride_s64(ssrc0);
+    const int loadable1 = npyv_loadable_stride_s64(ssrc1);
+    const int storable = npyv_storable_stride_s64(sdst);
+
+    // lots**lots of specializations, to squeeze out max performance
+    // contig
+    if (ssrc0 == 2 && ssrc0 == ssrc1 && ssrc0 == sdst) {
+        for (; len >= vstep; len -= vstep, src0 += wstep, src1 += wstep, dst += wstep) {
+            npyv_f32 a0 = npyv_load_f32(src0);
+            npyv_f32 a1 = npyv_load_f32(src0 + vstep);
+            npyv_f32 b0 = npyv_load_f32(src1);
+            npyv_f32 b1 = npyv_load_f32(src1 + vstep);
+            npyv_f32 r0 = npyv_add_f32(a0, b0);
+            npyv_f32 r1 = npyv_add_f32(a1, b1);
+            npyv_store_f32(dst, r0);
+            npyv_store_f32(dst + vstep, r1);
         }
+        for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            npyv_f32 a = npyv_load2_tillz_f32(src0, len);
+            npyv_f32 b = npyv_load2_tillz_f32(src1, len);
+            npyv_f32 r = npyv_add_f32(a, b);
+            npyv_store2_till_f32(dst, len, r);
+        }
+    }
+    // scalar 0
+    else if (ssrc0 == 0) {
+        npyv_f32x2 a = simd_set2_f32(src0);
+        // contig
+        if (ssrc1 == 2 && sdst == ssrc1) {
+            for (; len >= vstep; len -= vstep, src1 += wstep, dst += wstep) {
+                npyv_f32 b0 = npyv_load_f32(src1);
+                npyv_f32 b1 = npyv_load_f32(src1 + vstep);
+                npyv_f32 r0 = npyv_add_f32(a.val[0], b0);
+                npyv_f32 r1 = npyv_add_f32(a.val[1], b1);
+                npyv_store_f32(dst, r0);
+                npyv_store_f32(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 0
+                npyv_f32 b = npyv_load2_till_f32(src1, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 b = npyv_load2_tillz_f32(src1, len);
+            #endif
+                npyv_f32 r = npyv_add_f32(a.val[0], b);
+                npyv_store2_till_f32(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable1 && storable) {
+            for (; len >= vstep; len -= vstep, src1 += ssrc1*vstep, dst += sdst*vstep) {
+                npyv_f32 b0 = npyv_loadn2_f32(src1, ssrc1);
+                npyv_f32 b1 = npyv_loadn2_f32(src1 + ssrc1*hstep, ssrc1);
+                npyv_f32 r0 = npyv_add_f32(a.val[0], b0);
+                npyv_f32 r1 = npyv_add_f32(a.val[1], b1);
+                npyv_storen2_f32(dst, sdst, r0);
+                npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += ssrc1*hstep, dst += sdst*hstep) {
+            #if 0
+                npyv_f32 b = npyv_loadn2_till_f32(src1, ssrc1, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 b = npyv_loadn2_tillz_f32(src1, ssrc1, len);
+            #endif
+                npyv_f32 r = npyv_add_f32(a.val[0], b);
+                npyv_storen2_till_f32(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    // scalar 1
+    else if (ssrc1 == 0) {
+        npyv_f32x2 b = simd_set2_f32(src1);
+        if (ssrc0 == 2 && sdst == ssrc0) {
+            for (; len >= vstep; len -= vstep, src0 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32(src0);
+                npyv_f32 a1 = npyv_load_f32(src0 + vstep);
+                npyv_f32 r0 = npyv_add_f32(a0, b.val[0]);
+                npyv_f32 r1 = npyv_add_f32(a1, b.val[1]);
+                npyv_store_f32(dst, r0);
+                npyv_store_f32(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 0
+                npyv_f32 a = npyv_load2_till_f32(src0, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 a = npyv_load2_tillz_f32(src0, len);
+            #endif
+                npyv_f32 r = npyv_add_f32(a, b.val[0]);
+                npyv_store2_till_f32(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable0 && storable) {
+            for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep, dst += sdst*vstep) {
+                npyv_f32 a0 = npyv_loadn2_f32(src0, ssrc0);
+                npyv_f32 a1 = npyv_loadn2_f32(src0 + ssrc0*hstep, ssrc0);
+                npyv_f32 r0 = npyv_add_f32(a0, b.val[0]);
+                npyv_f32 r1 = npyv_add_f32(a1, b.val[1]);
+                npyv_storen2_f32(dst, sdst, r0);
+                npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += ssrc0*hstep, dst += sdst*hstep) {
+            #if 0
+                npyv_f32 a = npyv_loadn2_till_f32(src0, ssrc0, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 a = npyv_loadn2_tillz_f32(src0, ssrc0, len);
+            #endif
+                npyv_f32 r = npyv_add_f32(a, b.val[0]);
+                npyv_storen2_till_f32(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    #if 0
+    // non-contig
+    else if (loadable0 && loadable1 && storable) {
+        for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep,
+                            src1 += ssrc1*vstep, dst += sdst*vstep
+        ) {
+            npyv_f32 a0 = npyv_loadn2_f32(src0, ssrc0);
+            npyv_f32 a1 = npyv_loadn2_f32(src0 + ssrc0*hstep, ssrc0);
+            npyv_f32 b0 = npyv_loadn2_f32(src1, ssrc1);
+            npyv_f32 b1 = npyv_loadn2_f32(src1 + ssrc1*hstep, ssrc1);
+            npyv_f32 r0 = npyv_add_f32(a0, b0);
+            npyv_f32 r1 = npyv_add_f32(a1, b1);
+            npyv_storen2_f32(dst, sdst, r0);
+            npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+        }
+        for (; len > 0; len -= hstep, src0 += ssrc0*hstep,
+                       src1 += ssrc1*hstep, dst += sdst*hstep
+        ) {
+        #if 0
+            npyv_f32 a = npyv_loadn2_till_f32(src0, ssrc0, len, 1.0f, 1.0f);
+            npyv_f32 b = npyv_loadn2_till_f32(src1, ssrc1, len, 1.0f, 1.0f);
+        #else
+            npyv_f32 a = npyv_loadn2_tillz_f32(src0, ssrc0, len);
+            npyv_f32 b = npyv_loadn2_tillz_f32(src1, ssrc1, len);
+        #endif
+            npyv_f32 r = npyv_add_f32(a, b);
+            npyv_storen2_till_f32(dst, sdst, len, r);
+        }
+    }
+    #endif
+    else {
+        goto loop_scalar;
+    }
+    npyv_cleanup();
+    return;
+loop_scalar:
+#endif
+    for (; len > 0; --len, b_src0 += b_ssrc0, b_src1 += b_ssrc1, b_dst += b_sdst) {
+        const npy_float a_r = ((npy_float *)b_src0)[0];
+        const npy_float a_i = ((npy_float *)b_src0)[1];
+        const npy_float b_r = ((npy_float *)b_src1)[0];
+        const npy_float b_i = ((npy_float *)b_src1)[1];
+    #if 0
+        ((npy_float *)b_dst)[0] = a_r*b_r - a_i*b_i;
+        ((npy_float *)b_dst)[1] = a_r*b_i + a_i*b_r;
+    #else
+        ((npy_float *)b_dst)[0] = a_r + b_r;
+        ((npy_float *)b_dst)[1] = a_i + b_i;
+    #endif
     }
 }
 
-#line 736
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CFLOAT_add_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        const npy_float b_r = ((npy_float *)value)[0];
+        const npy_float b_i = ((npy_float *)value)[1];
+    #if 0
+        const npy_float a_r = indexed[0];
+        const npy_float a_i = indexed[1];
+        indexed[0] = a_r*b_r - a_i*b_i;
+        indexed[1] = a_r*b_i + a_i*b_r;
+    #else
+        indexed[0] += b_r;
+        indexed[1] += b_i;
+    #endif
+    }
+    return 0;
+}
+
+#line 445
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    // Parenthesis around 0 tells clang dead code is intentional
-    if (IS_BINARY_REDUCE && (0)) {
-        npy_intp n = dimensions[0];
-        npy_float * or = ((npy_float *)args[0]);
-        npy_float * oi = ((npy_float *)args[0]) + 1;
+    npy_intp len = dimensions[0];
+    char *b_src0 = args[0], *b_src1 = args[1], *b_dst = args[2];
+    npy_intp b_ssrc0 = steps[0], b_ssrc1 = steps[1], b_sdst = steps[2];
+#if 0
+    // reduce
+    if (b_ssrc0 == 0 && b_ssrc0 == b_sdst && b_src0 == b_dst &&
+        b_ssrc1 % (sizeof(npy_float)*2) == 0
+    ) {
+        npy_float *rl_im = (npy_float *)b_src0;
         npy_float rr, ri;
-
-        CFLOAT_pairwise_sum(&rr, &ri, args[1], n * 2, steps[1] / 2);
-        *or -= rr;
-        *oi -= ri;
+        CFLOAT_pairwise_sum(&rr, &ri, b_src1, len * 2, b_ssrc1 / 2);
+        rl_im[0] -= rr;
+        rl_im[1] -= ri;
         return;
     }
-    if (!run_binary_avx512f_subtract_CFLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1r = ((npy_float *)ip1)[0];
-            const npy_float in1i = ((npy_float *)ip1)[1];
-            const npy_float in2r = ((npy_float *)ip2)[0];
-            const npy_float in2i = ((npy_float *)ip2)[1];
-            ((npy_float *)op1)[0] = in1r - in2r;
-            ((npy_float *)op1)[1] = in1i - in2i;
+#endif
+#if NPY_SIMD_F32
+    if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
+        is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
+        b_sdst  % sizeof(npy_float) != 0 || b_sdst == 0 ||
+        b_ssrc0 % sizeof(npy_float) != 0 ||
+        b_ssrc1 % sizeof(npy_float) != 0
+    ) {
+        goto loop_scalar;
+    }
+    const npy_float *src0 = (npy_float*)b_src0;
+    const npy_float *src1 = (npy_float*)b_src1;
+          npy_float *dst  = (npy_float*)b_dst;
+
+    const npy_intp ssrc0 = b_ssrc0 / sizeof(npy_float);
+    const npy_intp ssrc1 = b_ssrc1 / sizeof(npy_float);
+    const npy_intp sdst  = b_sdst / sizeof(npy_float);
+
+    const int vstep = npyv_nlanes_f32;
+    const int wstep = vstep * 2;
+    const int hstep = vstep / 2;
+
+    const int loadable0 = npyv_loadable_stride_s64(ssrc0);
+    const int loadable1 = npyv_loadable_stride_s64(ssrc1);
+    const int storable = npyv_storable_stride_s64(sdst);
+
+    // lots**lots of specializations, to squeeze out max performance
+    // contig
+    if (ssrc0 == 2 && ssrc0 == ssrc1 && ssrc0 == sdst) {
+        for (; len >= vstep; len -= vstep, src0 += wstep, src1 += wstep, dst += wstep) {
+            npyv_f32 a0 = npyv_load_f32(src0);
+            npyv_f32 a1 = npyv_load_f32(src0 + vstep);
+            npyv_f32 b0 = npyv_load_f32(src1);
+            npyv_f32 b1 = npyv_load_f32(src1 + vstep);
+            npyv_f32 r0 = npyv_sub_f32(a0, b0);
+            npyv_f32 r1 = npyv_sub_f32(a1, b1);
+            npyv_store_f32(dst, r0);
+            npyv_store_f32(dst + vstep, r1);
         }
+        for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            npyv_f32 a = npyv_load2_tillz_f32(src0, len);
+            npyv_f32 b = npyv_load2_tillz_f32(src1, len);
+            npyv_f32 r = npyv_sub_f32(a, b);
+            npyv_store2_till_f32(dst, len, r);
+        }
+    }
+    // scalar 0
+    else if (ssrc0 == 0) {
+        npyv_f32x2 a = simd_set2_f32(src0);
+        // contig
+        if (ssrc1 == 2 && sdst == ssrc1) {
+            for (; len >= vstep; len -= vstep, src1 += wstep, dst += wstep) {
+                npyv_f32 b0 = npyv_load_f32(src1);
+                npyv_f32 b1 = npyv_load_f32(src1 + vstep);
+                npyv_f32 r0 = npyv_sub_f32(a.val[0], b0);
+                npyv_f32 r1 = npyv_sub_f32(a.val[1], b1);
+                npyv_store_f32(dst, r0);
+                npyv_store_f32(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 0
+                npyv_f32 b = npyv_load2_till_f32(src1, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 b = npyv_load2_tillz_f32(src1, len);
+            #endif
+                npyv_f32 r = npyv_sub_f32(a.val[0], b);
+                npyv_store2_till_f32(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable1 && storable) {
+            for (; len >= vstep; len -= vstep, src1 += ssrc1*vstep, dst += sdst*vstep) {
+                npyv_f32 b0 = npyv_loadn2_f32(src1, ssrc1);
+                npyv_f32 b1 = npyv_loadn2_f32(src1 + ssrc1*hstep, ssrc1);
+                npyv_f32 r0 = npyv_sub_f32(a.val[0], b0);
+                npyv_f32 r1 = npyv_sub_f32(a.val[1], b1);
+                npyv_storen2_f32(dst, sdst, r0);
+                npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += ssrc1*hstep, dst += sdst*hstep) {
+            #if 0
+                npyv_f32 b = npyv_loadn2_till_f32(src1, ssrc1, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 b = npyv_loadn2_tillz_f32(src1, ssrc1, len);
+            #endif
+                npyv_f32 r = npyv_sub_f32(a.val[0], b);
+                npyv_storen2_till_f32(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    // scalar 1
+    else if (ssrc1 == 0) {
+        npyv_f32x2 b = simd_set2_f32(src1);
+        if (ssrc0 == 2 && sdst == ssrc0) {
+            for (; len >= vstep; len -= vstep, src0 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32(src0);
+                npyv_f32 a1 = npyv_load_f32(src0 + vstep);
+                npyv_f32 r0 = npyv_sub_f32(a0, b.val[0]);
+                npyv_f32 r1 = npyv_sub_f32(a1, b.val[1]);
+                npyv_store_f32(dst, r0);
+                npyv_store_f32(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 0
+                npyv_f32 a = npyv_load2_till_f32(src0, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 a = npyv_load2_tillz_f32(src0, len);
+            #endif
+                npyv_f32 r = npyv_sub_f32(a, b.val[0]);
+                npyv_store2_till_f32(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable0 && storable) {
+            for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep, dst += sdst*vstep) {
+                npyv_f32 a0 = npyv_loadn2_f32(src0, ssrc0);
+                npyv_f32 a1 = npyv_loadn2_f32(src0 + ssrc0*hstep, ssrc0);
+                npyv_f32 r0 = npyv_sub_f32(a0, b.val[0]);
+                npyv_f32 r1 = npyv_sub_f32(a1, b.val[1]);
+                npyv_storen2_f32(dst, sdst, r0);
+                npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += ssrc0*hstep, dst += sdst*hstep) {
+            #if 0
+                npyv_f32 a = npyv_loadn2_till_f32(src0, ssrc0, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 a = npyv_loadn2_tillz_f32(src0, ssrc0, len);
+            #endif
+                npyv_f32 r = npyv_sub_f32(a, b.val[0]);
+                npyv_storen2_till_f32(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    #if 0
+    // non-contig
+    else if (loadable0 && loadable1 && storable) {
+        for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep,
+                            src1 += ssrc1*vstep, dst += sdst*vstep
+        ) {
+            npyv_f32 a0 = npyv_loadn2_f32(src0, ssrc0);
+            npyv_f32 a1 = npyv_loadn2_f32(src0 + ssrc0*hstep, ssrc0);
+            npyv_f32 b0 = npyv_loadn2_f32(src1, ssrc1);
+            npyv_f32 b1 = npyv_loadn2_f32(src1 + ssrc1*hstep, ssrc1);
+            npyv_f32 r0 = npyv_sub_f32(a0, b0);
+            npyv_f32 r1 = npyv_sub_f32(a1, b1);
+            npyv_storen2_f32(dst, sdst, r0);
+            npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+        }
+        for (; len > 0; len -= hstep, src0 += ssrc0*hstep,
+                       src1 += ssrc1*hstep, dst += sdst*hstep
+        ) {
+        #if 0
+            npyv_f32 a = npyv_loadn2_till_f32(src0, ssrc0, len, 1.0f, 1.0f);
+            npyv_f32 b = npyv_loadn2_till_f32(src1, ssrc1, len, 1.0f, 1.0f);
+        #else
+            npyv_f32 a = npyv_loadn2_tillz_f32(src0, ssrc0, len);
+            npyv_f32 b = npyv_loadn2_tillz_f32(src1, ssrc1, len);
+        #endif
+            npyv_f32 r = npyv_sub_f32(a, b);
+            npyv_storen2_till_f32(dst, sdst, len, r);
+        }
+    }
+    #endif
+    else {
+        goto loop_scalar;
+    }
+    npyv_cleanup();
+    return;
+loop_scalar:
+#endif
+    for (; len > 0; --len, b_src0 += b_ssrc0, b_src1 += b_ssrc1, b_dst += b_sdst) {
+        const npy_float a_r = ((npy_float *)b_src0)[0];
+        const npy_float a_i = ((npy_float *)b_src0)[1];
+        const npy_float b_r = ((npy_float *)b_src1)[0];
+        const npy_float b_i = ((npy_float *)b_src1)[1];
+    #if 0
+        ((npy_float *)b_dst)[0] = a_r*b_r - a_i*b_i;
+        ((npy_float *)b_dst)[1] = a_r*b_i + a_i*b_r;
+    #else
+        ((npy_float *)b_dst)[0] = a_r - b_r;
+        ((npy_float *)b_dst)[1] = a_i - b_i;
+    #endif
     }
 }
 
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CFLOAT_subtract_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        const npy_float b_r = ((npy_float *)value)[0];
+        const npy_float b_i = ((npy_float *)value)[1];
+    #if 0
+        const npy_float a_r = indexed[0];
+        const npy_float a_i = indexed[1];
+        indexed[0] = a_r*b_r - a_i*b_i;
+        indexed[1] = a_r*b_i + a_i*b_r;
+    #else
+        indexed[0] -= b_r;
+        indexed[1] -= b_i;
+    #endif
+    }
+    return 0;
+}
 
+#line 445
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (!run_binary_avx512f_multiply_CFLOAT(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_float in1r = ((npy_float *)ip1)[0];
-            const npy_float in1i = ((npy_float *)ip1)[1];
-            const npy_float in2r = ((npy_float *)ip2)[0];
-            const npy_float in2i = ((npy_float *)ip2)[1];
-            ((npy_float *)op1)[0] = in1r*in2r - in1i*in2i;
-            ((npy_float *)op1)[1] = in1r*in2i + in1i*in2r;
+    npy_intp len = dimensions[0];
+    char *b_src0 = args[0], *b_src1 = args[1], *b_dst = args[2];
+    npy_intp b_ssrc0 = steps[0], b_ssrc1 = steps[1], b_sdst = steps[2];
+#if 0
+    // reduce
+    if (b_ssrc0 == 0 && b_ssrc0 == b_sdst && b_src0 == b_dst &&
+        b_ssrc1 % (sizeof(npy_float)*2) == 0
+    ) {
+        npy_float *rl_im = (npy_float *)b_src0;
+        npy_float rr, ri;
+        CFLOAT_pairwise_sum(&rr, &ri, b_src1, len * 2, b_ssrc1 / 2);
+        rl_im[0] *= rr;
+        rl_im[1] *= ri;
+        return;
+    }
+#endif
+#if NPY_SIMD_F32
+    if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
+        is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
+        b_sdst  % sizeof(npy_float) != 0 || b_sdst == 0 ||
+        b_ssrc0 % sizeof(npy_float) != 0 ||
+        b_ssrc1 % sizeof(npy_float) != 0
+    ) {
+        goto loop_scalar;
+    }
+    const npy_float *src0 = (npy_float*)b_src0;
+    const npy_float *src1 = (npy_float*)b_src1;
+          npy_float *dst  = (npy_float*)b_dst;
+
+    const npy_intp ssrc0 = b_ssrc0 / sizeof(npy_float);
+    const npy_intp ssrc1 = b_ssrc1 / sizeof(npy_float);
+    const npy_intp sdst  = b_sdst / sizeof(npy_float);
+
+    const int vstep = npyv_nlanes_f32;
+    const int wstep = vstep * 2;
+    const int hstep = vstep / 2;
+
+    const int loadable0 = npyv_loadable_stride_s64(ssrc0);
+    const int loadable1 = npyv_loadable_stride_s64(ssrc1);
+    const int storable = npyv_storable_stride_s64(sdst);
+
+    // lots**lots of specializations, to squeeze out max performance
+    // contig
+    if (ssrc0 == 2 && ssrc0 == ssrc1 && ssrc0 == sdst) {
+        for (; len >= vstep; len -= vstep, src0 += wstep, src1 += wstep, dst += wstep) {
+            npyv_f32 a0 = npyv_load_f32(src0);
+            npyv_f32 a1 = npyv_load_f32(src0 + vstep);
+            npyv_f32 b0 = npyv_load_f32(src1);
+            npyv_f32 b1 = npyv_load_f32(src1 + vstep);
+            npyv_f32 r0 = simd_cmul_f32(a0, b0);
+            npyv_f32 r1 = simd_cmul_f32(a1, b1);
+            npyv_store_f32(dst, r0);
+            npyv_store_f32(dst + vstep, r1);
         }
+        for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            npyv_f32 a = npyv_load2_tillz_f32(src0, len);
+            npyv_f32 b = npyv_load2_tillz_f32(src1, len);
+            npyv_f32 r = simd_cmul_f32(a, b);
+            npyv_store2_till_f32(dst, len, r);
+        }
+    }
+    // scalar 0
+    else if (ssrc0 == 0) {
+        npyv_f32x2 a = simd_set2_f32(src0);
+        // contig
+        if (ssrc1 == 2 && sdst == ssrc1) {
+            for (; len >= vstep; len -= vstep, src1 += wstep, dst += wstep) {
+                npyv_f32 b0 = npyv_load_f32(src1);
+                npyv_f32 b1 = npyv_load_f32(src1 + vstep);
+                npyv_f32 r0 = simd_cmul_f32(a.val[0], b0);
+                npyv_f32 r1 = simd_cmul_f32(a.val[1], b1);
+                npyv_store_f32(dst, r0);
+                npyv_store_f32(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 1
+                npyv_f32 b = npyv_load2_till_f32(src1, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 b = npyv_load2_tillz_f32(src1, len);
+            #endif
+                npyv_f32 r = simd_cmul_f32(a.val[0], b);
+                npyv_store2_till_f32(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable1 && storable) {
+            for (; len >= vstep; len -= vstep, src1 += ssrc1*vstep, dst += sdst*vstep) {
+                npyv_f32 b0 = npyv_loadn2_f32(src1, ssrc1);
+                npyv_f32 b1 = npyv_loadn2_f32(src1 + ssrc1*hstep, ssrc1);
+                npyv_f32 r0 = simd_cmul_f32(a.val[0], b0);
+                npyv_f32 r1 = simd_cmul_f32(a.val[1], b1);
+                npyv_storen2_f32(dst, sdst, r0);
+                npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += ssrc1*hstep, dst += sdst*hstep) {
+            #if 1
+                npyv_f32 b = npyv_loadn2_till_f32(src1, ssrc1, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 b = npyv_loadn2_tillz_f32(src1, ssrc1, len);
+            #endif
+                npyv_f32 r = simd_cmul_f32(a.val[0], b);
+                npyv_storen2_till_f32(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    // scalar 1
+    else if (ssrc1 == 0) {
+        npyv_f32x2 b = simd_set2_f32(src1);
+        if (ssrc0 == 2 && sdst == ssrc0) {
+            for (; len >= vstep; len -= vstep, src0 += wstep, dst += wstep) {
+                npyv_f32 a0 = npyv_load_f32(src0);
+                npyv_f32 a1 = npyv_load_f32(src0 + vstep);
+                npyv_f32 r0 = simd_cmul_f32(a0, b.val[0]);
+                npyv_f32 r1 = simd_cmul_f32(a1, b.val[1]);
+                npyv_store_f32(dst, r0);
+                npyv_store_f32(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 1
+                npyv_f32 a = npyv_load2_till_f32(src0, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 a = npyv_load2_tillz_f32(src0, len);
+            #endif
+                npyv_f32 r = simd_cmul_f32(a, b.val[0]);
+                npyv_store2_till_f32(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable0 && storable) {
+            for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep, dst += sdst*vstep) {
+                npyv_f32 a0 = npyv_loadn2_f32(src0, ssrc0);
+                npyv_f32 a1 = npyv_loadn2_f32(src0 + ssrc0*hstep, ssrc0);
+                npyv_f32 r0 = simd_cmul_f32(a0, b.val[0]);
+                npyv_f32 r1 = simd_cmul_f32(a1, b.val[1]);
+                npyv_storen2_f32(dst, sdst, r0);
+                npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += ssrc0*hstep, dst += sdst*hstep) {
+            #if 1
+                npyv_f32 a = npyv_loadn2_till_f32(src0, ssrc0, len, 1.0f, 1.0f);
+            #else
+                npyv_f32 a = npyv_loadn2_tillz_f32(src0, ssrc0, len);
+            #endif
+                npyv_f32 r = simd_cmul_f32(a, b.val[0]);
+                npyv_storen2_till_f32(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    #if 1
+    // non-contig
+    else if (loadable0 && loadable1 && storable) {
+        for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep,
+                            src1 += ssrc1*vstep, dst += sdst*vstep
+        ) {
+            npyv_f32 a0 = npyv_loadn2_f32(src0, ssrc0);
+            npyv_f32 a1 = npyv_loadn2_f32(src0 + ssrc0*hstep, ssrc0);
+            npyv_f32 b0 = npyv_loadn2_f32(src1, ssrc1);
+            npyv_f32 b1 = npyv_loadn2_f32(src1 + ssrc1*hstep, ssrc1);
+            npyv_f32 r0 = simd_cmul_f32(a0, b0);
+            npyv_f32 r1 = simd_cmul_f32(a1, b1);
+            npyv_storen2_f32(dst, sdst, r0);
+            npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+        }
+        for (; len > 0; len -= hstep, src0 += ssrc0*hstep,
+                       src1 += ssrc1*hstep, dst += sdst*hstep
+        ) {
+        #if 1
+            npyv_f32 a = npyv_loadn2_till_f32(src0, ssrc0, len, 1.0f, 1.0f);
+            npyv_f32 b = npyv_loadn2_till_f32(src1, ssrc1, len, 1.0f, 1.0f);
+        #else
+            npyv_f32 a = npyv_loadn2_tillz_f32(src0, ssrc0, len);
+            npyv_f32 b = npyv_loadn2_tillz_f32(src1, ssrc1, len);
+        #endif
+            npyv_f32 r = simd_cmul_f32(a, b);
+            npyv_storen2_till_f32(dst, sdst, len, r);
+        }
+    }
+    #endif
+    else {
+        goto loop_scalar;
+    }
+    npyv_cleanup();
+    return;
+loop_scalar:
+#endif
+    for (; len > 0; --len, b_src0 += b_ssrc0, b_src1 += b_ssrc1, b_dst += b_sdst) {
+        const npy_float a_r = ((npy_float *)b_src0)[0];
+        const npy_float a_i = ((npy_float *)b_src0)[1];
+        const npy_float b_r = ((npy_float *)b_src1)[0];
+        const npy_float b_i = ((npy_float *)b_src1)[1];
+    #if 1
+        ((npy_float *)b_dst)[0] = a_r*b_r - a_i*b_i;
+        ((npy_float *)b_dst)[1] = a_r*b_i + a_i*b_r;
+    #else
+        ((npy_float *)b_dst)[0] = a_r * b_r;
+        ((npy_float *)b_dst)[1] = a_i * b_i;
+    #endif
     }
 }
 
-#line 730
-#line 736
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CFLOAT_multiply_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_float *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_float *)(ip1 + is1 * indx);
+        const npy_float b_r = ((npy_float *)value)[0];
+        const npy_float b_i = ((npy_float *)value)[1];
+    #if 1
+        const npy_float a_r = indexed[0];
+        const npy_float a_i = indexed[1];
+        indexed[0] = a_r*b_r - a_i*b_i;
+        indexed[1] = a_r*b_i + a_i*b_r;
+    #else
+        indexed[0] *= b_r;
+        indexed[1] *= b_i;
+    #endif
+    }
+    return 0;
+}
+
+
+#line 691
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_conjugate)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
+{
+    npy_intp len = dimensions[0];
+    char *b_src = args[0], *b_dst = args[1];
+    npy_intp b_ssrc = steps[0], b_sdst = steps[1];
+#if NPY_SIMD_F32
+    if (is_mem_overlap(b_src, b_ssrc, b_dst, b_sdst, len) ||
+        b_sdst % sizeof(npy_float) != 0 ||
+        b_ssrc % sizeof(npy_float) != 0
+    ) {
+        goto loop_scalar;
+    }
+    const npy_float *src  = (npy_float*)b_src;
+          npy_float *dst  = (npy_float*)b_dst;
+    const npy_intp ssrc = b_ssrc / sizeof(npy_float);
+    const npy_intp sdst = b_sdst / sizeof(npy_float);
+
+    const int vstep = npyv_nlanes_f32;
+    const int wstep = vstep * 2;
+    const int hstep = vstep / 2;
+
+    if (ssrc == 2 && ssrc == sdst) {
+        for (; len >= vstep; len -= vstep, src += wstep, dst += wstep) {
+            npyv_f32 a0 = npyv_load_f32(src);
+            npyv_f32 a1 = npyv_load_f32(src + vstep);
+            npyv_f32 r0 = simd_cconjugate_f32(a0);
+            npyv_f32 r1 = simd_cconjugate_f32(a1);
+            npyv_store_f32(dst, r0);
+            npyv_store_f32(dst + vstep, r1);
+        }
+        for (; len > 0; len -= hstep, src += vstep, dst += vstep) {
+            npyv_f32 a = npyv_load2_tillz_f32(src, len);
+            npyv_f32 r = simd_cconjugate_f32(a);
+            npyv_store2_till_f32(dst, len, r);
+        }
+    }
+    else if (ssrc == 2 && npyv_storable_stride_s64(sdst)) {
+        for (; len >= vstep; len -= vstep, src += wstep, dst += sdst*vstep) {
+            npyv_f32 a0 = npyv_load_f32(src);
+            npyv_f32 a1 = npyv_load_f32(src + vstep);
+            npyv_f32 r0 = simd_cconjugate_f32(a0);
+            npyv_f32 r1 = simd_cconjugate_f32(a1);
+            npyv_storen2_f32(dst, sdst, r0);
+            npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+        }
+        for (; len > 0; len -= hstep, src += vstep, dst += sdst*hstep) {
+            npyv_f32 a = npyv_load2_tillz_f32(src, len);
+            npyv_f32 r = simd_cconjugate_f32(a);
+            npyv_storen2_till_f32(dst, sdst, len, r);
+        }
+    }
+    else if (sdst == 2 && npyv_loadable_stride_s64(ssrc)) {
+        for (; len >= vstep; len -= vstep, src += ssrc*vstep, dst += wstep) {
+            npyv_f32 a0 = npyv_loadn2_f32(src, ssrc);
+            npyv_f32 a1 = npyv_loadn2_f32(src + ssrc*hstep, ssrc);
+            npyv_f32 r0 = simd_cconjugate_f32(a0);
+            npyv_f32 r1 = simd_cconjugate_f32(a1);
+            npyv_store_f32(dst, r0);
+            npyv_store_f32(dst + vstep, r1);
+        }
+        for (; len > 0; len -= hstep, src += ssrc*hstep, dst += vstep) {
+            npyv_f32 a = npyv_loadn2_tillz_f32((npy_float*)src, ssrc, len);
+            npyv_f32 r = simd_cconjugate_f32(a);
+            npyv_store2_till_f32(dst, len, r);
+        }
+    }
+    else {
+        goto loop_scalar;
+    }
+    npyv_cleanup();
+    return;
+loop_scalar:
+#endif
+    for (; len > 0; --len, b_src += b_ssrc, b_dst += b_sdst) {
+        const npy_float rl = ((npy_float *)b_src)[0];
+        const npy_float im = ((npy_float *)b_src)[1];
+    #if 0
+        ((npy_float *)b_dst)[0] = rl*rl - im*im;
+        ((npy_float *)b_dst)[1] = rl*im + im*rl;
+    #else
+        ((npy_float *)b_dst)[0] = rl;
+        ((npy_float *)b_dst)[1] = -im;
+    #endif
+    }
+}
+
+#line 691
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_square)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
+{
+    npy_intp len = dimensions[0];
+    char *b_src = args[0], *b_dst = args[1];
+    npy_intp b_ssrc = steps[0], b_sdst = steps[1];
+#if NPY_SIMD_F32
+    if (is_mem_overlap(b_src, b_ssrc, b_dst, b_sdst, len) ||
+        b_sdst % sizeof(npy_float) != 0 ||
+        b_ssrc % sizeof(npy_float) != 0
+    ) {
+        goto loop_scalar;
+    }
+    const npy_float *src  = (npy_float*)b_src;
+          npy_float *dst  = (npy_float*)b_dst;
+    const npy_intp ssrc = b_ssrc / sizeof(npy_float);
+    const npy_intp sdst = b_sdst / sizeof(npy_float);
+
+    const int vstep = npyv_nlanes_f32;
+    const int wstep = vstep * 2;
+    const int hstep = vstep / 2;
+
+    if (ssrc == 2 && ssrc == sdst) {
+        for (; len >= vstep; len -= vstep, src += wstep, dst += wstep) {
+            npyv_f32 a0 = npyv_load_f32(src);
+            npyv_f32 a1 = npyv_load_f32(src + vstep);
+            npyv_f32 r0 = simd_csquare_f32(a0);
+            npyv_f32 r1 = simd_csquare_f32(a1);
+            npyv_store_f32(dst, r0);
+            npyv_store_f32(dst + vstep, r1);
+        }
+        for (; len > 0; len -= hstep, src += vstep, dst += vstep) {
+            npyv_f32 a = npyv_load2_tillz_f32(src, len);
+            npyv_f32 r = simd_csquare_f32(a);
+            npyv_store2_till_f32(dst, len, r);
+        }
+    }
+    else if (ssrc == 2 && npyv_storable_stride_s64(sdst)) {
+        for (; len >= vstep; len -= vstep, src += wstep, dst += sdst*vstep) {
+            npyv_f32 a0 = npyv_load_f32(src);
+            npyv_f32 a1 = npyv_load_f32(src + vstep);
+            npyv_f32 r0 = simd_csquare_f32(a0);
+            npyv_f32 r1 = simd_csquare_f32(a1);
+            npyv_storen2_f32(dst, sdst, r0);
+            npyv_storen2_f32(dst + sdst*hstep, sdst, r1);
+        }
+        for (; len > 0; len -= hstep, src += vstep, dst += sdst*hstep) {
+            npyv_f32 a = npyv_load2_tillz_f32(src, len);
+            npyv_f32 r = simd_csquare_f32(a);
+            npyv_storen2_till_f32(dst, sdst, len, r);
+        }
+    }
+    else if (sdst == 2 && npyv_loadable_stride_s64(ssrc)) {
+        for (; len >= vstep; len -= vstep, src += ssrc*vstep, dst += wstep) {
+            npyv_f32 a0 = npyv_loadn2_f32(src, ssrc);
+            npyv_f32 a1 = npyv_loadn2_f32(src + ssrc*hstep, ssrc);
+            npyv_f32 r0 = simd_csquare_f32(a0);
+            npyv_f32 r1 = simd_csquare_f32(a1);
+            npyv_store_f32(dst, r0);
+            npyv_store_f32(dst + vstep, r1);
+        }
+        for (; len > 0; len -= hstep, src += ssrc*hstep, dst += vstep) {
+            npyv_f32 a = npyv_loadn2_tillz_f32((npy_float*)src, ssrc, len);
+            npyv_f32 r = simd_csquare_f32(a);
+            npyv_store2_till_f32(dst, len, r);
+        }
+    }
+    else {
+        goto loop_scalar;
+    }
+    npyv_cleanup();
+    return;
+loop_scalar:
+#endif
+    for (; len > 0; --len, b_src += b_ssrc, b_dst += b_sdst) {
+        const npy_float rl = ((npy_float *)b_src)[0];
+        const npy_float im = ((npy_float *)b_src)[1];
+    #if 1
+        ((npy_float *)b_dst)[0] = rl*rl - im*im;
+        ((npy_float *)b_dst)[1] = rl*im + im*rl;
+    #else
+        ((npy_float *)b_dst)[0] = rl;
+        ((npy_float *)b_dst)[1] = -im;
+    #endif
+    }
+}
+
+
+#line 437
+#line 445
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    // Parenthesis around 1 tells clang dead code is intentional
-    if (IS_BINARY_REDUCE && (1)) {
-        npy_intp n = dimensions[0];
-        npy_double * or = ((npy_double *)args[0]);
-        npy_double * oi = ((npy_double *)args[0]) + 1;
+    npy_intp len = dimensions[0];
+    char *b_src0 = args[0], *b_src1 = args[1], *b_dst = args[2];
+    npy_intp b_ssrc0 = steps[0], b_ssrc1 = steps[1], b_sdst = steps[2];
+#if 1
+    // reduce
+    if (b_ssrc0 == 0 && b_ssrc0 == b_sdst && b_src0 == b_dst &&
+        b_ssrc1 % (sizeof(npy_double)*2) == 0
+    ) {
+        npy_double *rl_im = (npy_double *)b_src0;
         npy_double rr, ri;
-
-        CDOUBLE_pairwise_sum(&rr, &ri, args[1], n * 2, steps[1] / 2);
-        *or += rr;
-        *oi += ri;
+        CDOUBLE_pairwise_sum(&rr, &ri, b_src1, len * 2, b_ssrc1 / 2);
+        rl_im[0] += rr;
+        rl_im[1] += ri;
         return;
     }
-    if (!run_binary_avx512f_add_CDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1r = ((npy_double *)ip1)[0];
-            const npy_double in1i = ((npy_double *)ip1)[1];
-            const npy_double in2r = ((npy_double *)ip2)[0];
-            const npy_double in2i = ((npy_double *)ip2)[1];
-            ((npy_double *)op1)[0] = in1r + in2r;
-            ((npy_double *)op1)[1] = in1i + in2i;
+#endif
+#if NPY_SIMD_F64
+    if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
+        is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
+        b_sdst  % sizeof(npy_double) != 0 || b_sdst == 0 ||
+        b_ssrc0 % sizeof(npy_double) != 0 ||
+        b_ssrc1 % sizeof(npy_double) != 0
+    ) {
+        goto loop_scalar;
+    }
+    const npy_double *src0 = (npy_double*)b_src0;
+    const npy_double *src1 = (npy_double*)b_src1;
+          npy_double *dst  = (npy_double*)b_dst;
+
+    const npy_intp ssrc0 = b_ssrc0 / sizeof(npy_double);
+    const npy_intp ssrc1 = b_ssrc1 / sizeof(npy_double);
+    const npy_intp sdst  = b_sdst / sizeof(npy_double);
+
+    const int vstep = npyv_nlanes_f64;
+    const int wstep = vstep * 2;
+    const int hstep = vstep / 2;
+
+    const int loadable0 = npyv_loadable_stride_s64(ssrc0);
+    const int loadable1 = npyv_loadable_stride_s64(ssrc1);
+    const int storable = npyv_storable_stride_s64(sdst);
+
+    // lots**lots of specializations, to squeeze out max performance
+    // contig
+    if (ssrc0 == 2 && ssrc0 == ssrc1 && ssrc0 == sdst) {
+        for (; len >= vstep; len -= vstep, src0 += wstep, src1 += wstep, dst += wstep) {
+            npyv_f64 a0 = npyv_load_f64(src0);
+            npyv_f64 a1 = npyv_load_f64(src0 + vstep);
+            npyv_f64 b0 = npyv_load_f64(src1);
+            npyv_f64 b1 = npyv_load_f64(src1 + vstep);
+            npyv_f64 r0 = npyv_add_f64(a0, b0);
+            npyv_f64 r1 = npyv_add_f64(a1, b1);
+            npyv_store_f64(dst, r0);
+            npyv_store_f64(dst + vstep, r1);
         }
+        for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            npyv_f64 a = npyv_load2_tillz_f64(src0, len);
+            npyv_f64 b = npyv_load2_tillz_f64(src1, len);
+            npyv_f64 r = npyv_add_f64(a, b);
+            npyv_store2_till_f64(dst, len, r);
+        }
+    }
+    // scalar 0
+    else if (ssrc0 == 0) {
+        npyv_f64x2 a = simd_set2_f64(src0);
+        // contig
+        if (ssrc1 == 2 && sdst == ssrc1) {
+            for (; len >= vstep; len -= vstep, src1 += wstep, dst += wstep) {
+                npyv_f64 b0 = npyv_load_f64(src1);
+                npyv_f64 b1 = npyv_load_f64(src1 + vstep);
+                npyv_f64 r0 = npyv_add_f64(a.val[0], b0);
+                npyv_f64 r1 = npyv_add_f64(a.val[1], b1);
+                npyv_store_f64(dst, r0);
+                npyv_store_f64(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 0
+                npyv_f64 b = npyv_load2_till_f64(src1, len, 1.0, 1.0);
+            #else
+                npyv_f64 b = npyv_load2_tillz_f64(src1, len);
+            #endif
+                npyv_f64 r = npyv_add_f64(a.val[0], b);
+                npyv_store2_till_f64(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable1 && storable) {
+            for (; len >= vstep; len -= vstep, src1 += ssrc1*vstep, dst += sdst*vstep) {
+                npyv_f64 b0 = npyv_loadn2_f64(src1, ssrc1);
+                npyv_f64 b1 = npyv_loadn2_f64(src1 + ssrc1*hstep, ssrc1);
+                npyv_f64 r0 = npyv_add_f64(a.val[0], b0);
+                npyv_f64 r1 = npyv_add_f64(a.val[1], b1);
+                npyv_storen2_f64(dst, sdst, r0);
+                npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += ssrc1*hstep, dst += sdst*hstep) {
+            #if 0
+                npyv_f64 b = npyv_loadn2_till_f64(src1, ssrc1, len, 1.0, 1.0);
+            #else
+                npyv_f64 b = npyv_loadn2_tillz_f64(src1, ssrc1, len);
+            #endif
+                npyv_f64 r = npyv_add_f64(a.val[0], b);
+                npyv_storen2_till_f64(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    // scalar 1
+    else if (ssrc1 == 0) {
+        npyv_f64x2 b = simd_set2_f64(src1);
+        if (ssrc0 == 2 && sdst == ssrc0) {
+            for (; len >= vstep; len -= vstep, src0 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64(src0);
+                npyv_f64 a1 = npyv_load_f64(src0 + vstep);
+                npyv_f64 r0 = npyv_add_f64(a0, b.val[0]);
+                npyv_f64 r1 = npyv_add_f64(a1, b.val[1]);
+                npyv_store_f64(dst, r0);
+                npyv_store_f64(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 0
+                npyv_f64 a = npyv_load2_till_f64(src0, len, 1.0, 1.0);
+            #else
+                npyv_f64 a = npyv_load2_tillz_f64(src0, len);
+            #endif
+                npyv_f64 r = npyv_add_f64(a, b.val[0]);
+                npyv_store2_till_f64(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable0 && storable) {
+            for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep, dst += sdst*vstep) {
+                npyv_f64 a0 = npyv_loadn2_f64(src0, ssrc0);
+                npyv_f64 a1 = npyv_loadn2_f64(src0 + ssrc0*hstep, ssrc0);
+                npyv_f64 r0 = npyv_add_f64(a0, b.val[0]);
+                npyv_f64 r1 = npyv_add_f64(a1, b.val[1]);
+                npyv_storen2_f64(dst, sdst, r0);
+                npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += ssrc0*hstep, dst += sdst*hstep) {
+            #if 0
+                npyv_f64 a = npyv_loadn2_till_f64(src0, ssrc0, len, 1.0, 1.0);
+            #else
+                npyv_f64 a = npyv_loadn2_tillz_f64(src0, ssrc0, len);
+            #endif
+                npyv_f64 r = npyv_add_f64(a, b.val[0]);
+                npyv_storen2_till_f64(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    #if 0
+    // non-contig
+    else if (loadable0 && loadable1 && storable) {
+        for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep,
+                            src1 += ssrc1*vstep, dst += sdst*vstep
+        ) {
+            npyv_f64 a0 = npyv_loadn2_f64(src0, ssrc0);
+            npyv_f64 a1 = npyv_loadn2_f64(src0 + ssrc0*hstep, ssrc0);
+            npyv_f64 b0 = npyv_loadn2_f64(src1, ssrc1);
+            npyv_f64 b1 = npyv_loadn2_f64(src1 + ssrc1*hstep, ssrc1);
+            npyv_f64 r0 = npyv_add_f64(a0, b0);
+            npyv_f64 r1 = npyv_add_f64(a1, b1);
+            npyv_storen2_f64(dst, sdst, r0);
+            npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+        }
+        for (; len > 0; len -= hstep, src0 += ssrc0*hstep,
+                       src1 += ssrc1*hstep, dst += sdst*hstep
+        ) {
+        #if 0
+            npyv_f64 a = npyv_loadn2_till_f64(src0, ssrc0, len, 1.0, 1.0);
+            npyv_f64 b = npyv_loadn2_till_f64(src1, ssrc1, len, 1.0, 1.0);
+        #else
+            npyv_f64 a = npyv_loadn2_tillz_f64(src0, ssrc0, len);
+            npyv_f64 b = npyv_loadn2_tillz_f64(src1, ssrc1, len);
+        #endif
+            npyv_f64 r = npyv_add_f64(a, b);
+            npyv_storen2_till_f64(dst, sdst, len, r);
+        }
+    }
+    #endif
+    else {
+        goto loop_scalar;
+    }
+    npyv_cleanup();
+    return;
+loop_scalar:
+#endif
+    for (; len > 0; --len, b_src0 += b_ssrc0, b_src1 += b_ssrc1, b_dst += b_sdst) {
+        const npy_double a_r = ((npy_double *)b_src0)[0];
+        const npy_double a_i = ((npy_double *)b_src0)[1];
+        const npy_double b_r = ((npy_double *)b_src1)[0];
+        const npy_double b_i = ((npy_double *)b_src1)[1];
+    #if 0
+        ((npy_double *)b_dst)[0] = a_r*b_r - a_i*b_i;
+        ((npy_double *)b_dst)[1] = a_r*b_i + a_i*b_r;
+    #else
+        ((npy_double *)b_dst)[0] = a_r + b_r;
+        ((npy_double *)b_dst)[1] = a_i + b_i;
+    #endif
     }
 }
 
-#line 736
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CDOUBLE_add_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        const npy_double b_r = ((npy_double *)value)[0];
+        const npy_double b_i = ((npy_double *)value)[1];
+    #if 0
+        const npy_double a_r = indexed[0];
+        const npy_double a_i = indexed[1];
+        indexed[0] = a_r*b_r - a_i*b_i;
+        indexed[1] = a_r*b_i + a_i*b_r;
+    #else
+        indexed[0] += b_r;
+        indexed[1] += b_i;
+    #endif
+    }
+    return 0;
+}
+
+#line 445
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    // Parenthesis around 0 tells clang dead code is intentional
-    if (IS_BINARY_REDUCE && (0)) {
-        npy_intp n = dimensions[0];
-        npy_double * or = ((npy_double *)args[0]);
-        npy_double * oi = ((npy_double *)args[0]) + 1;
+    npy_intp len = dimensions[0];
+    char *b_src0 = args[0], *b_src1 = args[1], *b_dst = args[2];
+    npy_intp b_ssrc0 = steps[0], b_ssrc1 = steps[1], b_sdst = steps[2];
+#if 0
+    // reduce
+    if (b_ssrc0 == 0 && b_ssrc0 == b_sdst && b_src0 == b_dst &&
+        b_ssrc1 % (sizeof(npy_double)*2) == 0
+    ) {
+        npy_double *rl_im = (npy_double *)b_src0;
         npy_double rr, ri;
-
-        CDOUBLE_pairwise_sum(&rr, &ri, args[1], n * 2, steps[1] / 2);
-        *or -= rr;
-        *oi -= ri;
+        CDOUBLE_pairwise_sum(&rr, &ri, b_src1, len * 2, b_ssrc1 / 2);
+        rl_im[0] -= rr;
+        rl_im[1] -= ri;
         return;
     }
-    if (!run_binary_avx512f_subtract_CDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1r = ((npy_double *)ip1)[0];
-            const npy_double in1i = ((npy_double *)ip1)[1];
-            const npy_double in2r = ((npy_double *)ip2)[0];
-            const npy_double in2i = ((npy_double *)ip2)[1];
-            ((npy_double *)op1)[0] = in1r - in2r;
-            ((npy_double *)op1)[1] = in1i - in2i;
+#endif
+#if NPY_SIMD_F64
+    if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
+        is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
+        b_sdst  % sizeof(npy_double) != 0 || b_sdst == 0 ||
+        b_ssrc0 % sizeof(npy_double) != 0 ||
+        b_ssrc1 % sizeof(npy_double) != 0
+    ) {
+        goto loop_scalar;
+    }
+    const npy_double *src0 = (npy_double*)b_src0;
+    const npy_double *src1 = (npy_double*)b_src1;
+          npy_double *dst  = (npy_double*)b_dst;
+
+    const npy_intp ssrc0 = b_ssrc0 / sizeof(npy_double);
+    const npy_intp ssrc1 = b_ssrc1 / sizeof(npy_double);
+    const npy_intp sdst  = b_sdst / sizeof(npy_double);
+
+    const int vstep = npyv_nlanes_f64;
+    const int wstep = vstep * 2;
+    const int hstep = vstep / 2;
+
+    const int loadable0 = npyv_loadable_stride_s64(ssrc0);
+    const int loadable1 = npyv_loadable_stride_s64(ssrc1);
+    const int storable = npyv_storable_stride_s64(sdst);
+
+    // lots**lots of specializations, to squeeze out max performance
+    // contig
+    if (ssrc0 == 2 && ssrc0 == ssrc1 && ssrc0 == sdst) {
+        for (; len >= vstep; len -= vstep, src0 += wstep, src1 += wstep, dst += wstep) {
+            npyv_f64 a0 = npyv_load_f64(src0);
+            npyv_f64 a1 = npyv_load_f64(src0 + vstep);
+            npyv_f64 b0 = npyv_load_f64(src1);
+            npyv_f64 b1 = npyv_load_f64(src1 + vstep);
+            npyv_f64 r0 = npyv_sub_f64(a0, b0);
+            npyv_f64 r1 = npyv_sub_f64(a1, b1);
+            npyv_store_f64(dst, r0);
+            npyv_store_f64(dst + vstep, r1);
         }
+        for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            npyv_f64 a = npyv_load2_tillz_f64(src0, len);
+            npyv_f64 b = npyv_load2_tillz_f64(src1, len);
+            npyv_f64 r = npyv_sub_f64(a, b);
+            npyv_store2_till_f64(dst, len, r);
+        }
+    }
+    // scalar 0
+    else if (ssrc0 == 0) {
+        npyv_f64x2 a = simd_set2_f64(src0);
+        // contig
+        if (ssrc1 == 2 && sdst == ssrc1) {
+            for (; len >= vstep; len -= vstep, src1 += wstep, dst += wstep) {
+                npyv_f64 b0 = npyv_load_f64(src1);
+                npyv_f64 b1 = npyv_load_f64(src1 + vstep);
+                npyv_f64 r0 = npyv_sub_f64(a.val[0], b0);
+                npyv_f64 r1 = npyv_sub_f64(a.val[1], b1);
+                npyv_store_f64(dst, r0);
+                npyv_store_f64(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 0
+                npyv_f64 b = npyv_load2_till_f64(src1, len, 1.0, 1.0);
+            #else
+                npyv_f64 b = npyv_load2_tillz_f64(src1, len);
+            #endif
+                npyv_f64 r = npyv_sub_f64(a.val[0], b);
+                npyv_store2_till_f64(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable1 && storable) {
+            for (; len >= vstep; len -= vstep, src1 += ssrc1*vstep, dst += sdst*vstep) {
+                npyv_f64 b0 = npyv_loadn2_f64(src1, ssrc1);
+                npyv_f64 b1 = npyv_loadn2_f64(src1 + ssrc1*hstep, ssrc1);
+                npyv_f64 r0 = npyv_sub_f64(a.val[0], b0);
+                npyv_f64 r1 = npyv_sub_f64(a.val[1], b1);
+                npyv_storen2_f64(dst, sdst, r0);
+                npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += ssrc1*hstep, dst += sdst*hstep) {
+            #if 0
+                npyv_f64 b = npyv_loadn2_till_f64(src1, ssrc1, len, 1.0, 1.0);
+            #else
+                npyv_f64 b = npyv_loadn2_tillz_f64(src1, ssrc1, len);
+            #endif
+                npyv_f64 r = npyv_sub_f64(a.val[0], b);
+                npyv_storen2_till_f64(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    // scalar 1
+    else if (ssrc1 == 0) {
+        npyv_f64x2 b = simd_set2_f64(src1);
+        if (ssrc0 == 2 && sdst == ssrc0) {
+            for (; len >= vstep; len -= vstep, src0 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64(src0);
+                npyv_f64 a1 = npyv_load_f64(src0 + vstep);
+                npyv_f64 r0 = npyv_sub_f64(a0, b.val[0]);
+                npyv_f64 r1 = npyv_sub_f64(a1, b.val[1]);
+                npyv_store_f64(dst, r0);
+                npyv_store_f64(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 0
+                npyv_f64 a = npyv_load2_till_f64(src0, len, 1.0, 1.0);
+            #else
+                npyv_f64 a = npyv_load2_tillz_f64(src0, len);
+            #endif
+                npyv_f64 r = npyv_sub_f64(a, b.val[0]);
+                npyv_store2_till_f64(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable0 && storable) {
+            for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep, dst += sdst*vstep) {
+                npyv_f64 a0 = npyv_loadn2_f64(src0, ssrc0);
+                npyv_f64 a1 = npyv_loadn2_f64(src0 + ssrc0*hstep, ssrc0);
+                npyv_f64 r0 = npyv_sub_f64(a0, b.val[0]);
+                npyv_f64 r1 = npyv_sub_f64(a1, b.val[1]);
+                npyv_storen2_f64(dst, sdst, r0);
+                npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += ssrc0*hstep, dst += sdst*hstep) {
+            #if 0
+                npyv_f64 a = npyv_loadn2_till_f64(src0, ssrc0, len, 1.0, 1.0);
+            #else
+                npyv_f64 a = npyv_loadn2_tillz_f64(src0, ssrc0, len);
+            #endif
+                npyv_f64 r = npyv_sub_f64(a, b.val[0]);
+                npyv_storen2_till_f64(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    #if 0
+    // non-contig
+    else if (loadable0 && loadable1 && storable) {
+        for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep,
+                            src1 += ssrc1*vstep, dst += sdst*vstep
+        ) {
+            npyv_f64 a0 = npyv_loadn2_f64(src0, ssrc0);
+            npyv_f64 a1 = npyv_loadn2_f64(src0 + ssrc0*hstep, ssrc0);
+            npyv_f64 b0 = npyv_loadn2_f64(src1, ssrc1);
+            npyv_f64 b1 = npyv_loadn2_f64(src1 + ssrc1*hstep, ssrc1);
+            npyv_f64 r0 = npyv_sub_f64(a0, b0);
+            npyv_f64 r1 = npyv_sub_f64(a1, b1);
+            npyv_storen2_f64(dst, sdst, r0);
+            npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+        }
+        for (; len > 0; len -= hstep, src0 += ssrc0*hstep,
+                       src1 += ssrc1*hstep, dst += sdst*hstep
+        ) {
+        #if 0
+            npyv_f64 a = npyv_loadn2_till_f64(src0, ssrc0, len, 1.0, 1.0);
+            npyv_f64 b = npyv_loadn2_till_f64(src1, ssrc1, len, 1.0, 1.0);
+        #else
+            npyv_f64 a = npyv_loadn2_tillz_f64(src0, ssrc0, len);
+            npyv_f64 b = npyv_loadn2_tillz_f64(src1, ssrc1, len);
+        #endif
+            npyv_f64 r = npyv_sub_f64(a, b);
+            npyv_storen2_till_f64(dst, sdst, len, r);
+        }
+    }
+    #endif
+    else {
+        goto loop_scalar;
+    }
+    npyv_cleanup();
+    return;
+loop_scalar:
+#endif
+    for (; len > 0; --len, b_src0 += b_ssrc0, b_src1 += b_ssrc1, b_dst += b_sdst) {
+        const npy_double a_r = ((npy_double *)b_src0)[0];
+        const npy_double a_i = ((npy_double *)b_src0)[1];
+        const npy_double b_r = ((npy_double *)b_src1)[0];
+        const npy_double b_i = ((npy_double *)b_src1)[1];
+    #if 0
+        ((npy_double *)b_dst)[0] = a_r*b_r - a_i*b_i;
+        ((npy_double *)b_dst)[1] = a_r*b_i + a_i*b_r;
+    #else
+        ((npy_double *)b_dst)[0] = a_r - b_r;
+        ((npy_double *)b_dst)[1] = a_i - b_i;
+    #endif
     }
 }
 
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CDOUBLE_subtract_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        const npy_double b_r = ((npy_double *)value)[0];
+        const npy_double b_i = ((npy_double *)value)[1];
+    #if 0
+        const npy_double a_r = indexed[0];
+        const npy_double a_i = indexed[1];
+        indexed[0] = a_r*b_r - a_i*b_i;
+        indexed[1] = a_r*b_i + a_i*b_r;
+    #else
+        indexed[0] -= b_r;
+        indexed[1] -= b_i;
+    #endif
+    }
+    return 0;
+}
 
+#line 445
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
-    if (!run_binary_avx512f_multiply_CDOUBLE(args, dimensions, steps)) {
-        BINARY_LOOP {
-            const npy_double in1r = ((npy_double *)ip1)[0];
-            const npy_double in1i = ((npy_double *)ip1)[1];
-            const npy_double in2r = ((npy_double *)ip2)[0];
-            const npy_double in2i = ((npy_double *)ip2)[1];
-            ((npy_double *)op1)[0] = in1r*in2r - in1i*in2i;
-            ((npy_double *)op1)[1] = in1r*in2i + in1i*in2r;
+    npy_intp len = dimensions[0];
+    char *b_src0 = args[0], *b_src1 = args[1], *b_dst = args[2];
+    npy_intp b_ssrc0 = steps[0], b_ssrc1 = steps[1], b_sdst = steps[2];
+#if 0
+    // reduce
+    if (b_ssrc0 == 0 && b_ssrc0 == b_sdst && b_src0 == b_dst &&
+        b_ssrc1 % (sizeof(npy_double)*2) == 0
+    ) {
+        npy_double *rl_im = (npy_double *)b_src0;
+        npy_double rr, ri;
+        CDOUBLE_pairwise_sum(&rr, &ri, b_src1, len * 2, b_ssrc1 / 2);
+        rl_im[0] *= rr;
+        rl_im[1] *= ri;
+        return;
+    }
+#endif
+#if NPY_SIMD_F64
+    if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
+        is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
+        b_sdst  % sizeof(npy_double) != 0 || b_sdst == 0 ||
+        b_ssrc0 % sizeof(npy_double) != 0 ||
+        b_ssrc1 % sizeof(npy_double) != 0
+    ) {
+        goto loop_scalar;
+    }
+    const npy_double *src0 = (npy_double*)b_src0;
+    const npy_double *src1 = (npy_double*)b_src1;
+          npy_double *dst  = (npy_double*)b_dst;
+
+    const npy_intp ssrc0 = b_ssrc0 / sizeof(npy_double);
+    const npy_intp ssrc1 = b_ssrc1 / sizeof(npy_double);
+    const npy_intp sdst  = b_sdst / sizeof(npy_double);
+
+    const int vstep = npyv_nlanes_f64;
+    const int wstep = vstep * 2;
+    const int hstep = vstep / 2;
+
+    const int loadable0 = npyv_loadable_stride_s64(ssrc0);
+    const int loadable1 = npyv_loadable_stride_s64(ssrc1);
+    const int storable = npyv_storable_stride_s64(sdst);
+
+    // lots**lots of specializations, to squeeze out max performance
+    // contig
+    if (ssrc0 == 2 && ssrc0 == ssrc1 && ssrc0 == sdst) {
+        for (; len >= vstep; len -= vstep, src0 += wstep, src1 += wstep, dst += wstep) {
+            npyv_f64 a0 = npyv_load_f64(src0);
+            npyv_f64 a1 = npyv_load_f64(src0 + vstep);
+            npyv_f64 b0 = npyv_load_f64(src1);
+            npyv_f64 b1 = npyv_load_f64(src1 + vstep);
+            npyv_f64 r0 = simd_cmul_f64(a0, b0);
+            npyv_f64 r1 = simd_cmul_f64(a1, b1);
+            npyv_store_f64(dst, r0);
+            npyv_store_f64(dst + vstep, r1);
+        }
+        for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            npyv_f64 a = npyv_load2_tillz_f64(src0, len);
+            npyv_f64 b = npyv_load2_tillz_f64(src1, len);
+            npyv_f64 r = simd_cmul_f64(a, b);
+            npyv_store2_till_f64(dst, len, r);
         }
     }
+    // scalar 0
+    else if (ssrc0 == 0) {
+        npyv_f64x2 a = simd_set2_f64(src0);
+        // contig
+        if (ssrc1 == 2 && sdst == ssrc1) {
+            for (; len >= vstep; len -= vstep, src1 += wstep, dst += wstep) {
+                npyv_f64 b0 = npyv_load_f64(src1);
+                npyv_f64 b1 = npyv_load_f64(src1 + vstep);
+                npyv_f64 r0 = simd_cmul_f64(a.val[0], b0);
+                npyv_f64 r1 = simd_cmul_f64(a.val[1], b1);
+                npyv_store_f64(dst, r0);
+                npyv_store_f64(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
+            #if 1
+                npyv_f64 b = npyv_load2_till_f64(src1, len, 1.0, 1.0);
+            #else
+                npyv_f64 b = npyv_load2_tillz_f64(src1, len);
+            #endif
+                npyv_f64 r = simd_cmul_f64(a.val[0], b);
+                npyv_store2_till_f64(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable1 && storable) {
+            for (; len >= vstep; len -= vstep, src1 += ssrc1*vstep, dst += sdst*vstep) {
+                npyv_f64 b0 = npyv_loadn2_f64(src1, ssrc1);
+                npyv_f64 b1 = npyv_loadn2_f64(src1 + ssrc1*hstep, ssrc1);
+                npyv_f64 r0 = simd_cmul_f64(a.val[0], b0);
+                npyv_f64 r1 = simd_cmul_f64(a.val[1], b1);
+                npyv_storen2_f64(dst, sdst, r0);
+                npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src1 += ssrc1*hstep, dst += sdst*hstep) {
+            #if 1
+                npyv_f64 b = npyv_loadn2_till_f64(src1, ssrc1, len, 1.0, 1.0);
+            #else
+                npyv_f64 b = npyv_loadn2_tillz_f64(src1, ssrc1, len);
+            #endif
+                npyv_f64 r = simd_cmul_f64(a.val[0], b);
+                npyv_storen2_till_f64(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    // scalar 1
+    else if (ssrc1 == 0) {
+        npyv_f64x2 b = simd_set2_f64(src1);
+        if (ssrc0 == 2 && sdst == ssrc0) {
+            for (; len >= vstep; len -= vstep, src0 += wstep, dst += wstep) {
+                npyv_f64 a0 = npyv_load_f64(src0);
+                npyv_f64 a1 = npyv_load_f64(src0 + vstep);
+                npyv_f64 r0 = simd_cmul_f64(a0, b.val[0]);
+                npyv_f64 r1 = simd_cmul_f64(a1, b.val[1]);
+                npyv_store_f64(dst, r0);
+                npyv_store_f64(dst + vstep, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
+            #if 1
+                npyv_f64 a = npyv_load2_till_f64(src0, len, 1.0, 1.0);
+            #else
+                npyv_f64 a = npyv_load2_tillz_f64(src0, len);
+            #endif
+                npyv_f64 r = simd_cmul_f64(a, b.val[0]);
+                npyv_store2_till_f64(dst, len, r);
+            }
+        }
+        // non-contig
+        else if (loadable0 && storable) {
+            for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep, dst += sdst*vstep) {
+                npyv_f64 a0 = npyv_loadn2_f64(src0, ssrc0);
+                npyv_f64 a1 = npyv_loadn2_f64(src0 + ssrc0*hstep, ssrc0);
+                npyv_f64 r0 = simd_cmul_f64(a0, b.val[0]);
+                npyv_f64 r1 = simd_cmul_f64(a1, b.val[1]);
+                npyv_storen2_f64(dst, sdst, r0);
+                npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+            }
+            for (; len > 0; len -= hstep, src0 += ssrc0*hstep, dst += sdst*hstep) {
+            #if 1
+                npyv_f64 a = npyv_loadn2_till_f64(src0, ssrc0, len, 1.0, 1.0);
+            #else
+                npyv_f64 a = npyv_loadn2_tillz_f64(src0, ssrc0, len);
+            #endif
+                npyv_f64 r = simd_cmul_f64(a, b.val[0]);
+                npyv_storen2_till_f64(dst, sdst, len, r);
+            }
+        }
+        else {
+            goto loop_scalar;
+        }
+    }
+    #if 1
+    // non-contig
+    else if (loadable0 && loadable1 && storable) {
+        for (; len >= vstep; len -= vstep, src0 += ssrc0*vstep,
+                            src1 += ssrc1*vstep, dst += sdst*vstep
+        ) {
+            npyv_f64 a0 = npyv_loadn2_f64(src0, ssrc0);
+            npyv_f64 a1 = npyv_loadn2_f64(src0 + ssrc0*hstep, ssrc0);
+            npyv_f64 b0 = npyv_loadn2_f64(src1, ssrc1);
+            npyv_f64 b1 = npyv_loadn2_f64(src1 + ssrc1*hstep, ssrc1);
+            npyv_f64 r0 = simd_cmul_f64(a0, b0);
+            npyv_f64 r1 = simd_cmul_f64(a1, b1);
+            npyv_storen2_f64(dst, sdst, r0);
+            npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+        }
+        for (; len > 0; len -= hstep, src0 += ssrc0*hstep,
+                       src1 += ssrc1*hstep, dst += sdst*hstep
+        ) {
+        #if 1
+            npyv_f64 a = npyv_loadn2_till_f64(src0, ssrc0, len, 1.0, 1.0);
+            npyv_f64 b = npyv_loadn2_till_f64(src1, ssrc1, len, 1.0, 1.0);
+        #else
+            npyv_f64 a = npyv_loadn2_tillz_f64(src0, ssrc0, len);
+            npyv_f64 b = npyv_loadn2_tillz_f64(src1, ssrc1, len);
+        #endif
+            npyv_f64 r = simd_cmul_f64(a, b);
+            npyv_storen2_till_f64(dst, sdst, len, r);
+        }
+    }
+    #endif
+    else {
+        goto loop_scalar;
+    }
+    npyv_cleanup();
+    return;
+loop_scalar:
+#endif
+    for (; len > 0; --len, b_src0 += b_ssrc0, b_src1 += b_ssrc1, b_dst += b_sdst) {
+        const npy_double a_r = ((npy_double *)b_src0)[0];
+        const npy_double a_i = ((npy_double *)b_src0)[1];
+        const npy_double b_r = ((npy_double *)b_src1)[0];
+        const npy_double b_i = ((npy_double *)b_src1)[1];
+    #if 1
+        ((npy_double *)b_dst)[0] = a_r*b_r - a_i*b_i;
+        ((npy_double *)b_dst)[1] = a_r*b_i + a_i*b_r;
+    #else
+        ((npy_double *)b_dst)[0] = a_r * b_r;
+        ((npy_double *)b_dst)[1] = a_i * b_i;
+    #endif
+    }
 }
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CDOUBLE_multiply_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_double *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_double *)(ip1 + is1 * indx);
+        const npy_double b_r = ((npy_double *)value)[0];
+        const npy_double b_i = ((npy_double *)value)[1];
+    #if 1
+        const npy_double a_r = indexed[0];
+        const npy_double a_i = indexed[1];
+        indexed[0] = a_r*b_r - a_i*b_i;
+        indexed[1] = a_r*b_i + a_i*b_r;
+    #else
+        indexed[0] *= b_r;
+        indexed[1] *= b_i;
+    #endif
+    }
+    return 0;
+}
+
+
+#line 691
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_conjugate)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
+{
+    npy_intp len = dimensions[0];
+    char *b_src = args[0], *b_dst = args[1];
+    npy_intp b_ssrc = steps[0], b_sdst = steps[1];
+#if NPY_SIMD_F64
+    if (is_mem_overlap(b_src, b_ssrc, b_dst, b_sdst, len) ||
+        b_sdst % sizeof(npy_double) != 0 ||
+        b_ssrc % sizeof(npy_double) != 0
+    ) {
+        goto loop_scalar;
+    }
+    const npy_double *src  = (npy_double*)b_src;
+          npy_double *dst  = (npy_double*)b_dst;
+    const npy_intp ssrc = b_ssrc / sizeof(npy_double);
+    const npy_intp sdst = b_sdst / sizeof(npy_double);
+
+    const int vstep = npyv_nlanes_f64;
+    const int wstep = vstep * 2;
+    const int hstep = vstep / 2;
+
+    if (ssrc == 2 && ssrc == sdst) {
+        for (; len >= vstep; len -= vstep, src += wstep, dst += wstep) {
+            npyv_f64 a0 = npyv_load_f64(src);
+            npyv_f64 a1 = npyv_load_f64(src + vstep);
+            npyv_f64 r0 = simd_cconjugate_f64(a0);
+            npyv_f64 r1 = simd_cconjugate_f64(a1);
+            npyv_store_f64(dst, r0);
+            npyv_store_f64(dst + vstep, r1);
+        }
+        for (; len > 0; len -= hstep, src += vstep, dst += vstep) {
+            npyv_f64 a = npyv_load2_tillz_f64(src, len);
+            npyv_f64 r = simd_cconjugate_f64(a);
+            npyv_store2_till_f64(dst, len, r);
+        }
+    }
+    else if (ssrc == 2 && npyv_storable_stride_s64(sdst)) {
+        for (; len >= vstep; len -= vstep, src += wstep, dst += sdst*vstep) {
+            npyv_f64 a0 = npyv_load_f64(src);
+            npyv_f64 a1 = npyv_load_f64(src + vstep);
+            npyv_f64 r0 = simd_cconjugate_f64(a0);
+            npyv_f64 r1 = simd_cconjugate_f64(a1);
+            npyv_storen2_f64(dst, sdst, r0);
+            npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+        }
+        for (; len > 0; len -= hstep, src += vstep, dst += sdst*hstep) {
+            npyv_f64 a = npyv_load2_tillz_f64(src, len);
+            npyv_f64 r = simd_cconjugate_f64(a);
+            npyv_storen2_till_f64(dst, sdst, len, r);
+        }
+    }
+    else if (sdst == 2 && npyv_loadable_stride_s64(ssrc)) {
+        for (; len >= vstep; len -= vstep, src += ssrc*vstep, dst += wstep) {
+            npyv_f64 a0 = npyv_loadn2_f64(src, ssrc);
+            npyv_f64 a1 = npyv_loadn2_f64(src + ssrc*hstep, ssrc);
+            npyv_f64 r0 = simd_cconjugate_f64(a0);
+            npyv_f64 r1 = simd_cconjugate_f64(a1);
+            npyv_store_f64(dst, r0);
+            npyv_store_f64(dst + vstep, r1);
+        }
+        for (; len > 0; len -= hstep, src += ssrc*hstep, dst += vstep) {
+            npyv_f64 a = npyv_loadn2_tillz_f64((npy_double*)src, ssrc, len);
+            npyv_f64 r = simd_cconjugate_f64(a);
+            npyv_store2_till_f64(dst, len, r);
+        }
+    }
+    else {
+        goto loop_scalar;
+    }
+    npyv_cleanup();
+    return;
+loop_scalar:
+#endif
+    for (; len > 0; --len, b_src += b_ssrc, b_dst += b_sdst) {
+        const npy_double rl = ((npy_double *)b_src)[0];
+        const npy_double im = ((npy_double *)b_src)[1];
+    #if 0
+        ((npy_double *)b_dst)[0] = rl*rl - im*im;
+        ((npy_double *)b_dst)[1] = rl*im + im*rl;
+    #else
+        ((npy_double *)b_dst)[0] = rl;
+        ((npy_double *)b_dst)[1] = -im;
+    #endif
+    }
+}
+
+#line 691
+NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_square)
+(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
+{
+    npy_intp len = dimensions[0];
+    char *b_src = args[0], *b_dst = args[1];
+    npy_intp b_ssrc = steps[0], b_sdst = steps[1];
+#if NPY_SIMD_F64
+    if (is_mem_overlap(b_src, b_ssrc, b_dst, b_sdst, len) ||
+        b_sdst % sizeof(npy_double) != 0 ||
+        b_ssrc % sizeof(npy_double) != 0
+    ) {
+        goto loop_scalar;
+    }
+    const npy_double *src  = (npy_double*)b_src;
+          npy_double *dst  = (npy_double*)b_dst;
+    const npy_intp ssrc = b_ssrc / sizeof(npy_double);
+    const npy_intp sdst = b_sdst / sizeof(npy_double);
+
+    const int vstep = npyv_nlanes_f64;
+    const int wstep = vstep * 2;
+    const int hstep = vstep / 2;
+
+    if (ssrc == 2 && ssrc == sdst) {
+        for (; len >= vstep; len -= vstep, src += wstep, dst += wstep) {
+            npyv_f64 a0 = npyv_load_f64(src);
+            npyv_f64 a1 = npyv_load_f64(src + vstep);
+            npyv_f64 r0 = simd_csquare_f64(a0);
+            npyv_f64 r1 = simd_csquare_f64(a1);
+            npyv_store_f64(dst, r0);
+            npyv_store_f64(dst + vstep, r1);
+        }
+        for (; len > 0; len -= hstep, src += vstep, dst += vstep) {
+            npyv_f64 a = npyv_load2_tillz_f64(src, len);
+            npyv_f64 r = simd_csquare_f64(a);
+            npyv_store2_till_f64(dst, len, r);
+        }
+    }
+    else if (ssrc == 2 && npyv_storable_stride_s64(sdst)) {
+        for (; len >= vstep; len -= vstep, src += wstep, dst += sdst*vstep) {
+            npyv_f64 a0 = npyv_load_f64(src);
+            npyv_f64 a1 = npyv_load_f64(src + vstep);
+            npyv_f64 r0 = simd_csquare_f64(a0);
+            npyv_f64 r1 = simd_csquare_f64(a1);
+            npyv_storen2_f64(dst, sdst, r0);
+            npyv_storen2_f64(dst + sdst*hstep, sdst, r1);
+        }
+        for (; len > 0; len -= hstep, src += vstep, dst += sdst*hstep) {
+            npyv_f64 a = npyv_load2_tillz_f64(src, len);
+            npyv_f64 r = simd_csquare_f64(a);
+            npyv_storen2_till_f64(dst, sdst, len, r);
+        }
+    }
+    else if (sdst == 2 && npyv_loadable_stride_s64(ssrc)) {
+        for (; len >= vstep; len -= vstep, src += ssrc*vstep, dst += wstep) {
+            npyv_f64 a0 = npyv_loadn2_f64(src, ssrc);
+            npyv_f64 a1 = npyv_loadn2_f64(src + ssrc*hstep, ssrc);
+            npyv_f64 r0 = simd_csquare_f64(a0);
+            npyv_f64 r1 = simd_csquare_f64(a1);
+            npyv_store_f64(dst, r0);
+            npyv_store_f64(dst + vstep, r1);
+        }
+        for (; len > 0; len -= hstep, src += ssrc*hstep, dst += vstep) {
+            npyv_f64 a = npyv_loadn2_tillz_f64((npy_double*)src, ssrc, len);
+            npyv_f64 r = simd_csquare_f64(a);
+            npyv_store2_till_f64(dst, len, r);
+        }
+    }
+    else {
+        goto loop_scalar;
+    }
+    npyv_cleanup();
+    return;
+loop_scalar:
+#endif
+    for (; len > 0; --len, b_src += b_ssrc, b_dst += b_sdst) {
+        const npy_double rl = ((npy_double *)b_src)[0];
+        const npy_double im = ((npy_double *)b_src)[1];
+    #if 1
+        ((npy_double *)b_dst)[0] = rl*rl - im*im;
+        ((npy_double *)b_dst)[1] = rl*im + im*rl;
+    #else
+        ((npy_double *)b_dst)[0] = rl;
+        ((npy_double *)b_dst)[1] = -im;
+    #endif
+    }
+}
+
 
 

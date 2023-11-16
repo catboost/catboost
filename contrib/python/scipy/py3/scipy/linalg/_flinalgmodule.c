@@ -1,5 +1,5 @@
 /* File: _flinalgmodule.c
- * This file is auto-generated with f2py (version:1.24.4).
+ * This file is auto-generated with f2py (version:1.25.2).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -2087,11 +2087,11 @@ PyMODINIT_FUNC PyInit__flinalg(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _flinalg (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.24.4");
+    s = PyUnicode_FromString("1.25.2");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_flinalg' is auto-generated with f2py (version:1.24.4).\nFunctions:\n"
+        "This module '_flinalg' is auto-generated with f2py (version:1.25.2).\nFunctions:\n"
 "    det,info = ddet_c(a,overwrite_a=0)\n"
 "    det,info = ddet_r(a,overwrite_a=0)\n"
 "    det,info = sdet_c(a,overwrite_a=0)\n"
@@ -2107,7 +2107,7 @@ PyMODINIT_FUNC PyInit__flinalg(void) {
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.24.4");
+    s = PyUnicode_FromString("1.25.2");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _flinalg_error = PyErr_NewException ("_flinalg.error", NULL, NULL);

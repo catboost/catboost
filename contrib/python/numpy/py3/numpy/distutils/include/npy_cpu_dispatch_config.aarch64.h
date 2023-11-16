@@ -40,4 +40,3 @@
 	/** ASIMDFHM **/
 	#define NPY_HAVE_ASIMDFHM 1
 #endif /*NPY__CPU_TARGET_ASIMDFHM*/
-

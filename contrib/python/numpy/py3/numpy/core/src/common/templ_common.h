@@ -25,7 +25,7 @@
  * that is not checked. Could use absolute values and adjust the sign if that
  * functionality was desired.
  */
-static NPY_INLINE int
+static inline int
 npy_mul_with_overflow_int(npy_int * r, npy_int a, npy_int b)
 {
 #ifdef HAVE___BUILTIN_MUL_OVERFLOW
@@ -60,7 +60,7 @@ npy_mul_with_overflow_int(npy_int * r, npy_int a, npy_int b)
  * that is not checked. Could use absolute values and adjust the sign if that
  * functionality was desired.
  */
-static NPY_INLINE int
+static inline int
 npy_mul_with_overflow_uint(npy_uint * r, npy_uint a, npy_uint b)
 {
 #ifdef HAVE___BUILTIN_MUL_OVERFLOW
@@ -95,7 +95,7 @@ npy_mul_with_overflow_uint(npy_uint * r, npy_uint a, npy_uint b)
  * that is not checked. Could use absolute values and adjust the sign if that
  * functionality was desired.
  */
-static NPY_INLINE int
+static inline int
 npy_mul_with_overflow_long(npy_long * r, npy_long a, npy_long b)
 {
 #ifdef HAVE___BUILTIN_MUL_OVERFLOW
@@ -130,7 +130,7 @@ npy_mul_with_overflow_long(npy_long * r, npy_long a, npy_long b)
  * that is not checked. Could use absolute values and adjust the sign if that
  * functionality was desired.
  */
-static NPY_INLINE int
+static inline int
 npy_mul_with_overflow_ulong(npy_ulong * r, npy_ulong a, npy_ulong b)
 {
 #ifdef HAVE___BUILTIN_MUL_OVERFLOW
@@ -165,7 +165,7 @@ npy_mul_with_overflow_ulong(npy_ulong * r, npy_ulong a, npy_ulong b)
  * that is not checked. Could use absolute values and adjust the sign if that
  * functionality was desired.
  */
-static NPY_INLINE int
+static inline int
 npy_mul_with_overflow_longlong(npy_longlong * r, npy_longlong a, npy_longlong b)
 {
 #ifdef HAVE___BUILTIN_MUL_OVERFLOW
@@ -200,7 +200,7 @@ npy_mul_with_overflow_longlong(npy_longlong * r, npy_longlong a, npy_longlong b)
  * that is not checked. Could use absolute values and adjust the sign if that
  * functionality was desired.
  */
-static NPY_INLINE int
+static inline int
 npy_mul_with_overflow_ulonglong(npy_ulonglong * r, npy_ulonglong a, npy_ulonglong b)
 {
 #ifdef HAVE___BUILTIN_MUL_OVERFLOW
@@ -227,7 +227,7 @@ npy_mul_with_overflow_ulonglong(npy_ulonglong * r, npy_ulonglong a, npy_ulonglon
 }
 
 
-static NPY_INLINE int
+static inline int
 npy_mul_sizes_with_overflow (npy_intp * r, npy_intp a, npy_intp b)
 {
 #ifdef HAVE___BUILTIN_MUL_OVERFLOW

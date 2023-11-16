@@ -93,7 +93,7 @@ def add_newdoc_for_scalar_type(obj, fixed_aliases, doc):
     add_newdoc('numpy.core.numerictypes', obj, docstring)
 
 
-add_newdoc_for_scalar_type('bool_', ['bool8'],
+add_newdoc_for_scalar_type('bool_', [],
     """
     Boolean type (True or False), stored as a byte.
 
@@ -204,7 +204,11 @@ add_newdoc_for_scalar_type('str_', ['unicode_'],
     r"""
     A unicode string.
 
-    When used in arrays, this type strips trailing null codepoints.
+    This type strips trailing null codepoints.
+
+    >>> s = np.str_("abc\x00")
+    >>> s
+    'abc'
 
     Unlike the builtin `str`, this supports the :ref:`python:bufferobjects`, exposing its
     contents as UCS4:
@@ -255,7 +259,7 @@ add_newdoc_for_scalar_type('void', [],
        ``\0`` bytes.  The 5 can be a Python or NumPy integer.
     2. ``np.void(b"bytes-like")`` creates a void scalar from the byte string.
        The dtype itemsize will match the byte string length, here ``"V10"``.
-    3. When a ``dtype=`` is passed the call is rougly the same as an
+    3. When a ``dtype=`` is passed the call is roughly the same as an
        array creation.  However, a void scalar rather than array is returned.
 
     Please see the examples which show all three different conventions.

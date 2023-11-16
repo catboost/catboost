@@ -4,7 +4,7 @@ import warnings
 import itertools
 import operator
 import platform
-from numpy.compat import _pep440
+from numpy._utils import _pep440
 import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import sampled_from
@@ -14,8 +14,14 @@ import numpy as np
 from numpy.testing import (
     assert_, assert_equal, assert_raises, assert_almost_equal,
     assert_array_equal, IS_PYPY, suppress_warnings, _gen_alignment_data,
-    assert_warns,
+    assert_warns, _SUPPORTS_SVE,
     )
+
+try:
+    COMPILERS = np.show_config(mode="dicts")["Compilers"]
+    USING_CLANG_CL = COMPILERS["c"]["name"] == "clang-cl"
+except TypeError:
+    USING_CLANG_CL = False
 
 types = [np.bool_, np.byte, np.ubyte, np.short, np.ushort, np.intc, np.uintc,
          np.int_, np.uint, np.longlong, np.ulonglong,
@@ -146,6 +152,7 @@ def test_int_float_promotion_truediv(fscalar):
 
 
 class TestBaseMath:
+    @pytest.mark.xfail(_SUPPORTS_SVE, reason="gh-22982")
     def test_blocked(self):
         # test alignments offsets for simd instructions
         # alignments for vz + 2 * (vs - 1) + 1
@@ -797,7 +804,13 @@ class TestBitShifts:
     @pytest.mark.parametrize('op',
         [operator.rshift, operator.lshift], ids=['>>', '<<'])
     def test_shift_all_bits(self, type_code, op):
-        """ Shifts where the shift amount is the width of the type or wider """
+        """Shifts where the shift amount is the width of the type or wider """
+        if (
+                USING_CLANG_CL and
+                type_code in ("l", "L") and
+                op is operator.lshift
+        ):
+            pytest.xfail("Failing on clang-cl builds")
         # gh-2449
         dt = np.dtype(type_code)
         nbits = dt.itemsize * 8

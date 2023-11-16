@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: numpy
-Version: 1.24.4
+Version: 1.25.2
 Summary: Fundamental package for array computing in Python
 Home-page: https://www.numpy.org
 Author: Travis E. Oliphant et al.
@@ -9,7 +9,7 @@ Maintainer-email: numpy-discussion@python.org
 License: BSD-3-Clause
 Download-URL: https://pypi.python.org/pypi/numpy
 Project-URL: Bug Tracker, https://github.com/numpy/numpy/issues
-Project-URL: Documentation, https://numpy.org/doc/1.24
+Project-URL: Documentation, https://numpy.org/doc/1.25
 Project-URL: Source Code, https://github.com/numpy/numpy
 Platform: Windows
 Platform: Linux
@@ -23,7 +23,6 @@ Classifier: License :: OSI Approved :: BSD License
 Classifier: Programming Language :: C
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
@@ -36,13 +35,13 @@ Classifier: Operating System :: Microsoft :: Windows
 Classifier: Operating System :: POSIX
 Classifier: Operating System :: Unix
 Classifier: Operating System :: MacOS
-Requires-Python: >=3.8
+Requires-Python: >=3.9
 Description-Content-Type: text/markdown
 License-File: LICENSE.txt
 License-File: LICENSES_bundled.txt
 
 <h1 align="center">
-<img src="/branding/logo/primary/numpylogo.svg" width="300">
+<img src="https://raw.githubusercontent.com/numpy/numpy/main/branding/logo/primary/numpylogo.svg" width="300">
 </h1><br>
 
 
@@ -80,7 +79,7 @@ Testing:
 
 NumPy requires `pytest` and `hypothesis`.  Tests can then be run after installation with:
 
-    python -c 'import numpy; numpy.test()'
+    python -c "import numpy, sys; sys.exit(numpy.test() is False)"
 
 Code of Conduct
 ----------------------

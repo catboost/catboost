@@ -147,6 +147,7 @@ import os
 import copy
 import platform
 import codecs
+from pathlib import Path
 try:
     import charset_normalizer
 except ImportError:
@@ -289,21 +290,14 @@ def undo_rmbadname(names):
     return [undo_rmbadname1(_m) for _m in names]
 
 
-def getextension(name):
-    i = name.rfind('.')
-    if i == -1:
-        return ''
-    if '\\' in name[i:]:
-        return ''
-    if '/' in name[i:]:
-        return ''
-    return name[i + 1:]
-
-is_f_file = re.compile(r'.*\.(for|ftn|f77|f)\Z', re.I).match
 _has_f_header = re.compile(r'-\*-\s*fortran\s*-\*-', re.I).search
 _has_f90_header = re.compile(r'-\*-\s*f90\s*-\*-', re.I).search
 _has_fix_header = re.compile(r'-\*-\s*fix\s*-\*-', re.I).search
 _free_f90_start = re.compile(r'[^c*]\s*[^\s\d\t]', re.I).match
+
+# Extensions
+COMMON_FREE_EXTENSIONS = ['.f90', '.f95', '.f03', '.f08']
+COMMON_FIXED_EXTENSIONS = ['.for', '.ftn', '.f77', '.f']
 
 
 def openhook(filename, mode):
@@ -337,26 +331,28 @@ def openhook(filename, mode):
     return open(filename, mode, encoding=encoding)
 
 
-def is_free_format(file):
+def is_free_format(fname):
     """Check if file is in free format Fortran."""
     # f90 allows both fixed and free format, assuming fixed unless
     # signs of free format are detected.
-    result = 0
-    with openhook(file, 'r') as f:
-        line = f.readline()
+    result = False
+    if Path(fname).suffix.lower() in COMMON_FREE_EXTENSIONS:
+        result = True
+    with openhook(fname, 'r') as fhandle:
+        line = fhandle.readline()
         n = 15  # the number of non-comment lines to scan for hints
         if _has_f_header(line):
             n = 0
         elif _has_f90_header(line):
             n = 0
-            result = 1
+            result = True
         while n > 0 and line:
             if line[0] != '!' and line.strip():
                 n -= 1
                 if (line[0] != '\t' and _free_f90_start(line[:5])) or line[-2:-1] == '&':
-                    result = 1
+                    result = True
                     break
-            line = f.readline()
+            line = fhandle.readline()
     return result
 
 
@@ -412,7 +408,7 @@ def readfortrancode(ffile, dowithline=show, istop=1):
             strictf77 = 0
             sourcecodeform = 'fix'
             ext = os.path.splitext(currentfilename)[1]
-            if is_f_file(currentfilename) and \
+            if Path(currentfilename).suffix.lower() in COMMON_FIXED_EXTENSIONS and \
                     not (_has_f90_header(l) or _has_fix_header(l)):
                 strictf77 = 1
             elif is_free_format(currentfilename) and not _has_fix_header(l):
@@ -617,15 +613,15 @@ beginpattern90 = re.compile(
 groupends = (r'end|endprogram|endblockdata|endmodule|endpythonmodule|'
              r'endinterface|endsubroutine|endfunction')
 endpattern = re.compile(
-    beforethisafter % ('', groupends, groupends, r'.*'), re.I), 'end'
+    beforethisafter % ('', groupends, groupends, '.*'), re.I), 'end'
 endifs = r'end\s*(if|do|where|select|while|forall|associate|block|' + \
          r'critical|enum|team)'
 endifpattern = re.compile(
-    beforethisafter % (r'[\w]*?', endifs, endifs, r'[\w\s]*'), re.I), 'endif'
+    beforethisafter % (r'[\w]*?', endifs, endifs, '.*'), re.I), 'endif'
 #
 moduleprocedures = r'module\s*procedure'
 moduleprocedurepattern = re.compile(
-    beforethisafter % ('', moduleprocedures, moduleprocedures, r'.*'), re.I), \
+    beforethisafter % ('', moduleprocedures, moduleprocedures, '.*'), re.I), \
     'moduleprocedure'
 implicitpattern = re.compile(
     beforethisafter % ('', 'implicit', 'implicit', '.*'), re.I), 'implicit'
@@ -939,7 +935,7 @@ typedefpattern = re.compile(
     r'(?:,(?P<attributes>[\w(),]+))?(::)?(?P<name>\b[a-z$_][\w$]*\b)'
     r'(?:\((?P<params>[\w,]*)\))?\Z', re.I)
 nameargspattern = re.compile(
-    r'\s*(?P<name>\b[\w$]+\b)\s*(@\(@\s*(?P<args>[\w\s,]*)\s*@\)@|)\s*((result(\s*@\(@\s*(?P<result>\b[\w$]+\b)\s*@\)@|))|(bind\s*@\(@\s*(?P<bind>.*)\s*@\)@))*\s*\Z', re.I)
+    r'\s*(?P<name>\b[\w$]+\b)\s*(@\(@\s*(?P<args>[\w\s,]*)\s*@\)@|)\s*((result(\s*@\(@\s*(?P<result>\b[\w$]+\b)\s*@\)@|))|(bind\s*@\(@\s*(?P<bind>(?:(?!@\)@).)*)\s*@\)@))*\s*\Z', re.I)
 operatorpattern = re.compile(
     r'\s*(?P<scheme>(operator|assignment))'
     r'@\(@\s*(?P<name>[^)]+)\s*@\)@\s*\Z', re.I)
@@ -2183,6 +2179,13 @@ def analyzebody(block, args, tab=''):
     global usermodules, skipfuncs, onlyfuncs, f90modulevars
 
     setmesstext(block)
+
+    maybe_private = {
+        key: value
+        for key, value in block['vars'].items()
+        if 'attrspec' not in value or 'public' not in value['attrspec']
+    }
+
     body = []
     for b in block['body']:
         b['parent_block'] = block
@@ -2191,6 +2194,9 @@ def analyzebody(block, args, tab=''):
                 continue
             else:
                 as_ = b['args']
+            # Add private members to skipfuncs for gh-23879
+            if b['name'] in maybe_private.keys():
+                skipfuncs.append(b['name'])
             if b['name'] in skipfuncs:
                 continue
             if onlyfuncs and b['name'] not in onlyfuncs:
@@ -2397,19 +2403,19 @@ def _selected_int_kind_func(r):
 
 def _selected_real_kind_func(p, r=0, radix=0):
     # XXX: This should be processor dependent
-    # This is only good for 0 <= p <= 20
+    # This is only verified for 0 <= p <= 20, possibly good for p <= 33 and above
     if p < 7:
         return 4
     if p < 16:
         return 8
     machine = platform.machine().lower()
-    if machine.startswith(('aarch64', 'power', 'ppc', 'riscv', 's390x', 'sparc')):
-        if p <= 20:
+    if machine.startswith(('aarch64', 'arm64', 'power', 'ppc', 'riscv', 's390x', 'sparc')):
+        if p <= 33:
             return 16
     else:
         if p < 19:
             return 10
-        elif p <= 20:
+        elif p <= 33:
             return 16
     return -1
 
@@ -2860,6 +2866,11 @@ def analyzevars(block):
                         kindselect, charselect, typename = cracktypespec(
                             typespec, selector)
                         vars[n]['typespec'] = typespec
+                        try:
+                            if block['result']:
+                                vars[block['result']]['typespec'] = typespec
+                        except Exception:
+                            pass
                         if kindselect:
                             if 'kind' in kindselect:
                                 try:

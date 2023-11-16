@@ -27,6 +27,7 @@
 #include <numpy/npy_common.h>
 #include <numpy/arrayobject.h>
 #include <npy_pycompat.h>
+#include <array_assign.h>   //PyArray_AssignRawScalar
 
 #include <ctype.h>
 
@@ -331,8 +332,7 @@ get_single_op_view(PyArrayObject *op, char *labels,
                 Py_TYPE(op), PyArray_DESCR(op),
                 ndim_output, new_dims, new_strides, PyArray_DATA(op),
                 PyArray_ISWRITEABLE(op) ? NPY_ARRAY_WRITEABLE : 0,
-                (PyObject *)op, (PyObject *)op,
-                0, 0);
+                (PyObject *)op, (PyObject *)op, 0);
 
         if (*ret == NULL) {
             return -1;
@@ -542,9 +542,16 @@ unbuffered_loop_nop1_ndim2(NpyIter *iter)
      * Since the iterator wasn't tracking coordinates, the
      * loop provided by the iterator is in Fortran-order.
      */
-    NPY_BEGIN_THREADS_THRESHOLDED(shape[1] * shape[0]);
+    int needs_api = NpyIter_IterationNeedsAPI(iter);
+    if (!needs_api) {
+        NPY_BEGIN_THREADS_THRESHOLDED(shape[1] * shape[0]);
+    }
     for (coord = shape[1]; coord > 0; --coord) {
         sop(1, ptrs[0], strides[0], shape[0]);
+
+        if (needs_api && PyErr_Occurred()){
+            return -1;
+        }
 
         ptr = ptrs[1][0] + strides[1][0];
         ptrs[0][0] = ptrs[1][0] = ptr;
@@ -596,10 +603,17 @@ unbuffered_loop_nop1_ndim3(NpyIter *iter)
      * Since the iterator wasn't tracking coordinates, the
      * loop provided by the iterator is in Fortran-order.
      */
-    NPY_BEGIN_THREADS_THRESHOLDED(shape[2] * shape[1] * shape[0]);
+    int needs_api = NpyIter_IterationNeedsAPI(iter);
+    if (!needs_api) {
+        NPY_BEGIN_THREADS_THRESHOLDED(shape[2] * shape[1] * shape[0]);
+    }
     for (coords[1] = shape[2]; coords[1] > 0; --coords[1]) {
         for (coords[0] = shape[1]; coords[0] > 0; --coords[0]) {
             sop(1, ptrs[0], strides[0], shape[0]);
+
+            if (needs_api && PyErr_Occurred()){
+                return -1;
+            }
 
             ptr = ptrs[1][0] + strides[1][0];
             ptrs[0][0] = ptrs[1][0] = ptr;
@@ -653,9 +667,16 @@ unbuffered_loop_nop2_ndim2(NpyIter *iter)
      * Since the iterator wasn't tracking coordinates, the
      * loop provided by the iterator is in Fortran-order.
      */
-    NPY_BEGIN_THREADS_THRESHOLDED(shape[1] * shape[0]);
+    int needs_api = NpyIter_IterationNeedsAPI(iter);
+    if (!needs_api) {
+        NPY_BEGIN_THREADS_THRESHOLDED(shape[1] * shape[0]);
+    }
     for (coord = shape[1]; coord > 0; --coord) {
         sop(2, ptrs[0], strides[0], shape[0]);
+
+        if(needs_api && PyErr_Occurred()){
+            return -1;
+        }
 
         ptr = ptrs[1][0] + strides[1][0];
         ptrs[0][0] = ptrs[1][0] = ptr;
@@ -709,10 +730,17 @@ unbuffered_loop_nop2_ndim3(NpyIter *iter)
      * Since the iterator wasn't tracking coordinates, the
      * loop provided by the iterator is in Fortran-order.
      */
-    NPY_BEGIN_THREADS_THRESHOLDED(shape[2] * shape[1] * shape[0]);
+    int needs_api = NpyIter_IterationNeedsAPI(iter);
+    if (!needs_api) {
+        NPY_BEGIN_THREADS_THRESHOLDED(shape[2] * shape[1] * shape[0]);
+    }
     for (coords[1] = shape[2]; coords[1] > 0; --coords[1]) {
         for (coords[0] = shape[1]; coords[0] > 0; --coords[0]) {
             sop(2, ptrs[0], strides[0], shape[0]);
+
+            if(needs_api && PyErr_Occurred()){
+                return -1;
+            }
 
             ptr = ptrs[1][0] + strides[1][0];
             ptrs[0][0] = ptrs[1][0] = ptr;
@@ -796,7 +824,7 @@ PyArray_EinsteinSum(char *subscripts, npy_intp nop,
     int *op_axes[NPY_MAXARGS];
     npy_uint32 iter_flags, op_flags[NPY_MAXARGS];
 
-    NpyIter *iter;
+    NpyIter *iter = NULL;
     sum_of_products_fn sop;
     npy_intp fixed_strides[NPY_MAXARGS];
 
@@ -1035,7 +1063,7 @@ PyArray_EinsteinSum(char *subscripts, npy_intp nop,
         goto fail;
     }
 
-    /* Initialize the output to all zeros */
+    /* Initialize the output to all zeros or None*/
     ret = NpyIter_GetOperandArray(iter)[nop];
     if (PyArray_AssignZero(ret, NULL) < 0) {
         goto fail;
@@ -1115,7 +1143,6 @@ PyArray_EinsteinSum(char *subscripts, npy_intp nop,
 
         iternext = NpyIter_GetIterNext(iter, NULL);
         if (iternext == NULL) {
-            NpyIter_Deallocate(iter);
             goto fail;
         }
         dataptr = NpyIter_GetDataPtrArray(iter);
@@ -1150,6 +1177,7 @@ finish:
     return ret;
 
 fail:
+    NpyIter_Deallocate(iter);
     for (iop = 0; iop < nop; ++iop) {
         Py_XDECREF(op[iop]);
     }

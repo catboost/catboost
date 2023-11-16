@@ -48,7 +48,7 @@
 
 #if NPY_SIMD
 #line 45
-static NPY_INLINE void
+static inline void
 simd_divide_by_scalar_contig_s8(char **args, npy_intp len)
 {
     npyv_lanetype_s8 *src   = (npyv_lanetype_s8 *) args[0];
@@ -109,7 +109,7 @@ simd_divide_by_scalar_contig_s8(char **args, npy_intp len)
 }
 
 #line 45
-static NPY_INLINE void
+static inline void
 simd_divide_by_scalar_contig_s16(char **args, npy_intp len)
 {
     npyv_lanetype_s16 *src   = (npyv_lanetype_s16 *) args[0];
@@ -170,7 +170,7 @@ simd_divide_by_scalar_contig_s16(char **args, npy_intp len)
 }
 
 #line 45
-static NPY_INLINE void
+static inline void
 simd_divide_by_scalar_contig_s32(char **args, npy_intp len)
 {
     npyv_lanetype_s32 *src   = (npyv_lanetype_s32 *) args[0];
@@ -231,7 +231,7 @@ simd_divide_by_scalar_contig_s32(char **args, npy_intp len)
 }
 
 #line 45
-static NPY_INLINE void
+static inline void
 simd_divide_by_scalar_contig_s64(char **args, npy_intp len)
 {
     npyv_lanetype_s64 *src   = (npyv_lanetype_s64 *) args[0];
@@ -293,7 +293,7 @@ simd_divide_by_scalar_contig_s64(char **args, npy_intp len)
 
 
 #line 111
-static NPY_INLINE void
+static inline void
 simd_divide_by_scalar_contig_u8(char **args, npy_intp len)
 {
     npyv_lanetype_u8 *src   = (npyv_lanetype_u8 *) args[0];
@@ -316,7 +316,7 @@ simd_divide_by_scalar_contig_u8(char **args, npy_intp len)
 }
 
 #line 111
-static NPY_INLINE void
+static inline void
 simd_divide_by_scalar_contig_u16(char **args, npy_intp len)
 {
     npyv_lanetype_u16 *src   = (npyv_lanetype_u16 *) args[0];
@@ -339,7 +339,7 @@ simd_divide_by_scalar_contig_u16(char **args, npy_intp len)
 }
 
 #line 111
-static NPY_INLINE void
+static inline void
 simd_divide_by_scalar_contig_u32(char **args, npy_intp len)
 {
     npyv_lanetype_u32 *src   = (npyv_lanetype_u32 *) args[0];
@@ -362,7 +362,7 @@ simd_divide_by_scalar_contig_u32(char **args, npy_intp len)
 }
 
 #line 111
-static NPY_INLINE void
+static inline void
 simd_divide_by_scalar_contig_u64(char **args, npy_intp len)
 {
     npyv_lanetype_u64 *src   = (npyv_lanetype_u64 *) args[0];
@@ -519,7 +519,7 @@ vsx4_div_s16(npyv_s16 a, npyv_s16 b)
 
 
 #line 210
-static NPY_INLINE void
+static inline void
 vsx4_simd_divide_contig_u8(char **args, npy_intp len)
 {
     npyv_lanetype_u8 *src1 = (npyv_lanetype_u8 *) args[0];
@@ -553,7 +553,7 @@ vsx4_simd_divide_contig_u8(char **args, npy_intp len)
 }
 
 #line 210
-static NPY_INLINE void
+static inline void
 vsx4_simd_divide_contig_u16(char **args, npy_intp len)
 {
     npyv_lanetype_u16 *src1 = (npyv_lanetype_u16 *) args[0];
@@ -587,7 +587,7 @@ vsx4_simd_divide_contig_u16(char **args, npy_intp len)
 }
 
 #line 210
-static NPY_INLINE void
+static inline void
 vsx4_simd_divide_contig_u32(char **args, npy_intp len)
 {
     npyv_lanetype_u32 *src1 = (npyv_lanetype_u32 *) args[0];
@@ -621,7 +621,7 @@ vsx4_simd_divide_contig_u32(char **args, npy_intp len)
 }
 
 #line 210
-static NPY_INLINE void
+static inline void
 vsx4_simd_divide_contig_u64(char **args, npy_intp len)
 {
     npyv_lanetype_u64 *src1 = (npyv_lanetype_u64 *) args[0];
@@ -656,7 +656,7 @@ vsx4_simd_divide_contig_u64(char **args, npy_intp len)
 
 
 #line 249
-static NPY_INLINE void
+static inline void
 vsx4_simd_divide_contig_s8(char **args, npy_intp len)
 {
     npyv_lanetype_s8 *src1 = (npyv_lanetype_s8 *) args[0];
@@ -725,7 +725,7 @@ vsx4_simd_divide_contig_s8(char **args, npy_intp len)
 }
 
 #line 249
-static NPY_INLINE void
+static inline void
 vsx4_simd_divide_contig_s16(char **args, npy_intp len)
 {
     npyv_lanetype_s16 *src1 = (npyv_lanetype_s16 *) args[0];
@@ -794,7 +794,7 @@ vsx4_simd_divide_contig_s16(char **args, npy_intp len)
 }
 
 #line 249
-static NPY_INLINE void
+static inline void
 vsx4_simd_divide_contig_s32(char **args, npy_intp len)
 {
     npyv_lanetype_s32 *src1 = (npyv_lanetype_s32 *) args[0];
@@ -863,7 +863,7 @@ vsx4_simd_divide_contig_s32(char **args, npy_intp len)
 }
 
 #line 249
-static NPY_INLINE void
+static inline void
 vsx4_simd_divide_contig_s64(char **args, npy_intp len)
 {
     npyv_lanetype_s64 *src1 = (npyv_lanetype_s64 *) args[0];
@@ -1019,6 +1019,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(BYTE_divide)
     }
 }
 
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_byte *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_byte *)(ip1 + is1 * indx);
+        *indexed = floor_div_BYTE(*indexed, *(npy_byte *)value);
+    }
+    return 0;
+}
+
+
 #line 329
 #undef TO_SIMD_SFX
 #if 0
@@ -1099,6 +1122,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(SHORT_divide)
         }
     }
 }
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_short *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_short *)(ip1 + is1 * indx);
+        *indexed = floor_div_SHORT(*indexed, *(npy_short *)value);
+    }
+    return 0;
+}
+
 
 #line 329
 #undef TO_SIMD_SFX
@@ -1181,6 +1227,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(INT_divide)
     }
 }
 
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_int *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_int *)(ip1 + is1 * indx);
+        *indexed = floor_div_INT(*indexed, *(npy_int *)value);
+    }
+    return 0;
+}
+
+
 #line 329
 #undef TO_SIMD_SFX
 #if 0
@@ -1261,6 +1330,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONG_divide)
         }
     }
 }
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_long *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_long *)(ip1 + is1 * indx);
+        *indexed = floor_div_LONG(*indexed, *(npy_long *)value);
+    }
+    return 0;
+}
+
 
 #line 329
 #undef TO_SIMD_SFX
@@ -1343,23 +1435,46 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGLONG_divide)
     }
 }
 
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_longlong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_longlong *)(ip1 + is1 * indx);
+        *indexed = floor_div_LONGLONG(*indexed, *(npy_longlong *)value);
+    }
+    return 0;
+}
 
-#line 406
+
+
+#line 429
 #undef TO_SIMD_SFX
 #if 0
-#line 411
+#line 434
 #elif NPY_BITSOF_BYTE == 8
     #define TO_SIMD_SFX(X) X##_u8
 
-#line 411
+#line 434
 #elif NPY_BITSOF_BYTE == 16
     #define TO_SIMD_SFX(X) X##_u16
 
-#line 411
+#line 434
 #elif NPY_BITSOF_BYTE == 32
     #define TO_SIMD_SFX(X) X##_u32
 
-#line 411
+#line 434
 #elif NPY_BITSOF_BYTE == 64
     #define TO_SIMD_SFX(X) X##_u64
 
@@ -1416,22 +1531,51 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UBYTE_divide)
     }
 }
 
-#line 406
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_ubyte *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ubyte *)(ip1 + is1 * indx);
+        npy_ubyte in2 = *(npy_ubyte *)value;
+        if (NPY_UNLIKELY(in2 == 0)) {
+            npy_set_floatstatus_divbyzero();
+            *indexed = 0;
+        } else {
+            *indexed = *indexed / in2;
+        }
+    }
+    return 0;
+}
+
+
+#line 429
 #undef TO_SIMD_SFX
 #if 0
-#line 411
+#line 434
 #elif NPY_BITSOF_SHORT == 8
     #define TO_SIMD_SFX(X) X##_u8
 
-#line 411
+#line 434
 #elif NPY_BITSOF_SHORT == 16
     #define TO_SIMD_SFX(X) X##_u16
 
-#line 411
+#line 434
 #elif NPY_BITSOF_SHORT == 32
     #define TO_SIMD_SFX(X) X##_u32
 
-#line 411
+#line 434
 #elif NPY_BITSOF_SHORT == 64
     #define TO_SIMD_SFX(X) X##_u64
 
@@ -1488,22 +1632,51 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(USHORT_divide)
     }
 }
 
-#line 406
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_ushort *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ushort *)(ip1 + is1 * indx);
+        npy_ushort in2 = *(npy_ushort *)value;
+        if (NPY_UNLIKELY(in2 == 0)) {
+            npy_set_floatstatus_divbyzero();
+            *indexed = 0;
+        } else {
+            *indexed = *indexed / in2;
+        }
+    }
+    return 0;
+}
+
+
+#line 429
 #undef TO_SIMD_SFX
 #if 0
-#line 411
+#line 434
 #elif NPY_BITSOF_INT == 8
     #define TO_SIMD_SFX(X) X##_u8
 
-#line 411
+#line 434
 #elif NPY_BITSOF_INT == 16
     #define TO_SIMD_SFX(X) X##_u16
 
-#line 411
+#line 434
 #elif NPY_BITSOF_INT == 32
     #define TO_SIMD_SFX(X) X##_u32
 
-#line 411
+#line 434
 #elif NPY_BITSOF_INT == 64
     #define TO_SIMD_SFX(X) X##_u64
 
@@ -1560,22 +1733,51 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UINT_divide)
     }
 }
 
-#line 406
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_uint *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_uint *)(ip1 + is1 * indx);
+        npy_uint in2 = *(npy_uint *)value;
+        if (NPY_UNLIKELY(in2 == 0)) {
+            npy_set_floatstatus_divbyzero();
+            *indexed = 0;
+        } else {
+            *indexed = *indexed / in2;
+        }
+    }
+    return 0;
+}
+
+
+#line 429
 #undef TO_SIMD_SFX
 #if 0
-#line 411
+#line 434
 #elif NPY_BITSOF_LONG == 8
     #define TO_SIMD_SFX(X) X##_u8
 
-#line 411
+#line 434
 #elif NPY_BITSOF_LONG == 16
     #define TO_SIMD_SFX(X) X##_u16
 
-#line 411
+#line 434
 #elif NPY_BITSOF_LONG == 32
     #define TO_SIMD_SFX(X) X##_u32
 
-#line 411
+#line 434
 #elif NPY_BITSOF_LONG == 64
     #define TO_SIMD_SFX(X) X##_u64
 
@@ -1632,22 +1834,51 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONG_divide)
     }
 }
 
-#line 406
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_ulong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ulong *)(ip1 + is1 * indx);
+        npy_ulong in2 = *(npy_ulong *)value;
+        if (NPY_UNLIKELY(in2 == 0)) {
+            npy_set_floatstatus_divbyzero();
+            *indexed = 0;
+        } else {
+            *indexed = *indexed / in2;
+        }
+    }
+    return 0;
+}
+
+
+#line 429
 #undef TO_SIMD_SFX
 #if 0
-#line 411
+#line 434
 #elif NPY_BITSOF_LONGLONG == 8
     #define TO_SIMD_SFX(X) X##_u8
 
-#line 411
+#line 434
 #elif NPY_BITSOF_LONGLONG == 16
     #define TO_SIMD_SFX(X) X##_u16
 
-#line 411
+#line 434
 #elif NPY_BITSOF_LONGLONG == 32
     #define TO_SIMD_SFX(X) X##_u32
 
-#line 411
+#line 434
 #elif NPY_BITSOF_LONGLONG == 64
     #define TO_SIMD_SFX(X) X##_u64
 
@@ -1703,5 +1934,34 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONGLONG_divide)
         }
     }
 }
+
+NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_divide_indexed)
+(PyArrayMethod_Context *NPY_UNUSED(context), char * const*args, npy_intp const *dimensions, npy_intp const *steps, NpyAuxData *NPY_UNUSED(func))
+{
+    char *ip1 = args[0];
+    char *indxp = args[1];
+    char *value = args[2];
+    npy_intp is1 = steps[0], isindex = steps[1], isb = steps[2];
+    npy_intp shape = steps[3];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    npy_ulonglong *indexed;
+    for(i = 0; i < n; i++, indxp += isindex, value += isb) {
+        npy_intp indx = *(npy_intp *)indxp;
+        if (indx < 0) {
+            indx += shape;
+        }
+        indexed = (npy_ulonglong *)(ip1 + is1 * indx);
+        npy_ulonglong in2 = *(npy_ulonglong *)value;
+        if (NPY_UNLIKELY(in2 == 0)) {
+            npy_set_floatstatus_divbyzero();
+            *indexed = 0;
+        } else {
+            *indexed = *indexed / in2;
+        }
+    }
+    return 0;
+}
+
 
 

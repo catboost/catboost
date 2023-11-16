@@ -1194,55 +1194,8 @@ simd_atanh_f64(const npyv_lanetype_f64 *src, npy_intp ssrc,
 
 
 
-#line 65
-static void
-simd_sin_f64(const double *src, npy_intp ssrc,
-                      double *dst, npy_intp sdst, npy_intp len)
-{
-    const int vstep = npyv_nlanes_f64;
-    for (; len > 0; len -= vstep, src += ssrc*vstep, dst += sdst*vstep) {
-        npyv_f64 x;
-        if (ssrc == 1) {
-            x = npyv_load_tillz_f64(src, len);
-        } else {
-            x = npyv_loadn_tillz_f64(src, ssrc, len);
-        }
-        npyv_f64 out = __svml_sin8(x);
-        if (sdst == 1) {
-            npyv_store_till_f64(dst, len, out);
-        } else {
-            npyv_storen_till_f64(dst, sdst, len, out);
-        }
-    }
-    npyv_cleanup();
-}
-
-#line 65
-static void
-simd_cos_f64(const double *src, npy_intp ssrc,
-                      double *dst, npy_intp sdst, npy_intp len)
-{
-    const int vstep = npyv_nlanes_f64;
-    for (; len > 0; len -= vstep, src += ssrc*vstep, dst += sdst*vstep) {
-        npyv_f64 x;
-        if (ssrc == 1) {
-            x = npyv_load_tillz_f64(src, len);
-        } else {
-            x = npyv_loadn_tillz_f64(src, ssrc, len);
-        }
-        npyv_f64 out = __svml_cos8(x);
-        if (sdst == 1) {
-            npyv_store_till_f64(dst, len, out);
-        } else {
-            npyv_storen_till_f64(dst, sdst, len, out);
-        }
-    }
-    npyv_cleanup();
-}
-
-
-#line 92
-#line 95
+#line 66
+#line 69
 
 static void
 simd_pow_f32(const npyv_lanetype_f32 *src1, npy_intp ssrc1,
@@ -1274,7 +1227,7 @@ simd_pow_f32(const npyv_lanetype_f32 *src1, npy_intp ssrc1,
     }
 }
 
-#line 95
+#line 69
 
 static void
 simd_atan2_f32(const npyv_lanetype_f32 *src1, npy_intp ssrc1,
@@ -1307,8 +1260,8 @@ simd_atan2_f32(const npyv_lanetype_f32 *src1, npy_intp ssrc1,
 }
 
 
-#line 92
-#line 95
+#line 66
+#line 69
 
 static void
 simd_pow_f64(const npyv_lanetype_f64 *src1, npy_intp ssrc1,
@@ -1340,7 +1293,7 @@ simd_pow_f64(const npyv_lanetype_f64 *src1, npy_intp ssrc1,
     }
 }
 
-#line 95
+#line 69
 
 static void
 simd_atan2_f64(const npyv_lanetype_f64 *src1, npy_intp ssrc1,
@@ -1393,7 +1346,7 @@ NPY_FINLINE void npyvh_store_till_f16(npy_half *ptr, npy_uintp nlane, npyvh_f16 
     _mm256_mask_storeu_epi16(ptr, mask, data);
 }
 
-#line 151
+#line 125
 static void
 avx512_sin_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1419,7 +1372,7 @@ avx512_sin_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_cos_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1445,7 +1398,7 @@ avx512_cos_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_tan_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1471,7 +1424,7 @@ avx512_tan_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_exp_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1497,7 +1450,7 @@ avx512_exp_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_exp2_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1523,7 +1476,7 @@ avx512_exp2_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_expm1_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1549,7 +1502,7 @@ avx512_expm1_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_log_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1575,7 +1528,7 @@ avx512_log_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_log2_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1601,7 +1554,7 @@ avx512_log2_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_log10_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1627,7 +1580,7 @@ avx512_log10_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_log1p_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1653,7 +1606,7 @@ avx512_log1p_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_cbrt_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1679,7 +1632,7 @@ avx512_cbrt_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_asin_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1705,7 +1658,7 @@ avx512_asin_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_acos_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1731,7 +1684,7 @@ avx512_acos_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_atan_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1757,7 +1710,7 @@ avx512_atan_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_sinh_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1783,7 +1736,7 @@ avx512_sinh_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_cosh_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1809,7 +1762,7 @@ avx512_cosh_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_tanh_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1835,7 +1788,7 @@ avx512_tanh_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_asinh_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1861,7 +1814,7 @@ avx512_asinh_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_acosh_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1887,7 +1840,7 @@ avx512_acosh_f16(const npy_half *src, npy_half *dst, npy_intp len)
     npyv_cleanup();
 }
 
-#line 151
+#line 125
 static void
 avx512_atanh_f16(const npy_half *src, npy_half *dst, npy_intp len)
 {
@@ -1915,7 +1868,7 @@ avx512_atanh_f16(const npy_half *src, npy_half *dst, npy_intp len)
 
 #endif
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_sin)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1939,7 +1892,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_sin)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_cos)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1963,7 +1916,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_cos)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_tan)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1987,7 +1940,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_tan)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_exp)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2011,7 +1964,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_exp)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_exp2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2035,7 +1988,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_exp2)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_expm1)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2059,7 +2012,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_expm1)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2083,7 +2036,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2107,7 +2060,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log2)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log10)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2131,7 +2084,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log10)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log1p)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2155,7 +2108,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_log1p)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_cbrt)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2179,7 +2132,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_cbrt)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arcsin)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2203,7 +2156,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arcsin)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arccos)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2227,7 +2180,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arccos)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arctan)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2251,7 +2204,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arctan)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_sinh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2275,7 +2228,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_sinh)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_cosh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2299,7 +2252,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_cosh)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_tanh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2323,7 +2276,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_tanh)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arcsinh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2347,7 +2300,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arcsinh)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arccosh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2371,7 +2324,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arccosh)
     }
 }
 
-#line 182
+#line 156
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arctanh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2396,8 +2349,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(HALF_arctanh)
 }
 
 
-#line 212
-#line 216
+#line 186
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_exp2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2422,7 +2375,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_exp2)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2447,7 +2400,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log2)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log10)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2472,7 +2425,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log10)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_expm1)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2497,7 +2450,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_expm1)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log1p)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2522,7 +2475,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log1p)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cbrt)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2547,7 +2500,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cbrt)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_tan)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2572,7 +2525,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_tan)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arcsin)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2597,7 +2550,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arcsin)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arccos)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2622,7 +2575,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arccos)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctan)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2647,7 +2600,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctan)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_sinh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2672,7 +2625,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_sinh)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cosh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2697,7 +2650,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cosh)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arcsinh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2722,7 +2675,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arcsinh)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arccosh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2747,7 +2700,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arccosh)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctanh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2773,8 +2726,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctanh)
 }
 
 
-#line 212
-#line 216
+#line 186
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_exp2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2799,7 +2752,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_exp2)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2824,7 +2777,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log2)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log10)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2849,7 +2802,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log10)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_expm1)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2874,7 +2827,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_expm1)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log1p)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2899,7 +2852,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log1p)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cbrt)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2924,7 +2877,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cbrt)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_tan)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2949,7 +2902,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_tan)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arcsin)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2974,7 +2927,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arcsin)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arccos)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -2999,7 +2952,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arccos)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctan)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -3024,7 +2977,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctan)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_sinh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -3049,7 +3002,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_sinh)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cosh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -3074,7 +3027,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cosh)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arcsinh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -3099,7 +3052,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arcsinh)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arccosh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -3124,7 +3077,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arccosh)
     }
 }
 
-#line 216
+#line 190
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctanh)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -3151,8 +3104,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctanh)
 
 
 
-#line 248
-#line 252
+#line 222
+#line 226
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_power)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -3180,7 +3133,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_power)
     }
 }
 
-#line 252
+#line 226
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctan2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -3209,8 +3162,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_arctan2)
 }
 
 
-#line 248
-#line 252
+#line 222
+#line 226
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_power)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -3238,7 +3191,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_power)
     }
 }
 
-#line 252
+#line 226
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctan2)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -3266,56 +3219,5 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_arctan2)
     }
 }
 
-
-
-#line 284
-NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_sin)
-(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
-{
-#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
-    const double *src = (double*)args[0];
-          double *dst = (double*)args[1];
-    const int lsize = sizeof(src[0]);
-    const npy_intp ssrc = steps[0] / lsize;
-    const npy_intp sdst = steps[1] / lsize;
-    const npy_intp len = dimensions[0];
-    assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
-    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
-        npyv_loadable_stride_f64(ssrc) &&
-        npyv_storable_stride_f64(sdst)) {
-        simd_sin_f64(src, ssrc, dst, sdst, len);
-        return;
-    }
-#endif
-    UNARY_LOOP {
-        const npy_double in1 = *(npy_double *)ip1;
-        *(npy_double *)op1 = npy_sin(in1);
-    }
-}
-
-#line 284
-NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cos)
-(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
-{
-#if NPY_SIMD && defined(NPY_HAVE_AVX512_SKX) && defined(NPY_CAN_LINK_SVML)
-    const double *src = (double*)args[0];
-          double *dst = (double*)args[1];
-    const int lsize = sizeof(src[0]);
-    const npy_intp ssrc = steps[0] / lsize;
-    const npy_intp sdst = steps[1] / lsize;
-    const npy_intp len = dimensions[0];
-    assert(len <= 1 || (steps[0] % lsize == 0 && steps[1] % lsize == 0));
-    if (!is_mem_overlap(src, steps[0], dst, steps[1], len) &&
-        npyv_loadable_stride_f64(ssrc) &&
-        npyv_storable_stride_f64(sdst)) {
-        simd_cos_f64(src, ssrc, dst, sdst, len);
-        return;
-    }
-#endif
-    UNARY_LOOP {
-        const npy_double in1 = *(npy_double *)ip1;
-        *(npy_double *)op1 = npy_cos(in1);
-    }
-}
 
 

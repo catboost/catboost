@@ -109,132 +109,135 @@ static void **PyUFunc_API=NULL;
 #define PyUFunc_Type (*(PyTypeObject *)PyUFunc_API[0])
 #define PyUFunc_FromFuncAndData \
         (*(PyObject * (*)(PyUFuncGenericFunction *, void **, char *, int, int, int, int, const char *, const char *, int)) \
-         PyUFunc_API[1])
+    PyUFunc_API[1])
 #define PyUFunc_RegisterLoopForType \
         (*(int (*)(PyUFuncObject *, int, PyUFuncGenericFunction, const int *, void *)) \
-         PyUFunc_API[2])
+    PyUFunc_API[2])
 #define PyUFunc_GenericFunction \
         (*(int (*)(PyUFuncObject *NPY_UNUSED(ufunc), PyObject *NPY_UNUSED(args), PyObject *NPY_UNUSED(kwds), PyArrayObject **NPY_UNUSED(op))) \
-         PyUFunc_API[3])
+    PyUFunc_API[3])
 #define PyUFunc_f_f_As_d_d \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[4])
+    PyUFunc_API[4])
 #define PyUFunc_d_d \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[5])
+    PyUFunc_API[5])
 #define PyUFunc_f_f \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[6])
+    PyUFunc_API[6])
 #define PyUFunc_g_g \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[7])
+    PyUFunc_API[7])
 #define PyUFunc_F_F_As_D_D \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[8])
+    PyUFunc_API[8])
 #define PyUFunc_F_F \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[9])
+    PyUFunc_API[9])
 #define PyUFunc_D_D \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[10])
+    PyUFunc_API[10])
 #define PyUFunc_G_G \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[11])
+    PyUFunc_API[11])
 #define PyUFunc_O_O \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[12])
+    PyUFunc_API[12])
 #define PyUFunc_ff_f_As_dd_d \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[13])
+    PyUFunc_API[13])
 #define PyUFunc_ff_f \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[14])
+    PyUFunc_API[14])
 #define PyUFunc_dd_d \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[15])
+    PyUFunc_API[15])
 #define PyUFunc_gg_g \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[16])
+    PyUFunc_API[16])
 #define PyUFunc_FF_F_As_DD_D \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[17])
+    PyUFunc_API[17])
 #define PyUFunc_DD_D \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[18])
+    PyUFunc_API[18])
 #define PyUFunc_FF_F \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[19])
+    PyUFunc_API[19])
 #define PyUFunc_GG_G \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[20])
+    PyUFunc_API[20])
 #define PyUFunc_OO_O \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[21])
+    PyUFunc_API[21])
 #define PyUFunc_O_O_method \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[22])
+    PyUFunc_API[22])
 #define PyUFunc_OO_O_method \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[23])
+    PyUFunc_API[23])
 #define PyUFunc_On_Om \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[24])
+    PyUFunc_API[24])
 #define PyUFunc_GetPyValues \
         (*(int (*)(char *, int *, int *, PyObject **)) \
-         PyUFunc_API[25])
+    PyUFunc_API[25])
 #define PyUFunc_checkfperr \
         (*(int (*)(int, PyObject *, int *)) \
-         PyUFunc_API[26])
+    PyUFunc_API[26])
 #define PyUFunc_clearfperr \
         (*(void (*)(void)) \
-         PyUFunc_API[27])
+    PyUFunc_API[27])
 #define PyUFunc_getfperr \
         (*(int (*)(void)) \
-         PyUFunc_API[28])
+    PyUFunc_API[28])
 #define PyUFunc_handlefperr \
         (*(int (*)(int, PyObject *, int, int *)) \
-         PyUFunc_API[29])
+    PyUFunc_API[29])
 #define PyUFunc_ReplaceLoopBySignature \
         (*(int (*)(PyUFuncObject *, PyUFuncGenericFunction, const int *, PyUFuncGenericFunction *)) \
-         PyUFunc_API[30])
+    PyUFunc_API[30])
 #define PyUFunc_FromFuncAndDataAndSignature \
         (*(PyObject * (*)(PyUFuncGenericFunction *, void **, char *, int, int, int, int, const char *, const char *, int, const char *)) \
-         PyUFunc_API[31])
+    PyUFunc_API[31])
 #define PyUFunc_SetUsesArraysAsData \
         (*(int (*)(void **NPY_UNUSED(data), size_t NPY_UNUSED(i))) \
-         PyUFunc_API[32])
+    PyUFunc_API[32])
 #define PyUFunc_e_e \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[33])
+    PyUFunc_API[33])
 #define PyUFunc_e_e_As_f_f \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[34])
+    PyUFunc_API[34])
 #define PyUFunc_e_e_As_d_d \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[35])
+    PyUFunc_API[35])
 #define PyUFunc_ee_e \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[36])
+    PyUFunc_API[36])
 #define PyUFunc_ee_e_As_ff_f \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[37])
+    PyUFunc_API[37])
 #define PyUFunc_ee_e_As_dd_d \
         (*(void (*)(char **, npy_intp const *, npy_intp const *, void *)) \
-         PyUFunc_API[38])
+    PyUFunc_API[38])
 #define PyUFunc_DefaultTypeResolver \
         (*(int (*)(PyUFuncObject *, NPY_CASTING, PyArrayObject **, PyObject *, PyArray_Descr **)) \
-         PyUFunc_API[39])
+    PyUFunc_API[39])
 #define PyUFunc_ValidateCasting \
         (*(int (*)(PyUFuncObject *, NPY_CASTING, PyArrayObject **, PyArray_Descr **)) \
-         PyUFunc_API[40])
+    PyUFunc_API[40])
 #define PyUFunc_RegisterLoopForDescr \
         (*(int (*)(PyUFuncObject *, PyArray_Descr *, PyUFuncGenericFunction, PyArray_Descr **, void *)) \
-         PyUFunc_API[41])
+    PyUFunc_API[41])
+
+#if NPY_FEATURE_VERSION >= NPY_1_16_API_VERSION
 #define PyUFunc_FromFuncAndDataAndSignatureAndIdentity \
         (*(PyObject * (*)(PyUFuncGenericFunction *, void **, char *, int, int, int, int, const char *, const char *, const int, const char *, PyObject *)) \
-         PyUFunc_API[42])
+    PyUFunc_API[42])
+#endif
 
-static NPY_INLINE int
+static inline int
 _import_umath(void)
 {
   PyObject *numpy = PyImport_ImportModule("numpy.core._multiarray_umath");

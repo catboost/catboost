@@ -34,7 +34,6 @@ def test_numpy_namespace():
     # None of these objects are publicly documented to be part of the main
     # NumPy namespace (some are useful though, others need to be cleaned up)
     undocumented = {
-        'Tester': 'numpy.testing._private.nosetester.NoseTester',
         '_add_newdoc_ufunc': '_multiarray_umath._add_newdoc_ufunc',
         'add_docstring': '_multiarray_umath.add_docstring',
         'add_newdoc': 'numpy.core.function_base.add_newdoc',
@@ -65,7 +64,7 @@ def test_numpy_namespace():
 
 @pytest.mark.skip
 @pytest.mark.skipif(IS_WASM, reason="can't start subprocess")
-@pytest.mark.parametrize('name', ['testing', 'Tester'])
+@pytest.mark.parametrize('name', ['testing'])
 def test_import_lazy_import(name):
     """Make sure we can actually use the modules we lazy load.
 
@@ -139,6 +138,8 @@ PUBLIC_MODULES = ['numpy.' + s for s in [
     "doc",
     "doc.constants",
     "doc.ufuncs",
+    "dtypes",
+    "exceptions",
     #"f2py",
     "fft",
     "lib",
@@ -161,6 +162,7 @@ PUBLIC_MODULES = ['numpy.' + s for s in [
     "polynomial.polynomial",
     "random",
     "testing",
+    "testing.overrides",
     "typing",
     "typing.mypy_plugin",
     "version",
@@ -195,6 +197,7 @@ PRIVATE_BUT_PRESENT_MODULES = ['numpy.' + s for s in [
     "core.umath",
     "core.umath_tests",
     "distutils.armccompiler",
+    "distutils.fujitsuccompiler",
     "distutils.ccompiler",
     'distutils.ccompiler_opt',
     "distutils.command",
@@ -248,7 +251,6 @@ PRIVATE_BUT_PRESENT_MODULES = ['numpy.' + s for s in [
     "distutils.numpy_distribution",
     "distutils.pathccompiler",
     "distutils.unixccompiler",
-    "dual",
     #"f2py.auxfuncs",
     #"f2py.capi_maps",
     #"f2py.cb_rules",
@@ -280,7 +282,6 @@ PRIVATE_BUT_PRESENT_MODULES = ['numpy.' + s for s in [
     "lib.utils",
     "linalg.lapack_lite",
     "linalg.linalg",
-    "ma.bench",
     "ma.core",
     "ma.testutils",
     "ma.timer_comparison",
@@ -290,7 +291,6 @@ PRIVATE_BUT_PRESENT_MODULES = ['numpy.' + s for s in [
     "random.mtrand",
     "random.bit_generator",
     "testing.print_coercion_tables",
-    "testing.utils",
 ]]
 
 
@@ -322,6 +322,7 @@ SKIP_LIST = [
     "numpy.core.code_generators.generate_ufunc_api",
     "numpy.core.code_generators.numpy_api",
     "numpy.core.code_generators.generate_umath_doc",
+    "numpy.core.code_generators.verify_c_api_version",
     "numpy.core.cversions",
     "numpy.core.generate_numpy_api",
     "numpy.distutils.msvc9compiler",
@@ -362,6 +363,7 @@ SKIP_LIST_2 = [
     'numpy.matlib.char',
     'numpy.matlib.rec',
     'numpy.matlib.emath',
+    'numpy.matlib.exceptions',
     'numpy.matlib.math',
     'numpy.matlib.linalg',
     'numpy.matlib.fft',
@@ -472,6 +474,10 @@ def test_api_importable():
 
 
 @pytest.mark.xfail(
+    hasattr(np.__config__, "_built_with_meson"),
+    reason = "Meson does not yet support entry points via pyproject.toml",
+)
+@pytest.mark.xfail(
     sysconfig.get_config_var("Py_DEBUG") is not None,
     reason=(
         "NumPy possibly built with `USE_DEBUG=True ./tools/travis-test.sh`, "
@@ -506,3 +512,17 @@ def test_array_api_entry_point():
         "does not point to our Array API implementation"
     )
     assert xp is numpy.array_api, msg
+
+
+@pytest.mark.parametrize("name", [
+        'ModuleDeprecationWarning', 'VisibleDeprecationWarning',
+        'ComplexWarning', 'TooHardError', 'AxisError'])
+def test_moved_exceptions(name):
+    # These were moved to the exceptions namespace, but currently still
+    # available
+    assert name in np.__all__
+    assert name not in np.__dir__()
+    # Fetching works, but __module__ is set correctly:
+    assert getattr(np, name).__module__ == "numpy.exceptions"
+    assert name in np.exceptions.__all__
+    getattr(np.exceptions, name)
