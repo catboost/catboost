@@ -7,6 +7,8 @@
 
 #include <library/cpp/yt/assert/assert.h>
 
+#include <util/ysaveload.h>
+
 #include <optional>
 
 namespace NYT {
