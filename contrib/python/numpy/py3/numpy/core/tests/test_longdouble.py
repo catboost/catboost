@@ -7,7 +7,7 @@ from numpy.testing import (
     assert_, assert_equal, assert_raises, assert_warns, assert_array_equal,
     temppath, IS_MUSL
     )
-from __tests__.core.tests._locales import CommaDecimalPointLocale
+from __tests__.numpy.core.tests._locales import CommaDecimalPointLocale
 
 
 LD_INFO = np.finfo(np.longdouble)

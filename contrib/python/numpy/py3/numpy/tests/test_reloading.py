@@ -44,7 +44,6 @@ def test_novalue():
                                           protocol=proto)) is np._NoValue)
 
 
-import pytest
 @pytest.mark.skip
 @pytest.mark.skipif(IS_WASM, reason="can't start subprocess")
 def test_full_reimport():

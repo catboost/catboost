@@ -33,8 +33,8 @@ if sys.flags.optimize > 1:
     MISSING_CFFI = True
 
 
-import yatest.common
-pwd = yatest.common.source_path('contrib/python/numpy/py3/numpy/random/tests')
+import yatest.common as yc
+pwd = yc.source_path(os.path.dirname(__file__))
 
 
 def assert_state_equal(actual, target):

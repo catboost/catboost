@@ -13,8 +13,6 @@ UNARY_UFUNCS = [obj for obj in np.core.umath.__dict__.values() if
 UNARY_OBJECT_UFUNCS = [uf for uf in UNARY_UFUNCS if "O->O" in uf.types]
 UNARY_OBJECT_UFUNCS.remove(getattr(np, 'invert'))
 
-import yatest.common
-
 IS_AVX = __cpu_features__.get('AVX512F', False) or \
         (__cpu_features__.get('FMA3', False) and __cpu_features__.get('AVX2', False))
 # only run on linux with AVX, also avoid old glibc (numpy/numpy#20448).
@@ -43,7 +41,8 @@ class TestAccuracy:
     @platform_skip
     def test_validate_transcendentals(self):
         with np.errstate(all='ignore'):
-            data_dir = path.join(yatest.common.source_path('contrib/python/numpy/py3/numpy/core/tests'), 'data')
+            import yatest.common as yc
+            data_dir = yc.source_path(path.join(path.dirname(__file__), 'data'))
             files = os.listdir(data_dir)
             files = list(filter(lambda f: f.endswith('.csv'), files))
             for filename in files:

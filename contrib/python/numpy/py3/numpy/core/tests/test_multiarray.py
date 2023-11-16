@@ -33,7 +33,7 @@ from numpy.testing import (
     runstring, temppath, suppress_warnings, break_cycles, _SUPPORTS_SVE,
     )
 from numpy.testing._private.utils import requires_memory, _no_tracing
-from __tests__.core.tests._locales import CommaDecimalPointLocale
+from __tests__.numpy.core.tests._locales import CommaDecimalPointLocale
 from numpy.lib.recfunctions import repack_fields
 from numpy.core.multiarray import _get_ndarray_c_version
 
