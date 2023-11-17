@@ -201,35 +201,37 @@ items:
       - href: yandex_specific/nirvana-operations/catboost__nirvana.md
         when: audience == "internal"
         name: Overview
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__apply-catboost-model.md
-        name: 'CatBoost: Apply'
-      - href: >-
-          yandex_specific/nirvana-operations/catboost__nirvana__calculate-quantization-schema.md
-        name: 'CatBoost: Calculate Borders'
-      - href: >-
-          yandex_specific/nirvana-operations/catboost__nirvana__convert-catboost-bin-to-matrixnet-info.md
-        name: 'CatBoost: Convert boosting model'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__eval_metrics.md
-        name: 'CatBoost: Eval Metrics'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__model-analysis.md
-        name: 'CatBoost: Model Analysis'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__sum-models.md
-        name: 'CatBoost: Sum models'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__train-catboost.md
-        name: 'CatBoost: Train'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__truncate-model.md
-        name: 'CatBoost: Truncate Model'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__visualization.md
-        name: 'CatBoost: Visualization'
-      - href: >-
-          yandex_specific/nirvana-operations/catboost__nirvana__train-catboost-with-matrixnet-interface.md
-        name: Train CatBoost with Matrixnet interface
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__train-formula-on-fml.md
-        name: Train Formula on FML
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__normalize_model.md
-        name: 'CatBoost: Normalize Model'
-      - href: yandex_specific/nirvana-operations/catboost__nirvana__select-features.md
-        name: 'CatBoost: Select Features'
+      - name: Operations
+        items:
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__train-catboost.md
+            name: 'CatBoost: Train'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__apply-catboost-model.md
+            name: 'CatBoost: Apply'
+          - href: >-
+              yandex_specific/nirvana-operations/catboost__nirvana__calculate-quantization-schema.md
+            name: 'CatBoost: Calculate Borders'
+          - href: >-
+              yandex_specific/nirvana-operations/catboost__nirvana__convert-catboost-bin-to-matrixnet-info.md
+            name: 'CatBoost: Convert boosting model'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__eval_metrics.md
+            name: 'CatBoost: Eval Metrics'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__model-analysis.md
+            name: 'CatBoost: Model Analysis'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__sum-models.md
+            name: 'CatBoost: Sum models'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__truncate-model.md
+            name: 'CatBoost: Truncate Model'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__visualization.md
+            name: 'CatBoost: Visualization'
+          - href: >-
+              yandex_specific/nirvana-operations/catboost__nirvana__train-catboost-with-matrixnet-interface.md
+            name: Train CatBoost with Matrixnet interface
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__train-formula-on-fml.md
+            name: Train Formula on FML
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__normalize_model.md
+            name: 'CatBoost: Normalize Model'
+          - href: yandex_specific/nirvana-operations/catboost__nirvana__select-features.md
+            name: 'CatBoost: Select Features'
       - name: Tutorials
         items:
           - href: yandex_specific/tutorials/tutorials-nirvana__main.md
@@ -242,6 +244,8 @@ items:
             name: Cross Validation
           - href: yandex_specific/tutorials/tutorials-nirvana__feature-analysis.md
             name: Feature analysis
+      - href: yandex_specific/catboost__nirvana__troubleshooting.md
+        name: Troubleshooting
     name: Nirvana operations
   - name: Training parameters
     items:
