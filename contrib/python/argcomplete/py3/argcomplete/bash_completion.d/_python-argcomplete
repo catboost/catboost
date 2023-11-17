@@ -138,8 +138,10 @@ _python_argcomplete_global() {
         req_argv=( "" "${COMP_WORDS[@]:1}" )
         __python_argcomplete_expand_tilde_by_ref executable
     else
-        # TODO: check if we should call _default or use a different condition here
         if [[ "$service" != "-default-" ]]; then
+            # TODO: this may not be sufficient - see https://zsh.sourceforge.io/Doc/Release/Completion-System.html
+            # May need to call _complete with avoid-completer=_python-argcomplete or something like that
+            _default
             return
         fi
         executable="${words[1]}"
