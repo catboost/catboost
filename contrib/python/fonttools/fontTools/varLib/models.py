@@ -248,7 +248,6 @@ class VariationModel(object):
     """
 
     def __init__(self, locations, axisOrder=None, extrapolate=False):
-
         if len(set(tuple(sorted(l.items())) for l in locations)) != len(locations):
             raise VariationModelError("Locations must be unique.")
 

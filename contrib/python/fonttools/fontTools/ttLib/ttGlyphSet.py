@@ -170,7 +170,6 @@ class _TTGlyphGlyf(_TTGlyph):
         glyph, offset = self._getGlyphAndOffset()
 
         with self.glyphSet.pushDepth() as depth:
-
             if depth:
                 offset = 0  # Offset should only apply at top-level
 
@@ -187,7 +186,6 @@ class _TTGlyphGlyf(_TTGlyph):
         glyph, offset = self._getGlyphAndOffset()
 
         with self.glyphSet.pushDepth() as depth:
-
             if depth:
                 offset = 0  # Offset should only apply at top-level
 
@@ -198,14 +196,12 @@ class _TTGlyphGlyf(_TTGlyph):
             glyph.drawPoints(pen, self.glyphSet.glyfTable, offset)
 
     def _drawVarComposite(self, glyph, pen, isPointPen):
-
         from fontTools.ttLib.tables._g_l_y_f import (
             VarComponentFlags,
             VAR_COMPONENT_TRANSFORM_MAPPING,
         )
 
         for comp in glyph.components:
-
             with self.glyphSet.pushLocation(
                 comp.location, comp.flags & VarComponentFlags.RESET_UNSPECIFIED_AXES
             ):

@@ -8,7 +8,6 @@ class Options(object):
         pass
 
     def __init__(self, **kwargs):
-
         self.verbose = False
         self.timing = False
         self.drop_tables = []

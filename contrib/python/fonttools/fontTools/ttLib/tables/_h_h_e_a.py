@@ -31,7 +31,6 @@ hheaFormat = """
 
 
 class table__h_h_e_a(DefaultTable.DefaultTable):
-
     # Note: Keep in sync with table__v_h_e_a
 
     dependencies = ["hmtx", "glyf", "CFF ", "CFF2"]

@@ -2674,7 +2674,7 @@ class ClassDefBuilder(object):
         # class form a contiguous range, the encoding is actually quite
         # compact, whereas a non-contiguous set might need a lot of bytes
         # in the output file. We don't get this right with the key below.
-        result = sorted(self.classes_, key=lambda s: (len(s), s), reverse=True)
+        result = sorted(self.classes_, key=lambda s: (-len(s), s))
         if not self.useClass0_:
             result.insert(0, frozenset())
         return result

@@ -85,11 +85,13 @@ def _test(glyphset, upem, glyphs, quiet=False):
         transformer = TransformPen(pen, Scale(1.0 / upem))
         glyph.draw(transformer)
 
-        wght_sum += abs(pen.area)
-        wght_sum_perceptual += abs(pen.area) * glyph.width
-        wdth_sum += glyph.width
+        area = abs(pen.area)
+        width = glyph.width
+        wght_sum += area
+        wght_sum_perceptual += pen.area * width
+        wdth_sum += width
         slnt_sum += pen.slant
-        slnt_sum_perceptual += pen.slant * glyph.width
+        slnt_sum_perceptual += pen.slant * width
 
         if quiet:
             continue

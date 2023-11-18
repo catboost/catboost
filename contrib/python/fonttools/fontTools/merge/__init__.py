@@ -51,7 +51,6 @@ class Merger(object):
     """
 
     def __init__(self, options=None):
-
         if not options:
             options = Options()
 

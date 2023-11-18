@@ -38,7 +38,6 @@ ebdtComponentFormat = """
 
 
 class table_E_B_D_T_(DefaultTable.DefaultTable):
-
     # Keep a reference to the name of the data locator table.
     locatorName = "EBLC"
 
@@ -84,7 +83,6 @@ class table_E_B_D_T_(DefaultTable.DefaultTable):
                     bitmapGlyphDict[curName] = curGlyph
 
     def compile(self, ttFont):
-
         dataList = []
         dataList.append(sstruct.pack(ebdtTableVersionFormat, self))
         dataSize = len(dataList[0])
@@ -428,7 +426,6 @@ _bitmapGlyphSubclassPrefix = "ebdt_bitmap_format_"
 
 
 class BitmapGlyph(object):
-
     # For the external file format. This can be changed in subclasses. This way
     # when the extfile option is turned on files have the form: glyphName.ext
     # The default is just a flat binary file with no meaning.
@@ -554,6 +551,7 @@ def _createBitmapPlusMetricsMixin(metricsClass):
 # Since there are only two types of mixin's just create them here.
 BitmapPlusBigMetricsMixin = _createBitmapPlusMetricsMixin(BigGlyphMetrics)
 BitmapPlusSmallMetricsMixin = _createBitmapPlusMetricsMixin(SmallGlyphMetrics)
+
 
 # Data that is bit aligned can be tricky to deal with. These classes implement
 # helper functionality for dealing with the data and getting a particular row

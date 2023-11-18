@@ -870,6 +870,8 @@ def subset_glyphs(self, s):
         for m in self.MarkArray.MarkRecord:
             m.Class = class_indices.index(m.Class)
         for l in self.LigatureArray.LigatureAttach:
+            if l is None:
+                continue
             for c in l.ComponentRecord:
                 c.LigatureAnchor = _list_subset(c.LigatureAnchor, class_indices)
         return bool(
@@ -888,6 +890,8 @@ def prune_post_subset(self, font, options):
             if m.MarkAnchor:
                 m.MarkAnchor.prune_hints()
         for l in self.LigatureArray.LigatureAttach:
+            if l is None:
+                continue
             for c in l.ComponentRecord:
                 for a in c.LigatureAnchor:
                     if a:
@@ -3004,6 +3008,7 @@ class Options(object):
         "rand": ["rand"],
         "justify": ["jalt"],
         "private": ["Harf", "HARF", "Buzz", "BUZZ"],
+        "east_asian_spacing": ["chws", "vchw", "halt", "vhal"],
         # Complex shapers
         "arabic": [
             "init",
@@ -3666,7 +3671,10 @@ def main(args=None):
     )
 
     if outfile is None:
-        outfile = makeOutputFileName(fontfile, overWrite=True, suffix=".subset")
+        ext = "." + options.flavor.lower() if options.flavor is not None else None
+        outfile = makeOutputFileName(
+            fontfile, extension=ext, overWrite=True, suffix=".subset"
+        )
 
     with timer("compile glyph list"):
         if wildcard_glyphs:

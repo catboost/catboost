@@ -119,7 +119,6 @@ class error(Exception):
 
 
 class AFM(object):
-
     _attrs = None
 
     _keywords = [

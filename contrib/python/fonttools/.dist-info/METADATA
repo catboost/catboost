@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.43.1
+Version: 4.44.0
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -42,7 +42,7 @@ Requires-Dist: brotlicffi >=0.8.0 ; (platform_python_implementation != "CPython"
 Requires-Dist: scipy ; (platform_python_implementation != "PyPy") and extra == 'all'
 Requires-Dist: brotli >=1.0.1 ; (platform_python_implementation == "CPython") and extra == 'all'
 Requires-Dist: munkres ; (platform_python_implementation == "PyPy") and extra == 'all'
-Requires-Dist: unicodedata2 >=15.0.0 ; (python_version <= "3.11") and extra == 'all'
+Requires-Dist: unicodedata2 >=15.1.0 ; (python_version <= "3.12") and extra == 'all'
 Requires-Dist: xattr ; (sys_platform == "darwin") and extra == 'all'
 Provides-Extra: graphite
 Requires-Dist: lz4 >=1.7.4.2 ; extra == 'graphite'
@@ -64,7 +64,7 @@ Requires-Dist: xattr ; (sys_platform == "darwin") and extra == 'type1'
 Provides-Extra: ufo
 Requires-Dist: fs <3,>=2.2.0 ; extra == 'ufo'
 Provides-Extra: unicode
-Requires-Dist: unicodedata2 >=15.0.0 ; (python_version <= "3.11") and extra == 'unicode'
+Requires-Dist: unicodedata2 >=15.1.0 ; (python_version <= "3.12") and extra == 'unicode'
 Provides-Extra: woff
 Requires-Dist: zopfli >=0.1.4 ; extra == 'woff'
 Requires-Dist: brotlicffi >=0.8.0 ; (platform_python_implementation != "CPython") and extra == 'woff'
@@ -365,6 +365,27 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.44.0 (released 2023-11-03)
+----------------------------
+
+- [instancer] Recalc OS/2 AvgCharWidth after instancing if default changes (#3317).
+- [otlLib] Make ClassDefBuilder class order match varLib.merger's, i.e. large
+  classes first, then glyph lexicographic order (#3321, #3324).
+- [instancer] Allow not specifying any of min:default:max values and let be filled
+  up with fvar's values (#3322, #3323).
+- [instancer] When running --update-name-table ignore axes that have no STAT axis
+  values (#3318, #3319).
+- [Debg] When dumping to ttx, write the embedded JSON as multi-line string with
+  indentation (92cbfee0d).
+- [varStore] Handle > 65535 items per encoding by splitting VarData subtable (#3310).
+- [subset] Handle null-offsets in MarkLigPos subtables.
+- [subset] Keep East Asian spacing fatures vhal, halt, chws, vchw by default (#3305).
+- [instancer.solver] Fixed case where axisDef < lower and upper < axisMax (#3304).
+- [glyf] Speed up compilation, mostly around ``recalcBounds`` (#3301).
+- [varLib.interpolatable] Speed it up when working on variable fonts, plus various
+  micro-optimizations (#3300).
+- Require unicodedata2 >= 15.1.0 when installed with 'unicode' extra, contains UCD 15.1.
 
 4.43.1 (released 2023-10-06)
 ----------------------------
