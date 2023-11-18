@@ -18,6 +18,9 @@ std::ostream &operator<<(std::ostream &os, const LineType& line_type)
         case LineType::ChunkCombinedOffset:
             os << "ChunkCombinedOffset";
             break;
+        case LineType::ChunkCombinedNan:
+            os << "ChunkCombinedNan";
+            break;
     }
     return os;
 }

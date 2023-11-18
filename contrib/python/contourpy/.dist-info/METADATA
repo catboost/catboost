@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: contourpy
-Version: 1.1.1
+Version: 1.2.0
 Summary: Python library for calculating contours of 2D quadrilateral grids
 Author-Email: Ian Thomas <ianthomas23@gmail.com>
 License: BSD 3-Clause License
@@ -38,7 +38,6 @@ Classifier: Intended Audience :: Science/Research
 Classifier: License :: OSI Approved :: BSD License
 Classifier: Programming Language :: C++
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
@@ -50,9 +49,8 @@ Project-URL: Homepage, https://github.com/contourpy/contourpy
 Project-URL: Changelog, https://contourpy.readthedocs.io/en/latest/changelog.html
 Project-URL: Documentation, https://contourpy.readthedocs.io
 Project-URL: Repository, https://github.com/contourpy/contourpy
-Requires-Python: >=3.8
-Requires-Dist: numpy<2.0,>=1.16; python_version <= "3.11"
-Requires-Dist: numpy<2.0,>=1.26.0rc1; python_version >= "3.12"
+Requires-Python: >=3.9
+Requires-Dist: numpy<2.0,>=1.20
 Requires-Dist: furo; extra == "docs"
 Requires-Dist: sphinx>=7.2; extra == "docs"
 Requires-Dist: sphinx-copybutton; extra == "docs"
@@ -60,13 +58,14 @@ Requires-Dist: bokeh; extra == "bokeh"
 Requires-Dist: selenium; extra == "bokeh"
 Requires-Dist: contourpy[bokeh,docs]; extra == "mypy"
 Requires-Dist: docutils-stubs; extra == "mypy"
-Requires-Dist: mypy==1.4.1; extra == "mypy"
+Requires-Dist: mypy==1.6.1; extra == "mypy"
 Requires-Dist: types-Pillow; extra == "mypy"
 Requires-Dist: contourpy[test-no-images]; extra == "test"
 Requires-Dist: matplotlib; extra == "test"
 Requires-Dist: Pillow; extra == "test"
 Requires-Dist: pytest; extra == "test-no-images"
 Requires-Dist: pytest-cov; extra == "test-no-images"
+Requires-Dist: pytest-xdist; extra == "test-no-images"
 Requires-Dist: wurlitzer; extra == "test-no-images"
 Provides-Extra: docs
 Provides-Extra: bokeh

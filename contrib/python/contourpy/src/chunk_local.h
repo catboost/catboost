@@ -21,7 +21,7 @@ struct ChunkLocal
     int pass;
 
     // Data for whole pass.
-    count_t total_point_count;
+    count_t total_point_count;           // Includes nan separators if used.
     count_t line_count;                  // Count of all lines
     count_t hole_count;                  // Count of holes only.
 

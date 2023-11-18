@@ -9,6 +9,8 @@ def build_config() -> dict[str, str]:
 
     All dictionary keys and values are strings, for example ``False`` is
     returned as ``"False"``.
+
+        .. versionadded:: 1.1.0
     """
     return dict(
         # Python settings

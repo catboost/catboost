@@ -20,8 +20,7 @@ static contourpy::FillType mpl20xx_fill_type = contourpy::FillType::OuterCode;
 PYBIND11_MODULE(_contourpy, m) {
     m.doc() =
         "C++11 extension module wrapped using `pybind11`_.\n\n"
-        ".. note::\n"
-        "   It should not be necessary to access classes and functions in this extension module "
+        "It should not be necessary to access classes and functions in this extension module "
         "directly. Instead, :func:`contourpy.contour_generator` should be used to create "
         ":class:`~contourpy.ContourGenerator` objects, and the enums "
         "(:class:`~contourpy.FillType`, :class:`~contourpy.LineType` and "
@@ -53,11 +52,13 @@ PYBIND11_MODULE(_contourpy, m) {
     py::enum_<contourpy::LineType>(m, "LineType",
         "Enum used for ``line_type`` keyword argument in :func:`~contourpy.contour_generator`.\n\n"
         "This controls the format of contour line data returned from "
-        ":meth:`~contourpy.ContourGenerator.lines`.")
+        ":meth:`~contourpy.ContourGenerator.lines`.\n\n"
+        "``LineType.ChunkCombinedNan`` added in version 1.2.0")
         .value("Separate", contourpy::LineType::Separate)
         .value("SeparateCode", contourpy::LineType::SeparateCode)
         .value("ChunkCombinedCode", contourpy::LineType::ChunkCombinedCode)
         .value("ChunkCombinedOffset", contourpy::LineType::ChunkCombinedOffset)
+        .value("ChunkCombinedNan", contourpy::LineType::ChunkCombinedNan)
         .export_values();
 
     py::enum_<contourpy::ZInterp>(m, "ZInterp",
@@ -93,7 +94,10 @@ PYBIND11_MODULE(_contourpy, m) {
         "    upper_level (float): Upper z-level of the filled contours.\n"
         "Return:\n"
         "    Filled contour polygons as one or more sequences of numpy arrays. The exact format is "
-        "determined by the ``fill_type`` used by the ``ContourGenerator``.";
+        "determined by the ``fill_type`` used by the ``ContourGenerator``.\n\n"
+        "Raises a ``ValueError`` if ``lower_level >= upper_level``.\n\n"
+        "To return filled contours below a ``level`` use ``filled(-np.inf, level)``.\n"
+        "To return filled contours above a ``level`` use ``filled(level, np.inf)``";
     const char* line_type_doc = "Return the ``LineType``.";
     const char* lines_doc =
         "Calculate and return contour lines at a particular level.\n\n"

@@ -485,8 +485,8 @@ void Mpl2014ContourGenerator::edge_interp(
 py::tuple Mpl2014ContourGenerator::filled(
     const double& lower_level, const double& upper_level)
 {
-    if (lower_level > upper_level)
-        throw std::invalid_argument("upper and lower levels are the wrong way round");
+    if (lower_level >= upper_level)
+        throw std::invalid_argument("upper_level must be larger than lower_level");
 
     init_cache_levels(lower_level, upper_level);
 
