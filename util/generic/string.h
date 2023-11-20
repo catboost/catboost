@@ -382,7 +382,7 @@ public:
 
     inline explicit TBasicString(::NDetail::TReserveTag rt)
 #ifndef TSTRING_IS_STD_STRING
-        : S_(Construct())
+        : S_(Construct<>())
 #endif
     {
         reserve(rt.Capacity);
@@ -487,10 +487,11 @@ public:
      *
      * @throw std::length_error
      */
-    TBasicString(TUninitialized uninitialized) {
+    TBasicString(TUninitialized uninitialized)
 #if !defined(TSTRING_IS_STD_STRING)
-        S_ = Construct();
+        : S_(Construct<>())
 #endif
+    {
         ReserveAndResize(uninitialized.Size);
     }
 
