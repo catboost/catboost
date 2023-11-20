@@ -1867,7 +1867,6 @@ namespace {
             , CB_(cb)
             , LimitRequestsPerConnection(THttp2Options::LimitRequestsPerConnection)
         {
-
             TNetworkAddress addr = THttp2Options::RespectHostInHttpServerNetworkAddress ?
                                     TNetworkAddress(TString(loc.Host), loc.GetPort())
                                     : TNetworkAddress(loc.GetPort());
