@@ -30,7 +30,11 @@ public:
     constexpr explicit operator const T&() const;
     constexpr explicit operator T&();
 
-    constexpr auto operator<=>(const TStrongTypedef& rhs) const = default;
+    constexpr bool operator==(const TStrongTypedef& rhs) const
+    noexcept(std::same_as<T, void> || noexcept(Underlying_ == rhs.Underlying_));
+
+    constexpr auto operator<=>(const TStrongTypedef& rhs) const
+    noexcept(std::same_as<T, void> || noexcept(Underlying_ <=> rhs.Underlying_));
 
     constexpr T& Underlying() &;
     constexpr const T& Underlying() const &;

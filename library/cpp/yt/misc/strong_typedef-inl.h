@@ -60,6 +60,32 @@ constexpr T&& TStrongTypedef<T, TTag>::Underlying() &&
     return std::move(Underlying_);
 }
 
+template <class T, class TTag>
+constexpr bool TStrongTypedef<T, TTag>::operator==(const TStrongTypedef& rhs) const
+noexcept(std::same_as<T, void> || noexcept(Underlying_ == rhs.Underlying_))
+{
+    //! NB: We add a constexpr branch to keep constexprness of the function
+    //! without making extra specializations explicitly.
+    if constexpr (std::same_as<T, void>) {
+        return true;
+    }
+
+    return Underlying_ == rhs.Underlying_;
+}
+
+template <class T, class TTag>
+constexpr auto TStrongTypedef<T, TTag>::operator<=>(const TStrongTypedef& rhs) const
+noexcept(std::same_as<T, void> || noexcept(Underlying_ <=> rhs.Underlying_))
+{
+    //! NB: We add a constexpr branch to keep constexprness of the function
+    //! without making extra specializations explicitly.
+    if constexpr (std::same_as<T, void>) {
+        return std::strong_ordering::equal;
+    }
+
+    return Underlying_ <=> rhs.Underlying_;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
@@ -117,13 +143,22 @@ struct hash<NYT::TStrongTypedef<T, TTag>>
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T>
-struct THash;
-
 template <class T, class TTag>
 struct THash<NYT::TStrongTypedef<T, TTag>>
-    : public std::hash<NYT::TStrongTypedef<T, TTag>>
-{ };
+{
+    size_t operator()(const NYT::TStrongTypedef<T, TTag>& value) const
+    {
+        static constexpr bool IsTHashable = requires (T val) {
+            { THash<T>()(val) } -> std::same_as<size_t>;
+        };
+
+        if constexpr (IsTHashable) {
+            return THash<T>()(value.Underlying());
+        } else {
+            return std::hash<T>()(value.Underlying());
+        }
+    }
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
