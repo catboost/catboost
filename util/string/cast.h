@@ -415,9 +415,15 @@ public:
     template <std::enable_if_t<std::is_integral<T>::value, bool> = true>
     explicit constexpr TIntStringBuf(T t) {
         Size_ = Convert(t, Buf_, sizeof(Buf_));
-        // Init the rest of the array,
-        // otherwise constexpr copy and move constructors don't work due to uninitialized data access
-        std::fill(Buf_ + Size_, Buf_ + sizeof(Buf_), '\0');
+#if __cplusplus >= 202002L // is_constant_evaluated is not supported by CUDA yet
+        if (std::is_constant_evaluated()) {
+#endif
+            // Init the rest of the array,
+            // otherwise constexpr copy and move constructors don't work due to uninitialized data access
+            std::fill(Buf_ + Size_, Buf_ + sizeof(Buf_), '\0');
+#if __cplusplus >= 202002L
+        }
+#endif
     }
 
     constexpr operator TStringBuf() const noexcept {
