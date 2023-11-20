@@ -60,8 +60,8 @@ TStringBuf ToCanonicalColumnName(TStringBuf columnName);
 void ParseOutputColumnByIndex(const TString& outputColumn, ui32* columnNumber, TString* name);
 
 struct TColumn {
-    EColumn Type;
-    TString Id;
+    EColumn Type = EColumn::Num;
+    TString Id = TString();
     TVector<TColumn> SubColumns; // only used for 'Features' column type now
 
 public:

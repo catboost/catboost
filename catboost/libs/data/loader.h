@@ -69,13 +69,13 @@ namespace NCB {
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;
         TVector<ui32> IgnoredFeatures;
-        EObjectsOrder ObjectsOrder;
-        ui32 BlockSize;
+        EObjectsOrder ObjectsOrder = EObjectsOrder::Undefined;
+        ui32 BlockSize = 0;
         TDatasetSubset DatasetSubset;
-        bool LoadColumnsAsString;
-        bool LoadSampleIds; // special flag because they are rarely used
-        bool ForceUnitAutoPairWeights;
-        NPar::ILocalExecutor* LocalExecutor;
+        bool LoadColumnsAsString = false;
+        bool LoadSampleIds = false; // special flag because they are rarely used
+        bool ForceUnitAutoPairWeights = false;
+        NPar::ILocalExecutor* LocalExecutor = nullptr;
     };
 
     // pass this struct to to IDatasetLoader ctor
