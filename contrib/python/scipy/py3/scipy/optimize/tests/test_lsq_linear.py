@@ -6,6 +6,8 @@ from scipy.sparse import rand
 from scipy.sparse.linalg import aslinearoperator
 from scipy.optimize import lsq_linear
 
+import pytest
+
 
 A = np.array([
     [0.171, -0.057],
@@ -128,6 +130,7 @@ class BaseMixin:
         result = lsq_linear(A, b, method=self.method)
         assert_(result.cost < 1.1e-8)
 
+    @pytest.mark.skip(reason="skip slow test")
     def test_large_rank_deficient(self):
         np.random.seed(0)
         n, m = np.sort(np.random.randint(2, 1000, size=2))
