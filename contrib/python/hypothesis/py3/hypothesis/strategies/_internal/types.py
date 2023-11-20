@@ -324,27 +324,12 @@ def _try_import_forward_ref(thing, bound):  # pragma: no cover
 
 
 def from_typing_type(thing):
-    # We start with special-case support for Tuple, which isn't actually a generic
-    # type; then Final, Literal, and Annotated since they don't support `isinstance`.
+    # We start with Final, Literal, and Annotated since they don't support `isinstance`.
     #
     # We then explicitly error on non-Generic types, which don't carry enough
     # information to sensibly resolve to strategies at runtime.
     # Finally, we run a variation of the subclass lookup in `st.from_type`
     # among generic types in the lookup.
-    if get_origin(thing) == tuple or isinstance(
-        thing, getattr(typing, "TupleMeta", ())
-    ):
-        elem_types = getattr(thing, "__tuple_params__", None) or ()
-        elem_types += getattr(thing, "__args__", None) or ()
-        if (
-            getattr(thing, "__tuple_use_ellipsis__", False)
-            or len(elem_types) == 2
-            and elem_types[-1] is Ellipsis
-        ):
-            return st.lists(st.from_type(elem_types[0])).map(tuple)
-        elif len(elem_types) == 1 and elem_types[0] == ():
-            return st.tuples()  # Empty tuple; see issue #1583
-        return st.tuples(*map(st.from_type, elem_types))
     if get_origin(thing) == typing.Final:
         return st.one_of([st.from_type(t) for t in thing.__args__])
     if is_typing_literal(thing):
@@ -396,7 +381,11 @@ def from_typing_type(thing):
     if len(mapping) > 1:
         _Environ = getattr(os, "_Environ", None)
         mapping.pop(_Environ, None)
-    tuple_types = [t for t in mapping if isinstance(t, type) and issubclass(t, tuple)]
+    tuple_types = [
+        t
+        for t in mapping
+        if (isinstance(t, type) and issubclass(t, tuple)) or t is typing.Tuple
+    ]
     if len(mapping) > len(tuple_types):
         for tuple_type in tuple_types:
             mapping.pop(tuple_type)
@@ -758,6 +747,16 @@ def resolve_Type(thing):
 @register(typing.List, st.builds(list))
 def resolve_List(thing):
     return st.lists(st.from_type(thing.__args__[0]))
+
+
+@register(typing.Tuple, st.builds(tuple))
+def resolve_Tuple(thing):
+    elem_types = getattr(thing, "__args__", None) or ()
+    if len(elem_types) == 2 and elem_types[-1] is Ellipsis:
+        return st.lists(st.from_type(elem_types[0])).map(tuple)
+    elif len(elem_types) == 1 and elem_types[0] == ():
+        return st.tuples()  # Empty tuple; see issue #1583
+    return st.tuples(*map(st.from_type, elem_types))
 
 
 def _can_hash(val):

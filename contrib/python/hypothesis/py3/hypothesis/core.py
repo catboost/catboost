@@ -910,20 +910,18 @@ class StateForActualGivenExecution:
                 and not self.failed_due_to_deadline
                 and Phase.shrink in self.settings.phases
                 and Phase.explain in self.settings.phases
-                and sys.gettrace() is None
+                and (sys.gettrace() is None or sys.version_info[:2] >= (3, 12))
                 and not PYPY
             ):  # pragma: no cover
                 # This is in fact covered by our *non-coverage* tests, but due to the
                 # settrace() contention *not* by our coverage tests.  Ah well.
-                tracer = Tracer()
-                try:
-                    sys.settrace(tracer.trace)
-                    result = self.execute_once(data)
-                    if data.status == Status.VALID:
-                        self.explain_traces[None].add(frozenset(tracer.branches))
-                finally:
-                    sys.settrace(None)
-                    trace = frozenset(tracer.branches)
+                with Tracer() as tracer:
+                    try:
+                        result = self.execute_once(data)
+                        if data.status == Status.VALID:
+                            self.explain_traces[None].add(frozenset(tracer.branches))
+                    finally:
+                        trace = frozenset(tracer.branches)
             else:
                 result = self.execute_once(data)
             if result is not None:

@@ -9,6 +9,7 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 
 import sys
+import types
 from collections import defaultdict
 from functools import lru_cache, reduce
 from os import sep
@@ -25,6 +26,15 @@ def should_trace_file(fname):
     return not (is_hypothesis_file(fname) or fname.startswith("<"))
 
 
+# where possible, we'll use 3.12's new sys.monitoring module for low-overhead
+# coverage instrumentation; on older python versions we'll use sys.settrace.
+# tool_id = 1 is designated for coverage, but we intentionally choose a
+# non-reserved tool id so we can co-exist with coverage tools.
+MONITORING_TOOL_ID = 3
+if sys.version_info[:2] >= (3, 12):
+    MONITORING_EVENTS = {sys.monitoring.events.LINE: "trace_line"}
+
+
 class Tracer:
     """A super-simple branch coverage tracer."""
 
@@ -38,11 +48,42 @@ class Tracer:
         if event == "call":
             return self.trace
         elif event == "line":
+            # manual inlining of self.trace_line for performance.
             fname = frame.f_code.co_filename
             if should_trace_file(fname):
                 current_location = (fname, frame.f_lineno)
                 self.branches.add((self._previous_location, current_location))
                 self._previous_location = current_location
+
+    def trace_line(self, code: types.CodeType, line_number: int) -> None:
+        fname = code.co_filename
+        if should_trace_file(fname):
+            current_location = (fname, line_number)
+            self.branches.add((self._previous_location, current_location))
+            self._previous_location = current_location
+
+    def __enter__(self):
+        if sys.version_info[:2] < (3, 12):
+            assert sys.gettrace() is None  # caller checks in core.py
+            sys.settrace(self.trace)
+            return self
+
+        sys.monitoring.use_tool_id(MONITORING_TOOL_ID, "scrutineer")
+        for event, callback_name in MONITORING_EVENTS.items():
+            sys.monitoring.set_events(MONITORING_TOOL_ID, event)
+            callback = getattr(self, callback_name)
+            sys.monitoring.register_callback(MONITORING_TOOL_ID, event, callback)
+
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        if sys.version_info[:2] < (3, 12):
+            sys.settrace(None)
+            return
+
+        sys.monitoring.free_tool_id(MONITORING_TOOL_ID)
+        for event in MONITORING_EVENTS:
+            sys.monitoring.register_callback(MONITORING_TOOL_ID, event, None)
 
 
 UNHELPFUL_LOCATIONS = (
