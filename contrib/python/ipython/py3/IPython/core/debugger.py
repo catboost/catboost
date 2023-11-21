@@ -616,7 +616,7 @@ class Pdb(OldPdb):
         ret.append("%s(%s)%s\n" % (link, lineno, call))
 
         start = lineno - 1 - context//2
-        lines = linecache.getlines(filename)
+        lines = linecache.getlines(filename, self.curframe.f_globals)
         start = min(start, len(lines) - context)
         start = max(start, 0)
         lines = lines[start : start + context]
@@ -674,7 +674,7 @@ class Pdb(OldPdb):
                 filename = self._exec_filename
 
             for lineno in range(first, last+1):
-                line = linecache.getline(filename, lineno)
+                line = linecache.getline(filename, lineno, self.curframe.f_globals)
                 if not line:
                     break
 
