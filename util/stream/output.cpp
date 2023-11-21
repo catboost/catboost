@@ -115,13 +115,10 @@ void Out<std::u32string_view>(IOutputStream& o, const std::u32string_view& p) {
     WriteString(o, p.data(), p.length());
 }
 
-#ifndef USE_STL_SYSTEM
-// FIXME thegeorg@: remove #ifndef upon raising minimal macOS version to 10.15 in https://st.yandex-team.ru/DTCC-836
 template <>
 void Out<std::filesystem::path>(IOutputStream& o, const std::filesystem::path& p) {
     o.Write(p.string());
 }
-#endif
 
 template <>
 void Out<TStringBuf>(IOutputStream& o, const TStringBuf& p) {
