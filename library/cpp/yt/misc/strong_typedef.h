@@ -31,10 +31,10 @@ public:
     constexpr explicit operator T&();
 
     constexpr bool operator==(const TStrongTypedef& rhs) const
-    noexcept(std::same_as<T, void> || noexcept(Underlying_ == rhs.Underlying_));
+        noexcept(std::same_as<T, void> || noexcept(Underlying_ == rhs.Underlying_));
 
     constexpr auto operator<=>(const TStrongTypedef& rhs) const
-    noexcept(std::same_as<T, void> || noexcept(Underlying_ <=> rhs.Underlying_));
+        noexcept(std::same_as<T, void> || noexcept(Underlying_ <=> rhs.Underlying_));
 
     constexpr T& Underlying() &;
     constexpr const T& Underlying() const &;

@@ -62,7 +62,7 @@ constexpr T&& TStrongTypedef<T, TTag>::Underlying() &&
 
 template <class T, class TTag>
 constexpr bool TStrongTypedef<T, TTag>::operator==(const TStrongTypedef& rhs) const
-noexcept(std::same_as<T, void> || noexcept(Underlying_ == rhs.Underlying_))
+    noexcept(std::same_as<T, void> || noexcept(Underlying_ == rhs.Underlying_))
 {
     //! NB: We add a constexpr branch to keep constexprness of the function
     //! without making extra specializations explicitly.
@@ -75,7 +75,7 @@ noexcept(std::same_as<T, void> || noexcept(Underlying_ == rhs.Underlying_))
 
 template <class T, class TTag>
 constexpr auto TStrongTypedef<T, TTag>::operator<=>(const TStrongTypedef& rhs) const
-noexcept(std::same_as<T, void> || noexcept(Underlying_ <=> rhs.Underlying_))
+    noexcept(std::same_as<T, void> || noexcept(Underlying_ <=> rhs.Underlying_))
 {
     //! NB: We add a constexpr branch to keep constexprness of the function
     //! without making extra specializations explicitly.
@@ -148,11 +148,11 @@ struct THash<NYT::TStrongTypedef<T, TTag>>
 {
     size_t operator()(const NYT::TStrongTypedef<T, TTag>& value) const
     {
-        static constexpr bool IsTHashable = requires (T val) {
-            { THash<T>()(val) } -> std::same_as<size_t>;
+        static constexpr bool IsHashable = requires (T value) {
+            { THash<T>()(value) } -> std::same_as<size_t>;
         };
 
-        if constexpr (IsTHashable) {
+        if constexpr (IsHashable) {
             return THash<T>()(value.Underlying());
         } else {
             return std::hash<T>()(value.Underlying());
