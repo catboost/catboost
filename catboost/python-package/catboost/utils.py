@@ -665,7 +665,7 @@ def quantize(
         dev_max_subset_size_for_build_borders
     )
 
-    return Pool(
+    pool = Pool(
         data_path,
         column_description=column_description,
         pairs=pairs,
@@ -674,10 +674,24 @@ def quantize(
         has_header=has_header,
         ignore_csv_quoting=ignore_csv_quoting,
         thread_count=thread_count,
-        params=params,
         log_cout=log_cout,
         log_cerr=log_cerr
     )
+    pool._read(
+        data_path,
+        column_description,
+        pairs,
+        feature_names,
+        delimiter,
+        has_header,
+        ignore_csv_quoting,
+        thread_count,
+        params,
+        log_cout=log_cout,
+        log_cerr=log_cerr
+    )
+
+    return pool
 
 
 def convert_to_onnx_object(model, export_parameters=None, **kwargs):
