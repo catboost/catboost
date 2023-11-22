@@ -26,7 +26,7 @@ spark = (SparkSession.builder
   .getOrCreate()
 )
 import catboost_spark
-    
+
 srcDataSchema = [
     StructField("features", VectorUDT()),
     StructField("label", StringType())
@@ -38,21 +38,21 @@ trainData = [
     Row(Vectors.dense(0.13, 0.22, 0.23), "1"),
     Row(Vectors.dense(0.8, 0.62, 0.0), "0")
 ]
-    
+
 trainDf = spark.createDataFrame(spark.sparkContext.parallelize(trainData), StructType(srcDataSchema))
 trainPool = catboost_spark.Pool(trainDf)
-    
+
 evalData = [
     Row(Vectors.dense(0.22, 0.33, 0.9), "1"),
     Row(Vectors.dense(0.11, 0.1, 0.21), "0"),
     Row(Vectors.dense(0.77, 0.0, 0.0), "1")
 ]
-    
+
 evalDf = spark.createDataFrame(spark.sparkContext.parallelize(evalData), StructType(srcDataSchema))
 evalPool = catboost_spark.Pool(evalDf)
-    
+
 classifier = catboost_spark.CatBoostClassifier()
-    
+
 # train a model
 model = classifier.fit(trainPool, eval_set=[evalPool])
 
@@ -100,7 +100,7 @@ spark = (SparkSession.builder
   .getOrCreate()
 )
 import catboost_spark
-    
+
 srcDataSchema = [
     StructField("features", VectorUDT()),
     StructField("label", StringType())
@@ -112,21 +112,21 @@ trainData = [
     Row(Vectors.dense(0.13, 0.22, 0.23), "1"),
     Row(Vectors.dense(0.8, 0.62, 0.0), "0")
 ]
-    
+
 trainDf = spark.createDataFrame(spark.sparkContext.parallelize(trainData), StructType(srcDataSchema))
 trainPool = catboost_spark.Pool(trainDf)
-    
+
 evalData = [
     Row(Vectors.dense(0.22, 0.33, 0.9), "2"),
     Row(Vectors.dense(0.11, 0.1, 0.21), "0"),
     Row(Vectors.dense(0.77, 0.0, 0.0), "1")
 ]
-    
+
 evalDf = spark.createDataFrame(spark.sparkContext.parallelize(evalData), StructType(srcDataSchema))
 evalPool = catboost_spark.Pool(evalDf)
-    
+
 classifier = catboost_spark.CatBoostClassifier()
-    
+
 # train a model
 model = classifier.fit(trainPool, eval_set=[evalPool])
 
@@ -174,7 +174,7 @@ spark = (SparkSession.builder
   .getOrCreate()
 )
 import catboost_spark
-    
+
 srcDataSchema = [
     StructField("features", VectorUDT()),
     StructField("label", DoubleType())
@@ -186,21 +186,21 @@ trainData = [
     Row(Vectors.dense(0.13, 0.22, 0.23), 0.34),
     Row(Vectors.dense(0.8, 0.62, 0.0), 0.1)
 ]
-    
+
 trainDf = spark.createDataFrame(spark.sparkContext.parallelize(trainData), StructType(srcDataSchema))
 trainPool = catboost_spark.Pool(trainDf)
-    
+
 evalData = [
     Row(Vectors.dense(0.22, 0.33, 0.9), 0.1),
     Row(Vectors.dense(0.11, 0.1, 0.21), 0.9),
     Row(Vectors.dense(0.77, 0.0, 0.0), 0.72)
 ]
-    
+
 evalDf = spark.createDataFrame(spark.sparkContext.parallelize(evalData), StructType(srcDataSchema))
 evalPool = catboost_spark.Pool(evalDf)
-    
+
 regressor = catboost_spark.CatBoostRegressor()
-    
+
 # train a model
 model = regressor.fit(trainPool, eval_set=[evalPool])
 
@@ -233,4 +233,3 @@ predictionsFromLoadedNativeModel = loadedNativeModel.transform(evalPool.data)
 predictionsFromLoadedNativeModel.show()
 
 ```
-
