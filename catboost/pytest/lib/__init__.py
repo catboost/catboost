@@ -130,7 +130,7 @@ def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=Non
     yatest.common.execute(calc_cmd)
 
 
-def calc_loss_function_change(model_file, pool_path, pairs, cd_path, fstr_path, distributed_evaluation, args=None):
+def calc_loss_function_change(model_file, pool_path, pairs, cd_path, fstr_path, args=None):
     cmd = (
         get_catboost_binary_path(),
         'fstr',
