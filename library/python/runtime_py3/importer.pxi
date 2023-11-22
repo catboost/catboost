@@ -185,6 +185,10 @@ class ResourceImporter(object):
         self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
         self._package_prefix = ''
+
+        self._before_import_callback = None
+        self._after_import_callback = None
+
         if Y_PYTHON_SOURCE_ROOT and Y_PYTHON_EXTENDED_SOURCE_SEARCH:
             self.arcadia_source_finder = ArcadiaSourceFinder(_s(Y_PYTHON_SOURCE_ROOT))
         else:
@@ -195,6 +199,11 @@ class ResourceImporter(object):
                 k = pp + '.__init__'
                 if k not in self.memory:
                     self.memory.add(k)
+
+    def set_callbacks(self, before_import=None, after_import=None):
+        """Callable[[module], None]"""
+        self._before_import_callback= before_import
+        self._after_import_callback = after_import
 
     def for_package(self, name):
         import copy
@@ -230,7 +239,17 @@ class ResourceImporter(object):
         if self.is_package(module.__name__):
             module.__path__= [executable + path_sep + module.__name__.replace('.', path_sep)]
         # exec(code, module.__dict__)
-        _call_with_frames_removed(exec, code, module.__dict__)
+
+        if self._before_import_callback:
+            self._before_import_callback(module)
+
+        # “Zero-cost” exceptions are implemented.
+        # The cost of try statements is almost eliminated when no exception is raised
+        try:
+            _call_with_frames_removed(exec, code, module.__dict__)
+        finally:
+            if self._after_import_callback:
+                self._after_import_callback(module)
 
     # PEP-302 extension 1 of 3: data loader.
     def get_data(self, path):

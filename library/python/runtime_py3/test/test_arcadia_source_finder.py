@@ -383,7 +383,7 @@ class TestDictionaryChangedSizeDuringIteration(ArcadiaSourceFinderTestCase):
             b"py/namespace/unique_prefix1/project/lib2": b"project.lib2.",
         }
 
-    def test_no_crash_on_recusive_iter_modules(self):
+    def test_no_crash_on_recursive_iter_modules(self):
         for package in self.arcadia_source_finder.iter_modules("project.", ""):
             for _ in self.arcadia_source_finder.iter_modules(package[0], ""):
                 pass
