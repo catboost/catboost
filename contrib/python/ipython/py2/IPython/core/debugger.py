@@ -408,7 +408,7 @@ class Pdb(OldPdb):
         ret.append(u'%s(%s)%s\n' % (link,lineno,call))
 
         start = lineno - 1 - context//2
-        lines = ulinecache.getlines(filename, self.curframe.f_globals)
+        lines = ulinecache.getlines(filename, frame.f_globals)
         start = min(start, len(lines) - context)
         start = max(start, 0)
         lines = lines[start : start + context]
