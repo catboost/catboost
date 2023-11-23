@@ -86,6 +86,13 @@ constexpr auto TStrongTypedef<T, TTag>::operator<=>(const TStrongTypedef& rhs) c
     return Underlying_ <=> rhs.Underlying_;
 }
 
+template <class T, class TTag>
+TStrongTypedef<T, TTag>::operator bool() const
+    noexcept(noexcept(static_cast<bool>(Underlying_)))
+{
+    return static_cast<bool>(Underlying_);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
@@ -116,6 +123,7 @@ class TStringBuilderBase;
 
 template <class T, class TTag>
 void FormatValue(TStringBuilderBase* builder, const TStrongTypedef<T, TTag>& value, TStringBuf format)
+    noexcept(noexcept(FormatValue(builder, value.Underlying(), format)))
 {
     FormatValue(builder, value.Underlying(), format);
 }

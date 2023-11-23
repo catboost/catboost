@@ -32,18 +32,7 @@ Y_FORCE_INLINE TGuid::operator bool() const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Y_FORCE_INLINE bool operator == (TGuid lhs, TGuid rhs)
-{
-    return lhs.Parts64[0] == rhs.Parts64[0] &&
-           lhs.Parts64[1] == rhs.Parts64[1];
-}
-
-Y_FORCE_INLINE bool operator != (TGuid lhs, TGuid rhs)
-{
-    return !(lhs == rhs);
-}
-
-Y_FORCE_INLINE bool operator < (TGuid lhs, TGuid rhs)
+Y_FORCE_INLINE bool LessImpl(TGuid lhs, TGuid rhs) noexcept
 {
 #ifdef __GNUC__
     ui64 lhs0 = __builtin_bswap64(lhs.Parts64[0]);
@@ -60,6 +49,25 @@ Y_FORCE_INLINE bool operator < (TGuid lhs, TGuid rhs)
 #else
     return memcmp(&lhs, &rhs, sizeof(TGuid)) < 0;
 #endif
+}
+
+Y_FORCE_INLINE bool operator == (const TGuid& lhs, const TGuid& rhs) noexcept
+{
+    return lhs.Parts64[0] == rhs.Parts64[0] &&
+           lhs.Parts64[1] == rhs.Parts64[1];
+}
+
+Y_FORCE_INLINE std::strong_ordering operator <=> (const TGuid& lhs, const TGuid& rhs) noexcept
+{
+    if (LessImpl(lhs, rhs)) {
+        return std::strong_ordering::less;
+    }
+
+    if (lhs == rhs) {
+        return std::strong_ordering::equal;
+    }
+
+    return std::strong_ordering::greater;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

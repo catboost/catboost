@@ -2,6 +2,8 @@
 
 #include <utility>
 
+#include <util/generic/string.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -36,12 +38,22 @@ public:
     constexpr auto operator<=>(const TStrongTypedef& rhs) const
         noexcept(std::same_as<T, void> || noexcept(Underlying_ <=> rhs.Underlying_));
 
+    explicit operator bool() const
+        noexcept(noexcept(static_cast<bool>(Underlying_)));
+
     constexpr T& Underlying() &;
     constexpr const T& Underlying() const &;
     constexpr T&& Underlying() &&;
 
 private:
     T Underlying_;
+
+    //! NB: Hidden friend definition to make this name accessible only via ADL.
+    friend TString ToString(const TStrongTypedef& value)
+        requires requires (T value) { { ToString(value) } -> std::same_as<TString>; }
+    {
+        return ToString(value.Underlying_);
+    }
 };
 
 #define YT_DEFINE_STRONG_TYPEDEF(T, TUnderlying) \

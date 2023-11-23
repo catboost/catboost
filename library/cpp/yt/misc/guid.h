@@ -79,9 +79,9 @@ struct TGuid
     static bool FromStringHex32(TStringBuf str, TGuid* guid);
 };
 
-bool operator == (TGuid lhs, TGuid rhs);
-bool operator != (TGuid lhs, TGuid rhs);
-bool operator <  (TGuid lhs, TGuid rhs);
+bool operator == (const TGuid& lhs, const TGuid& rhs) noexcept;
+
+std::strong_ordering operator <=> (const TGuid& lhs, const TGuid& rhs) noexcept;
 
 ////////////////////////////////////////////////////////////////////////////////
 
