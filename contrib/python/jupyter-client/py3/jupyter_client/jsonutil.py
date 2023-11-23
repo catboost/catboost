@@ -108,10 +108,10 @@ def json_default(obj: Any) -> Any:
     """default function for packing objects in JSON."""
     if isinstance(obj, datetime):
         obj = _ensure_tzinfo(obj)
-        return obj.isoformat().replace('+00:00', 'Z')
+        return obj.isoformat().replace("+00:00", "Z")
 
     if isinstance(obj, bytes):
-        return b2a_base64(obj, newline=False).decode('ascii')
+        return b2a_base64(obj, newline=False).decode("ascii")
 
     if isinstance(obj, Iterable):
         return list(obj)
@@ -157,10 +157,10 @@ def json_clean(obj: Any) -> Any:
     if isinstance(obj, bytes):
         # unanmbiguous binary data is base64-encoded
         # (this probably should have happened upstream)
-        return b2a_base64(obj, newline=False).decode('ascii')
+        return b2a_base64(obj, newline=False).decode("ascii")
 
     if isinstance(obj, container_to_list) or (
-        hasattr(obj, '__iter__') and hasattr(obj, next_attr_name)
+        hasattr(obj, "__iter__") and hasattr(obj, next_attr_name)
     ):
         obj = list(obj)
 
@@ -175,8 +175,8 @@ def json_clean(obj: Any) -> Any:
         nkeys_collapsed = len(set(map(str, obj)))
         if nkeys != nkeys_collapsed:
             msg = (
-                'dict cannot be safely converted to JSON: '
-                'key collision would lead to dropped values'
+                "dict cannot be safely converted to JSON: "
+                "key collision would lead to dropped values"
             )
             raise ValueError(msg)
         # If all OK, proceed by making the new dict that will be json-safe

@@ -223,7 +223,7 @@ class MultiKernelManager(LoggingConfigurable):
         .. version-added: 8.5
         """
         if kernel_id in self:
-            self._kernels[kernel_id].update_env(env)
+            self._kernels[kernel_id].update_env(env=env)
 
     async def _add_kernel_when_ready(
         self, kernel_id: str, km: KernelManager, kernel_awaitable: t.Awaitable
@@ -249,7 +249,7 @@ class MultiKernelManager(LoggingConfigurable):
         """Returns a boolean; a clearer method for determining if
         this multikernelmanager is using pending kernels or not
         """
-        return getattr(self, 'use_pending_kernels', False)
+        return getattr(self, "use_pending_kernels", False)
 
     async def _async_start_kernel(self, *, kernel_name: str | None = None, **kwargs: t.Any) -> str:
         """Start a new kernel.
@@ -266,7 +266,7 @@ class MultiKernelManager(LoggingConfigurable):
                     km_class=self.kernel_manager_class.__class__
                 )
             )
-        kwargs['kernel_id'] = kernel_id  # Make kernel_id available to manager and provisioner
+        kwargs["kernel_id"] = kernel_id  # Make kernel_id available to manager and provisioner
 
         starter = ensure_async(km.start_kernel(**kwargs))
         task = asyncio.create_task(self._add_kernel_when_ready(kernel_id, km, starter))
@@ -618,15 +618,7 @@ class AsyncMultiKernelManager(MultiKernelManager):
         self._created_context = True
         return zmq.asyncio.Context()
 
-    start_kernel: t.Callable[
-        ..., t.Awaitable
-    ] = MultiKernelManager._async_start_kernel  # type:ignore[assignment]
-    restart_kernel: t.Callable[
-        ..., t.Awaitable
-    ] = MultiKernelManager._async_restart_kernel  # type:ignore[assignment]
-    shutdown_kernel: t.Callable[
-        ..., t.Awaitable
-    ] = MultiKernelManager._async_shutdown_kernel  # type:ignore[assignment]
-    shutdown_all: t.Callable[
-        ..., t.Awaitable
-    ] = MultiKernelManager._async_shutdown_all  # type:ignore[assignment]
+    start_kernel: t.Callable[..., t.Awaitable] = MultiKernelManager._async_start_kernel  # type:ignore[assignment]
+    restart_kernel: t.Callable[..., t.Awaitable] = MultiKernelManager._async_restart_kernel  # type:ignore[assignment]
+    shutdown_kernel: t.Callable[..., t.Awaitable] = MultiKernelManager._async_shutdown_kernel  # type:ignore[assignment]
+    shutdown_all: t.Callable[..., t.Awaitable] = MultiKernelManager._async_shutdown_all  # type:ignore[assignment]

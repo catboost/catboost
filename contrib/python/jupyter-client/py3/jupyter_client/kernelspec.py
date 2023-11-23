@@ -24,7 +24,7 @@ NATIVE_KERNEL_NAME = "python3"
 class KernelSpec(HasTraits):
     """A kernel spec model object."""
 
-    argv = List()
+    argv: List[str] = List()
     name = Unicode()
     mimetype = Unicode()
     display_name = Unicode()
@@ -160,7 +160,7 @@ class KernelSpecManager(LoggingConfigurable):
         By default, all installed kernels are allowed.
         """,
     )
-    kernel_dirs = List(
+    kernel_dirs: List[str] = List(
         help="List of kernel directories to search. Later ones take priority over earlier."
     )
 
@@ -241,7 +241,7 @@ class KernelSpecManager(LoggingConfigurable):
                 pass
             else:
                 if resource_dir == RESOURCES:
-                    kdict = get_kernel_dict()  # type:ignore[no-untyped-call]
+                    kdict = get_kernel_dict()
                     kspec = self.kernel_spec_class(resource_dir=resource_dir, **kdict)
         if not kspec:
             kspec = self.kernel_spec_class.from_resource_dir(resource_dir)
@@ -415,7 +415,7 @@ class KernelSpecManager(LoggingConfigurable):
         )
         from ipykernel.kernelspec import install
 
-        install(self, user=user)  # type:ignore[no-untyped-call]
+        install(self, user=user)
 
 
 def find_kernel_specs() -> dict[str, str]:

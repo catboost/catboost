@@ -266,9 +266,7 @@ class InstallNativeKernelSpec(JupyterApp):
             print("ipykernel not available, can't install its spec.", file=sys.stderr)
             self.exit(1)
         try:
-            kernelspec.install(
-                self.kernel_spec_manager, user=self.user
-            )  # type:ignore[no-untyped-call]
+            kernelspec.install(self.kernel_spec_manager, user=self.user)
         except OSError as e:
             if e.errno == errno.EACCES:
                 print(e, file=sys.stderr)
