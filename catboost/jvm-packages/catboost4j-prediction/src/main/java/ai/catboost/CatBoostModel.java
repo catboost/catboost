@@ -225,6 +225,34 @@ public class CatBoostModel implements AutoCloseable {
     }
 
     /**
+     * Load CatBoost model from byte array.
+     *
+     * @param model Byte array containing model.
+     * @return      CatBoost model.
+     * @throws CatBoostError When failed to load model.
+     */
+    @NotNull
+    public static CatBoostModel loadModel(final @NotNull byte[] model) throws CatBoostError {
+        return loadModel(modelPath, "bin");
+    }
+
+    /**
+     * Load CatBoost model from file modelPath.
+     *
+     * @param model       Byte array containing model.
+     * @param modelFormat Model file format (bin or json)
+     * @return            CatBoost model.
+     * @throws CatBoostError When failed to load model.
+     */
+    @NotNull
+    public static CatBoostModel loadModel(final @NotNull byte[] model, @NotNull String modelFormat) throws CatBoostError {
+        final long[] handles = new long[1];
+
+        implLibrary.catBoostLoadModelFromArray(model, handles, modelFormat);
+        return new CatBoostModel(handles[0]);
+    }
+
+    /**
      * Load CatBoost model from file modelPath.
      *
      * @param modelPath Path to the model.
