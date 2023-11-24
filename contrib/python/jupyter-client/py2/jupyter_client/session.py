@@ -875,7 +875,7 @@ class Session(Configurable):
         if n_to_cull >= current:
             self.digest_history = set()
             return
-        to_cull = random.sample(sorted(self.digest_history), n_to_cull)
+        to_cull = random.sample(self.digest_history, n_to_cull)
         self.digest_history.difference_update(to_cull)
 
     def deserialize(self, msg_list, content=True, copy=True):
