@@ -6,12 +6,25 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(lib)
 
 add_executable(catboost-private-libs-text_processing-ut)
+target_link_libraries(catboost-private-libs-text_processing-ut PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  library-cpp-cpuid_check
+  cpp-testing-unittest_main
+  private-libs-text_processing
+  text_processing-ut-lib
+)
 target_link_options(catboost-private-libs-text_processing-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
+)
+target_sources(catboost-private-libs-text_processing-ut PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/ut/dictionary_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/ut/text_dataset_ut.cpp
 )
 set_property(
   TARGET
@@ -45,5 +58,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-text_processing-ut
+  system_allocator
 )
 vcs_info(catboost-private-libs-text_processing-ut)

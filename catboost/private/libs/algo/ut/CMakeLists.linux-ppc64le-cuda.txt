@@ -11,6 +11,20 @@ add_executable(catboost-private-libs-algo-ut)
 target_include_directories(catboost-private-libs-algo-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo
 )
+target_link_libraries(catboost-private-libs-algo-ut PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  yutil
+  cpp-testing-unittest_main
+  private-libs-algo
+  private-libs-algo_helpers
+  text_features-ut-lib
+  catboost-libs-data
+  catboost-libs-helpers
+  model-ut-lib
+  catboost-libs-train_lib
+  cpp-threading-local_executor
+)
 target_link_options(catboost-private-libs-algo-ut PRIVATE
   -ldl
   -lrt
@@ -23,6 +37,15 @@ target_link_options(catboost-private-libs-algo-ut PRIVATE
   -lcudadevrt
   -lculibos
   -lcudart_static
+)
+target_sources(catboost-private-libs-algo-ut PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/ut/apply_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/ut/train_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/ut/pairwise_scoring_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/ut/mvs_gen_weights_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/ut/text_collection_builder_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/ut/monotonic_constraints_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/ut/nonsymmetric_index_calcer_ut.cpp
 )
 set_property(
   TARGET
@@ -56,5 +79,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-algo-ut
+  system_allocator
 )
 vcs_info(catboost-private-libs-algo-ut)

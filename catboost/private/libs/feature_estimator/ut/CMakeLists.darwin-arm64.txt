@@ -8,10 +8,21 @@
 
 
 add_executable(catboost-private-libs-feature_estimator-ut)
+target_link_libraries(catboost-private-libs-feature_estimator-ut PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  cpp-testing-unittest_main
+  private-libs-feature_estimator
+  private-libs-text_features
+  private-libs-text_processing
+)
 target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
+)
+target_sources(catboost-private-libs-feature_estimator-ut PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/ut/feature_estimator_ut.cpp
 )
 set_property(
   TARGET
@@ -45,5 +56,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-feature_estimator-ut
+  system_allocator
 )
 vcs_info(catboost-private-libs-feature_estimator-ut)

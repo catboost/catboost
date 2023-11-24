@@ -8,6 +8,16 @@
 
 
 add_executable(catboost-private-libs-feature_estimator-ut)
+target_link_libraries(catboost-private-libs-feature_estimator-ut PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  yutil
+  library-cpp-cpuid_check
+  cpp-testing-unittest_main
+  private-libs-feature_estimator
+  private-libs-text_features
+  private-libs-text_processing
+)
 target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE
   -ldl
   -lrt
@@ -17,6 +27,9 @@ target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE
   -lpthread
   -lrt
   -ldl
+)
+target_sources(catboost-private-libs-feature_estimator-ut PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/ut/feature_estimator_ut.cpp
 )
 set_property(
   TARGET
@@ -50,5 +63,9 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-feature_estimator-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(catboost-private-libs-feature_estimator-ut)

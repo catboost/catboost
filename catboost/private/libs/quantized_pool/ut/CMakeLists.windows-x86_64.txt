@@ -11,6 +11,25 @@ add_executable(catboost-private-libs-quantized_pool-ut)
 target_include_directories(catboost-private-libs-quantized_pool-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool
 )
+target_link_libraries(catboost-private-libs-quantized_pool-ut PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  library-cpp-cpuid_check
+  cpp-testing-unittest_main
+  private-libs-quantized_pool
+  idl-pool-flat
+  catboost-libs-data
+  data-ut-lib
+  private-libs-data_types
+  private-libs-quantization_schema
+  contrib-libs-flatbuffers
+  library-cpp-json
+)
+target_sources(catboost-private-libs-quantized_pool-ut PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool/ut/loader_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool/ut/serialization_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool/ut/print_ut.cpp
+)
 set_property(
   TARGET
   catboost-private-libs-quantized_pool-ut
@@ -43,5 +62,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-quantized_pool-ut
+  system_allocator
 )
 vcs_info(catboost-private-libs-quantized_pool-ut)

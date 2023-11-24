@@ -8,10 +8,22 @@
 
 
 add_executable(json_options_ut)
+target_link_libraries(json_options_ut PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  cpp-testing-unittest_main
+  private-libs-options
+)
 target_link_options(json_options_ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
+)
+target_sources(json_options_ut PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/options/ut/json_helper_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/options/ut/options_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/options/ut/text_options_ut.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/options/ut/all_losses_described.cpp
 )
 set_property(
   TARGET
@@ -45,5 +57,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(json_options_ut
+  system_allocator
 )
 vcs_info(json_options_ut)
