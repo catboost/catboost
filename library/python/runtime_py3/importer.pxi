@@ -240,8 +240,13 @@ class ResourceImporter(object):
             module.__path__= [executable + path_sep + module.__name__.replace('.', path_sep)]
         # exec(code, module.__dict__)
 
+        # __name__ and __file__ could be overwritten after execution
+        # So these two things are needed if wee want to be consistent at some point
+        initial_modname = module.__name__
+        initial_filename = module.__file__
+
         if self._before_import_callback:
-            self._before_import_callback(module)
+            self._before_import_callback(initial_modname, initial_filename)
 
         # “Zero-cost” exceptions are implemented.
         # The cost of try statements is almost eliminated when no exception is raised
@@ -249,7 +254,7 @@ class ResourceImporter(object):
             _call_with_frames_removed(exec, code, module.__dict__)
         finally:
             if self._after_import_callback:
-                self._after_import_callback(module)
+                self._after_import_callback(initial_modname, initial_filename)
 
     # PEP-302 extension 1 of 3: data loader.
     def get_data(self, path):

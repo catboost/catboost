@@ -241,8 +241,13 @@ class ResourceImporter(object):
         old_mod = sys.modules.get(mod_name, None)
         sys.modules[mod_name] = mod
 
+        # __name__ and __file__ could be overwritten after execution
+        # So these two things are needed if wee want to be consistent at some point
+        initial_modname = mod.__name__
+        initial_filename = mod.__file__
+
         if self._before_import_callback:
-            self._before_import_callback(mod)
+            self._before_import_callback(initial_modname, initial_filename)
 
         try:
             exec code in mod.__dict__
@@ -252,7 +257,7 @@ class ResourceImporter(object):
 
             # "Zero-cost". Just in case import error occurs
             if self._after_import_callback:
-                self._after_import_callback(mod)
+                self._after_import_callback(initial_modname, initial_filename)
 
         # Some hacky modules (e.g. pygments.lexers) replace themselves in
         # `sys.modules` with proxies.
