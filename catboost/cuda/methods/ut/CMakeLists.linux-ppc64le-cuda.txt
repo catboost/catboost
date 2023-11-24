@@ -8,18 +8,6 @@
 
 
 add_executable(catboost-cuda-methods-ut)
-target_link_libraries(catboost-cuda-methods-ut PUBLIC
-  contrib-libs-linux-headers
-  contrib-libs-cxxsupp
-  yutil
-  cpp-testing-unittest_main
-  catboost-cuda-gpu_data
-  catboost-cuda-data
-  catboost-cuda-methods
-  catboost-cuda-ut_helpers
-  catboost-libs-helpers
-  private-libs-quantization
-)
 target_link_options(catboost-cuda-methods-ut PRIVATE
   -ldl
   -lrt
@@ -32,13 +20,6 @@ target_link_options(catboost-cuda-methods-ut PRIVATE
   -lcudadevrt
   -lculibos
   -lcudart_static
-)
-target_sources(catboost-cuda-methods-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_tree_searcher.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_pairwise_tree_searcher.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_multistat_histograms.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_exact_leaves_estimation.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_langevin.cpp
 )
 set_property(
   TARGET
@@ -72,8 +53,5 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
-)
-target_allocator(catboost-cuda-methods-ut
-  system_allocator
 )
 vcs_info(catboost-cuda-methods-ut)

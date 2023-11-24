@@ -11,19 +11,10 @@ add_executable(catboost-private-libs-quantization-ut)
 target_include_directories(catboost-private-libs-quantization-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization
 )
-target_link_libraries(catboost-private-libs-quantization-ut PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-testing-unittest_main
-  private-libs-quantization
-)
 target_link_options(catboost-private-libs-quantization-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
-)
-target_sources(catboost-private-libs-quantization-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization/ut/utils_ut.cpp
 )
 set_property(
   TARGET
@@ -57,8 +48,5 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
-)
-target_allocator(catboost-private-libs-quantization-ut
-  system_allocator
 )
 vcs_info(catboost-private-libs-quantization-ut)

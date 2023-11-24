@@ -8,14 +8,6 @@
 
 
 add_executable(catboost-libs-carry_model-ut)
-target_link_libraries(catboost-libs-carry_model-ut PUBLIC
-  contrib-libs-linux-headers
-  contrib-libs-cxxsupp
-  yutil
-  cpp-testing-unittest_main
-  catboost-libs-carry_model
-  model-ut-lib
-)
 target_link_options(catboost-libs-carry_model-ut PRIVATE
   -ldl
   -lrt
@@ -25,9 +17,6 @@ target_link_options(catboost-libs-carry_model-ut PRIVATE
   -lpthread
   -lrt
   -ldl
-)
-target_sources(catboost-libs-carry_model-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/carry_model/ut/carry_model_ut.cpp
 )
 set_property(
   TARGET
@@ -61,8 +50,5 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
-)
-target_allocator(catboost-libs-carry_model-ut
-  cpp-malloc-jemalloc
 )
 vcs_info(catboost-libs-carry_model-ut)

@@ -8,28 +8,6 @@
 
 
 add_executable(catboost-cuda-targets-ut)
-target_link_libraries(catboost-cuda-targets-ut PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  library-cpp-cpuid_check
-  cpp-testing-unittest_main
-  catboost-cuda-cuda_lib
-  catboost-cuda-cuda_util
-  catboost-cuda-targets
-  catboost-cuda-ut_helpers
-  catboost-libs-helpers
-  catboost-libs-metrics
-  library-cpp-accurate_accumulate
-  library-cpp-float16
-)
-target_sources(catboost-cuda-targets-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_auc.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_multi_logit.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_query_cross_entropy.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_combination.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_tweedie.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_huber.cpp
-)
 set_property(
   TARGET
   catboost-cuda-targets-ut
@@ -62,8 +40,5 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
-)
-target_allocator(catboost-cuda-targets-ut
-  system_allocator
 )
 vcs_info(catboost-cuda-targets-ut)

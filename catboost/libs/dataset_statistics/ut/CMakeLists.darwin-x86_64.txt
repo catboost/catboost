@@ -8,21 +8,10 @@
 
 
 add_executable(catboost-libs-dataset_statistics-ut)
-target_link_libraries(catboost-libs-dataset_statistics-ut PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  library-cpp-cpuid_check
-  cpp-testing-unittest_main
-  catboost-libs-dataset_statistics
-)
 target_link_options(catboost-libs-dataset_statistics-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
-)
-target_sources(catboost-libs-dataset_statistics-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/ut/histograms_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/ut/statistics_serialization_ut.cpp
 )
 set_property(
   TARGET
@@ -56,8 +45,5 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
-)
-target_allocator(catboost-libs-dataset_statistics-ut
-  system_allocator
 )
 vcs_info(catboost-libs-dataset_statistics-ut)

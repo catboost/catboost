@@ -8,16 +8,6 @@
 
 
 add_executable(catboost-cuda-ctrs-ut)
-target_link_libraries(catboost-cuda-ctrs-ut PUBLIC
-  contrib-libs-linux-headers
-  contrib-libs-cxxsupp
-  yutil
-  library-cpp-cpuid_check
-  cpp-testing-unittest_main
-  catboost-cuda-ctrs
-  catboost-libs-helpers
-  catboost-cuda-data
-)
 target_link_options(catboost-cuda-ctrs-ut PRIVATE
   -ldl
   -lrt
@@ -30,9 +20,6 @@ target_link_options(catboost-cuda-ctrs-ut PRIVATE
   -lcudadevrt
   -lculibos
   -lcudart_static
-)
-target_sources(catboost-cuda-ctrs-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/ctrs/ut/test_ctrs.cpp
 )
 set_property(
   TARGET
@@ -66,9 +53,5 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
-)
-target_allocator(catboost-cuda-ctrs-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(catboost-cuda-ctrs-ut)

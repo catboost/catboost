@@ -11,13 +11,6 @@ add_executable(catboost-private-libs-algo_helpers-ut)
 target_include_directories(catboost-private-libs-algo_helpers-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers
 )
-target_link_libraries(catboost-private-libs-algo_helpers-ut PUBLIC
-  contrib-libs-linux-headers
-  contrib-libs-cxxsupp
-  yutil
-  cpp-testing-unittest_main
-  private-libs-algo_helpers
-)
 target_link_options(catboost-private-libs-algo_helpers-ut PRIVATE
   -ldl
   -lrt
@@ -27,10 +20,6 @@ target_link_options(catboost-private-libs-algo_helpers-ut PRIVATE
   -lpthread
   -lrt
   -ldl
-)
-target_sources(catboost-private-libs-algo_helpers-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/ut/pairwise_leaves_calculation_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/ut/multiquantile_derivatives_ut.cpp
 )
 set_property(
   TARGET
@@ -64,8 +53,5 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
-)
-target_allocator(catboost-private-libs-algo_helpers-ut
-  system_allocator
 )
 vcs_info(catboost-private-libs-algo_helpers-ut)

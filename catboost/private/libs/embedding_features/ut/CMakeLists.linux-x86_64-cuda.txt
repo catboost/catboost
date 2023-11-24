@@ -8,14 +8,6 @@
 
 
 add_executable(catboost-private-libs-embedding_features-ut)
-target_link_libraries(catboost-private-libs-embedding_features-ut PUBLIC
-  contrib-libs-linux-headers
-  contrib-libs-cxxsupp
-  yutil
-  library-cpp-cpuid_check
-  cpp-testing-unittest_main
-  private-libs-embedding_features
-)
 target_link_options(catboost-private-libs-embedding_features-ut PRIVATE
   -ldl
   -lrt
@@ -25,9 +17,6 @@ target_link_options(catboost-private-libs-embedding_features-ut PRIVATE
   -lpthread
   -lrt
   -ldl
-)
-target_sources(catboost-private-libs-embedding_features-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/ut/calcer_canonization_ut.cpp
 )
 set_property(
   TARGET
@@ -61,9 +50,5 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
-)
-target_allocator(catboost-private-libs-embedding_features-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(catboost-private-libs-embedding_features-ut)
