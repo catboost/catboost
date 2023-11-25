@@ -2555,6 +2555,15 @@ class CatBoost(_CatBoostBase):
         self._validate_prediction_type(prediction_type)
 
         predictions = self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, task_type)
+
+        if prediction_type == 'Class':
+            true_str_as_prediction_mask = predictions == 'True'
+            false_str_as_prediction_mask = predictions == 'False'
+            # Means "if in the `predictions` array every value is the string representation of a boolean value"
+            if (true_str_as_prediction_mask | false_str_as_prediction_mask).all():
+                # The string representation of a boolean is replaced with the boolean value itself
+                predictions = true_str_as_prediction_mask
+
         return predictions[0] if data_is_single_object else predictions
 
     def predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type="CPU"):
