@@ -99,8 +99,8 @@ class Unix(PlatformDirsABC):
 
     @property
     def site_cache_dir(self) -> str:
-        """:return: cache directory shared by users, e.g. ``/var/tmp/$appname/$version``"""
-        return self._append_app_name_and_version("/var/tmp")  # noqa: S108
+        """:return: cache directory shared by users, e.g. ``/var/cache/$appname/$version``"""
+        return self._append_app_name_and_version("/var/cache")
 
     @property
     def user_state_dir(self) -> str:
