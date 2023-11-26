@@ -39,12 +39,16 @@ private:
     ModelCalcerHandle* Handle = nullptr;
     bool ModelLoaded = false;
 
-    Napi::Array CalcPredictionHash(Napi::Env env,
-                                   const TVector<float>& floatFeatures,
-                                   const Napi::Array& catFeatures);
-    Napi::Array CalcPredictionString(Napi::Env env,
-                                   const TVector<float>& floatFeatures,
-                                   const Napi::Array& catFeatures);
+    Napi::Array CalcPredictionHash(
+        Napi::Env env,
+        const TVector<float>& floatFeatures,
+        const Napi::Array& catFeatures
+    );
+    Napi::Array CalcPredictionString(
+        Napi::Env env,
+        const TVector<float>& floatFeatures,
+        const Napi::Array& catFeatures
+    );
 
     TModel(const TModel&) = delete;
     TModel(TModel&&) = delete;

@@ -23,19 +23,21 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
     size_t strCount = 0;
     for (uint32_t i = 0; i < rowsCount; ++i) {
         if (!Check(
-            env,
-            floatFeatures[i].IsArray(),
-            errorPrefix + std::to_string(i) + "-th element of matrix is not an array")
-        ) {
+                env,
+                floatFeatures[i].IsArray(),
+                errorPrefix + std::to_string(i) + "-th element of matrix is not an array"
+            ))
+        {
             return false;
         }
 
         const Napi::Array row = floatFeatures[i].As<Napi::Array>();
         if (!Check(
-            env,
-            row.Length() == columnsCount,
-            errorPrefix + "invalid length of " + std::to_string(i) + "-th row")
-        ) {
+                env,
+                row.Length() == columnsCount,
+                errorPrefix + "invalid length of " + std::to_string(i) + "-th row"
+            ))
+        {
             return false;
         }
 
@@ -97,7 +99,12 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
                 }
                 break;
             case ENApiType::NAT_NUMBER_OR_STRING:
-                if (!Check(env, !(numberCount > 0 && strCount > 0), errorPrefix + "mixed strings an numbers in array")) {
+                if (!Check(
+                        env,
+                        !(numberCount > 0 && strCount > 0),
+                        errorPrefix + "mixed strings an numbers in array"
+                    ))
+                {
                     return false;
                 }
                 break;
