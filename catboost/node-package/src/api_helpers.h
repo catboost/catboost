@@ -6,9 +6,9 @@
 // Catboost C API
 #include <c_api.h>
 
-#include <util/generic/vector.h>
+#include <vector>
 
-// Using STD version of string as it is used by N-API.
+// used by N-API.
 #include <string>
 
 namespace NHelper {
@@ -58,7 +58,7 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
 
 // Converts vector of numbers to N-API array.
 template <typename T>
-Napi::Array ConvertToArray(Napi::Env env, const TVector<T>& values) {
+Napi::Array ConvertToArray(Napi::Env env, const std::vector<T>& values) {
     Napi::Array result = Napi::Array::New(env);
     uint32_t index = 0;
     for (const auto value: values) {

@@ -6,9 +6,9 @@
 namespace {
 
 // Collect pointers to matrix rows into a vector.
-template <typename T, typename V = const T*, typename C = const TVector<T>>
-TVector<V> CollectMatrixRowPointers(C& matrix, uint32_t rowLength) {
-    TVector<V> pointers;
+template <typename T, typename V = const T*, typename C = const std::vector<T>>
+std::vector<V> CollectMatrixRowPointers(C& matrix, uint32_t rowLength) {
+    std::vector<V> pointers;
     for (uint32_t i = 0; i < matrix.size(); i += rowLength) {
         pointers.push_back(matrix.data() + i);
     }
@@ -125,7 +125,7 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
 
     const uint32_t floatFeaturesSize = floatFeatures[0u].As<Napi::Array>().Length();
 
-    TVector<float> floatFeatureValues;
+    std::vector<float> floatFeatureValues;
     floatFeatureValues.reserve(floatFeaturesSize * docsCount);
 
     for (uint32_t i = 0; i < docsCount; ++i) {
@@ -207,14 +207,14 @@ Napi::Value TModel::GetPredictionDimensionsCount(const Napi::CallbackInfo& info)
 
 Napi::Array TModel::CalcPredictionHash(
     Napi::Env env,
-    const TVector<float>& floatFeatures,
+    const std::vector<float>& floatFeatures,
     const Napi::Array& catFeatures
 ) {
     const uint32_t docsCount = catFeatures.Length();
     const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
     const uint32_t floatFeaturesSize = floatFeatures.size() / docsCount;
 
-    TVector<int> catHashValues;
+    std::vector<int> catHashValues;
     catHashValues.reserve(catFeaturesSize * docsCount);
 
     for (uint32_t i = 0; i < docsCount; ++i) {
@@ -224,11 +224,11 @@ Napi::Array TModel::CalcPredictionHash(
         }
     }
     const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
-    TVector<double> resultValues;
+    std::vector<double> resultValues;
     resultValues.resize(docsCount * predictionDimensions);
 
-    TVector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
-    TVector<const int*> catPtrs = CollectMatrixRowPointers<int>(catHashValues, catFeaturesSize);
+    std::vector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
+    std::vector<const int*> catPtrs = CollectMatrixRowPointers<int>(catHashValues, catFeaturesSize);
     NHelper::CheckStatus(
         env,
         CalcModelPredictionWithHashedCatFeatures(
@@ -245,15 +245,15 @@ Napi::Array TModel::CalcPredictionHash(
 
 Napi::Array TModel::CalcPredictionString(
     Napi::Env env,
-    const TVector<float>& floatFeatures,
+    const std::vector<float>& floatFeatures,
     const Napi::Array& catFeatures
 ) {
     const uint32_t docsCount = catFeatures.Length();
     const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
     const uint32_t floatFeaturesSize = floatFeatures.size() / docsCount;
 
-    TVector<std::string> catStrings;
-    TVector<const char*> catStringValues;
+    std::vector<std::string> catStrings;
+    std::vector<const char*> catStringValues;
     catStrings.reserve(catFeaturesSize * docsCount);
     catStringValues.reserve(catFeaturesSize * docsCount);
 
@@ -265,11 +265,11 @@ Napi::Array TModel::CalcPredictionString(
         }
     }
     const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
-    TVector<double> resultValues;
+    std::vector<double> resultValues;
     resultValues.resize(docsCount * predictionDimensions);
 
-    TVector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
-    TVector<const char**> catPtrs = CollectMatrixRowPointers<const char*, const char**>(
+    std::vector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
+    std::vector<const char**> catPtrs = CollectMatrixRowPointers<const char*, const char**>(
         catStringValues,
         catFeaturesSize
     );

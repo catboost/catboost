@@ -5,7 +5,8 @@
 // Catboost C API
 #include <c_api.h>
 
-#include <util/generic/vector.h>
+#include <vector>
+
 
 namespace NNodeCatBoost {
 
@@ -41,12 +42,12 @@ private:
 
     Napi::Array CalcPredictionHash(
         Napi::Env env,
-        const TVector<float>& floatFeatures,
+        const std::vector<float>& floatFeatures,
         const Napi::Array& catFeatures
     );
     Napi::Array CalcPredictionString(
         Napi::Env env,
-        const TVector<float>& floatFeatures,
+        const std::vector<float>& floatFeatures,
         const Napi::Array& catFeatures
     );
 
