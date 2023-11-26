@@ -1,7 +1,6 @@
 #include "model.h"
 
 #include "api_helpers.h"
-#include "catboost/libs/model_interface/c_api.h"
 
 namespace {
 

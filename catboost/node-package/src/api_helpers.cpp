@@ -1,7 +1,6 @@
 #include "api_helpers.h"
 
 #include <assert.h>
-#include <string>
 
 namespace NHelper {
 
