@@ -3,7 +3,7 @@
 // N-API (node-addon-api)
 #include <napi.h>
 // Catboost C API
-#include <c_api.h>
+#include <catboost/libs/model_interface/c_api.h>
 
 #include <vector>
 
