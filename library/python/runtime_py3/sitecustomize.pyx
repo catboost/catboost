@@ -1,4 +1,6 @@
 import pathlib
+import io
+import os
 import re
 import sys
 
@@ -6,10 +8,76 @@ import __res
 
 from importlib.abc import ResourceReader
 from importlib.metadata import Distribution, DistributionFinder, PackageNotFoundError, Prepared
+from importlib.resources.abc import Traversable
 
 ResourceReader.register(__res._ResfsResourceReader)
 
 METADATA_NAME = re.compile('^Name: (.*)$', re.MULTILINE)
+
+
+class ArcadiaResourceHandle(Traversable):
+    def __init__(self, key):
+        self.resfs_key = key
+
+    def is_file(self):
+        return True
+
+    def is_dir(self):
+        return False
+
+    def open(self, mode='r', *args, **kwargs):
+        data = __res.find(self.resfs_key.encode("utf-8"))
+        if data is None:
+            raise FileNotFoundError(self.resfs_key)
+
+        stream = io.BytesIO(data)
+
+        if 'b' not in mode:
+            stream = io.TextIOWrapper(stream, *args, **kwargs)
+
+        return stream
+
+    def joinpath(self, *name):
+        raise RuntimeError("Cannot traverse into a resource")
+
+    def iterdir(self):
+        return iter(())
+
+    @property
+    def name(self):
+        return os.path.basename(self.resfs_key)
+
+
+class ArcadiaResourceContainer(Traversable):
+    def __init__(self, prefix):
+        self.resfs_prefix = prefix
+
+    def is_dir(self):
+        return True
+
+    def is_file(self):
+        return False
+
+    def iterdir(self):
+        for key, path_without_prefix in __res.iter_keys(self.resfs_prefix.encode("utf-8")):
+            if b"/" in path_without_prefix:
+                name = path_without_prefix.decode("utf-8").split("/", maxsplit=1)[0]
+                yield ArcadiaResourceContainer(f"{self.resfs_prefix}{name}/")
+            else:
+                yield ArcadiaResourceHandle(key.decode("utf-8"))
+
+    def open(self, *args, **kwargs):
+        raise IsADirectoryError(self.resfs_prefix)
+
+    def joinpath(self, *descendants):
+        if not descendants:
+            return self
+
+        return ArcadiaResourceHandle(os.path.join(self.resfs_prefix, *descendants))
+
+    @property
+    def name(self):
+        return os.path.basename(self.resfs_prefix[:-1])
 
 
 class ArcadiaDistribution(Distribution):
