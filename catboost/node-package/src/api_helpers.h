@@ -17,8 +17,7 @@ namespace NHelper {
 // Returns false if check failed.
 inline bool Check(Napi::Env env, bool condition, const std::string& message) {
     if (!condition) {
-        Napi::TypeError::New(env, message)
-	    .ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, message).ThrowAsJavaScriptException();
     }
 
     return condition;
