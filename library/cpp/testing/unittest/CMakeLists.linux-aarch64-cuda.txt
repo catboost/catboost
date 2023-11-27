@@ -12,10 +12,10 @@ target_link_libraries(cpp-testing-unittest PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  contrib-libs-libxml
   library-cpp-colorizer
   library-cpp-dbg_output
   library-cpp-diff
+  library-cpp-json
   cpp-json-writer
   cpp-testing-common
   cpp-testing-hook

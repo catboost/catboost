@@ -1,5 +1,4 @@
 [requires]
-libiconv/1.15
 openssl/1.1.1t
 
 [tool_requires]
@@ -8,7 +7,6 @@ swig/4.0.2
 yasm/1.3.0
 
 [options]
-libiconv:shared=True
 
 [imports]
 bin, *swig* -> ./bin
