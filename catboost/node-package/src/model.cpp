@@ -2,6 +2,9 @@
 
 #include "api_helpers.h"
 
+#include <vector>
+
+
 namespace {
 
 // Collect pointers to matrix rows into a vector.
@@ -122,18 +125,6 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
         return Napi::Array::New(env);
     }
 
-    const uint32_t floatFeaturesSize = floatFeatures[0u].As<Napi::Array>().Length();
-
-    std::vector<float> floatFeatureValues;
-    floatFeatureValues.reserve(floatFeaturesSize * sampleCount);
-
-    for (uint32_t i = 0; i < sampleCount; ++i) {
-        const Napi::Array row = floatFeatures[i].As<Napi::Array>();
-        for (uint32_t j = 0; j < floatFeaturesSize; ++j) {
-            floatFeatureValues.push_back(row[j].As<Napi::Number>().FloatValue());
-        }
-    }
-
     if (!NHelper::CheckIsMatrix(
         env,
         info[1],
@@ -153,9 +144,9 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     }
     const Napi::Array catRow = catFeatures[0u].As<Napi::Array>();
     if (catRow.Length() == 0 || catRow[0u].IsNumber()) {
-        return CalcPredictionHash(env, sampleCount, floatFeatureValues, catFeatures);
+        return CalcPredictionHash(env, sampleCount, floatFeatures, catFeatures);
     }
-    return CalcPredictionString(env, sampleCount, floatFeatureValues, catFeatures);
+    return CalcPredictionString(env, sampleCount, floatFeatures, catFeatures);
 }
 
 void TModel::EvaluateOnGPU(const Napi::CallbackInfo& info) {
@@ -192,6 +183,8 @@ Napi::Value TModel::GetModelTreeCount(const Napi::CallbackInfo& info) {
     return Napi::Number::New(env, count);
 }
 
+
+
 Napi::Value TModel::GetModelDimensionsCount(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     const size_t count = GetDimensionsCount(this->Handle);
@@ -206,16 +199,43 @@ Napi::Value TModel::GetPredictionDimensionsCount(const Napi::CallbackInfo& info)
     return Napi::Number::New(env, count);
 }
 
+static void GetNumericFeaturesData(
+    const uint32_t sampleCount,
+    const Napi::Array& floatFeatures,
+    uint32_t* floatFeatureCount,
+    std::vector<float>* storage,
+    std::vector<const float*>* sampleDataPtrs
+) {
+    const uint32_t floatFeatureCountLocal = floatFeatures[0u].As<Napi::Array>().Length();
+    *floatFeatureCount = floatFeatureCountLocal;
+
+    storage->clear();
+    storage->reserve(floatFeatureCountLocal * sampleCount);
+
+    for (uint32_t i = 0; i < sampleCount; ++i) {
+        const Napi::Array row = floatFeatures[i].As<Napi::Array>();
+        for (uint32_t j = 0; j < floatFeatureCountLocal; ++j) {
+            storage->push_back(row[j].As<Napi::Number>().FloatValue());
+        }
+    }
+
+    *sampleDataPtrs = CollectMatrixRowPointers<float>(*storage, floatFeatureCountLocal);
+}
 
 Napi::Array TModel::CalcPredictionHash(
     Napi::Env env,
     const uint32_t sampleCount,
-    const std::vector<float>& floatFeatures,
+    const Napi::Array& floatFeatures,
     const Napi::Array& catFeatures
 ) {
-    const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
-    const uint32_t floatFeaturesSize = floatFeatures.size() / sampleCount;
+    uint32_t floatFeaturesSize = 0;
+    std::vector<float> floatFeaturesStorage;
+    std::vector<const float*> floatPtrs;
 
+    GetNumericFeaturesData(sampleCount, floatFeatures, &floatFeaturesSize, &floatFeaturesStorage, &floatPtrs);
+
+
+    const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
     std::vector<int> catHashValues;
     catHashValues.reserve(catFeaturesSize * sampleCount);
 
@@ -225,12 +245,14 @@ Napi::Array TModel::CalcPredictionHash(
             catHashValues.push_back(row[j].As<Napi::Number>().Int32Value());
         }
     }
+
+    std::vector<const int*> catPtrs = CollectMatrixRowPointers<int>(catHashValues, catFeaturesSize);
+
+
     const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
     std::vector<double> resultValues;
     resultValues.resize(sampleCount * predictionDimensions);
 
-    std::vector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
-    std::vector<const int*> catPtrs = CollectMatrixRowPointers<int>(catHashValues, catFeaturesSize);
     NHelper::CheckStatus(
         env,
         CalcModelPredictionWithHashedCatFeatures(
@@ -248,11 +270,17 @@ Napi::Array TModel::CalcPredictionHash(
 Napi::Array TModel::CalcPredictionString(
     Napi::Env env,
     const uint32_t sampleCount,
-    const std::vector<float>& floatFeatures,
+    const Napi::Array& floatFeatures,
     const Napi::Array& catFeatures
 ) {
+    uint32_t floatFeaturesSize = 0;
+    std::vector<float> floatFeaturesStorage;
+    std::vector<const float*> floatPtrs;
+
+    GetNumericFeaturesData(sampleCount, floatFeatures, &floatFeaturesSize, &floatFeaturesStorage, &floatPtrs);
+
+
     const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
-    const uint32_t floatFeaturesSize = floatFeatures.size() / sampleCount;
 
     std::vector<std::string> catStrings;
     std::vector<const char*> catStringValues;
@@ -266,15 +294,15 @@ Napi::Array TModel::CalcPredictionString(
             catStringValues.push_back(catStrings.back().c_str());
         }
     }
-    const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
-    std::vector<double> resultValues;
-    resultValues.resize(sampleCount * predictionDimensions);
-
-    std::vector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
     std::vector<const char**> catPtrs = CollectMatrixRowPointers<const char*, const char**>(
         catStringValues,
         catFeaturesSize
     );
+
+
+    const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
+    std::vector<double> resultValues;
+    resultValues.resize(sampleCount * predictionDimensions);
 
     if (!NHelper::CheckStatus(
             env,
