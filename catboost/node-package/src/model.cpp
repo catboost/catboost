@@ -153,9 +153,9 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     }
     const Napi::Array catRow = catFeatures[0u].As<Napi::Array>();
     if (catRow.Length() == 0 || catRow[0u].IsNumber()) {
-        return CalcPredictionHash(env, floatFeatureValues, catFeatures);
+        return CalcPredictionHash(env, sampleCount, floatFeatureValues, catFeatures);
     }
-    return CalcPredictionString(env, floatFeatureValues, catFeatures);
+    return CalcPredictionString(env, sampleCount, floatFeatureValues, catFeatures);
 }
 
 void TModel::EvaluateOnGPU(const Napi::CallbackInfo& info) {
@@ -209,10 +209,10 @@ Napi::Value TModel::GetPredictionDimensionsCount(const Napi::CallbackInfo& info)
 
 Napi::Array TModel::CalcPredictionHash(
     Napi::Env env,
+    const uint32_t sampleCount,
     const std::vector<float>& floatFeatures,
     const Napi::Array& catFeatures
 ) {
-    const uint32_t sampleCount = catFeatures.Length();
     const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
     const uint32_t floatFeaturesSize = floatFeatures.size() / sampleCount;
 
@@ -247,10 +247,10 @@ Napi::Array TModel::CalcPredictionHash(
 
 Napi::Array TModel::CalcPredictionString(
     Napi::Env env,
+    const uint32_t sampleCount,
     const std::vector<float>& floatFeatures,
     const Napi::Array& catFeatures
 ) {
-    const uint32_t sampleCount = catFeatures.Length();
     const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
     const uint32_t floatFeaturesSize = floatFeatures.size() / sampleCount;
 

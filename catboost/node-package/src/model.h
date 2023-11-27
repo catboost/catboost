@@ -42,11 +42,13 @@ private:
 
     Napi::Array CalcPredictionHash(
         Napi::Env env,
+        const uint32_t sampleCount,
         const std::vector<float>& floatFeatures,
         const Napi::Array& catFeatures
     );
     Napi::Array CalcPredictionString(
         Napi::Env env,
+        const uint32_t sampleCount,
         const std::vector<float>& floatFeatures,
         const Napi::Array& catFeatures
     );
