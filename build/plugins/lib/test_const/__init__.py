@@ -447,7 +447,6 @@ class Status(object):
 
 
 class _Colors(object):
-
     _NAMES = [
         "blue",
         "cyan",
@@ -480,7 +479,6 @@ Colors = _Colors()
 
 
 class _Highlight(object):
-
     _MARKERS = {
         # special
         "RESET": "rst",
