@@ -21,12 +21,12 @@ target_link_options(catboost-cuda-cuda_util-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
-  -lrt
-  -ldl
   -lcudadevrt
   -lculibos
   -lcudart_static
+  -lpthread
+  -lrt
+  -ldl
 )
 target_sources(catboost-cuda-cuda_util-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_calculate_threshold.cpp

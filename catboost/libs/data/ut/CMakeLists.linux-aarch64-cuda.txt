@@ -31,12 +31,12 @@ target_link_options(catboost-libs-data-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
-  -lrt
-  -ldl
   -lcudadevrt
   -lculibos
   -lcudart_static
+  -lpthread
+  -lrt
+  -ldl
 )
 target_sources(catboost-libs-data-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/borders_io_ut.cpp

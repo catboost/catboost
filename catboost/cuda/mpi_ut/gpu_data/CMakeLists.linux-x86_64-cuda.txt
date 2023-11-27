@@ -24,12 +24,12 @@ target_link_options(gpu_data PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
-  -lrt
-  -ldl
   -lcudadevrt
   -lculibos
   -lcudart_static
+  -lpthread
+  -lrt
+  -ldl
 )
 target_sources(gpu_data PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp

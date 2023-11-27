@@ -31,12 +31,12 @@ target_link_options(catboost-private-libs-algo-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
-  -lrt
-  -ldl
   -lcudadevrt
   -lculibos
   -lcudart_static
+  -lpthread
+  -lrt
+  -ldl
 )
 target_sources(catboost-private-libs-algo-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/ut/apply_ut.cpp
