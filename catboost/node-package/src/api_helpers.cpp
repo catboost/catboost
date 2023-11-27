@@ -14,7 +14,7 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
         return true;
     }
 
-    if (!Check(env, matrix[0u].IsArray(), errorPrefix + "first element of matrixn is not an array")) {
+    if (!Check(env, matrix[0u].IsArray(), errorPrefix + "first element of matrix is not an array")) {
         return false;
     }
     const uint32_t columnsCount = matrix[0u].As<Napi::Array>().Length();
@@ -101,7 +101,7 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
                 if (!Check(
                         env,
                         !(numberCount > 0 && strCount > 0),
-                        errorPrefix + "mixed strings an numbers in array"
+                        errorPrefix + "mixed strings and numbers in array"
                     ))
                 {
                     return false;

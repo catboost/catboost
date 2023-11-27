@@ -38,7 +38,7 @@ TModel::TModel(const Napi::CallbackInfo& info): Napi::ObjectWrap<TModel>(info) {
         info[0].As<Napi::String>().Utf8Value().c_str()
     );
     // Even if it fails, this check schedules NodeJS exception, not C++ one.
-    // The C++ object is considered to be successfully created and will be destoryed by Node runtime
+    // The C++ object is considered to be successfully created and will be destroyed by Node runtime
     // later as usual.
     NHelper::CheckStatus(env, status);
     if (status) {
