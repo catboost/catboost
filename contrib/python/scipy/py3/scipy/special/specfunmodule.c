@@ -1,5 +1,5 @@
 /* File: specfunmodule.c
- * This file is auto-generated with f2py (version:1.25.2).
+ * This file is auto-generated with f2py (version:1.26.2).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -19,6 +19,7 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
+#include "numpy/npy_math.h"
 #include "fortranobject.h"
 #include <math.h>
 
@@ -170,14 +171,14 @@ complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess)
         if (PyArray_IsScalar(obj, CFloat)) {
             npy_cfloat new;
             PyArray_ScalarAsCtype(obj, &new);
-            (*v).r = (double)new.real;
-            (*v).i = (double)new.imag;
+            (*v).r = (double)npy_crealf(new);
+            (*v).i = (double)npy_cimagf(new);
         }
         else if (PyArray_IsScalar(obj, CLongDouble)) {
             npy_clongdouble new;
             PyArray_ScalarAsCtype(obj, &new);
-            (*v).r = (double)new.real;
-            (*v).i = (double)new.imag;
+            (*v).r = (double)npy_creall(new);
+            (*v).i = (double)npy_cimagl(new);
         }
         else { /* if (PyArray_IsScalar(obj, CDouble)) */
             PyArray_ScalarAsCtype(obj, v);
@@ -195,8 +196,8 @@ complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess)
         if (arr == NULL) {
             return 0;
         }
-        (*v).r = ((npy_cdouble *)PyArray_DATA(arr))->real;
-        (*v).i = ((npy_cdouble *)PyArray_DATA(arr))->imag;
+        (*v).r = npy_creal(*(((npy_cdouble *)PyArray_DATA(arr))));
+        (*v).i = npy_cimag(*(((npy_cdouble *)PyArray_DATA(arr))));
         Py_DECREF(arr);
         return 1;
     }
@@ -3563,11 +3564,11 @@ PyMODINIT_FUNC PyInit_specfun(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module specfun (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.25.2");
+    s = PyUnicode_FromString("1.26.2");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module 'specfun' is auto-generated with f2py (version:1.25.2).\nFunctions:\n"
+        "This module 'specfun' is auto-generated with f2py (version:1.26.2).\nFunctions:\n"
 "    cqm,cqd = clqmn(m,n,z)\n"
 "    qm,qd = lqmn(m,n,x)\n"
 "    cpm,cpd = clpmn(m,n,x,y,ntype)\n"
@@ -3596,7 +3597,7 @@ PyMODINIT_FUNC PyInit_specfun(void) {
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.25.2");
+    s = PyUnicode_FromString("1.26.2");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     specfun_error = PyErr_NewException ("specfun.error", NULL, NULL);

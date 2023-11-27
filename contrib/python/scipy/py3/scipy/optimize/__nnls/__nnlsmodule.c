@@ -1,5 +1,5 @@
 /* File: __nnlsmodule.c
- * This file is auto-generated with f2py (version:1.25.2).
+ * This file is auto-generated with f2py (version:1.26.2).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -478,16 +478,16 @@ PyMODINIT_FUNC PyInit___nnls(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module __nnls (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.25.2");
+    s = PyUnicode_FromString("1.26.2");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '__nnls' is auto-generated with f2py (version:1.25.2).\nFunctions:\n"
+        "This module '__nnls' is auto-generated with f2py (version:1.26.2).\nFunctions:\n"
 "    x,rnorm,mode = nnls(a,m,n,b,w,zz,index_bn,maxiter,mda=shape(a,0),overwrite_a=0,overwrite_b=0)\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.25.2");
+    s = PyUnicode_FromString("1.26.2");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     __nnls_error = PyErr_NewException ("__nnls.error", NULL, NULL);

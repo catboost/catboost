@@ -1,5 +1,5 @@
 /* File: _arpackmodule.c
- * This file is auto-generated with f2py (version:1.25.2).
+ * This file is auto-generated with f2py (version:1.26.2).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -19,6 +19,7 @@ extern "C" {
 #include <numpy/npy_os.h>
 
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
+#include "numpy/npy_math.h"
 #include "fortranobject.h"
 #include <string.h>
 #include <math.h>
@@ -179,14 +180,14 @@ complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess)
         if (PyArray_IsScalar(obj, CFloat)) {
             npy_cfloat new;
             PyArray_ScalarAsCtype(obj, &new);
-            (*v).r = (double)new.real;
-            (*v).i = (double)new.imag;
+            (*v).r = (double)npy_crealf(new);
+            (*v).i = (double)npy_cimagf(new);
         }
         else if (PyArray_IsScalar(obj, CLongDouble)) {
             npy_clongdouble new;
             PyArray_ScalarAsCtype(obj, &new);
-            (*v).r = (double)new.real;
-            (*v).i = (double)new.imag;
+            (*v).r = (double)npy_creall(new);
+            (*v).i = (double)npy_cimagl(new);
         }
         else { /* if (PyArray_IsScalar(obj, CDouble)) */
             PyArray_ScalarAsCtype(obj, v);
@@ -204,8 +205,8 @@ complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess)
         if (arr == NULL) {
             return 0;
         }
-        (*v).r = ((npy_cdouble *)PyArray_DATA(arr))->real;
-        (*v).i = ((npy_cdouble *)PyArray_DATA(arr))->imag;
+        (*v).r = npy_creal(*(((npy_cdouble *)PyArray_DATA(arr))));
+        (*v).i = npy_cimag(*(((npy_cdouble *)PyArray_DATA(arr))));
         Py_DECREF(arr);
         return 1;
     }
@@ -5315,11 +5316,11 @@ PyMODINIT_FUNC PyInit__arpack(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _arpack (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.25.2");
+    s = PyUnicode_FromString("1.26.2");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_arpack' is auto-generated with f2py (version:1.25.2).\nFunctions:\n"
+        "This module '_arpack' is auto-generated with f2py (version:1.26.2).\nFunctions:\n"
 "    ido,tol,resid,v,iparam,ipntr,info = ssaupd(ido,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,n=len(resid),ncv=shape(v,1),ldv=shape(v,0),lworkl=len(workl))\n"
 "    ido,tol,resid,v,iparam,ipntr,info = dsaupd(ido,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,n=len(resid),ncv=shape(v,1),ldv=shape(v,0),lworkl=len(workl))\n"
 "    d,z,info = sseupd(rvec,howmny,select,sigma,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,ldz=shape(z,0),n=len(resid),ncv=len(select),ldv=shape(v,0),lworkl=len(workl))\n"
@@ -5335,7 +5336,7 @@ PyMODINIT_FUNC PyInit__arpack(void) {
 "COMMON blocks:\n""  /debug/ logfil,ndigit,mgetv0,msaupd,msaup2,msaitr,mseigt,msapps,msgets,mseupd,mnaupd,mnaup2,mnaitr,mneigh,mnapps,mngets,mneupd,mcaupd,mcaup2,mcaitr,mceigh,mcapps,mcgets,mceupd\n""  /timing/ nopx,nbx,nrorth,nitref,nrstrt,tsaupd,tsaup2,tsaitr,tseigt,tsgets,tsapps,tsconv,tnaupd,tnaup2,tnaitr,tneigh,tngets,tnapps,tnconv,tcaupd,tcaup2,tcaitr,tceigh,tcgets,tcapps,tcconv,tmvopx,tmvbx,tgetv0,titref,trvec\n"".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.25.2");
+    s = PyUnicode_FromString("1.26.2");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _arpack_error = PyErr_NewException ("_arpack.error", NULL, NULL);

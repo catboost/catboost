@@ -66,7 +66,7 @@ testing
     NumPy testing tools
 distutils
     Enhancements to distutils with support for
-    Fortran compilers support and more.
+    Fortran compilers support and more  (for Python <= 3.11).
 
 Utilities
 ---------
@@ -107,6 +107,11 @@ from ._globals import _NoValue, _CopyMode
 from .exceptions import (
     ComplexWarning, ModuleDeprecationWarning, VisibleDeprecationWarning,
     TooHardError, AxisError)
+
+
+# If a version with git hash was stored, use that instead
+from . import version
+from .version import __version__
 
 # We first need to detect if we're being called as part of the numpy setup
 # procedure itself in a reliable manner.
@@ -446,9 +451,6 @@ else:
     # Remove symbols imported for internal use
     del os
 
-
-# get the version using versioneer
-from .version import __version__, git_revision as __git_version__
 
 # Remove symbols imported for internal use
 del sys, warnings

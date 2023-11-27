@@ -2072,7 +2072,7 @@ get_struct_alignments(PyObject *NPY_UNUSED(self), PyObject *args) {
     }
 
 #line 2029
-    alignment = PyLong_FromLong(_ALIGN(struct TestStruct1));
+    alignment = PyLong_FromLong(NPY_ALIGNOF(struct TestStruct1));
     size = PyLong_FromLong(sizeof(struct TestStruct1));
     val = PyTuple_Pack(2, alignment, size);
     Py_DECREF(alignment);
@@ -2084,7 +2084,7 @@ get_struct_alignments(PyObject *NPY_UNUSED(self), PyObject *args) {
     PyTuple_SET_ITEM(ret, 1-1, val);
 
 #line 2029
-    alignment = PyLong_FromLong(_ALIGN(struct TestStruct2));
+    alignment = PyLong_FromLong(NPY_ALIGNOF(struct TestStruct2));
     size = PyLong_FromLong(sizeof(struct TestStruct2));
     val = PyTuple_Pack(2, alignment, size);
     Py_DECREF(alignment);
@@ -2096,7 +2096,7 @@ get_struct_alignments(PyObject *NPY_UNUSED(self), PyObject *args) {
     PyTuple_SET_ITEM(ret, 2-1, val);
 
 #line 2029
-    alignment = PyLong_FromLong(_ALIGN(struct TestStruct3));
+    alignment = PyLong_FromLong(NPY_ALIGNOF(struct TestStruct3));
     size = PyLong_FromLong(sizeof(struct TestStruct3));
     val = PyTuple_Pack(2, alignment, size);
     Py_DECREF(alignment);

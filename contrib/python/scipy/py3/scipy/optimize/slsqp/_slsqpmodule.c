@@ -1,5 +1,5 @@
 /* File: _slsqpmodule.c
- * This file is auto-generated with f2py (version:1.25.2).
+ * This file is auto-generated with f2py (version:1.26.2).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -869,16 +869,16 @@ PyMODINIT_FUNC PyInit__slsqp(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _slsqp (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.25.2");
+    s = PyUnicode_FromString("1.26.2");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_slsqp' is auto-generated with f2py (version:1.25.2).\nFunctions:\n"
+        "This module '_slsqp' is auto-generated with f2py (version:1.26.2).\nFunctions:\n"
 "    slsqp(m,meq,x,xl,xu,f,c,g,a,acc,iter,mode,w,jw,alpha,f0,gs,h1,h2,h3,h4,t,t0,tol,iexact,incons,ireset,itermx,line,n1,n2,n3,la=len(c),n=len(x),l_w=len(w),l_jw=len(jw))\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.25.2");
+    s = PyUnicode_FromString("1.26.2");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _slsqp_error = PyErr_NewException ("_slsqp.error", NULL, NULL);

@@ -1,3 +1,5 @@
+#cython: binding=False
+
 """
 BitGenerator base class and SeedSequence used to seed the BitGenerators.
 

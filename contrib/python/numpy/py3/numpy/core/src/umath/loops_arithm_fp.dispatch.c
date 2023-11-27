@@ -41,61 +41,8 @@
 /********************************************************************************
  ** Defining ufunc inner functions
  ********************************************************************************/
-
-/*
- * clang has a bug that's present at -O1 or greater.  When partially loading a
- * vector register for a divide operation, the remaining elements are set
- * to 1 to avoid divide-by-zero.  The partial load is paired with a partial
- * store after the divide operation.  clang notices that the entire register
- * is not needed for the store and optimizes out the fill of 1 to the remaining
- * elements.  This causes either a divide-by-zero or 0/0 with invalid exception
- * that we were trying to avoid by filling.
- *
- * Using a dummy variable marked 'volatile' convinces clang not to ignore
- * the explicit fill of remaining elements.  If `-ftrapping-math` is
- * supported, then it'll also avoid the bug.  `-ftrapping-math` is supported
- * on Apple clang v12+ for x86_64.  It is not currently supported for arm64.
- * `-ftrapping-math` is set by default of Numpy builds in
- * numpy/distutils/ccompiler.py.
- *
- * Note: Apple clang and clang upstream have different versions that overlap
- */
-#if defined(__clang__)
-    #if defined(__apple_build_version__)
-    // Apple Clang
-        #if __apple_build_version__ < 12000000
-        // Apple Clang before v12
-        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 1
-        #elif defined(NPY_CPU_X86) || defined(NPY_CPU_AMD64)
-        // Apple Clang after v12, targeting i386 or x86_64
-        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 0
-        #else
-        // Apple Clang after v12, not targeting i386 or x86_64
-        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 1
-        #endif
-    #else
-    // Clang, not Apple Clang
-        #if __clang_major__ < 10
-        // Clang before v10
-        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 1
-        #elif defined(_MSC_VER)
-        // clang-cl has the same bug
-        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 1
-        #elif defined(NPY_CPU_X86) || defined(NPY_CPU_AMD64)
-        // Clang v10+, targeting i386 or x86_64
-        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 0
-        #else
-        // Clang v10+, not targeting i386 or x86_64
-        #define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 1
-        #endif
-    #endif
-#else
-// Not a Clang compiler
-#define WORKAROUND_CLANG_PARTIAL_LOAD_BUG 0
-#endif
-
-#line 96
-#line 105
+#line 43
+#line 52
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -142,12 +89,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
             #if 0
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
                 npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
@@ -158,15 +100,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
                 npyv_f32 r = npyv_add_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for divide and working around clang partial load bug
-            if(len > 0){
-                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
-                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
-                npyv_f32 r = npyv_add_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc0 == 0 && ssrc1 == sizeof(npy_float) && sdst == ssrc1) {
             npyv_f32 a = npyv_setall_f32(*((npy_float*)src0));
@@ -178,12 +111,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
             #if 0 || 0
                 npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
             #else
@@ -192,14 +120,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
                 npyv_f32 r = npyv_add_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
-                npyv_f32 r = npyv_add_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc1 == 0 && ssrc0 == sizeof(npy_float) && sdst == ssrc0) {
             npyv_f32 b = npyv_setall_f32(*((npy_float*)src1));
@@ -211,12 +131,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
             #if 0 || 0
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
             #else
@@ -225,14 +140,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
                 npyv_f32 r = npyv_add_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
-                npyv_f32 r = npyv_add_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         } else {
             goto loop_scalar;
         }
@@ -271,7 +178,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_add_indexed)
 }
 
 
-#line 105
+#line 52
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -318,12 +225,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
             #if 0
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
                 npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
@@ -334,15 +236,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
                 npyv_f32 r = npyv_sub_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for divide and working around clang partial load bug
-            if(len > 0){
-                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
-                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
-                npyv_f32 r = npyv_sub_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc0 == 0 && ssrc1 == sizeof(npy_float) && sdst == ssrc1) {
             npyv_f32 a = npyv_setall_f32(*((npy_float*)src0));
@@ -354,12 +247,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
             #if 0 || 0
                 npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
             #else
@@ -368,14 +256,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
                 npyv_f32 r = npyv_sub_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
-                npyv_f32 r = npyv_sub_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc1 == 0 && ssrc0 == sizeof(npy_float) && sdst == ssrc0) {
             npyv_f32 b = npyv_setall_f32(*((npy_float*)src1));
@@ -387,12 +267,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
             #if 0 || 0
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
             #else
@@ -401,14 +276,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
                 npyv_f32 r = npyv_sub_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
-                npyv_f32 r = npyv_sub_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         } else {
             goto loop_scalar;
         }
@@ -447,7 +314,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_subtract_indexed)
 }
 
 
-#line 105
+#line 52
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -494,12 +361,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
             #if 0
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
                 npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
@@ -510,15 +372,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
                 npyv_f32 r = npyv_mul_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for divide and working around clang partial load bug
-            if(len > 0){
-                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
-                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
-                npyv_f32 r = npyv_mul_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc0 == 0 && ssrc1 == sizeof(npy_float) && sdst == ssrc1) {
             npyv_f32 a = npyv_setall_f32(*((npy_float*)src0));
@@ -530,12 +383,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
             #if 0 || 1
                 npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
             #else
@@ -544,14 +392,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
                 npyv_f32 r = npyv_mul_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
-                npyv_f32 r = npyv_mul_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc1 == 0 && ssrc0 == sizeof(npy_float) && sdst == ssrc0) {
             npyv_f32 b = npyv_setall_f32(*((npy_float*)src1));
@@ -563,12 +403,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
             #if 0 || 1
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
             #else
@@ -577,14 +412,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
                 npyv_f32 r = npyv_mul_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
-                npyv_f32 r = npyv_mul_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         } else {
             goto loop_scalar;
         }
@@ -623,7 +450,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_multiply_indexed)
 }
 
 
-#line 105
+#line 52
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -670,12 +497,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
             #if 1
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
                 npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
@@ -686,15 +508,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
                 npyv_f32 r = npyv_div_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for divide and working around clang partial load bug
-            if(len > 0){
-                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
-                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
-                npyv_f32 r = npyv_div_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc0 == 0 && ssrc1 == sizeof(npy_float) && sdst == ssrc1) {
             npyv_f32 a = npyv_setall_f32(*((npy_float*)src0));
@@ -706,12 +519,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
             #if 1 || 0
                 npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
             #else
@@ -720,14 +528,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
                 npyv_f32 r = npyv_div_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f32 b = npyv_load_till_f32((const npy_float*)src1, len, 1.0f);
-                npyv_f32 r = npyv_div_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc1 == 0 && ssrc0 == sizeof(npy_float) && sdst == ssrc0) {
             npyv_f32 b = npyv_setall_f32(*((npy_float*)src1));
@@ -739,12 +539,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
                 npyv_store_f32((npy_float*)dst, r0);
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
-        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
             #if 1 || 0
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
             #else
@@ -753,14 +548,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
                 npyv_f32 r = npyv_div_f32(a, b);
                 npyv_store_till_f32((npy_float*)dst, len, r);
             }
-        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
-                npyv_f32 r = npyv_div_f32(a, b);
-                npyv_store_till_f32((npy_float*)dst, len, r);
-            }
-        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         } else {
             goto loop_scalar;
         }
@@ -800,8 +587,8 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_divide_indexed)
 
 
 
-#line 96
-#line 105
+#line 43
+#line 52
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -848,12 +635,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
             #if 0
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
                 npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
@@ -864,15 +646,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
                 npyv_f64 r = npyv_add_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for divide and working around clang partial load bug
-            if(len > 0){
-                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
-                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
-                npyv_f64 r = npyv_add_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc0 == 0 && ssrc1 == sizeof(npy_double) && sdst == ssrc1) {
             npyv_f64 a = npyv_setall_f64(*((npy_double*)src0));
@@ -884,12 +657,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
             #if 0 || 0
                 npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
             #else
@@ -898,14 +666,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
                 npyv_f64 r = npyv_add_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
-                npyv_f64 r = npyv_add_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc1 == 0 && ssrc0 == sizeof(npy_double) && sdst == ssrc0) {
             npyv_f64 b = npyv_setall_f64(*((npy_double*)src1));
@@ -917,12 +677,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
             #if 0 || 0
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
             #else
@@ -931,14 +686,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
                 npyv_f64 r = npyv_add_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
-                npyv_f64 r = npyv_add_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         } else {
             goto loop_scalar;
         }
@@ -977,7 +724,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_add_indexed)
 }
 
 
-#line 105
+#line 52
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -1024,12 +771,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
             #if 0
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
                 npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
@@ -1040,15 +782,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
                 npyv_f64 r = npyv_sub_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for divide and working around clang partial load bug
-            if(len > 0){
-                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
-                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
-                npyv_f64 r = npyv_sub_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc0 == 0 && ssrc1 == sizeof(npy_double) && sdst == ssrc1) {
             npyv_f64 a = npyv_setall_f64(*((npy_double*)src0));
@@ -1060,12 +793,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
             #if 0 || 0
                 npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
             #else
@@ -1074,14 +802,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
                 npyv_f64 r = npyv_sub_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
-                npyv_f64 r = npyv_sub_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc1 == 0 && ssrc0 == sizeof(npy_double) && sdst == ssrc0) {
             npyv_f64 b = npyv_setall_f64(*((npy_double*)src1));
@@ -1093,12 +813,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
             #if 0 || 0
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
             #else
@@ -1107,14 +822,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
                 npyv_f64 r = npyv_sub_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
-                npyv_f64 r = npyv_sub_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if (0 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         } else {
             goto loop_scalar;
         }
@@ -1153,7 +860,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract_indexed)
 }
 
 
-#line 105
+#line 52
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -1200,12 +907,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
             #if 0
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
                 npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
@@ -1216,15 +918,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
                 npyv_f64 r = npyv_mul_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for divide and working around clang partial load bug
-            if(len > 0){
-                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
-                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
-                npyv_f64 r = npyv_mul_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if 0 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc0 == 0 && ssrc1 == sizeof(npy_double) && sdst == ssrc1) {
             npyv_f64 a = npyv_setall_f64(*((npy_double*)src0));
@@ -1236,12 +929,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
             #if 0 || 1
                 npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
             #else
@@ -1250,14 +938,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
                 npyv_f64 r = npyv_mul_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
-                npyv_f64 r = npyv_mul_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc1 == 0 && ssrc0 == sizeof(npy_double) && sdst == ssrc0) {
             npyv_f64 b = npyv_setall_f64(*((npy_double*)src1));
@@ -1269,12 +949,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
             #if 0 || 1
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
             #else
@@ -1283,14 +958,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
                 npyv_f64 r = npyv_mul_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
-                npyv_f64 r = npyv_mul_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if (0 || 1) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         } else {
             goto loop_scalar;
         }
@@ -1329,7 +996,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply_indexed)
 }
 
 
-#line 105
+#line 52
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -1376,12 +1043,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, src1 += vstep, dst += vstep) {
             #if 1
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
                 npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
@@ -1392,15 +1054,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
                 npyv_f64 r = npyv_div_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for divide and working around clang partial load bug
-            if(len > 0){
-                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
-                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
-                npyv_f64 r = npyv_div_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if 1 && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc0 == 0 && ssrc1 == sizeof(npy_double) && sdst == ssrc1) {
             npyv_f64 a = npyv_setall_f64(*((npy_double*)src0));
@@ -1412,12 +1065,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src1 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src1 += vstep, dst += vstep) {
             #if 1 || 0
                 npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
             #else
@@ -1426,14 +1074,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
                 npyv_f64 r = npyv_div_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f64 b = npyv_load_till_f64((const npy_double*)src1, len, 1.0);
-                npyv_f64 r = npyv_div_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         }
         else if (ssrc1 == 0 && ssrc0 == sizeof(npy_double) && sdst == ssrc0) {
             npyv_f64 b = npyv_setall_f64(*((npy_double*)src1));
@@ -1445,12 +1085,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
                 npyv_store_f64((npy_double*)dst, r0);
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
-        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            const int vstop = hstep - 1;
-        #else
-            const int vstop = 0;
-        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            for (; len > vstop; len -= hstep, src0 += vstep, dst += vstep) {
+            for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
             #if 1 || 0
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
             #else
@@ -1459,14 +1094,6 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
                 npyv_f64 r = npyv_div_f64(a, b);
                 npyv_store_till_f64((npy_double*)dst, len, r);
             }
-        #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
-            // last partial iteration for multiply / divide and working around clang partial load bug
-            if(len > 0){
-                volatile npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
-                npyv_f64 r = npyv_div_f64(a, b);
-                npyv_store_till_f64((npy_double*)dst, len, r);
-            }
-        #endif // #if (1 || 0) && WORKAROUND_CLANG_PARTIAL_LOAD_BUG
         } else {
             goto loop_scalar;
         }
@@ -1506,8 +1133,6 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_divide_indexed)
 
 
 
-
-#undef WORKAROUND_CLANG_PARTIAL_LOAD_BUG
 
 //###############################################################################
 //## Complex Single/Double precision
@@ -1595,7 +1220,7 @@ simd_csquare_f64(npyv_f64 x)
 { return simd_cmul_f64(x, x); }
 #endif
 
-#line 381
+#line 286
 #if NPY_SIMD_F32
 NPY_FINLINE npyv_f32
 simd_cabsolute_f32(npyv_f32 re, npyv_f32 im)
@@ -1639,7 +1264,7 @@ simd_cabsolute_f32(npyv_f32 re, npyv_f32 im)
 }
 #endif // VECTOR
 
-#line 381
+#line 286
 #if NPY_SIMD_F64
 NPY_FINLINE npyv_f64
 simd_cabsolute_f64(npyv_f64 re, npyv_f64 im)
@@ -1687,8 +1312,8 @@ simd_cabsolute_f64(npyv_f64 re, npyv_f64 im)
 /********************************************************************************
  ** Defining ufunc inner functions
  ********************************************************************************/
-#line 437
-#line 445
+#line 342
+#line 350
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -1709,6 +1334,16 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_add)
     }
 #endif
 #if NPY_SIMD_F32
+    // Certain versions of Apple clang (commonly used in CI images) produce
+    // non-deterministic output in the mul path with AVX2 enabled on x86_64.
+    // Work around by scalarising.
+    #if 0 \
+            && defined(NPY_CPU_AMD64) && defined(__clang__) \
+            && defined(__apple_build_version__) \
+            && __apple_build_version__ >= 14000000 \
+            && __apple_build_version__ < 14030000
+        goto loop_scalar;
+    #endif  // end affected Apple clang.
     if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
         is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
         b_sdst  % sizeof(npy_float) != 0 || b_sdst == 0 ||
@@ -1930,7 +1565,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CFLOAT_add_indexed)
     return 0;
 }
 
-#line 445
+#line 350
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -1951,6 +1586,16 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_subtract)
     }
 #endif
 #if NPY_SIMD_F32
+    // Certain versions of Apple clang (commonly used in CI images) produce
+    // non-deterministic output in the mul path with AVX2 enabled on x86_64.
+    // Work around by scalarising.
+    #if 0 \
+            && defined(NPY_CPU_AMD64) && defined(__clang__) \
+            && defined(__apple_build_version__) \
+            && __apple_build_version__ >= 14000000 \
+            && __apple_build_version__ < 14030000
+        goto loop_scalar;
+    #endif  // end affected Apple clang.
     if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
         is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
         b_sdst  % sizeof(npy_float) != 0 || b_sdst == 0 ||
@@ -2172,7 +1817,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CFLOAT_subtract_indexed)
     return 0;
 }
 
-#line 445
+#line 350
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -2193,6 +1838,16 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_multiply)
     }
 #endif
 #if NPY_SIMD_F32
+    // Certain versions of Apple clang (commonly used in CI images) produce
+    // non-deterministic output in the mul path with AVX2 enabled on x86_64.
+    // Work around by scalarising.
+    #if 1 \
+            && defined(NPY_CPU_AMD64) && defined(__clang__) \
+            && defined(__apple_build_version__) \
+            && __apple_build_version__ >= 14000000 \
+            && __apple_build_version__ < 14030000
+        goto loop_scalar;
+    #endif  // end affected Apple clang.
     if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
         is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
         b_sdst  % sizeof(npy_float) != 0 || b_sdst == 0 ||
@@ -2415,7 +2070,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CFLOAT_multiply_indexed)
 }
 
 
-#line 691
+#line 606
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_conjugate)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -2503,7 +2158,7 @@ loop_scalar:
     }
 }
 
-#line 691
+#line 606
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_square)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -2592,8 +2247,8 @@ loop_scalar:
 }
 
 
-#line 437
-#line 445
+#line 342
+#line 350
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -2614,6 +2269,16 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_add)
     }
 #endif
 #if NPY_SIMD_F64
+    // Certain versions of Apple clang (commonly used in CI images) produce
+    // non-deterministic output in the mul path with AVX2 enabled on x86_64.
+    // Work around by scalarising.
+    #if 0 \
+            && defined(NPY_CPU_AMD64) && defined(__clang__) \
+            && defined(__apple_build_version__) \
+            && __apple_build_version__ >= 14000000 \
+            && __apple_build_version__ < 14030000
+        goto loop_scalar;
+    #endif  // end affected Apple clang.
     if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
         is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
         b_sdst  % sizeof(npy_double) != 0 || b_sdst == 0 ||
@@ -2835,7 +2500,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CDOUBLE_add_indexed)
     return 0;
 }
 
-#line 445
+#line 350
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -2856,6 +2521,16 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_subtract)
     }
 #endif
 #if NPY_SIMD_F64
+    // Certain versions of Apple clang (commonly used in CI images) produce
+    // non-deterministic output in the mul path with AVX2 enabled on x86_64.
+    // Work around by scalarising.
+    #if 0 \
+            && defined(NPY_CPU_AMD64) && defined(__clang__) \
+            && defined(__apple_build_version__) \
+            && __apple_build_version__ >= 14000000 \
+            && __apple_build_version__ < 14030000
+        goto loop_scalar;
+    #endif  // end affected Apple clang.
     if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
         is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
         b_sdst  % sizeof(npy_double) != 0 || b_sdst == 0 ||
@@ -3077,7 +2752,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CDOUBLE_subtract_indexed)
     return 0;
 }
 
-#line 445
+#line 350
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3098,6 +2773,16 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_multiply)
     }
 #endif
 #if NPY_SIMD_F64
+    // Certain versions of Apple clang (commonly used in CI images) produce
+    // non-deterministic output in the mul path with AVX2 enabled on x86_64.
+    // Work around by scalarising.
+    #if 1 \
+            && defined(NPY_CPU_AMD64) && defined(__clang__) \
+            && defined(__apple_build_version__) \
+            && __apple_build_version__ >= 14000000 \
+            && __apple_build_version__ < 14030000
+        goto loop_scalar;
+    #endif  // end affected Apple clang.
     if (is_mem_overlap(b_src0, b_ssrc0, b_dst, b_sdst, len) ||
         is_mem_overlap(b_src1, b_ssrc1, b_dst, b_sdst, len) ||
         b_sdst  % sizeof(npy_double) != 0 || b_sdst == 0 ||
@@ -3320,7 +3005,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CDOUBLE_multiply_indexed)
 }
 
 
-#line 691
+#line 606
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_conjugate)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3408,7 +3093,7 @@ loop_scalar:
     }
 }
 
-#line 691
+#line 606
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_square)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
