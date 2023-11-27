@@ -117,17 +117,17 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     }
 
     const Napi::Array floatFeatures = info[0].As<Napi::Array>();
-    const uint32_t docsCount = floatFeatures.Length();
-    if (docsCount == 0) {
+    const uint32_t sampleCount = floatFeatures.Length();
+    if (sampleCount == 0) {
         return Napi::Array::New(env);
     }
 
     const uint32_t floatFeaturesSize = floatFeatures[0u].As<Napi::Array>().Length();
 
     std::vector<float> floatFeatureValues;
-    floatFeatureValues.reserve(floatFeaturesSize * docsCount);
+    floatFeatureValues.reserve(floatFeaturesSize * sampleCount);
 
-    for (uint32_t i = 0; i < docsCount; ++i) {
+    for (uint32_t i = 0; i < sampleCount; ++i) {
         const Napi::Array row = floatFeatures[i].As<Napi::Array>();
         for (uint32_t j = 0; j < floatFeaturesSize; ++j) {
             floatFeatureValues.push_back(row[j].As<Napi::Number>().FloatValue());
@@ -145,8 +145,8 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
 
     if (!NHelper::Check(
             env,
-            catFeatures.Length() == docsCount,
-            "Expected the number of docs to be the same for both float and categorial features"
+            catFeatures.Length() == sampleCount,
+            "Expected the number of samples to be the same for both float and categorial features"
         ))
     {
         return env.Undefined();
@@ -212,14 +212,14 @@ Napi::Array TModel::CalcPredictionHash(
     const std::vector<float>& floatFeatures,
     const Napi::Array& catFeatures
 ) {
-    const uint32_t docsCount = catFeatures.Length();
+    const uint32_t sampleCount = catFeatures.Length();
     const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
-    const uint32_t floatFeaturesSize = floatFeatures.size() / docsCount;
+    const uint32_t floatFeaturesSize = floatFeatures.size() / sampleCount;
 
     std::vector<int> catHashValues;
-    catHashValues.reserve(catFeaturesSize * docsCount);
+    catHashValues.reserve(catFeaturesSize * sampleCount);
 
-    for (uint32_t i = 0; i < docsCount; ++i) {
+    for (uint32_t i = 0; i < sampleCount; ++i) {
         const Napi::Array row = catFeatures[i].As<Napi::Array>();
         for (uint32_t j = 0; j < catFeaturesSize; ++j) {
             catHashValues.push_back(row[j].As<Napi::Number>().Int32Value());
@@ -227,7 +227,7 @@ Napi::Array TModel::CalcPredictionHash(
     }
     const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
     std::vector<double> resultValues;
-    resultValues.resize(docsCount * predictionDimensions);
+    resultValues.resize(sampleCount * predictionDimensions);
 
     std::vector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
     std::vector<const int*> catPtrs = CollectMatrixRowPointers<int>(catHashValues, catFeaturesSize);
@@ -235,7 +235,7 @@ Napi::Array TModel::CalcPredictionHash(
         env,
         CalcModelPredictionWithHashedCatFeatures(
             this->Handle,
-            docsCount,
+            sampleCount,
             floatPtrs.data(), floatFeaturesSize,
             catPtrs.data(), catFeaturesSize,
             resultValues.data(), resultValues.size()
@@ -250,16 +250,16 @@ Napi::Array TModel::CalcPredictionString(
     const std::vector<float>& floatFeatures,
     const Napi::Array& catFeatures
 ) {
-    const uint32_t docsCount = catFeatures.Length();
+    const uint32_t sampleCount = catFeatures.Length();
     const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
-    const uint32_t floatFeaturesSize = floatFeatures.size() / docsCount;
+    const uint32_t floatFeaturesSize = floatFeatures.size() / sampleCount;
 
     std::vector<std::string> catStrings;
     std::vector<const char*> catStringValues;
-    catStrings.reserve(catFeaturesSize * docsCount);
-    catStringValues.reserve(catFeaturesSize * docsCount);
+    catStrings.reserve(catFeaturesSize * sampleCount);
+    catStringValues.reserve(catFeaturesSize * sampleCount);
 
-    for (uint32_t i = 0; i < docsCount; ++i) {
+    for (uint32_t i = 0; i < sampleCount; ++i) {
         const Napi::Array row = catFeatures[i].As<Napi::Array>();
         for (uint32_t j = 0; j < catFeaturesSize; ++j) {
             catStrings.push_back(row[j].As<Napi::String>().Utf8Value());
@@ -268,7 +268,7 @@ Napi::Array TModel::CalcPredictionString(
     }
     const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
     std::vector<double> resultValues;
-    resultValues.resize(docsCount * predictionDimensions);
+    resultValues.resize(sampleCount * predictionDimensions);
 
     std::vector<const float*> floatPtrs = CollectMatrixRowPointers<float>(floatFeatures, floatFeaturesSize);
     std::vector<const char**> catPtrs = CollectMatrixRowPointers<const char*, const char**>(
@@ -280,7 +280,7 @@ Napi::Array TModel::CalcPredictionString(
             env,
             CalcModelPrediction(
                 this->Handle,
-                docsCount,
+                sampleCount,
                 floatPtrs.data(), floatFeaturesSize,
                 catPtrs.data(), catFeaturesSize,
                 resultValues.data(), resultValues.size()
