@@ -55,6 +55,7 @@ import attr
 from hypothesis._settings import note_deprecation
 from hypothesis.control import cleanup, current_build_context, note
 from hypothesis.errors import (
+    HypothesisWarning,
     InvalidArgument,
     ResolutionFailed,
     RewindRecursive,
@@ -1785,6 +1786,14 @@ def _composite(f):
             "does not call the provided draw() function internally.",
             since="2022-07-17",
             has_codemod=False,
+        )
+    if get_origin(sig.return_annotation) is SearchStrategy:
+        ret_repr = repr(sig.return_annotation).replace("hypothesis.strategies.", "st.")
+        warnings.warn(
+            f"Return-type annotation is `{ret_repr}`, but the decorated "
+            "function should return a value (not a strategy)",
+            HypothesisWarning,
+            stacklevel=3 if sys.version_info[:2] > (3, 9) else 5,  # ugh
         )
     if params[0].kind.name != "VAR_POSITIONAL":
         params = params[1:]
