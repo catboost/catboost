@@ -88,12 +88,12 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
         }
         switch (type) {
             case ENApiType::NAT_NUMBER:
-                if (!Check(env, strCount == 0, errorPrefix + "no strings in numeric matrix expected")) {
+                if (!Check(env, strCount == 0, errorPrefix + "no strings in the numeric matrix expected")) {
                     return false;
                 }
                 break;
             case ENApiType::NAT_STRING:
-                if (!Check(env, numberCount == 0, errorPrefix + "no strings in numeric matrix expected")) {
+                if (!Check(env, numberCount == 0, errorPrefix + "no numbers in the string matrix expected")) {
                     return false;
                 }
                 break;
@@ -101,7 +101,7 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
                 if (!Check(
                         env,
                         !(numberCount > 0 && strCount > 0),
-                        errorPrefix + "mixed strings and numbers in an array"
+                        errorPrefix + "mixed strings and numbers in the matrix"
                     ))
                 {
                     return false;
