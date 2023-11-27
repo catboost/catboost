@@ -8,29 +8,29 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
     if (!Check(env, value.IsArray(), errorPrefix + "is not an array")) {
         return false;
     }
-    const Napi::Array floatFeatures = value.As<Napi::Array>();
-    const uint32_t rowsCount = floatFeatures.Length();
+    const Napi::Array matrix = value.As<Napi::Array>();
+    const uint32_t rowsCount = matrix.Length();
     if (rowsCount == 0) {
         return true;
     }
 
-    if (!Check(env, floatFeatures[0u].IsArray(), errorPrefix + "first element of matrixn is not an array")) {
+    if (!Check(env, matrix[0u].IsArray(), errorPrefix + "first element of matrixn is not an array")) {
         return false;
     }
-    const uint32_t columnsCount = floatFeatures[0u].As<Napi::Array>().Length();
+    const uint32_t columnsCount = matrix[0u].As<Napi::Array>().Length();
     size_t numberCount = 0;
     size_t strCount = 0;
     for (uint32_t i = 0; i < rowsCount; ++i) {
         if (!Check(
                 env,
-                floatFeatures[i].IsArray(),
+                matrix[i].IsArray(),
                 errorPrefix + std::to_string(i) + "-th element of matrix is not an array"
             ))
         {
             return false;
         }
 
-        const Napi::Array row = floatFeatures[i].As<Napi::Array>();
+        const Napi::Array row = matrix[i].As<Napi::Array>();
         if (!Check(
                 env,
                 row.Length() == columnsCount,
