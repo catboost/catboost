@@ -50,6 +50,7 @@ enum ENApiType {
     NAT_NUMBER,
     NAT_STRING,
     NAT_NUMBER_OR_STRING,
+    NAT_ARRAY_OR_NUMBERS
 };
 
 // Checks if the value a matrix with element of a given type.

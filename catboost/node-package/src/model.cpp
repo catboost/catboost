@@ -60,6 +60,8 @@ Napi::Function TModel::GetClass(Napi::Env env) {
         TModel::InstanceMethod("setPredictionType", &TModel::SetPredictionType),
         TModel::InstanceMethod("getFloatFeaturesCount", &TModel::GetModelFloatFeaturesCount),
         TModel::InstanceMethod("getCatFeaturesCount", &TModel::GetModelCatFeaturesCount),
+        TModel::InstanceMethod("getTextFeaturesCount", &TModel::GetModelTextFeaturesCount),
+        TModel::InstanceMethod("getEmbeddingFeaturesCount", &TModel::GetModelEmbeddingFeaturesCount),
         TModel::InstanceMethod("getTreeCount", &TModel::GetModelTreeCount),
         TModel::InstanceMethod("getDimensionsCount", &TModel::GetModelDimensionsCount),
         TModel::InstanceMethod("getPredictionDimensionsCount", &TModel::GetPredictionDimensionsCount),
@@ -107,14 +109,23 @@ void TModel::SetPredictionType(const Napi::CallbackInfo& info) {
 
 Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
-    if (!NHelper::Check(env, info.Length() >= 2, "Wrong number of arguments - expected 2") ||
-        !NHelper::CheckIsMatrix(
+    if (!NHelper::Check(env, this->ModelLoaded, "Trying to predict from the empty model")) {
+        return env.Undefined();
+    }
+
+    if (!NHelper::Check(env, info.Length() >= 2, "Wrong number of arguments - expected at least 2")) {
+        return env.Undefined();
+    }
+
+
+    // Numerical features
+
+    if (!NHelper::CheckIsMatrix(
             env,
             info[0],
             NHelper::NAT_NUMBER,
             "Expected the first argument to be a matrix of floats - "
-        ) ||
-        !NHelper::Check(env, this->ModelLoaded, "Trying to predict from the empty model"))
+        ))
     {
         return env.Undefined();
     }
@@ -124,6 +135,9 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     if (sampleCount == 0) {
         return Napi::Array::New(env);
     }
+
+
+    // Categorical features
 
     if (!NHelper::CheckIsMatrix(
         env,
@@ -143,10 +157,73 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
         return env.Undefined();
     }
     const Napi::Array catRow = catFeatures[0u].As<Napi::Array>();
-    if (catRow.Length() == 0 || catRow[0u].IsNumber()) {
-        return CalcPredictionHash(env, sampleCount, floatFeatures, catFeatures);
+
+
+    // Text features
+    Napi::Value textFeatures = info[2];
+    if (!textFeatures.IsUndefined()) {
+        if (!NHelper::CheckIsMatrix(
+                env,
+                textFeatures,
+                NHelper::NAT_STRING,
+                "Expected the third argument to be a matrix of strings - "
+            ))
+        {
+            return env.Undefined();
+        }
+
+        if (!NHelper::Check(
+                env,
+                textFeatures.As<Napi::Array>().Length() == sampleCount,
+                "Expected the number of samples to be the same for both float and text features"
+            ))
+        {
+            return env.Undefined();
+        }
     }
-    return CalcPredictionString(env, sampleCount, floatFeatures, catFeatures);
+
+    // Embedding features
+    Napi::Value embeddingFeatures = info[3];
+    if (!embeddingFeatures.IsUndefined()) {
+        if (!NHelper::CheckIsMatrix(
+                env,
+                embeddingFeatures,
+                NHelper::NAT_ARRAY_OR_NUMBERS,
+                "Expected the third argument to be a matrix of arrays of numbers - "
+            ))
+        {
+            return env.Undefined();
+        }
+
+        if (!NHelper::Check(
+                env,
+                embeddingFeatures.As<Napi::Array>().Length() == sampleCount,
+                "Expected the number of samples to be the same for both float and embedding features"
+            ))
+        {
+            return env.Undefined();
+        }
+    }
+
+
+    if (catRow.Length() == 0 || catRow[0u].IsNumber()) {
+        return CalcPredictionWithCatFeaturesAsHashes(
+            env,
+            sampleCount,
+            floatFeatures,
+            catFeatures,
+            textFeatures,
+            embeddingFeatures
+        );
+    }
+    return CalcPredictionWithCatFeaturesAsStrings(
+        env,
+        sampleCount,
+        floatFeatures,
+        catFeatures,
+        textFeatures,
+        embeddingFeatures
+    );
 }
 
 void TModel::EvaluateOnGPU(const Napi::CallbackInfo& info) {
@@ -176,14 +253,26 @@ Napi::Value TModel::GetModelCatFeaturesCount(const Napi::CallbackInfo& info) {
     return Napi::Number::New(env, count);
 }
 
+Napi::Value TModel::GetModelTextFeaturesCount(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    const size_t count = GetTextFeaturesCount(this->Handle);
+
+    return Napi::Number::New(env, count);
+}
+
+Napi::Value TModel::GetModelEmbeddingFeaturesCount(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    const size_t count = GetEmbeddingFeaturesCount(this->Handle);
+
+    return Napi::Number::New(env, count);
+}
+
 Napi::Value TModel::GetModelTreeCount(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     const size_t count = GetTreeCount(this->Handle);
 
     return Napi::Number::New(env, count);
 }
-
-
 
 Napi::Value TModel::GetModelDimensionsCount(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
@@ -222,11 +311,122 @@ static void GetNumericFeaturesData(
     *sampleDataPtrs = CollectMatrixRowPointers<float>(*storage, floatFeatureCountLocal);
 }
 
-Napi::Array TModel::CalcPredictionHash(
+static void GetTextFeaturesData(
+    const uint32_t sampleCount,
+    const Napi::Value& textFeatures, // array or undefined
+    uint32_t* textFeatureCount,
+    std::vector<std::string>* storage,
+    std::vector<const char*>* dataPtrsStorage,
+    std::vector<const char**>* sampleDataPtrs
+) {
+    storage->clear();
+    dataPtrsStorage->clear();
+    sampleDataPtrs->clear();
+    if (textFeatures.IsUndefined()) {
+        *textFeatureCount = 0;
+    } else {
+        const Napi::Array textFeaturesArray = textFeatures.As<Napi::Array>();
+        const uint32_t textFeatureCountLocal = textFeaturesArray[0u].As<Napi::Array>().Length();
+        *textFeatureCount = textFeatureCountLocal;
+
+        storage->reserve(textFeatureCountLocal * sampleCount);
+        dataPtrsStorage->reserve(textFeatureCountLocal * sampleCount);
+
+        for (uint32_t i = 0; i < sampleCount; ++i) {
+            const Napi::Array row = textFeaturesArray[i].As<Napi::Array>();
+            for (uint32_t j = 0; j < textFeatureCountLocal; ++j) {
+                storage->push_back(row[j].As<Napi::String>().Utf8Value());
+                dataPtrsStorage->push_back(storage->back().c_str());
+            }
+        }
+
+        *sampleDataPtrs = CollectMatrixRowPointers<const char*, const char**>(
+            *dataPtrsStorage,
+            textFeatureCountLocal
+        );
+    }
+}
+
+static bool GetEmbeddingFeaturesData(
+    Napi::Env env,
+    const uint32_t sampleCount,
+    const Napi::Value& embeddingFeatures, // array or undefined
+    uint32_t* embeddingFeatureCount,
+    std::vector<size_t>* embeddingDimensions,
+    std::vector<float>* storage,
+    std::vector<const float*>* dataPtrsStorage,
+    std::vector<const float**>* sampleDataPtrs
+) {
+    embeddingDimensions->clear();
+    storage->clear();
+    dataPtrsStorage->clear();
+    sampleDataPtrs->clear();
+    if (embeddingFeatures.IsUndefined()) {
+        *embeddingFeatureCount = 0;
+    } else {
+        const Napi::Array embeddingsFeaturesArray = embeddingFeatures.As<Napi::Array>();
+        const uint32_t embeddingFeatureCountLocal = embeddingsFeaturesArray[0u].As<Napi::Array>().Length();
+        *embeddingFeatureCount = embeddingFeatureCountLocal;
+
+        embeddingDimensions->reserve(embeddingFeatureCountLocal);
+        // this is a lower bound, final allocation is delayed until the first sample is processed and
+        // embedding dimensions become known
+        storage->reserve(embeddingFeatureCountLocal * sampleCount);
+        dataPtrsStorage->reserve(embeddingFeatureCountLocal * sampleCount);
+
+        size_t perSampleValuesSize = 0;
+
+        for (uint32_t i = 0; i < sampleCount; ++i) {
+            const Napi::Array row = embeddingsFeaturesArray[i].As<Napi::Array>();
+            for (uint32_t j = 0; j < embeddingFeatureCountLocal; ++j) {
+                const Napi::Array embeddingValues = row[j].As<Napi::Array>();
+                auto embeddingSize = embeddingValues.Length();
+                if (i == 0) {
+                    embeddingDimensions->push_back(embeddingSize);
+                } else {
+                    if (!NHelper::Check(
+                            env,
+                            (*embeddingDimensions)[j] == embeddingSize,
+                            "Embedding values arrays have different lengths"
+                        ))
+                    {
+                        return false;
+                    }
+                }
+
+                for (uint32_t k = 0; k < embeddingSize; ++k) {
+                    storage->push_back(embeddingValues[k].As<Napi::Number>().FloatValue());
+                }
+                // can't update dataPtrsStorage just yet as it is not reserved to final size
+            }
+            if (i == 0) {
+                perSampleValuesSize = storage->size();
+                storage->reserve(perSampleValuesSize * sampleCount);
+            }
+            const float* dataPtr = storage->data() + perSampleValuesSize * i;
+            for (uint32_t j = 0; j < embeddingFeatureCountLocal; ++j) {
+                dataPtrsStorage->push_back(dataPtr);
+                dataPtr += (*embeddingDimensions)[j];
+            }
+        }
+
+        *sampleDataPtrs = CollectMatrixRowPointers<const float*, const float**>(
+            *dataPtrsStorage,
+            perSampleValuesSize
+        );
+    }
+
+    return true;
+}
+
+
+Napi::Array TModel::CalcPredictionWithCatFeaturesAsHashes(
     Napi::Env env,
     const uint32_t sampleCount,
     const Napi::Array& floatFeatures,
-    const Napi::Array& catFeatures
+    const Napi::Array& catFeatures,
+    const Napi::Value& textFeatures,
+    const Napi::Value& embeddingFeatures
 ) {
     uint32_t floatFeaturesSize = 0;
     std::vector<float> floatFeaturesStorage;
@@ -249,17 +449,59 @@ Napi::Array TModel::CalcPredictionHash(
     std::vector<const int*> catPtrs = CollectMatrixRowPointers<int>(catHashValues, catFeaturesSize);
 
 
+    uint32_t textFeaturesSize = 0;
+    std::vector<std::string> textFeaturesStorage;
+    std::vector<const char*> textFeaturesDataPtrsStorage;
+    std::vector<const char**> textFeaturesSampleDataPtrs;
+
+    GetTextFeaturesData(
+        sampleCount,
+        textFeatures,
+        &textFeaturesSize,
+        &textFeaturesStorage,
+        &textFeaturesDataPtrsStorage,
+        &textFeaturesSampleDataPtrs
+    );
+
+
+    uint32_t embeddingFeaturesSize = 0;
+    std::vector<size_t> embeddingDimensions;
+    std::vector<float> embeddingFeaturesStorage;
+    std::vector<const float*> embeddingFeaturesDataPtrsStorage;
+    std::vector<const float**> embeddingFeaturesSampleDataPtrs;
+
+    if (!NHelper::Check(
+            env,
+            GetEmbeddingFeaturesData(
+                env,
+                sampleCount,
+                embeddingFeatures,
+                &embeddingFeaturesSize,
+                &embeddingDimensions,
+                &embeddingFeaturesStorage,
+                &embeddingFeaturesDataPtrsStorage,
+                &embeddingFeaturesSampleDataPtrs
+            ),
+            "Failed to get embedding features data"
+        ))
+    {
+        return Napi::Array::New(env);
+    }
+
+
     const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
     std::vector<double> resultValues;
     resultValues.resize(sampleCount * predictionDimensions);
 
     NHelper::CheckStatus(
         env,
-        CalcModelPredictionWithHashedCatFeatures(
+        CalcModelPredictionWithHashedCatFeaturesAndTextAndEmbeddingFeatures(
             this->Handle,
             sampleCount,
             floatPtrs.data(), floatFeaturesSize,
             catPtrs.data(), catFeaturesSize,
+            textFeaturesSampleDataPtrs.data(), textFeaturesSize,
+            embeddingFeaturesSampleDataPtrs.data(), embeddingDimensions.data(), embeddingFeaturesSize,
             resultValues.data(), resultValues.size()
         )
     );
@@ -267,11 +509,13 @@ Napi::Array TModel::CalcPredictionHash(
     return NHelper::ConvertToArray(env, resultValues);
 }
 
-Napi::Array TModel::CalcPredictionString(
+Napi::Array TModel::CalcPredictionWithCatFeaturesAsStrings(
     Napi::Env env,
     const uint32_t sampleCount,
     const Napi::Array& floatFeatures,
-    const Napi::Array& catFeatures
+    const Napi::Array& catFeatures,
+    const Napi::Value& textFeatures,
+    const Napi::Value& embeddingFeatures
 ) {
     uint32_t floatFeaturesSize = 0;
     std::vector<float> floatFeaturesStorage;
@@ -300,17 +544,59 @@ Napi::Array TModel::CalcPredictionString(
     );
 
 
+    uint32_t textFeaturesSize = 0;
+    std::vector<std::string> textFeaturesStorage;
+    std::vector<const char*> textFeaturesDataPtrsStorage;
+    std::vector<const char**> textFeaturesSampleDataPtrs;
+
+    GetTextFeaturesData(
+        sampleCount,
+        textFeatures,
+        &textFeaturesSize,
+        &textFeaturesStorage,
+        &textFeaturesDataPtrsStorage,
+        &textFeaturesSampleDataPtrs
+    );
+
+
+    uint32_t embeddingFeaturesSize = 0;
+    std::vector<size_t> embeddingDimensions;
+    std::vector<float> embeddingFeaturesStorage;
+    std::vector<const float*> embeddingFeaturesDataPtrsStorage;
+    std::vector<const float**> embeddingFeaturesSampleDataPtrs;
+
+    if (!NHelper::Check(
+            env,
+            GetEmbeddingFeaturesData(
+                env,
+                sampleCount,
+                embeddingFeatures,
+                &embeddingFeaturesSize,
+                &embeddingDimensions,
+                &embeddingFeaturesStorage,
+                &embeddingFeaturesDataPtrsStorage,
+                &embeddingFeaturesSampleDataPtrs
+            ),
+            "Failed to get embedding features data"
+        ))
+    {
+        return Napi::Array::New(env);
+    }
+
+
     const auto predictionDimensions = ::GetPredictionDimensionsCount(this->Handle);
     std::vector<double> resultValues;
     resultValues.resize(sampleCount * predictionDimensions);
 
     if (!NHelper::CheckStatus(
             env,
-            CalcModelPrediction(
+            CalcModelPredictionTextAndEmbeddings(
                 this->Handle,
                 sampleCount,
                 floatPtrs.data(), floatFeaturesSize,
                 catPtrs.data(), catFeaturesSize,
+                textFeaturesSampleDataPtrs.data(), textFeaturesSize,
+                embeddingFeaturesSampleDataPtrs.data(), embeddingDimensions.data(), embeddingFeaturesSize,
                 resultValues.data(), resultValues.size()
             )
         ))

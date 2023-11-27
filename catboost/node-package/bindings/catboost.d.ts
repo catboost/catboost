@@ -5,6 +5,10 @@ export type CatBoostFloatFeatures = Array<number[]>;
  * or string values.
  */
 export type CatBoostCategoryFeatures = Array<number[]>|Array<string[]>;
+/** CatBoost text features for multiple documents. */
+export type CatBoostTextFeatures = Array<string[]>;
+/** CatBoost embedding features for multiple documents. */
+export type CatBoostEmbeddingFeatures = Array<Array<number[]>>;
 
 /** CatBoost model instance. */
 export class Model {
@@ -22,16 +26,22 @@ export class Model {
 	setPredictionType(predictionType: string): void;
 	/**
 	 * Calculate the prediction for multiple samples.
-	 * The same number of numeric and categorial features is expected.
+	 * All defined feature arguments must have the same length.
 	 */
 	predict(floatFeatures: CatBoostFloatFeatures,
-		catFeatures: CatBoostCategoryFeatures): number[];
+		catFeatures: CatBoostCategoryFeatures,
+		textFeatures?: CatBoostTextFeatures,
+		embeddingFeatures?: CatBoostEmbeddingFeatures): number[];
 	/** Enable evaluation on GPU device. */
 	enableGPUEvaluation(deviceId: number): void;
 	/** The number of numeric features. */
 	getFloatFeaturesCount(): number;
 	/** The number of categorial features. */
 	getCatFeaturesCount(): number;
+	/** The number of text features. */
+	getTextFeaturesCount(): number;
+	/** The number of embedding features. */
+	getEmbeddingFeaturesCount(): number;
 	/** The number of trees in the model. */
 	getTreeCount(): number;
 	/** The number of dimensions in the model. */

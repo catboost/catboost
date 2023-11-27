@@ -20,6 +20,71 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
     const uint32_t columnsCount = matrix[0u].As<Napi::Array>().Length();
     size_t numberCount = 0;
     size_t strCount = 0;
+
+    std::function<bool(const Napi::Value&)> checkElement;
+
+    switch (type) {
+        case ENApiType::NAT_NUMBER:
+            checkElement = [&] (const Napi::Value& value) -> bool {
+                return Check(
+                    env,
+                    value.IsNumber(),
+                    "non-numeric type in the matrix elements"
+                );
+            };
+            break;
+        case ENApiType::NAT_STRING:
+            checkElement = [&] (const Napi::Value& value) -> bool {
+                return Check(
+                    env,
+                    value.IsString(),
+                    "non-string type in the matrix elements"
+                );
+            };
+            break;
+        case ENApiType::NAT_NUMBER_OR_STRING:
+            checkElement = [&] (const Napi::Value& value) -> bool {
+                if (value.IsNumber()) {
+                    ++numberCount;
+                } else if (value.IsString()) {
+                    ++strCount;
+                } else {
+                    Check(env, false, errorPrefix + "invalid type found: " + std::to_string(value.Type()));
+                    return false;
+                }
+                return true;
+            };
+            break;
+        case ENApiType::NAT_ARRAY_OR_NUMBERS:
+            checkElement = [&] (const Napi::Value& value) -> bool {
+                if (!Check(
+                        env,
+                        value.IsArray(),
+                        "the matrix contains non-array elements"
+                    ))
+                {
+                    return false;
+                }
+
+                const Napi::Array subArray = value.As<Napi::Array>();
+                const uint32_t subArraySize = subArray.Length();
+
+                for (uint32_t k = 0; k < subArraySize; ++k) {
+                    if (!Check(
+                            env,
+                            subArray[k].IsNumber(),
+                            "an array in the matrix element contains a non-number element"
+                        ))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            };
+            break;
+    }
+
+
     for (uint32_t i = 0; i < rowsCount; ++i) {
         if (!Check(
                 env,
@@ -41,74 +106,20 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
         }
 
         for (uint32_t j = 0; j < columnsCount; ++j) {
-            if (row[j].IsNumber()) {
-                ++numberCount;
-            } else if (row[j].IsString()) {
-                ++strCount;
-            } else {
-                std::string typeStr = "";
-                switch(row[j].Type()) {
-                    case napi_undefined:
-                        typeStr = "napi_undefined";
-                        break;
-                    case napi_null:
-                        typeStr = "napi_null";
-                        break;
-                    case napi_boolean:
-                        typeStr = "napi_boolean";
-                        break;
-                    case napi_number:
-                        typeStr = "napi_number";
-                        break;
-                    case napi_string:
-                        typeStr = "napi_string";
-                        break;
-                    case napi_symbol:
-                        typeStr = "napi_symbol";
-                        break;
-                    case napi_object:
-                        typeStr = "napi_object";
-                        break;
-                    case napi_function:
-                        typeStr = "napi_function";
-                        break;
-                    case napi_external:
-                        typeStr = "napi_external";
-                        break;
-                    //case napi_bigint:
-                    //   typeStr = "napi_bigint";
-                    //    break;
-                    default:
-                        typeStr = std::to_string(row[j].Type());
-                        break;
-                }
-                Check(env, false, errorPrefix + "invalid type found: " + typeStr);
+            if (!checkElement(row[j])) {
                 return false;
             }
         }
-        switch (type) {
-            case ENApiType::NAT_NUMBER:
-                if (!Check(env, strCount == 0, errorPrefix + "no strings in the numeric matrix expected")) {
-                    return false;
-                }
-                break;
-            case ENApiType::NAT_STRING:
-                if (!Check(env, numberCount == 0, errorPrefix + "no numbers in the string matrix expected")) {
-                    return false;
-                }
-                break;
-            case ENApiType::NAT_NUMBER_OR_STRING:
-                if (!Check(
-                        env,
-                        !(numberCount > 0 && strCount > 0),
-                        errorPrefix + "mixed strings and numbers in the matrix"
-                    ))
-                {
-                    return false;
-                }
-                break;
-            default:
-                assert(false);
+
+        if (type == ENApiType::NAT_NUMBER_OR_STRING) {
+            if (!Check(
+                    env,
+                    !(numberCount > 0 && strCount > 0),
+                    errorPrefix + "mixed strings and numbers in the matrix"
+                ))
+            {
+                return false;
+            }
         }
     }
 
