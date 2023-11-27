@@ -128,7 +128,7 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     if (!NHelper::CheckIsMatrix(
         env,
         info[1],
-        NHelper::NAT_NUMBER_OR_STRING, "Expected second argument to be a matrix of strings or numbers - "))
+        NHelper::NAT_NUMBER_OR_STRING, "Expected the second argument to be a matrix of strings or numbers - "))
     {
         return env.Undefined();
     }

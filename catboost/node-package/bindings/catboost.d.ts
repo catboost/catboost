@@ -10,7 +10,7 @@ export type CatBoostCategoryFeatures = Array<number[]>|Array<string[]>;
 export class Model {
 	constructor(path?: string);
 
-	/** Loads model from file. */
+	/** Loads a model from the file. */
 	loadModel(path: string): void;
 	/** Sets model prediction postprocessing type. Possible value are:
 	 * RawFormulaVal - raw sum of leaf values for each dimension,
@@ -21,7 +21,7 @@ export class Model {
 	 * */
 	setPredictionType(predictionType: string): void;
 	/**
-	 * Calculate prediction for multiple samples.
+	 * Calculate the prediction for multiple samples.
 	 * The same number of numeric and categorial features is expected.
 	 */
 	predict(floatFeatures: CatBoostFloatFeatures,
