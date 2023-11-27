@@ -137,14 +137,17 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     if (!NHelper::CheckIsMatrix(
         env,
         info[1],
-        NHelper::NAT_NUMBER_OR_STRING, "Expected second argument to be a matrix of strings or numbers - ")
-    ) {
+        NHelper::NAT_NUMBER_OR_STRING, "Expected second argument to be a matrix of strings or numbers - "))
+    {
         return env.Undefined();
     }
     const Napi::Array catFeatures = info[1].As<Napi::Array>();
 
-    if (!NHelper::Check(env, catFeatures.Length() == docsCount,
-        "Expected the number of docs to be the same for both float and categorial features"))
+    if (!NHelper::Check(
+            env,
+            catFeatures.Length() == docsCount,
+            "Expected the number of docs to be the same for both float and categorial features"
+        ))
     {
         return env.Undefined();
     }
