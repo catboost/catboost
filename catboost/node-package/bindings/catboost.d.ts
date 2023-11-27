@@ -1,7 +1,7 @@
-/** CatBoost numeric features for multiple documents. */
+/** CatBoost numeric features for multiple samples. */
 export type CatBoostFloatFeatures = Array<number[]>;
 /**
- * CatBoost categorial features for multiple documents - either integer hashes
+ * CatBoost categorial features for multiple samples - either integer hashes
  * or string values.
  */
 export type CatBoostCategoryFeatures = Array<number[]>|Array<string[]>;
@@ -21,7 +21,7 @@ export class Model {
 	 * */
 	setPredictionType(predictionType: string): void;
 	/**
-	 * Calculate prediction for multiple documents.
+	 * Calculate prediction for multiple samples.
 	 * The same number of numeric and categorial features is expected.
 	 */
 	predict(floatFeatures: CatBoostFloatFeatures,
