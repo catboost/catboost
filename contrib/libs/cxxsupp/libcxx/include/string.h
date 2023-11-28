@@ -57,11 +57,7 @@ size_t strlen(const char* s);
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(string.h)
-#else
 #include_next <string.h>
-#endif
 
 // MSVCRT, GNU libc and its derivates may already have the correct prototype in
 // <string.h>. This macro can be defined by users if their C library provides

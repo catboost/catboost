@@ -13,11 +13,7 @@
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(stdlib.h)
-#else
 #include_next <stdlib.h>
-#endif
 
 #elif !defined(_LIBCPP_STDLIB_H)
 #define _LIBCPP_STDLIB_H
@@ -94,20 +90,7 @@ void *aligned_alloc(size_t alignment, size_t size);                       // C11
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(stdlib.h)
-#ifdef __cplusplus
-extern "C" {
-#endif
-float fabsf(float);
-double fabs(double);
-long double fabsl(long double);
-#ifdef __cplusplus
-}
-#endif
-#else
 #include_next <stdlib.h>
-#endif
 
 #ifdef __cplusplus
 extern "C++" {

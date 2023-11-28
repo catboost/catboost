@@ -44,11 +44,7 @@ Macros:
 #endif
 
 #ifndef __GNUC__
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_MSVC_INCLUDE_NEXT(limits.h)
-#else
 #include_next <limits.h>
-#endif
 #else
 // GCC header limits.h recursively includes itself through another header called
 // syslimits.h for some reason. This setup breaks down if we directly

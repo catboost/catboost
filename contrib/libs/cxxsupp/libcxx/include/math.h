@@ -297,11 +297,7 @@ long double    truncl(long double x);
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(math.h)
-#else
 #include_next <math.h>
-#endif
 
 #ifdef __cplusplus
 
@@ -1761,11 +1757,7 @@ trunc(_A1 __lcpp_x) _NOEXCEPT
 // and receive the definitions of mathematical constants, even if <math.h>
 // has previously been included.
 #if defined(_LIBCPP_MSVCRT) && defined(_USE_MATH_DEFINES)
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(math.h)
-#else
 #include_next <math.h>
-#endif
 #endif
 
 #endif // _LIBCPP_MATH_H

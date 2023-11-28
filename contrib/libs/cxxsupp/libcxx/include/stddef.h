@@ -14,11 +14,7 @@
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(stddef.h)
-#else
 #include_next <stddef.h>
-#endif
 
 #elif !defined(_LIBCPP_STDDEF_H)
 #define _LIBCPP_STDDEF_H
@@ -46,12 +42,7 @@ Types:
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(stddef.h)
-typedef double max_align_t;
-#else
 #include_next <stddef.h>
-#endif
 
 #ifdef __cplusplus
     typedef decltype(nullptr) nullptr_t;

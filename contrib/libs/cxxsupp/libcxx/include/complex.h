@@ -29,11 +29,7 @@
 
 #else  // __cplusplus
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(complex.h)
-#else
 #include_next <complex.h>
-#endif
 
 #endif // __cplusplus
 
