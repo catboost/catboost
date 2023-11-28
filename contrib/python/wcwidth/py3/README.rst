@@ -216,10 +216,15 @@ Other Languages
 =======
 History
 =======
+0.2.10 *2023-11-08*
+  * **Bugfix** accounting of some kinds of emoji sequences using U+FE0F
+    Variation Selector 16 (`PR #97`_).
+  * **Updated** `Specification <Specification_from_pypi_>`_.
+
 0.2.9 *2023-10-30*
   * **Bugfix** zero-width characters used in Emoji ZWJ sequences, Balinese,
     Jamo, Devanagari, Tamil, Kannada and others (`PR #91`_).
-  * **Updated** to include `Specification <Specification_from_pypi>`_ of
+  * **Updated** to include `Specification <Specification_from_pypi_>`_ of
     character measurements.
 
 0.2.8 *2023-09-30*
@@ -319,6 +324,7 @@ https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c::
 .. _`PR #35`: https://github.com/jquast/wcwidth/pull/35
 .. _`PR #82`: https://github.com/jquast/wcwidth/pull/82
 .. _`PR #91`: https://github.com/jquast/wcwidth/pull/91
+.. _`PR #97`: https://github.com/jquast/wcwidth/pull/97
 .. _`jquast/blessed`: https://github.com/jquast/blessed
 .. _`selectel/pyte`: https://github.com/selectel/pyte
 .. _`thomasballinger/curtsies`: https://github.com/thomasballinger/curtsies
