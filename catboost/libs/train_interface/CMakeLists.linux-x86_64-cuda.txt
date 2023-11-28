@@ -46,12 +46,12 @@ target_link_options(catboost_train_interface PRIVATE
   -fPIC
   -Wl,-z,notext
   -fPIC
-  -lcudadevrt
-  -lculibos
-  -lcudart_static
   -lpthread
   -lrt
   -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
 )
 target_sources(catboost_train_interface PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/train_interface/catboost_api.cpp

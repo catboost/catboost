@@ -27,12 +27,12 @@ target_link_options(catboostmodel PRIVATE
   -fPIC
   -Wl,-z,notext
   -fPIC
-  -lcudadevrt
-  -lculibos
-  -lcudart_static
   -lpthread
   -lrt
   -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
 )
 target_sources(catboostmodel PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/model_interface/c_api.cpp

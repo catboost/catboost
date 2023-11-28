@@ -23,12 +23,12 @@ target_link_options(model_perftest PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lcudadevrt
-  -lculibos
-  -lcudart_static
   -lpthread
   -lrt
   -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
 )
 target_allocator(model_perftest
   cpp-malloc-tcmalloc

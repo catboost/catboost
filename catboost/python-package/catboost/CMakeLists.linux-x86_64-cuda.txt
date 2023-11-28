@@ -62,12 +62,12 @@ target_link_options(_catboost PRIVATE
   -Wl,-z,notext
   -Wl,-Bsymbolic
   -fPIC
-  -lcudadevrt
-  -lculibos
-  -lcudart_static
   -lpthread
   -lrt
   -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
 )
 target_sources(_catboost PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/helpers.cpp

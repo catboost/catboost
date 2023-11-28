@@ -55,12 +55,12 @@ target_link_options(catboost PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lcudadevrt
-  -lculibos
-  -lcudart_static
   -lpthread
   -lrt
   -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
 )
 target_sources(catboost PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/app/main.cpp

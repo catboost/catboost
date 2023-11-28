@@ -27,12 +27,12 @@ target_link_options(ndcg_cpu_vs_gpu PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lcudadevrt
-  -lculibos
-  -lcudart_static
   -lpthread
   -lrt
   -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
 )
 target_sources(ndcg_cpu_vs_gpu PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/bin/ndcg_cpu_vs_gpu/main.cpp
