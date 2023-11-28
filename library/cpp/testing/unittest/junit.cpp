@@ -603,8 +603,7 @@ void TJUnitProcessor::SerializeToXml() {
     TXmlWriter::TTag testSuites = report.Tag("testsuites"sv);
     testSuites
         .Attribute("tests"sv, GetTestsCount())
-        .Attribute("failures"sv, GetFailuresCount())
-        .Attribute(""sv, GetFailuresCount());
+        .Attribute("failures"sv, GetFailuresCount());
 
     for (const auto& [suiteName, suite] : Suites) {
         auto testSuite = testSuites.Tag("testsuite"sv);
