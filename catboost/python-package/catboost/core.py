@@ -5457,6 +5457,11 @@ class CatBoostClassifier(CatBoost):
         if np.issubdtype(predicted_classes.dtype, np.number):
             if np.issubdtype(y.dtype, np.character):
                 raise CatBoostError('predicted classes have numeric type but specified y contains strings')
+        elif np.issubdtype(predicted_classes.dtype, np.bool_):
+            if np.issubdtype(y.dtype, np.number):
+                raise CatBoostError('predicted classes have string type but specified y contains bools')
+            elif np.issubdtype(y.dtype, np.character):
+                raise CatBoostError('predicted classes have numeric type but specified y contains bools')
         else:
             if np.issubdtype(y.dtype, np.number):
                 raise CatBoostError('predicted classes have string type but specified y is numeric')
