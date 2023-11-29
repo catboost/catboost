@@ -407,6 +407,10 @@ Other font-specific options
     *not* be switched on if an intersection is found.  [default]
 --no-prune-unicode-ranges
     Don't change the 'OS/2 ulUnicodeRange*' bits.
+--prune-codepage-ranges
+    Update the 'OS/2 ulCodePageRange*' bits after subsetting.  [default]
+--no-prune-codepage-ranges
+    Don't change the 'OS/2 ulCodePageRange*' bits.
 --recalc-average-width
     Update the 'OS/2 xAvgCharWidth' field after subsetting.
 --no-recalc-average-width
@@ -3086,6 +3090,7 @@ class Options(object):
         self.recalc_bounds = False  # Recalculate font bounding boxes
         self.recalc_timestamp = False  # Recalculate font modified timestamp
         self.prune_unicode_ranges = True  # Clear unused 'ulUnicodeRange' bits
+        self.prune_codepage_ranges = True  # Clear unused 'ulCodePageRange' bits
         self.recalc_average_width = False  # update 'xAvgCharWidth'
         self.recalc_max_context = False  # update 'usMaxContext'
         self.canonical_order = None  # Order tables as recommended
@@ -3449,6 +3454,15 @@ class Subsetter(object):
                     if old_uniranges != new_uniranges:
                         log.info(
                             "%s Unicode ranges pruned: %s", tag, sorted(new_uniranges)
+                        )
+                if self.options.prune_codepage_ranges:
+                    old_codepages = font[tag].getCodePageRanges()
+                    new_codepages = font[tag].recalcCodePageRanges(font, pruneOnly=True)
+                    if old_codepages != new_codepages:
+                        log.info(
+                            "%s CodePage ranges pruned: %s",
+                            tag,
+                            sorted(new_codepages),
                         )
                 if self.options.recalc_average_width:
                     old_avg_width = font[tag].xAvgCharWidth

@@ -36,6 +36,7 @@ from fontTools.varLib.builder import buildVarDevTable
 from fontTools.varLib.featureVars import addFeatureVariationsRaw
 from fontTools.varLib.models import normalizeValue, piecewiseLinearMap
 from collections import defaultdict
+import copy
 import itertools
 from io import StringIO
 import logging
@@ -1516,7 +1517,7 @@ class Builder(object):
                 for mark in markClassDef.glyphs.glyphSet():
                     if mark not in lookupBuilder.marks:
                         otMarkAnchor = self.makeOpenTypeAnchor(
-                            location, markClassDef.anchor
+                            location, copy.deepcopy(markClassDef.anchor)
                         )
                         lookupBuilder.marks[mark] = (markClass.name, otMarkAnchor)
                     else:
