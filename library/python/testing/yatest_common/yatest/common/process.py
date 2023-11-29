@@ -443,16 +443,12 @@ class _Execution(object):
         if self._std_err and self._check_sanitizer and runtime._get_ya_config().sanitizer_extra_checks:
             build_path = runtime.build_path()
             if self.command[0].startswith(build_path):
-                std_err, failed = _try_convert_bytes_to_string(self._std_err)
-                if failed:
-                    raise ValueError("failed to convert std err from bytes to string")
-
-                match = re.search(SANITIZER_ERROR_PATTERN, std_err)
+                match = re.search(SANITIZER_ERROR_PATTERN, self._std_err)
                 if match:
                     yatest_logger.error(
                         "%s sanitizer found errors:\n\tstd_err:%s\n",
                         match.group(1),
-                        truncate(std_err, MAX_OUT_LEN),
+                        truncate(self.std_err, MAX_OUT_LEN),
                     )
                     raise ExecutionError(self)
                 else:
