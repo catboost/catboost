@@ -66,6 +66,17 @@ public:
     }
 };
 
+void GenerateDeepJson(TStringStream& stream, ui64 depth) {
+    stream << "{\"key\":";
+    for (ui32 i = 0; i < depth - 1; ++i) {
+        stream << "[";
+    }
+    for (ui32 i = 0; i < depth - 1; ++i) {
+        stream << "]";
+    }
+    stream << "}";
+}
+
 Y_UNIT_TEST_SUITE(TJsonReaderTest) {
     Y_UNIT_TEST(JsonReformatTest) {
         TString data = "{\"null value\": null, \"intkey\": 10, \"double key\": 11.11, \"string key\": \"string\", \"array\": [1,2,3,\"TString\"], \"bool key\": true}";
@@ -395,6 +406,44 @@ Y_UNIT_TEST_SUITE(TJsonReaderTest) {
         UNIT_ASSERT_VALUES_EQUAL("", v.GetMap().begin()->first);
         UNIT_ASSERT(v.GetMap().begin()->second.IsString());
         UNIT_ASSERT_VALUES_EQUAL("", v.GetMap().begin()->second.GetString());
+    }
+
+    // Parsing an extremely deep json tree would result in stack overflow.
+    // Not crashing on one is a good indicator of iterative mode.
+    Y_UNIT_TEST(TJsonIterativeTest) {
+        constexpr ui32 brackets = static_cast<ui32>(1e5);
+
+        TStringStream jsonStream;
+        GenerateDeepJson(jsonStream, brackets);
+
+        TJsonReaderConfig config;
+        config.UseIterativeParser = true;
+        config.MaxDepth = static_cast<ui32>(1e3);
+
+        TJsonValue v;
+        UNIT_ASSERT(!ReadJsonTree(&jsonStream, &config, &v));
+    }
+
+    Y_UNIT_TEST(TJsonMaxDepthTest) {
+        constexpr ui32 depth = static_cast<ui32>(1e3);
+
+        {
+            TStringStream jsonStream;
+            GenerateDeepJson(jsonStream, depth);
+            TJsonReaderConfig config;
+            config.MaxDepth = depth;
+            TJsonValue v;
+            UNIT_ASSERT(ReadJsonTree(&jsonStream, &config, &v));
+        }
+
+        {
+            TStringStream jsonStream;
+            GenerateDeepJson(jsonStream, depth);
+            TJsonReaderConfig config;
+            config.MaxDepth = depth - 1;
+            TJsonValue v;
+            UNIT_ASSERT(!ReadJsonTree(&jsonStream, &config, &v));
+        }
     }
 }
 
