@@ -533,9 +533,9 @@ namespace NCatboostCuda {
         const bool isRMSEWithUncertainty = targetObjective == ELossFunction::RMSEWithUncertainty;
         const bool isMultiRMSE = targetObjective == ELossFunction::MultiRMSE;
         if (isMulticlass || IsMultiLabelObjective(targetObjective) || isRMSEWithUncertainty || isMultiRMSE) {
-            CB_ENSURE(approxDim > 1, "Error: multiclass approx is > 1");
+            CB_ENSURE(approxDim > 1, "Error: Approx dimension equal to 1 for multidimensional output");
         } else {
-            CB_ENSURE(approxDim == 1, "Error: non-multiclass output dim should be equal to  1");
+            CB_ENSURE(approxDim == 1, "Error: non-multidimensional output dim should be equal to  1");
         }
 
         auto metricType = metricDescription.GetLossFunction();
