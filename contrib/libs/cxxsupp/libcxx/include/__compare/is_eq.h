@@ -18,7 +18,7 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_SPACESHIP_OPERATOR)
+#if _LIBCPP_STD_VER > 17
 
 _LIBCPP_HIDE_FROM_ABI inline constexpr bool is_eq(partial_ordering __c) noexcept { return __c == 0; }
 _LIBCPP_HIDE_FROM_ABI inline constexpr bool is_neq(partial_ordering __c) noexcept { return __c != 0; }

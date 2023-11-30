@@ -1940,7 +1940,7 @@ list<_Tp, _Alloc>::splice(const_iterator __p, list& __c, const_iterator __i)
                     __cn1->__add(*__ip);
                     (*__ip)->__c_ = __cn1;
                     if (--__cn2->end_ != __ip)
-                        memmove(__ip, __ip+1, (__cn2->end_ - __ip)*sizeof(__i_node*));
+                        _VSTD::memmove(__ip, __ip+1, (__cn2->end_ - __ip)*sizeof(__i_node*));
                 }
             }
             __db->unlock();

@@ -123,7 +123,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
     void deallocate(_Tp* __p, size_t __n) _NOEXCEPT {
         if (__libcpp_is_constant_evaluated()) {
-            ::operator delete((void*)__p);
+            ::operator delete(__p);
         } else {
             _VSTD::__libcpp_deallocate((void*)__p, __n * sizeof(_Tp), _LIBCPP_ALIGNOF(_Tp));
         }

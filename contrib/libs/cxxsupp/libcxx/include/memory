@@ -1134,7 +1134,7 @@ struct __builtin_new_allocator {
 _LIBCPP_END_NAMESPACE_STD
 
 #if defined(_LIBCPP_HAS_PARALLEL_ALGORITHMS) && _LIBCPP_STD_VER >= 17
-//#   include <__pstl_memory>
+#error #   include <__pstl_memory>
 #endif
 
 #endif // _LIBCPP_MEMORY

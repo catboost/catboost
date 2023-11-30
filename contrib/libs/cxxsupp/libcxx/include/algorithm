@@ -1303,7 +1303,7 @@ template <class BidirectionalIterator, class Compare>
 #endif
 
 #if defined(_LIBCPP_HAS_PARALLEL_ALGORITHMS) && _LIBCPP_STD_VER >= 17
-//#   include <__pstl_algorithm>
+#error #   include <__pstl_algorithm>
 #endif
 
 #endif // _LIBCPP_ALGORITHM

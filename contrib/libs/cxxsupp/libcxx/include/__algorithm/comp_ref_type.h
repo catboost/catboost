@@ -50,7 +50,7 @@ struct __debug_less
     _LIBCPP_CONSTEXPR_AFTER_CXX11
     inline _LIBCPP_INLINE_VISIBILITY
     decltype((void)declval<_Compare&>()(
-        declval<_LHS const&>(), declval<_RHS const&>()))
+        declval<_LHS &>(), declval<_RHS &>()))
     __do_compare_assert(int, _LHS & __l, _RHS & __r) {
         _LIBCPP_DEBUG_ASSERT(!__comp_(__l, __r),
             "Comparator does not induce a strict weak ordering");

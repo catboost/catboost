@@ -614,7 +614,7 @@ struct __policy
     _LIBCPP_INLINE_VISIBILITY
     static const __policy* __create_empty()
     {
-        static const /*_LIBCPP_CONSTEXPR*/ __policy __policy_ = {nullptr, nullptr,
+        static const _LIBCPP_CONSTEXPR __policy __policy_ = {nullptr, nullptr,
                                                              true,
 #ifndef _LIBCPP_NO_RTTI
                                                              &typeid(void)

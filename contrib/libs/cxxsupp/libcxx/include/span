@@ -586,22 +586,16 @@ public:
     _LIBCPP_INLINE_VISIBILITY constexpr reverse_iterator        rbegin() const noexcept { return reverse_iterator(end()); }
     _LIBCPP_INLINE_VISIBILITY constexpr reverse_iterator          rend() const noexcept { return reverse_iterator(begin()); }
 
-    inline _LIBCPP_INLINE_VISIBILITY span<const byte, dynamic_extent> __as_bytes() const noexcept;
+    _LIBCPP_INLINE_VISIBILITY span<const byte, dynamic_extent> __as_bytes() const noexcept
+    { return {reinterpret_cast<const byte *>(data()), size_bytes()}; }
 
-    inline _LIBCPP_INLINE_VISIBILITY span<byte, dynamic_extent> __as_writable_bytes() const noexcept;
+    _LIBCPP_INLINE_VISIBILITY span<byte, dynamic_extent> __as_writable_bytes() const noexcept
+    { return {reinterpret_cast<byte *>(data()), size_bytes()}; }
 
 private:
     pointer   __data;
     size_type __size;
 };
-
-template<typename _Tp>
-inline _LIBCPP_INLINE_VISIBILITY span<const byte, dynamic_extent> span<_Tp, dynamic_extent>::__as_bytes() const noexcept
-{ return {reinterpret_cast<const byte *>(data()), size_bytes()}; }
-
-template<typename _Tp>
-inline _LIBCPP_INLINE_VISIBILITY span<byte, dynamic_extent> span<_Tp, dynamic_extent>::__as_writable_bytes() const noexcept
-{ return {reinterpret_cast<byte *>(data()), size_bytes()}; }
 
 template <class _Tp, size_t _Extent>
 inline constexpr bool ranges::enable_borrowed_range<span<_Tp, _Extent> > = true;
