@@ -4,6 +4,7 @@ __all__ = [
     "normalizeValue",
     "normalizeLocation",
     "supportScalar",
+    "piecewiseLinearMap",
     "VariationModel",
 ]
 

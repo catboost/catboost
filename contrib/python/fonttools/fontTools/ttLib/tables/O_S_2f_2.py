@@ -343,6 +343,8 @@ class table_O_S_2f_2(DefaultTable.DefaultTable):
     def getCodePageRanges(self):
         """Return the set of 'ulCodePageRange*' bits currently enabled."""
         bits = set()
+        if self.version < 1:
+            return bits
         ul1, ul2 = self.ulCodePageRange1, self.ulCodePageRange2
         for i in range(32):
             if ul1 & (1 << i):
@@ -361,6 +363,8 @@ class table_O_S_2f_2(DefaultTable.DefaultTable):
                 ul2 |= 1 << (bit - 32)
             else:
                 raise ValueError(f"expected 0 <= int <= 63, found: {bit:r}")
+        if self.version < 1:
+            self.version = 1
         self.ulCodePageRange1, self.ulCodePageRange2 = ul1, ul2
 
     def recalcCodePageRanges(self, ttFont, pruneOnly=False):

@@ -1211,6 +1211,9 @@ class Glyph(object):
                 g.recalcBounds(glyfTable, boundsDone=boundsDone)
                 if boundsDone is not None:
                     boundsDone.add(glyphName)
+            # empty components shouldn't update the bounds of the parent glyph
+            if g.numberOfContours == 0:
+                continue
 
             x, y = compo.x, compo.y
             bounds = updateBounds(bounds, (g.xMin + x, g.yMin + y))

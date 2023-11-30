@@ -11,10 +11,14 @@ from fontTools.pens.pointPen import AbstractPointPen, SegmentToPointPen
 from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.statisticsPen import StatisticsPen
 from fontTools.pens.momentsPen import OpenContourError
+from fontTools.varLib.models import piecewiseLinearMap
 from collections import defaultdict
 import math
 import itertools
 import sys
+import logging
+
+log = logging.getLogger("fontTools.varLib.interpolatable")
 
 
 def _rot_list(l, k):
@@ -429,8 +433,13 @@ def main(args=None):
         nargs="+",
         help="Input a single variable font / DesignSpace / Glyphs file, or multiple TTF/UFO files",
     )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Run verbosely.")
 
     args = parser.parse_args(args)
+
+    from fontTools import configLogger
+
+    configLogger(level=("INFO" if args.verbose else "ERROR"))
 
     glyphs = args.glyphs.split() if args.glyphs else None
 
@@ -460,6 +469,24 @@ def main(args=None):
             font = TTFont(args.inputs[0])
             if "gvar" in font:
                 # Is variable font
+
+                axisMapping = {}
+                fvar = font["fvar"]
+                for axis in fvar.axes:
+                    axisMapping[axis.axisTag] = {
+                        -1: axis.minValue,
+                        0: axis.defaultValue,
+                        1: axis.maxValue,
+                    }
+                if "avar" in font:
+                    avar = font["avar"]
+                    for axisTag, segments in avar.segments.items():
+                        fvarMapping = axisMapping[axisTag].copy()
+                        for location, value in segments.items():
+                            axisMapping[axisTag][value] = piecewiseLinearMap(
+                                location, fvarMapping
+                            )
+
                 gvar = font["gvar"]
                 glyf = font["glyf"]
                 # Gather all glyphs at their "master" locations
@@ -486,10 +513,18 @@ def main(args=None):
                             glyphname, glyphsets[locTuple], ttGlyphSets[locTuple], glyf
                         )
 
-                names = ["()"]
+                names = ["''"]
                 fonts = [font.getGlyphSet()]
                 for locTuple in sorted(glyphsets.keys(), key=lambda v: (len(v), v)):
-                    names.append(str(locTuple))
+                    name = (
+                        "'"
+                        + " ".join(
+                            "%s=%s" % (k, piecewiseLinearMap(v, axisMapping[k]))
+                            for k, v in locTuple
+                        )
+                        + "'"
+                    )
+                    names.append(name)
                     fonts.append(glyphsets[locTuple])
                 args.ignore_missing = True
                 args.inputs = []
@@ -525,6 +560,7 @@ def main(args=None):
             for gn in diff:
                 glyphset[gn] = None
 
+    log.info("Running on %d glyphsets", len(glyphsets))
     problems_gen = test_gen(
         glyphsets, glyphs=glyphs, names=names, ignore_missing=args.ignore_missing
     )

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.44.1
+Version: 4.44.3
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -365,6 +365,20 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.44.3 (released 2023-11-15)
+----------------------------
+
+- [subset] Only prune codepage ranges for OS/2.version >= 1, ignore otherwise (#3334).
+- [instancer] Ensure hhea vertical metrics stay in sync with OS/2 ones after instancing
+  MVAR table containing 'hasc', 'hdsc' or 'hlgp' tags (#3297).
+
+4.44.2 (released 2023-11-14)
+----------------------------
+
+- [glyf] Have ``Glyph.recalcBounds`` skip empty components (base glyph with no contours)
+  when computing the bounding box of composite glyphs. This simply restores the existing
+  behavior before some changes were introduced in fonttools 4.44.0 (#3333).
 
 4.44.1 (released 2023-11-14)
 ----------------------------

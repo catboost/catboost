@@ -3455,7 +3455,9 @@ class Subsetter(object):
                         log.info(
                             "%s Unicode ranges pruned: %s", tag, sorted(new_uniranges)
                         )
-                if self.options.prune_codepage_ranges:
+                if self.options.prune_codepage_ranges and font[tag].version >= 1:
+                    # codepage range fields were added with OS/2 format 1
+                    # https://learn.microsoft.com/en-us/typography/opentype/spec/os2#version-1
                     old_codepages = font[tag].getCodePageRanges()
                     new_codepages = font[tag].recalcCodePageRanges(font, pruneOnly=True)
                     if old_codepages != new_codepages:
