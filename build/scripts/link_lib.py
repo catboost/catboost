@@ -27,8 +27,8 @@ class Opts(object):
                 self.modify_flags = ['-M']
             self.need_modify = any(item.endswith('.a') for item in auto_input)
             if self.need_modify:
-                self.objs = list( filter(lambda x: x.endswith('.o'), auto_input) )
-                self.libs = list( filter(lambda x: x.endswith('.a'), auto_input) )
+                self.objs = list(filter(lambda x: x.endswith('.o'), auto_input))
+                self.libs = list(filter(lambda x: x.endswith('.a'), auto_input))
             else:
                 self.objs = auto_input
                 self.libs = []
@@ -40,8 +40,8 @@ class Opts(object):
             self.output_opts = ['-o', self.output]
         elif self.arch_type == 'LIB':
             self.create_flags = []
-            self.extra_args = list( filter(lambda x: x.startswith('/'), auto_input) )
-            self.objs = list( filter(lambda x: not x.startswith('/'), auto_input) )
+            self.extra_args = list(filter(lambda x: x.startswith('/'), auto_input))
+            self.objs = list(filter(lambda x: not x.startswith('/'), auto_input))
             self.libs = []
             self.output_opts = ['/OUT:' + self.output]
 

@@ -2,7 +2,6 @@ import os
 from os import path
 import shutil
 import subprocess
-import sys
 import tempfile
 import argparse
 import re
@@ -12,7 +11,7 @@ OUT_DIR_ARG = '--python_out='
 
 
 def _noext(fname):
-    return  fname[:fname.rfind('.')]
+    return fname[: fname.rfind('.')]
 
 
 def main():
@@ -34,7 +33,7 @@ def main():
     for i in range(len(args)):
         if args[i].startswith(OUT_DIR_ARG):
             assert not out_dir_orig, 'Duplicate "{0}" param'.format(OUT_DIR_ARG)
-            out_dir_orig = args[i][len(OUT_DIR_ARG):]
+            out_dir_orig = args[i][len(OUT_DIR_ARG) :]
             out_dir_temp = tempfile.mkdtemp(dir=out_dir_orig)
             args[i] = OUT_DIR_ARG + out_dir_temp
             continue
@@ -44,8 +43,10 @@ def main():
             plugin_out_dir_arg = match.group(1)
             plugin = match.group(2)
             assert plugin not in plugin_out_dirs_orig, 'Duplicate "{0}" param'.format(plugin_out_dir_arg)
-            plugin_out_dirs_orig[plugin] = args[i][len(plugin_out_dir_arg):]
-            assert plugin_out_dirs_orig[plugin] == out_dir_orig, 'Params "{0}" and "{1}" expected to have the same value'.format(OUT_DIR_ARG, plugin_out_dir_arg)
+            plugin_out_dirs_orig[plugin] = args[i][len(plugin_out_dir_arg) :]
+            assert (
+                plugin_out_dirs_orig[plugin] == out_dir_orig
+            ), 'Params "{0}" and "{1}" expected to have the same value'.format(OUT_DIR_ARG, plugin_out_dir_arg)
             args[i] = plugin_out_dir_arg + out_dir_temp
 
     assert out_dir_temp, 'Param "{0}" not found'.format(OUT_DIR_ARG)
@@ -55,21 +56,21 @@ def main():
 
     temp_name = out_dir_temp
     orig_name = out_dir_orig
-    dir_name, file_name = path.split(script_args.input[len(script_args.ns) - 1:])
+    dir_name, file_name = path.split(script_args.input[len(script_args.ns) - 1 :])
     for part in dir_name.split('/'):
-        temp_part = part.replace('-','_')
+        temp_part = part.replace('-', '_')
         temp_name = path.join(temp_name, temp_part)
-        assert(path.exists(temp_name))
+        assert path.exists(temp_name)
 
         orig_name = path.join(orig_name, part)
         if not path.exists(orig_name):
             os.mkdir(orig_name)
 
     orig_base_name = _noext(file_name)
-    temp_base_name = orig_base_name.replace('-','_')
+    temp_base_name = orig_base_name.replace('-', '_')
     for suf in script_args.suffixes:
         temp_file_name = path.join(temp_name, temp_base_name + suf)
-        assert(path.exists(temp_file_name))
+        assert path.exists(temp_file_name)
 
         orig_file_name = path.join(orig_name, orig_base_name + '__int__' + suf)
         os.rename(temp_file_name, orig_file_name)

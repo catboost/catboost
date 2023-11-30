@@ -5,7 +5,7 @@ import subprocess
 if __name__ == '__main__':
     pos = sys.argv.index('--')
     fname = sys.argv[pos + 1]
-    cmd = sys.argv[pos + 2:]
+    cmd = sys.argv[pos + 2 :]
 
     with open(fname, 'r') as f:
         args = [x.strip() for x in f]

@@ -36,7 +36,7 @@ CUDA_LIBRARIES = {
     '-lnvinfer_static': '-lnvinfer',
     '-lnvinfer_plugin_static': '-lnvinfer_plugin',
     '-lnvonnxparser_static': '-lnvonnxparser',
-    '-lnvparsers_static': '-lnvparsers'
+    '-lnvparsers_static': '-lnvparsers',
 }
 
 
@@ -65,7 +65,7 @@ def fix_sanitize_flag(cmd):
         '-fsanitize=memory': CLANG_RT + 'msan',
         '-fsanitize=leak': CLANG_RT + 'lsan',
         '-fsanitize=undefined': CLANG_RT + 'ubsan',
-        '-fsanitize=thread': CLANG_RT + 'tsan'
+        '-fsanitize=thread': CLANG_RT + 'tsan',
     }
 
     used_sanitize_libs = []

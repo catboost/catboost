@@ -46,8 +46,8 @@ def get_compiler_info(compiler):
         env['LOCALE'] = 'C'
         compiler_ver_out = (
             subprocess.Popen(compiler_ver_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-                .stdout.read()
-                .decode('utf-8')
+            .stdout.read()
+            .decode('utf-8')
         )
     return "\n".join(
         # fmt: off

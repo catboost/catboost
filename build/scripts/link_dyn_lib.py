@@ -11,10 +11,7 @@ from process_whole_archive_option import ProcessWholeArchiveOption
 
 def shlex_join(cmd):
     # equivalent to shlex.join() in python 3
-    return ' '.join(
-        pipes.quote(part)
-        for part in cmd
-    )
+    return ' '.join(pipes.quote(part) for part in cmd)
 
 
 def parse_export_file(p):
@@ -37,12 +34,12 @@ def parse_export_file(p):
 def to_c(sym):
     symbols = collections.deque(sym.split('::'))
     c_prefixes = [  # demangle prefixes for c++ symbols
-        '_ZN',      # namespace
-        '_ZTIN',    # typeinfo for
-        '_ZTSN',    # typeinfo name for
-        '_ZTTN',    # VTT for
-        '_ZTVN',    # vtable for
-        '_ZNK',     # const methods
+        '_ZN',  # namespace
+        '_ZTIN',  # typeinfo for
+        '_ZTSN',  # typeinfo name for
+        '_ZTTN',  # VTT for
+        '_ZTVN',  # vtable for
+        '_ZNK',  # const methods
     ]
     c_sym = ''
     while symbols:
@@ -142,7 +139,7 @@ CUDA_LIBRARIES = {
     '-lnvinfer_static': '-lnvinfer',
     '-lnvinfer_plugin_static': '-lnvinfer_plugin',
     '-lnvonnxparser_static': '-lnvonnxparser',
-    '-lnvparsers_static': '-lnvparsers'
+    '-lnvparsers_static': '-lnvparsers',
 }
 
 
@@ -159,7 +156,7 @@ def fix_cmd(arch, c):
 
     def do_fix(p):
         if p.startswith(prefix) and p.endswith('.exports'):
-            fname = p[len(prefix):]
+            fname = p[len(prefix) :]
 
             return list(f(list(parse_export_file(fname))))
 
@@ -249,8 +246,8 @@ if __name__ == '__main__':
     proc.communicate()
 
     if proc.returncode:
-        print >>sys.stderr, 'linker has failed with retcode:', proc.returncode
-        print >>sys.stderr, 'linker command:', shlex_join(cmd)
+        print >> sys.stderr, 'linker has failed with retcode:', proc.returncode
+        print >> sys.stderr, 'linker command:', shlex_join(cmd)
         sys.exit(proc.returncode)
 
     if opts.fix_elf:
@@ -259,8 +256,8 @@ if __name__ == '__main__':
         proc.communicate()
 
         if proc.returncode:
-            print >>sys.stderr, 'fix_elf has failed with retcode:', proc.returncode
-            print >>sys.stderr, 'fix_elf command:', shlex_join(cmd)
+            print >> sys.stderr, 'fix_elf has failed with retcode:', proc.returncode
+            print >> sys.stderr, 'fix_elf command:', shlex_join(cmd)
             sys.exit(proc.returncode)
 
     if opts.soname and opts.soname != opts.target:
@@ -272,6 +269,7 @@ if __name__ == '__main__':
 # -----------------Test---------------- #
 def write_temp_file(content):
     import yatest.common as yc
+
     filename = yc.output_path('test.exports')
     with open(filename, 'w') as f:
         f.write(content)
@@ -304,7 +302,7 @@ C++ geobase5::hardcoded_service
 def run_fix_gnu_param(export_file_content):
     filename = write_temp_file(export_file_content)
     result = fix_gnu_param('LINUX', list(parse_export_file(filename)))[0]
-    version_script_path = result[len('-Wl,--version-script='):]
+    version_script_path = result[len('-Wl,--version-script=') :]
     with open(version_script_path) as f:
         content = f.read()
     return content
@@ -315,7 +313,9 @@ def test_fix_gnu_param():
 C++ geobase5::details::lookup_impl::*
 C   getFactoryMap
 """
-    assert run_fix_gnu_param(export_file_content) == """{
+    assert (
+        run_fix_gnu_param(export_file_content)
+        == """{
 global:
     extern "C" {
         _ZN8geobase57details11lookup_impl*;
@@ -329,6 +329,7 @@ global:
 local: *;
 };
 """
+    )
 
 
 def test_fix_gnu_param_with_linux_version():
@@ -337,7 +338,9 @@ C++ geobase5::details::lookup_impl::*
 linux_version ver1.0
 C   getFactoryMap
 """
-    assert run_fix_gnu_param(export_file_content) == """ver1.0 {
+    assert (
+        run_fix_gnu_param(export_file_content)
+        == """ver1.0 {
 global:
     extern "C" {
         _ZN8geobase57details11lookup_impl*;
@@ -351,3 +354,4 @@ global:
 local: *;
 };
 """
+    )

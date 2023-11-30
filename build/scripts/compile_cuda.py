@@ -27,8 +27,8 @@ def main():
     if sys.argv[1] == '--mtime':
         mtime0 = sys.argv[2]
         cmd = 3
-    command = sys.argv[cmd: spl]
-    cflags = sys.argv[spl + 1:]
+    command = sys.argv[cmd:spl]
+    cflags = sys.argv[spl + 1 :]
 
     dump_args = False
     if '--y_dump_args' in command:
@@ -85,16 +85,20 @@ def main():
     for flag in cflags:
         if all(not flag.startswith(skip_prefix) for skip_prefix in skip_prefix_list):
             if flag.startswith('-fopenmp-version='):
-                new_cflags.append('-fopenmp-version=45')  # Clang 11 only supports OpenMP 4.5, but the default is 5.0, so we need to forcefully redefine it.
+                new_cflags.append(
+                    '-fopenmp-version=45'
+                )  # Clang 11 only supports OpenMP 4.5, but the default is 5.0, so we need to forcefully redefine it.
             else:
                 new_cflags.append(flag)
     cflags = new_cflags
 
     if not is_clang(command):
+
         def good(arg):
             if arg.startswith('--target='):
                 return False
             return True
+
         cflags = filter(good, cflags)
 
     cpp_args = []
@@ -108,7 +112,6 @@ def main():
 
     cflags_queue = collections.deque(cflags)
     while cflags_queue:
-
         arg = cflags_queue.popleft()
         if arg == '-mllvm':
             compiler_args.append(arg)
