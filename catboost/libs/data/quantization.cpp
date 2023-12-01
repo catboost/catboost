@@ -2081,6 +2081,10 @@ namespace NCB {
     ) {
         const ui32 embeddingFeatureCount = embeddingFeatures.size();
         for (ui32 embeddingFeatureIdx: xrange(embeddingFeatureCount)) {
+            if (!embeddingFeatures[embeddingFeatureIdx]) {
+                continue;
+            }
+
             dstFeatures[embeddingFeatureIdx] =
                 MakeHolder<TEmbeddingArrayValuesHolder>(
                     embeddingFeatureIdx,

@@ -24,6 +24,7 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
+#include <util/stream/labeled.h>
 #include <util/string/builder.h>
 
 
@@ -431,14 +432,25 @@ namespace NCB {
                         ));
                 }
 
-                const auto& featureDescription = embeddingFeaturesDescription[embeddingFeatureIdx];
-                const ui32 featureId = embeddingFeaturesDescription[embeddingFeatureIdx].EmbeddingFeatureId;
-                TEstimatorSourceId sourceFeatureIdx{featureId, embeddingFeatureIdx};
+                auto featureDescriptionIt = FindIf(
+                    embeddingFeaturesDescription,
+                    [embeddingFeatureIdx](
+                        const NCatboostOptions::TEmbeddingFeatureDescription& embeddingFeatureDescription
+                    ) {
+                        return embeddingFeatureDescription.EmbeddingFeatureId.Get() == embeddingFeatureIdx;
+                    }
+                );
+                CB_ENSURE_INTERNAL(
+                    featureDescriptionIt != embeddingFeaturesDescription.end(),
+                    LabeledOutput(embeddingFeatureIdx) << " not found in embeddingFeaturesDescription"
+                );
+
+                TEstimatorSourceId sourceFeatureIdx{embeddingFeatureIdx, embeddingFeatureIdx};
                 const auto& learnTarget = *pools.Learn->TargetData->GetTarget();
 
                 for (auto targetIdx : xrange(targetCount)) {
                     auto onlineEstimators = CreateEmbeddingEstimators(
-                        featureDescription.FeatureEstimators.Get(),
+                        featureDescriptionIt->FeatureEstimators.Get(),
                         learnTarget[targetIdx],
                         learnClassificationTarget[targetIdx],
                         learnEmbeddings,
