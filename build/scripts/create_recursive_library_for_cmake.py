@@ -23,7 +23,7 @@ class Opts(object):
         argparser.add_argument('--global-part-suffix', required=True)
         self.parsed_args, other_args = argparser.parse_known_args(args=args)
 
-        if (len(other_args) < 2):
+        if len(other_args) < 2:
             # must contain at least '--linking-cmdline' and orginal linking tool name
             raise Exception('not enough arguments')
         if other_args[0] != '--linking-cmdline':
@@ -33,7 +33,8 @@ class Opts(object):
 
         is_host_system_windows = self.parsed_args.cmake_host_system_name == 'Windows'
         std_libraries_to_exclude_from_input = (
-            set(self.parsed_args.cmake_cxx_standard_libraries.split()) if self.parsed_args.cmake_cxx_standard_libraries is not None
+            set(self.parsed_args.cmake_cxx_standard_libraries.split())
+            if self.parsed_args.cmake_cxx_standard_libraries is not None
             else set()
         )
         msvc_preserved_option_prefixes = [
@@ -57,8 +58,7 @@ class Opts(object):
             (these use absolute paths).
             If it is a library that is added from some other path (like CUDA) return True
             """
-            return not(os.path.exists(path) or os.path.exists(os.path.join(self.parsed_args.cmake_binary_dir, path)))
-
+            return not (os.path.exists(path) or os.path.exists(os.path.join(self.parsed_args.cmake_binary_dir, path)))
 
         def process_input(args):
             i = 0
@@ -69,9 +69,9 @@ class Opts(object):
                 if is_host_system_windows and ((arg[0] == '/') or (arg[0] == '-')):
                     arg_wo_specifier_lower = arg[1:].lower()
                     if arg_wo_specifier_lower.startswith('out:'):
-                        self.output = arg[len('/out:'):]
+                        self.output = arg[len('/out:') :]
                     elif arg_wo_specifier_lower.startswith('wholearchive:'):
-                        lib_path = arg[len('/wholearchive:'):]
+                        lib_path = arg[len('/wholearchive:') :]
                         if not is_external_library(lib_path):
                             self.global_libs_and_objects_input.append(lib_path)
                     else:
@@ -82,16 +82,16 @@ class Opts(object):
                     # other flags are non-linking related and just ignored
                 elif arg[0] == '-':
                     if arg == '-o':
-                        if (i+1) >= len(args):
+                        if (i + 1) >= len(args):
                             raise Exception('-o flag without an argument')
-                        self.output = args[i+1]
+                        self.output = args[i + 1]
                         i += 1
                     elif arg == '-Wl,--whole-archive':
                         is_in_whole_archive = True
                     elif arg == '-Wl,--no-whole-archive':
                         is_in_whole_archive = False
                     elif arg.startswith('-Wl,-force_load,'):
-                        lib_path = arg[len('-Wl,-force_load,'):]
+                        lib_path = arg[len('-Wl,-force_load,') :]
                         if not is_external_library(lib_path):
                             self.global_libs_and_objects_input.append(lib_path)
                     elif arg == '-isysroot':
@@ -179,6 +179,7 @@ class FilesCombiner(object):
 
         if not self.opts.is_msvc_linker:
             subprocess.check_call([self.opts.parsed_args.cmake_ranlib, output])
+
 
 if __name__ == "__main__":
     opts = Opts(sys.argv[1:])
