@@ -14,8 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <__config>
-
 extern "C" {
 typedef void (__cdecl* terminate_handler)();
 _LIBCPP_CRT_FUNC terminate_handler __cdecl set_terminate(

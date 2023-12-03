@@ -8,7 +8,6 @@
 //===----------------------------------------------------------------------===//
 
 #include <cstdio>
-#include "../../include/atomic_support.h"
 
 namespace std {
 

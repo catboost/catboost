@@ -35,7 +35,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <typeinfo>
-#if !defined(_LIBCPP_HAS_NO_THREADS) // !defined(_LIBCPP_HAS_NO_ATOMIC_HEADER)
+#if !defined(_LIBCPP_HAS_NO_ATOMIC_HEADER)
 #  include <atomic>
 #endif
 
