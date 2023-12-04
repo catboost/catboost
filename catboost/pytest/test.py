@@ -5279,6 +5279,54 @@ def test_output_columns_format():
     return local_canonical_file(output_eval_path, formula_predict_path)
 
 
+def test_output_auxiliary_columns_format():
+    model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        '-f', data_file('scene', 'train'),
+        '--cd', data_file('scene', 'train_1.cd'),
+        '-t', data_file('scene', 'train'),
+        '-i', '10',
+        '-T', '4',
+        '-m', model_path,
+        '--output-columns', 'RawFormulaVal,#292,Att294,Label,Sunset,FallFoliage,Field,Mountain,Urban',
+        '--eval-file', output_eval_path
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('scene', 'test'),
+        '--column-description', data_file('scene', 'train_1.cd'),
+        '-m', model_path,
+        '--output-path', formula_predict_path,
+        '--output-columns', 'RawFormulaVal,#292,Att294,Label,Sunset,FallFoliage,Field,Mountain,Urban',
+    )
+    yatest.common.execute(calc_cmd)
+
+    def cmp_evals(eval_path, file_name):
+        with open(eval_path, 'r') as file:
+            file.readline()
+            eval_lines = file.readlines()
+
+        with open(data_file('scene', file_name), 'r') as file:
+            test_lines = file.readlines()
+
+        assert len(eval_lines) == len(test_lines)
+        for i in range(len(eval_lines)):
+            eval_line = eval_lines[i].split('\t')[1:]  # intentionally skip RawFormulaVal
+            test_line = test_lines[i].split('\t')[-8:]
+
+            for eval_column, test_column in zip(eval_line, test_line):
+                assert float(eval_column) == float(test_column), f'{eval_column} != {test_column}'
+    cmp_evals(formula_predict_path, 'test')
+    cmp_evals(output_eval_path, 'train')
+
+
 def test_eval_period():
     model_path = yatest.common.test_output_path('adult_model.bin')
 
