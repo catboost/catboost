@@ -15,9 +15,9 @@ public:
         Init(s, TCStringEndIterator());
     }
 
-    //FirstOf
-    template <class It>
-    inline It FindFirstOf(It b, const char* e) const noexcept {
+    // FirstOf
+    template <class It1, class It2>
+    inline It1 FindFirstOf(It1 b, It2 e) const noexcept {
         return FindFirst<false>(b, e);
     }
 
@@ -26,9 +26,9 @@ public:
         return FindFirst<false>(s, TCStringEndIterator());
     }
 
-    //FirstNotOf
-    template <class It>
-    inline It FindFirstNotOf(It b, const char* e) const noexcept {
+    // FirstNotOf
+    template <class It1, class It2>
+    inline It1 FindFirstNotOf(It1 b, It2 e) const noexcept {
         return FindFirst<true>(b, e);
     }
 
