@@ -33,10 +33,12 @@ public:
     constexpr explicit operator T&();
 
     constexpr bool operator==(const TStrongTypedef& rhs) const
-        noexcept(std::same_as<T, void> || noexcept(Underlying_ == rhs.Underlying_));
+        noexcept(noexcept(Underlying_ == rhs.Underlying_))
+            requires std::equality_comparable<T>;
 
     constexpr auto operator<=>(const TStrongTypedef& rhs) const
-        noexcept(std::same_as<T, void> || noexcept(Underlying_ <=> rhs.Underlying_));
+        noexcept(noexcept(Underlying_ <=> rhs.Underlying_))
+            requires std::three_way_comparable<T>;
 
     explicit operator bool() const
         noexcept(noexcept(static_cast<bool>(Underlying_)));
@@ -60,6 +62,12 @@ private:
     struct T ## Tag \
     { }; \
     using T = ::NYT::TStrongTypedef<TUnderlying, T##Tag>; \
+
+template <class T>
+struct TStrongTypedefTraits;
+
+template <class T>
+concept CStrongTypedef = TStrongTypedefTraits<T>::IsStrongTypedef;
 
 ////////////////////////////////////////////////////////////////////////////////
 
