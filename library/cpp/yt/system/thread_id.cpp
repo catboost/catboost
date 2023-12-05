@@ -6,7 +6,7 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-thread_local TSequentialThreadId CachedSequentialThreadId = InvalidSequentialThreadId;
+YT_THREAD_LOCAL(TSequentialThreadId) CachedSequentialThreadId = InvalidSequentialThreadId;
 std::atomic<TSequentialThreadId> SequentialThreadIdGenerator = InvalidSequentialThreadId;
 
 TSystemThreadId GetSystemThreadId()
