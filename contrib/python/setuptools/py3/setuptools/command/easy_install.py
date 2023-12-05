@@ -480,7 +480,7 @@ class easy_install(Command):
         if not os.path.exists(instdir):
             try:
                 os.makedirs(instdir)
-            except (OSError, IOError):
+            except OSError:
                 self.cant_write_to_target()
 
         # Is it a configured, PYTHONPATH, implicit, or explicit site dir?
@@ -498,7 +498,7 @@ class easy_install(Command):
                     os.unlink(testfile)
                 open(testfile, 'w').close()
                 os.unlink(testfile)
-            except (OSError, IOError):
+            except OSError:
                 self.cant_write_to_target()
 
         if not is_site_dir and not self.multi_version:
@@ -594,7 +594,7 @@ class easy_install(Command):
             dirname = os.path.dirname(ok_file)
             os.makedirs(dirname, exist_ok=True)
             f = open(pth_file, 'w')
-        except (OSError, IOError):
+        except OSError:
             self.cant_write_to_target()
         else:
             try:
@@ -1995,9 +1995,9 @@ def is_python(text, filename='<string>'):
 def is_sh(executable):
     """Determine if the specified executable is a .sh (contains a #! line)"""
     try:
-        with io.open(executable, encoding='latin-1') as fp:
+        with open(executable, encoding='latin-1') as fp:
             magic = fp.read(2)
-    except (OSError, IOError):
+    except OSError:
         return executable
     return magic == '#!'
 

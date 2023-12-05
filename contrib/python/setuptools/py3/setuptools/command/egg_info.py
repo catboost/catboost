@@ -127,7 +127,7 @@ class InfoCommon:
 
     def tagged_version(self):
         tagged = self._maybe_tag(self.distribution.get_version())
-        return _normalization.best_effort_version(tagged)
+        return _normalization.safe_version(tagged)
 
     def _maybe_tag(self, version):
         """
@@ -148,7 +148,10 @@ class InfoCommon:
     def _safe_tags(self) -> str:
         # To implement this we can rely on `safe_version` pretending to be version 0
         # followed by tags. Then we simply discard the starting 0 (fake version number)
-        return _normalization.best_effort_version(f"0{self.vtags}")[1:]
+        try:
+            return _normalization.safe_version(f"0{self.vtags}")[1:]
+        except packaging.version.InvalidVersion:
+            return _normalization.safe_name(self.vtags.replace(' ', '.'))
 
     def tags(self) -> str:
         version = ''

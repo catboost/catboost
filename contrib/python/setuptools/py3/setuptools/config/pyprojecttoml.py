@@ -14,10 +14,10 @@ from contextlib import contextmanager
 from functools import partial
 from typing import TYPE_CHECKING, Callable, Dict, Mapping, Optional, Set, Union
 
-from ..errors import FileError, OptionError
+from ..errors import FileError, InvalidConfigError
 from ..warnings import SetuptoolsWarning
 from . import expand as _expand
-from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _WouldIgnoreField
+from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _MissingDynamic
 from ._apply_pyprojecttoml import apply as _apply
 
 if TYPE_CHECKING:
@@ -265,7 +265,7 @@ class _ConfigExpander:
                 "Some dynamic fields need to be specified via `tool.setuptools.dynamic`"
                 "\nothers must be specified via the equivalent attribute in `setup.py`."
             )
-            raise OptionError(msg)
+            raise InvalidConfigError(msg)
 
     def _expand_directive(
         self, specifier: str, directive, package_dir: Mapping[str, str]
@@ -330,9 +330,7 @@ class _ConfigExpander:
             if group in groups:
                 value = groups.pop(group)
                 if field not in self.dynamic:
-                    _WouldIgnoreField.emit(field=field, value=value)
-                # TODO: Don't set field when support for pyproject.toml stabilizes
-                #       instead raise an error as specified in PEP 621
+                    raise InvalidConfigError(_MissingDynamic.details(field, value))
                 expanded[field] = value
 
         _set_scripts("scripts", "console_scripts")

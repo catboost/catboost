@@ -142,9 +142,9 @@ def extract_constant(code, symbol, default=-1):
 
     name_idx = list(code.co_names).index(symbol)
 
-    STORE_NAME = 90
-    STORE_GLOBAL = 97
-    LOAD_CONST = 100
+    STORE_NAME = dis.opmap['STORE_NAME']
+    STORE_GLOBAL = dis.opmap['STORE_GLOBAL']
+    LOAD_CONST = dis.opmap['LOAD_CONST']
 
     const = default
 

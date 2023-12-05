@@ -806,7 +806,7 @@ class PackageIndex(Environment):
                     '%s returned a bad status line. The server might be '
                     'down, %s' % (url, v.line)
                 ) from v
-        except (http.client.HTTPException, socket.error) as v:
+        except (http.client.HTTPException, OSError) as v:
             if warning:
                 self.warn(warning, v)
             else:

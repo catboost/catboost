@@ -12,6 +12,7 @@ import os
 from collections.abc import Mapping
 from email.headerregistry import Address
 from functools import partial, reduce
+from inspect import cleandoc
 from itertools import chain
 from types import MappingProxyType
 from typing import (
@@ -28,7 +29,8 @@ from typing import (
     cast,
 )
 
-from ..warnings import SetuptoolsWarning, SetuptoolsDeprecationWarning
+from ..errors import RemovedConfigError
+from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
     from setuptools._importlib import metadata  # noqa
@@ -90,12 +92,13 @@ def _apply_tool_table(dist: "Distribution", config: dict, filename: _Path):
     for field, value in tool_table.items():
         norm_key = json_compatible_key(field)
 
-        if norm_key in TOOL_TABLE_DEPRECATIONS:
-            suggestion, kwargs = TOOL_TABLE_DEPRECATIONS[norm_key]
-            msg = f"The parameter `{norm_key}` is deprecated, {suggestion}"
-            SetuptoolsDeprecationWarning.emit(
-                "Deprecated config", msg, **kwargs  # type: ignore
-            )
+        if norm_key in TOOL_TABLE_REMOVALS:
+            suggestion = cleandoc(TOOL_TABLE_REMOVALS[norm_key])
+            msg = f"""
+            The parameter `tool.setuptools.{field}` was long deprecated
+            and has been removed from `pyproject.toml`.
+            """
+            raise RemovedConfigError("\n".join([cleandoc(msg), suggestion]))
 
         norm_key = TOOL_TABLE_RENAMES.get(norm_key, norm_key)
         _set_config(dist, norm_key, value)
@@ -105,13 +108,13 @@ def _apply_tool_table(dist: "Distribution", config: dict, filename: _Path):
 
 def _handle_missing_dynamic(dist: "Distribution", project_table: dict):
     """Be temporarily forgiving with ``dynamic`` fields not listed in ``dynamic``"""
-    # TODO: Set fields back to `None` once the feature stabilizes
     dynamic = set(project_table.get("dynamic", []))
     for field, getter in _PREVIOUSLY_DEFINED.items():
         if not (field in project_table or field in dynamic):
             value = getter(dist)
             if value:
-                _WouldIgnoreField.emit(field=field, value=value)
+                _MissingDynamic.emit(field=field, value=value)
+                project_table[field] = _RESET_PREVIOUSLY_DEFINED.get(field)
 
 
 def json_compatible_key(key: str) -> str:
@@ -226,14 +229,18 @@ def _unify_entry_points(project_table: dict):
     renaming = {"scripts": "console_scripts", "gui_scripts": "gui_scripts"}
     for key, value in list(project.items()):  # eager to allow modifications
         norm_key = json_compatible_key(key)
-        if norm_key in renaming and value:
+        if norm_key in renaming:
+            # Don't skip even if value is empty (reason: reset missing `dynamic`)
             entry_points[renaming[norm_key]] = project.pop(key)
 
     if entry_points:
         project["entry-points"] = {
             name: [f"{k} = {v}" for k, v in group.items()]
             for name, group in entry_points.items()
+            if group  # now we can skip empty groups
         }
+        # Sometimes this will set `project["entry-points"] = {}`, and that is
+        # intentional (for reseting configurations that are missing `dynamic`).
 
 
 def _copy_command_options(pyproject: dict, dist: "Distribution", filename: _Path):
@@ -353,11 +360,11 @@ PYPROJECT_CORRESPONDENCE: Dict[str, _Correspondence] = {
 }
 
 TOOL_TABLE_RENAMES = {"script_files": "scripts"}
-TOOL_TABLE_DEPRECATIONS = {
-    "namespace_packages": (
-        "consider using implicit namespaces instead (PEP 420).",
-        {"due_date": (2023, 10, 30)},  # warning introduced in May 2022
-    )
+TOOL_TABLE_REMOVALS = {
+    "namespace_packages": """
+        Please migrate to implicit native namespaces instead.
+        See https://packaging.python.org/en/latest/guides/packaging-namespace-packages/.
+        """,
 }
 
 SETUPTOOLS_PATCHES = {
@@ -388,14 +395,27 @@ _PREVIOUSLY_DEFINED = {
 }
 
 
-class _WouldIgnoreField(SetuptoolsDeprecationWarning):
-    _SUMMARY = "`{field}` defined outside of `pyproject.toml` would be ignored."
+_RESET_PREVIOUSLY_DEFINED: dict = {
+    # Fix improper setting: given in `setup.py`, but not listed in `dynamic`
+    # dict: pyproject name => value to which reset
+    "license": {},
+    "authors": [],
+    "maintainers": [],
+    "keywords": [],
+    "classifiers": [],
+    "urls": {},
+    "entry-points": {},
+    "scripts": {},
+    "gui-scripts": {},
+    "dependencies": [],
+    "optional-dependencies": [],
+}
+
+
+class _MissingDynamic(SetuptoolsWarning):
+    _SUMMARY = "`{field}` defined outside of `pyproject.toml` is ignored."
 
     _DETAILS = """
-    ##########################################################################
-    # configuration would be ignored/result in error due to `pyproject.toml` #
-    ##########################################################################
-
     The following seems to be defined outside of `pyproject.toml`:
 
     `{field} = {value!r}`
@@ -405,12 +425,14 @@ class _WouldIgnoreField(SetuptoolsDeprecationWarning):
 
     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 
-    For the time being, `setuptools` will still consider the given value (as a
-    **transitional** measure), but please note that future releases of setuptools will
-    follow strictly the standard.
-
-    To prevent this warning, you can list `{field}` under `dynamic` or alternatively
+    To prevent this problem, you can list `{field}` under `dynamic` or alternatively
     remove the `[project]` table from your file and rely entirely on other means of
     configuration.
     """
-    _DUE_DATE = (2023, 10, 30)  # Initially introduced in 27 May 2022
+    # TODO: Consider removing this check in the future?
+    #       There is a trade-off here between improving "debug-ability" and the cost
+    #       of running/testing/maintaining these unnecessary checks...
+
+    @classmethod
+    def details(cls, field: str, value: Any) -> str:
+        return cls._DETAILS.format(field=field, value=value)

@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Union
 
 from .extern import packaging
-from .warnings import SetuptoolsDeprecationWarning
 
 _Path = Union[str, Path]
 
@@ -15,6 +14,7 @@ _Path = Union[str, Path]
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
 _UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9.]+", re.I)
 _NON_ALPHANUMERIC = re.compile(r"[^A-Z0-9]+", re.I)
+_PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
 
 
 def safe_identifier(name: str) -> str:
@@ -42,6 +42,8 @@ def safe_name(component: str) -> str:
 
 def safe_version(version: str) -> str:
     """Convert an arbitrary string into a valid version string.
+    Can still raise an ``InvalidVersion`` exception.
+    To avoid exceptions use ``best_effort_version``.
     >>> safe_version("1988 12 25")
     '1988.12.25'
     >>> safe_version("v0.2.1")
@@ -65,32 +67,35 @@ def safe_version(version: str) -> str:
 
 def best_effort_version(version: str) -> str:
     """Convert an arbitrary string into a version-like string.
+    Fallback when ``safe_version`` is not safe enough.
     >>> best_effort_version("v0.2 beta")
     '0.2b0'
-
-    >>> import warnings
-    >>> warnings.simplefilter("ignore", category=SetuptoolsDeprecationWarning)
     >>> best_effort_version("ubuntu lts")
-    'ubuntu.lts'
+    '0.dev0+sanitized.ubuntu.lts'
+    >>> best_effort_version("0.23ubuntu1")
+    '0.23.dev0+sanitized.ubuntu1'
+    >>> best_effort_version("0.23-")
+    '0.23.dev0+sanitized'
+    >>> best_effort_version("0.-_")
+    '0.dev0+sanitized'
+    >>> best_effort_version("42.+?1")
+    '42.dev0+sanitized.1'
     """
-    # See pkg_resources.safe_version
+    # See pkg_resources._forgiving_version
     try:
         return safe_version(version)
     except packaging.version.InvalidVersion:
-        SetuptoolsDeprecationWarning.emit(
-            f"Invalid version: {version!r}.",
-            f"""
-            Version {version!r} is not valid according to PEP 440.
-
-            Please make sure to specify a valid version for your package.
-            Also note that future releases of setuptools may halt the build process
-            if an invalid version is given.
-            """,
-            see_url="https://peps.python.org/pep-0440/",
-            due_date=(2023, 9, 26),  # See setuptools/dist _validate_version
-        )
         v = version.replace(' ', '.')
-        return safe_name(v)
+        match = _PEP440_FALLBACK.search(v)
+        if match:
+            safe = match["safe"]
+            rest = v[len(safe) :]
+        else:
+            safe = "0"
+            rest = version
+        safe_rest = _NON_ALPHANUMERIC.sub(".", rest).strip(".")
+        local = f"sanitized.{safe_rest}".strip(".")
+        return safe_version(f"{safe}.dev0+{local}")
 
 
 def safe_extra(extra: str) -> str:

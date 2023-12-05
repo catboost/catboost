@@ -26,7 +26,7 @@ from .extern.more_itertools import partition, unique_everseen
 from .extern.ordered_set import OrderedSet
 from .extern.packaging.markers import InvalidMarker, Marker
 from .extern.packaging.specifiers import InvalidSpecifier, SpecifierSet
-from .extern.packaging.version import InvalidVersion, Version
+from .extern.packaging.version import Version
 
 from . import _entry_points
 from . import _normalization
@@ -311,9 +311,7 @@ class Distribution(_Distribution):
 
         self._set_metadata_defaults(attrs)
 
-        self.metadata.version = self._normalize_version(
-            self._validate_version(self.metadata.version)
-        )
+        self.metadata.version = self._normalize_version(self.metadata.version)
         self._finalize_requires()
 
     def _validate_metadata(self):
@@ -343,40 +341,16 @@ class Distribution(_Distribution):
     def _normalize_version(version):
         from . import sic
 
-        if isinstance(version, sic) or version is None:
+        if isinstance(version, numbers.Number):
+            # Some people apparently take "version number" too literally :)
+            version = str(version)
+        elif isinstance(version, sic) or version is None:
             return version
 
         normalized = str(Version(version))
         if version != normalized:
             InformationOnly.emit(f"Normalizing '{version}' to '{normalized}'")
             return normalized
-        return version
-
-    @staticmethod
-    def _validate_version(version):
-        if isinstance(version, numbers.Number):
-            # Some people apparently take "version number" too literally :)
-            version = str(version)
-
-        if version is not None:
-            try:
-                Version(version)
-            except (InvalidVersion, TypeError):
-                from . import sic
-
-                SetuptoolsDeprecationWarning.emit(
-                    f"Invalid version: {version!r}.",
-                    """
-                    The version specified is not a valid version according to PEP 440.
-                    This may not work as expected with newer versions of
-                    setuptools, pip, and PyPI.
-                    """,
-                    see_url="https://peps.python.org/pep-0440/",
-                    due_date=(2023, 9, 26),
-                    # Warning initially introduced in 26 Sept 2014
-                    # pypa/packaging already removed legacy versions.
-                )
-                return sic(version)
         return version
 
     def _finalize_requires(self):
@@ -482,7 +456,7 @@ class Distribution(_Distribution):
         parser = ConfigParser()
         parser.optionxform = str
         for filename in filenames:
-            with io.open(filename, encoding='utf-8') as reader:
+            with open(filename, encoding='utf-8') as reader:
                 if DEBUG:
                     self.announce("  reading {filename}".format(**locals()))
                 parser.read_file(reader)
@@ -550,7 +524,7 @@ class Distribution(_Distribution):
                 versions. Please use the underscore name {underscore_opt!r} instead.
                 """,
                 see_docs="userguide/declarative_config.html",
-                due_date=(2023, 9, 26),
+                due_date=(2024, 9, 26),
                 # Warning initially introduced in 3 Mar 2021
             )
         return underscore_opt
@@ -574,7 +548,7 @@ class Distribution(_Distribution):
             future versions. Please use lowercase {lowercase_opt!r} instead.
             """,
             see_docs="userguide/declarative_config.html",
-            due_date=(2023, 9, 26),
+            due_date=(2024, 9, 26),
             # Warning initially introduced in 6 Mar 2021
         )
         return lowercase_opt
