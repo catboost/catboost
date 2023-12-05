@@ -30,14 +30,14 @@ using __enable_if_tuple_size_imp = _Tp;
 template <class _Tp>
 struct _LIBCPP_TEMPLATE_VIS tuple_size<__enable_if_tuple_size_imp<
     const _Tp,
-    typename enable_if<!is_volatile<_Tp>::value>::type,
+    __enable_if_t<!is_volatile<_Tp>::value>,
     integral_constant<size_t, sizeof(tuple_size<_Tp>)>>>
     : public integral_constant<size_t, tuple_size<_Tp>::value> {};
 
 template <class _Tp>
 struct _LIBCPP_TEMPLATE_VIS tuple_size<__enable_if_tuple_size_imp<
     volatile _Tp,
-    typename enable_if<!is_const<_Tp>::value>::type,
+    __enable_if_t<!is_const<_Tp>::value>,
     integral_constant<size_t, sizeof(tuple_size<_Tp>)>>>
     : public integral_constant<size_t, tuple_size<_Tp>::value> {};
 
@@ -402,7 +402,7 @@ template <bool ..._Preds>
 struct __all_dummy;
 
 template <bool ..._Pred>
-struct __all : _IsSame<__all_dummy<_Pred...>, __all_dummy<(_Pred | true)...>>{};
+struct __all : _IsSame<__all_dummy<_Pred...>, __all_dummy<(_Pred, true)...>>{};
 
 struct __tuple_sfinae_base {
   template <template <class, class...> class _Trait,
@@ -424,7 +424,7 @@ struct __tuple_sfinae_base {
 
 template <class _Tp, class _Up, bool = __tuple_like<typename remove_reference<_Tp>::type>::value,
                                 bool = __tuple_like<_Up>::value,
-                                class = void>
+                class = void>
 struct __tuple_convertible
     : public false_type {};
 

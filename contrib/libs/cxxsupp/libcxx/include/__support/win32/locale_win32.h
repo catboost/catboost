@@ -182,19 +182,19 @@ private:
 // Locale management functions
 #define freelocale _free_locale
 // FIXME: base currently unused. Needs manual work to construct the new locale
-locale_t newlocale( int mask, const char * locale, locale_t base );
+locale_t newlocale( int __mask, const char * __locale, locale_t __base );
 // uselocale can't be implemented on Windows because Windows allows partial modification
 // of thread-local locale and so _get_current_locale() returns a copy while uselocale does
 // not create any copies.
 // We can still implement raii even without uselocale though.
 
 
-lconv *localeconv_l( locale_t &__loc );
+lconv *localeconv_l( locale_t & __loc );
 size_t mbrlen_l( const char *__restrict __s, size_t __n,
                  mbstate_t *__restrict __ps, locale_t __loc);
 size_t mbsrtowcs_l( wchar_t *__restrict __dst, const char **__restrict __src,
                     size_t __len, mbstate_t *__restrict __ps, locale_t __loc );
-size_t wcrtomb_l( char *__restrict s, wchar_t __wc, mbstate_t *__restrict __ps,
+size_t wcrtomb_l( char *__restrict __s, wchar_t __wc, mbstate_t *__restrict __ps,
                   locale_t __loc);
 size_t mbrtowc_l( wchar_t *__restrict __pwc, const char *__restrict __s,
                   size_t __n, mbstate_t *__restrict __ps, locale_t __loc);
@@ -219,6 +219,7 @@ decltype(MB_CUR_MAX) MB_CUR_MAX_L( locale_t __l );
 _LIBCPP_FUNC_VIS float strtof_l(const char*, char**, locale_t);
 _LIBCPP_FUNC_VIS long double strtold_l(const char*, char**, locale_t);
 #endif
+
 #define isupper_l _isupper_l
 #define islower_l _islower_l
 #define isblank_l _isblank_l
@@ -248,11 +249,11 @@ _LIBCPP_FUNC_VIS size_t strftime_l(char *ret, size_t n, const char *format,
 #else
 #define strftime_l _strftime_l
 #endif
-#define sscanf_l( __s, __l, __f, ...) _sscanf_l( __s, __f, __l, ##__VA_ARGS__ )
-#define sprintf_l( __s, __l, __f, ... ) _sprintf_l( __s, __f, __l, ##__VA_ARGS__ )
-#define vsprintf_l( __s, __l, __f, ... ) _vsprintf_l( __s, __f, __l, ##__VA_ARGS__ )
-#define vsnprintf_l( __s, __n, __l, __f, ... ) _vsnprintf_l( __s, __n, __f, __l, ##__VA_ARGS__ )
-#define snprintf_l(__s, __n, __l, __f, ...) _snprintf_l( __s, __n, __f, __l, ##__VA_ARGS__ )
+#define sscanf_l( __s, __l, __f, ...) _sscanf_l( __s, __f, __l, __VA_ARGS__ )
+#define sprintf_l( __s, __l, __f, ... ) _sprintf_l( __s, __f, __l, __VA_ARGS__ )
+#define vsprintf_l( __s, __l, __f, ... ) _vsprintf_l( __s, __f, __l, __VA_ARGS__ )
+#define vsnprintf_l( __s, __n, __l, __f, ... ) _vsnprintf_l( __s, __n, __f, __l, __VA_ARGS__ )
+_LIBCPP_FUNC_VIS int snprintf_l(char *__ret, size_t __n, locale_t __loc, const char *__format, ...);
 _LIBCPP_FUNC_VIS int asprintf_l( char **__ret, locale_t __loc, const char *__format, ... );
 _LIBCPP_FUNC_VIS int vasprintf_l( char **__ret, locale_t __loc, const char *__format, va_list __ap );
 
