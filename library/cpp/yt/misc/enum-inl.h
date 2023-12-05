@@ -49,9 +49,6 @@ constexpr bool CheckValuesMonotonic(const TValues& values)
 template <typename TValues>
 constexpr bool CheckValuesUnique(const TValues& values)
 {
-    if (CheckValuesMonotonic(values)) {
-        return true;
-    }
     for (size_t i = 0; i < std::size(values); ++i) {
         for (size_t j = i + 1; j < std::size(values); ++j) {
             if (values[i] == values[j]) {
@@ -105,6 +102,9 @@ constexpr bool CheckDomainNames(const TNames& names)
         static constexpr std::array<T, DomainSize> Values{{ \
             PP_FOR_EACH(ENUM__GET_DOMAIN_VALUES_ITEM, seq) \
         }}; \
+        \
+        [[maybe_unused]] static constexpr bool IsMonotonic = \
+            ::NYT::NDetail::CheckValuesMonotonic(Values); \
         \
         static TStringBuf GetTypeName() \
         { \
@@ -185,7 +185,7 @@ constexpr bool CheckDomainNames(const TNames& names)
     TStringBuf(PP_STRINGIZE(item)),
 
 #define ENUM__VALIDATE_UNIQUE(enumType) \
-    static_assert(::NYT::NDetail::CheckValuesUnique(Values), \
+    static_assert(IsMonotonic || ::NYT::NDetail::CheckValuesUnique(Values), \
         "Enumeration " #enumType " contains duplicate values");
 
 #define ENUM__END_TRAITS(enumType) \

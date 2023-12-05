@@ -55,6 +55,7 @@ struct TEnumTraits
     static constexpr bool IsEnum = false;
     static constexpr bool IsBitEnum = false;
     static constexpr bool IsStringSerializableEnum = false;
+    static constexpr bool IsMonotonic = false;
 };
 
 template <class T>
@@ -83,6 +84,7 @@ struct TEnumTraits<T, true>
     static constexpr bool IsEnum = true;
     static constexpr bool IsBitEnum = TEnumTraitsImpl<T>::IsBitEnum;
     static constexpr bool IsStringSerializableEnum = TEnumTraitsImpl<T>::IsStringSerializableEnum;
+    static constexpr bool IsMonotonic = TEnumTraitsImpl<T>::IsMonotonic;
 
     static TStringBuf GetTypeName();
 
