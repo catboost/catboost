@@ -76,6 +76,8 @@ class RecordingPen(AbstractPen):
     def replay(self, pen):
         replayRecording(self.value, pen)
 
+    draw = replay
+
 
 class DecomposingRecordingPen(DecomposingPen, RecordingPen):
     """Same as RecordingPen, except that it doesn't keep components
@@ -166,6 +168,8 @@ class RecordingPointPen(AbstractPointPen):
     def replay(self, pointPen):
         for operator, args, kwargs in self.value:
             getattr(pointPen, operator)(*args, **kwargs)
+
+    drawPoints = replay
 
 
 if __name__ == "__main__":
