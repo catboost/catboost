@@ -78,6 +78,32 @@ constexpr bool TWrapperTraits<T>::RecursiveHasValue(const T& wrapper) noexcept
     }
 }
 
+template <class T>
+    requires std::is_object_v<T>
+template <class U>
+constexpr T TWrapperTraits<T>::Wrap(U&& unwrapped) noexcept
+{
+    static_assert(std::same_as<std::remove_cvref_t<U>, TUnwrapped>);
+
+    return T(std::forward<U>(unwrapped));
+}
+
+template <class T>
+    requires std::is_object_v<T>
+template <class U>
+constexpr T TWrapperTraits<T>::RecursiveWrap(U&& unwrapped) noexcept
+{
+    using TTraits = TWrapperTraits<T>;
+    using TInnerTraits = TWrapperTraits<typename TTraits::TUnwrapped>;
+
+    if constexpr (CNonTrivialWrapper<TUnwrapped>) {
+        return TTraits::Wrap(TInnerTraits::RecursiveWrap(std::forward<U>(unwrapped)));
+    } else {
+        //! U == TUnwrapped.
+        return TTraits::Wrap(std::forward<U>(unwrapped));
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 //! Some standard library specializations
@@ -98,7 +124,7 @@ struct TBasicWrapperTraits<std::optional<T>>
 
     template <class U>
         requires std::same_as<std::remove_cvref_t<U>, std::optional<T>>
-    static decltype(auto) Unwrap(U&& optional)
+    static constexpr decltype(auto) Unwrap(U&& optional)
     {
         return *std::forward<U>(optional);
     }

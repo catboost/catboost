@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <utility>
 
 namespace NYT {
@@ -49,6 +50,19 @@ public:
     static constexpr decltype(auto) RecursiveUnwrap(U&& wrapper);
 
     using TRecursiveUnwrapped = std::remove_cvref_t<decltype(TWrapperTraits<T>::RecursiveUnwrap(std::declval<T>()))>;
+
+    //! Unfortunatelly, clang is incapable of processing associated constraints if they depend
+    //! on class information (e.g. aliases and static varibles) and written out-of-line.
+
+    //! TODO(arkady-e1ppa): Add proper constraints when clang supports them:
+    //! Wrap: std::same_as<std::remove_cvref_t<U>, TUnwrapped>
+    //! RecursiveWrap: std::same_as<std::remove_cvref_t<U>, TRecursiveUnwrapped>
+    //! Proper constructible_from checks? Easy for wrap, hard for recursive wrap.
+    template <class U>
+    static constexpr T Wrap(U&& unwrapped) noexcept;
+
+    template <class U>
+    static constexpr T RecursiveWrap(U&& unwrapped) noexcept;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
