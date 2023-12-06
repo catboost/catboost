@@ -45,7 +45,6 @@ class InProcessChannel:
 
     def flush(self, timeout=1.0):
         """Flush the channel."""
-        pass
 
     def call_handlers_later(self, *args, **kwds):
         """Call the message handlers later.

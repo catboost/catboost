@@ -17,6 +17,7 @@ machinery.  This should thus be thought of as scaffolding.
 import os
 import sys
 import warnings
+from pathlib import Path
 from threading import local
 
 from IPython.core import page, payloadpage
@@ -301,7 +302,7 @@ class KernelMagics(Magics):
 
         # Make sure we send to the client an absolute path, in case the working
         # directory of client and kernel don't match
-        filename = os.path.abspath(filename)
+        filename = Path(filename).resolve()
 
         payload = {"source": "edit_magic", "filename": filename, "line_number": lineno}
         assert self.shell is not None
@@ -375,8 +376,8 @@ class KernelMagics(Magics):
             return
 
         # if it's in the default dir, truncate to basename
-        if jupyter_runtime_dir() == os.path.dirname(connection_file):
-            connection_file = os.path.basename(connection_file)
+        if jupyter_runtime_dir() == str(Path(connection_file).parent):
+            connection_file = Path(connection_file).name
 
         assert isinstance(info, str)
         print(info + "\n")
@@ -514,7 +515,6 @@ class ZMQInteractiveShell(InteractiveShell):
 
     def init_data_pub(self):
         """Delay datapub init until request, for deprecation warnings"""
-        pass
 
     @property
     def data_pub(self):
@@ -620,7 +620,6 @@ class ZMQInteractiveShell(InteractiveShell):
         # not appropriate in a kernel. To use a kernel in a virtualenv, install
         # it inside the virtualenv.
         # https://ipython.readthedocs.io/en/latest/install/kernel_install.html
-        pass
 
     def system_piped(self, cmd):
         """Call the given cmd in a subprocess, piping stdout/err

@@ -23,7 +23,7 @@ from .compiler import XCachingCompiler
 from .debugger import Debugger, _is_debugpy_available
 from .eventloops import _use_appnope
 from .kernelbase import Kernel as KernelBase
-from .kernelbase import _accepts_cell_id
+from .kernelbase import _accepts_parameters
 from .zmqshell import ZMQInteractiveShell
 
 try:
@@ -55,7 +55,7 @@ _comm_manager: t.Optional[CommManager] = None
 
 def _get_comm_manager(*args, **kwargs):
     """Create a new CommManager."""
-    global _comm_manager  # noqa
+    global _comm_manager  # noqa: PLW0603
     if _comm_manager is None:
         with _comm_lock:
             if _comm_manager is None:
@@ -128,9 +128,9 @@ class IPythonKernel(KernelBase):
         )
         self.shell.displayhook.session = self.session  # type:ignore[attr-defined]
 
-        jupyter_session_name = os.environ.get('JPY_SESSION_NAME')
+        jupyter_session_name = os.environ.get("JPY_SESSION_NAME")
         if jupyter_session_name:
-            self.shell.user_ns['__session__'] = jupyter_session_name
+            self.shell.user_ns["__session__"] = jupyter_session_name
 
         self.shell.displayhook.pub_socket = self.iopub_socket  # type:ignore[attr-defined]
         self.shell.displayhook.topic = self._topic("execute_result")  # type:ignore[attr-defined]
@@ -147,7 +147,7 @@ class IPythonKernel(KernelBase):
 
         if _use_appnope() and self._darwin_app_nap:
             # Disable app-nap as the kernel is not a gui but can have guis
-            import appnope
+            import appnope  # type:ignore[import-untyped]
 
             appnope.nope()
 
@@ -208,6 +208,7 @@ class IPythonKernel(KernelBase):
     def banner(self):
         if self.shell:
             return self.shell.banner
+        return None
 
     async def poll_stopped_queue(self):
         """Poll the stopped queue."""
@@ -288,6 +289,7 @@ class IPythonKernel(KernelBase):
     def execution_count(self):
         if self.shell:
             return self.shell.execution_count
+        return None
 
     @execution_count.setter
     def execution_count(self, value):
@@ -347,6 +349,7 @@ class IPythonKernel(KernelBase):
         user_expressions=None,
         allow_stdin=False,
         *,
+        cell_meta=None,
         cell_id=None,
     ):
         """Handle code execution."""
@@ -359,16 +362,16 @@ class IPythonKernel(KernelBase):
         if hasattr(shell, "run_cell_async") and hasattr(shell, "should_run_async"):
             run_cell = shell.run_cell_async
             should_run_async = shell.should_run_async
-            with_cell_id = _accepts_cell_id(run_cell)
+            accepts_params = _accepts_parameters(run_cell, ["cell_id"])
         else:
-            should_run_async = lambda cell: False  # noqa
+            should_run_async = lambda cell: False  # noqa: ARG005
             # older IPython,
             # use blocking run_cell and wrap it in coroutine
 
             async def run_cell(*args, **kwargs):
                 return shell.run_cell(*args, **kwargs)
 
-            with_cell_id = _accepts_cell_id(shell.run_cell)
+            accepts_params = _accepts_parameters(shell.run_cell, ["cell_id"])
         try:
             # default case: runner is asyncio and asyncio is already running
             # TODO: this should check every case for "are we inside the runner",
@@ -390,7 +393,7 @@ class IPythonKernel(KernelBase):
                     preprocessing_exc_tuple=preprocessing_exc_tuple,
                 )
             ):
-                if with_cell_id:
+                if accepts_params["cell_id"]:
                     coro = run_cell(
                         code,
                         store_history=store_history,
@@ -422,7 +425,7 @@ class IPythonKernel(KernelBase):
                 # runner isn't already running,
                 # make synchronous call,
                 # letting shell dispatch to loop runners
-                if with_cell_id:
+                if accepts_params["cell_id"]:
                     res = shell.run_cell(
                         code,
                         store_history=store_history,
@@ -506,6 +509,7 @@ class IPythonKernel(KernelBase):
         """Handle a debug request."""
         if _is_debugpy_available:
             return await self.debugger.process_request(msg)
+        return None
 
     def _experimental_do_complete(self, code, cursor_pos):
         """
@@ -657,7 +661,7 @@ class IPythonKernel(KernelBase):
             working.update(ns)
             code = f"{resultname} = {fname}(*{argname},**{kwargname})"
             try:
-                exec(code, shell.user_global_ns, shell.user_ns)  # noqa
+                exec(code, shell.user_global_ns, shell.user_ns)
                 result = working.get(resultname)
             finally:
                 for key in ns:
