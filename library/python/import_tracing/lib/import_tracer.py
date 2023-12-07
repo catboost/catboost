@@ -11,10 +11,9 @@ class ImportTracer:
         self.start_time = time.time()
 
     def start_event(self, modname, filename, tid=None):
-        tid = tid if tid is not None else threading.current_thread().ident
+        tid = tid if tid is not None else threading.current_thread().name
         time_from_start = self._get_current_time_from_start()
 
-        event_key = (modname, tid)
         new_event = events.Event(
             modname=modname,
             filename=filename,
@@ -23,13 +22,10 @@ class ImportTracer:
             end_time=None,
         )
 
-        self.events[event_key] = new_event
+        self.events[modname] = new_event
 
     def finish_event(self, modname, filename, tid=None):
-        tid = tid if tid is not None else threading.current_thread().ident
-        event_key = (modname, tid)
-        event = self.events[event_key]
-
+        event = self.events[modname]
         end_time = self._get_current_time_from_start()
         event.end_time = end_time
 
