@@ -83,4 +83,35 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
             UNIT_ASSERT_VALUES_EQUAL(**secondHolder.Ptr(), 42);
         });
     }
+
+    struct TNoDefaultConstructible {
+        explicit TNoDefaultConstructible(int) noexcept {
+        }
+    };
+
+    template <class TType, class TBaseType>
+    static void TestStoryPolicyConstructors() {
+        if constexpr (std::is_default_constructible_v<TType>) {
+            TType instance{};
+            Y_UNUSED(instance);
+        }
+        UNIT_ASSERT_VALUES_EQUAL(std::is_default_constructible_v<TType>, std::is_default_constructible_v<TBaseType>);
+        if constexpr (std::is_constructible_v<TType, int>) {
+            TType instance{4};
+            Y_UNUSED(instance);
+        }
+        UNIT_ASSERT_VALUES_EQUAL((std::is_constructible_v<TType, int>), (std::is_constructible_v<TBaseType, int>));
+    }
+
+    template <class TBaseType>
+    static void TestWrapperConstructors() {
+        TestStoryPolicyConstructors<TWithRefCount<TBaseType, TAtomicCounter>, TBaseType>();
+        TestStoryPolicyConstructors<TEmbedPolicy<TBaseType>, TBaseType>();
+        TestStoryPolicyConstructors<TSimpleRefPolicy<TBaseType>, TBaseType>();
+    }
+
+    Y_UNIT_TEST(ConstructorTraits) {
+        TestWrapperConstructors<TNoDefaultConstructible>();
+        TestWrapperConstructors<TVector<short>>();
+    }
 }
