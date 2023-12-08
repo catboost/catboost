@@ -20,15 +20,15 @@ class Row
 {
 
 public:
-    typedef MapType<Symbol, double> CellMap;
+    using CellMap = MapType<Symbol, double>;
 
-    Row() : m_constant(0.0) {}
+    Row() : Row(0.0) {}
 
     Row(double constant) : m_constant(constant) {}
 
-    Row(const Row &other) : m_cells(other.m_cells), m_constant(other.m_constant) {}
+    Row(const Row &other) = default;
 
-    ~Row() {}
+    ~Row() = default;
 
     const CellMap &cells() const
     {
@@ -72,14 +72,13 @@ public:
 	*/
     void insert(const Row &other, double coefficient = 1.0)
     {
-        typedef CellMap::const_iterator iter_t;
         m_constant += other.m_constant * coefficient;
-        iter_t end = other.m_cells.end();
-        for (iter_t it = other.m_cells.begin(); it != end; ++it)
+
+        for (const auto & cellPair : other.m_cells)
         {
-            double coeff = it->second * coefficient;
-            if (nearZero(m_cells[it->first] += coeff))
-                m_cells.erase(it->first);
+            double coeff = cellPair.second * coefficient;
+            if (nearZero(m_cells[cellPair.first] += coeff))
+                m_cells.erase(cellPair.first);
         }
     }
 
@@ -88,7 +87,7 @@ public:
 	*/
     void remove(const Symbol &symbol)
     {
-        CellMap::iterator it = m_cells.find(symbol);
+        auto it = m_cells.find(symbol);
         if (it != m_cells.end())
             m_cells.erase(it);
     }
@@ -98,11 +97,9 @@ public:
 	*/
     void reverseSign()
     {
-        typedef CellMap::iterator iter_t;
         m_constant = -m_constant;
-        iter_t end = m_cells.end();
-        for (iter_t it = m_cells.begin(); it != end; ++it)
-            it->second = -it->second;
+        for (auto &cellPair : m_cells)
+            cellPair.second = -cellPair.second;
     }
 
     /* Solve the row for the given symbol.
@@ -118,13 +115,11 @@ public:
 	*/
     void solveFor(const Symbol &symbol)
     {
-        typedef CellMap::iterator iter_t;
         double coeff = -1.0 / m_cells[symbol];
         m_cells.erase(symbol);
         m_constant *= coeff;
-        iter_t end = m_cells.end();
-        for (iter_t it = m_cells.begin(); it != end; ++it)
-            it->second *= coeff;
+        for (auto &cellPair : m_cells)
+            cellPair.second *= coeff;
     }
 
     /* Solve the row for the given symbols.
@@ -168,8 +163,7 @@ public:
 	*/
     void substitute(const Symbol &symbol, const Row &row)
     {
-        typedef CellMap::iterator iter_t;
-        iter_t it = m_cells.find(symbol);
+        auto it = m_cells.find(symbol);
         if (it != m_cells.end())
         {
             double coefficient = it->second;

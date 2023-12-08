@@ -62,6 +62,10 @@ int
 Expression_traverse( Expression* self, visitproc visit, void* arg )
 {
     Py_VISIT( self->terms );
+#if PY_VERSION_HEX >= 0x03090000
+    // This was not needed before Python 3.9 (Python issue 35810 and 40217)
+    Py_VISIT(Py_TYPE(self));
+#endif
     return 0;
 }
 
@@ -177,8 +181,8 @@ Expression_richcmp( PyObject* first, PyObject* second, int op )
         "unsupported operand type(s) for %s: "
         "'%.100s' and '%.100s'",
         pyop_str( op ),
-        first->ob_type->tp_name,
-        second->ob_type->tp_name
+        Py_TYPE( first )->tp_name,
+        Py_TYPE( second )->tp_name
     );
     return 0;
 }

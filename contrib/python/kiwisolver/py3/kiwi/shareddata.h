@@ -7,6 +7,16 @@
 |----------------------------------------------------------------------------*/
 #pragma once
 
+/*
+Implementation note
+===================
+SharedDataPtr/SharedData offer the same basic functionality as std::shared_ptr,
+but do not use atomic counters under the hood.
+Since kiwi operates within a single thread context, atomic counters are not necessary,
+especially given the extra CPU cost.
+Therefore the use of SharedDataPtr/SharedData is preferred over std::shared_ptr.
+*/
+
 namespace kiwi
 {
 
@@ -16,12 +26,15 @@ class SharedData
 public:
     SharedData() : m_refcount(0) {}
 
-    SharedData(const SharedData &other) : m_refcount(0) {}
+    SharedData(const SharedData &other) = delete;
+
+    SharedData(SharedData&& other) = delete;
 
     int m_refcount;
 
-private:
-    SharedData &operator=(const SharedData &other);
+    SharedData &operator=(const SharedData &other) = delete;
+    
+    SharedData &operator=(SharedData&& other) = delete;
 };
 
 template <typename T>
@@ -29,9 +42,9 @@ class SharedDataPtr
 {
 
 public:
-    typedef T Type;
+    using Type = T;
 
-    SharedDataPtr() : m_data(0) {}
+    SharedDataPtr() : m_data(nullptr) {}
 
     explicit SharedDataPtr(T *data) : m_data(data)
     {
@@ -108,6 +121,11 @@ public:
         incref(m_data);
     }
 
+    SharedDataPtr(SharedDataPtr&& other) noexcept : m_data(other.m_data)
+    {
+        other.m_data = nullptr;
+    }
+
     SharedDataPtr<T> &operator=(const SharedDataPtr<T> &other)
     {
         if (m_data != other.m_data)
@@ -116,6 +134,18 @@ public:
             m_data = other.m_data;
             incref(m_data);
             decref(temp);
+        }
+        return *this;
+    }
+
+    SharedDataPtr<T>& operator=(SharedDataPtr<T>&& other) noexcept
+    {
+        if (m_data != other.m_data)
+        {
+            decref(m_data);
+
+            m_data = other.m_data;
+            other.m_data = nullptr;
         }
         return *this;
     }

@@ -28,7 +28,7 @@ class Constraint
 {
 
 public:
-    Constraint() : m_data(0) {}
+    Constraint() = default;
 
     Constraint(const Expression &expr,
                RelationalOperator op,
@@ -36,7 +36,11 @@ public:
 
     Constraint(const Constraint &other, double strength) : m_data(new ConstraintData(other, strength)) {}
 
-    ~Constraint() {}
+    Constraint(const Constraint &) = default;
+
+    Constraint(Constraint &&) noexcept = default;
+
+    ~Constraint() = default;
 
     const Expression &expression() const
     {
@@ -58,16 +62,19 @@ public:
         return !m_data;
     }
 
+    Constraint& operator=(const Constraint &) = default;
+
+    Constraint& operator=(Constraint &&) noexcept = default;
+
 private:
     static Expression reduce(const Expression &expr)
     {
         std::map<Variable, double> vars;
-        typedef std::vector<Term>::const_iterator iter_t;
-        iter_t end = expr.terms().end();
-        for (iter_t it = expr.terms().begin(); it != end; ++it)
-            vars[it->variable()] += it->coefficient();
+        for (const auto & term : expr.terms())
+            vars[term.variable()] += term.coefficient();
+
         std::vector<Term> terms(vars.begin(), vars.end());
-        return Expression(terms, expr.constant());
+        return Expression(std::move(terms), expr.constant());
     }
 
     class ConstraintData : public SharedData
@@ -86,7 +93,7 @@ private:
                                                                    m_strength(strength::clip(strength)),
                                                                    m_op(other.op()) {}
 
-        ~ConstraintData() {}
+        ~ConstraintData() = default;
 
         Expression m_expression;
         double m_strength;

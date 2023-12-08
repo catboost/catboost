@@ -20,9 +20,14 @@ public:
 
     Expression(const Term &term, double constant = 0.0) : m_terms(1, term), m_constant(constant) {}
 
-    Expression(const std::vector<Term> &terms, double constant = 0.0) : m_terms(terms), m_constant(constant) {}
+    Expression(std::vector<Term> terms, double constant = 0.0) : m_terms(std::move(terms)), m_constant(constant) {}
 
-    ~Expression() {}
+    Expression(const Expression&) = default;
+
+    // Could be marked noexcept but for a bug in the GCC of the manylinux1 image
+    Expression(Expression&&) = default;
+
+    ~Expression() = default;
 
     const std::vector<Term> &terms() const
     {
@@ -36,13 +41,18 @@ public:
 
     double value() const
     {
-        typedef std::vector<Term>::const_iterator iter_t;
         double result = m_constant;
-        iter_t end = m_terms.end();
-        for (iter_t it = m_terms.begin(); it != end; ++it)
-            result += it->value();
+
+        for (const Term &term : m_terms)
+            result += term.value();
+
         return result;
     }
+
+    Expression& operator=(const Expression&) = default;
+
+    // Could be marked noexcept but for a bug in the GCC of the manylinux1 image
+    Expression& operator=(Expression&&) = default;
 
 private:
     std::vector<Term> m_terms;

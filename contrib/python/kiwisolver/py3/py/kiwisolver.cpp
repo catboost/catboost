@@ -9,7 +9,7 @@
 #include <kiwi/kiwi.h>
 #include "types.h"
 
-#define PY_KIWI_VERSION "1.2.0"
+#define PY_KIWI_VERSION "1.3.2"
 
 namespace
 {

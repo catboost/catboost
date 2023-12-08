@@ -19,7 +19,7 @@ class Symbol
 
 public:
 
-	typedef unsigned long long Id;
+	using Id = unsigned long long;
 
 	enum Type
 	{
@@ -34,7 +34,7 @@ public:
 
 	Symbol( Type type, Id id ) : m_id( id ), m_type( type ) {}
 
-	~Symbol() {}
+	~Symbol() = default;
 
 	Id id() const
 	{

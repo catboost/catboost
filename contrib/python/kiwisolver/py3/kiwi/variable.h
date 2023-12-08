@@ -20,17 +20,21 @@ public:
     class Context
     {
     public:
-        Context() {}
+        Context() = default;
         virtual ~Context() {} // LCOV_EXCL_LINE
     };
 
     Variable(Context *context = 0) : m_data(new VariableData("", context)) {}
 
-    Variable(const std::string &name, Context *context = 0) : m_data(new VariableData(name, context)) {}
+    Variable(std::string name, Context *context = 0) : m_data(new VariableData(std::move(name), context)) {}
 
     Variable(const char *name, Context *context = 0) : m_data(new VariableData(name, context)) {}
 
-    ~Variable() {}
+    Variable(const Variable&) = default;
+
+    Variable(Variable&&) noexcept = default;
+
+    ~Variable() = default;
 
     const std::string &name() const
     {
@@ -73,13 +77,17 @@ public:
         return m_data == other.m_data;
     }
 
+    Variable& operator=(const Variable&) = default;
+
+    Variable& operator=(Variable&&) noexcept = default;
+
 private:
     class VariableData : public SharedData
     {
 
     public:
-        VariableData(const std::string &name, Context *context) : SharedData(),
-                                                                  m_name(name),
+        VariableData(std::string name, Context *context) : SharedData(),
+                                                                  m_name(std::move(name)),
                                                                   m_context(context),
                                                                   m_value(0.0) {}
 
@@ -88,7 +96,7 @@ private:
                                                            m_context(context),
                                                            m_value(0.0) {}
 
-        ~VariableData() {}
+        ~VariableData() = default;
 
         std::string m_name;
         std::unique_ptr<Context> m_context;

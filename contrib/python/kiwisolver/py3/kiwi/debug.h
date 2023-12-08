@@ -54,64 +54,51 @@ public:
 
     static void dump(const SolverImpl::RowMap &rows, std::ostream &out)
     {
-        typedef SolverImpl::RowMap::const_iterator iter_t;
-        iter_t end = rows.end();
-        for (iter_t it = rows.begin(); it != end; ++it)
+        for (const auto &rowPair : rows)
         {
-            dump(it->first, out);
+            dump(rowPair.first, out);
             out << " | ";
-            dump(*it->second, out);
+            dump(*rowPair.second, out);
         }
     }
 
     static void dump(const std::vector<Symbol> &symbols, std::ostream &out)
     {
-        typedef std::vector<Symbol>::const_iterator iter_t;
-        iter_t end = symbols.end();
-        for (iter_t it = symbols.begin(); it != end; ++it)
+        for (const auto &symbol : symbols)
         {
-            dump(*it, out);
+            dump(symbol, out);
             out << std::endl;
         }
     }
 
     static void dump(const SolverImpl::VarMap &vars, std::ostream &out)
     {
-        typedef SolverImpl::VarMap::const_iterator iter_t;
-        iter_t end = vars.end();
-        for (iter_t it = vars.begin(); it != end; ++it)
+        for (const auto &varPair : vars)
         {
-            out << it->first.name() << " = ";
-            dump(it->second, out);
+            out << varPair.first.name() << " = ";
+            dump(varPair.second, out);
             out << std::endl;
         }
     }
 
     static void dump(const SolverImpl::CnMap &cns, std::ostream &out)
     {
-        typedef SolverImpl::CnMap::const_iterator iter_t;
-        iter_t end = cns.end();
-        for (iter_t it = cns.begin(); it != end; ++it)
-            dump(it->first, out);
+        for (const auto &cnPair : cns)
+            dump(cnPair.first, out);
     }
 
     static void dump(const SolverImpl::EditMap &edits, std::ostream &out)
     {
-        typedef SolverImpl::EditMap::const_iterator iter_t;
-        iter_t end = edits.end();
-        for (iter_t it = edits.begin(); it != end; ++it)
-            out << it->first.name() << std::endl;
+        for (const auto &editPair : edits)
+            out << editPair.first.name() << std::endl;
     }
 
     static void dump(const Row &row, std::ostream &out)
     {
-        typedef Row::CellMap::const_iterator iter_t;
-        out << row.constant();
-        iter_t end = row.cells().end();
-        for (iter_t it = row.cells().begin(); it != end; ++it)
+        for (const auto &rowPair : row.cells())
         {
-            out << " + " << it->second << " * ";
-            dump(it->first, out);
+            out << " + " << rowPair.second << " * ";
+            dump(rowPair.first, out);
         }
         out << std::endl;
     }
@@ -143,13 +130,10 @@ public:
 
     static void dump(const Constraint &cn, std::ostream &out)
     {
-        typedef std::vector<Term>::const_iterator iter_t;
-        iter_t begin = cn.expression().terms().begin();
-        iter_t end = cn.expression().terms().end();
-        for (iter_t it = begin; it != end; ++it)
+        for (const auto &term : cn.expression().terms())
         {
-            out << it->coefficient() << " * ";
-            out << it->variable().name() << " + ";
+            out << term.coefficient() << " * ";
+            out << term.variable().name() << " + ";
         }
         out << cn.expression().constant();
         switch (cn.op())

@@ -21,9 +21,9 @@ class Solver
 
 public:
 
-	Solver() {}
+	Solver() = default;
 
-	~Solver() {}
+	~Solver() = default;
 
 	/* Add a constraint to the solver.
 
