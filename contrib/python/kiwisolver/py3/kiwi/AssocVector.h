@@ -12,6 +12,8 @@
 //     suitability of this software for any purpose. It is provided "as is"
 //     without express or implied warranty.
 ////////////////////////////////////////////////////////////////////////////////
+// Updated 2019 by Matthieu Dartiailh for C++11 compliancy
+////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
 // $Id: AssocVector.h 765 2006-10-18 13:55:32Z syntheticpp $
@@ -107,7 +109,7 @@ namespace Loki
         typedef typename Base::const_reverse_iterator const_reverse_iterator;
 
         class value_compare
-            : public std::binary_function<value_type, value_type, bool>
+            : public std::function<bool(value_type, value_type)>
             , private key_compare
         {
             friend class AssocVector;

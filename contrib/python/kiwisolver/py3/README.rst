@@ -17,3 +17,6 @@ from 10x to 500x faster than the original Cassowary solver with typical use
 cases gaining a 40x improvement. Memory savings are consistently > 5x.
 
 In addition to the C++ solver, Kiwi ships with hand-rolled Python bindings.
+
+The version 1.1.0 of the Python bindings will be the last one to support
+Python 2, moving forward support will be limited to Python 3.5+.

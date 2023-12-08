@@ -1,39 +1,17 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
-| The full license is in the file COPYING.txt, distributed with this software.
+| The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
 #include <Python.h>
 #include <kiwi/kiwi.h>
 
 
-int import_variable();
-
-int import_term();
-
-int import_expression();
-
-int import_constraint();
-
-int import_solver();
-
-int import_strength();
-
-
-extern PyTypeObject Variable_Type;
-
-extern PyTypeObject Term_Type;
-
-extern PyTypeObject Expression_Type;
-
-extern PyTypeObject Constraint_Type;
-
-extern PyTypeObject Solver_Type;
-
-extern PyTypeObject strength_Type;
+namespace kiwisolver
+{
 
 extern PyObject* DuplicateConstraint;
 
@@ -48,15 +26,33 @@ extern PyObject* UnknownEditVariable;
 extern PyObject* BadRequiredStrength;
 
 
+struct strength
+{
+	PyObject_HEAD;
+
+    static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+};
+
+
 struct Variable
 {
 	PyObject_HEAD
 	PyObject* context;
 	kiwi::Variable variable;
 
+    static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+
 	static bool TypeCheck( PyObject* obj )
 	{
-		return PyObject_TypeCheck( obj, &Variable_Type ) != 0;
+		return PyObject_TypeCheck( obj, TypeObject ) != 0;
 	}
 };
 
@@ -67,9 +63,15 @@ struct Term
 	PyObject* variable;
 	double coefficient;
 
+    static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+
 	static bool TypeCheck( PyObject* obj )
 	{
-		return PyObject_TypeCheck( obj, &Term_Type ) != 0;
+		return PyObject_TypeCheck( obj, TypeObject ) != 0;
 	}
 };
 
@@ -80,9 +82,15 @@ struct Expression
 	PyObject* terms;
 	double constant;
 
+    static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+
 	static bool TypeCheck( PyObject* obj )
 	{
-		return PyObject_TypeCheck( obj, &Expression_Type ) != 0;
+		return PyObject_TypeCheck( obj, TypeObject ) != 0;
 	}
 };
 
@@ -93,9 +101,15 @@ struct Constraint
 	PyObject* expression;
 	kiwi::Constraint constraint;
 
+    static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+
 	static bool TypeCheck( PyObject* obj )
 	{
-		return PyObject_TypeCheck( obj, &Constraint_Type ) != 0;
+		return PyObject_TypeCheck( obj, TypeObject ) != 0;
 	}
 };
 
@@ -105,8 +119,20 @@ struct Solver
 	PyObject_HEAD
 	kiwi::Solver solver;
 
+    static PyType_Spec TypeObject_Spec;
+
+    static PyTypeObject* TypeObject;
+
+	static bool Ready();
+
 	static bool TypeCheck( PyObject* obj )
 	{
-		return PyObject_TypeCheck( obj, &Solver_Type ) != 0;
+		return PyObject_TypeCheck( obj, TypeObject ) != 0;
 	}
 };
+
+
+bool init_exceptions();
+
+
+}  // namespace kiwisolver
