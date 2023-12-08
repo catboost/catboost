@@ -70,7 +70,9 @@ STYLE_TEST_TYPES = [
     "govet",
     "java.style",
     "ktlint",
-    "custom_lint",
+    "py2_flake8",
+    "py3_flake8",
+    "black",
 ]
 
 REGULAR_TEST_TYPES = [
