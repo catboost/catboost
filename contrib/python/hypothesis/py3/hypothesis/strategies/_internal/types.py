@@ -19,20 +19,24 @@ import inspect
 import io
 import ipaddress
 import numbers
+import operator
 import os
 import random
 import re
 import sys
 import typing
 import uuid
+import warnings
+from functools import partial
 from pathlib import PurePath
 from types import FunctionType
-from typing import get_args, get_origin
+from typing import TYPE_CHECKING, Any, Iterator, Tuple, get_args, get_origin
 
 from hypothesis import strategies as st
-from hypothesis.errors import InvalidArgument, ResolutionFailed
+from hypothesis.errors import HypothesisWarning, InvalidArgument, ResolutionFailed
 from hypothesis.internal.compat import PYPY, BaseExceptionGroup, ExceptionGroup
 from hypothesis.internal.conjecture.utils import many as conjecture_utils_many
+from hypothesis.internal.filtering import max_len, min_len
 from hypothesis.strategies._internal.datetime import zoneinfo  # type: ignore
 from hypothesis.strategies._internal.ipaddress import (
     SPECIAL_IPv4_RANGES,
@@ -41,6 +45,9 @@ from hypothesis.strategies._internal.ipaddress import (
 )
 from hypothesis.strategies._internal.lazy import unwrap_strategies
 from hypothesis.strategies._internal.strategies import OneOfStrategy
+
+if TYPE_CHECKING:
+    import annotated_types as at
 
 GenericAlias: typing.Any
 UnionType: typing.Any
@@ -267,19 +274,64 @@ def is_annotated_type(thing):
     )
 
 
-def find_annotated_strategy(annotated_type):  # pragma: no cover
-    flattened_meta = []
+def get_constraints_filter_map():
+    if at := sys.modules.get("annotated_types"):  # pragma: no branch
+        return {
+            # Due to the order of operator.gt/ge/lt/le arguments, order is inversed:
+            at.Gt: lambda constraint: partial(operator.lt, constraint.gt),
+            at.Ge: lambda constraint: partial(operator.le, constraint.ge),
+            at.Lt: lambda constraint: partial(operator.gt, constraint.lt),
+            at.Le: lambda constraint: partial(operator.ge, constraint.le),
+            at.MinLen: lambda constraint: partial(min_len, constraint.min_length),
+            at.MaxLen: lambda constraint: partial(max_len, constraint.max_length),
+            at.Predicate: lambda constraint: constraint.func,
+        }
+    return {}  # pragma: no cover
 
-    all_args = (
-        *getattr(annotated_type, "__args__", ()),
-        *getattr(annotated_type, "__metadata__", ()),
-    )
-    for arg in all_args:
-        if is_annotated_type(arg):
-            flattened_meta.append(find_annotated_strategy(arg))
+
+def _get_constraints(args: Tuple[Any, ...]) -> Iterator["at.BaseMetadata"]:
+    if at := sys.modules.get("annotated_types"):  # pragma: no branch
+        for arg in args:
+            if isinstance(arg, at.BaseMetadata):
+                yield arg
+            elif getattr(arg, "__is_annotated_types_grouped_metadata__", False):
+                yield from arg
+            elif isinstance(arg, slice) and arg.step in (1, None):
+                yield from at.Len(arg.start or 0, arg.stop)
+
+
+def find_annotated_strategy(annotated_type):
+    metadata = getattr(annotated_type, "__metadata__", ())
+
+    if any(is_annotated_type(arg) for arg in metadata):
+        # We are in the case where one of the metadata argument
+        # is itself an annotated type. Although supported at runtime,
+        # This shouldn't be allowed: we prefer to raise here
+        raise ResolutionFailed(
+            f"Failed to resolve strategy for the following Annotated type: {annotated_type}."
+            "Arguments to the Annotated type cannot be Annotated."
+        )
+    for arg in reversed(metadata):
         if isinstance(arg, st.SearchStrategy):
-            flattened_meta.append(arg)
-    return flattened_meta[-1] if flattened_meta else None
+            return arg
+
+    filter_conditions = []
+    if "annotated_types" in sys.modules:
+        unsupported = []
+        for constraint in _get_constraints(metadata):
+            if convert := get_constraints_filter_map().get(type(constraint)):
+                filter_conditions.append(convert(constraint))
+            else:
+                unsupported.append(constraint)
+        if unsupported:
+            msg = f"Ignoring unsupported {', '.join(map(repr, unsupported))}"
+            warnings.warn(msg, HypothesisWarning, stacklevel=2)
+
+    base_strategy = st.from_type(annotated_type.__origin__)
+    for filter_condition in filter_conditions:
+        base_strategy = base_strategy.filter(filter_condition)
+
+    return base_strategy
 
 
 def has_type_arguments(type_):

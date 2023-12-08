@@ -51,10 +51,10 @@ BUFFER_SIZE = 8 * 1024
 
 @attr.s
 class HealthCheckState:
-    valid_examples = attr.ib(default=0)
-    invalid_examples = attr.ib(default=0)
-    overrun_examples = attr.ib(default=0)
-    draw_times = attr.ib(default=attr.Factory(list))
+    valid_examples: int = attr.ib(default=0)
+    invalid_examples: int = attr.ib(default=0)
+    overrun_examples: int = attr.ib(default=0)
+    draw_times: list = attr.ib(factory=list)
 
 
 class ExitReason(Enum):
@@ -976,7 +976,7 @@ class ConjectureRunner:
             self,
             example,
             predicate,
-            allow_transition,
+            allow_transition=allow_transition,
             explain=Phase.explain in self.settings.phases,
         )
 

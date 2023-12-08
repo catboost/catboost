@@ -29,7 +29,7 @@ import operator
 from decimal import Decimal
 from fractions import Fraction
 from functools import partial
-from typing import Any, Callable, Dict, NamedTuple, Optional, TypeVar
+from typing import Any, Callable, Collection, Dict, NamedTuple, Optional, TypeVar
 
 from hypothesis.internal.compat import ceil, floor
 from hypothesis.internal.floats import next_down, next_up
@@ -295,3 +295,11 @@ def get_float_predicate_bounds(predicate: Predicate) -> ConstructivePredicate:
 
     kwargs = {k: v for k, v in kwargs.items() if k in {"min_value", "max_value"}}
     return ConstructivePredicate(kwargs, predicate)
+
+
+def max_len(size: int, element: Collection) -> bool:
+    return len(element) <= size
+
+
+def min_len(size: int, element: Collection) -> bool:
+    return size <= len(element)

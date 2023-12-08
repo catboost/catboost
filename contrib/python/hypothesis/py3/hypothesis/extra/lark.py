@@ -27,7 +27,6 @@ your own at all.
 from inspect import signature
 from typing import Dict, Optional
 
-import attr
 import lark
 from lark.grammar import NonTerminal, Terminal
 
@@ -38,20 +37,6 @@ from hypothesis.internal.validation import check_type
 from hypothesis.strategies._internal.utils import cacheable, defines_strategy
 
 __all__ = ["from_lark"]
-
-
-@attr.s()
-class DrawState:
-    """Tracks state of a single draw from a lark grammar.
-
-    Currently just wraps a list of tokens that will be emitted at the
-    end, but as we support more sophisticated parsers this will need
-    to track more state for e.g. indentation level.
-    """
-
-    # The text output so far as a list of string tokens resulting from
-    # each draw to a non-terminal.
-    result = attr.ib(default=attr.Factory(list))
 
 
 def get_terminal_names(terminals, rules, ignore_names):
@@ -138,10 +123,10 @@ class LarkStrategy(st.SearchStrategy):
         self.__rule_labels = {}
 
     def do_draw(self, data):
-        state = DrawState()
+        state = []
         start = data.draw(self.start)
         self.draw_symbol(data, start, state)
-        return "".join(state.result)
+        return "".join(state)
 
     def rule_label(self, name):
         try:
@@ -162,7 +147,7 @@ class LarkStrategy(st.SearchStrategy):
                     'names-to-strategies, such as `{%r: st.just("")}`'
                     % (symbol.name, symbol.name)
                 ) from None
-            draw_state.result.append(data.draw(strategy))
+            draw_state.append(data.draw(strategy))
         else:
             assert isinstance(symbol, NonTerminal)
             data.start_example(self.rule_label(symbol.name))

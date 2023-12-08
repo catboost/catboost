@@ -1269,12 +1269,18 @@ def _from_type(thing: Type[Ex]) -> SearchStrategy[Ex]:
 
     # Let registered extra modules handle their own recognized types first, before
     # e.g. Unions are resolved
-    if thing not in types._global_type_lookup:
-        for module, resolver in types._global_extra_lookup.items():
-            if module in sys.modules:
-                strat = resolver(thing)
-                if strat is not None:
-                    return strat
+    try:
+        known = thing in types._global_type_lookup
+    except TypeError:
+        # thing is not always hashable!
+        pass
+    else:
+        if not known:
+            for module, resolver in types._global_extra_lookup.items():
+                if module in sys.modules:
+                    strat = resolver(thing)
+                    if strat is not None:
+                        return strat
     if not isinstance(thing, type):
         if types.is_a_new_type(thing):
             # Check if we have an explicitly registered strategy for this thing,

@@ -88,8 +88,8 @@ class TreeNode:
     # with the ``n_bits`` argument going in ``bit_lengths`` and the
     # values seen in ``values``. These should always have the same
     # length.
-    bit_lengths = attr.ib(default=attr.Factory(IntList))
-    values = attr.ib(default=attr.Factory(IntList))
+    bit_lengths = attr.ib(factory=IntList)
+    values = attr.ib(factory=IntList)
 
     # The indices of of the calls to ``draw_bits`` that we have stored
     # where  ``forced`` is not None. Stored as None if no indices

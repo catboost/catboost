@@ -832,6 +832,18 @@ def _repr_enum(obj, p, cycle):
         p.text(f"{tname}.{obj.name}")
 
 
+class _ReprDots:
+    def __repr__(self) -> str:
+        return "..."
+
+
+def _repr_partial(obj, p, cycle):
+    args, kw = obj.args, obj.keywords
+    if cycle:
+        args, kw = (_ReprDots(),), {}
+    p.repr_call(pretty(type(obj)), (obj.func, *args), kw)
+
+
 for_type_by_name("collections", "defaultdict", _defaultdict_pprint)
 for_type_by_name("collections", "OrderedDict", _ordereddict_pprint)
 for_type_by_name("ordereddict", "OrderedDict", _ordereddict_pprint)
@@ -839,3 +851,4 @@ for_type_by_name("collections", "deque", _deque_pprint)
 for_type_by_name("collections", "Counter", _counter_pprint)
 for_type_by_name("pandas.core.frame", "DataFrame", _repr_dataframe)
 for_type_by_name("enum", "Enum", _repr_enum)
+for_type_by_name("functools", "partial", _repr_partial)

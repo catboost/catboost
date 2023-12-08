@@ -9,7 +9,7 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Callable, Dict, Optional
 
 import attr
 
@@ -20,6 +20,7 @@ from hypothesis.internal.conjecture.choicetree import (
     random_selection_order,
 )
 from hypothesis.internal.conjecture.data import ConjectureData, ConjectureResult, Status
+from hypothesis.internal.conjecture.dfa import ConcreteDFA
 from hypothesis.internal.conjecture.floats import (
     DRAW_FLOAT_LABEL,
     float_to_lex,
@@ -261,7 +262,15 @@ class Shrinker:
         accept.__name__ = fn.__name__
         return property(accept)
 
-    def __init__(self, engine, initial, predicate, allow_transition, explain):
+    def __init__(
+        self,
+        engine: "ConjectureRunner",
+        initial: ConjectureData,
+        predicate: Optional[Callable[..., bool]],
+        *,
+        allow_transition: bool,
+        explain: bool,
+    ):
         """Create a shrinker for a particular engine, with a given starting
         point and predicate. When shrink() is called it will attempt to find an
         example for which predicate is True and which is strictly smaller than
@@ -271,17 +280,17 @@ class Shrinker:
         takes ConjectureData objects.
         """
         assert predicate is not None or allow_transition is not None
-        self.engine: "ConjectureRunner" = engine
+        self.engine = engine
         self.__predicate = predicate or (lambda data: True)
         self.__allow_transition = allow_transition or (lambda source, destination: True)
-        self.__derived_values = {}
+        self.__derived_values: dict = {}
         self.__pending_shrink_explanation = None
 
         self.initial_size = len(initial.buffer)
 
         # We keep track of the current best example on the shrink_target
         # attribute.
-        self.shrink_target: ConjectureData = initial
+        self.shrink_target = initial
         self.clear_change_tracking()
         self.shrinks = 0
 
@@ -293,12 +302,11 @@ class Shrinker:
         self.initial_calls = self.engine.call_count
         self.calls_at_last_shrink = self.initial_calls
 
-        self.passes_by_name = {}
-        self.passes = []
+        self.passes_by_name: Dict[str, ShrinkPass] = {}
 
         # Extra DFAs that may be installed. This is used solely for
         # testing and learning purposes.
-        self.extra_dfas = {}
+        self.extra_dfas: Dict[str, ConcreteDFA] = {}
 
         self.should_explain = explain
 
@@ -324,9 +332,8 @@ class Shrinker:
         p = ShrinkPass(
             run_with_chooser=definition.run_with_chooser,
             shrinker=self,
-            index=len(self.passes),
+            index=len(self.passes_by_name),
         )
-        self.passes.append(p)
         self.passes_by_name[p.name] = p
         return p
 
@@ -473,7 +480,8 @@ class Shrinker:
                         self.debug("Useless passes:")
                     self.debug("")
                     for p in sorted(
-                        self.passes, key=lambda t: (-t.calls, t.deletions, t.shrinks)
+                        self.passes_by_name.values(),
+                        key=lambda t: (-t.calls, t.deletions, t.shrinks),
                     ):
                         if p.calls == 0:
                             continue
