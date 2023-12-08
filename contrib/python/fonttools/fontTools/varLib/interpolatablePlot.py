@@ -98,16 +98,16 @@ class InterpolatablePlot:
                   ,@@,.@@@.  @.@@@,.
                 ,@@. @@@.     @@. @@,.
         ,@@@.@,.@.              @.  @@@@,.@.@@,.
-   ,@@.@.     @@.@@.            @,.    .@’ @’  @@,
- ,@@. @.          .@@.@@@.  @@’                  @,
+   ,@@.@.     @@.@@.            @,.    .@' @'  @@,
+ ,@@. @.          .@@.@@@.  @@'                  @,
 ,@.  @@.                                          @,
 @.     @,@@,.     ,                             .@@,
 @,.       .@,@@,.         .@@,.  ,       .@@,  @, @,
 @.                             .@. @ @@,.    ,      @
- @,.@@.     @,.      @@,.      @.           @,.    @’
-  @@||@,.  @’@,.       @@,.  @@ @,.        @’@@,  @’
-     \\@@@@’  @,.      @’@@@@’   @@,.   @@@’ //@@@’
-      |||||||| @@,.  @@’ |||||||  |@@@|@||  ||
+ @,.@@.     @,.      @@,.      @.           @,.    @'
+  @@||@,.  @'@,.       @@,.  @@ @,.        @'@@,  @'
+     \\@@@@'  @,.      @'@@@@'   @@,.   @@@' //@@@'
+      |||||||| @@,.  @@' |||||||  |@@@|@||  ||
        \\\\\\\  ||@@@||  |||||||  |||||||  //
         |||||||  ||||||  ||||||   ||||||  ||
          \\\\\\  ||||||  ||||||  ||||||  //
@@ -148,7 +148,9 @@ class InterpolatablePlot:
             current_glyph_problems = []
             for p in glyph_problems:
                 masters = (
-                    p["master"] if "master" in p else (p["master_1"], p["master_2"])
+                    p["master_idx"]
+                    if "master_idx" in p
+                    else (p["master_1_idx"], p["master_2_idx"])
                 )
                 if masters == last_masters:
                     current_glyph_problems.append(p)
@@ -176,10 +178,11 @@ class InterpolatablePlot:
         log.info("Drawing %s: %s", glyphname, problem_type)
 
         master_keys = (
-            ("master",) if "master" in problems[0] else ("master_1", "master_2")
+            ("master_idx",)
+            if "master_idx" in problems[0]
+            else ("master_1_idx", "master_2_idx")
         )
-        master_names = [problems[0][k] for k in master_keys]
-        master_indices = [self.names.index(n) for n in master_names]
+        master_indices = [problems[0][k] for k in master_keys]
 
         if problem_type == "missing":
             sample_glyph = next(
@@ -225,7 +228,10 @@ class InterpolatablePlot:
                 self.draw_shrug(x=x, y=y)
             y += self.height + self.pad
 
-        if any(pt in ("wrong_start_point", "contour_order") for pt in problem_types):
+        if any(
+            pt in ("nothing", "wrong_start_point", "contour_order", "wrong_structure")
+            for pt in problem_types
+        ):
             x = self.pad + self.width + self.pad
             y = self.pad
             y += self.line_height + self.pad
@@ -250,6 +256,10 @@ class InterpolatablePlot:
 
             self.draw_label("proposed fix", x=x, y=y, color=self.head_color, align=0.5)
             y += self.line_height + self.pad
+
+            if problem_type == "wrong_structure":
+                self.draw_shrug(x=x, y=y)
+                return
 
             overriding1 = OverridingDict(glyphset1)
             overriding2 = OverridingDict(glyphset2)
@@ -382,7 +392,16 @@ class InterpolatablePlot:
         glyph_width = boundsPen.bounds[2] - boundsPen.bounds[0]
         glyph_height = boundsPen.bounds[3] - boundsPen.bounds[1]
 
-        scale = min(self.width / glyph_width, self.height / glyph_height)
+        scale = None
+        if glyph_width:
+            scale = self.width / glyph_width
+        if glyph_height:
+            if scale is None:
+                scale = self.height / glyph_height
+            else:
+                scale = min(scale, self.height / glyph_height)
+        if scale is None:
+            scale = 1
 
         cr = cairo.Context(self.surface)
         cr.translate(x, y)
@@ -415,7 +434,12 @@ class InterpolatablePlot:
             cr.set_line_width(self.stroke_width / scale)
             cr.stroke()
 
-        if problem_type in ("node_count", "node_incompatibility"):
+        if problem_type in (
+            "nothing",
+            "node_count",
+            "node_incompatibility",
+            "wrong_structure",
+        ):
             cr.set_line_cap(cairo.LINE_CAP_ROUND)
 
             # Oncurve nodes
@@ -463,6 +487,7 @@ class InterpolatablePlot:
             cr.set_line_width(self.handle_width / scale)
             cr.stroke()
 
+        matching = None
         for problem in problems:
             if problem["type"] == "contour_order":
                 matching = problem["value_2"]
@@ -480,18 +505,20 @@ class InterpolatablePlot:
                     cr.fill()
 
         for problem in problems:
-            if problem["type"] == "wrong_start_point":
-                idx = problem["contour"]
+            if problem["type"] in ("nothing", "wrong_start_point", "wrong_structure"):
+                idx = problem.get("contour")
 
                 # Draw suggested point
-                if which == 1:
+                if idx is not None and which == 1 and "value_2" in problem:
                     perContourPen = PerContourOrComponentPen(
                         RecordingPen, glyphset=glyphset
                     )
                     recording.replay(perContourPen)
                     points = SimpleRecordingPointPen()
                     converter = SegmentToPointPen(points, False)
-                    perContourPen.value[idx].replay(converter)
+                    perContourPen.value[
+                        idx if matching is None else matching[idx]
+                    ].replay(converter)
                     targetPoint = points.value[problem["value_2"]][0]
                     cr.move_to(*targetPoint)
                     cr.line_to(*targetPoint)
@@ -505,12 +532,12 @@ class InterpolatablePlot:
                 i = 0
                 for segment, args in recording.value:
                     if segment == "moveTo":
-                        if i == idx:
+                        if idx is None or i == idx:
                             cr.move_to(*args[0])
                             cr.line_to(*args[0])
                         i += 1
 
-                if which == 0 or not problem["reversed"]:
+                if which == 0 or not problem.get("reversed"):
                     cr.set_source_rgb(*self.start_point_color)
                 else:
                     cr.set_source_rgb(*self.reversed_start_point_color)
@@ -529,7 +556,7 @@ class InterpolatablePlot:
                         continue
                     second_pt = args[0]
 
-                    if i == idx:
+                    if idx is None or i == idx:
                         first_pt = complex(*first_pt)
                         second_pt = complex(*second_pt)
                         length = abs(second_pt - first_pt)

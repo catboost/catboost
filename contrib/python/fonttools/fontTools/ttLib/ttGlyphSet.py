@@ -17,7 +17,8 @@ class _TTGlyphSet(Mapping):
     glyph shape from TrueType or CFF.
     """
 
-    def __init__(self, font, location, glyphsMapping):
+    def __init__(self, font, location, glyphsMapping, *, recalcBounds=True):
+        self.recalcBounds = recalcBounds
         self.font = font
         self.defaultLocationNormalized = (
             {axis.axisTag: 0 for axis in self.font["fvar"].axes}
@@ -89,13 +90,13 @@ class _TTGlyphSet(Mapping):
 
 
 class _TTGlyphSetGlyf(_TTGlyphSet):
-    def __init__(self, font, location):
+    def __init__(self, font, location, recalcBounds=True):
         self.glyfTable = font["glyf"]
-        super().__init__(font, location, self.glyfTable)
+        super().__init__(font, location, self.glyfTable, recalcBounds=recalcBounds)
         self.gvarTable = font.get("gvar")
 
     def __getitem__(self, glyphName):
-        return _TTGlyphGlyf(self, glyphName)
+        return _TTGlyphGlyf(self, glyphName, recalcBounds=self.recalcBounds)
 
 
 class _TTGlyphSetCFF(_TTGlyphSet):
@@ -129,9 +130,10 @@ class _TTGlyph(ABC):
     attributes.
     """
 
-    def __init__(self, glyphSet, glyphName):
+    def __init__(self, glyphSet, glyphName, *, recalcBounds=True):
         self.glyphSet = glyphSet
         self.name = glyphName
+        self.recalcBounds = recalcBounds
         self.width, self.lsb = glyphSet.hMetrics[glyphName]
         if glyphSet.vMetrics is not None:
             self.height, self.tsb = glyphSet.vMetrics[glyphName]
@@ -258,7 +260,9 @@ class _TTGlyphGlyf(_TTGlyph):
             coordinates += GlyphCoordinates(delta) * scalar
 
         glyph = copy(glyfTable[self.name])  # Shallow copy
-        width, lsb, height, tsb = _setCoordinates(glyph, coordinates, glyfTable)
+        width, lsb, height, tsb = _setCoordinates(
+            glyph, coordinates, glyfTable, recalcBounds=self.recalcBounds
+        )
         self.lsb = lsb
         self.tsb = tsb
         if glyphSet.hvarTable is None:
@@ -276,7 +280,7 @@ class _TTGlyphCFF(_TTGlyph):
         self.glyphSet.charStrings[self.name].draw(pen, self.glyphSet.blender)
 
 
-def _setCoordinates(glyph, coord, glyfTable):
+def _setCoordinates(glyph, coord, glyfTable, *, recalcBounds=True):
     # Handle phantom points for (left, right, top, bottom) positions.
     assert len(coord) >= 4
     leftSideX = coord[-4][0]
@@ -304,7 +308,8 @@ def _setCoordinates(glyph, coord, glyfTable):
         assert len(coord) == len(glyph.coordinates)
         glyph.coordinates = coord
 
-    glyph.recalcBounds(glyfTable)
+    if recalcBounds:
+        glyph.recalcBounds(glyfTable)
 
     horizontalAdvanceWidth = otRound(rightSideX - leftSideX)
     verticalAdvanceWidth = otRound(topSideY - bottomSideY)

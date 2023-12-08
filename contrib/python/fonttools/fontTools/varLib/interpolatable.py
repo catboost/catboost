@@ -13,10 +13,11 @@ from fontTools.pens.statisticsPen import StatisticsPen, StatisticsControlPen
 from fontTools.pens.momentsPen import OpenContourError
 from fontTools.varLib.models import piecewiseLinearMap, normalizeLocation
 from fontTools.misc.fixedTools import floatToFixedToStr
+from fontTools.misc.transform import Transform
 from collections import defaultdict, deque
 from functools import wraps
 from pprint import pformat
-from math import sqrt, copysign
+from math import sqrt, copysign, atan2, pi
 import itertools
 import logging
 
@@ -96,7 +97,13 @@ def _vdiff_hypot2_complex(v0, v1):
     for x0, x1 in zip(v0, v1):
         d = x1 - x0
         s += d.real * d.real + d.imag * d.imag
+        # This does the same but seems to be slower:
+        # s += (d * d.conjugate()).real
     return s
+
+
+def _hypot2_complex(d):
+    return d.real * d.real + d.imag * d.imag
 
 
 def _matching_cost(G, matching):
@@ -153,6 +160,9 @@ except ImportError:
 
 
 def _contour_vector_from_stats(stats):
+    # Don't change the order of items here.
+    # It's okay to add to the end, but otherwise, other
+    # code depends on it. Search for "covariance".
     size = sqrt(abs(stats.area))
     return (
         copysign((size), stats.area),
@@ -171,32 +181,41 @@ def _points_characteristic_bits(points):
     return bits
 
 
+_NUM_ITEMS_PER_POINTS_COMPLEX_VECTOR = 4
+
+
 def _points_complex_vector(points):
     vector = []
+    if not points:
+        return vector
     points = [complex(*pt) for pt, _ in points]
     n = len(points)
-    points.extend(points[:2])
+    assert _NUM_ITEMS_PER_POINTS_COMPLEX_VECTOR == 4
+    points.extend(points[: _NUM_ITEMS_PER_POINTS_COMPLEX_VECTOR - 1])
+    while len(points) < _NUM_ITEMS_PER_POINTS_COMPLEX_VECTOR:
+        points.extend(points[: _NUM_ITEMS_PER_POINTS_COMPLEX_VECTOR - 1])
     for i in range(n):
-        p0 = points[i]
+        # The weights are magic numbers.
 
         # The point itself
+        p0 = points[i]
         vector.append(p0)
 
-        # The distance to the next point;
-        # Emphasized by 2 empirically
+        # The vector to the next point
         p1 = points[i + 1]
         d0 = p1 - p0
-        vector.append(d0 * 2)
+        vector.append(d0 * 3)
 
-        """
-        # The angle to the next point, as a cross product;
-        # Square root of, to match dimentionality of distance.
+        # The turn vector
         p2 = points[i + 2]
         d1 = p2 - p1
+        vector.append(d1 - d0)
+
+        # The angle to the next point, as a cross product;
+        # Square root of, to match dimentionality of distance.
         cross = d0.real * d1.imag - d0.imag * d1.real
         cross = copysign(sqrt(abs(cross)), cross)
-        vector.append(cross)
-        """
+        vector.append(cross * 4)
 
     return vector
 
@@ -291,6 +310,7 @@ def test_gen(
     *,
     locations=None,
     tolerance=0.95,
+    show_all=False,
 ):
     if names is None:
         names = glyphsets
@@ -318,17 +338,24 @@ def test_gen(
         allControlVectors = []
         allNodeTypes = []
         allContourIsomorphisms = []
+        allContourPoints = []
         allGlyphs = [glyphset[glyph_name] for glyphset in glyphsets]
         if len([1 for glyph in allGlyphs if glyph is not None]) <= 1:
             continue
-        for glyph, glyphset, name in zip(allGlyphs, glyphsets, names):
+        for master_idx, (glyph, glyphset, name) in enumerate(
+            zip(allGlyphs, glyphsets, names)
+        ):
             if glyph is None:
                 if not ignore_missing:
-                    yield (glyph_name, {"type": "missing", "master": name})
+                    yield (
+                        glyph_name,
+                        {"type": "missing", "master": name, "master_idx": master_idx},
+                    )
                 allNodeTypes.append(None)
                 allControlVectors.append(None)
                 allGreenVectors.append(None)
                 allContourIsomorphisms.append(None)
+                allContourPoints.append(None)
                 continue
 
             perContourPen = PerContourOrComponentPen(RecordingPen, glyphset=glyphset)
@@ -342,11 +369,13 @@ def test_gen(
             contourControlVectors = []
             contourGreenVectors = []
             contourIsomorphisms = []
+            contourPoints = []
             nodeTypes = []
             allNodeTypes.append(nodeTypes)
             allControlVectors.append(contourControlVectors)
             allGreenVectors.append(contourGreenVectors)
             allContourIsomorphisms.append(contourIsomorphisms)
+            allContourPoints.append(contourPoints)
             for ix, contour in enumerate(contourPens):
                 contourOps = tuple(op for op, arg in contour.value)
                 nodeTypes.append(contourOps)
@@ -359,7 +388,12 @@ def test_gen(
                 except OpenContourError as e:
                     yield (
                         glyph_name,
-                        {"master": name, "contour": ix, "type": "open_path"},
+                        {
+                            "master": name,
+                            "master_idx": master_idx,
+                            "contour": ix,
+                            "type": "open_path",
+                        },
                     )
                     continue
                 contourGreenVectors.append(_contour_vector_from_stats(greenStats))
@@ -385,6 +419,8 @@ def test_gen(
                 # Add mirrored rotations
                 _add_isomorphisms(points.value, isomorphisms, True)
 
+                contourPoints.append(points.value)
+
         matchings = [None] * len(allControlVectors)
 
         for m1idx in order:
@@ -396,15 +432,20 @@ def test_gen(
             if allNodeTypes[m0idx] is None:
                 continue
 
+            showed = False
+
             m1 = allNodeTypes[m1idx]
             m0 = allNodeTypes[m0idx]
             if len(m0) != len(m1):
+                showed = True
                 yield (
                     glyph_name,
                     {
                         "type": "path_count",
                         "master_1": names[m0idx],
                         "master_2": names[m1idx],
+                        "master_1_idx": m0idx,
+                        "master_2_idx": m1idx,
                         "value_1": len(m0),
                         "value_2": len(m1),
                     },
@@ -416,6 +457,7 @@ def test_gen(
                     if nodes1 == nodes2:
                         continue
                     if len(nodes1) != len(nodes2):
+                        showed = True
                         yield (
                             glyph_name,
                             {
@@ -423,6 +465,8 @@ def test_gen(
                                 "path": pathIx,
                                 "master_1": names[m0idx],
                                 "master_2": names[m1idx],
+                                "master_1_idx": m0idx,
+                                "master_2_idx": m1idx,
                                 "value_1": len(nodes1),
                                 "value_2": len(nodes2),
                             },
@@ -430,6 +474,7 @@ def test_gen(
                         continue
                     for nodeIx, (n1, n2) in enumerate(zip(nodes1, nodes2)):
                         if n1 != n2:
+                            showed = True
                             yield (
                                 glyph_name,
                                 {
@@ -438,6 +483,8 @@ def test_gen(
                                     "node": nodeIx,
                                     "master_1": names[m0idx],
                                     "master_2": names[m1idx],
+                                    "master_1_idx": m0idx,
+                                    "master_2_idx": m1idx,
                                     "value_1": n1,
                                     "value_2": n2,
                                 },
@@ -504,12 +551,15 @@ def test_gen(
                     if matching_cost < identity_cost * tolerance:
                         # print(matching_cost_control / identity_cost_control, matching_cost_green / identity_cost_green)
 
+                        showed = True
                         yield (
                             glyph_name,
                             {
                                 "type": "contour_order",
                                 "master_1": names[m0idx],
                                 "master_2": names[m1idx],
+                                "master_1_idx": m0idx,
+                                "master_2_idx": m1idx,
                                 "value_1": list(range(len(m0Control))),
                                 "value_2": matching,
                             },
@@ -519,38 +569,194 @@ def test_gen(
             m1 = allContourIsomorphisms[m1idx]
             m0 = allContourIsomorphisms[m0idx]
 
+            # If contour-order is wrong, adjust it
+            if matchings[m1idx] is not None and m1:  # m1 is empty for composite glyphs
+                m1 = [m1[i] for i in matchings[m1idx]]
+
             for ix, (contour0, contour1) in enumerate(zip(m0, m1)):
                 if len(contour0) == 0 or len(contour0) != len(contour1):
-                    # We already reported this; or nothing to do
+                    # We already reported this; or nothing to do; or not compatible
+                    # after reordering above.
                     continue
 
                 c0 = contour0[0]
+                # Next few lines duplicated below.
                 costs = [_vdiff_hypot2_complex(c0[0], c1[0]) for c1 in contour1]
                 min_cost_idx, min_cost = min(enumerate(costs), key=lambda x: x[1])
                 first_cost = costs[0]
+
                 if min_cost < first_cost * tolerance:
+                    # c0 is the first isomorphism of the m0 master
+                    # contour1 is list of all isomorphisms of the m1 master
+                    #
+                    # If the two shapes are both circle-ish and slightly
+                    # rotated, we detect wrong start point. This is for
+                    # example the case hundreds of times in
+                    # RobotoSerif-Italic[GRAD,opsz,wdth,wght].ttf
+                    #
+                    # If the proposed point is only one off from the first
+                    # point (and not reversed), try harder:
+                    #
+                    # Find the major eigenvector of the covariance matrix,
+                    # and rotate the contours by that angle. Then find the
+                    # closest point again.  If it matches this time, let it
+                    # pass.
+
+                    proposed_point = contour1[min_cost_idx][1]
                     reverse = contour1[min_cost_idx][2]
-
-                    # If contour-order is wrong, don't report a reversing
-                    if (
-                        reverse
-                        and matchings[m1idx] is not None
-                        and matchings[m1idx][ix] != ix
+                    num_points = len(allContourPoints[m1idx][ix])
+                    leeway = 3
+                    okay = False
+                    if not reverse and (
+                        proposed_point <= leeway
+                        or proposed_point >= num_points - leeway
                     ):
-                        continue
+                        # Try harder
 
-                    yield (
-                        glyph_name,
-                        {
-                            "type": "wrong_start_point",
-                            "contour": ix,
-                            "master_1": names[m0idx],
-                            "master_2": names[m1idx],
-                            "value_1": 0,
-                            "value_2": contour1[min_cost_idx][1],
-                            "reversed": reverse,
-                        },
-                    )
+                        m0Vectors = allGreenVectors[m1idx][ix]
+                        m1Vectors = allGreenVectors[m1idx][ix]
+
+                        # Recover the covariance matrix from the GreenVectors.
+                        # This is a 2x2 matrix.
+                        transforms = []
+                        for vector in (m0Vectors, m1Vectors):
+                            meanX = vector[1]
+                            meanY = vector[2]
+                            stddevX = vector[3] / 2
+                            stddevY = vector[4] / 2
+                            correlation = vector[5] / abs(vector[0])
+
+                            # https://cookierobotics.com/007/
+                            a = stddevX * stddevX  # VarianceX
+                            c = stddevY * stddevY  # VarianceY
+                            b = correlation * stddevX * stddevY  # Covariance
+
+                            delta = (((a - c) * 0.5) ** 2 + b * b) ** 0.5
+                            lambda1 = (a + c) * 0.5 + delta  # Major eigenvalue
+                            lambda2 = (a + c) * 0.5 - delta  # Minor eigenvalue
+                            theta = (
+                                atan2(lambda1 - a, b)
+                                if b != 0
+                                else (pi * 0.5 if a < c else 0)
+                            )
+                            trans = Transform()
+                            trans = trans.translate(meanX, meanY)
+                            trans = trans.rotate(theta)
+                            trans = trans.scale(sqrt(lambda1), sqrt(lambda2))
+                            transforms.append(trans)
+
+                        trans = transforms[0]
+                        new_c0 = (
+                            [
+                                complex(*trans.transformPoint((pt.real, pt.imag)))
+                                for pt in c0[0]
+                            ],
+                        ) + c0[1:]
+                        trans = transforms[1]
+                        new_contour1 = []
+                        for c1 in contour1:
+                            new_c1 = (
+                                [
+                                    complex(*trans.transformPoint((pt.real, pt.imag)))
+                                    for pt in c1[0]
+                                ],
+                            ) + c1[1:]
+                            new_contour1.append(new_c1)
+
+                        # Next few lines duplicate from above.
+                        costs = [
+                            _vdiff_hypot2_complex(new_c0[0], new_c1[0])
+                            for new_c1 in new_contour1
+                        ]
+                        min_cost_idx, min_cost = min(
+                            enumerate(costs), key=lambda x: x[1]
+                        )
+                        first_cost = costs[0]
+                        # Only accept a perfect match
+                        if min_cost_idx == 0:
+                            okay = True
+
+                    if not okay:
+                        showed = True
+                        yield (
+                            glyph_name,
+                            {
+                                "type": "wrong_start_point",
+                                "contour": ix,
+                                "master_1": names[m0idx],
+                                "master_2": names[m1idx],
+                                "master_1_idx": m0idx,
+                                "master_2_idx": m1idx,
+                                "value_1": 0,
+                                "value_2": proposed_point,
+                                "reversed": reverse,
+                            },
+                        )
+                else:
+                    # If first_cost is Too Large™, do further inspection.
+                    # This can happen specially in the case of TrueType
+                    # fonts, where the original contour had wrong start point,
+                    # but because of the cubic->quadratic conversion, we don't
+                    # have many isomorphisms to work with.
+
+                    # The threshold here is all black magic. It's just here to
+                    # speed things up so we don't end up doing a full matching
+                    # on every contour that is correct.
+                    threshold = (
+                        len(c0[0]) * (allControlVectors[m0idx][ix][0] * 0.5) ** 2 / 4
+                    )  # Magic only
+                    c1 = contour1[min_cost_idx]
+
+                    # If point counts are different it's because of the contour
+                    # reordering above. We can in theory still try, but our
+                    # bipartite-matching implementations currently assume
+                    # equal number of vertices on both sides. I'm lazy to update
+                    # all three different implementations!
+
+                    if len(c0[0]) == len(c1[0]) and first_cost > threshold:
+                        # Do a quick(!) matching between the points. If it's way off,
+                        # flag it. This can happen specially in the case of TrueType
+                        # fonts, where the original contour had wrong start point, but
+                        # because of the cubic->quadratic conversion, we don't have many
+                        # isomorphisms.
+                        points0 = c0[0][::_NUM_ITEMS_PER_POINTS_COMPLEX_VECTOR]
+                        points1 = c1[0][::_NUM_ITEMS_PER_POINTS_COMPLEX_VECTOR]
+
+                        graph = [
+                            [_hypot2_complex(p0 - p1) for p1 in points1]
+                            for p0 in points0
+                        ]
+                        matching, matching_cost = min_cost_perfect_bipartite_matching(
+                            graph
+                        )
+                        identity_cost = sum(graph[i][i] for i in range(len(graph)))
+
+                        if matching_cost < identity_cost / 8:  # Heuristic
+                            # print(matching_cost, identity_cost, matching)
+                            showed = True
+                            yield (
+                                glyph_name,
+                                {
+                                    "type": "wrong_structure",
+                                    "contour": ix,
+                                    "master_1": names[m0idx],
+                                    "master_2": names[m1idx],
+                                    "master_1_idx": m0idx,
+                                    "master_2_idx": m1idx,
+                                },
+                            )
+
+            if show_all and not showed:
+                yield (
+                    glyph_name,
+                    {
+                        "type": "nothing",
+                        "master_1": names[m0idx],
+                        "master_2": names[m1idx],
+                        "master_1_idx": m0idx,
+                        "master_2_idx": m1idx,
+                    },
+                )
 
 
 @wraps(test_gen)
@@ -583,6 +789,11 @@ def main(args=None):
         "--glyphs",
         action="store",
         help="Space-separate name of glyphs to check",
+    )
+    parser.add_argument(
+        "--show-all",
+        action="store_true",
+        help="Show all glyph pairs, even if no problems are found",
     )
     parser.add_argument(
         "--tolerance",
@@ -627,6 +838,13 @@ def main(args=None):
         nargs="+",
         help="Input a single variable font / DesignSpace / Glyphs file, or multiple TTF/UFO files",
     )
+    parser.add_argument(
+        "--name",
+        metavar="NAME",
+        type=str,
+        action="append",
+        help="Name of the master to use in the report. If not provided, all are used.",
+    )
     parser.add_argument("-v", "--verbose", action="store_true", help="Run verbosely.")
 
     args = parser.parse_args(args)
@@ -642,6 +860,8 @@ def main(args=None):
     fonts = []
     names = []
     locations = []
+
+    original_args_inputs = tuple(args.inputs)
 
     if len(args.inputs) == 1:
         designspace = None
@@ -721,7 +941,7 @@ def main(args=None):
                         locTuple = tuple(loc)
                         if locTuple not in ttGlyphSets:
                             ttGlyphSets[locTuple] = font.getGlyphSet(
-                                location=locDict, normalized=True
+                                location=locDict, normalized=True, recalcBounds=False
                             )
 
                         recursivelyAddGlyph(
@@ -776,8 +996,19 @@ def main(args=None):
             glyphset = font
         glyphsets.append({k: glyphset[k] for k in glyphset.keys()})
 
-    if len(glyphsets) == 1:
-        return None
+    if args.name:
+        accepted_names = set(args.name)
+        glyphsets = [
+            glyphset
+            for name, glyphset in zip(names, glyphsets)
+            if name in accepted_names
+        ]
+        locations = [
+            location
+            for name, location in zip(names, locations)
+            if name in accepted_names
+        ]
+        names = [name for name in names if name in accepted_names]
 
     if not glyphs:
         glyphs = sorted(set([gn for glyphset in glyphsets for gn in glyphset.keys()]))
@@ -793,140 +1024,181 @@ def main(args=None):
     # Normalize locations
     locations = [normalizeLocation(loc, axis_triples) for loc in locations]
 
-    log.info("Running on %d glyphsets", len(glyphsets))
-    log.info("Locations: %s", pformat(locations))
-    problems_gen = test_gen(
-        glyphsets,
-        glyphs=glyphs,
-        names=names,
-        locations=locations,
-        ignore_missing=args.ignore_missing,
-        tolerance=args.tolerance or 0.95,
-    )
-    problems = defaultdict(list)
+    try:
+        log.info("Running on %d glyphsets", len(glyphsets))
+        log.info("Locations: %s", pformat(locations))
+        problems_gen = test_gen(
+            glyphsets,
+            glyphs=glyphs,
+            names=names,
+            locations=locations,
+            ignore_missing=args.ignore_missing,
+            tolerance=args.tolerance or 0.95,
+            show_all=args.show_all,
+        )
+        problems = defaultdict(list)
 
-    f = sys.stdout if args.output is None else open(args.output, "w")
+        f = sys.stdout if args.output is None else open(args.output, "w")
 
-    if not args.quiet:
-        if args.json:
-            import json
+        if not args.quiet:
+            if args.json:
+                import json
 
+                for glyphname, problem in problems_gen:
+                    problems[glyphname].append(problem)
+
+                print(json.dumps(problems), file=f)
+            else:
+                last_glyphname = None
+                for glyphname, p in problems_gen:
+                    problems[glyphname].append(p)
+
+                    if glyphname != last_glyphname:
+                        print(f"Glyph {glyphname} was not compatible:", file=f)
+                        last_glyphname = glyphname
+                        last_master_idxs = None
+
+                    master_idxs = (
+                        (p["master_idx"])
+                        if "master_idx" in p
+                        else (p["master_1_idx"], p["master_2_idx"])
+                    )
+                    if master_idxs != last_master_idxs:
+                        master_names = (
+                            (p["master"])
+                            if "master" in p
+                            else (p["master_1"], p["master_2"])
+                        )
+                        print(f"  Masters: %s:" % ", ".join(master_names), file=f)
+                        last_master_idxs = master_idxs
+
+                    if p["type"] == "missing":
+                        print(
+                            "    Glyph was missing in master %s" % p["master"], file=f
+                        )
+                    elif p["type"] == "open_path":
+                        print(
+                            "    Glyph has an open path in master %s" % p["master"],
+                            file=f,
+                        )
+                    elif p["type"] == "path_count":
+                        print(
+                            "    Path count differs: %i in %s, %i in %s"
+                            % (
+                                p["value_1"],
+                                p["master_1"],
+                                p["value_2"],
+                                p["master_2"],
+                            ),
+                            file=f,
+                        )
+                    elif p["type"] == "node_count":
+                        print(
+                            "    Node count differs in path %i: %i in %s, %i in %s"
+                            % (
+                                p["path"],
+                                p["value_1"],
+                                p["master_1"],
+                                p["value_2"],
+                                p["master_2"],
+                            ),
+                            file=f,
+                        )
+                    elif p["type"] == "node_incompatibility":
+                        print(
+                            "    Node %o incompatible in path %i: %s in %s, %s in %s"
+                            % (
+                                p["node"],
+                                p["path"],
+                                p["value_1"],
+                                p["master_1"],
+                                p["value_2"],
+                                p["master_2"],
+                            ),
+                            file=f,
+                        )
+                    elif p["type"] == "contour_order":
+                        print(
+                            "    Contour order differs: %s in %s, %s in %s"
+                            % (
+                                p["value_1"],
+                                p["master_1"],
+                                p["value_2"],
+                                p["master_2"],
+                            ),
+                            file=f,
+                        )
+                    elif p["type"] == "wrong_start_point":
+                        print(
+                            "    Contour %d start point differs: %s in %s, %s in %s; reversed: %s"
+                            % (
+                                p["contour"],
+                                p["value_1"],
+                                p["master_1"],
+                                p["value_2"],
+                                p["master_2"],
+                                p["reversed"],
+                            ),
+                            file=f,
+                        )
+                    elif p["type"] == "wrong_structure":
+                        print(
+                            "    Contour %d structures differ: %s, %s"
+                            % (
+                                p["contour"],
+                                p["master_1"],
+                                p["master_2"],
+                            ),
+                            file=f,
+                        )
+                    elif p["type"] == "nothing":
+                        print(
+                            "    Nothing wrong between %s and %s"
+                            % (
+                                p["master_1"],
+                                p["master_2"],
+                            ),
+                            file=f,
+                        )
+        else:
             for glyphname, problem in problems_gen:
                 problems[glyphname].append(problem)
 
-            print(json.dumps(problems), file=f)
-        else:
-            last_glyphname = None
-            for glyphname, p in problems_gen:
-                problems[glyphname].append(p)
+        if args.pdf:
+            log.info("Writing PDF to %s", args.pdf)
+            from .interpolatablePlot import InterpolatablePDF
 
-                if glyphname != last_glyphname:
-                    print(f"Glyph {glyphname} was not compatible:", file=f)
-                    last_glyphname = glyphname
-                    last_masters = None
+            with InterpolatablePDF(args.pdf, glyphsets=glyphsets, names=names) as pdf:
+                pdf.add_problems(problems)
+                if not problems and not args.quiet:
+                    pdf.draw_cupcake()
 
-                masters = (
-                    (p["master"]) if "master" in p else (p["master_1"], p["master_2"])
-                )
-                if masters != last_masters:
-                    print(f"  Masters: %s:" % ", ".join(masters), file=f)
-                    last_masters = masters
+        if args.html:
+            log.info("Writing HTML to %s", args.html)
+            from .interpolatablePlot import InterpolatableSVG
 
-                if p["type"] == "missing":
-                    print("    Glyph was missing in master %s" % p["master"], file=f)
-                if p["type"] == "open_path":
-                    print(
-                        "    Glyph has an open path in master %s" % p["master"], file=f
-                    )
-                if p["type"] == "path_count":
-                    print(
-                        "    Path count differs: %i in %s, %i in %s"
-                        % (p["value_1"], p["master_1"], p["value_2"], p["master_2"]),
-                        file=f,
-                    )
-                if p["type"] == "node_count":
-                    print(
-                        "    Node count differs in path %i: %i in %s, %i in %s"
-                        % (
-                            p["path"],
-                            p["value_1"],
-                            p["master_1"],
-                            p["value_2"],
-                            p["master_2"],
-                        ),
-                        file=f,
-                    )
-                if p["type"] == "node_incompatibility":
-                    print(
-                        "    Node %o incompatible in path %i: %s in %s, %s in %s"
-                        % (
-                            p["node"],
-                            p["path"],
-                            p["value_1"],
-                            p["master_1"],
-                            p["value_2"],
-                            p["master_2"],
-                        ),
-                        file=f,
-                    )
-                if p["type"] == "contour_order":
-                    print(
-                        "    Contour order differs: %s in %s, %s in %s"
-                        % (
-                            p["value_1"],
-                            p["master_1"],
-                            p["value_2"],
-                            p["master_2"],
-                        ),
-                        file=f,
-                    )
-                if p["type"] == "wrong_start_point":
-                    print(
-                        "    Contour %d start point differs: %s in %s, %s in %s; reversed: %s"
-                        % (
-                            p["contour"],
-                            p["value_1"],
-                            p["master_1"],
-                            p["value_2"],
-                            p["master_2"],
-                            p["reversed"],
-                        ),
-                        file=f,
-                    )
-    else:
-        for glyphname, problem in problems_gen:
-            problems[glyphname].append(problem)
+            svgs = []
+            with InterpolatableSVG(svgs, glyphsets=glyphsets, names=names) as svg:
+                svg.add_problems(problems)
+                if not problems and not args.quiet:
+                    svg.draw_cupcake()
 
-    if args.pdf:
-        log.info("Writing PDF to %s", args.pdf)
-        from .interpolatablePlot import InterpolatablePDF
+            import base64
 
-        with InterpolatablePDF(args.pdf, glyphsets=glyphsets, names=names) as pdf:
-            pdf.add_problems(problems)
-            if not problems and not args.quiet:
-                pdf.draw_cupcake()
+            with open(args.html, "wb") as f:
+                f.write(b"<!DOCTYPE html>\n")
+                f.write(b"<html><body align=center>\n")
+                for svg in svgs:
+                    f.write("<img src='data:image/svg+xml;base64,".encode("utf-8"))
+                    f.write(base64.b64encode(svg))
+                    f.write(b"' />\n")
+                    f.write(b"<hr>\n")
+                f.write(b"</body></html>\n")
 
-    if args.html:
-        log.info("Writing HTML to %s", args.html)
-        from .interpolatablePlot import InterpolatableSVG
-
-        svgs = []
-        with InterpolatableSVG(svgs, glyphsets=glyphsets, names=names) as svg:
-            svg.add_problems(problems)
-            if not problems and not args.quiet:
-                svg.draw_cupcake()
-
-        import base64
-
-        with open(args.html, "wb") as f:
-            f.write(b"<!DOCTYPE html>\n")
-            f.write(b"<html><body align=center>\n")
-            for svg in svgs:
-                f.write("<img src='data:image/svg+xml;base64,".encode("utf-8"))
-                f.write(base64.b64encode(svg))
-                f.write(b"' />\n")
-                f.write(b"<hr>\n")
-            f.write(b"</body></html>\n")
+    except Exception as e:
+        e.args += original_args_inputs
+        log.error(e)
+        raise
 
     if problems:
         return problems
