@@ -479,7 +479,7 @@ def draw_if_interactive(*args, **kwargs):
 
 
 # This function's signature is rewritten upon backend-load by switch_backend.
-def show(*args, **kwargs):
+def show(*args, **kwargs) -> None:
     """
     Display all open figures.
 
@@ -707,11 +707,12 @@ def xkcd(
     scale: float = 1, length: float = 100, randomness: float = 2
 ) -> ExitStack:
     """
-    Turn on `xkcd <https://xkcd.com/>`_ sketch-style drawing mode.  This will
-    only have effect on things drawn after this function is called.
+    Turn on `xkcd <https://xkcd.com/>`_ sketch-style drawing mode.
 
-    For best results, the "Humor Sans" font should be installed: it is
-    not included with Matplotlib.
+    This will only have an effect on things drawn after this function is called.
+
+    For best results, install the `xkcd script <https://github.com/ipython/xkcd-font/>`_
+    font; xkcd fonts are not packaged with Matplotlib.
 
     Parameters
     ----------
@@ -750,8 +751,7 @@ def xkcd(
 
     from matplotlib import patheffects
     rcParams.update({
-        'font.family': ['xkcd', 'xkcd Script', 'Humor Sans', 'Comic Neue',
-                        'Comic Sans MS'],
+        'font.family': ['xkcd', 'xkcd Script', 'Comic Neue', 'Comic Sans MS'],
         'font.size': 14.0,
         'path.sketch': (scale, length, randomness),
         'path.effects': [
@@ -2413,18 +2413,15 @@ def matshow(A: ArrayLike, fignum: None | int = None, **kwargs) -> AxesImage:
         The matrix to be displayed.
 
     fignum : None or int
-        If *None*, create a new figure window with automatic numbering.
+        If *None*, create a new, appropriately sized figure window.
 
-        If a nonzero integer, draw into the figure with the given number
-        (create it if it does not exist).
+        If 0, use the current Axes (creating one if there is none, without ever
+        adjusting the figure size).
 
-        If 0, use the current axes (or create one if it does not exist).
-
-        .. note::
-
-           Because of how `.Axes.matshow` tries to set the figure aspect
-           ratio to be the one of the array, strange things may happen if you
-           reuse an existing figure.
+        Otherwise, create a new Axes on the figure with the given number
+        (creating it at the appropriate size if it does not exist, but not
+        adjusting the figure size otherwise).  Note that this will be drawn on
+        top of any preexisting Axes on the figure.
 
     Returns
     -------
@@ -3670,7 +3667,7 @@ def scatter(
     x: float | ArrayLike,
     y: float | ArrayLike,
     s: float | ArrayLike | None = None,
-    c: Sequence[ColorType] | ColorType | None = None,
+    c: ArrayLike | Sequence[ColorType] | ColorType | None = None,
     marker: MarkerType | None = None,
     cmap: str | Colormap | None = None,
     norm: str | Normalize | None = None,
