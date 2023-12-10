@@ -345,5 +345,3 @@ struct TDumper<NCB::TFeaturesLayout> {
         }
     }
 };
-
-
