@@ -74,11 +74,7 @@ from hypothesis.internal.compat import (
     get_type_hints,
     is_typed_named_tuple,
 )
-from hypothesis.internal.conjecture.utils import (
-    calc_label_from_cls,
-    check_sample,
-    integer_range,
-)
+from hypothesis.internal.conjecture.utils import calc_label_from_cls, check_sample
 from hypothesis.internal.entropy import get_seeder_and_restorer
 from hypothesis.internal.floats import float_of
 from hypothesis.internal.reflection import (
@@ -1707,7 +1703,7 @@ class PermutationStrategy(SearchStrategy):
         # change.  We don't consider the last element as it's always a no-op.
         result = list(self.values)
         for i in range(len(result) - 1):
-            j = integer_range(data, i, len(result) - 1)
+            j = data.draw_integer(i, len(result) - 1)
             result[i], result[j] = result[j], result[i]
         return result
 
@@ -2011,7 +2007,7 @@ def shared(
 @composite
 def _maybe_nil_uuids(draw, uuid):
     # Equivalent to `random_uuids | just(...)`, with a stronger bias to the former.
-    if draw(data()).conjecture_data.draw_bits(6) == 63:
+    if draw(data()).conjecture_data.draw_boolean(1 / 64):
         return UUID("00000000-0000-0000-0000-000000000000")
     return uuid
 

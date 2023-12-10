@@ -260,7 +260,7 @@ class UniqueSampledListStrategy(UniqueListStrategy):
 
         while remaining and should_draw.more():
             i = len(remaining) - 1
-            j = cu.integer_range(data, 0, i)
+            j = data.draw_integer(0, i)
             if j != i:
                 remaining[i], remaining[j] = remaining[j], remaining[i]
             value = self.element_strategy._transform(remaining.pop())
@@ -330,7 +330,7 @@ class FixedAndOptionalKeysDictStrategy(SearchStrategy):
             data, min_size=0, max_size=len(remaining), average_size=len(remaining) / 2
         )
         while should_draw.more():
-            j = cu.integer_range(data, 0, len(remaining) - 1)
+            j = data.draw_integer(0, len(remaining) - 1)
             remaining[-1], remaining[j] = remaining[j], remaining[-1]
             key = remaining.pop()
             result[key] = data.draw(self.optional[key])

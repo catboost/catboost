@@ -58,7 +58,9 @@ BYTES_LOOKUP = {
 }
 
 
-GROUP_CACHE_STRATEGY = st.shared(st.builds(dict), key="hypothesis.regex.group_cache")
+GROUP_CACHE_STRATEGY: st.SearchStrategy[dict] = st.shared(
+    st.builds(dict), key="hypothesis.regex.group_cache"
+)
 
 
 @st.composite

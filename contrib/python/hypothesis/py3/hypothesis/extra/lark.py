@@ -158,7 +158,7 @@ class LarkStrategy(st.SearchStrategy):
             data.stop_example()
 
     def gen_ignore(self, data, draw_state):
-        if self.ignored_symbols and data.draw_bits(2) == 3:
+        if self.ignored_symbols and data.draw_boolean(1 / 4):
             emit = data.draw(st.sampled_from(self.ignored_symbols))
             self.draw_symbol(data, emit, draw_state)
 

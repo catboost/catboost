@@ -11,23 +11,20 @@
 import math
 from decimal import Decimal
 from fractions import Fraction
-from sys import float_info
 from typing import Literal, Optional, Union
 
 from hypothesis.control import reject
 from hypothesis.errors import InvalidArgument
-from hypothesis.internal.conjecture import floats as flt, utils as d
-from hypothesis.internal.conjecture.utils import calc_label_from_name
 from hypothesis.internal.filtering import (
     get_float_predicate_bounds,
     get_integer_predicate_bounds,
 )
 from hypothesis.internal.floats import (
+    SMALLEST_SUBNORMAL,
     float_of,
     float_to_int,
     int_to_float,
     is_negative,
-    make_float_clamper,
     next_down,
     next_down_normal,
     next_up,
@@ -48,7 +45,6 @@ from hypothesis.strategies._internal.utils import cacheable, defines_strategy
 
 # See https://github.com/python/mypy/issues/3186 - numbers.Real is wrong!
 Real = Union[int, float, Fraction, Decimal]
-ONE_BOUND_INTEGERS_LABEL = d.calc_label_from_name("trying a one-bound int allowing 0")
 
 
 class IntegersStrategy(SearchStrategy):
@@ -69,34 +65,14 @@ class IntegersStrategy(SearchStrategy):
         return f"integers({self.start}, {self.end})"
 
     def do_draw(self, data):
-        if self.start is None and self.end is None:
-            return d.unbounded_integers(data)
-
-        if self.start is None:
-            if self.end <= 0:
-                return self.end - abs(d.unbounded_integers(data))
-            else:
-                probe = self.end + 1
-                while self.end < probe:
-                    data.start_example(ONE_BOUND_INTEGERS_LABEL)
-                    probe = d.unbounded_integers(data)
-                    data.stop_example(discard=self.end < probe)
-                return probe
-
-        if self.end is None:
-            if self.start >= 0:
-                return self.start + abs(d.unbounded_integers(data))
-            else:
-                probe = self.start - 1
-                while probe < self.start:
-                    data.start_example(ONE_BOUND_INTEGERS_LABEL)
-                    probe = d.unbounded_integers(data)
-                    data.stop_example(discard=probe < self.start)
-                return probe
-
         # For bounded integers, make the bounds and near-bounds more likely.
         forced = None
-        if self.end - self.start > 127:
+        if (
+            self.end is not None
+            and self.start is not None
+            and self.end - self.start > 127
+        ):
+            bits = data.draw_integer(0, 127)
             forced = {
                 122: self.start,
                 123: self.start,
@@ -104,9 +80,11 @@ class IntegersStrategy(SearchStrategy):
                 125: self.end,
                 126: self.start + 1,
                 127: self.end - 1,
-            }.get(data.draw_bits(7))
+            }.get(bits)
 
-        return d.integer_range(data, self.start, self.end, center=0, forced=forced)
+        return data.draw_integer(
+            min_value=self.start, max_value=self.end, forced=forced
+        )
 
     def filter(self, condition):
         if condition is math.isfinite:
@@ -166,54 +144,6 @@ def integers(
     return IntegersStrategy(min_value, max_value)
 
 
-SMALLEST_SUBNORMAL = next_up(0.0)
-SIGNALING_NAN = int_to_float(0x7FF8_0000_0000_0001)  # nonzero mantissa
-assert math.isnan(SIGNALING_NAN)
-assert math.copysign(1, SIGNALING_NAN) == 1
-
-NASTY_FLOATS = sorted(
-    [
-        0.0,
-        0.5,
-        1.1,
-        1.5,
-        1.9,
-        1.0 / 3,
-        10e6,
-        10e-6,
-        1.175494351e-38,
-        next_up(0.0),
-        float_info.min,
-        float_info.max,
-        3.402823466e38,
-        9007199254740992,
-        1 - 10e-6,
-        2 + 10e-6,
-        1.192092896e-07,
-        2.2204460492503131e-016,
-    ]
-    + [2.0**-n for n in (24, 14, 149, 126)]  # minimum (sub)normals for float16,32
-    + [float_info.min / n for n in (2, 10, 1000, 100_000)]  # subnormal in float64
-    + [math.inf, math.nan] * 5
-    + [SIGNALING_NAN],
-    key=flt.float_to_lex,
-)
-NASTY_FLOATS = list(map(float, NASTY_FLOATS))
-NASTY_FLOATS.extend([-x for x in NASTY_FLOATS])
-
-FLOAT_STRATEGY_DO_DRAW_LABEL = calc_label_from_name(
-    "getting another float in FloatStrategy"
-)
-
-
-def _sign_aware_lte(x: float, y: float) -> bool:
-    """Less-than-or-equals, but strictly orders -0.0 and 0.0"""
-    if x == 0.0 == y:
-        return math.copysign(1.0, x) <= math.copysign(1.0, y)
-    else:
-        return x <= y
-
-
 class FloatStrategy(SearchStrategy):
     """A strategy for floating point numbers."""
 
@@ -246,38 +176,6 @@ class FloatStrategy(SearchStrategy):
         self.allow_nan = allow_nan
         self.smallest_nonzero_magnitude = smallest_nonzero_magnitude
 
-        boundary_values = [
-            min_value,
-            next_up(min_value),
-            min_value + 1,
-            max_value - 1,
-            next_down(max_value),
-            max_value,
-        ]
-        self.nasty_floats = [
-            f for f in NASTY_FLOATS + boundary_values if self.permitted(f)
-        ]
-        weights = [0.2 * len(self.nasty_floats)] + [0.8] * len(self.nasty_floats)
-        self.sampler = d.Sampler(weights) if self.nasty_floats else None
-
-        self.pos_clamper = self.neg_clamper = None
-        if _sign_aware_lte(0.0, max_value):
-            pos_min = max(min_value, smallest_nonzero_magnitude)
-            allow_zero = _sign_aware_lte(min_value, 0.0)
-            self.pos_clamper = make_float_clamper(
-                pos_min, max_value, allow_zero=allow_zero
-            )
-        if _sign_aware_lte(min_value, -0.0):
-            neg_max = min(max_value, -smallest_nonzero_magnitude)
-            allow_zero = _sign_aware_lte(-0.0, max_value)
-            self.neg_clamper = make_float_clamper(
-                -neg_max, -min_value, allow_zero=allow_zero
-            )
-
-        self.forced_sign_bit: Optional[int] = None
-        if (self.pos_clamper is None) != (self.neg_clamper is None):
-            self.forced_sign_bit = 1 if self.neg_clamper else 0
-
     def __repr__(self):
         return "{}(min_value={}, max_value={}, allow_nan={}, smallest_nonzero_magnitude={})".format(
             self.__class__.__name__,
@@ -287,39 +185,13 @@ class FloatStrategy(SearchStrategy):
             self.smallest_nonzero_magnitude,
         )
 
-    def permitted(self, f):
-        assert isinstance(f, float)
-        if math.isnan(f):
-            return self.allow_nan
-        if 0 < abs(f) < self.smallest_nonzero_magnitude:
-            return False
-        return _sign_aware_lte(self.min_value, f) and _sign_aware_lte(f, self.max_value)
-
     def do_draw(self, data):
-        while True:
-            data.start_example(FLOAT_STRATEGY_DO_DRAW_LABEL)
-            i = self.sampler.sample(data) if self.sampler else 0
-            data.start_example(flt.DRAW_FLOAT_LABEL)
-            if i == 0:
-                result = flt.draw_float(data, forced_sign_bit=self.forced_sign_bit)
-                is_negative = flt.float_to_int(result) >> 63
-                if is_negative:
-                    clamped = -self.neg_clamper(-result)
-                else:
-                    clamped = self.pos_clamper(result)
-                if clamped != result:
-                    data.stop_example(discard=True)
-                    data.start_example(flt.DRAW_FLOAT_LABEL)
-                    flt.write_float(data, clamped)
-                    result = clamped
-            else:
-                result = self.nasty_floats[i - 1]
-
-                flt.write_float(data, result)
-
-            data.stop_example()  # (DRAW_FLOAT_LABEL)
-            data.stop_example()  # (FLOAT_STRATEGY_DO_DRAW_LABEL)
-            return result
+        return data.draw_float(
+            min_value=self.min_value,
+            max_value=self.max_value,
+            allow_nan=self.allow_nan,
+            smallest_nonzero_magnitude=self.smallest_nonzero_magnitude,
+        )
 
     def filter(self, condition):
         # Handle a few specific weird cases.
@@ -331,10 +203,13 @@ class FloatStrategy(SearchStrategy):
                 smallest_nonzero_magnitude=self.smallest_nonzero_magnitude,
             )
         if condition is math.isinf:
-            permitted_infs = [x for x in (-math.inf, math.inf) if self.permitted(x)]
-            if not permitted_infs:
-                return nothing()
-            return SampledFromStrategy(permitted_infs)
+            if permitted_infs := [
+                x
+                for x in (-math.inf, math.inf)
+                if self.min_value <= x <= self.max_value
+            ]:
+                return SampledFromStrategy(permitted_infs)
+            return nothing()
         if condition is math.isnan:
             if not self.allow_nan:
                 return nothing()
@@ -639,7 +514,7 @@ class NanStrategy(SearchStrategy):
     def do_draw(self, data):
         # Nans must have all exponent bits and the first mantissa bit set, so
         # we generate by taking 64 random bits and setting the required ones.
-        sign_bit = data.draw_bits(1) << 63
+        sign_bit = int(data.draw_boolean()) << 63
         nan_bits = float_to_int(math.nan)
-        mantissa_bits = data.draw_bits(52)
+        mantissa_bits = data.draw_integer(0, 2**52 - 1)
         return int_to_float(sign_bit | nan_bits | mantissa_bits)

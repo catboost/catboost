@@ -11,15 +11,14 @@
 import enum
 import hashlib
 import heapq
-import math
 import sys
 from collections import OrderedDict, abc
 from functools import lru_cache
 from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 
 from hypothesis.errors import InvalidArgument
-from hypothesis.internal.compat import floor, int_from_bytes
-from hypothesis.internal.floats import int_to_float, next_up
+from hypothesis.internal.compat import int_from_bytes
+from hypothesis.internal.floats import next_up
 
 if TYPE_CHECKING:
     from hypothesis.internal.conjecture.data import ConjectureData
@@ -45,84 +44,8 @@ def combine_labels(*labels: int) -> int:
     return label
 
 
-INTEGER_RANGE_DRAW_LABEL = calc_label_from_name("another draw in integer_range()")
-BIASED_COIN_LABEL = calc_label_from_name("biased_coin()")
-BIASED_COIN_INNER_LABEL = calc_label_from_name("inside biased_coin()")
 SAMPLE_IN_SAMPLER_LABEL = calc_label_from_name("a sample() in Sampler")
 ONE_FROM_MANY_LABEL = calc_label_from_name("one more from many()")
-
-
-def unbounded_integers(data: "ConjectureData") -> int:
-    size = INT_SIZES[INT_SIZES_SAMPLER.sample(data)]
-    r = data.draw_bits(size)
-    sign = r & 1
-    r >>= 1
-    if sign:
-        r = -r
-    return int(r)
-
-
-def integer_range(
-    data: "ConjectureData",
-    lower: int,
-    upper: int,
-    center: Optional[int] = None,
-    forced: Optional[int] = None,
-) -> int:
-    assert lower <= upper
-    assert forced is None or lower <= forced <= upper
-    if lower == upper:
-        # Write a value even when this is trivial so that when a bound depends
-        # on other values we don't suddenly disappear when the gap shrinks to
-        # zero - if that happens then often the data stream becomes misaligned
-        # and we fail to shrink in cases where we really should be able to.
-        data.draw_bits(1, forced=0)
-        return int(lower)
-
-    if center is None:
-        center = lower
-    center = min(max(center, lower), upper)
-
-    if center == upper:
-        above = False
-    elif center == lower:
-        above = True
-    else:
-        force_above = None if forced is None else forced < center
-        above = not data.draw_bits(1, forced=force_above)
-
-    if above:
-        gap = upper - center
-    else:
-        gap = center - lower
-
-    assert gap > 0
-
-    bits = gap.bit_length()
-    probe = gap + 1
-
-    if bits > 24 and data.draw_bits(3, forced=None if forced is None else 0):
-        # For large ranges, we combine the uniform random distribution from draw_bits
-        # with a weighting scheme with moderate chance.  Cutoff at 2 ** 24 so that our
-        # choice of unicode characters is uniform but the 32bit distribution is not.
-        idx = INT_SIZES_SAMPLER.sample(data)
-        bits = min(bits, INT_SIZES[idx])
-
-    while probe > gap:
-        data.start_example(INTEGER_RANGE_DRAW_LABEL)
-        probe = data.draw_bits(
-            bits, forced=None if forced is None else abs(forced - center)
-        )
-        data.stop_example(discard=probe > gap)
-
-    if above:
-        result = center + probe
-    else:
-        result = center - probe
-
-    assert lower <= result <= upper
-    assert forced is None or result == forced, (result, forced, center, above)
-    return result
 
 
 T = TypeVar("T")
@@ -159,131 +82,7 @@ def check_sample(
 
 
 def choice(data: "ConjectureData", values: Sequence[T]) -> T:
-    return values[integer_range(data, 0, len(values) - 1)]
-
-
-FLOAT_PREFIX = 0b1111111111 << 52
-FULL_FLOAT = int_to_float(FLOAT_PREFIX | ((2 << 53) - 1)) - 1
-
-
-def fractional_float(data: "ConjectureData") -> float:
-    return (int_to_float(FLOAT_PREFIX | data.draw_bits(52)) - 1) / FULL_FLOAT
-
-
-def biased_coin(
-    data: "ConjectureData", p: float, *, forced: Optional[bool] = None
-) -> bool:
-    """Return True with probability p (assuming a uniform generator),
-    shrinking towards False. If ``forced`` is set to a non-None value, this
-    will always return that value but will write choices appropriate to having
-    drawn that value randomly."""
-
-    # NB this function is vastly more complicated than it may seem reasonable
-    # for it to be. This is because it is used in a lot of places and it's
-    # important for it to shrink well, so it's worth the engineering effort.
-
-    if p <= 0 or p >= 1:
-        bits = 1
-    else:
-        # When there is a meaningful draw, in order to shrink well we will
-        # set things up so that 0 and 1 always correspond to False and True
-        # respectively. This means we want enough bits available that in a
-        # draw we will always have at least one truthy value and one falsey
-        # value.
-        bits = math.ceil(-math.log(min(p, 1 - p), 2))
-    # In order to avoid stupidly large draws where the probability is
-    # effectively zero or one, we treat probabilities of under 2^-64 to be
-    # effectively zero.
-    if bits > 64:
-        # There isn't enough precision near one for this to occur for values
-        # far from 0.
-        p = 0.0
-        bits = 1
-
-    size = 2**bits
-
-    data.start_example(BIASED_COIN_LABEL)
-    while True:
-        # The logic here is a bit complicated and special cased to make it
-        # play better with the shrinker.
-
-        # We imagine partitioning the real interval [0, 1] into 2**n equal parts
-        # and looking at each part and whether its interior is wholly <= p
-        # or wholly >= p. At most one part can be neither.
-
-        # We then pick a random part. If it's wholly on one side or the other
-        # of p then we use that as the answer. If p is contained in the
-        # interval then we start again with a new probability that is given
-        # by the fraction of that interval that was <= our previous p.
-
-        # We then take advantage of the fact that we have control of the
-        # labelling to make this shrink better, using the following tricks:
-
-        # If p is <= 0 or >= 1 the result of this coin is certain. We make sure
-        # to write a byte to the data stream anyway so that these don't cause
-        # difficulties when shrinking.
-        if p <= 0:
-            data.draw_bits(1, forced=0)
-            result = False
-        elif p >= 1:
-            data.draw_bits(1, forced=1)
-            result = True
-        else:
-            falsey = floor(size * (1 - p))
-            truthy = floor(size * p)
-            remainder = size * p - truthy
-
-            if falsey + truthy == size:
-                partial = False
-            else:
-                partial = True
-
-            if forced is None:
-                # We want to get to the point where True is represented by
-                # 1 and False is represented by 0 as quickly as possible, so
-                # we use the remove_discarded machinery in the shrinker to
-                # achieve that by discarding any draws that are > 1 and writing
-                # a suitable draw into the choice sequence at the end of the
-                # loop.
-                data.start_example(BIASED_COIN_INNER_LABEL)
-                i = data.draw_bits(bits)
-                data.stop_example(discard=i > 1)
-            else:
-                i = data.draw_bits(bits, forced=int(forced))
-
-            # We always choose the region that causes us to repeat the loop as
-            # the maximum value, so that shrinking the drawn bits never causes
-            # us to need to draw more data.
-            if partial and i == size - 1:
-                p = remainder
-                continue
-            if falsey == 0:
-                # Every other partition is truthy, so the result is true
-                result = True
-            elif truthy == 0:
-                # Every other partition is falsey, so the result is false
-                result = False
-            elif i <= 1:
-                # We special case so that zero is always false and 1 is always
-                # true which makes shrinking easier because we can always
-                # replace a truthy block with 1. This has the slightly weird
-                # property that shrinking from 2 to 1 can cause the result to
-                # grow, but the shrinker always tries 0 and 1 first anyway, so
-                # this will usually be fine.
-                result = bool(i)
-            else:
-                # Originally everything in the region 0 <= i < falsey was false
-                # and everything above was true. We swapped one truthy element
-                # into this region, so the region becomes 0 <= i <= falsey
-                # except for i = 1. We know i > 1 here, so the test for truth
-                # becomes i > falsey.
-                result = i > falsey
-
-            if i > 1:
-                data.draw_bits(bits, forced=int(result))
-        break
-    data.stop_example()
-    return result
+    return values[data.draw_integer(0, len(values) - 1)]
 
 
 class Sampler:
@@ -375,7 +174,7 @@ class Sampler:
     def sample(self, data: "ConjectureData") -> int:
         data.start_example(SAMPLE_IN_SAMPLER_LABEL)
         base, alternate, alternate_chance = choice(data, self.table)
-        use_alternate = biased_coin(data, alternate_chance)
+        use_alternate = data.draw_boolean(alternate_chance)
         data.stop_example()
         if use_alternate:
             return alternate
@@ -437,8 +236,8 @@ class many:
                 forced_result = True
             elif self.count >= self.max_size:
                 forced_result = False
-            should_continue = biased_coin(
-                self.data, self.p_continue, forced=forced_result
+            should_continue = self.data.draw_boolean(
+                self.p_continue, forced=forced_result
             )
 
         if should_continue:

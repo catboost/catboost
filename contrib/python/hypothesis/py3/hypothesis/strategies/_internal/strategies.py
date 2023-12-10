@@ -544,7 +544,7 @@ class SampledFromStrategy(SearchStrategy):
         # Start with ordinary rejection sampling. It's fast if it works, and
         # if it doesn't work then it was only a small amount of overhead.
         for _ in range(3):
-            i = cu.integer_range(data, 0, len(self.elements) - 1)
+            i = data.draw_integer(0, len(self.elements) - 1)
             if i not in known_bad_indices:
                 element = self.get_element(i)
                 if element is not filter_not_satisfied:
@@ -558,10 +558,6 @@ class SampledFromStrategy(SearchStrategy):
         if not max_good_indices:
             return filter_not_satisfied
 
-        # Figure out the bit-length of the index that we will write back after
-        # choosing an allowed element.
-        write_length = len(self.elements).bit_length()
-
         # Impose an arbitrary cutoff to prevent us from wasting too much time
         # on very large element lists.
         cutoff = 10000
@@ -570,7 +566,7 @@ class SampledFromStrategy(SearchStrategy):
         # Before building the list of allowed indices, speculatively choose
         # one of them. We don't yet know how many allowed indices there will be,
         # so this choice might be out-of-bounds, but that's OK.
-        speculative_index = cu.integer_range(data, 0, max_good_indices - 1)
+        speculative_index = data.draw_integer(0, max_good_indices - 1)
 
         # Calculate the indices of allowed values, so that we can choose one
         # of them at random. But if we encounter the speculatively-chosen one,
@@ -585,14 +581,14 @@ class SampledFromStrategy(SearchStrategy):
                     if len(allowed) > speculative_index:
                         # Early-exit case: We reached the speculative index, so
                         # we just return the corresponding element.
-                        data.draw_bits(write_length, forced=i)
+                        data.draw_integer(0, len(self.elements) - 1, forced=i)
                         return element
 
         # The speculative index didn't work out, but at this point we've built
         # and can choose from the complete list of allowed indices and elements.
         if allowed:
             i, element = cu.choice(data, allowed)
-            data.draw_bits(write_length, forced=i)
+            data.draw_integer(0, len(self.elements) - 1, forced=i)
             return element
         # If there are no allowed indices, the filter couldn't be satisfied.
         return filter_not_satisfied

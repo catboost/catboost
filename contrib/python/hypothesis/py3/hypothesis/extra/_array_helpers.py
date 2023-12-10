@@ -13,7 +13,7 @@ from typing import NamedTuple, Optional, Tuple, Union
 
 from hypothesis import assume, strategies as st
 from hypothesis.errors import InvalidArgument
-from hypothesis.internal.conjecture import utils as cu
+from hypothesis.internal.conjecture.utils import _calc_p_continue
 from hypothesis.internal.coverage import check_function
 from hypothesis.internal.validation import check_type, check_valid_interval
 from hypothesis.strategies._internal.utils import defines_strategy
@@ -544,7 +544,7 @@ class MutuallyBroadcastableShapesStrategy(st.SearchStrategy):
                 if name not in dims:
                     dim = name.strip("?")
                     dims[dim] = data.draw(self.side_strat)
-                    if self.min_dims == 0 and not data.draw_bits(3):
+                    if self.min_dims == 0 and not data.draw_boolean(7 / 8):
                         dims[dim + "?"] = None
                     else:
                         dims[dim + "?"] = dims[dim]
@@ -561,6 +561,9 @@ class MutuallyBroadcastableShapesStrategy(st.SearchStrategy):
         else:
             assert len(use) == self.num_shapes
             assert all(isinstance(x, bool) for x in use)
+
+        _gap = self.max_dims - self.min_dims
+        p_keep_extending_shape = _calc_p_continue(desired_avg=_gap / 2, max_size=_gap)
 
         for dim_count in range(1, self.max_dims + 1):
             dim = dim_count - 1
@@ -596,9 +599,7 @@ class MutuallyBroadcastableShapesStrategy(st.SearchStrategy):
                 # shape-tuple even if it is no longer being added to.
                 # This helps to ensure more stable shrinking behavior.
                 if self.min_dims < dim_count:
-                    use[shape_id] &= cu.biased_coin(
-                        data, 1 - 1 / (1 + self.max_dims - dim)
-                    )
+                    use[shape_id] &= data.draw_boolean(p_keep_extending_shape)
 
                 if use[shape_id]:
                     shape.append(side)

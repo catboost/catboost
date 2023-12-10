@@ -330,7 +330,7 @@ class ArrayStrategy(st.SearchStrategy):
             seen = set()
 
             while elements.more():
-                i = cu.integer_range(data, 0, self.array_size - 1)
+                i = data.draw_integer(0, self.array_size - 1)
                 if not needs_fill[i]:
                     elements.reject()
                     continue
@@ -756,7 +756,7 @@ def array_dtypes(
         field_names,
         st.tuples(field_names, field_names).filter(lambda ns: ns[0] != ns[1]),
     )
-    elements = st.tuples(name_titles, subtype_strategy)
+    elements: st.SearchStrategy[tuple] = st.tuples(name_titles, subtype_strategy)
     if allow_subarrays:
         elements |= st.tuples(
             name_titles, subtype_strategy, array_shapes(max_dims=2, max_side=2)

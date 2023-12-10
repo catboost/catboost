@@ -713,7 +713,7 @@ _global_type_lookup.update(
             st.binary(),
             st.integers(0, 255),
             # As with Reversible, we tuplize this for compatibility with Hashable.
-            st.lists(st.integers(0, 255)).map(tuple),  # type: ignore
+            st.lists(st.integers(0, 255)).map(tuple),
         ),
         typing.BinaryIO: st.builds(io.BytesIO, st.binary()),
         typing.TextIO: st.builds(io.StringIO, st.text()),

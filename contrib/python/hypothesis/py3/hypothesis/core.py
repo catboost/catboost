@@ -610,10 +610,10 @@ def get_random_for_wrapped_test(test, wrapped_test):
 
 @attr.s
 class Stuff:
-    selfy = attr.ib(default=None)
-    args = attr.ib(factory=tuple)
-    kwargs = attr.ib(factory=dict)
-    given_kwargs = attr.ib(factory=dict)
+    selfy: Any = attr.ib(default=None)
+    args: tuple = attr.ib(factory=tuple)
+    kwargs: dict = attr.ib(factory=dict)
+    given_kwargs: dict = attr.ib(factory=dict)
 
 
 def process_arguments_to_given(wrapped_test, arguments, kwargs, given_kwargs, params):

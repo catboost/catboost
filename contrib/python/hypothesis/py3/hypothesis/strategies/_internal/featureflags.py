@@ -52,7 +52,7 @@ class FeatureFlags:
         # features will be enabled. This is so that we shrink in the direction
         # of more features being enabled.
         if self.__data is not None:
-            self.__p_disabled = data.draw_bits(8) / 255.0
+            self.__p_disabled = data.draw_integer(0, 255) / 255.0
         else:
             # If data is None we're in example mode so all that matters is the
             # enabled/disabled lists above. We set this up so that everything
@@ -81,8 +81,8 @@ class FeatureFlags:
         # of the test case where we originally decided, the next point at
         # which we make this decision just makes the decision it previously
         # made.
-        is_disabled = cu.biased_coin(
-            self.__data, self.__p_disabled, forced=self.__is_disabled.get(name)
+        is_disabled = self.__data.draw_boolean(
+            self.__p_disabled, forced=self.__is_disabled.get(name)
         )
         self.__is_disabled[name] = is_disabled
         data.stop_example()

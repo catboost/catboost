@@ -26,6 +26,8 @@ class IntervalSet:
         for u, v in self.intervals:
             self.offsets.append(self.offsets[-1] + v - u + 1)
         self.size = self.offsets.pop()
+        self._idx_of_zero = self.index_above(ord("0"))
+        self._idx_of_Z = min(self.index_above(ord("Z")), len(self) - 1)
 
     def __len__(self):
         return self.size
@@ -228,3 +230,27 @@ class IntervalSet:
                 else:
                     j += 1
         return IntervalSet(intervals)
+
+    def char_in_shrink_order(self, i: int) -> str:
+        # We would like it so that, where possible, shrinking replaces
+        # characters with simple ascii characters, so we rejig this
+        # bit so that the smallest values are 0, 1, 2, ..., Z.
+        #
+        # Imagine that numbers are laid out as abc0yyyZ...
+        # this rearranges them so that they are laid out as
+        # 0yyyZcba..., which gives a better shrinking order.
+        if i <= self._idx_of_Z:
+            # We want to rewrite the integers [0, n] inclusive
+            # to [zero_point, Z_point].
+            n = self._idx_of_Z - self._idx_of_zero
+            if i <= n:
+                i += self._idx_of_zero
+            else:
+                # We want to rewrite the integers [n + 1, Z_point] to
+                # [zero_point, 0] (reversing the order so that codepoints below
+                # zero_point shrink upwards).
+                i = self._idx_of_zero - (i - n)
+                assert i < self._idx_of_zero
+            assert 0 <= i <= self._idx_of_Z
+
+        return chr(self[i])
