@@ -122,7 +122,7 @@ namespace NCB {
         // create from columns info
         static TFeaturesLayoutPtr CreateFeaturesLayout(
             TConstArrayRef<TColumn> columns,
-            TMaybe<const TVector<TString>*> featureNames,
+            TMaybe<const TVector<TString>*> featureNames = Nothing(),
             TMaybe<const THashMap<TString, TTagDescription>*> featureTags = Nothing());
 
         bool EqualTo(const TFeaturesLayout& rhs, bool ignoreSparsity = false) const;
