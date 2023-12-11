@@ -3304,7 +3304,11 @@ class UnionProvider(EmptyProvider):
         return False
 
     def _fn(self, base, resource_name):
-        return [(p, p._fn(pp, resource_name)) for p, pp in base]
+        for p, pp in base:
+            if p._has(pp):
+                return p._fn(pp, resource_name)
+
+        raise IOError(resource_name)
 
     def _get(self, path):
         for p, pp in path:
