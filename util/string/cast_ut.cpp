@@ -605,4 +605,15 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(127)), TStringBuf("1111111"));
         UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(-128)), TStringBuf("-10000000"));
     }
+
+    Y_UNIT_TEST(TestTrivial) {
+        UNIT_ASSERT_VALUES_EQUAL(ToString(ToString(ToString("abc"))), TString("abc"));
+
+        // May cause compilation error:
+        // const TString& ref = ToString(TString{"foo"});
+
+        const TString ok = ToString(TString{"foo"});
+        UNIT_ASSERT_VALUES_EQUAL(ok, "foo");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(ToString(ok)), "foo");
+    }
 }

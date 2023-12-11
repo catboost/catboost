@@ -650,3 +650,17 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
     #define Y_DO_NOT_OPTIMIZE_AWAY(X) ::DoNotOptimizeAway(X)
 
 #endif
+
+/**
+ * @def Y_LIFETIME_BOUND
+ *
+ * The attribute on a function parameter can be used to tell the compiler
+ * that function return value may refer that parameter.
+ * The compiler may produce compile-time warning if it is able to detect that
+ * an object or reference refers to another object with a shorter lifetime.
+ */
+#if defined(__clang__)
+    #define Y_LIFETIME_BOUND [[clang::lifetimebound]]
+#else
+    #define Y_LIFETIME_BOUND
+#endif
