@@ -40,7 +40,9 @@ from prompt_toolkit.cursor_shapes import AnyCursorShapeConfig, to_cursor_shape_c
 from prompt_toolkit.data_structures import Size
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.eventloop import (
+    InputHook,
     get_traceback_from_context,
+    new_eventloop_with_inputhook,
     run_in_executor_with_context,
 )
 from prompt_toolkit.eventloop.utils import call_soon_threadsafe
@@ -655,7 +657,7 @@ class Application(Generic[_AppResult]):
             # See: https://github.com/prompt-toolkit/python-prompt-toolkit/issues/1553
             handle_sigint = False
 
-        async def _run_async(f: "asyncio.Future[_AppResult]") -> _AppResult:
+        async def _run_async(f: asyncio.Future[_AppResult]) -> _AppResult:
             context = contextvars.copy_context()
             self.context = context
 
@@ -898,13 +900,12 @@ class Application(Generic[_AppResult]):
         set_exception_handler: bool = True,
         handle_sigint: bool = True,
         in_thread: bool = False,
+        inputhook: InputHook | None = None,
     ) -> _AppResult:
         """
         A blocking 'run' call that waits until the UI is finished.
 
-        This will start the current asyncio event loop. If no loop is set for
-        the current thread, then it will create a new loop. If a new loop was
-        created, this won't close the new loop (if `in_thread=False`).
+        This will run the application in a fresh asyncio event loop.
 
         :param pre_run: Optional callable, which is called right after the
             "reset" of the application.
@@ -937,6 +938,7 @@ class Application(Generic[_AppResult]):
                         set_exception_handler=set_exception_handler,
                         # Signal handling only works in the main thread.
                         handle_sigint=False,
+                        inputhook=inputhook,
                     )
                 except BaseException as e:
                     exception = e
@@ -954,17 +956,46 @@ class Application(Generic[_AppResult]):
             set_exception_handler=set_exception_handler,
             handle_sigint=handle_sigint,
         )
-        try:
-            # See whether a loop was installed already. If so, use that. That's
-            # required for the input hooks to work, they are installed using
-            # `set_event_loop`.
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
+
+        def _called_from_ipython() -> bool:
+            try:
+                return (
+                    "IPython/terminal/interactiveshell.py"
+                    in sys._getframe(3).f_code.co_filename
+                )
+            except BaseException:
+                return False
+
+        if inputhook is not None:
+            # Create new event loop with given input hook and run the app.
+            # In Python 3.12, we can use asyncio.run(loop_factory=...)
+            # For now, use `run_until_complete()`.
+            loop = new_eventloop_with_inputhook(inputhook)
+            result = loop.run_until_complete(coro)
+            loop.run_until_complete(loop.shutdown_asyncgens())
+            loop.close()
+            return result
+
+        elif _called_from_ipython():
+            # workaround to make input hooks work for IPython until
+            # https://github.com/ipython/ipython/pull/14241 is merged.
+            # IPython was setting the input hook by installing an event loop
+            # previously.
+            try:
+                # See whether a loop was installed already. If so, use that.
+                # That's required for the input hooks to work, they are
+                # installed using `set_event_loop`.
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                # No loop installed. Run like usual.
+                return asyncio.run(coro)
+            else:
+                # Use existing loop.
+                return loop.run_until_complete(coro)
+
+        else:
             # No loop installed. Run like usual.
             return asyncio.run(coro)
-        else:
-            # Use existing loop.
-            return loop.run_until_complete(coro)
 
     def _handle_exception(
         self, loop: AbstractEventLoop, context: dict[str, Any]
@@ -999,7 +1030,7 @@ class Application(Generic[_AppResult]):
         manager. (We will only install the hook if no other custom hook was
         set.)
         """
-        if sys.version_info >= (3, 7) and sys.breakpointhook == sys.__breakpointhook__:
+        if sys.breakpointhook == sys.__breakpointhook__:
             sys.breakpointhook = self._breakpointhook
 
             try:

@@ -449,7 +449,7 @@ class FormattedTextControl(UIControl):
                             # Handler found. Call it.
                             # (Handler can return NotImplemented, so return
                             # that result.)
-                            handler = item[2]  # type: ignore
+                            handler = item[2]
                             return handler(mouse_event)
                         else:
                             break
@@ -477,9 +477,7 @@ class DummyControl(UIControl):
         def get_line(i: int) -> StyleAndTextTuples:
             return []
 
-        return UIContent(
-            get_line=get_line, line_count=100**100
-        )  # Something very big.
+        return UIContent(get_line=get_line, line_count=100**100)  # Something very big.
 
     def is_focusable(self) -> bool:
         return False
