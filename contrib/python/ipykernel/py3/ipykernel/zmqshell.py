@@ -302,7 +302,7 @@ class KernelMagics(Magics):
 
         # Make sure we send to the client an absolute path, in case the working
         # directory of client and kernel don't match
-        filename = Path(filename).resolve()
+        filename = str(Path(filename).resolve())
 
         payload = {"source": "edit_magic", "filename": filename, "line_number": lineno}
         assert self.shell is not None
