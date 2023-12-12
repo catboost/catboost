@@ -3304,11 +3304,7 @@ class UnionProvider(EmptyProvider):
         return False
 
     def _fn(self, base, resource_name):
-        for p, pp in base:
-            if p._has(pp):
-                return p._fn(pp, resource_name)
-
-        raise IOError(resource_name)
+        return [(p, p._fn(pp, resource_name)) for p, pp in base]
 
     def _get(self, path):
         for p, pp in path:
@@ -3333,6 +3329,9 @@ class UnionProvider(EmptyProvider):
                 return p._isdir(pp)
 
         return False
+
+    def get_resource_filename(self, manager, resource_name):
+        return self._fn(self.module_path, resource_name)[0]
 
 
 class ResProvider(EmptyProvider):
