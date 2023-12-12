@@ -219,6 +219,32 @@ class ResourceImporter(object):
         return self.arcadia_source_finder.get_module_path(fullname)
 
     def find_spec(self, fullname, path=None, target=None):
+        # Поддежка переопределения стандартного distutils из пакетом из setuptools
+        if fullname.startswith("distutils."):
+            if path and len(path) > 0 and "/setuptools/_distutils" in path[0]:
+                import importlib
+                import importlib.abc
+
+                setuptools_name = "setuptools._distutils.{}".format(fullname.removeprefix("distutils."))
+                is_package = self.is_package(setuptools_name)
+                if is_package:
+                    source = self.get_source(f"{setuptools_name}.__init__")
+                    relpath = self._find_mod_path(f"{setuptools_name}.__init__")
+                else:
+                    source = self.get_source(setuptools_name)
+                    relpath = self._find_mod_path(setuptools_name)
+
+                class DistutilsLoader(importlib.abc.Loader):
+                    def exec_module(self, module):
+                        code = compile(source, _s(relpath), 'exec', dont_inherit=True)
+                        module.__file__ = code.co_filename
+                        if is_package:
+                            module.__path__= [executable + path_sep + setuptools_name.replace('.', path_sep)]
+
+                        _call_with_frames_removed(exec, code, module.__dict__)
+
+                return spec_from_loader(fullname, DistutilsLoader(), is_package=is_package)
+
         try:
             is_package = self.is_package(fullname)
         except ImportError:

@@ -44,7 +44,7 @@ def enabled():
     """
     Allow selection of distutils by environment variable.
     """
-    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'stdlib')
+    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'local')
     return which == 'local'
 
 
