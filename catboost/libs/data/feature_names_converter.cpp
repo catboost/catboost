@@ -28,19 +28,30 @@ static void ConvertNamesIntoIndices(const TIndicesMapper& mapper,
     featuresArrayJson->Swap(featuresIndicesArrayJson);
 }
 
+
+static void AddIndicesFromNames(
+    TConstArrayRef<TColumn> columns,
+    TMap<TString, ui32>* indicesFromNames,
+    ui32* featureIdx
+) {
+    for (const auto& column : columns) {
+        if (IsFactorColumn(column.Type)) {
+            if (!column.Id.empty()) {
+                (*indicesFromNames)[column.Id] = *featureIdx;
+            }
+            ++(*featureIdx);
+        } else if (column.Type == EColumn::Features) {
+            AddIndicesFromNames(column.SubColumns, indicesFromNames, featureIdx);
+        }
+    }
+}
+
 TMap<TString, ui32> MakeIndicesFromNamesByCdFile(const NCB::TPathWithScheme& cdFilePath) {
     TMap<TString, ui32> indicesFromNames;
     if (cdFilePath.Inited()) {
         const TVector<TColumn> columns = ReadCD(cdFilePath, TCdParserDefaults(EColumn::Num));
         ui32 featureIdx = 0;
-        for (const auto& column : columns) {
-            if (IsFactorColumn(column.Type)) {
-                if (!column.Id.empty()) {
-                    indicesFromNames[column.Id] = featureIdx;
-                }
-                featureIdx++;
-            }
-        }
+        AddIndicesFromNames(columns, &indicesFromNames, &featureIdx);
     }
     return indicesFromNames;
 }
@@ -210,4 +221,3 @@ void AddFeatureNamesDependentParams(const NJson::TJsonValue& featureNamesDepende
         }
     }
 }
-

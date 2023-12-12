@@ -154,13 +154,38 @@ void TDataMetaInfo::Validate() const {
     }
 }
 
+
+static bool AreAllColumnIdsEmpty(TConstArrayRef<TColumn> columns, const TMaybe<TVector<TString>>& header) {
+    for (const auto& column : columns) {
+        if (column.Type == EColumn::Features) {
+            CB_ENSURE(!header.Defined(), "Header columns cannot be defined if Features meta column is present");
+            for (const auto& subColumn : column.SubColumns) {
+                CB_ENSURE(
+                    IsFactorColumn(subColumn.Type),
+                    "Non-features sub columns are not supported in Features meta column"
+                );
+                if (!subColumn.Id.empty()) {
+                    return false;
+                }
+            }
+        } else if (!column.Id.empty()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 TVector<TString> TDataColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const {
     TVector<TString> featureIds;
     // TODO: this convoluted logic is for compatibility
-    if (!AllOf(Columns.begin(), Columns.end(), [](const TColumn& column) { return column.Id.empty(); })) {
+    if (!AreAllColumnIdsEmpty(Columns, header)) {
         for (auto column : Columns) {
             if (IsFactorColumn(column.Type)) {
                 featureIds.push_back(column.Id);
+            } else if (column.Type == EColumn::Features) {
+                for (const auto& subColumn : column.SubColumns) {
+                    featureIds.push_back(subColumn.Id);
+                }
             }
         }
     } else if (header.Defined()) {
