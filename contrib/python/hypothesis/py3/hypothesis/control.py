@@ -11,6 +11,7 @@
 import math
 from collections import defaultdict
 from typing import NoReturn, Union
+from weakref import WeakKeyDictionary
 
 from hypothesis import Verbosity, settings
 from hypothesis._settings import note_deprecation
@@ -168,18 +169,38 @@ def note(value: str) -> None:
         report(value)
 
 
-def event(value: str) -> None:
-    """Record an event that occurred this test. Statistics on number of test
+def event(value: str, payload: Union[str, int, float] = "") -> None:
+    """Record an event that occurred during this test. Statistics on the number of test
     runs with each event will be reported at the end if you run Hypothesis in
     statistics reporting mode.
 
-    Events should be strings or convertible to them.
+    Event values should be strings or convertible to them.  If an optional
+    payload is given, it will be included in the string for :ref:`statistics`.
     """
     context = _current_build_context.value
     if context is None:
         raise InvalidArgument("Cannot make record events outside of a test")
 
-    context.data.note_event(value)
+    payload = _event_to_string(payload, (str, int, float))
+    context.data.events[_event_to_string(value)] = payload
+
+
+_events_to_strings: WeakKeyDictionary = WeakKeyDictionary()
+
+
+def _event_to_string(event, allowed_types=str):
+    if isinstance(event, allowed_types):
+        return event
+    try:
+        return _events_to_strings[event]
+    except (KeyError, TypeError):
+        pass
+    result = str(event)
+    try:
+        _events_to_strings[event] = result
+    except TypeError:
+        pass
+    return result
 
 
 def target(observation: Union[int, float], *, label: str = "") -> Union[int, float]:

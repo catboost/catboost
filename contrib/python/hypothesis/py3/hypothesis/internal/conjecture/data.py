@@ -20,7 +20,6 @@ from typing import (
     Callable,
     Dict,
     FrozenSet,
-    Hashable,
     Iterable,
     Iterator,
     List,
@@ -1367,7 +1366,7 @@ class ConjectureData:
         self.testcounter = global_test_counter
         global_test_counter += 1
         self.start_time = time.perf_counter()
-        self.events: "Union[Set[Hashable], FrozenSet[Hashable]]" = set()
+        self.events: Dict[str, Union[str, int, float]] = {}
         self.forced_indices: "Set[int]" = set()
         self.interesting_origin: Optional[InterestingOrigin] = None
         self.draw_times: "List[float]" = []
@@ -1615,10 +1614,6 @@ class ConjectureData:
 
             self.observer.kill_branch()
 
-    def note_event(self, event: Hashable) -> None:
-        assert isinstance(self.events, set)
-        self.events.add(event)
-
     @property
     def examples(self) -> Examples:
         assert self.frozen
@@ -1643,7 +1638,6 @@ class ConjectureData:
         self.frozen = True
 
         self.buffer = bytes(self.buffer)
-        self.events = frozenset(self.events)
         self.observer.conclude_test(self.status, self.interesting_origin)
 
     def draw_bits(self, n: int, *, forced: Optional[int] = None) -> int:
@@ -1729,7 +1723,7 @@ class ConjectureData:
 
     def mark_invalid(self, why: Optional[str] = None) -> NoReturn:
         if why is not None:
-            self.note_event(why)
+            self.events["invalid because"] = why
         self.conclude_test(Status.INVALID)
 
     def mark_overrun(self) -> NoReturn:

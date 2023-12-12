@@ -163,8 +163,10 @@ class DatetimeStrategy(SearchStrategy):
         try:
             return replace_tzinfo(dt.datetime(**result), timezone=tz)
         except (ValueError, OverflowError):
-            msg = "Failed to draw a datetime between %r and %r with timezone from %r."
-            data.mark_invalid(msg % (self.min_value, self.max_value, self.tz_strat))
+            data.mark_invalid(
+                f"Failed to draw a datetime between {self.min_value!r} and "
+                f"{self.max_value!r} with timezone from {self.tz_strat!r}."
+            )
 
 
 @defines_strategy(force_reusable_values=True)

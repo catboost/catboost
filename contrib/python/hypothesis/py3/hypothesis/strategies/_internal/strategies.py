@@ -43,7 +43,6 @@ from hypothesis.internal.conjecture.utils import (
     combine_labels,
 )
 from hypothesis.internal.coverage import check_function
-from hypothesis.internal.lazyformat import lazyformat
 from hypothesis.internal.reflection import (
     get_pretty_function_description,
     is_identity_function,
@@ -550,7 +549,7 @@ class SampledFromStrategy(SearchStrategy):
                 if element is not filter_not_satisfied:
                     return element
                 if not known_bad_indices:
-                    FilteredStrategy.note_retried(self, data)
+                    data.events[f"Retried draw from {self!r} to satisfy filter"] = ""
                 known_bad_indices.add(i)
 
         # If we've tried all the possible elements, give up now.
@@ -940,9 +939,6 @@ class FilteredStrategy(SearchStrategy[Ex]):
         data.mark_invalid(f"Aborted test because unable to satisfy {self!r}")
         raise NotImplementedError("Unreachable, for Mypy")
 
-    def note_retried(self, data):
-        data.note_event(lazyformat("Retried draw from %r to satisfy filter", self))
-
     def do_filtered_draw(self, data):
         for i in range(3):
             start_index = data.index
@@ -954,7 +950,7 @@ class FilteredStrategy(SearchStrategy[Ex]):
             else:
                 data.stop_example(discard=True)
                 if i == 0:
-                    self.note_retried(data)
+                    data.events[f"Retried draw from {self!r} to satisfy filter"] = ""
                 # This is to guard against the case where we consume no data.
                 # As long as we consume data, we'll eventually pass or raise.
                 # But if we don't this could be an infinite loop.

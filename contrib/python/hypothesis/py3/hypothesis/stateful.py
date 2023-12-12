@@ -402,7 +402,7 @@ class RuleBasedStateMachine(metaclass=StateMachineMeta):
             settings = Settings(deadline=None, suppress_health_check=list(HealthCheck))
 
             def runTest(self):
-                run_state_machine_as_test(cls)
+                run_state_machine_as_test(cls, settings=self.settings)
 
             runTest.is_hypothesis_test = True
 

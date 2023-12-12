@@ -275,7 +275,7 @@ def is_annotated_type(thing):
 
 
 def get_constraints_filter_map():
-    if at := sys.modules.get("annotated_types"):  # pragma: no branch
+    if at := sys.modules.get("annotated_types"):
         return {
             # Due to the order of operator.gt/ge/lt/le arguments, order is inversed:
             at.Gt: lambda constraint: partial(operator.lt, constraint.gt),
@@ -290,7 +290,7 @@ def get_constraints_filter_map():
 
 
 def _get_constraints(args: Tuple[Any, ...]) -> Iterator["at.BaseMetadata"]:
-    if at := sys.modules.get("annotated_types"):  # pragma: no branch
+    if at := sys.modules.get("annotated_types"):
         for arg in args:
             if isinstance(arg, at.BaseMetadata):
                 yield arg

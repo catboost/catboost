@@ -15,7 +15,6 @@ from contextlib import contextmanager
 from datetime import timedelta
 from enum import Enum
 from random import Random, getrandbits
-from weakref import WeakKeyDictionary
 
 import attr
 
@@ -100,8 +99,6 @@ class ConjectureRunner:
         # which transfer to the global dict at the end of each phase.
         self.statistics = {}
         self.stats_per_test_case = []
-
-        self.events_to_strings = WeakKeyDictionary()
 
         self.interesting_examples = {}
         # We use call_count because there may be few possible valid_examples.
@@ -209,7 +206,9 @@ class ConjectureRunner:
                     "status": data.status.name.lower(),
                     "runtime": data.finish_time - data.start_time,
                     "drawtime": math.fsum(data.draw_times),
-                    "events": sorted({self.event_to_string(e) for e in data.events}),
+                    "events": sorted(
+                        k if v == "" else f"{k}: {v}" for k, v in data.events.items()
+                    ),
                 }
                 self.stats_per_test_case.append(call_stats)
                 self.__data_cache[data.buffer] = data.as_result()
@@ -1053,20 +1052,6 @@ class ConjectureRunner:
         result = check_result(data.as_result())
         if extend == 0 or (result is not Overrun and len(result.buffer) <= len(buffer)):
             self.__data_cache[buffer] = result
-        return result
-
-    def event_to_string(self, event):
-        if isinstance(event, str):
-            return event
-        try:
-            return self.events_to_strings[event]
-        except (KeyError, TypeError):
-            pass
-        result = str(event)
-        try:
-            self.events_to_strings[event] = result
-        except TypeError:
-            pass
         return result
 
     def passing_buffers(self, prefix=b""):

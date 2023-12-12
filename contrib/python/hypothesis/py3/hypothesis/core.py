@@ -80,10 +80,10 @@ from hypothesis.internal.conjecture.junkdrawer import ensure_free_stackframes
 from hypothesis.internal.conjecture.shrinker import sort_key
 from hypothesis.internal.entropy import deterministic_PRNG
 from hypothesis.internal.escalation import (
+    InterestingOrigin,
     current_pytest_item,
     escalate_hypothesis_internal_error,
     format_exception,
-    get_interesting_origin,
     get_trimmed_traceback,
 )
 from hypothesis.internal.healthcheck import fail_health_check
@@ -970,7 +970,7 @@ class StateForActualGivenExecution:
 
                 self.failed_normally = True
 
-                interesting_origin = get_interesting_origin(e)
+                interesting_origin = InterestingOrigin.from_exception(e)
                 if trace:  # pragma: no cover
                     # Trace collection is explicitly disabled under coverage.
                     self.explain_traces[interesting_origin].add(trace)
@@ -1037,7 +1037,9 @@ class StateForActualGivenExecution:
             info = falsifying_example.extra_information
             fragments = []
 
-            ran_example = ConjectureData.for_buffer(falsifying_example.buffer)
+            ran_example = runner.new_conjecture_data_for_buffer(
+                falsifying_example.buffer
+            )
             ran_example.slice_comments = falsifying_example.slice_comments
             assert info.__expected_exception is not None
             try:
