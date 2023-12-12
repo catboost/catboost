@@ -23,6 +23,7 @@ from traitlets.config.loader import (
     ArgumentError,
     Config,
     ConfigFileNotFound,
+    DeferredConfigString,
     JSONFileConfigLoader,
     KVArgParseConfigLoader,
     PyFileConfigLoader,
@@ -96,7 +97,7 @@ else:
 IS_PYTHONW = sys.executable and sys.executable.endswith("pythonw.exe")
 
 T = t.TypeVar("T", bound=t.Callable[..., t.Any])
-AnyLogger = t.Union[logging.Logger, logging.LoggerAdapter]
+AnyLogger = t.Union[logging.Logger, "logging.LoggerAdapter[t.Any]"]
 StrDict = t.Dict[str, t.Any]
 ArgvType = t.Optional[t.List[str]]
 ClassesType = t.List[t.Type[Configurable]]
@@ -713,12 +714,12 @@ class Application(SingletonConfigurable):
             self.subapp = subapp.instance(parent=self)
         elif callable(subapp):
             # or ask factory to create it...
-            self.subapp = subapp(self)  # type:ignore[call-arg]
+            self.subapp = subapp(self)
         else:
             raise AssertionError("Invalid mappings for subcommand '%s'!" % subc)
 
         # ... and finally initialize subapp.
-        self.subapp.initialize(argv)  # type:ignore[union-attr]
+        self.subapp.initialize(argv)
 
     def flatten_flags(self) -> tuple[dict[str, t.Any], dict[str, t.Any]]:
         """Flatten flags and aliases for loaders, so cl-args override as expected.
@@ -967,6 +968,29 @@ class Application(SingletonConfigurable):
             ):  # only add to list of loaded files if not previously loaded
                 self._loaded_config_files.append(fname)
         # add self.cli_config to preserve CLI config priority
+        new_config.merge(self.cli_config)
+        self.update_config(new_config)
+
+    @catch_config_error
+    def load_config_environ(self) -> None:
+        """Load config files by environment."""
+
+        PREFIX = self.name.upper()
+        new_config = Config()
+
+        self.log.debug('Looping through config variables with prefix "%s"', PREFIX)
+
+        for k, v in os.environ.items():
+            if k.startswith(PREFIX):
+                self.log.debug('Seeing environ "%s"="%s"', k, v)
+                # use __ instead of . as separator in env variable.
+                # Warning, case sensitive !
+                _, *path, key = k.split("__")
+                section = new_config
+                for p in path:
+                    section = section[p]
+                setattr(section, key, DeferredConfigString(v))
+
         new_config.merge(self.cli_config)
         self.update_config(new_config)
 
