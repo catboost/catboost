@@ -118,7 +118,7 @@ inline const TUtf16String& ToWtring(const TUtf16String& w Y_LIFETIME_BOUND) noex
 
 inline TUtf16String&& ToWtring(TUtf16String&& w Y_LIFETIME_BOUND) noexcept {
     return std::move(w);
-};
+}
 
 struct TFromStringException: public TBadCastException {
 };
