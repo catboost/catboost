@@ -47,7 +47,10 @@ except ImportError:
 if PY3:
     xrange = range
 
-if hasattr(ssl, 'match_hostname') and hasattr(ssl, 'CertificateError'):  # python 3.2+
+if sys.version_info >= (3, 12):
+    ssl_match_hostname = lambda cert, hostname: True
+    SSLCertificateError = ssl.CertificateError
+elif hasattr(ssl, 'match_hostname') and hasattr(ssl, 'CertificateError'):  # python 3.2+
     ssl_match_hostname = ssl.match_hostname
     SSLCertificateError = ssl.CertificateError
 elif ssl is None:
