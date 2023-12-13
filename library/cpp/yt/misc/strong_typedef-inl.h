@@ -62,33 +62,27 @@ constexpr T&& TStrongTypedef<T, TTag>::Underlying() &&
     return std::move(Underlying_);
 }
 
-template <class T, class TTag>
-constexpr bool TStrongTypedef<T, TTag>::operator==(const TStrongTypedef& rhs) const
-    noexcept(noexcept(Underlying_ == rhs.Underlying_))
-        requires std::equality_comparable<T>
-{
-    //! NB: We add a constexpr branch to keep constexprness of the function
-    //! without making extra specializations explicitly.
-    if constexpr (std::same_as<T, void>) {
-        return true;
+#define XX(op, defaultValue) \
+    template <class T, class TTag> \
+    constexpr auto TStrongTypedef<T, TTag>::operator op(const TStrongTypedef& rhs) const \
+        noexcept(noexcept(Underlying_ op rhs.Underlying_)) \
+            requires requires (T lhs, T rhs) {lhs op rhs; } \
+    { \
+        if constexpr (std::same_as<T, void>) { \
+            return defaultValue; \
+        } \
+        return Underlying_ op rhs.Underlying_; \
     }
 
-    return Underlying_ == rhs.Underlying_;
-}
+XX(<, false)
+XX(>, false)
+XX(<=, true)
+XX(>=, true)
+XX(==, true)
+XX(!=, false)
+XX(<=>, std::strong_ordering::equal)
 
-template <class T, class TTag>
-constexpr auto TStrongTypedef<T, TTag>::operator<=>(const TStrongTypedef& rhs) const
-    noexcept(noexcept(Underlying_ <=> rhs.Underlying_))
-        requires std::three_way_comparable<T>
-{
-    //! NB: We add a constexpr branch to keep constexprness of the function
-    //! without making extra specializations explicitly.
-    if constexpr (std::same_as<T, void>) {
-        return std::strong_ordering::equal;
-    }
-
-    return Underlying_ <=> rhs.Underlying_;
-}
+#undef XX
 
 template <class T, class TTag>
 TStrongTypedef<T, TTag>::operator bool() const
