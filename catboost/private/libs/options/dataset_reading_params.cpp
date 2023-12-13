@@ -9,15 +9,12 @@
 
 using namespace NCB;
 
-void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts* parser) {
+
+void NCatboostOptions::TDatasetReadingBaseParams::BindParserOpts(NLastGetopt::TOpts* parser) {
     BindColumnarPoolFormatParams(parser, &ColumnarPoolFormatParams);
     parser->AddLongOption("input-path", "input path")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             PoolPath = TPathWithScheme(pathWithScheme, "dsv");
-        });
-    parser->AddLongOption("input-pairs", "PATH")
-        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
-            PairsFilePath = TPathWithScheme(pathWithScheme, "dsv-flat");
         });
     parser->AddLongOption("feature-names-path", "PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
@@ -29,8 +26,21 @@ void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts*
         });
 }
 
-void NCatboostOptions::TDatasetReadingParams::ValidatePoolParams() const {
+void NCatboostOptions::TDatasetReadingBaseParams::ValidatePoolParams() const {
     NCatboostOptions::ValidatePoolParams(PoolPath, ColumnarPoolFormatParams);
+}
+
+void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts* parser) {
+    NCatboostOptions::TDatasetReadingBaseParams::BindParserOpts(parser);
+
+    parser->AddLongOption("input-pairs", "PATH")
+        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
+            PairsFilePath = TPathWithScheme(pathWithScheme, "dsv-flat");
+        });
+}
+
+void NCatboostOptions::TDatasetReadingParams::ValidatePoolParams() const {
+    NCatboostOptions::TDatasetReadingBaseParams::ValidatePoolParams();
 }
 
 void NCatboostOptions::BindColumnarPoolFormatParams(
