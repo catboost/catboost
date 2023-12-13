@@ -659,8 +659,14 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
  * The compiler may produce compile-time warning if it is able to detect that
  * an object or reference refers to another object with a shorter lifetime.
  */
-#if defined(__clang__)
-    #define Y_LIFETIME_BOUND [[clang::lifetimebound]]
+#if defined(__clang__) && defined(__cplusplus) && defined(__has_cpp_attribute)
+    #if defined(__CUDACC__) && !Y_CUDA_AT_LEAST(11, 0)
+        #define Y_LIFETIME_BOUND
+    #elif __has_cpp_attribute(clang::lifetimebound)
+        #define Y_LIFETIME_BOUND [[clang::lifetimebound]]
+    #else
+        #define Y_LIFETIME_BOUND
+    #endif
 #else
     #define Y_LIFETIME_BOUND
 #endif
