@@ -2340,7 +2340,7 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
   params <- catboost.get_plain_params(model)
   train_dir <- params[['train_dir']]
   if (is.null(params[['train_dir']]))
-    train_dir <- 'catboost_info'
+    train_dir <- Sys.getenv('CATBOOST_INFO_DIR', 'catboost_info')
   result <- .Call("CatBoostEvalMetrics_R", model$cpp_obj$handle, pool, metrics,
                   ntree_start, ntree_end, eval_period,
                   thread_count, tmp_dir, train_dir)
