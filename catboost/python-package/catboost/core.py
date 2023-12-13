@@ -1467,7 +1467,7 @@ def _clear_training_files(train_dir):
 
 
 def _get_train_dir(params):
-    return params.get('train_dir', 'catboost_info')
+    return params.get('train_dir', os.getenv('CATBOOST_INFO_DIR', 'catboost_info'))
 
 
 def _get_catboost_widget(train_dirs):
