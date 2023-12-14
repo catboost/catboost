@@ -1,5 +1,6 @@
 #pragma once
 
+#include "features_layout.h"
 #include "meta_info.h"
 
 #include <catboost/private/libs/options/feature_penalties_options.h>
@@ -15,8 +16,10 @@
 
 
 TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams);
+TMap<TString, ui32> MakeIndicesFromNames(const NCB::TFeaturesLayout& featuresLayout);
 TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo);
 THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCatboostOptions::TPoolLoadParams& poolLoadParams);
+THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TFeaturesLayout& featuresLayout);
 THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TDataMetaInfo& metaInfo);
 
 inline ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
@@ -43,6 +46,10 @@ namespace {
 
         TIndicesMapper(const NCatboostOptions::TPoolLoadParams& poolLoadParams)
             : TIndicesMapper(MakeIndicesFromNames(poolLoadParams), MakeIndicesFromTags(poolLoadParams))
+        { }
+
+        TIndicesMapper(const NCB::TFeaturesLayout& featuresLayout)
+            : TIndicesMapper(MakeIndicesFromNames(featuresLayout), MakeIndicesFromTags(featuresLayout))
         { }
 
         TIndicesMapper(const NCB::TDataMetaInfo& metaInfo)
@@ -151,4 +158,3 @@ NJson::TJsonValue ExtractFeatureNamesDependentParams(NJson::TJsonValue* catBoost
 
 // feature names - dependent params are added to catBoostJsonOptions
 void AddFeatureNamesDependentParams(const NJson::TJsonValue& featureNamesDependentOptions, NJson::TJsonValue* catBoostJsonOptions);
-

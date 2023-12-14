@@ -61,16 +61,20 @@ TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams
     return MakeIndicesFromNamesByCdFile(poolLoadParams.ColumnarPoolFormatParams.CdFilePath);
 }
 
-TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo) {
+TMap<TString, ui32> MakeIndicesFromNames(const NCB::TFeaturesLayout& featuresLayout) {
     TMap<TString, ui32> indicesFromNames;
-    ui32 columnIdx = 0;
-    for (const auto& columnInfo : metaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
-        if (!columnInfo.Name.empty()) {
-            indicesFromNames[columnInfo.Name] = columnIdx;
+    ui32 featureIdx = 0;
+    for (const auto& featureInfo : featuresLayout.GetExternalFeaturesMetaInfo()) {
+        if (!featureInfo.Name.empty()) {
+            indicesFromNames[featureInfo.Name] = featureIdx;
         }
-        columnIdx++;
+        featureIdx++;
     }
     return indicesFromNames;
+}
+
+TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo) {
+    return MakeIndicesFromNames(*metaInfo.FeaturesLayout);
 }
 
 static THashMap<TString, TVector<ui32>> MakeIndicesFromTagsFromPoolMetaInfo(const NCB::TPathWithScheme& poolMetaInfoPath) {
@@ -86,8 +90,12 @@ THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCatboostOptions::TPo
     return MakeIndicesFromTagsFromPoolMetaInfo(poolLoadParams.PoolMetaInfoPath);
 }
 
+THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TFeaturesLayout& featuresLayout) {
+    return featuresLayout.GetTagToExternalIndices();
+}
+
 THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TDataMetaInfo& metaInfo) {
-    return metaInfo.FeaturesLayout->GetTagToExternalIndices();
+    return MakeIndicesFromTags(*metaInfo.FeaturesLayout);
 }
 
 void ConvertFeaturesFromStringToIndices(const NCB::TPathWithScheme& cdFilePath, const NCB::TPathWithScheme& poolMetaInfoPath, NJson::TJsonValue* featuresArrayJson) {
