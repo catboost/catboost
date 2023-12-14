@@ -399,11 +399,7 @@ namespace NCB {
         }
     }
 
-    int GetDsvColumnCount(
-        const TPathWithScheme& pathWithScheme,
-        const TDsvFormatOptions& format,
-        bool ignoreCsvQuoting
-    ) {
+    int GetDsvColumnCount(const TPathWithScheme& pathWithScheme, const TDsvFormatOptions& format) {
         CB_ENSURE_INTERNAL(pathWithScheme.Scheme == "dsv", "Unsupported scheme " << pathWithScheme.Scheme);
         TString firstLine;
         CB_ENSURE(
@@ -411,7 +407,7 @@ namespace NCB {
             "TCBDsvDataLoader: no data rows in pool"
         );
         return TVector<TString>(
-            NCsvFormat::CsvSplitter(firstLine, format.Delimiter, ignoreCsvQuoting ? '\0' : '"')
+            NCsvFormat::CsvSplitter(firstLine, format.Delimiter, format.IgnoreCsvQuoting ? '\0' : '"')
         ).size();
     }
 

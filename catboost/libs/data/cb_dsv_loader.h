@@ -84,8 +84,7 @@ namespace NCB {
 
     int GetDsvColumnCount(
         const TPathWithScheme& pathWithScheme,
-        const TDsvFormatOptions& format = TDsvFormatOptions(),
-        bool ignoreCsvQuoting = false
+        const TDsvFormatOptions& format = TDsvFormatOptions()
     );
 
 }
