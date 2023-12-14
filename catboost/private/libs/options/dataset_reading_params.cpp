@@ -14,14 +14,17 @@ void NCatboostOptions::TDatasetReadingBaseParams::BindParserOpts(NLastGetopt::TO
     BindColumnarPoolFormatParams(parser, &ColumnarPoolFormatParams);
     parser->AddLongOption("input-path", "input path")
         .Required()
+        .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             PoolPath = TPathWithScheme(pathWithScheme, "dsv");
         });
-    parser->AddLongOption("feature-names-path", "PATH")
+    parser->AddLongOption("feature-names-path", "Path to feature names data")
+        .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             FeatureNamesPath = TPathWithScheme(pathWithScheme, "dsv");
         });
-    parser->AddLongOption("pool-metainfo-path", "PATH")
+    parser->AddLongOption("pool-metainfo-path", "Path to JSON file with additional dataset meta information")
+        .RequiredArgument("PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             PoolMetaInfoPath = TPathWithScheme(pathWithScheme);
         });
@@ -34,7 +37,8 @@ void NCatboostOptions::TDatasetReadingBaseParams::ValidatePoolParams() const {
 void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts* parser) {
     NCatboostOptions::TDatasetReadingBaseParams::BindParserOpts(parser);
 
-    parser->AddLongOption("input-pairs", "PATH")
+    parser->AddLongOption("input-pairs", "Path to pairs data")
+        .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             PairsFilePath = TPathWithScheme(pathWithScheme, "dsv-flat");
         });
