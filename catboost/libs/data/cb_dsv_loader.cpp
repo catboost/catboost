@@ -399,7 +399,7 @@ namespace NCB {
         }
     }
 
-    int GetDsvColumnCount(const TPathWithScheme& pathWithScheme, const TDsvFormatOptions& format) {
+    size_t GetDsvColumnCount(const TPathWithScheme& pathWithScheme, const TDsvFormatOptions& format) {
         CB_ENSURE_INTERNAL(pathWithScheme.Scheme == "dsv", "Unsupported scheme " << pathWithScheme.Scheme);
         TString firstLine;
         CB_ENSURE(
