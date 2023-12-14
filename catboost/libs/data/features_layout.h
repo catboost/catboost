@@ -10,6 +10,7 @@
 
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/dbg_output/dump.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
@@ -65,6 +66,8 @@ namespace NCB {
         }
 
         SAVELOAD(Type, Name, IsSparse, IsIgnored, IsAvailable);
+
+        operator NJson::TJsonValue() const;
     };
 
 }
@@ -140,6 +143,7 @@ namespace NCB {
             EmbeddingFeatureInternalIdxToExternalIdx,
             TagToExternalIndices);
 
+        operator NJson::TJsonValue() const;
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
             ui32 internalFeatureIdx,

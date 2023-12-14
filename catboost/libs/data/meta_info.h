@@ -28,6 +28,8 @@ namespace NCB {
 
         SAVELOAD(Columns);
 
+        operator NJson::TJsonValue() const;
+
         ui32 CountColumns(const EColumn columnType) const;
         void Validate() const;
         TVector<TString> GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const;
@@ -36,6 +38,9 @@ namespace NCB {
     struct TTargetStats {
         float MinValue = 0;
         float MaxValue = 0;
+
+    public:
+        operator NJson::TJsonValue() const;
     };
 
     struct TDataMetaInfo {
@@ -93,6 +98,8 @@ namespace NCB {
         }
 
         void Validate() const;
+
+        operator NJson::TJsonValue() const;
 
         ui32 GetFeatureCount() const {
             return FeaturesLayout ? FeaturesLayout->GetExternalFeatureCount() : 0;

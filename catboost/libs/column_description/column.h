@@ -1,6 +1,7 @@
 #pragma once
 
 #include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/ysaveload.h>
 #include <util/generic/string.h>
@@ -80,4 +81,6 @@ public:
 
     Y_SAVELOAD_DEFINE(Type, Id, SubColumns);
     SAVELOAD(Type, Id, SubColumns);
+
+    operator NJson::TJsonValue() const;
 };

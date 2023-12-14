@@ -3,6 +3,7 @@
 #include "util.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/json_helpers.h>
 #include <catboost/private/libs/quantization_schema/schema.h>
 
 #include <util/generic/algorithm.h>
@@ -24,6 +25,16 @@ bool TFeatureMetaInfo::EqualTo(const TFeatureMetaInfo& rhs, bool ignoreSparsity)
     }
     return std::tie(Type, Name, IsIgnored, IsAvailable) ==
         std::tie(rhs.Type, rhs.Name, rhs.IsIgnored, rhs.IsAvailable);
+}
+
+TFeatureMetaInfo::operator NJson::TJsonValue() const {
+    NJson::TJsonValue result(NJson::JSON_MAP);
+    result.InsertValue("Type"sv, ToString(Type));
+    result.InsertValue("Name"sv, Name);
+    result.InsertValue("IsSparse"sv, IsSparse);
+    result.InsertValue("IsIgnored"sv, IsIgnored);
+    result.InsertValue("IsAvailable"sv, IsAvailable);
+    return result;
 }
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
@@ -205,6 +216,27 @@ void TFeaturesLayout::Init(TVector<TFeatureMetaInfo>* data) { // 'data' is moved
         AddFeature(std::move(featureMetaInfo));
     }
     data->clear();
+}
+
+
+TFeaturesLayout::operator NJson::TJsonValue() const {
+    NJson::TJsonValue result(NJson::JSON_MAP);
+
+    NJson::TJsonValue features(NJson::JSON_ARRAY);
+    for (const auto& featureMetaInfo : ExternalIdxToMetaInfo) {
+        features.AppendValue(featureMetaInfo);
+    }
+    result.InsertValue("Features"sv, std::move(features));
+
+    if (!TagToExternalIndices.empty()) {
+        NJson::TJsonValue tags(NJson::JSON_MAP);
+        for (const auto& [name, value] : TagToExternalIndices) {
+            tags.InsertValue(name, VectorToJson(value));
+        }
+        result.InsertValue("Tags"sv, std::move(tags));
+    }
+
+    return result;
 }
 
 

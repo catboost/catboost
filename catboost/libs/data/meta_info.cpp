@@ -2,6 +2,7 @@
 
 #include <catboost/libs/column_description/feature_tag.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/json_helpers.h>
 #include <catboost/libs/helpers/serialization.h>
 
 #include <util/generic/algorithm.h>
@@ -14,6 +15,10 @@
 
 using namespace NCB;
 
+
+TDataColumnsMetaInfo::operator NJson::TJsonValue() const {
+    return VectorToJson(Columns);
+}
 
 ui32 TDataColumnsMetaInfo::CountColumns(const EColumn columnType) const {
     return CountIf(
@@ -37,6 +42,14 @@ void TDataColumnsMetaInfo::Validate() const {
     CB_ENSURE(CountColumns(EColumn::SubgroupId) <= 1, "Too many SubgroupId columns.");
     CB_ENSURE(CountColumns(EColumn::Timestamp) <= 1, "Too many Timestamp columns.");
 }
+
+
+NCB::TTargetStats::operator NJson::TJsonValue() const {
+    return NJson::TJsonValue(NJson::JSON_MAP)
+        .InsertValue("MinValue"sv, MinValue)
+        .InsertValue("MaxValue"sv, MaxValue);
+}
+
 
 TDataMetaInfo::TDataMetaInfo(
     TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
@@ -152,6 +165,40 @@ void TDataMetaInfo::Validate() const {
             );
         }
     }
+}
+
+TDataMetaInfo::operator NJson::TJsonValue() const {
+    NJson::TJsonValue result(NJson::JSON_MAP);
+    result.InsertValue("ObjectCount"sv, ObjectCount);
+    result.InsertValue("FeaturesLayout"sv, *FeaturesLayout);
+    result.InsertValue("MaxCatFeaturesUniqValuesOnLearn"sv, MaxCatFeaturesUniqValuesOnLearn);
+    result.InsertValue("TargetType"sv, ToString(TargetType));
+    result.InsertValue("TargetCount"sv, TargetCount);
+
+    if (TargetStats) {
+        result.InsertValue("TargetStats"sv, *TargetStats);
+    }
+
+    result.InsertValue("BaselineCount"sv, BaselineCount);
+    result.InsertValue("HasGroupId"sv, HasGroupId);
+    result.InsertValue("HasGroupWeight"sv, HasGroupWeight);
+    result.InsertValue("HasSubgroupIds"sv, HasSubgroupIds);
+    result.InsertValue("HasSampleId"sv, HasSampleId);
+    result.InsertValue("HasWeights"sv, HasWeights);
+    result.InsertValue("HasTimestamp"sv, HasTimestamp);
+    result.InsertValue("HasPairs"sv, HasPairs);
+    result.InsertValue("StoreStringColumns"sv, StoreStringColumns);
+    result.InsertValue("ForceUnitAutoPairWeights"sv, ForceUnitAutoPairWeights);
+
+    if (!ClassLabels.empty()) {
+        result.InsertValue("ClassLabels"sv, VectorToJson(ClassLabels));
+    }
+
+    if (ColumnsInfo) {
+        result.InsertValue("ColumnsInfo"sv, *ColumnsInfo);
+    }
+
+    return result;
 }
 
 
