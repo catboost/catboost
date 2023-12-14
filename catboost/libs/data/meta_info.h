@@ -29,7 +29,6 @@ namespace NCB {
         SAVELOAD(Columns);
 
         ui32 CountColumns(const EColumn columnType) const;
-        TVector<int> GetCategFeatures() const;
         void Validate() const;
         TVector<TString> GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const;
     };
