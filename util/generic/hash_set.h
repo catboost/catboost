@@ -221,7 +221,7 @@ public:
     }
 
     size_type erase(const key_type& key) {
-        return rep.erase(key);
+        return rep.erase_one(key);
     }
     void erase(iterator it) {
         rep.erase(it);
