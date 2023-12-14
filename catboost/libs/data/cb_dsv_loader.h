@@ -87,4 +87,10 @@ namespace NCB {
         const TDsvFormatOptions& format = TDsvFormatOptions()
     );
 
+    TVector<TColumn> CreateDsvColumnsDescription(
+        const TPathWithScheme& datasetPathWithScheme,
+        const TPathWithScheme& cdPathWithScheme = TPathWithScheme(),
+        const TPathWithScheme& featureNamesPathWithScheme = TPathWithScheme(),
+        const TDsvFormatOptions& format = TDsvFormatOptions()
+    );
 }
