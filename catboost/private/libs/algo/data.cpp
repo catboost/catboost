@@ -446,7 +446,7 @@ namespace NCB {
                 );
 
                 TEstimatorSourceId sourceFeatureIdx{embeddingFeatureIdx, embeddingFeatureIdx};
-                const auto& learnTarget = *pools.Learn->TargetData->GetTarget();
+                const auto learnTarget = *pools.Learn->TargetData->GetTarget();
 
                 for (auto targetIdx : xrange(targetCount)) {
                     auto onlineEstimators = CreateEmbeddingEstimators(

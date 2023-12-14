@@ -34,7 +34,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     TCudaBuffer<float, NCudaLib::TStripeMapping> targets;
     TCudaBuffer<float, NCudaLib::TStripeMapping> weights;
 
-    const auto& cpuTargets = *DataProvider.TargetData->GetTarget();
+    const auto cpuTargets = *DataProvider.TargetData->GetTarget();
     const auto targetCount = cpuTargets.size();
     targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping, targetCount);
     weights.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
