@@ -22,14 +22,14 @@ namespace NPrivateStringBuilder {
     };
 
     template <class T>
-    static inline TStringBuilder& operator<<(TStringBuilder& builder, const T& t) {
+    static inline TStringBuilder& operator<<(TStringBuilder& builder Y_LIFETIME_BOUND, const T& t) {
         builder.Out << t;
 
         return builder;
     }
 
     template <class T>
-    static inline TStringBuilder&& operator<<(TStringBuilder&& builder, const T& t) {
+    static inline TStringBuilder&& operator<<(TStringBuilder&& builder Y_LIFETIME_BOUND, const T& t) {
         builder.Out << t;
 
         return std::move(builder);
