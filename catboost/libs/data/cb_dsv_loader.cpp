@@ -470,7 +470,9 @@ namespace NCB {
         }
 
         auto dataColumnsMetaInfo = TDataColumnsMetaInfo{
-            ReadCD(cdPathWithScheme, TCdParserDefaults(EColumn::Num, columnCount))
+            cdPathWithScheme.Inited() ?
+                ReadCD(cdPathWithScheme, TCdParserDefaults(EColumn::Num, columnCount))
+                : MakeDefaultColumnsDescription(columnCount)
         };
 
         auto featureNames = GetFeatureNames(dataColumnsMetaInfo, headerColumns, featureNamesPathWithScheme);
