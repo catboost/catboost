@@ -553,14 +553,6 @@ struct _LIBCPP_TEMPLATE_VIS __dependent_type : public _Tp {};
 
 // is_same
 
-// Workaround for MSVC. Sometimes compiler thinks that sizeof...(Type) is parameter pack rather than the number.
-// So it doesn't allow sizeof...(Type) in expression that goes into the boolean template parameter of _MetaBase.
-// This simple wrapper allows us to hide sizeof... from the compiler.
-template<class... _Pack>
-struct _Sizeof {
-    static constexpr size_t value = sizeof...(_Pack);
-};
-
 template <class _Tp>
 using __test_for_primary_template = __enable_if_t<
     _IsSame<_Tp, typename _Tp::__primary_template>::value

@@ -87,6 +87,9 @@ template <size_t...> struct __tuple_indices {};
 
 template <class _IdxType, _IdxType... _Values>
 struct __integer_sequence {
+  template <template <class _OIdxType, _OIdxType...> class _ToIndexSeq, class _ToIndexType>
+  using __convert = _ToIndexSeq<_ToIndexType, _Values...>;
+
   template <size_t _Sp>
   using __to_tuple_indices = __tuple_indices<(_Values + _Sp)...>;
 };
@@ -402,13 +405,13 @@ template <bool ..._Preds>
 struct __all_dummy;
 
 template <bool ..._Pred>
-struct __all : _IsSame<__all_dummy<_Pred...>, __all_dummy<(_Pred, true)...>>{};
+struct __all : _IsSame<__all_dummy<_Pred...>, __all_dummy<((void)_Pred, true)...>> {};
 
 struct __tuple_sfinae_base {
   template <template <class, class...> class _Trait,
             class ..._LArgs, class ..._RArgs>
   static auto __do_test(__tuple_types<_LArgs...>, __tuple_types<_RArgs...>)
-    -> __all<_Trait<_LArgs, _RArgs>::value...>;
+    -> __all<__enable_if_t<_Trait<_LArgs, _RArgs>::value, bool>{true}...>;
   template <template <class...> class>
   static auto __do_test(...) -> false_type;
 

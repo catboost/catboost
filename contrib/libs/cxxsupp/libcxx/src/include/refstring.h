@@ -146,7 +146,7 @@ __libcpp_refstring::~__libcpp_refstring() {
 #ifdef _LIBCPP_USE_ATOMIC
         if (rep->count.fetch_sub(1) == 0) {
 #else
-        if (__sync_add_and_fetch(&rep->count, count_t(-1)) < 0) {
+        if (__libcpp_atomic_add(&rep->count, count_t(-1)) < 0) {
 #endif
             ::operator delete(rep);
         }

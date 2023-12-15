@@ -43,17 +43,8 @@ using __make_integer_sequence _LIBCPP_NODEBUG = __make_integer_seq<integer_seque
 
 #else
 
-template <class _Tp, class _T> struct __integer_sequence_convert {
-    using type = integer_sequence<_Tp>;
-};
-
-template<class _Tp, class _Tp2, _Tp... _Values>
-struct __integer_sequence_convert<_Tp, __integer_sequence<_Tp2, _Values...>> {
-    using type = integer_sequence<_Tp, _Values...>;
-};
-
 template<typename _Tp, _Tp _Np> using __make_integer_sequence_unchecked _LIBCPP_NODEBUG =
-  typename __integer_sequence_convert<_Tp, typename __detail::__make<_Np>::type>::type;
+  typename __detail::__make<_Np>::type::template __convert<integer_sequence, _Tp>;
 
 template <class _Tp, _Tp _Ep>
 struct __make_integer_sequence_checked

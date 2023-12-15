@@ -41,9 +41,6 @@
 #  else
 #    define _LIBCPP_STD_VER 14
 #  endif
-
-#  define Y_UCRT_INCLUDE_NEXT(x) <Y_UCRT_INCLUDE/x>
-#  define Y_MSVC_INCLUDE_NEXT(x) <Y_MSVC_INCLUDE/x>
 #endif
 
 #ifdef __cplusplus

@@ -1250,21 +1250,18 @@ struct __all_overloads : _Bases... {
   using _Bases::operator()...;
 };
 
-// Change metaprogramming to satisfy MSVC. It doesn't like expression
-// __overload<_Types, _Idx>... when _Types comes from using parameter but
-// _Idx comes from structure template parameter. So I made them both
-// structure template parameters.
-template <class _IdxSeq, class ..._Types>
+template <class IdxSeq>
 struct __make_overloads_imp;
 
-template <size_t ..._Idx, class ..._Types>
-struct __make_overloads_imp<__tuple_indices<_Idx...>, _Types... > {
+template <size_t ..._Idx>
+struct __make_overloads_imp<__tuple_indices<_Idx...> > {
+  template <class ..._Types>
   using _Apply _LIBCPP_NODEBUG = __all_overloads<__overload<_Types, _Idx>...>;
 };
 
 template <class ..._Types>
 using _MakeOverloads _LIBCPP_NODEBUG = typename __make_overloads_imp<
-    __make_indices_imp<_Sizeof<_Types...>::value, 0>, _Types...>::_Apply;
+    __make_indices_imp<sizeof...(_Types), 0> >::template _Apply<_Types...>;
 
 template <class _Tp, class... _Types>
 using __best_match_t =

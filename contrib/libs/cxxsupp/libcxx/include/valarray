@@ -2795,7 +2795,7 @@ public:
 };
 
 template<class _ValExpr>
-__val_expr<_ValExpr>::operator valarray<typename __val_expr<_ValExpr>::__result_type>() const
+__val_expr<_ValExpr>::operator valarray<__val_expr::__result_type>() const
 {
     valarray<__result_type> __r;
     size_t __n = __expr_.size();

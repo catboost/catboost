@@ -2431,7 +2431,7 @@ void
 deque<_Tp, _Allocator>::__add_front_capacity()
 {
     allocator_type& __a = __base::__alloc();
-    if (__back_spare() >= size_type(__base::__block_size))
+    if (__back_spare() >= __base::__block_size)
     {
         __base::__start_ += __base::__block_size;
         pointer __pt = __base::__map_.back();
@@ -2576,7 +2576,7 @@ void
 deque<_Tp, _Allocator>::__add_back_capacity()
 {
     allocator_type& __a = __base::__alloc();
-    if (__front_spare() >= size_type(__base::__block_size))
+    if (__front_spare() >= __base::__block_size)
     {
         __base::__start_ -= __base::__block_size;
         pointer __pt = __base::__map_.front();

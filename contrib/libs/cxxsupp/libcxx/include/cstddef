@@ -45,10 +45,6 @@ Types:
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_ABI_VCRUNTIME
-typedef double max_align_t;
-#endif
-
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 using ::nullptr_t;
