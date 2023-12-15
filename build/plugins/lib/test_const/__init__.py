@@ -71,7 +71,6 @@ STYLE_TEST_TYPES = [
     "java.style",
     "ktlint",
     "py2_flake8",
-    "py3_flake8",
     "flake8",
     "black",
 ]
