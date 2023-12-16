@@ -382,7 +382,7 @@ inline RealType quantile(const kolmogorov_smirnov_distribution<RealType, Policy>
    std::uintmax_t m = policies::get_max_root_iterations<Policy>(); // and max iterations.
 
    return tools::newton_raphson_iterate(detail::kolmogorov_smirnov_quantile_functor<RealType, Policy>(dist, p),
-           k, RealType(0), boost::math::tools::max_value<RealType>(), get_digits, m);
+           k, RealType(0), RealType(1), get_digits, m);
 } // quantile
 
 template <class RealType, class Policy>
@@ -407,7 +407,7 @@ inline RealType quantile(const complemented2_type<kolmogorov_smirnov_distributio
 
    return tools::newton_raphson_iterate(
            detail::kolmogorov_smirnov_complementary_quantile_functor<RealType, Policy>(dist, p),
-           k, RealType(0), boost::math::tools::max_value<RealType>(), get_digits, m);
+           k, RealType(0), RealType(1), get_digits, m);
 } // quantile (complemented)
 
 template <class RealType, class Policy>

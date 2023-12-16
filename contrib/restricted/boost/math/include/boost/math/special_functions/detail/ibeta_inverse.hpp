@@ -25,23 +25,16 @@ namespace boost{ namespace math{ namespace detail{
 template <class T>
 struct temme_root_finder
 {
-   temme_root_finder(const T t_, const T a_) : t(t_), a(a_) {}
+   temme_root_finder(const T t_, const T a_) : t(t_), a(a_) {
+      const T x_extrema = 1 / (1 + a);
+      BOOST_MATH_ASSERT(0 < x_extrema && x_extrema < 1);
+   }
 
    boost::math::tuple<T, T> operator()(T x)
    {
       BOOST_MATH_STD_USING // ADL of std names
 
       T y = 1 - x;
-      if(y == 0)
-      {
-         T big = tools::max_value<T>() / 4;
-         return boost::math::make_tuple(static_cast<T>(-big), static_cast<T>(-big));
-      }
-      if(x == 0)
-      {
-         T big = tools::max_value<T>() / 4;
-         return boost::math::make_tuple(static_cast<T>(-big), big);
-      }
       T f = log(x) + a * log(y) + t;
       T f1 = (1 / x) - (a / (y));
       return boost::math::make_tuple(f, f1);
@@ -410,6 +403,10 @@ T temme_method_3_ibeta_inverse(T a, T b, T p, T q, const Policy& pol)
    T lower = eta < mu ? cross : 0;
    T upper = eta < mu ? 1 : cross;
    T x = (lower + upper) / 2;
+
+   // Early exit for cases with numerical precision issues.
+   if (cross == 0 || cross == 1) { return cross; }
+   
    x = tools::newton_raphson_iterate(
       temme_root_finder<T>(u, mu), x, lower, upper, policies::digits<T, Policy>() / 2);
 #ifdef BOOST_INSTRUMENT
@@ -828,7 +825,21 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
          std::swap(p, q);
          invert = !invert;
       }
-      if(pow(p, 1/a) < 0.5)
+      if (a < tools::min_value<T>())
+      {
+         // Avoid spurious overflows for denorms:
+         if (p < 1)
+         {
+            x = 1;
+            y = 0;
+         }
+         else
+         {
+            x = 0;
+            y = 1;
+         }
+      }
+      else if(pow(p, 1/a) < 0.5)
       {
 #ifndef BOOST_NO_EXCEPTIONS
          try 

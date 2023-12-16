@@ -275,14 +275,7 @@ T newton_raphson_iterate(F f, T guess, T min, T max, int digits, std::uintmax_t&
       if (fabs(delta * 2) > fabs(delta2))
       {
          // Last two steps haven't converged.
-         T shift = (delta > 0) ? (result - min) / 2 : (result - max) / 2;
-         if ((result != 0) && (fabs(shift) > fabs(result)))
-         {
-            delta = sign(delta) * fabs(result) * 1.1f; // Protect against huge jumps!
-            //delta = sign(delta) * result; // Protect against huge jumps! Failed for negative result. https://github.com/boostorg/math/issues/216
-         }
-         else
-            delta = shift;
+         delta = (delta > 0) ? (result - min) / 2 : (result - max) / 2;
          // reset delta1/2 so we don't take this branch next time round:
          delta1 = 3 * delta;
          delta2 = 3 * delta;
@@ -596,7 +589,8 @@ namespace detail {
    #ifdef BOOST_MATH_INSTRUMENT
          std::cout << "Second order root iteration, delta = " << delta << ", residual = " << f0 << "\n";
    #endif
-         T convergence = fabs(delta / delta2);
+         // We need to avoid delta/delta2 overflowing here:
+         T convergence = (fabs(delta2) > 1) || (fabs(tools::max_value<T>() * delta2) > fabs(delta)) ? fabs(delta / delta2) : tools::max_value<T>();
          if ((convergence > 0.8) && (convergence < 2))
          {
             // last two steps haven't converged.

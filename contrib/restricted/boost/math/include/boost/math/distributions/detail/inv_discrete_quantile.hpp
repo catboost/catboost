@@ -147,7 +147,7 @@ typename Dist::value_type
    // we're assuming that "guess" is likely to be accurate
    // to the nearest int or so:
    //
-   else if(adder != 0)
+   else if((adder != 0) && (a + adder != a))
    {
       //
       // If we're looking for a large result, then bump "adder" up
@@ -302,15 +302,13 @@ inline typename Dist::value_type round_to_floor(const Dist& d, typename Dist::va
    //
    while(result != 0)
    {
-      cc = result - 1;
+      cc = floor(float_prior(result));
       if(cc < support(d).first)
          break;
       pp = c ? cdf(complement(d, cc)) : cdf(d, cc);
-      if(pp == p)
-         result = cc;
-      else if(c ? pp > p : pp < p)
+      if(c ? pp > p : pp < p)
          break;
-      result -= 1;
+      result = cc;
    }
 
    return result;
@@ -336,15 +334,13 @@ inline typename Dist::value_type round_to_ceil(const Dist& d, typename Dist::val
    //
    while(true)
    {
-      cc = result + 1;
+      cc = ceil(float_next(result));
       if(cc > support(d).second)
          break;
       pp = c ? cdf(complement(d, cc)) : cdf(d, cc);
-      if(pp == p)
-         result = cc;
-      else if(c ? pp < p : pp > p)
+      if(c ? pp < p : pp > p)
          break;
-      result += 1;
+      result = cc;
    }
 
    return result;
