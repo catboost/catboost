@@ -607,7 +607,7 @@ _YandexAbort();
     #define Y_HAVE_INT128 1
 #endif
 
-#if defined(__clang__) && Y_CUDA_AT_LEAST(11, 0)
+#if defined(__clang__) && (!defined(__CUDACC__) || Y_CUDA_AT_LEAST(11, 0))
     #define Y_REINITIALIZES_OBJECT [[clang::reinitializes]]
 #else
     #define Y_REINITIALIZES_OBJECT
