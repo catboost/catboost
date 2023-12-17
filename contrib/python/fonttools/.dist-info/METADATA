@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.45.1
+Version: 4.46.0
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -365,6 +365,22 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.46.0 (released 2023-12-02)
+----------------------------
+
+- [featureVars] Allow to register the same set of substitution rules to multiple features.
+  The ``addFeatureVariations`` function can now take a list of featureTags; similarly, the
+  lib key 'com.github.fonttools.varLib.featureVarsFeatureTag' can now take a
+  comma-separateed string of feature tags (e.g. "salt,ss01") instead of a single tag (#3360).
+- [featureVars] Don't overwrite GSUB FeatureVariations, but append new records to it
+  for features which are not already there. But raise ``VarLibError`` if the feature tag
+  already has feature variations associated with it (#3363).
+- [varLib] Added ``addGSUBFeatureVariations`` function to add GSUB Feature Variations
+  to an existing variable font from rules defined in a DesignSpace document (#3362).
+- [varLib.interpolatable] Various bugfixes and rendering improvements. In particular,
+  a new test for "underweight" glyphs. The new test reports quite a few false-positives
+  though. Please send feedback.
 
 4.45.1 (released 2023-11-23)
 ----------------------------
