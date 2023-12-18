@@ -80,11 +80,6 @@ public:
     _LIBCPP_CONSTEXPR_AFTER_CXX11
     initializer_list() _NOEXCEPT : __begin_(nullptr), __size_(0) {}
 
-    initializer_list(const initializer_list&) = default;
-    initializer_list(initializer_list&&) = default;
-    initializer_list& operator=(const initializer_list&) = delete;
-    initializer_list& operator=(initializer_list&&) = delete;
-
     _LIBCPP_INLINE_VISIBILITY
     _LIBCPP_CONSTEXPR_AFTER_CXX11
     size_t    size()  const _NOEXCEPT {return __size_;}

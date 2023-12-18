@@ -73,71 +73,69 @@ struct _LIBCPP_TEMPLATE_VIS pair
         return *this;
     }
 #else
-    template<bool _Dummy = true, int&... _Args>
-    struct _EnableImplicitDefaultConstructor {
-        static constexpr bool value = __is_implicitly_default_constructible<_T1>::value
-            && __is_implicitly_default_constructible<_T2>::value;
+    struct _CheckArgs {
+      template <int&...>
+      static constexpr bool __enable_explicit_default() {
+          return is_default_constructible<_T1>::value
+              && is_default_constructible<_T2>::value
+              && !__enable_implicit_default<>();
+      }
+
+      template <int&...>
+      static constexpr bool __enable_implicit_default() {
+          return __is_implicitly_default_constructible<_T1>::value
+              && __is_implicitly_default_constructible<_T2>::value;
+      }
+
+      template <class _U1, class _U2>
+      static constexpr bool __enable_explicit() {
+          return is_constructible<first_type, _U1>::value
+              && is_constructible<second_type, _U2>::value
+              && (!is_convertible<_U1, first_type>::value
+                  || !is_convertible<_U2, second_type>::value);
+      }
+
+      template <class _U1, class _U2>
+      static constexpr bool __enable_implicit() {
+          return is_constructible<first_type, _U1>::value
+              && is_constructible<second_type, _U2>::value
+              && is_convertible<_U1, first_type>::value
+              && is_convertible<_U2, second_type>::value;
+      }
     };
 
-    template<bool _Dummy = true, int&... _Args>
-    struct _EnableExplicitDefaultConstructor {
-        static constexpr bool value = is_default_constructible<_T1>::value
-            && is_default_constructible<_T2>::value
-            && !_EnableImplicitDefaultConstructor<_Dummy, _Args...>::value;
-    };
+    template <bool _MaybeEnable>
+    using _CheckArgsDep _LIBCPP_NODEBUG = typename conditional<
+      _MaybeEnable, _CheckArgs, __check_tuple_constructor_fail>::type;
 
-    template <class _U1, class _U2, bool _Dummy = true>
-    struct _EnableExplicitConstructor {
-        static constexpr bool value = is_constructible<first_type, _U1>::value
-            && is_constructible<second_type, _U2>::value
-            && (!is_convertible<_U1, first_type>::value
-            || !is_convertible<_U2, second_type>::value);
-    };
+    struct _CheckTupleLikeConstructor {
+        template <class _Tuple>
+        static constexpr bool __enable_implicit() {
+            return __tuple_convertible<_Tuple, pair>::value;
+        }
 
-    template <class _U1, class _U2, bool _Dummy = true>
-    struct _EnableImplicitConstructor {
-        static constexpr bool value = is_constructible<first_type, _U1>::value
-            && is_constructible<second_type, _U2>::value
-            && is_convertible<_U1, first_type>::value
-            && is_convertible<_U2, second_type>::value;
-    };
+        template <class _Tuple>
+        static constexpr bool __enable_explicit() {
+            return __tuple_constructible<_Tuple, pair>::value
+               && !__tuple_convertible<_Tuple, pair>::value;
+        }
 
-    template <class _Tuple, bool _Enable = __tuple_like_with_size<_Tuple, 2>::value
-        && !is_same<typename decay<_Tuple>::type, pair>::value>
-    struct _EnableImplicitTupleLikeConstructor {
-        static constexpr bool value = false;
-    };
-
-    template <class _Tuple, bool _Enable = __tuple_like_with_size<_Tuple, 2>::value
-        && !is_same<typename decay<_Tuple>::type, pair>::value>
-    struct _EnableExplicitTupleLikeConstructor {
-        static constexpr bool value = false;
-    };
-
-    template <class _Tuple, bool _Enable = __tuple_like_with_size<_Tuple, 2>::value
-        && !is_same<typename decay<_Tuple>::type, pair>::value>
-    struct _EnableTupleLikeAssign {
-        static constexpr bool value = false;
-    };
-
-    template <class _Tuple>
-    struct _EnableImplicitTupleLikeConstructor<_Tuple, true> {
-        static constexpr bool value = __tuple_convertible<_Tuple, pair>::value;
-    };
-
-    template <class _Tuple>
-    struct _EnableExplicitTupleLikeConstructor<_Tuple, true> {
-        static constexpr bool value = __tuple_constructible<_Tuple, pair>::value
-            && !__tuple_convertible<_Tuple, pair>::value;
+        template <class _Tuple>
+        static constexpr bool __enable_assign() {
+            return __tuple_assignable<_Tuple, pair>::value;
+        }
     };
 
     template <class _Tuple>
-    struct _EnableTupleLikeAssign<_Tuple, true> {
-        static constexpr bool value = __tuple_assignable<_Tuple, pair>::value;
-    };
+    using _CheckTLC _LIBCPP_NODEBUG = typename conditional<
+        __tuple_like_with_size<_Tuple, 2>::value
+            && !is_same<typename decay<_Tuple>::type, pair>::value,
+        _CheckTupleLikeConstructor,
+        __check_tuple_constructor_fail
+    >::type;
 
     template<bool _Dummy = true, typename enable_if<
-            _EnableExplicitDefaultConstructor<_Dummy>::value
+            _CheckArgsDep<_Dummy>::__enable_explicit_default()
     >::type* = nullptr>
     explicit _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
     pair() _NOEXCEPT_(is_nothrow_default_constructible<first_type>::value &&
@@ -145,7 +143,7 @@ struct _LIBCPP_TEMPLATE_VIS pair
         : first(), second() {}
 
     template<bool _Dummy = true, typename enable_if<
-             _EnableImplicitDefaultConstructor<_Dummy>::value
+            _CheckArgsDep<_Dummy>::__enable_implicit_default()
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
     pair() _NOEXCEPT_(is_nothrow_default_constructible<first_type>::value &&
@@ -153,7 +151,7 @@ struct _LIBCPP_TEMPLATE_VIS pair
         : first(), second() {}
 
     template <bool _Dummy = true, typename enable_if<
-             _EnableExplicitConstructor<_T1 const&, _T2 const&, _Dummy>::value
+             _CheckArgsDep<_Dummy>::template __enable_explicit<_T1 const&, _T2 const&>()
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     explicit pair(_T1 const& __t1, _T2 const& __t2)
@@ -161,8 +159,8 @@ struct _LIBCPP_TEMPLATE_VIS pair
                    is_nothrow_copy_constructible<second_type>::value)
         : first(__t1), second(__t2) {}
 
-    template<bool _Dummy = true, bool _Dummy2 = true, typename enable_if<
-            _EnableImplicitConstructor<_T1 const&, _T2 const&, _Dummy>::value
+    template<bool _Dummy = true, typename enable_if<
+            _CheckArgsDep<_Dummy>::template __enable_implicit<_T1 const&, _T2 const&>()
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     pair(_T1 const& __t1, _T2 const& __t2)
@@ -176,7 +174,7 @@ struct _LIBCPP_TEMPLATE_VIS pair
 #else
         class _U1, class _U2,
 #endif
-        typename enable_if<_EnableExplicitConstructor<_U1, _U2>::value>::type* = nullptr
+        typename enable_if<_CheckArgs::template __enable_explicit<_U1, _U2>()>::type* = nullptr
     >
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     explicit pair(_U1&& __u1, _U2&& __u2)
@@ -184,13 +182,13 @@ struct _LIBCPP_TEMPLATE_VIS pair
                     is_nothrow_constructible<second_type, _U2>::value))
         : first(_VSTD::forward<_U1>(__u1)), second(_VSTD::forward<_U2>(__u2)) {}
 
-    template<
+    template <
 #if _LIBCPP_STD_VER > 20 // http://wg21.link/P1951
         class _U1 = _T1, class _U2 = _T2,
 #else
         class _U1, class _U2,
 #endif
-        bool _Dummy = true, typename enable_if<_EnableImplicitConstructor<_U1, _U2, _Dummy>::value>::type* = nullptr
+        typename enable_if<_CheckArgs::template __enable_implicit<_U1, _U2>()>::type* = nullptr
     >
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     pair(_U1&& __u1, _U2&& __u2)
@@ -199,7 +197,7 @@ struct _LIBCPP_TEMPLATE_VIS pair
         : first(_VSTD::forward<_U1>(__u1)), second(_VSTD::forward<_U2>(__u2)) {}
 
     template<class _U1, class _U2, typename enable_if<
-            _EnableExplicitConstructor<_U1 const&, _U2 const&>::value
+            _CheckArgs::template __enable_explicit<_U1 const&, _U2 const&>()
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     explicit pair(pair<_U1, _U2> const& __p)
@@ -207,8 +205,8 @@ struct _LIBCPP_TEMPLATE_VIS pair
                     is_nothrow_constructible<second_type, _U2 const&>::value))
         : first(__p.first), second(__p.second) {}
 
-    template<class _U1, class _U2, bool _Dummy = true, typename enable_if<
-            _EnableImplicitConstructor<_U1 const&, _U2 const&, _Dummy>::value
+    template<class _U1, class _U2, typename enable_if<
+            _CheckArgs::template __enable_implicit<_U1 const&, _U2 const&>()
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     pair(pair<_U1, _U2> const& __p)
@@ -217,7 +215,7 @@ struct _LIBCPP_TEMPLATE_VIS pair
         : first(__p.first), second(__p.second) {}
 
     template<class _U1, class _U2, typename enable_if<
-            _EnableExplicitConstructor<_U1, _U2>::value
+            _CheckArgs::template __enable_explicit<_U1, _U2>()
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     explicit pair(pair<_U1, _U2>&&__p)
@@ -225,8 +223,8 @@ struct _LIBCPP_TEMPLATE_VIS pair
                     is_nothrow_constructible<second_type, _U2&&>::value))
         : first(_VSTD::forward<_U1>(__p.first)), second(_VSTD::forward<_U2>(__p.second)) {}
 
-    template<class _U1, class _U2, bool _Dummy = true, typename enable_if<
-            _EnableImplicitConstructor<_U1, _U2>::value
+    template<class _U1, class _U2, typename enable_if<
+            _CheckArgs::template __enable_implicit<_U1, _U2>()
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     pair(pair<_U1, _U2>&& __p)
@@ -235,15 +233,15 @@ struct _LIBCPP_TEMPLATE_VIS pair
         : first(_VSTD::forward<_U1>(__p.first)), second(_VSTD::forward<_U2>(__p.second)) {}
 
     template<class _Tuple, typename enable_if<
-            _EnableExplicitTupleLikeConstructor<_Tuple>::value
+            _CheckTLC<_Tuple>::template __enable_explicit<_Tuple>()
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     explicit pair(_Tuple&& __p)
         : first(_VSTD::get<0>(_VSTD::forward<_Tuple>(__p))),
           second(_VSTD::get<1>(_VSTD::forward<_Tuple>(__p))) {}
 
-    template<class _Tuple, bool _Dummy = true, typename enable_if<
-            _EnableImplicitTupleLikeConstructor<_Tuple>::value
+    template<class _Tuple, typename enable_if<
+            _CheckTLC<_Tuple>::template __enable_implicit<_Tuple>()
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     pair(_Tuple&& __p)
@@ -286,8 +284,8 @@ struct _LIBCPP_TEMPLATE_VIS pair
         return *this;
     }
 
-    template <class _Tuple, bool _Dummy = true, typename enable_if<
-            _EnableTupleLikeAssign<_Tuple>::value
+    template <class _Tuple, typename enable_if<
+            _CheckTLC<_Tuple>::template __enable_assign<_Tuple>()
      >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
     pair& operator=(_Tuple&& __p) {

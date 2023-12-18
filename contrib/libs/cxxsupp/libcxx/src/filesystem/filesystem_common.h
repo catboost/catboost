@@ -135,16 +135,6 @@ size_t error_value<size_t>() {
   return size_t(-1);
 }
 #endif
-
-#if defined(_MSC_VER) && !defined(__clang__) && defined(_M_IX86)
-// FIXME thegeorg@ MSVC on i686 somehow depends on this function presence.
-// Further investigation is needed in order to understand the logic behind this.
-template <>
-unsigned int error_value<unsigned int>() {
-  return unsigned int(-1);
-}
-#endif
-
 template <>
 uintmax_t error_value<uintmax_t>() {
   return uintmax_t(-1);
