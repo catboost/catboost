@@ -123,7 +123,7 @@ cmsBool  BlackPointAsDarkerColorant(cmsHPROFILE    hInput,
     // Convert black to Lab
     cmsDoTransform(xform, Black, &Lab, 1);
 
-    // Force it to be neutral, check for inconsistences
+    // Force it to be neutral, check for inconsistencies
     Lab.a = Lab.b = 0;
     if (Lab.L > 50 || Lab.L < 0) Lab.L = 0;
 
