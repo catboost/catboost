@@ -993,6 +993,9 @@ class TestCase(object):
         with context:
             callable_obj(*args, **kwargs)
 
+    # XXX Для более простой миграции существующих тестов на Python 3
+    assertRaisesRegex = assertRaisesRegexp
+
     def assertRegexpMatches(self, text, expected_regexp, msg=None):
         """Fail the test unless the text matches the regular expression."""
         if isinstance(expected_regexp, basestring):
