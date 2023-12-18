@@ -5,7 +5,7 @@
 #ifndef BOOST_HASH_DETAIL_HASH_MIX_HPP
 #define BOOST_HASH_DETAIL_HASH_MIX_HPP
 
-#include <boost/cstdint.hpp>
+#include <cstdint>
 #include <cstddef>
 #include <climits>
 
@@ -66,9 +66,9 @@ template<std::size_t Bits> struct hash_mix_impl;
 
 template<> struct hash_mix_impl<64>
 {
-    inline static boost::uint64_t fn( boost::uint64_t x )
+    inline static std::uint64_t fn( std::uint64_t x )
     {
-        boost::uint64_t const m = (boost::uint64_t(0xe9846af) << 32) + 0x9b1a615d;
+        std::uint64_t const m = 0xe9846af9b1a615d;
 
         x ^= x >> 32;
         x *= m;
@@ -87,10 +87,10 @@ template<> struct hash_mix_impl<64>
 
 template<> struct hash_mix_impl<32>
 {
-    inline static boost::uint32_t fn( boost::uint32_t x )
+    inline static std::uint32_t fn( std::uint32_t x )
     {
-        boost::uint32_t const m1 = 0x21f0aaad;
-        boost::uint32_t const m2 = 0x735a2d97;
+        std::uint32_t const m1 = 0x21f0aaad;
+        std::uint32_t const m2 = 0x735a2d97;
 
         x ^= x >> 16;
         x *= m1;
