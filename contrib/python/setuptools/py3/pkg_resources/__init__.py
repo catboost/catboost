@@ -3331,7 +3331,7 @@ class UnionProvider(EmptyProvider):
         return False
 
     def get_resource_filename(self, manager, resource_name):
-        return self._fn(self.module_path, resource_name)[0]
+        return self._fn(self.module_path, resource_name)[0][1]
 
 
 class ResProvider(EmptyProvider):
