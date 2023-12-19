@@ -43,11 +43,11 @@ struct detect_precision_loss
 {
     typedef Source source_type;
     typedef boost::numeric::Trunc<Source> Rounder;
-    typedef BOOST_DEDUCED_TYPENAME conditional<
+    typedef typename conditional<
         boost::is_arithmetic<Source>::value, Source, Source const&
     >::type argument_type ;
 
-    static inline source_type nearbyint(argument_type s, bool& is_ok) BOOST_NOEXCEPT {
+    static inline source_type nearbyint(argument_type s, bool& is_ok) noexcept {
         const source_type near_int = Rounder::nearbyint(s);
         if (near_int && is_ok) {
             const source_type orig_div_round = s / near_int;
@@ -66,24 +66,24 @@ template <typename Base, class Source>
 struct fake_precision_loss: public Base
 {
     typedef Source source_type ;
-    typedef BOOST_DEDUCED_TYPENAME conditional<
+    typedef typename conditional<
         boost::is_arithmetic<Source>::value, Source, Source const&
     >::type argument_type ;
 
-    static inline source_type nearbyint(argument_type s, bool& /*is_ok*/) BOOST_NOEXCEPT {
+    static inline source_type nearbyint(argument_type s, bool& /*is_ok*/) noexcept {
         return s;
     }
 };
 
 struct nothrow_overflow_handler
 {
-    inline bool operator() ( boost::numeric::range_check_result r ) const BOOST_NOEXCEPT {
+    inline bool operator() ( boost::numeric::range_check_result r ) const noexcept {
         return (r == boost::numeric::cInRange);
     }
 };
 
 template <typename Target, typename Source>
-inline bool noexcept_numeric_convert(const Source& arg, Target& result) BOOST_NOEXCEPT {
+inline bool noexcept_numeric_convert(const Source& arg, Target& result) noexcept {
     typedef boost::numeric::converter<
             Target,
             Source,
@@ -92,7 +92,7 @@ inline bool noexcept_numeric_convert(const Source& arg, Target& result) BOOST_NO
             detect_precision_loss<Source >
     > converter_orig_t;
 
-    typedef BOOST_DEDUCED_TYPENAME boost::conditional<
+    typedef typename boost::conditional<
         boost::is_base_of< detect_precision_loss<Source >, converter_orig_t >::value,
         converter_orig_t,
         fake_precision_loss<converter_orig_t, Source>
@@ -109,7 +109,7 @@ inline bool noexcept_numeric_convert(const Source& arg, Target& result) BOOST_NO
 template <typename Target, typename Source>
 struct lexical_cast_dynamic_num_not_ignoring_minus
 {
-    static inline bool try_convert(const Source &arg, Target& result) BOOST_NOEXCEPT {
+    static inline bool try_convert(const Source &arg, Target& result) noexcept {
         return noexcept_numeric_convert<Target, Source >(arg, result);
     }
 };
@@ -117,13 +117,13 @@ struct lexical_cast_dynamic_num_not_ignoring_minus
 template <typename Target, typename Source>
 struct lexical_cast_dynamic_num_ignoring_minus
 {
-    static inline bool try_convert(const Source &arg, Target& result) BOOST_NOEXCEPT {
-        typedef BOOST_DEDUCED_TYPENAME boost::conditional<
+    static inline bool try_convert(const Source &arg, Target& result) noexcept {
+        typedef typename boost::conditional<
                 boost::is_float<Source>::value,
                 boost::type_identity<Source>,
                 boost::make_unsigned<Source>
         >::type usource_lazy_t;
-        typedef BOOST_DEDUCED_TYPENAME usource_lazy_t::type usource_t;
+        typedef typename usource_lazy_t::type usource_t;
 
         if (arg < 0) {
             const bool res = noexcept_numeric_convert<Target, usource_t>(0u - arg, result);
@@ -156,10 +156,10 @@ struct lexical_cast_dynamic_num_ignoring_minus
 template <typename Target, typename Source>
 struct dynamic_num_converter_impl
 {
-    typedef BOOST_DEDUCED_TYPENAME boost::remove_volatile<Source>::type source_type;
+    typedef typename boost::remove_volatile<Source>::type source_type;
 
-    static inline bool try_convert(source_type arg, Target& result) BOOST_NOEXCEPT {
-        typedef BOOST_DEDUCED_TYPENAME boost::conditional<
+    static inline bool try_convert(source_type arg, Target& result) noexcept {
+        typedef typename boost::conditional<
             boost::is_unsigned<Target>::value &&
             (boost::is_signed<source_type>::value || boost::is_float<source_type>::value) &&
             !(boost::is_same<source_type, bool>::value) &&
