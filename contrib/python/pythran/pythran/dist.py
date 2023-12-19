@@ -13,6 +13,7 @@ except ImportError:
 import os.path
 import os
 
+import setuptools
 from distutils.command.build_ext import build_ext as LegacyBuildExt
 
 try:

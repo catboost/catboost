@@ -304,6 +304,7 @@ def run():
     Dump on stdout the config flags required to compile pythran-generated code.
     '''
     import argparse
+    import setuptools
     import distutils.ccompiler
     import distutils.sysconfig
     import pythran

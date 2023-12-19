@@ -22,6 +22,7 @@ from pythran.version import __version__
 from pythran.utils import cxxid
 import pythran.frontend as frontend
 
+import setuptools
 from distutils.errors import CompileError
 from distutils import sysconfig
 try:
