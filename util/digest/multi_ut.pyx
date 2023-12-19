@@ -16,4 +16,4 @@ class TestMultiHash(unittest.TestCase):
         self.assertEqual(value, 9973288649881090712)
 
     def test_collision(self):
-        self.assertNotEquals(MultiHash(1, 1, 0), MultiHash(2, 2, 0))
+        self.assertNotEqual(MultiHash(1, 1, 0), MultiHash(2, 2, 0))

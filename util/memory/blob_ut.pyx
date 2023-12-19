@@ -45,7 +45,7 @@ class TestBlob(unittest.TestCase):
     def test_copy(self):
         cdef const char* txt = "hello world"
         cdef TBlob tmp = TBlob.Copy(txt, len(txt))
-        self.assertNotEquals(tmp.AsCharPtr() - txt, 0)
+        self.assertNotEqual(tmp.AsCharPtr() - txt, 0)
         self.assertEqual(tmp.Size(), 11)
         self.assertEqual(tmp.AsCharPtr()[:tmp.Size()], "hello world")
         self.assertEqual(tmp.Empty(), False)
@@ -137,5 +137,5 @@ class TestBlob(unittest.TestCase):
         cdef TBlob tmp2 = tmp.DeepCopy()
         self.assertEqual(tmp.AsCharPtr()[:tmp.Size()], "hello world")
         self.assertEqual(tmp2.AsCharPtr()[:tmp2.Size()], "hello world")
-        self.assertNotEquals(tmp2.AsCharPtr() - tmp.AsCharPtr(), 0)
+        self.assertNotEqual(tmp2.AsCharPtr() - tmp.AsCharPtr(), 0)
 

@@ -7,12 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import sys
-
-    if sys.version_info >= (3, 8):  # pragma: no cover (py38+)
-        from typing import Literal
-    else:  # pragma: no cover (py38+)
-        from typing_extensions import Literal
+    from typing import Literal
 
 
 class PlatformDirsABC(ABC):
