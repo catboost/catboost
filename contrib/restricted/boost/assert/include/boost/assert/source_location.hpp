@@ -7,9 +7,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // http://www.boost.org/LICENSE_1_0.txt
 
-#include <boost/current_function.hpp>
 #include <boost/config.hpp>
-#include <boost/config/workaround.hpp>
 #include <boost/cstdint.hpp>
 #include <iosfwd>
 #include <string>
