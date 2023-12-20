@@ -670,3 +670,43 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
 #else
     #define Y_LIFETIME_BOUND
 #endif
+
+/**
+ * @def Y_HAVE_ATTRIBUTE
+ *
+ * A function-like feature checking macro that is a wrapper around
+ * `__has_attribute`, which is defined by GCC 5+ and Clang and evaluates to a
+ * nonzero constant integer if the attribute is supported or 0 if not.
+ *
+ * It evaluates to zero if `__has_attribute` is not defined by the compiler.
+ *
+ * @see
+ *     GCC: https://gcc.gnu.org/gcc-5/changes.html
+ *     Clang: https://clang.llvm.org/docs/LanguageExtensions.html
+ */
+#ifdef __has_attribute
+    #define Y_HAVE_ATTRIBUTE(x) __has_attribute(x)
+#else
+    #define Y_HAVE_ATTRIBUTE(x) 0
+#endif
+
+/**
+ * @def Y_RETURNS_NONNULL
+ *
+ * The returns_nonnull attribute specifies that the function return value should
+ * be a non-null pointer. It lets the compiler optimize callers based on
+ * the knowledge that the return value will never be null.
+ *
+ * @see
+ *    GCC: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-returns_005fnonnull-function-attribute
+ *    Clang: https://clang.llvm.org/docs/AttributeReference.html#returns-nonnull
+ *
+ * @code
+ * Y_RETURNS_NONNULL extern void* mymalloc(size_t len);
+ * @endcode
+ */
+#if Y_HAVE_ATTRIBUTE(returns_nonnull)
+    #define Y_RETURNS_NONNULL __attribute__((returns_nonnull))
+#else
+    #define Y_RETURNS_NONNULL
+#endif
