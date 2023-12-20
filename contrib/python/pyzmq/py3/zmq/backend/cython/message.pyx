@@ -231,26 +231,6 @@ cdef class Frame:
         buffer.itemsize = 1
         buffer.internal = NULL
 
-    def __getsegcount__(self, Py_ssize_t *lenp):
-        # required for getreadbuffer
-        if lenp != NULL:
-            lenp[0] = zmq_msg_size(&self.zmq_msg)
-        return 1
-
-    def __getreadbuffer__(self, Py_ssize_t idx, void **p):
-        # old-style (buffer) interface
-        cdef char *data_c = NULL
-        cdef Py_ssize_t data_len_c
-        if idx != 0:
-            raise SystemError("accessing non-existent buffer segment")
-        # read-only, because we don't want to allow
-        # editing of the message in-place
-        data_c = <char *>zmq_msg_data(&self.zmq_msg)
-        data_len_c = zmq_msg_size(&self.zmq_msg)
-        if p != NULL:
-            p[0] = <void*>data_c
-        return data_len_c
-
     # end buffer interface
 
     def __copy__(self):

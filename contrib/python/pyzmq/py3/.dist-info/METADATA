@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pyzmq
-Version: 25.1.1
+Version: 25.1.2
 Summary: Python bindings for 0MQ
 Home-page: https://pyzmq.readthedocs.org
 Author: Brian E. Granger, Min Ragan-Kelley
