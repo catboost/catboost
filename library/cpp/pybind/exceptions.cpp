@@ -124,8 +124,6 @@ namespace NPyBind {
         Checkers.push_back(new TPyErrExceptionsChecker);
 
 #if PY_MAJOR_VERSION >= 3
-        PyImport_AppendInittab("pybind", DoInitPyBindModule);
-
         NPrivate::AddFinalizationCallBack([this]() {
             Clear();
         });
