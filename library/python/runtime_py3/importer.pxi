@@ -221,7 +221,8 @@ class ResourceImporter(object):
     def find_spec(self, fullname, path=None, target=None):
         # Поддежка переопределения стандартного distutils из пакетом из setuptools
         if fullname.startswith("distutils."):
-            if path and len(path) > 0 and "/setuptools/_distutils" in path[0]:
+            setuptools_path = f"{path_sep}setuptools{path_sep}_distutils"
+            if path and len(path) > 0 and setuptools_path in path[0]:
                 import importlib
                 import importlib.abc
 
