@@ -33,7 +33,7 @@ namespace NCatboostCuda {
                                  ui32 cpuApproxDim,
                                  bool hasWeights,
                                  TMaybe<ui32> learnAndTestCheckSum,
-                                 ITrainingCallbacks* trainingCallbacks,
+                                 ITrainingCallbacks* trainingCallbacks, 
                                  const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor);
 
         const TErrorTracker& GetErrorTracker() const {
