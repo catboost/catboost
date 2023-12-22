@@ -120,5 +120,5 @@ namespace NCatboostCuda {
     };
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
-                                                  const ui32 cpuApproxDim, bool hasWeights);
+                                                  const ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor);
 }

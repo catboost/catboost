@@ -56,7 +56,8 @@ namespace NCatboostCuda {
         ui32 approxDimension,
         ITrainingCallbacks* trainingCallbacks,
         bool hasWeights,
-        TMaybe<ui32> learnAndTestCheckSum
+        TMaybe<ui32> learnAndTestCheckSum,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
     ) {
         return TBoostingProgressTracker(catBoostOptions,
             outputOptions,
@@ -66,7 +67,8 @@ namespace NCatboostCuda {
             approxDimension,
             hasWeights,
             learnAndTestCheckSum,
-            trainingCallbacks);
+            trainingCallbacks,
+            evalMetricDescriptor);
     }
 
     template <class TBoosting>
@@ -82,7 +84,8 @@ namespace NCatboostCuda {
                                                                          ITrainingCallbacks* trainingCallbacks,
                                                                          NPar::ILocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
-                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
+                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                                                                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
         auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
 
         boosting.SetDataProvider(learn, featureEstimators, test);
@@ -100,7 +103,8 @@ namespace NCatboostCuda {
             approxDimension,
             trainingCallbacks,
             learn.MetaInfo.HasWeights,
-            learnAndTestCheckSum);
+            learnAndTestCheckSum,
+            evalMetricDescriptor);
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 
@@ -158,7 +162,8 @@ namespace NCatboostCuda {
             approxDimension,
             defaultTrainingCallcbacks.Get(),
             learn.MetaInfo.HasWeights,
-            /*learnAndTestCheckSum*/ Nothing());
+            /*learnAndTestCheckSum*/ Nothing(),
+            Nothing());
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 

@@ -21,7 +21,8 @@ namespace NCatboostCuda {
                                                        ITrainingCallbacks* trainingCallbacks,
                                                        NPar::ILocalExecutor* localExecutor,
                                                        TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-                                                       TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
+                                                       TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                                                       const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
             using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
             using TBoosting = TDynamicBoosting<TTargetTemplate, TFeatureParallelWeakLearner>;
@@ -40,7 +41,8 @@ namespace NCatboostCuda {
                                     trainingCallbacks,
                                     localExecutor,
                                     testMultiApprox,
-                                    metricsAndTimeHistory);
+                                    metricsAndTimeHistory,
+                                    evalMetricDescriptor);
 
         } else {
             using TDocParallelBoosting = TBoosting<TTargetTemplate, TDocParallelObliviousTree>;
@@ -56,7 +58,8 @@ namespace NCatboostCuda {
                                                trainingCallbacks,
                                                localExecutor,
                                                testMultiApprox,
-                                               metricsAndTimeHistory);
+                                               metricsAndTimeHistory,
+                                               evalMetricDescriptor);
         }
     };
 
@@ -96,7 +99,8 @@ namespace NCatboostCuda {
                                                                         ITrainingCallbacks* trainingCallbacks,
                                                                         NPar::ILocalExecutor* localExecutor,
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-                                                                        TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
+                                                                        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                                                                        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) const {
             return Train<TTargetTemplate>(featuresManager,
                                           internalOptions,
                                           catBoostOptions,
@@ -109,7 +113,8 @@ namespace NCatboostCuda {
                                           trainingCallbacks,
                                           localExecutor,
                                           testMultiApprox,
-                                          metricsAndTimeHistory);
+                                          metricsAndTimeHistory,
+                                          evalMetricDescriptor);
         };
 
         virtual void ModelBasedEval(TBinarizedFeaturesManager& featuresManager,

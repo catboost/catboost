@@ -27,7 +27,9 @@ namespace NCatboostCuda {
                                                                             ITrainingCallbacks* trainingCallbacks,
                                                                             NPar::ILocalExecutor* localExecutor,
                                                                             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-                                                                            TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
+                                                                            TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                                                                            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
+                                                                            ) const {
                 CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");
                 using TWeakLearner = TGreedySubsetsSearcher<TModel>;
                 using TBoostingImpl = TBoosting<TTargetTemplate, TWeakLearner>;
@@ -55,7 +57,8 @@ namespace NCatboostCuda {
                                                         trainingCallbacks,
                                                         localExecutor,
                                                         testMultiApprox,
-                                                        metricsAndTimeHistory);
+                                                        metricsAndTimeHistory,
+                                                        evalMetricDescriptor);
                 if constexpr (std::is_same<TModel, TObliviousTreeModel>::value || std::is_same<TModel, TNonSymmetricTree>::value) {
                     return resultModel;
                 } else {
