@@ -1,0 +1,17 @@
+CONTRIBUTORS for the olefile project
+====================================
+
+This is a non-exhaustive list of all the people who helped me improve the 
+olefile project (formerly OleFileIO_PL), in approximative chronological order.
+Please contact me if I forgot to mention your name.
+
+A big thank you to all of them:
+
+- Niko Ehrenfeuchter: added support for Jython
+- Niko Ehrenfeuchter, Martijn Berger and Dave Jones: helped fix 4K sector support
+- Martin Panter: conversion to Python 3.x/2.6+
+- mete0r_kr: added support for file-like objects
+- chuckleberryfinn: fixed bug in getproperties
+- Martijn, Ben G.: bug report for 64 bits platforms
+- Philippe Lagadec: main author and maintainer since 2005
+- and of course Fredrik Lundh: original author of OleFileIO from 1995 to 2005
