@@ -3,7 +3,9 @@ import re
 import abc
 import csv
 import sys
+import json
 import email
+import types
 import inspect
 import pathlib
 import operator
@@ -20,7 +22,6 @@ from ._compat import (
     NullFinder,
     StrPath,
     install,
-    pypy_partial,
 )
 from ._functools import method_cache, pass_none
 from ._itertools import always_iterable, unique_everseen
@@ -131,34 +132,7 @@ class Sectioned:
         return line and not line.startswith('#')
 
 
-class DeprecatedTuple:
-    """
-    Provide subscript item access for backward compatibility.
-
-    >>> recwarn = getfixture('recwarn')
-    >>> ep = EntryPoint(name='name', value='value', group='group')
-    >>> ep[:]
-    ('name', 'value', 'group')
-    >>> ep[0]
-    'name'
-    >>> len(recwarn)
-    1
-    """
-
-    # Do not remove prior to 2023-05-01 or Python 3.13
-    _warn = functools.partial(
-        warnings.warn,
-        "EntryPoint tuple interface is deprecated. Access members by name.",
-        DeprecationWarning,
-        stacklevel=pypy_partial(2),
-    )
-
-    def __getitem__(self, item):
-        self._warn()
-        return self._key()[item]
-
-
-class EntryPoint(DeprecatedTuple):
+class EntryPoint:
     """An entry point as defined by Python packaging conventions.
 
     See `the packaging docs on entry points
@@ -629,6 +603,16 @@ class Distribution(DeprecatedNonAbstract):
         for section in sections:
             space = url_req_space(section.value)
             yield section.value + space + quoted_marker(section.name)
+
+    @property
+    def origin(self):
+        return self._load_json('direct_url.json')
+
+    def _load_json(self, filename):
+        return pass_none(json.loads)(
+            self.read_text(filename),
+            object_hook=lambda data: types.SimpleNamespace(**data),
+        )
 
 
 class DistributionFinder(MetaPathFinder):
