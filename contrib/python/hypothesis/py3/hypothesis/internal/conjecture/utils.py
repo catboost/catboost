@@ -81,8 +81,12 @@ def check_sample(
     return tuple(values)
 
 
-def choice(data: "ConjectureData", values: Sequence[T]) -> T:
-    return values[data.draw_integer(0, len(values) - 1)]
+def choice(
+    data: "ConjectureData", values: Sequence[T], *, forced: Optional[T] = None
+) -> T:
+    forced_i = None if forced is None else values.index(forced)
+    i = data.draw_integer(0, len(values) - 1, forced=forced_i)
+    return values[i]
 
 
 class Sampler:
@@ -171,14 +175,25 @@ class Sampler:
                 self.table.append((base, alternate, alternate_chance))
         self.table.sort()
 
-    def sample(self, data: "ConjectureData") -> int:
+    def sample(self, data: "ConjectureData", forced: Optional[int] = None) -> int:
         data.start_example(SAMPLE_IN_SAMPLER_LABEL)
-        base, alternate, alternate_chance = choice(data, self.table)
-        use_alternate = data.draw_boolean(alternate_chance)
+        forced_choice = (  # pragma: no branch # https://github.com/nedbat/coveragepy/issues/1617
+            None
+            if forced is None
+            else next((b, a, a_c) for (b, a, a_c) in self.table if forced in (b, a))
+        )
+        base, alternate, alternate_chance = choice(
+            data, self.table, forced=forced_choice
+        )
+        use_alternate = data.draw_boolean(
+            alternate_chance, forced=None if forced is None else forced == alternate
+        )
         data.stop_example()
         if use_alternate:
+            assert forced is None or alternate == forced, (forced, alternate)
             return alternate
         else:
+            assert forced is None or base == forced, (forced, base)
             return base
 
 
@@ -204,11 +219,15 @@ class many:
         min_size: int,
         max_size: Union[int, float],
         average_size: Union[int, float],
+        *,
+        forced: Optional[int] = None,
     ) -> None:
         assert 0 <= min_size <= average_size <= max_size
+        assert forced is None or min_size <= forced <= max_size
         self.min_size = min_size
         self.max_size = max_size
         self.data = data
+        self.forced_size = forced
         self.p_continue = _calc_p_continue(average_size - min_size, max_size - min_size)
         self.count = 0
         self.rejections = 0
@@ -227,15 +246,22 @@ class many:
         self.data.start_example(ONE_FROM_MANY_LABEL)
 
         if self.min_size == self.max_size:
+            # if we have to hit an exact size, draw unconditionally until that
+            # point, and no further.
             should_continue = self.count < self.min_size
         else:
             forced_result = None
             if self.force_stop:
+                # if our size is forced, we can't reject in a way that would
+                # cause us to differ from the forced size.
+                assert self.forced_size is None or self.count == self.forced_size
                 forced_result = False
             elif self.count < self.min_size:
                 forced_result = True
             elif self.count >= self.max_size:
                 forced_result = False
+            elif self.forced_size is not None:
+                forced_result = self.count < self.forced_size
             should_continue = self.data.draw_boolean(
                 self.p_continue, forced=forced_result
             )

@@ -8,6 +8,8 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+from typing import Union
+
 
 class IntervalSet:
     @classmethod
@@ -61,17 +63,16 @@ class IntervalSet:
         assert r <= v
         return r
 
-    def __contains__(self, elem):
+    def __contains__(self, elem: Union[str, int]) -> bool:
         if isinstance(elem, str):
             elem = ord(elem)
-        assert isinstance(elem, int)
         assert 0 <= elem <= 0x10FFFF
         return any(start <= elem <= end for start, end in self.intervals)
 
     def __repr__(self):
         return f"IntervalSet({self.intervals!r})"
 
-    def index(self, value):
+    def index(self, value: int) -> int:
         for offset, (u, v) in zip(self.offsets, self.intervals):
             if u == value:
                 return offset
@@ -81,7 +82,7 @@ class IntervalSet:
                 return offset + (value - u)
         raise ValueError(f"{value} is not in list")
 
-    def index_above(self, value):
+    def index_above(self, value: int) -> int:
         for offset, (u, v) in zip(self.offsets, self.intervals):
             if u >= value:
                 return offset
@@ -254,3 +255,24 @@ class IntervalSet:
             assert 0 <= i <= self._idx_of_Z
 
         return chr(self[i])
+
+    def index_from_char_in_shrink_order(self, c: str) -> int:
+        """
+        Inverse of char_in_shrink_order.
+        """
+        assert len(c) == 1
+        i = self.index(ord(c))
+
+        if i <= self._idx_of_Z:
+            n = self._idx_of_Z - self._idx_of_zero
+            # Rewrite [zero_point, Z_point] to [0, n].
+            if self._idx_of_zero <= i <= self._idx_of_Z:
+                i -= self._idx_of_zero
+                assert 0 <= i <= n
+            # Rewrite [zero_point, 0] to [n + 1, Z_point].
+            else:
+                i = self._idx_of_zero - i + n
+                assert n + 1 <= i <= self._idx_of_Z
+            assert 0 <= i <= self._idx_of_Z
+
+        return i

@@ -75,7 +75,6 @@ else:
 ONE_BOUND_INTEGERS_LABEL = calc_label_from_name("trying a one-bound int allowing 0")
 INTEGER_RANGE_DRAW_LABEL = calc_label_from_name("another draw in integer_range()")
 BIASED_COIN_LABEL = calc_label_from_name("biased_coin()")
-BIASED_COIN_INNER_LABEL = calc_label_from_name("inside biased_coin()")
 
 TOP_LABEL = calc_label_from_name("top")
 DRAW_BYTES_LABEL = calc_label_from_name("draw_bytes() in ConjectureData")
@@ -936,18 +935,9 @@ class PrimitiveProvider:
                 else:
                     partial = True
 
-                if forced is None:
-                    # We want to get to the point where True is represented by
-                    # 1 and False is represented by 0 as quickly as possible, so
-                    # we use the remove_discarded machinery in the shrinker to
-                    # achieve that by discarding any draws that are > 1 and writing
-                    # a suitable draw into the choice sequence at the end of the
-                    # loop.
-                    self._cd.start_example(BIASED_COIN_INNER_LABEL)
-                    i = self._cd.draw_bits(bits)
-                    self._cd.stop_example(discard=i > 1)
-                else:
-                    i = self._cd.draw_bits(bits, forced=int(forced))
+                i = self._cd.draw_bits(
+                    bits, forced=None if forced is None else int(forced)
+                )
 
                 # We always choose the region that causes us to repeat the loop as
                 # the maximum value, so that shrinking the drawn bits never causes
@@ -977,8 +967,6 @@ class PrimitiveProvider:
                     # becomes i > falsey.
                     result = i > falsey
 
-                if i > 1:
-                    self._cd.draw_bits(bits, forced=int(result))
             break
         self._cd.stop_example()
         return result
@@ -993,6 +981,11 @@ class PrimitiveProvider:
         shrink_towards: int = 0,
         forced: Optional[int] = None,
     ) -> int:
+        if min_value is not None:
+            shrink_towards = max(min_value, shrink_towards)
+        if max_value is not None:
+            shrink_towards = min(max_value, shrink_towards)
+
         # This is easy to build on top of our existing conjecture utils,
         # and it's easy to build sampled_from and weighted_coin on this.
         if weights is not None:
@@ -1000,45 +993,46 @@ class PrimitiveProvider:
             assert max_value is not None
 
             sampler = Sampler(weights)
-            idx = sampler.sample(self._cd)
+            gap = max_value - shrink_towards
 
-            if shrink_towards <= min_value:
-                return min_value + idx
-            elif max_value <= shrink_towards:
-                return max_value - idx
-            else:
-                # For range -2..2, interpret idx = 0..4 as [0, 1, 2, -1, -2]
-                if idx <= (gap := max_value - shrink_towards):
-                    return shrink_towards + idx
+            forced_idx = None
+            if forced is not None:
+                if forced >= shrink_towards:
+                    forced_idx = forced - shrink_towards
                 else:
-                    return shrink_towards - (idx - gap)
+                    forced_idx = shrink_towards + gap - forced
+            idx = sampler.sample(self._cd, forced=forced_idx)
+
+            # For range -2..2, interpret idx = 0..4 as [0, 1, 2, -1, -2]
+            if idx <= gap:
+                return shrink_towards + idx
+            else:
+                return shrink_towards - (idx - gap)
 
         if min_value is None and max_value is None:
-            return self._draw_unbounded_integer()
+            return self._draw_unbounded_integer(forced=forced)
 
         if min_value is None:
             assert max_value is not None  # make mypy happy
-            if max_value <= shrink_towards:
-                return max_value - abs(self._draw_unbounded_integer())
-            else:
-                probe = max_value + 1
-                while max_value < probe:
-                    self._cd.start_example(ONE_BOUND_INTEGERS_LABEL)
-                    probe = self._draw_unbounded_integer() + shrink_towards
-                    self._cd.stop_example(discard=max_value < probe)
-                return probe
+            probe = max_value + 1
+            while max_value < probe:
+                self._cd.start_example(ONE_BOUND_INTEGERS_LABEL)
+                probe = shrink_towards + self._draw_unbounded_integer(
+                    forced=None if forced is None else forced - shrink_towards
+                )
+                self._cd.stop_example(discard=max_value < probe)
+            return probe
 
         if max_value is None:
             assert min_value is not None
-            if min_value >= shrink_towards:
-                return min_value + abs(self._draw_unbounded_integer())
-            else:
-                probe = min_value - 1
-                while probe < min_value:
-                    self._cd.start_example(ONE_BOUND_INTEGERS_LABEL)
-                    probe = self._draw_unbounded_integer() + shrink_towards
-                    self._cd.stop_example(discard=probe < min_value)
-                return probe
+            probe = min_value - 1
+            while probe < min_value:
+                self._cd.start_example(ONE_BOUND_INTEGERS_LABEL)
+                probe = shrink_towards + self._draw_unbounded_integer(
+                    forced=None if forced is None else forced - shrink_towards
+                )
+                self._cd.stop_example(discard=probe < min_value)
+            return probe
 
         return self._draw_bounded_integer(
             min_value,
@@ -1057,7 +1051,8 @@ class PrimitiveProvider:
         # TODO: consider supporting these float widths at the IR level in the
         # future.
         # width: Literal[16, 32, 64] = 64,
-        # exclude_min and exclude_max handled higher up
+        # exclude_min and exclude_max handled higher up,
+        forced: Optional[float] = None,
     ) -> float:
         (
             sampler,
@@ -1074,17 +1069,25 @@ class PrimitiveProvider:
 
         while True:
             self._cd.start_example(FLOAT_STRATEGY_DO_DRAW_LABEL)
-            i = sampler.sample(self._cd) if sampler else 0
+            # If `forced in nasty_floats`, then `forced` was *probably*
+            # generated by drawing a nonzero index from the sampler. However, we
+            # have no obligation to generate it that way when forcing. In particular,
+            # i == 0 is able to produce all possible floats, and the forcing
+            # logic is simpler if we assume this choice.
+            forced_i = None if forced is None else 0
+            i = sampler.sample(self._cd, forced=forced_i) if sampler else 0
             self._cd.start_example(DRAW_FLOAT_LABEL)
             if i == 0:
-                result = self._draw_float(forced_sign_bit=forced_sign_bit)
+                result = self._draw_float(
+                    forced_sign_bit=forced_sign_bit, forced=forced
+                )
                 if math.copysign(1.0, result) == -1:
                     assert neg_clamper is not None
                     clamped = -neg_clamper(-result)
                 else:
                     assert pos_clamper is not None
                     clamped = pos_clamper(result)
-                if clamped != result:
+                if clamped != result and not (math.isnan(result) and allow_nan):
                     self._cd.stop_example(discard=True)
                     self._cd.start_example(DRAW_FLOAT_LABEL)
                     self._write_float(clamped)
@@ -1104,9 +1107,12 @@ class PrimitiveProvider:
         *,
         min_size: int = 0,
         max_size: Optional[int] = None,
+        forced: Optional[str] = None,
     ) -> str:
         if max_size is None:
             max_size = 10**10  # "arbitrarily large"
+
+        assert forced is None or min_size <= len(forced) <= max_size
 
         average_size = min(
             max(min_size * 2, min_size + 5),
@@ -1119,31 +1125,57 @@ class PrimitiveProvider:
             min_size=min_size,
             max_size=max_size,
             average_size=average_size,
+            forced=None if forced is None else len(forced),
         )
         while elements.more():
+            forced_i: Optional[int] = None
+            if forced is not None:
+                c = forced[elements.count - 1]
+                forced_i = intervals.index_from_char_in_shrink_order(c)
+
             if len(intervals) > 256:
-                if self.draw_boolean(0.2):
-                    i = self._draw_bounded_integer(256, len(intervals) - 1)
+                if self.draw_boolean(
+                    0.2, forced=None if forced_i is None else forced_i > 255
+                ):
+                    i = self._draw_bounded_integer(
+                        256, len(intervals) - 1, forced=forced_i
+                    )
                 else:
-                    i = self._draw_bounded_integer(0, 255)
+                    i = self._draw_bounded_integer(0, 255, forced=forced_i)
             else:
-                i = self._draw_bounded_integer(0, len(intervals) - 1)
+                i = self._draw_bounded_integer(0, len(intervals) - 1, forced=forced_i)
 
             chars.append(intervals.char_in_shrink_order(i))
 
         return "".join(chars)
 
-    def draw_bytes(self, size: int) -> bytes:
-        return self._cd.draw_bits(8 * size).to_bytes(size, "big")
+    def draw_bytes(self, size: int, *, forced: Optional[bytes] = None) -> bytes:
+        forced_i = None
+        if forced is not None:
+            forced_i = int_from_bytes(forced)
+            size = len(forced)
 
-    def _draw_float(self, forced_sign_bit: Optional[int] = None) -> float:
+        return self._cd.draw_bits(8 * size, forced=forced_i).to_bytes(size, "big")
+
+    def _draw_float(
+        self, forced_sign_bit: Optional[int] = None, *, forced: Optional[float] = None
+    ) -> float:
         """
         Helper for draw_float which draws a random 64-bit float.
         """
+        if forced is not None:
+            # sign_aware_lte(forced, -0.0) does not correctly handle the
+            # math.nan case here.
+            forced_sign_bit = math.copysign(1, forced) == -1
+
         self._cd.start_example(DRAW_FLOAT_LABEL)
         try:
             is_negative = self._cd.draw_bits(1, forced=forced_sign_bit)
-            f = lex_to_float(self._cd.draw_bits(64))
+            f = lex_to_float(
+                self._cd.draw_bits(
+                    64, forced=None if forced is None else float_to_lex(abs(forced))
+                )
+            )
             return -f if is_negative else f
         finally:
             self._cd.stop_example()
@@ -1153,14 +1185,37 @@ class PrimitiveProvider:
         self._cd.draw_bits(1, forced=sign)
         self._cd.draw_bits(64, forced=float_to_lex(abs(f)))
 
-    def _draw_unbounded_integer(self) -> int:
-        size = INT_SIZES[INT_SIZES_SAMPLER.sample(self._cd)]
-        r = self._cd.draw_bits(size)
+    def _draw_unbounded_integer(self, *, forced: Optional[int] = None) -> int:
+        forced_i = None
+        if forced is not None:
+            # Using any bucket large enough to contain this integer would be a
+            # valid way to force it. This is because an n bit integer could have
+            # been drawn from a bucket of size n, or from any bucket of size
+            # m > n.
+            # We'll always choose the smallest eligible bucket here.
+
+            # We need an extra bit to handle forced signed integers. INT_SIZES
+            # is interpreted as unsigned sizes.
+            bit_size = forced.bit_length() + 1
+            size = min(size for size in INT_SIZES if bit_size <= size)
+            forced_i = INT_SIZES.index(size)
+
+        size = INT_SIZES[INT_SIZES_SAMPLER.sample(self._cd, forced=forced_i)]
+
+        forced_r = None
+        if forced is not None:
+            forced_r = forced
+            forced_r <<= 1
+            if forced < 0:
+                forced_r = -forced_r
+                forced_r |= 1
+
+        r = self._cd.draw_bits(size, forced=forced_r)
         sign = r & 1
         r >>= 1
         if sign:
             r = -r
-        return int(r)
+        return r
 
     def _draw_bounded_integer(
         self,
@@ -1202,7 +1257,9 @@ class PrimitiveProvider:
         bits = gap.bit_length()
         probe = gap + 1
 
-        if bits > 24 and self._cd.draw_bits(3, forced=None if forced is None else 0):
+        if bits > 24 and self.draw_boolean(
+            7 / 8, forced=None if forced is None else False
+        ):
             # For large ranges, we combine the uniform random distribution from draw_bits
             # with a weighting scheme with moderate chance.  Cutoff at 2 ** 24 so that our
             # choice of unicode characters is uniform but the 32bit distribution is not.
@@ -1425,11 +1482,20 @@ class ConjectureData:
         if weights is not None:
             assert min_value is not None
             assert max_value is not None
-            assert (max_value - min_value) <= 1024  # arbitrary practical limit
+            width = max_value - min_value + 1
+            assert width <= 1024  # arbitrary practical limit
+            assert len(weights) == width
 
-        if forced is not None:
-            assert min_value is not None
-            assert max_value is not None
+        if forced is not None and (min_value is None or max_value is None):
+            # We draw `forced=forced - shrink_towards` here internally. If that
+            # grows larger than a 128 bit signed integer, we can't represent it.
+            # Disallow this combination for now.
+            # Note that bit_length() = 128 -> signed bit size = 129.
+            assert (forced - shrink_towards).bit_length() < 128
+        if forced is not None and min_value is not None:
+            assert min_value <= forced
+        if forced is not None and max_value is not None:
+            assert forced <= max_value
 
         return self.provider.draw_integer(
             min_value=min_value,
@@ -1449,14 +1515,23 @@ class ConjectureData:
         # TODO: consider supporting these float widths at the IR level in the
         # future.
         # width: Literal[16, 32, 64] = 64,
-        # exclude_min and exclude_max handled higher up
+        # exclude_min and exclude_max handled higher up,
+        forced: Optional[float] = None,
     ) -> float:
         assert smallest_nonzero_magnitude > 0
+        assert not math.isnan(min_value)
+        assert not math.isnan(max_value)
+
+        if forced is not None:
+            assert allow_nan or not math.isnan(forced)
+            assert math.isnan(forced) or min_value <= forced <= max_value
+
         return self.provider.draw_float(
             min_value=min_value,
             max_value=max_value,
             allow_nan=allow_nan,
             smallest_nonzero_magnitude=smallest_nonzero_magnitude,
+            forced=forced,
         )
 
     def draw_string(
@@ -1465,13 +1540,16 @@ class ConjectureData:
         *,
         min_size: int = 0,
         max_size: Optional[int] = None,
+        forced: Optional[str] = None,
     ) -> str:
+        assert forced is None or min_size <= len(forced)
         return self.provider.draw_string(
-            intervals, min_size=min_size, max_size=max_size
+            intervals, min_size=min_size, max_size=max_size, forced=forced
         )
 
-    def draw_bytes(self, size: int) -> bytes:
-        return self.provider.draw_bytes(size)
+    def draw_bytes(self, size: int, *, forced: Optional[bytes] = None) -> bytes:
+        assert forced is None or len(forced) == size
+        return self.provider.draw_bytes(size, forced=forced)
 
     def draw_boolean(self, p: float = 0.5, *, forced: Optional[bool] = None) -> bool:
         return self.provider.draw_boolean(p, forced=forced)
