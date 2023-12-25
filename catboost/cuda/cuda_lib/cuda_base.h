@@ -288,8 +288,6 @@ namespace NCudaLib {
         cudaDeviceProp Props;
 
     public:
-        TCudaDeviceProperties(const TCudaDeviceProperties& other) = default;
-
         TCudaDeviceProperties() = default;
 
         explicit TCudaDeviceProperties(cudaDeviceProp props)
