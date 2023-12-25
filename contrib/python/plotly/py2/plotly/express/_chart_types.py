@@ -2,6 +2,12 @@ from ._core import make_figure
 from ._doc import make_docstring
 import plotly.graph_objs as go
 
+_wide_mode_xy_append = [
+    "Either `x` or `y` can optionally be a list of column references or array_likes, ",
+    "in which case the data will be treated as if it were 'wide' rather than 'long'.",
+]
+_cartesian_append_dict = dict(x=_wide_mode_xy_append, y=_wide_mode_xy_append)
+
 
 def scatter(
     data_frame=None,
@@ -17,21 +23,24 @@ def scatter(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     error_x=None,
     error_x_minus=None,
     error_y=None,
     error_y_minus=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
+    orientation=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
     symbol_sequence=None,
-    symbol_map={},
+    symbol_map=None,
     opacity=None,
     size_max=None,
     marginal_x=None,
@@ -55,7 +64,7 @@ def scatter(
     return make_figure(args=locals(), constructor=go.Scatter)
 
 
-scatter.__doc__ = make_docstring(scatter)
+scatter.__doc__ = make_docstring(scatter, append_dict=_cartesian_append_dict)
 
 
 def density_contour(
@@ -67,14 +76,17 @@ def density_contour(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
+    orientation=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     marginal_x=None,
     marginal_y=None,
     trendline=None,
@@ -112,7 +124,17 @@ def density_contour(
     )
 
 
-density_contour.__doc__ = make_docstring(density_contour)
+density_contour.__doc__ = make_docstring(
+    density_contour,
+    append_dict=dict(
+        x=_wide_mode_xy_append,
+        y=_wide_mode_xy_append,
+        z=[
+            "For `density_heatmap` and `density_contour` these values are used as the inputs to `histfunc`.",
+        ],
+        histfunc=["The arguments to this function are the values of `z`."],
+    ),
+)
 
 
 def density_heatmap(
@@ -123,12 +145,15 @@ def density_heatmap(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
+    orientation=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
@@ -167,7 +192,17 @@ def density_heatmap(
     )
 
 
-density_heatmap.__doc__ = make_docstring(density_heatmap)
+density_heatmap.__doc__ = make_docstring(
+    density_heatmap,
+    append_dict=dict(
+        x=_wide_mode_xy_append,
+        y=_wide_mode_xy_append,
+        z=[
+            "For `density_heatmap` and `density_contour` these values are used as the inputs to `histfunc`.",
+        ],
+        histfunc=["The arguments to this function are the values of `z`.",],
+    ),
+)
 
 
 def line(
@@ -184,18 +219,21 @@ def line(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     error_x=None,
     error_x_minus=None,
     error_y=None,
     error_y_minus=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
+    orientation=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     line_dash_sequence=None,
-    line_dash_map={},
+    line_dash_map=None,
     log_x=False,
     log_y=False,
     range_x=None,
@@ -214,7 +252,7 @@ def line(
     return make_figure(args=locals(), constructor=go.Scatter)
 
 
-line.__doc__ = make_docstring(line)
+line.__doc__ = make_docstring(line, append_dict=_cartesian_append_dict)
 
 
 def area(
@@ -230,13 +268,15 @@ def area(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
-    orientation="v",
+    color_discrete_map=None,
+    orientation=None,
     groupnorm=None,
     log_x=False,
     log_y=False,
@@ -256,13 +296,11 @@ def area(
     return make_figure(
         args=locals(),
         constructor=go.Scatter,
-        trace_patch=dict(
-            stackgroup=1, mode="lines", orientation=orientation, groupnorm=groupnorm
-        ),
+        trace_patch=dict(stackgroup=1, mode="lines", groupnorm=groupnorm),
     )
 
 
-area.__doc__ = make_docstring(area)
+area.__doc__ = make_docstring(area, append_dict=_cartesian_append_dict)
 
 
 def bar(
@@ -273,25 +311,28 @@ def bar(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
     text=None,
+    base=None,
     error_x=None,
     error_x_minus=None,
     error_y=None,
     error_y_minus=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
     opacity=None,
-    orientation="v",
+    orientation=None,
     barmode="relative",
     log_x=False,
     log_y=False,
@@ -309,12 +350,59 @@ def bar(
     return make_figure(
         args=locals(),
         constructor=go.Bar,
-        trace_patch=dict(orientation=orientation, textposition="auto"),
+        trace_patch=dict(textposition="auto"),
         layout_patch=dict(barmode=barmode),
     )
 
 
-bar.__doc__ = make_docstring(bar)
+bar.__doc__ = make_docstring(bar, append_dict=_cartesian_append_dict)
+
+
+def timeline(
+    data_frame=None,
+    x_start=None,
+    x_end=None,
+    y=None,
+    color=None,
+    facet_row=None,
+    facet_col=None,
+    facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
+    hover_name=None,
+    hover_data=None,
+    custom_data=None,
+    text=None,
+    animation_frame=None,
+    animation_group=None,
+    category_orders=None,
+    labels=None,
+    color_discrete_sequence=None,
+    color_discrete_map=None,
+    color_continuous_scale=None,
+    range_color=None,
+    color_continuous_midpoint=None,
+    opacity=None,
+    range_x=None,
+    range_y=None,
+    title=None,
+    template=None,
+    width=None,
+    height=None,
+):
+    """
+    In a timeline plot, each row of `data_frame` is represented as a rectangular
+    mark on an x axis of type `date`, spanning from `x_start` to `x_end`.
+    """
+    return make_figure(
+        args=locals(),
+        constructor="timeline",
+        trace_patch=dict(textposition="auto", orientation="h"),
+        layout_patch=dict(barmode="overlay"),
+    )
+
+
+timeline.__doc__ = make_docstring(timeline)
 
 
 def histogram(
@@ -325,17 +413,19 @@ def histogram(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     marginal=None,
     opacity=None,
-    orientation="v",
+    orientation=None,
     barmode="relative",
     barnorm=None,
     histnorm=None,
@@ -361,19 +451,24 @@ def histogram(
         args=locals(),
         constructor=go.Histogram,
         trace_patch=dict(
-            orientation=orientation,
-            histnorm=histnorm,
-            histfunc=histfunc,
-            nbinsx=nbins if orientation == "v" else None,
-            nbinsy=None if orientation == "v" else nbins,
-            cumulative=dict(enabled=cumulative),
-            bingroup="x" if orientation == "v" else "y",
+            histnorm=histnorm, histfunc=histfunc, cumulative=dict(enabled=cumulative),
         ),
         layout_patch=dict(barmode=barmode, barnorm=barnorm),
     )
 
 
-histogram.__doc__ = make_docstring(histogram)
+histogram.__doc__ = make_docstring(
+    histogram,
+    append_dict=dict(
+        x=["If `orientation` is `'h'`, these values are used as inputs to `histfunc`."]
+        + _wide_mode_xy_append,
+        y=["If `orientation` is `'v'`, these values are used as inputs to `histfunc`."]
+        + _wide_mode_xy_append,
+        histfunc=[
+            "The arguments to this function are the values of `y`(`x`) if `orientation` is `'v'`(`'h'`).",
+        ],
+    ),
+)
 
 
 def violin(
@@ -384,17 +479,19 @@ def violin(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
-    orientation="v",
-    violinmode="group",
+    color_discrete_map=None,
+    orientation=None,
+    violinmode=None,
     log_x=False,
     log_y=False,
     range_x=None,
@@ -414,18 +511,13 @@ def violin(
         args=locals(),
         constructor=go.Violin,
         trace_patch=dict(
-            orientation=orientation,
-            points=points,
-            box=dict(visible=box),
-            scalegroup=True,
-            x0=" ",
-            y0=" ",
+            points=points, box=dict(visible=box), scalegroup=True, x0=" ", y0=" ",
         ),
         layout_patch=dict(violinmode=violinmode),
     )
 
 
-violin.__doc__ = make_docstring(violin)
+violin.__doc__ = make_docstring(violin, append_dict=_cartesian_append_dict)
 
 
 def box(
@@ -436,17 +528,19 @@ def box(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
-    orientation="v",
-    boxmode="group",
+    color_discrete_map=None,
+    orientation=None,
+    boxmode=None,
     log_x=False,
     log_y=False,
     range_x=None,
@@ -470,14 +564,12 @@ def box(
     return make_figure(
         args=locals(),
         constructor=go.Box,
-        trace_patch=dict(
-            orientation=orientation, boxpoints=points, notched=notched, x0=" ", y0=" "
-        ),
+        trace_patch=dict(boxpoints=points, notched=notched, x0=" ", y0=" "),
         layout_patch=dict(boxmode=boxmode),
     )
 
 
-box.__doc__ = make_docstring(box)
+box.__doc__ = make_docstring(box, append_dict=_cartesian_append_dict)
 
 
 def strip(
@@ -488,17 +580,19 @@ def strip(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
-    orientation="v",
-    stripmode="group",
+    color_discrete_map=None,
+    orientation=None,
+    stripmode=None,
     log_x=False,
     log_y=False,
     range_x=None,
@@ -516,7 +610,6 @@ def strip(
         args=locals(),
         constructor=go.Box,
         trace_patch=dict(
-            orientation=orientation,
             boxpoints="all",
             pointpos=0,
             hoveron="points",
@@ -529,7 +622,7 @@ def strip(
     )
 
 
-strip.__doc__ = make_docstring(strip)
+strip.__doc__ = make_docstring(strip, append_dict=_cartesian_append_dict)
 
 
 def scatter_3d(
@@ -552,16 +645,16 @@ def scatter_3d(
     error_z_minus=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     size_max=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
     symbol_sequence=None,
-    symbol_map={},
+    symbol_map=None,
     opacity=None,
     log_x=False,
     log_y=False,
@@ -604,12 +697,12 @@ def line_3d(
     error_z_minus=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     line_dash_sequence=None,
-    line_dash_map={},
+    line_dash_map=None,
     log_x=False,
     log_y=False,
     log_z=False,
@@ -645,15 +738,15 @@ def scatter_ternary(
     custom_data=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
     symbol_sequence=None,
-    symbol_map={},
+    symbol_map=None,
     opacity=None,
     size_max=None,
     title=None,
@@ -685,12 +778,12 @@ def line_ternary(
     text=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     line_dash_sequence=None,
-    line_dash_map={},
+    line_dash_map=None,
     line_shape=None,
     title=None,
     template=None,
@@ -720,15 +813,15 @@ def scatter_polar(
     text=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
     symbol_sequence=None,
-    symbol_map={},
+    symbol_map=None,
     opacity=None,
     direction="clockwise",
     start_angle=90,
@@ -765,12 +858,12 @@ def line_polar(
     text=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     line_dash_sequence=None,
-    line_dash_map={},
+    line_dash_map=None,
     direction="clockwise",
     start_angle=90,
     line_close=False,
@@ -802,12 +895,13 @@ def bar_polar(
     hover_name=None,
     hover_data=None,
     custom_data=None,
+    base=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
@@ -846,21 +940,28 @@ def choropleth(
     geojson=None,
     featureidkey=None,
     color=None,
+    facet_row=None,
+    facet_col=None,
+    facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
     projection=None,
     scope=None,
     center=None,
+    fitbounds=None,
+    basemap_visible=None,
     title=None,
     template=None,
     width=None,
@@ -873,13 +974,7 @@ def choropleth(
     return make_figure(
         args=locals(),
         constructor=go.Choropleth,
-        trace_patch=dict(
-            locationmode=locationmode,
-            featureidkey=featureidkey,
-            geojson=geojson
-            if not hasattr(geojson, "__geo_interface__")  # for geopandas
-            else geojson.__geo_interface__,
-        ),
+        trace_patch=dict(locationmode=locationmode),
     )
 
 
@@ -892,26 +987,38 @@ def scatter_geo(
     lon=None,
     locations=None,
     locationmode=None,
+    geojson=None,
+    featureidkey=None,
     color=None,
     text=None,
+    symbol=None,
+    facet_row=None,
+    facet_col=None,
+    facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
     size=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
+    symbol_sequence=None,
+    symbol_map=None,
     opacity=None,
     size_max=None,
     projection=None,
     scope=None,
     center=None,
+    fitbounds=None,
+    basemap_visible=None,
     title=None,
     template=None,
     width=None,
@@ -937,24 +1044,33 @@ def line_geo(
     lon=None,
     locations=None,
     locationmode=None,
+    geojson=None,
+    featureidkey=None,
     color=None,
     line_dash=None,
     text=None,
+    facet_row=None,
+    facet_col=None,
+    facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
     line_group=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     line_dash_sequence=None,
-    line_dash_map={},
+    line_dash_map=None,
     projection=None,
     scope=None,
     center=None,
+    fitbounds=None,
+    basemap_visible=None,
     title=None,
     template=None,
     width=None,
@@ -986,10 +1102,10 @@ def scatter_mapbox(
     size=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
@@ -1024,10 +1140,10 @@ def choropleth_mapbox(
     custom_data=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
@@ -1044,16 +1160,7 @@ def choropleth_mapbox(
     In a Mapbox choropleth map, each row of `data_frame` is represented by a
     colored region on a Mapbox map.
     """
-    return make_figure(
-        args=locals(),
-        constructor=go.Choroplethmapbox,
-        trace_patch=dict(
-            featureidkey=featureidkey,
-            geojson=geojson
-            if not hasattr(geojson, "__geo_interface__")  # for geopandas
-            else geojson.__geo_interface__,
-        ),
-    )
+    return make_figure(args=locals(), constructor=go.Choroplethmapbox)
 
 
 choropleth_mapbox.__doc__ = make_docstring(choropleth_mapbox)
@@ -1069,8 +1176,8 @@ def density_mapbox(
     custom_data=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
@@ -1108,10 +1215,10 @@ def line_mapbox(
     line_group=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     zoom=8,
     center=None,
     mapbox_style=None,
@@ -1139,15 +1246,15 @@ def scatter_matrix(
     hover_name=None,
     hover_data=None,
     custom_data=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
     symbol_sequence=None,
-    symbol_map={},
+    symbol_map=None,
     opacity=None,
     size_max=None,
     title=None,
@@ -1173,7 +1280,7 @@ def parallel_coordinates(
     data_frame=None,
     dimensions=None,
     color=None,
-    labels={},
+    labels=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
@@ -1197,7 +1304,7 @@ def parallel_categories(
     data_frame=None,
     dimensions=None,
     color=None,
-    labels={},
+    labels=None,
     color_continuous_scale=None,
     range_color=None,
     color_continuous_midpoint=None,
@@ -1225,11 +1332,11 @@ def pie(
     values=None,
     color=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
-    labels={},
+    labels=None,
     title=None,
     template=None,
     width=None,
@@ -1277,11 +1384,11 @@ def sunburst(
     range_color=None,
     color_continuous_midpoint=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
-    labels={},
+    labels=None,
     title=None,
     template=None,
     width=None,
@@ -1327,11 +1434,11 @@ def treemap(
     range_color=None,
     color_continuous_midpoint=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
-    labels={},
+    labels=None,
     title=None,
     template=None,
     width=None,
@@ -1373,18 +1480,20 @@ def funnel(
     facet_row=None,
     facet_col=None,
     facet_col_wrap=0,
+    facet_row_spacing=None,
+    facet_col_spacing=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
     text=None,
     animation_frame=None,
     animation_group=None,
-    category_orders={},
-    labels={},
+    category_orders=None,
+    labels=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     opacity=None,
-    orientation="h",
+    orientation=None,
     log_x=False,
     log_y=False,
     range_x=None,
@@ -1398,12 +1507,10 @@ def funnel(
     In a funnel plot, each row of `data_frame` is represented as a
     rectangular sector of a funnel.
     """
-    return make_figure(
-        args=locals(), constructor=go.Funnel, trace_patch=dict(orientation=orientation),
-    )
+    return make_figure(args=locals(), constructor=go.Funnel)
 
 
-funnel.__doc__ = make_docstring(funnel)
+funnel.__doc__ = make_docstring(funnel, append_dict=_cartesian_append_dict)
 
 
 def funnel_area(
@@ -1412,11 +1519,11 @@ def funnel_area(
     values=None,
     color=None,
     color_discrete_sequence=None,
-    color_discrete_map={},
+    color_discrete_map=None,
     hover_name=None,
     hover_data=None,
     custom_data=None,
-    labels={},
+    labels=None,
     title=None,
     template=None,
     width=None,
