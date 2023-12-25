@@ -129,7 +129,11 @@ from hypothesis.strategies._internal.strings import (
     OneCharStringStrategy,
     TextStrategy,
 )
-from hypothesis.strategies._internal.utils import cacheable, defines_strategy
+from hypothesis.strategies._internal.utils import (
+    cacheable,
+    defines_strategy,
+    to_jsonable,
+)
 from hypothesis.utils.conventions import not_set
 from hypothesis.vendor.pretty import RepresentationPrinter
 
@@ -2098,8 +2102,9 @@ class DataObject:
         result = self.conjecture_data.draw(strategy)
         self.count += 1
         printer = RepresentationPrinter(context=current_build_context())
-        printer.text(f"Draw {self.count}")
-        printer.text(": " if label is None else f" ({label}): ")
+        desc = f"Draw {self.count}{'' if label is None else f' ({label})'}: "
+        self.conjecture_data._observability_args[desc] = to_jsonable(result)
+        printer.text(desc)
         printer.pretty(result)
         note(printer.getvalue())
         return result

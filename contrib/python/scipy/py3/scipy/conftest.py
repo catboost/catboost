@@ -3,6 +3,7 @@ import os
 import pytest
 import warnings
 
+import setuptools
 from distutils.version import LooseVersion
 import numpy as np
 from scipy._lib._fpumode import get_fpu_mode

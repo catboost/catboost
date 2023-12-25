@@ -373,6 +373,13 @@ else:
                 if fex:
                     failing_examples.append(json.loads(fex))
 
+        from hypothesis.internal.observability import _WROTE_TO
+
+        if _WROTE_TO:
+            terminalreporter.section("Hypothesis")
+            for fname in sorted(_WROTE_TO):
+                terminalreporter.write_line(f"observations written to {fname}")
+
         if failing_examples:
             # This must have been imported already to write the failing examples
             from hypothesis.extra._patching import gc_patches, make_patch, save_patch
@@ -384,7 +391,8 @@ else:
             except Exception:
                 # fail gracefully if we hit any filesystem or permissions problems
                 return
-            terminalreporter.section("Hypothesis")
+            if not _WROTE_TO:
+                terminalreporter.section("Hypothesis")
             terminalreporter.write_line(
                 f"`git apply {fname}` to add failing examples to your code."
             )

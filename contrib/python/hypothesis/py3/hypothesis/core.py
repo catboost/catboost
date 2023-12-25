@@ -87,6 +87,11 @@ from hypothesis.internal.escalation import (
     get_trimmed_traceback,
 )
 from hypothesis.internal.healthcheck import fail_health_check
+from hypothesis.internal.observability import (
+    TESTCASE_CALLBACKS,
+    deliver_json_blob,
+    make_testcase,
+)
 from hypothesis.internal.reflection import (
     convert_positional_arguments,
     define_function_signature,
@@ -99,7 +104,12 @@ from hypothesis.internal.reflection import (
     proxies,
     repr_call,
 )
-from hypothesis.internal.scrutineer import Tracer, explanatory_lines
+from hypothesis.internal.scrutineer import (
+    Trace,
+    Tracer,
+    explanatory_lines,
+    tractable_coverage_report,
+)
 from hypothesis.internal.validation import check_type
 from hypothesis.reporting import (
     current_verbosity,
@@ -107,13 +117,14 @@ from hypothesis.reporting import (
     verbose_report,
     with_reporter,
 )
-from hypothesis.statistics import describe_targets, note_statistics
+from hypothesis.statistics import describe_statistics, describe_targets, note_statistics
 from hypothesis.strategies._internal.misc import NOTHING
 from hypothesis.strategies._internal.strategies import (
     Ex,
     SearchStrategy,
     check_strategy,
 )
+from hypothesis.strategies._internal.utils import to_jsonable
 from hypothesis.vendor.pretty import RepresentationPrinter
 from hypothesis.version import __version__
 
@@ -484,13 +495,14 @@ def execute_explicit_examples(state, wrapped_test, arguments, kwargs, original_s
 
         with local_settings(state.settings):
             fragments_reported = []
+            empty_data = ConjectureData.for_buffer(b"")
             try:
                 bits = ", ".join(nicerepr(x) for x in arguments) + ", ".join(
                     f"{k}={nicerepr(v)}" for k, v in example_kwargs.items()
                 )
                 execute_example = partial(
                     state.execute_once,
-                    ConjectureData.for_buffer(b""),
+                    empty_data,
                     is_final=True,
                     print_example=True,
                     example_kwargs=example_kwargs,
@@ -544,7 +556,8 @@ def execute_explicit_examples(state, wrapped_test, arguments, kwargs, original_s
                 # development, this is rather useful to replay Hypothesis' part of
                 # a saved failure when other arguments are supplied by e.g. pytest.
                 # See https://github.com/HypothesisWorks/hypothesis/issues/2125
-                pass
+                with contextlib.suppress(StopTest):
+                    empty_data.conclude_test(Status.INVALID)
             except BaseException as err:
                 # In order to support reporting of multiple failing examples, we yield
                 # each of the (report text, error) pairs we find back to the top-level
@@ -567,6 +580,8 @@ def execute_explicit_examples(state, wrapped_test, arguments, kwargs, original_s
                     new.__cause__ = err
                     err = new
 
+                with contextlib.suppress(StopTest):
+                    empty_data.conclude_test(Status.INVALID)
                 yield (fragments_reported, err)
                 if (
                     state.settings.report_multiple_bugs
@@ -582,6 +597,15 @@ def execute_explicit_examples(state, wrapped_test, arguments, kwargs, original_s
                     fragments_reported[0] = fragments_reported[0].replace(
                         "Falsifying example", "Falsifying explicit example", 1
                     )
+
+                tc = make_testcase(
+                    start_timestamp=state._start_timestamp,
+                    test_name_or_nodeid=state.test_identifier,
+                    data=empty_data,
+                    how_generated="explicit example",
+                    string_repr=state._string_repr,
+                )
+                deliver_json_blob(tc)
 
             if fragments_reported:
                 verbose_report(fragments_reported[0].replace("Falsifying", "Trying", 1))
@@ -738,7 +762,6 @@ class StateForActualGivenExecution:
         self.last_exception = None
         self.falsifying_examples = ()
         self.random = random
-        self.__test_runtime = None
         self.ever_executed = False
 
         self.is_find = getattr(wrapped_test, "_hypothesis_internal_is_find", False)
@@ -756,6 +779,16 @@ class StateForActualGivenExecution:
         self.failed_due_to_deadline = False
 
         self.explain_traces = defaultdict(set)
+        self._start_timestamp = time.time()
+        self._string_repr = ""
+        self._jsonable_arguments = {}
+        self._timing_features = {}
+
+    @property
+    def test_identifier(self):
+        return getattr(
+            current_pytest_item.value, "nodeid", None
+        ) or get_pretty_function_description(self.wrapped_test)
 
     def execute_once(
         self,
@@ -780,6 +813,7 @@ class StateForActualGivenExecution:
         self.ever_executed = True
         data.is_find = self.is_find
 
+        self._string_repr = ""
         text_repr = None
         if self.settings.deadline is None:
             test = self.test
@@ -787,16 +821,23 @@ class StateForActualGivenExecution:
 
             @proxies(self.test)
             def test(*args, **kwargs):
-                self.__test_runtime = None
+                arg_drawtime = sum(data.draw_times)
                 initial_draws = len(data.draw_times)
                 start = time.perf_counter()
-                result = self.test(*args, **kwargs)
-                finish = time.perf_counter()
-                internal_draw_time = sum(data.draw_times[initial_draws:])
-                runtime = datetime.timedelta(
-                    seconds=finish - start - internal_draw_time
-                )
-                self.__test_runtime = runtime
+                try:
+                    result = self.test(*args, **kwargs)
+                finally:
+                    finish = time.perf_counter()
+                    internal_draw_time = sum(data.draw_times[initial_draws:])
+                    runtime = datetime.timedelta(
+                        seconds=finish - start - internal_draw_time
+                    )
+                    self._timing_features = {
+                        "time_running_test": finish - start - internal_draw_time,
+                        "time_drawing_args": arg_drawtime,
+                        "time_interactive_draws": internal_draw_time,
+                    }
+
                 current_deadline = self.settings.deadline
                 if not is_final:
                     current_deadline = (current_deadline // 4) * 5
@@ -855,6 +896,26 @@ class StateForActualGivenExecution:
                         ),
                     )
                 report(printer.getvalue())
+
+            if TESTCASE_CALLBACKS:
+                printer = RepresentationPrinter(context=context)
+                printer.repr_call(
+                    test.__name__,
+                    args,
+                    kwargs,
+                    force_split=True,
+                    arg_slices=argslices,
+                    leading_comment=(
+                        "# " + context.data.slice_comments[(0, 0)]
+                        if (0, 0) in context.data.slice_comments
+                        else None
+                    ),
+                )
+                self._string_repr = printer.getvalue()
+                self._jsonable_arguments = {
+                    **dict(enumerate(map(to_jsonable, args))),
+                    **{k: to_jsonable(v) for k, v in kwargs.items()},
+                }
             return test(*args, **kwargs)
 
         # self.test_runner can include the execute_example method, or setup/teardown
@@ -870,9 +931,8 @@ class StateForActualGivenExecution:
         # instead raise an appropriate diagnostic error.
         if expected_failure is not None:
             exception, traceback = expected_failure
-            if (
-                isinstance(exception, DeadlineExceeded)
-                and self.__test_runtime is not None
+            if isinstance(exception, DeadlineExceeded) and (
+                runtime_secs := self._timing_features.get("time_running_test")
             ):
                 report(
                     "Unreliable test timings! On an initial run, this "
@@ -884,7 +944,7 @@ class StateForActualGivenExecution:
                     % (
                         exception.runtime.total_seconds() * 1000,
                         self.settings.deadline.total_seconds() * 1000,
-                        self.__test_runtime.total_seconds() * 1000,
+                        runtime_secs * 1000,
                     )
                 )
             else:
@@ -895,7 +955,7 @@ class StateForActualGivenExecution:
             ) from exception
         return result
 
-    def _execute_once_for_engine(self, data):
+    def _execute_once_for_engine(self, data: ConjectureData) -> None:
         """Wrapper around ``execute_once`` that intercepts test failure
         exceptions and single-test control exceptions, and turns them into
         appropriate method calls to `data` instead.
@@ -903,16 +963,18 @@ class StateForActualGivenExecution:
         This allows the engine to assume that any exception other than
         ``StopTest`` must be a fatal error, and should stop the entire engine.
         """
+        trace: Trace = set()
         try:
-            trace = frozenset()
-            if (
+            _can_trace = (
+                sys.gettrace() is None or sys.version_info[:2] >= (3, 12)
+            ) and not PYPY
+            _trace_obs = TESTCASE_CALLBACKS
+            _trace_failure = (
                 self.failed_normally
                 and not self.failed_due_to_deadline
-                and Phase.shrink in self.settings.phases
-                and Phase.explain in self.settings.phases
-                and (sys.gettrace() is None or sys.version_info[:2] >= (3, 12))
-                and not PYPY
-            ):  # pragma: no cover
+                and {Phase.shrink, Phase.explain}.issubset(self.settings.phases)
+            )
+            if _can_trace and (_trace_obs or _trace_failure):  # pragma: no cover
                 # This is in fact covered by our *non-coverage* tests, but due to the
                 # settrace() contention *not* by our coverage tests.  Ah well.
                 with Tracer() as tracer:
@@ -921,7 +983,7 @@ class StateForActualGivenExecution:
                         if data.status == Status.VALID:
                             self.explain_traces[None].add(frozenset(tracer.branches))
                     finally:
-                        trace = frozenset(tracer.branches)
+                        trace = tracer.branches
             else:
                 result = self.execute_once(data)
             if result is not None:
@@ -964,20 +1026,40 @@ class StateForActualGivenExecution:
 
                 tb = get_trimmed_traceback()
                 info = data.extra_information
-                info.__expected_traceback = format_exception(e, tb)
-                info.__expected_exception = e
-                verbose_report(info.__expected_traceback)
+                info._expected_traceback = format_exception(e, tb)  # type: ignore
+                info._expected_exception = e  # type: ignore
+                verbose_report(info._expected_traceback)  # type: ignore
 
                 self.failed_normally = True
 
                 interesting_origin = InterestingOrigin.from_exception(e)
                 if trace:  # pragma: no cover
                     # Trace collection is explicitly disabled under coverage.
-                    self.explain_traces[interesting_origin].add(trace)
+                    self.explain_traces[interesting_origin].add(frozenset(trace))
                 if interesting_origin[0] == DeadlineExceeded:
                     self.failed_due_to_deadline = True
                     self.explain_traces.clear()
-                data.mark_interesting(interesting_origin)
+                data.mark_interesting(interesting_origin)  # type: ignore  # mypy bug?
+        finally:
+            # Conditional here so we can save some time constructing the payload; in
+            # other cases (without coverage) it's cheap enough to do that regardless.
+            if TESTCASE_CALLBACKS:
+                if self.failed_normally or self.failed_due_to_deadline:
+                    phase = "shrink"
+                else:
+                    phase = "unknown"
+                tc = make_testcase(
+                    start_timestamp=self._start_timestamp,
+                    test_name_or_nodeid=self.test_identifier,
+                    data=data,
+                    how_generated=f"generated during {phase} phase",
+                    string_repr=self._string_repr,
+                    arguments={**self._jsonable_arguments, **data._observability_args},
+                    metadata=self._timing_features,
+                    coverage=tractable_coverage_report(trace) or None,
+                )
+                deliver_json_blob(tc)
+            self._timing_features.clear()
 
     def run_engine(self):
         """Run the test function many times, on database input and generated
@@ -1003,6 +1085,15 @@ class StateForActualGivenExecution:
         # on different inputs.
         runner.run()
         note_statistics(runner.statistics)
+        deliver_json_blob(
+            {
+                "type": "info",
+                "run_start": self._start_timestamp,
+                "property": self.test_identifier,
+                "title": "Hypothesis Statistics",
+                "content": describe_statistics(runner.statistics),
+            }
+        )
 
         if runner.call_count == 0:
             return
@@ -1041,7 +1132,9 @@ class StateForActualGivenExecution:
                 falsifying_example.buffer
             )
             ran_example.slice_comments = falsifying_example.slice_comments
-            assert info.__expected_exception is not None
+            tb = None
+            origin = None
+            assert info._expected_exception is not None
             try:
                 with with_reporter(fragments.append):
                     self.execute_once(
@@ -1049,8 +1142,8 @@ class StateForActualGivenExecution:
                         print_example=not self.is_find,
                         is_final=True,
                         expected_failure=(
-                            info.__expected_exception,
-                            info.__expected_traceback,
+                            info._expected_exception,
+                            info._expected_traceback,
                         ),
                     )
             except (UnsatisfiedAssumption, StopTest) as e:
@@ -1066,10 +1159,34 @@ class StateForActualGivenExecution:
                 errors_to_report.append(
                     (fragments, e.with_traceback(get_trimmed_traceback()))
                 )
+                tb = format_exception(e, get_trimmed_traceback(e))
+                origin = InterestingOrigin.from_exception(e)
             else:
                 # execute_once() will always raise either the expected error, or Flaky.
                 raise NotImplementedError("This should be unreachable")
             finally:
+                # log our observability line for the final failing example
+                tc = {
+                    "type": "test_case",
+                    "run_start": self._start_timestamp,
+                    "property": self.test_identifier,
+                    "status": "passed" if sys.exc_info()[0] else "failed",
+                    "status_reason": str(origin or "unexpected/flaky pass"),
+                    "representation": self._string_repr,
+                    "how_generated": "minimal failing example",
+                    "features": {
+                        **{
+                            k: v
+                            for k, v in ran_example.target_observations.items()
+                            if isinstance(k, str)
+                        },
+                        **ran_example.events,
+                        **self._timing_features,
+                    },
+                    "coverage": None,  # TODO: expose this?
+                    "metadata": {"traceback": tb},
+                }
+                deliver_json_blob(tc)
                 # Whether or not replay actually raised the exception again, we want
                 # to print the reproduce_failure decorator for the failing example.
                 if self.settings.print_blob:

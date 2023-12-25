@@ -42,7 +42,15 @@ _python_argcomplete%(function_suffix)s() {
             _ARGCOMPLETE_SHELL="zsh" \
             _ARGCOMPLETE_SUPPRESS_SPACE=1 \
             __python_argcomplete_run ${script:-${words[1]}}))
-        _describe "${words[1]}" completions -o nosort
+        local nosort=()
+        local nospace=()
+        if is-at-least 5.8; then
+            nosort=(-o nosort)
+        fi
+        if [[ "${completions-}" =~ ([^\\]): && "${match[1]}" =~ [=/:] ]]; then
+            nospace=(-S '')
+        fi
+        _describe "${words[1]}" completions "${nosort[@]}" "${nospace[@]}"
     else
         local SUPPRESS_SPACE=0
         if compopt +o nospace 2> /dev/null; then
@@ -67,6 +75,7 @@ _python_argcomplete%(function_suffix)s() {
 if [[ -z "${ZSH_VERSION-}" ]]; then
     complete %(complete_opts)s -F _python_argcomplete%(function_suffix)s %(executables)s
 else
+    autoload is-at-least
     compdef _python_argcomplete%(function_suffix)s %(executables)s
 fi
 """

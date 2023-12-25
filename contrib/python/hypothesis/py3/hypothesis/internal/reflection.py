@@ -306,8 +306,12 @@ def extract_lambda_source(f):
     This is not a good function and I am sorry for it. Forgive me my
     sins, oh lord
     """
+    # You might be wondering how a lambda can have a return-type annotation?
+    # The answer is that we add this at runtime, in new_given_signature(),
+    # and we do support strange choices as applying @given() to a lambda.
     sig = inspect.signature(f)
-    assert sig.return_annotation is inspect.Parameter.empty
+    assert sig.return_annotation in (inspect.Parameter.empty, None), sig
+
     if sig.parameters:
         if_confused = f"lambda {str(sig)[1:-1]}: <unknown>"
     else:

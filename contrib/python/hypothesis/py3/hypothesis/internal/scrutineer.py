@@ -8,15 +8,28 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+import functools
+import os
+import subprocess
 import sys
 import types
 from collections import defaultdict
 from functools import lru_cache, reduce
 from os import sep
 from pathlib import Path
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
 from hypothesis._settings import Phase, Verbosity
 from hypothesis.internal.escalation import is_hypothesis_file
+
+if TYPE_CHECKING:
+    from typing import TypeAlias
+else:
+    TypeAlias = object
+
+Location: TypeAlias = Tuple[str, int]
+Branch: TypeAlias = Tuple[Optional[Location], Location]
+Trace: TypeAlias = Set[Branch]
 
 
 @lru_cache(maxsize=None)
@@ -41,7 +54,7 @@ class Tracer:
     __slots__ = ("branches", "_previous_location")
 
     def __init__(self):
-        self.branches = set()
+        self.branches: Trace = set()
         self._previous_location = None
 
     def trace(self, frame, event, arg):
@@ -179,3 +192,50 @@ def explanatory_lines(traces, settings):
     explanations = get_explaining_locations(traces)
     max_lines = 5 if settings.verbosity <= Verbosity.normal else float("inf")
     return make_report(explanations, cap_lines_at=max_lines)
+
+
+# beware the code below; we're using some heuristics to make a nicer report...
+
+
+@functools.lru_cache
+def _get_git_repo_root() -> Path:
+    try:
+        where = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            check=True,
+            timeout=10,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        ).stdout.strip()
+    except Exception:  # pragma: no cover
+        return Path().absolute().parents[-1]
+    else:
+        return Path(where)
+
+
+if sys.version_info[:2] <= (3, 8):
+
+    def is_relative_to(self, other):
+        return other == self or other in self.parents
+
+else:
+    is_relative_to = Path.is_relative_to
+
+
+def tractable_coverage_report(trace: Trace) -> Dict[str, List[int]]:
+    """Report a simple coverage map which is (probably most) of the user's code."""
+    coverage: dict = {}
+    t = dict(trace)
+    for file, line in set(t.keys()).union(t.values()) - {None}:  # type: ignore
+        # On Python <= 3.11, we can use coverage.py xor Hypothesis' tracer,
+        # so the trace will be empty and this line never run under coverage.
+        coverage.setdefault(file, set()).add(line)  # pragma: no cover
+    stdlib_fragment = f"{os.sep}lib{os.sep}python3.{sys.version_info.minor}{os.sep}"
+    return {
+        k: sorted(v)
+        for k, v in coverage.items()
+        if stdlib_fragment not in k
+        and is_relative_to(p := Path(k), _get_git_repo_root())
+        and "site-packages" not in p.parts
+    }

@@ -1456,6 +1456,7 @@ class ConjectureData:
         # try varying, to report if the minimal example always fails anyway.
         self.arg_slices: Set[Tuple[int, int]] = set()
         self.slice_comments: Dict[Tuple[int, int], str] = {}
+        self._observability_args: Dict[str, Any] = {}
 
         self.extra_information = ExtraInformation()
 

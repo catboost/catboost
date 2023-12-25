@@ -277,7 +277,7 @@ class PathSpec(object):
 		"""
 		norm_file = normalize_file(file, separators)
 		include, _index = self._match_file(enumerate(self.patterns), norm_file)
-		return include
+		return bool(include)
 
 	def match_files(
 		self,
