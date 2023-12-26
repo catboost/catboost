@@ -339,6 +339,8 @@ SKIP_LIST = [
 ]
 if sys.version_info < (3, 12):
     SKIP_LIST += ["numpy.distutils.msvc9compiler"]
+else:
+    SKIP_LIST += ["numpy.distutils"]
 
 
 # suppressing warnings from deprecated modules
