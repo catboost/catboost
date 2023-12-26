@@ -635,6 +635,28 @@ namespace {
             TestApplyLvalueCopyImpl<void>();
             TestApplyLvalueCopyImpl<int>();
         }
+
+        Y_UNIT_TEST(ReturnForwardingTypeDeduction) {
+            const TString e = TString(80, 'a');
+            TString l = TString(80, 'a');
+
+            TFuture<TString> futureL = MakeFuture().Return(l);
+            UNIT_ASSERT_VALUES_EQUAL(futureL.GetValue(), e);
+            UNIT_ASSERT_VALUES_EQUAL(l, e);
+
+            TFuture<TString> futureR = MakeFuture().Return(std::move(l));
+            UNIT_ASSERT_VALUES_EQUAL(futureR.GetValue(), e);
+        }
+
+        Y_UNIT_TEST(ReturnForwardingCopiesCount) {
+            size_t numCopies = 0;
+            TCopyCounter copyCounter(&numCopies);
+
+            auto returnedCounter = MakeFuture().Return(std::move(copyCounter)).ExtractValueSync();
+            Y_DO_NOT_OPTIMIZE_AWAY(returnedCounter);
+
+            UNIT_ASSERT_VALUES_EQUAL(numCopies, 0);
+        }
     }
 
 }

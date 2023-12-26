@@ -169,7 +169,7 @@ namespace NThreading {
         TFuture<TFutureType<TFutureCallResult<F, void>>> Apply(F&& func) const;
 
         template <typename R>
-        TFuture<R> Return(const R& value) const;
+        TFuture<std::remove_cvref_t<R>> Return(R&& value) const;
 
         TFuture<void> IgnoreResult() const {
             return *this;
