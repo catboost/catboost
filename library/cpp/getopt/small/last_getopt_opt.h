@@ -670,7 +670,12 @@ namespace NLastGetopt {
 
         // Similar to store_true in Python's argparse
         TOpt& StoreTrue(bool* target) {
-            return NoArgument().SetFlag(target);
+            return NoArgument().StoreResult(target, true);
+        }
+
+        // Similar to store_false in Python's argparse
+        TOpt& StoreFalse(bool* target) {
+            return NoArgument().StoreResult(target, false);
         }
 
         template <typename TpVal, typename T, typename TpFunc>
