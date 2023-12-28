@@ -1,6 +1,7 @@
 #include "info.h"
 
 #include "error.h"
+#include "fs.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -50,7 +51,7 @@ In nanny - Runtime -> Instance spec -> Advanced settings -> Cgroupfs settings: M
 
 In deploy - Stage - Edit stage - Box - Cgroupfs settings: Mount mode = Read only
 */
-static inline double CgroupV1Cpus(const char* cpuCfsQuotaUsPath, const char* cfsPeriodUsPath) {
+static inline double CgroupV1Cpus(const TString& cpuCfsQuotaUsPath, const TString& cfsPeriodUsPath) {
     try {
         double q = FromString<int32_t>(StripString(TFileInput(cpuCfsQuotaUsPath).ReadAll()));
 
@@ -81,7 +82,7 @@ Which indicates that the group may consume up to $MAX in each $PERIOD duration.
 The "max" value could be either the string "max" or a number. In the first case
 our approximation doesn't work so we can bail out earlier.
 */
-static inline double CgroupV2Cpus(const char* cpuMaxPath) {
+static inline double CgroupV2Cpus(const TString& cpuMaxPath) {
     try {
         TVector<TString> cgroupCpuMax = StringSplitter(TFileInput(cpuMaxPath).ReadAll()).Split(' ').Take(2);
         double max = FromString<int32_t>(StripString(cgroupCpuMax[0]));
@@ -98,15 +99,22 @@ static inline double CgroupV2Cpus(const char* cpuMaxPath) {
 }
 
 static inline double CgroupCpus() {
-    auto cgroup2Cpus = CgroupV2Cpus("/sys/fs/cgroup/cpu.max");
-    if (cgroup2Cpus > 0) {
-        return cgroup2Cpus;
+    static const TString cpuMaxPath("/sys/fs/cgroup/cpu.max");
+    static const TString cpuCfsQuotaUsPath("/sys/fs/cgroup/cpu/cpu.cfs_quota_us");
+    static const TString cfsPeriodUsPath("/sys/fs/cgroup/cpu/cpu.cfs_period_us");
+
+    if (NFs::Exists(cpuMaxPath)) {
+        auto cgroup2Cpus = CgroupV2Cpus(cpuMaxPath);
+        if (cgroup2Cpus > 0) {
+            return cgroup2Cpus;
+        }
     }
-    auto cgroups1Cpus = CgroupV1Cpus(
-        "/sys/fs/cgroup/cpu/cpu.cfs_quota_us",
-        "/sys/fs/cgroup/cpu/cpu.cfs_period_us");
-    if (cgroups1Cpus > 0) {
-        return cgroups1Cpus;
+
+    if (NFs::Exists(cpuCfsQuotaUsPath) && NFs::Exists(cfsPeriodUsPath)) {
+        auto cgroups1Cpus = CgroupV1Cpus(cpuCfsQuotaUsPath, cfsPeriodUsPath);
+        if (cgroups1Cpus > 0) {
+            return cgroups1Cpus;
+        }
     }
     return 0;
 }
