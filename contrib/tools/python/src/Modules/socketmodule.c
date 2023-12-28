@@ -81,13 +81,6 @@ Local naming conventions:
 
 */
 
-#include <stdbool.h>
-bool IsReusePortAvailable();
-
-#ifndef  SO_REUSEPORT
-#define  SO_REUSEPORT 15
-#endif
-
 #ifdef __APPLE__
 #include <AvailabilityMacros.h>
 /* for getaddrinfo thread safety test on old versions of OS X */
@@ -4942,11 +4935,9 @@ init_socket(void)
 #ifdef  SO_OOBINLINE
     PyModule_AddIntConstant(m, "SO_OOBINLINE", SO_OOBINLINE);
 #endif
-
-    if (IsReusePortAvailable()) {
-        PyModule_AddIntConstant(m, "SO_REUSEPORT", SO_REUSEPORT);
-    }
-
+#ifdef  SO_REUSEPORT
+    PyModule_AddIntConstant(m, "SO_REUSEPORT", SO_REUSEPORT);
+#endif
 #ifdef  SO_SNDBUF
     PyModule_AddIntConstant(m, "SO_SNDBUF", SO_SNDBUF);
 #endif
