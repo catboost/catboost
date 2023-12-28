@@ -50,7 +50,10 @@ from __future__ import (absolute_import, division, print_function,
 import six
 from six.moves import zip
 
-from collections import Sized
+try:
+    from collections.abc import Sized
+except ImportError:
+    from collections import Sized
 import itertools
 import re
 import warnings
@@ -1682,7 +1685,7 @@ class LightSource(object):
             # visually appears better than a "hard" clip.
             intensity -= imin
             intensity /= (imax - imin)
-        intensity = np.clip(intensity, 0, 1, intensity)
+        intensity = np.clip(intensity, 0, 1)
 
         return intensity
 
