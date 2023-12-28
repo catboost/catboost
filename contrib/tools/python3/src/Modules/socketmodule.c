@@ -85,13 +85,6 @@ Local naming conventions:
 
 */
 
-#include <stdbool.h>
-bool IsReusePortAvailable();
-
-#if !defined(SO_REUSEPORT) && defined(__linux__)
-#define SO_REUSEPORT 15
-#endif
-
 #ifndef Py_BUILD_CORE_BUILTIN
 #  define Py_BUILD_CORE_MODULE 1
 #endif
@@ -7669,8 +7662,7 @@ PyInit__socket(void)
 #endif
 #ifndef __GNU__
 #ifdef  SO_REUSEPORT
-    if (IsReusePortAvailable())
-        PyModule_AddIntMacro(m, SO_REUSEPORT);
+    PyModule_AddIntMacro(m, SO_REUSEPORT);
 #endif
 #endif
 #ifdef  SO_SNDBUF
