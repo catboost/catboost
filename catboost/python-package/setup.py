@@ -1,3 +1,4 @@
+import setuptools
 import distutils
 import itertools
 import os
@@ -14,7 +15,6 @@ from distutils import log
 import setuptools.command.build  # for SubCommand
 from setuptools.command.build import build as _build
 
-import setuptools
 from setuptools import setup, find_packages, Extension
 
 from setuptools.command.build_ext import build_ext as _build_ext
