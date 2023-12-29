@@ -1,11 +1,6 @@
 #include "v2.h"
 namespace NPyBind {
     namespace Detail {
-        template <>
-        PyTypeObject* GetParentType<void>(const TPyModuleDefinition&) {
-            return nullptr;
-        }
-
 
         template <bool InitEnabled>
         void UpdateClassNamesInModule(TPyModuleDefinition& M, const TString& name, PyTypeObject* pythonType) {

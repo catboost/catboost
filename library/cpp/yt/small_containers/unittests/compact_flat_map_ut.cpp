@@ -259,24 +259,24 @@ TEST(TCompactFlatMapTest, UpperBound)
 TEST(TCompactFlatMapTest, EqualRange)
 {
     TMap m;
-    EXPECT_EQ(m.equal_range("a"), std::make_pair(m.end(), m.end()));
+    EXPECT_EQ(m.equal_range("a"), std::pair(m.end(), m.end()));
 
     m.emplace("b", "value-b");
-    EXPECT_EQ(m.equal_range("a"), std::make_pair(m.begin(), m.begin()));
-    EXPECT_EQ(m.equal_range("b"), std::make_pair(m.begin(), m.end()));
-    EXPECT_EQ(m.equal_range("c"), std::make_pair(m.end(), m.end()));
+    EXPECT_EQ(m.equal_range("a"), std::pair(m.begin(), m.begin()));
+    EXPECT_EQ(m.equal_range("b"), std::pair(m.begin(), m.end()));
+    EXPECT_EQ(m.equal_range("c"), std::pair(m.end(), m.end()));
 
     m.emplace("c", "value-c");
     m.emplace("d", "value-d");
 
     auto it = m.begin();
-    EXPECT_EQ(m.equal_range("a"), std::make_pair(it, it));
-    EXPECT_EQ(m.equal_range("b"), std::make_pair(it, std::next(it)));
+    EXPECT_EQ(m.equal_range("a"), std::pair(it, it));
+    EXPECT_EQ(m.equal_range("b"), std::pair(it, std::next(it)));
     ++it;
-    EXPECT_EQ(m.equal_range("c"), std::make_pair(it, std::next(it)));
+    EXPECT_EQ(m.equal_range("c"), std::pair(it, std::next(it)));
     ++it;
-    EXPECT_EQ(m.equal_range("d"), std::make_pair(it, std::next(it)));
-    EXPECT_EQ(m.equal_range("e"), std::make_pair(m.end(), m.end()));
+    EXPECT_EQ(m.equal_range("d"), std::pair(it, std::next(it)));
+    EXPECT_EQ(m.equal_range("e"), std::pair(m.end(), m.end()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

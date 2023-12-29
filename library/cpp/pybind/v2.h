@@ -6,6 +6,8 @@
 #include <util/generic/hash.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/string.h>
+#include <util/generic/xrange.h>
+
 namespace NPyBind {
 #define DEFINE_CONVERTERS_IMPL(TClass)                            \
     PyObject* BuildPyObject(typename TClass::TBase&& base) {      \
@@ -93,6 +95,10 @@ namespace NPyBind {
                 CurrentModule = &Name2Def[name];
                 return *CurrentModule;
             }
+
+            const THashMap<TString, TPyModuleDefinition>& GetCurrentModules() const {
+                return Name2Def;
+            }
         private:
             TPyModuleDefinition* CurrentModule = nullptr;
             TMaybe<TPyModuleDefinition> UnnamedModule;//
@@ -120,7 +126,7 @@ namespace NPyBind {
         };
         template <class TBase>
         struct TContextImpl {
-            PyTypeObject* ParentType = nullptr;
+            TVector<PyTypeObject*> ParentTypes;
             TString ClassShortName;
             TString ClassFullName;
             TString ClassDescription;
@@ -147,15 +153,32 @@ namespace NPyBind {
             return new THolderClass(MakeHolder<TBaseClass>());
         }
 
-        template <typename T>
-        PyTypeObject* GetParentType(const TPyModuleDefinition& m) {
-            auto shortName = Detail::TNameCtx<T>::GetNameCtx().ClassShortName;
-            auto it = m.ClassName2Type.find(shortName);
-            return (it == m.ClassName2Type.end()) ? nullptr : it->second;
+        template <typename TParentTypesTuple, int Ind>
+        void InitializeBasesArray(TVector<PyTypeObject*>& parentTypes) {
+            auto shortName = Detail::TNameCtx<std::tuple_element_t<Ind, TParentTypesTuple>>::GetNameCtx().ClassShortName;
+            for (const auto& [_, module] : TPyModuleRegistry::Get().GetCurrentModules()) {
+                auto it = module.ClassName2Type.find(shortName);
+                if (it != module.ClassName2Type.end()) {
+                    parentTypes[Ind] = it->second;
+                    return;
+                }
+            }
+            ythrow yexception() << "Can't find registrated PyClass for parent class";
         }
 
-        template <>
-        PyTypeObject* GetParentType<void>(const TPyModuleDefinition&);
+        template <typename TParentTypesTuple>
+        TVector<PyTypeObject*> GetParentsTypes() {
+            constexpr int nTypes = std::tuple_size_v<TParentTypesTuple>;
+            if constexpr (nTypes == 0) {
+                return {};
+            }
+            TVector<PyTypeObject*> parentTypes(nTypes);
+
+            [&parentTypes] <std::size_t... Ind> (std::index_sequence<Ind...>) {
+                (InitializeBasesArray<TParentTypesTuple, Ind>(parentTypes), ...);
+            }(std::make_index_sequence<nTypes>{});
+            return parentTypes;
+        }
 
         template <bool InitEnabled>
         void UpdateClassNamesInModule(TPyModuleDefinition& M, const TString& name, PyTypeObject* pythonType);
@@ -165,19 +188,19 @@ namespace NPyBind {
     }
 
 
-    template <class TParentPyClass_=void>
+    template <class... TParentPyClasses_>
     struct TPyParentClassTraits {
-        using TParentPyClass = TParentPyClass_;
+        using TParentPyClasses = std::tuple<TParentPyClasses_...>;
     };
 
-    template <bool InitEnabled_, class TParentPyClass_=void>
-    struct TPyClassConfigTraits: public TPyParentClassTraits<TParentPyClass_> {
+    template <bool InitEnabled_, class... TParentPyClasses_>
+    struct TPyClassConfigTraits: public TPyParentClassTraits<TParentPyClasses_...> {
         constexpr static bool InitEnabled = InitEnabled_;
         constexpr static bool RawInit = false;
     };
 
-    template <class TParentPyClass_=void>
-    struct TPyClassRawInitConfigTraits: public TPyParentClassTraits<TParentPyClass_> {
+    template <class... TParentPyClasses_>
+    struct TPyClassRawInitConfigTraits: public TPyParentClassTraits<TParentPyClasses_...> {
         constexpr static bool InitEnabled = true;
         constexpr static bool RawInit = true;
     };
@@ -209,7 +232,10 @@ namespace NPyBind {
 
         public:
             TSelectedTraits()
-                : TParent(TThisClass::GetContext().ClassFullName.data(), TThisClass::GetContext().ClassDescription.data(), TThisClass::GetContext().ParentType)
+                : TParent(TThisClass::GetContext().ClassFullName.data(), TThisClass::GetContext().ClassDescription.data(),
+                          TThisClass::GetContext().ParentTypes.empty() ? nullptr : TThisClass::GetContext().ParentTypes[0],
+                          TThisClass::GetContext().ParentTypes.data(),
+                          TThisClass::GetContext().ParentTypes.size())
             {
                 for (const auto& caller : TThisClass::GetContext().ListCallers) {
                     TParent::AddCaller(caller.first, caller.second);
@@ -373,8 +399,15 @@ namespace NPyBind {
         void ReloadAttrsFromBase() {
         }
 
+        template<class TParentTypesTuple>
+        void ReloadAttrsFromBases() {
+            [&]<std::size_t... Ind> (std::index_sequence<Ind...>) {
+                (ReloadAttrsFromBase<std::tuple_element_t<Ind, TParentTypesTuple>>(), ...);
+            }(std::make_index_sequence<std::tuple_size_v<TParentTypesTuple>>{});
+        }
+
         void CompleteImpl() {
-            ReloadAttrsFromBase<typename TPyClassConfigTraits::TParentPyClass>();
+            ReloadAttrsFromBases<typename TPyClassConfigTraits::TParentPyClasses>();
             TSelectedTraits::Instance().Register(M.M, GetContext().ClassShortName);
         }
 
@@ -411,7 +444,7 @@ namespace NPyBind {
             GetContext().ClassFullName = TString::Join(M.Name, ".", name);
             GetContext().ClassShortName = name;
             GetContext().ClassDescription = descr;
-            GetContext().ParentType = Detail::GetParentType<typename TPyClassConfigTraits::TParentPyClass>(M);
+            GetContext().ParentTypes = Detail::GetParentsTypes<typename TPyClassConfigTraits::TParentPyClasses>();
             Detail::TNameCtx<TBaseClass>::GetNameCtx().ClassShortName = name;
         }
 

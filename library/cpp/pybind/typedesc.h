@@ -101,7 +101,8 @@ namespace NPyBind {
         }
 
     protected:
-        TPythonType(const char* pyTypeName, const char* typeDescr, PyTypeObject* parentType = nullptr)
+        TPythonType(const char* pyTypeName, const char* typeDescr, PyTypeObject* parentType = nullptr,
+                    PyTypeObject** baseTypes = nullptr, Py_ssize_t baseCount = 0)
             : Attributes(GetObjectAttr, SetObjectAttr)
         {
             PyType.tp_name = pyTypeName;
@@ -110,6 +111,14 @@ namespace NPyBind {
             if (parentType) {
                 Py_INCREF(parentType);
                 PyType.tp_base = parentType;
+            }
+            if (baseTypes) {
+                PyObject* tuple = PyTuple_New(baseCount);
+                for (Py_ssize_t i = 0; i < baseCount; ++i) {
+                    Py_INCREF(baseTypes[i]);
+                    PyTuple_SET_ITEM(tuple, i, (PyObject *)baseTypes[i]);
+                }
+                PyType.tp_bases = tuple;
             }
             PyType_Ready(&PyType);
 
