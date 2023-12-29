@@ -189,7 +189,7 @@ unwind_phase2(unw_context_t *uc, unw_cursor_t *cursor, _Unwind_Exception *except
 
   // uc is initialized by __unw_getcontext in the parent frame. The first stack
   // frame walked is unwind_phase2.
-  unsigned framesWalked = 1;
+  unsigned framesWalked __attribute__((unused)) = 1;
   // Walk each frame until we reach where search phase said to stop.
   while (true) {
 
@@ -307,7 +307,7 @@ unwind_phase2_forced(unw_context_t *uc, unw_cursor_t *cursor,
 
   // uc is initialized by __unw_getcontext in the parent frame. The first stack
   // frame walked is unwind_phase2_forced.
-  unsigned framesWalked = 1;
+  unsigned framesWalked __attribute__((unused)) = 1;
   // Walk each frame until we reach where search phase said to stop
   while (__unw_step(cursor) > 0) {
 
