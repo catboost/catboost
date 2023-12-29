@@ -3,12 +3,15 @@ import io
 import os
 import re
 import sys
+import warnings
+
+from importlib.metadata import Distribution, DistributionFinder, PackageNotFoundError, Prepared
+from importlib.resources.abc import Traversable
 
 import __res
 
-from importlib.abc import ResourceReader
-from importlib.metadata import Distribution, DistributionFinder, PackageNotFoundError, Prepared
-from importlib.resources.abc import Traversable
+with warnings.catch_warnings(action="ignore", category=DeprecationWarning):
+    from importlib.abc import ResourceReader
 
 ResourceReader.register(__res._ResfsResourceReader)
 
