@@ -670,7 +670,7 @@ namespace NLastGetopt {
 
         // Similar to store_true in Python's argparse
         TOpt& StoreTrue(bool* target) {
-            return NoArgument().StoreResult(target, true);
+            return NoArgument().SetFlag(target);
         }
 
         // Similar to store_false in Python's argparse
