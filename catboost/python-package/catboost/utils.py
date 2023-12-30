@@ -171,14 +171,10 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
     column_names = []
     non_feature_column_indices = []
 
-    def add_missed_columns(start_column_idx, end_column_idx, non_feature_column_count):
-        for missed_column_idx in range(start_column_idx, end_column_idx):
-            column_name = 'feature_%i' % (missed_column_idx - non_feature_column_count)
-            column_names.append(column_name)
-            column_type_to_indices.setdefault('Num', []).append(missed_column_idx)
-            column_dtypes[column_name] = np.float32
+    # list of (column_idx, column_type, column_name) tuples, needed to support CD files with nonincreasing
+    # column indices
+    column_descriptions = []
 
-    last_column_idx = -1
     with open(fspath(cd_file)) as f:
         for line_idx, line in enumerate(f):
             line = line.strip()
@@ -192,44 +188,59 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
                 raise Exception('Wrong number of columns in cd file')
 
             column_idx = int(line_columns[0])
-            if column_idx <= last_column_idx:
-                raise Exception('Non-increasing column indices in cd file')
-
-            add_missed_columns(last_column_idx + 1, column_idx, len(non_feature_column_indices))
 
             column_type = line_columns[1]
-            if canonize_column_types:
-                column_type = column_type_synonyms_map.get(column_type, column_type)
-
-            column_type_to_indices.setdefault(column_type, []).append(column_idx)
 
             column_name = None
             if len(line_columns) == 3:
                 column_name = line_columns[2]
 
-            if column_type in ['Num', 'Categ', 'Text', 'NumVector']:
-                feature_idx = column_idx - len(non_feature_column_indices)
-                if column_name is None:
-                    column_name = 'feature_%i' % feature_idx
-                if column_type == 'Categ':
-                    cat_feature_indices.append(feature_idx)
-                    column_dtypes[column_name] = 'category'
-                elif column_type == 'Text':
-                    text_feature_indices.append(feature_idx)
-                    column_dtypes[column_name] = object
-                elif column_type == 'NumVector':
-                    embedding_feature_indices.append(feature_idx)
-                    column_dtypes[column_name] = object
-                else:
-                    column_dtypes[column_name] = np.float32
-            else:
-                non_feature_column_indices.append(column_idx)
-                if column_name is None:
-                    column_name = column_type
+            column_descriptions.append((column_idx, column_type, column_name))
 
+    column_descriptions.sort()
+
+    def add_missed_columns(start_column_idx, end_column_idx, non_feature_column_count):
+        for missed_column_idx in range(start_column_idx, end_column_idx):
+            column_name = 'feature_%i' % (missed_column_idx - non_feature_column_count)
             column_names.append(column_name)
+            column_type_to_indices.setdefault('Num', []).append(missed_column_idx)
+            column_dtypes[column_name] = np.float32
 
-            last_column_idx = column_idx
+    last_column_idx = -1
+    for column_idx, column_type, column_name in column_descriptions:
+        if column_idx == last_column_idx:
+            raise Exception('Duplicate column indices in cd file')
+
+        add_missed_columns(last_column_idx + 1, column_idx, len(non_feature_column_indices))
+
+        if canonize_column_types:
+            column_type = column_type_synonyms_map.get(column_type, column_type)
+
+        column_type_to_indices.setdefault(column_type, []).append(column_idx)
+
+        if column_type in ['Num', 'Categ', 'Text', 'NumVector']:
+            feature_idx = column_idx - len(non_feature_column_indices)
+            if column_name is None:
+                column_name = 'feature_%i' % feature_idx
+            if column_type == 'Categ':
+                cat_feature_indices.append(feature_idx)
+                column_dtypes[column_name] = 'category'
+            elif column_type == 'Text':
+                text_feature_indices.append(feature_idx)
+                column_dtypes[column_name] = object
+            elif column_type == 'NumVector':
+                embedding_feature_indices.append(feature_idx)
+                column_dtypes[column_name] = object
+            else:
+                column_dtypes[column_name] = np.float32
+        else:
+            non_feature_column_indices.append(column_idx)
+            if column_name is None:
+                column_name = column_type
+
+        column_names.append(column_name)
+
+        last_column_idx = column_idx
 
     add_missed_columns(last_column_idx + 1, column_count, len(non_feature_column_indices))
 
