@@ -95,7 +95,7 @@ class Any(object):
     return '/' in self.type_url and self.TypeName() == descriptor.full_name
 
 
-_EPOCH_DATETIME = datetime.utcfromtimestamp(0)
+_EPOCH_DATETIME = datetime(1970, 1, 1, tzinfo=None)
 
 
 class Timestamp(object):
