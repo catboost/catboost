@@ -34,7 +34,7 @@ except ImportError:
 from warnings import warn
 
 ZERO = datetime.timedelta(0)
-EPOCH = datetime.datetime.utcfromtimestamp(0)
+EPOCH = datetime.datetime(1970, 1, 1, tzinfo=None)
 EPOCHORDINAL = EPOCH.toordinal()
 
 
