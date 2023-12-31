@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Callable, Dict
 import attr
 
 from hypothesis.internal.cache import LRUReusedCache
+from hypothesis.internal.compat import dataclass_asdict
 from hypothesis.internal.floats import float_to_int
 from hypothesis.internal.reflection import proxies
 from hypothesis.vendor.pretty import pretty
@@ -177,7 +178,7 @@ def to_jsonable(obj: object) -> object:
         and dcs.is_dataclass(obj)
         and not isinstance(obj, type)
     ):
-        return to_jsonable(dcs.asdict(obj))
+        return to_jsonable(dataclass_asdict(obj))
     if attr.has(type(obj)):
         return to_jsonable(attr.asdict(obj, recurse=False))  # type: ignore
     if (pyd := sys.modules.get("pydantic")) and isinstance(obj, pyd.BaseModel):

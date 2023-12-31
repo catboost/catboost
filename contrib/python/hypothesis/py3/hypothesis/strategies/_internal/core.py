@@ -77,6 +77,7 @@ from hypothesis.internal.compat import (
 from hypothesis.internal.conjecture.utils import calc_label_from_cls, check_sample
 from hypothesis.internal.entropy import get_seeder_and_restorer
 from hypothesis.internal.floats import float_of
+from hypothesis.internal.observability import TESTCASE_CALLBACKS
 from hypothesis.internal.reflection import (
     define_function_signature,
     get_pretty_function_description,
@@ -2103,7 +2104,9 @@ class DataObject:
         self.count += 1
         printer = RepresentationPrinter(context=current_build_context())
         desc = f"Draw {self.count}{'' if label is None else f' ({label})'}: "
-        self.conjecture_data._observability_args[desc] = to_jsonable(result)
+        if TESTCASE_CALLBACKS:
+            self.conjecture_data._observability_args[desc] = to_jsonable(result)
+
         printer.text(desc)
         printer.pretty(result)
         note(printer.getvalue())

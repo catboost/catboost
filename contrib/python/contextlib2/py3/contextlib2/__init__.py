@@ -177,8 +177,10 @@ class _GeneratorContextManager(_GeneratorContextManagerBase,
                 # Need to force instantiation so we can reliably
                 # tell if we get the same exception back
                 value = type()
+            if traceback is not None:
+                value = value.with_traceback(traceback)
             try:
-                self.gen.throw(type, value, traceback)
+                self.gen.throw(value)
             except StopIteration as exc:
                 # Suppress StopIteration *unless* it's the same exception that
                 # was passed to throw().  This prevents a StopIteration

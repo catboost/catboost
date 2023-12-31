@@ -9,6 +9,8 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 
 import codecs
+import copy
+import dataclasses
 import inspect
 import platform
 import sys
@@ -188,3 +190,46 @@ def bad_django_TestCase(runner):
         from hypothesis.extra.django._impl import HypothesisTestCase
 
         return not isinstance(runner, HypothesisTestCase)
+
+
+# see issue #3812
+if sys.version_info[:2] < (3, 12):
+
+    def dataclass_asdict(obj, *, dict_factory=dict):
+        """
+        A vendored variant of dataclasses.asdict. Includes the bugfix for
+        defaultdicts (cpython/32056) for all versions. See also issues/3812.
+
+        This should be removed whenever we drop support for 3.11. We can use the
+        standard dataclasses.asdict after that point.
+        """
+        if not dataclasses._is_dataclass_instance(obj):  # pragma: no cover
+            raise TypeError("asdict() should be called on dataclass instances")
+        return _asdict_inner(obj, dict_factory)
+
+else:  # pragma: no cover
+    dataclass_asdict = dataclasses.asdict
+
+
+def _asdict_inner(obj, dict_factory):
+    if dataclasses._is_dataclass_instance(obj):
+        return dict_factory(
+            (f.name, _asdict_inner(getattr(obj, f.name), dict_factory))
+            for f in dataclasses.fields(obj)
+        )
+    elif isinstance(obj, tuple) and hasattr(obj, "_fields"):
+        return type(obj)(*[_asdict_inner(v, dict_factory) for v in obj])
+    elif isinstance(obj, (list, tuple)):
+        return type(obj)(_asdict_inner(v, dict_factory) for v in obj)
+    elif isinstance(obj, dict):
+        if hasattr(type(obj), "default_factory"):
+            result = type(obj)(obj.default_factory)
+            for k, v in obj.items():
+                result[_asdict_inner(k, dict_factory)] = _asdict_inner(v, dict_factory)
+            return result
+        return type(obj)(
+            (_asdict_inner(k, dict_factory), _asdict_inner(v, dict_factory))
+            for k, v in obj.items()
+        )
+    else:
+        return copy.deepcopy(obj)
