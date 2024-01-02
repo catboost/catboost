@@ -15,6 +15,7 @@ import os
 import site
 import sys
 import sysconfig
+from pathlib import Path
 from shutil import which
 from subprocess import Popen
 from typing import Any
@@ -37,7 +38,6 @@ class JupyterParser(argparse.ArgumentParser):
     @epilog.setter
     def epilog(self, x: Any) -> None:
         """Ignore epilog set in Parser.__init__"""
-        pass
 
     def argcomplete(self) -> None:
         """Trigger auto-completion, if enabled"""
@@ -63,7 +63,7 @@ def jupyter_parser() -> JupyterParser:
         "subcommand", type=str, nargs="?", help="the subcommand to launch"
     )
     # For argcomplete, supply all known subcommands
-    subcommand_action.completer = lambda *args, **kwargs: list_subcommands()  # type: ignore[attr-defined]
+    subcommand_action.completer = lambda *args, **kwargs: list_subcommands()  # type: ignore[attr-defined]  # noqa: ARG005
 
     group.add_argument("--config-dir", action="store_true", help="show Jupyter config dir")
     group.add_argument("--data-dir", action="store_true", help="show Jupyter data dir")
@@ -98,7 +98,7 @@ def list_subcommands() -> list[str]:
             if name.startswith("jupyter-"):
                 if sys.platform.startswith("win"):
                     # remove file-extension on Windows
-                    name = os.path.splitext(name)[0]  # noqa
+                    name = os.path.splitext(name)[0]  # noqa: PTH122, PLW2901
                 subcommand_tuples.add(tuple(name.split("-")[1:]))
     # build a set of subcommand strings, excluding subcommands whose parents are defined
     subcommands = set()
@@ -120,7 +120,7 @@ def _execvp(cmd: str, argv: list[str]) -> None:
         cmd_path = which(cmd)
         if cmd_path is None:
             raise OSError("%r not found" % cmd, errno.ENOENT)
-        p = Popen([cmd_path] + argv[1:])  # noqa
+        p = Popen([cmd_path] + argv[1:])  # noqa: S603
         # Don't raise KeyboardInterrupt in the parent process.
         # Set this after spawning, to avoid subprocess inheriting handler.
         import signal
@@ -129,7 +129,7 @@ def _execvp(cmd: str, argv: list[str]) -> None:
         p.wait()
         sys.exit(p.returncode)
     else:
-        os.execvp(cmd, argv)  # noqa
+        os.execvp(cmd, argv)  # noqa: S606
 
 
 def _jupyter_abspath(subcommand: str) -> str:
@@ -177,13 +177,13 @@ def _path_with_self() -> list[str]:
         path_list.append(bindir)
 
     scripts = [sys.argv[0]]
-    if os.path.islink(scripts[0]):
+    if Path(scripts[0]).is_symlink():
         # include realpath, if `jupyter` is a symlink
         scripts.append(os.path.realpath(scripts[0]))
 
     for script in scripts:
-        bindir = os.path.dirname(script)
-        if os.path.isdir(bindir) and os.access(script, os.X_OK):  # only if it's a script
+        bindir = str(Path(script).parent)
+        if Path(bindir).is_dir() and os.access(script, os.X_OK):  # only if it's a script
             # ensure executable's dir is on PATH
             # avoids missing subcommands when jupyter is run via absolute path
             path_list.insert(0, bindir)
@@ -211,9 +211,8 @@ def _evaluate_argcomplete(parser: JupyterParser) -> list[str]:
             # increment word from which to start handling arguments
             increment_argcomplete_index()
             return cwords
-        else:
-            # Otherwise no subcommand, directly autocomplete and exit
-            parser.argcomplete()
+        # Otherwise no subcommand, directly autocomplete and exit
+        parser.argcomplete()
     except ImportError:
         # traitlets >= 5.8 not available, just try to complete this without
         # worrying about subcommands
@@ -222,7 +221,7 @@ def _evaluate_argcomplete(parser: JupyterParser) -> list[str]:
     raise AssertionError(msg)
 
 
-def main() -> None:  # noqa
+def main() -> None:
     """The command entry point."""
     parser = jupyter_parser()
     argv = sys.argv

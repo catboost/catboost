@@ -6,7 +6,6 @@ import asyncio
 import atexit
 import errno
 import inspect
-import os
 import sys
 import threading
 import warnings
@@ -15,7 +14,7 @@ from types import FrameType
 from typing import Any, Awaitable, Callable, TypeVar, cast
 
 
-def ensure_dir_exists(path: str, mode: int = 0o777) -> None:
+def ensure_dir_exists(path: str | Path, mode: int = 0o777) -> None:
     """Ensure that a directory exists
 
     If it doesn't exist, try to create it, protecting against a race condition
@@ -23,11 +22,11 @@ def ensure_dir_exists(path: str, mode: int = 0o777) -> None:
     The default permissions are determined by the current umask.
     """
     try:
-        os.makedirs(path, mode=mode)
+        Path(path).mkdir(parents=True, mode=mode)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-    if not os.path.isdir(path):
+    if not Path(path).is_dir():
         raise OSError("%r exists but is not a directory" % path)
 
 
@@ -108,7 +107,7 @@ class _TaskRunner:
 
     def _runner(self) -> None:
         loop = self.__io_loop
-        assert loop is not None  # noqa
+        assert loop is not None
         try:
             loop.run_forever()
         finally:
