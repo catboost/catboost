@@ -1433,7 +1433,7 @@ def parseArgs(args):
         nargs="*",
         help="List of space separated locations. A location consists of "
         "the tag of a variation axis, followed by '=' and the literal, "
-        "string 'drop', or comma-separate list of one to three values, "
+        "string 'drop', or colon-separated list of one to three values, "
         "each of which is the empty string, or a number. "
         "E.g.: wdth=100 or wght=75.0:125.0 or wght=100:400:700 or wght=:500: "
         "or wght=drop",

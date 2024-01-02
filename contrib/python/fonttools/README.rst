@@ -138,6 +138,13 @@ are required to unlock the extra features named "ufo", etc.
   * `munkres <https://pypi.python.org/pypi/munkres>`__: a pure-Python
     module that implements the Hungarian or Kuhn-Munkres algorithm.
 
+  To plot the results to a PDF or HTML format, you also need to install:
+
+  * `pycairo <https://pypi.org/project/pycairo/>`__: Python bindings for the
+    Cairo graphics library. Note that wheels are currently only available for
+    Windows, for other platforms see pycairo's `installation instructions
+    <https://pycairo.readthedocs.io/en/latest/getting_started.html>`__.
+
   *Extra:* ``interpolatable``
 
 - ``Lib/fontTools/varLib/plot.py``

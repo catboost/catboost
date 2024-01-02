@@ -1,4 +1,7 @@
 from .interpolatableHelpers import *
+import logging
+
+log = logging.getLogger("fontTools.varLib.interpolatable")
 
 
 def test_contour_order(glyph0, glyph1):
@@ -71,4 +74,9 @@ def test_contour_order(glyph0, glyph1):
                 matching_cost = matching_cost_green
                 identity_cost = identity_cost_green
 
-    return matching, matching_cost, identity_cost
+    this_tolerance = matching_cost / identity_cost if identity_cost else 1
+    log.debug(
+        "test-contour-order: tolerance %g",
+        this_tolerance,
+    )
+    return this_tolerance, matching

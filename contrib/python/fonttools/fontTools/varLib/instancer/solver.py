@@ -178,7 +178,9 @@ def _solve(tent, axisLimit, negative=False):
         #
         newUpper = peak + (1 - gain) * (upper - peak)
         assert axisMax <= newUpper  # Because outGain > gain
-        if newUpper <= axisDef + (axisMax - axisDef) * 2:
+        # Disabled because ots doesn't like us:
+        # https://github.com/fonttools/fonttools/issues/3350
+        if False and newUpper <= axisDef + (axisMax - axisDef) * 2:
             upper = newUpper
             if not negative and axisDef + (axisMax - axisDef) * MAX_F2DOT14 < upper:
                 # we clamp +2.0 to the max F2Dot14 (~1.99994) for convenience

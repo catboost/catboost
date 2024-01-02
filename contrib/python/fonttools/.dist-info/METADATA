@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.46.0
+Version: 4.47.0
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -34,6 +34,7 @@ Requires-Dist: fs <3,>=2.2.0 ; extra == 'all'
 Requires-Dist: lxml <5,>=4.0 ; extra == 'all'
 Requires-Dist: zopfli >=0.1.4 ; extra == 'all'
 Requires-Dist: lz4 >=1.7.4.2 ; extra == 'all'
+Requires-Dist: pycairo ; extra == 'all'
 Requires-Dist: matplotlib ; extra == 'all'
 Requires-Dist: sympy ; extra == 'all'
 Requires-Dist: skia-pathops >=0.5.0 ; extra == 'all'
@@ -47,6 +48,7 @@ Requires-Dist: xattr ; (sys_platform == "darwin") and extra == 'all'
 Provides-Extra: graphite
 Requires-Dist: lz4 >=1.7.4.2 ; extra == 'graphite'
 Provides-Extra: interpolatable
+Requires-Dist: pycairo ; extra == 'interpolatable'
 Requires-Dist: scipy ; (platform_python_implementation != "PyPy") and extra == 'interpolatable'
 Requires-Dist: munkres ; (platform_python_implementation == "PyPy") and extra == 'interpolatable'
 Provides-Extra: lxml
@@ -210,6 +212,13 @@ are required to unlock the extra features named "ufo", etc.
   * `munkres <https://pypi.python.org/pypi/munkres>`__: a pure-Python
     module that implements the Hungarian or Kuhn-Munkres algorithm.
 
+  To plot the results to a PDF or HTML format, you also need to install:
+
+  * `pycairo <https://pypi.org/project/pycairo/>`__: Python bindings for the
+    Cairo graphics library. Note that wheels are currently only available for
+    Windows, for other platforms see pycairo's `installation instructions
+    <https://pycairo.readthedocs.io/en/latest/getting_started.html>`__.
+
   *Extra:* ``interpolatable``
 
 - ``Lib/fontTools/varLib/plot.py``
@@ -365,6 +374,16 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.47.0 (released 2023-12-18)
+----------------------------
+
+- [varLib.models] New API for VariationModel: ``getMasterScalars`` and
+  ``interpolateFromValuesAndScalars``.
+- [varLib.interpolatable] Various bugfixes and rendering improvements. In particular,
+  add a Summary page in the front, and an Index and Table-of-Contents in the back.
+  Change the page size to Letter.
+- [Docs/designspaceLib] Defined a new ``public.fontInfo`` lib key, not used anywhere yet (#3358).
 
 4.46.0 (released 2023-12-02)
 ----------------------------

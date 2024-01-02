@@ -9,7 +9,11 @@ $ fonttools varLib.interpolatable font1 font2 ...
 from .interpolatableHelpers import *
 from .interpolatableTestContourOrder import test_contour_order
 from .interpolatableTestStartingPoint import test_starting_point
-from fontTools.pens.recordingPen import RecordingPen, DecomposingRecordingPen
+from fontTools.pens.recordingPen import (
+    RecordingPen,
+    DecomposingRecordingPen,
+    lerpRecordings,
+)
 from fontTools.pens.transformPen import TransformPen
 from fontTools.pens.statisticsPen import StatisticsPen, StatisticsControlPen
 from fontTools.pens.momentsPen import OpenContourError
@@ -22,6 +26,7 @@ from functools import wraps
 from pprint import pformat
 from math import sqrt, atan2, pi
 import logging
+import os
 
 log = logging.getLogger("fontTools.varLib.interpolatable")
 
@@ -34,11 +39,9 @@ DEFAULT_UPEM = 1000
 class Glyph:
     ITEMS = (
         "recordings",
-        "recordingsNormalized",
         "greenStats",
         "controlStats",
         "greenVectors",
-        "greenVectorsNormalized",
         "controlVectors",
         "nodeTypes",
         "isomorphisms",
@@ -89,21 +92,6 @@ class Glyph:
             self.controlStats.append(controlStats)
             self.greenVectors.append(contour_vector_from_stats(greenStats))
             self.controlVectors.append(contour_vector_from_stats(controlStats))
-
-            # Save a "normalized" version of the outlines
-            try:
-                rpen = DecomposingRecordingPen(glyphset)
-                tpen = TransformPen(
-                    rpen, transform_from_stats(greenStats, inverse=True)
-                )
-                contour.replay(tpen)
-                self.recordingsNormalized.append(rpen)
-            except ZeroDivisionError:
-                self.recordingsNormalized.append(None)
-
-            greenStats = StatisticsPen(glyphset=glyphset)
-            rpen.replay(greenStats)
-            self.greenVectorsNormalized.append(contour_vector_from_stats(greenStats))
 
             # Check starting point
             if nodeTypes[0] == "addComponent":
@@ -186,7 +174,11 @@ def test_gen(
                 if not ignore_missing:
                     yield (
                         glyph_name,
-                        {"type": "missing", "master": name, "master_idx": master_idx},
+                        {
+                            "type": InterpolatableProblem.MISSING,
+                            "master": name,
+                            "master_idx": master_idx,
+                        },
                     )
                 continue
 
@@ -198,10 +190,10 @@ def test_gen(
                 yield (
                     glyph_name,
                     {
+                        "type": InterpolatableProblem.OPEN_PATH,
                         "master": name,
                         "master_idx": master_idx,
                         "contour": ix,
-                        "type": "open_path",
                     },
                 )
             if has_open:
@@ -230,7 +222,7 @@ def test_gen(
                 yield (
                     glyph_name,
                     {
-                        "type": "path_count",
+                        "type": InterpolatableProblem.PATH_COUNT,
                         "master_1": names[m0idx],
                         "master_2": names[m1idx],
                         "master_1_idx": m0idx,
@@ -249,7 +241,7 @@ def test_gen(
                         yield (
                             glyph_name,
                             {
-                                "type": "node_count",
+                                "type": InterpolatableProblem.NODE_COUNT,
                                 "path": pathIx,
                                 "master_1": names[m0idx],
                                 "master_2": names[m1idx],
@@ -265,7 +257,7 @@ def test_gen(
                             yield (
                                 glyph_name,
                                 {
-                                    "type": "node_incompatibility",
+                                    "type": InterpolatableProblem.NODE_INCOMPATIBILITY,
                                     "path": pathIx,
                                     "node": nodeIx,
                                     "master_1": names[m0idx],
@@ -279,21 +271,15 @@ def test_gen(
                             continue
 
             #
-            # "contour_order" check
+            # InterpolatableProblem.CONTOUR_ORDER check
             #
 
-            matching, matching_cost, identity_cost = test_contour_order(glyph0, glyph1)
-            if matching_cost < identity_cost * tolerance:
-                log.debug(
-                    "matching_ratio %g",
-                    matching_cost / identity_cost,
-                )
-                this_tolerance = matching_cost / identity_cost
-                log.debug("tolerance: %g", this_tolerance)
+            this_tolerance, matching = test_contour_order(glyph0, glyph1)
+            if this_tolerance < tolerance:
                 yield (
                     glyph_name,
                     {
-                        "type": "contour_order",
+                        "type": InterpolatableProblem.CONTOUR_ORDER,
                         "master_1": names[m0idx],
                         "master_2": names[m1idx],
                         "master_1_idx": m0idx,
@@ -306,19 +292,15 @@ def test_gen(
                 matchings[m1idx] = matching
 
             #
-            # "wrong_start_point" / weight check
+            # wrong-start-point / weight check
             #
 
             m0Isomorphisms = glyph0.isomorphisms
             m1Isomorphisms = glyph1.isomorphisms
             m0Vectors = glyph0.greenVectors
             m1Vectors = glyph1.greenVectors
-            m0VectorsNormalized = glyph0.greenVectorsNormalized
-            m1VectorsNormalized = glyph1.greenVectorsNormalized
             recording0 = glyph0.recordings
             recording1 = glyph1.recordings
-            recording0Normalized = glyph0.recordingsNormalized
-            recording1Normalized = glyph1.recordingsNormalized
 
             # If contour-order is wrong, adjust it
             matching = matchings[m1idx]
@@ -327,14 +309,14 @@ def test_gen(
             ):  # m1 is empty for composite glyphs
                 m1Isomorphisms = [m1Isomorphisms[i] for i in matching]
                 m1Vectors = [m1Vectors[i] for i in matching]
-                m1VectorsNormalized = [m1VectorsNormalized[i] for i in matching]
                 recording1 = [recording1[i] for i in matching]
-                recording1Normalized = [recording1Normalized[i] for i in matching]
 
             midRecording = []
             for c0, c1 in zip(recording0, recording1):
                 try:
-                    midRecording.append(lerp_recordings(c0, c1))
+                    r = RecordingPen()
+                    r.value = list(lerpRecordings(c0.value, c1.value))
+                    midRecording.append(r)
                 except ValueError:
                     # Mismatch because of the reordering above
                     midRecording.append(None)
@@ -352,118 +334,100 @@ def test_gen(
                     # after reordering above.
                     continue
 
-                proposed_point, reverse, min_cost, first_cost = test_starting_point(
+                this_tolerance, proposed_point, reverse = test_starting_point(
                     glyph0, glyph1, ix, tolerance, matching
                 )
 
-                if proposed_point or reverse:
-                    this_tolerance = min_cost / first_cost
-                    log.debug("tolerance: %g", this_tolerance)
-                    if min_cost < first_cost * tolerance:
-                        yield (
-                            glyph_name,
-                            {
-                                "type": "wrong_start_point",
-                                "contour": ix,
-                                "master_1": names[m0idx],
-                                "master_2": names[m1idx],
-                                "master_1_idx": m0idx,
-                                "master_2_idx": m1idx,
-                                "value_1": 0,
-                                "value_2": proposed_point,
-                                "reversed": reverse,
-                                "tolerance": this_tolerance,
-                            },
-                        )
-                else:
-                    # Weight check.
-                    #
-                    # If contour could be mid-interpolated, and the two
-                    # contours have the same area sign, proceeed.
-                    #
-                    # The sign difference can happen if it's a werido
-                    # self-intersecting contour; ignore it.
-                    contour = midRecording[ix]
+                if this_tolerance < tolerance:
+                    yield (
+                        glyph_name,
+                        {
+                            "type": InterpolatableProblem.WRONG_START_POINT,
+                            "contour": ix,
+                            "master_1": names[m0idx],
+                            "master_2": names[m1idx],
+                            "master_1_idx": m0idx,
+                            "master_2_idx": m1idx,
+                            "value_1": 0,
+                            "value_2": proposed_point,
+                            "reversed": reverse,
+                            "tolerance": this_tolerance,
+                        },
+                    )
 
-                    normalized = False
-                    if contour and (m0Vectors[ix][0] < 0) == (m1Vectors[ix][0] < 0):
-                        if normalized:
-                            midStats = StatisticsPen(glyphset=None)
-                            tpen = TransformPen(
-                                midStats, transform_from_stats(midStats, inverse=True)
-                            )
-                            contour.replay(tpen)
+                # Weight check.
+                #
+                # If contour could be mid-interpolated, and the two
+                # contours have the same area sign, proceeed.
+                #
+                # The sign difference can happen if it's a weirdo
+                # self-intersecting contour; ignore it.
+                contour = midRecording[ix]
+
+                if contour and (m0Vectors[ix][0] < 0) == (m1Vectors[ix][0] < 0):
+                    midStats = StatisticsPen(glyphset=None)
+                    contour.replay(midStats)
+
+                    midVector = contour_vector_from_stats(midStats)
+
+                    m0Vec = m0Vectors[ix]
+                    m1Vec = m1Vectors[ix]
+                    size0 = m0Vec[0] * m0Vec[0]
+                    size1 = m1Vec[0] * m1Vec[0]
+                    midSize = midVector[0] * midVector[0]
+
+                    power = 1
+                    t = tolerance**power
+
+                    for overweight, problem_type in enumerate(
+                        (
+                            InterpolatableProblem.UNDERWEIGHT,
+                            InterpolatableProblem.OVERWEIGHT,
+                        )
+                    ):
+                        if overweight:
+                            expectedSize = sqrt(size0 * size1)
+                            expectedSize = (size0 + size1) - expectedSize
+                            continue
                         else:
-                            midStats = StatisticsPen(glyphset=None)
-                            contour.replay(midStats)
+                            expectedSize = sqrt(size0 * size1)
 
-                        midVector = contour_vector_from_stats(midStats)
-
-                        m0Vec = (
-                            m0Vectors[ix] if not normalized else m0VectorsNormalized[ix]
+                        log.debug(
+                            "%s: actual size %g; threshold size %g, master sizes: %g, %g",
+                            problem_type,
+                            midSize,
+                            expectedSize,
+                            size0,
+                            size1,
                         )
-                        m1Vec = (
-                            m1Vectors[ix] if not normalized else m1VectorsNormalized[ix]
-                        )
-                        size0 = m0Vec[0] * m0Vec[0]
-                        size1 = m1Vec[0] * m1Vec[0]
-                        midSize = midVector[0] * midVector[0]
 
-                        power = 1
-                        t = tolerance**power
-
-                        for overweight, problem_type in enumerate(
-                            ("underweight", "overweight")
-                        ):
-                            if overweight:
-                                expectedSize = sqrt(size0 * size1)
-                                expectedSize = (size0 + size1) - expectedSize
-                                expectedSize = size1 + (midSize - size1)
-                                continue
-                            else:
-                                expectedSize = sqrt(size0 * size1)
-
-                            log.debug(
-                                "%s: actual size %g; threshold size %g, master sizes: %g, %g",
-                                problem_type,
-                                midSize,
-                                expectedSize,
-                                size0,
-                                size1,
+                        if (
+                            not overweight and expectedSize * tolerance > midSize + 1e-5
+                        ) or (overweight and 1e-5 + expectedSize / tolerance < midSize):
+                            try:
+                                if overweight:
+                                    this_tolerance = (expectedSize / midSize) ** (
+                                        1 / power
+                                    )
+                                else:
+                                    this_tolerance = (midSize / expectedSize) ** (
+                                        1 / power
+                                    )
+                            except ZeroDivisionError:
+                                this_tolerance = 0
+                            log.debug("tolerance %g", this_tolerance)
+                            yield (
+                                glyph_name,
+                                {
+                                    "type": problem_type,
+                                    "contour": ix,
+                                    "master_1": names[m0idx],
+                                    "master_2": names[m1idx],
+                                    "master_1_idx": m0idx,
+                                    "master_2_idx": m1idx,
+                                    "tolerance": this_tolerance,
+                                },
                             )
-
-                            size0, size1 = sorted((size0, size1))
-
-                            if (
-                                not overweight
-                                and expectedSize * tolerance > midSize + 1e-5
-                            ) or (
-                                overweight and 1e-5 + expectedSize / tolerance < midSize
-                            ):
-                                try:
-                                    if overweight:
-                                        this_tolerance = (expectedSize / midSize) ** (
-                                            1 / power
-                                        )
-                                    else:
-                                        this_tolerance = (midSize / expectedSize) ** (
-                                            1 / power
-                                        )
-                                except ZeroDivisionError:
-                                    this_tolerance = 0
-                                log.debug("tolerance %g", this_tolerance)
-                                yield (
-                                    glyph_name,
-                                    {
-                                        "type": problem_type,
-                                        "contour": ix,
-                                        "master_1": names[m0idx],
-                                        "master_2": names[m1idx],
-                                        "master_1_idx": m0idx,
-                                        "master_2_idx": m1idx,
-                                        "tolerance": this_tolerance,
-                                    },
-                                )
 
             #
             # "kink" detector
@@ -585,7 +549,7 @@ def test_gen(
                     this_tolerance = t / (abs(sin_mid) * kinkiness)
 
                     log.debug(
-                        "deviation %g; deviation_ratio %g; sin_mid %g; r_diff %g",
+                        "kink: deviation %g; deviation_ratio %g; sin_mid %g; r_diff %g",
                         deviation,
                         deviation_ratio,
                         sin_mid,
@@ -595,7 +559,7 @@ def test_gen(
                     yield (
                         glyph_name,
                         {
-                            "type": "kink",
+                            "type": InterpolatableProblem.KINK,
                             "contour": ix,
                             "master_1": names[m0idx],
                             "master_2": names[m1idx],
@@ -614,7 +578,7 @@ def test_gen(
                 yield (
                     glyph_name,
                     {
-                        "type": "nothing",
+                        "type": InterpolatableProblem.NOTHING,
                         "master_1": names[m0idx],
                         "master_2": names[m1idx],
                         "master_1_idx": m0idx,
@@ -638,6 +602,13 @@ def recursivelyAddGlyph(glyphname, glyphset, ttGlyphSet, glyf):
 
     for component in getattr(glyf[glyphname], "components", []):
         recursivelyAddGlyph(component.glyphName, glyphset, ttGlyphSet, glyf)
+
+
+def ensure_parent_dir(path):
+    dirname = os.path.dirname(path)
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
+    return path
 
 
 def main(args=None):
@@ -759,7 +730,7 @@ def main(args=None):
                 for k, vv in axis_triples.items()
             }
 
-        elif args.inputs[0].endswith(".glyphs"):
+        elif args.inputs[0].endswith((".glyphs", ".glyphspackage")):
             from glyphsLib import GSFont, to_designspace
 
             gsfont = GSFont(args.inputs[0])
@@ -929,7 +900,11 @@ def main(args=None):
         )
         problems = defaultdict(list)
 
-        f = sys.stdout if args.output is None else open(args.output, "w")
+        f = (
+            sys.stdout
+            if args.output is None
+            else open(ensure_parent_dir(args.output), "w")
+        )
 
         if not args.quiet:
             if args.json:
@@ -963,16 +938,16 @@ def main(args=None):
                         print(f"  Masters: %s:" % ", ".join(master_names), file=f)
                         last_master_idxs = master_idxs
 
-                    if p["type"] == "missing":
+                    if p["type"] == InterpolatableProblem.MISSING:
                         print(
                             "    Glyph was missing in master %s" % p["master"], file=f
                         )
-                    elif p["type"] == "open_path":
+                    elif p["type"] == InterpolatableProblem.OPEN_PATH:
                         print(
                             "    Glyph has an open path in master %s" % p["master"],
                             file=f,
                         )
-                    elif p["type"] == "path_count":
+                    elif p["type"] == InterpolatableProblem.PATH_COUNT:
                         print(
                             "    Path count differs: %i in %s, %i in %s"
                             % (
@@ -983,7 +958,7 @@ def main(args=None):
                             ),
                             file=f,
                         )
-                    elif p["type"] == "node_count":
+                    elif p["type"] == InterpolatableProblem.NODE_COUNT:
                         print(
                             "    Node count differs in path %i: %i in %s, %i in %s"
                             % (
@@ -995,7 +970,7 @@ def main(args=None):
                             ),
                             file=f,
                         )
-                    elif p["type"] == "node_incompatibility":
+                    elif p["type"] == InterpolatableProblem.NODE_INCOMPATIBILITY:
                         print(
                             "    Node %o incompatible in path %i: %s in %s, %s in %s"
                             % (
@@ -1008,7 +983,7 @@ def main(args=None):
                             ),
                             file=f,
                         )
-                    elif p["type"] == "contour_order":
+                    elif p["type"] == InterpolatableProblem.CONTOUR_ORDER:
                         print(
                             "    Contour order differs: %s in %s, %s in %s"
                             % (
@@ -1019,7 +994,7 @@ def main(args=None):
                             ),
                             file=f,
                         )
-                    elif p["type"] == "wrong_start_point":
+                    elif p["type"] == InterpolatableProblem.WRONG_START_POINT:
                         print(
                             "    Contour %d start point differs: %s in %s, %s in %s; reversed: %s"
                             % (
@@ -1032,7 +1007,7 @@ def main(args=None):
                             ),
                             file=f,
                         )
-                    elif p["type"] == "underweight":
+                    elif p["type"] == InterpolatableProblem.UNDERWEIGHT:
                         print(
                             "    Contour %d interpolation is underweight: %s, %s"
                             % (
@@ -1042,7 +1017,7 @@ def main(args=None):
                             ),
                             file=f,
                         )
-                    elif p["type"] == "overweight":
+                    elif p["type"] == InterpolatableProblem.OVERWEIGHT:
                         print(
                             "    Contour %d interpolation is overweight: %s, %s"
                             % (
@@ -1052,7 +1027,7 @@ def main(args=None):
                             ),
                             file=f,
                         )
-                    elif p["type"] == "kink":
+                    elif p["type"] == InterpolatableProblem.KINK:
                         print(
                             "    Contour %d has a kink at %s: %s, %s"
                             % (
@@ -1063,7 +1038,7 @@ def main(args=None):
                             ),
                             file=f,
                         )
-                    elif p["type"] == "nothing":
+                    elif p["type"] == InterpolatableProblem.NOTHING:
                         print(
                             "    Showing %s and %s"
                             % (
@@ -1076,29 +1051,31 @@ def main(args=None):
             for glyphname, problem in problems_gen:
                 problems[glyphname].append(problem)
 
-        if args.pdf:
-            log.info("Writing PDF to %s", args.pdf)
-            from .interpolatablePlot import InterpolatablePDF
+        problems = sort_problems(problems)
 
-            with InterpolatablePDF(args.pdf, glyphsets=glyphsets, names=names) as pdf:
-                pdf.add_title_page(
+        for p in "ps", "pdf":
+            arg = getattr(args, p)
+            if arg is None:
+                continue
+            log.info("Writing %s to %s", p.upper(), arg)
+            from .interpolatablePlot import InterpolatablePS, InterpolatablePDF
+
+            PlotterClass = InterpolatablePS if p == "ps" else InterpolatablePDF
+
+            with PlotterClass(
+                ensure_parent_dir(arg), glyphsets=glyphsets, names=names
+            ) as doc:
+                doc.add_title_page(
                     original_args_inputs, tolerance=tolerance, kinkiness=kinkiness
                 )
-                pdf.add_problems(problems)
+                if problems:
+                    doc.add_summary(problems)
+                doc.add_problems(problems)
                 if not problems and not args.quiet:
-                    pdf.draw_cupcake()
-
-        if args.ps:
-            log.info("Writing PS to %s", args.pdf)
-            from .interpolatablePlot import InterpolatablePS
-
-            with InterpolatablePS(args.ps, glyphsets=glyphsets, names=names) as ps:
-                ps.add_title_page(
-                    original_args_inputs, tolerance=tolerance, kinkiness=kinkiness
-                )
-                ps.add_problems(problems)
-                if not problems and not args.quiet:
-                    ps.draw_cupcake()
+                    doc.draw_cupcake()
+                if problems:
+                    doc.add_index()
+                    doc.add_table_of_contents()
 
         if args.html:
             log.info("Writing HTML to %s", args.html)
@@ -1125,7 +1102,7 @@ def main(args=None):
 
             import base64
 
-            with open(args.html, "wb") as f:
+            with open(ensure_parent_dir(args.html), "wb") as f:
                 f.write(b"<!DOCTYPE html>\n")
                 f.write(
                     b'<html><body align="center" style="font-family: sans-serif; text-color: #222">\n'

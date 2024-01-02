@@ -9,18 +9,15 @@ def test_starting_point(glyph0, glyph1, ix, tolerance, matching):
     m0Vectors = glyph0.greenVectors
     m1Vectors = [glyph1.greenVectors[i] for i in matching]
 
-    proposed_point = 0
-    reverse = False
-    min_cost = first_cost = 1
-
     c0 = contour0[0]
     # Next few lines duplicated below.
     costs = [vdiff_hypot2_complex(c0[0], c1[0]) for c1 in contour1]
     min_cost_idx, min_cost = min(enumerate(costs), key=lambda x: x[1])
     first_cost = costs[0]
+    proposed_point = contour1[min_cost_idx][1]
+    reverse = contour1[min_cost_idx][2]
 
     if min_cost < first_cost * tolerance:
-        this_tolerance = min_cost / first_cost
         # c0 is the first isomorphism of the m0 master
         # contour1 is list of all isomorphisms of the m1 master
         #
@@ -37,8 +34,6 @@ def test_starting_point(glyph0, glyph1, ix, tolerance, matching):
         # closest point again.  If it matches this time, let it
         # pass.
 
-        proposed_point = contour1[min_cost_idx][1]
-        reverse = contour1[min_cost_idx][2]
         num_points = len(glyph1.points[ix])
         leeway = 3
         if not reverse and (
@@ -102,4 +97,9 @@ def test_starting_point(glyph0, glyph1, ix, tolerance, matching):
                 # proposed_point = 0  # new_contour1[min_cost_idx][1]
                 pass
 
-    return proposed_point, reverse, min_cost, first_cost
+    this_tolerance = min_cost / first_cost if first_cost else 1
+    log.debug(
+        "test-starting-point: tolerance %g",
+        this_tolerance,
+    )
+    return this_tolerance, proposed_point, reverse
