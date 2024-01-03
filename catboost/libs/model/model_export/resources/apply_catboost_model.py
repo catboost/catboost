@@ -79,7 +79,7 @@ def apply_catboost_model_multi(float_features, cat_features=[], ntree_start=0, n
             index |= ((binary_features[feature_index] ^ xor_mask) >= border_val) << depth
         results = [result + delta for result, delta in zip(results, model.leaf_values[current_tree_leaf_values_index + index])]
         tree_splits_index += current_tree_depth
-        current_tree_leaf_values_index += (1 << current_tree_depth) * model.dimension
+        current_tree_leaf_values_index += (1 << current_tree_depth)
     return [model.scale * res + bias for res, bias in zip(results, model.biases)]
 
 

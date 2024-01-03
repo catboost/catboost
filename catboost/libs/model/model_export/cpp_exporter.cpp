@@ -220,7 +220,8 @@ namespace NCB {
 
         Out << '\n';
         Out << indent << "/* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */" << '\n';
-        Out << indent << "double LeafValues[" << model.ModelTrees->GetModelTreeData()->GetLeafValues().size() << "][" << model.ModelTrees->GetDimensionsCount() << "] = {" << OutputLeafValues(model, indent, EModelType::Cpp);
+        Out << indent << "double LeafValues[" << (model.ModelTrees->GetModelTreeData()->GetLeafValues().size() / model.ModelTrees->GetDimensionsCount()) << "][" << model.ModelTrees->GetDimensionsCount() << "] = {"
+            << OutputLeafValues(model, indent, EModelType::Cpp);
         Out << indent << "};" << '\n';
         Out << indent << "double Scale = " << model.GetScaleAndBias().Scale << ";" << '\n';
         Out << indent << "double Biases[" << model.GetScaleAndBias().GetBiasRef().size() << "] = {" << OutputArrayInitializer(model.GetScaleAndBias().GetBiasRef()) << "};" << '\n';
