@@ -130,7 +130,7 @@ def test_read_model_after_train():
     assert False
 
 
-def _predict_python_on_test(dataset, apply_catboost_model):
+def _predict_python_on_test(dataset, apply_catboost_model_function):
     features_data, cat_feature_indices = load_pool_features_as_df(
         data_file(dataset, 'test_small'),
         data_file(dataset, 'train.cd')
@@ -143,7 +143,7 @@ def _predict_python_on_test(dataset, apply_catboost_model):
         # can't pass *_feature_indices to .iloc directly because it will lose the proper type
         float_features = [features_data.iloc[row_idx, col_idx] for col_idx in float_feature_indices]
         cat_features = [features_data.iloc[row_idx, col_idx] for col_idx in cat_feature_indices]
-        pred_python.append(apply_catboost_model(float_features, cat_features))
+        pred_python.append(apply_catboost_model_function(float_features, cat_features))
     return pred_python
 
 
