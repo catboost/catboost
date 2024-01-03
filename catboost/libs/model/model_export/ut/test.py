@@ -139,9 +139,10 @@ def _predict_python_on_test(dataset, apply_catboost_model):
 
     pred_python = []
 
-    for _, row in features_data.iterrows():
-        float_features = [round(v, 9) for v in row.values[float_feature_indices]]
-        cat_features = row.values[cat_feature_indices]
+    for row_idx in range(features_data.shape[0]):
+        # can't pass *_feature_indices to .iloc directly because it will lose the proper type
+        float_features = [features_data.iloc[row_idx, col_idx] for col_idx in float_feature_indices]
+        cat_features = [features_data.iloc[row_idx, col_idx] for col_idx in cat_feature_indices]
         pred_python.append(apply_catboost_model(float_features, cat_features))
     return pred_python
 
