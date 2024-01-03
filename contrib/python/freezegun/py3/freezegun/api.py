@@ -544,7 +544,7 @@ class StepTickTimeFactory:
 
 class _freeze_time:
 
-    def __init__(self, time_to_freeze_str, tz_offset, ignore, tick, as_arg, as_kwarg, auto_tick_seconds):
+    def __init__(self, time_to_freeze_str, tz_offset, ignore, tick, as_arg, as_kwarg, auto_tick_seconds, real_asyncio):
         self.time_to_freeze = _parse_time_to_freeze(time_to_freeze_str)
         self.tz_offset = _parse_tz_offset(tz_offset)
         self.ignore = tuple(ignore)
@@ -554,6 +554,7 @@ class _freeze_time:
         self.modules_at_start = set()
         self.as_arg = as_arg
         self.as_kwarg = as_kwarg
+        self.real_asyncio = real_asyncio
 
     def __call__(self, func):
         if inspect.isclass(func):
@@ -727,20 +728,21 @@ class _freeze_time:
                         setattr(module, attribute_name, fake)
                         add_change((module, attribute_name, attribute_value))
 
-        # To avoid breaking `asyncio.sleep()`, let asyncio event loops see real
-        # monotonic time even though we've just frozen `time.monotonic()` which
-        # is normally used there. If we didn't do this, `await asyncio.sleep()`
-        # would be hanging forever breaking many tests that use `freeze_time`.
-        #
-        # Note that we cannot statically tell the class of asyncio event loops
-        # because it is not officially documented and can actually be changed
-        # at run time using `asyncio.set_event_loop_policy`. That's why we check
-        # the type by creating a loop here and destroying it immediately.
-        event_loop = asyncio.new_event_loop()
-        event_loop.close()
-        EventLoopClass = type(event_loop)
-        add_change((EventLoopClass, "time", EventLoopClass.time))
-        EventLoopClass.time = lambda self: real_monotonic()
+        if self.real_asyncio:
+            # To avoid breaking `asyncio.sleep()`, let asyncio event loops see real
+            # monotonic time even though we've just frozen `time.monotonic()` which
+            # is normally used there. If we didn't do this, `await asyncio.sleep()`
+            # would be hanging forever breaking many tests that use `freeze_time`.
+            #
+            # Note that we cannot statically tell the class of asyncio event loops
+            # because it is not officially documented and can actually be changed
+            # at run time using `asyncio.set_event_loop_policy`. That's why we check
+            # the type by creating a loop here and destroying it immediately.
+            event_loop = asyncio.new_event_loop()
+            event_loop.close()
+            EventLoopClass = type(event_loop)
+            add_change((EventLoopClass, "time", EventLoopClass.time))
+            EventLoopClass.time = lambda self: real_monotonic()
 
         return freeze_factory
 
@@ -830,7 +832,7 @@ class _freeze_time:
 
 
 def freeze_time(time_to_freeze=None, tz_offset=0, ignore=None, tick=False, as_arg=False, as_kwarg='',
-                auto_tick_seconds=0):
+                auto_tick_seconds=0, real_asyncio=False):
     acceptable_times = (type(None), str, datetime.date, datetime.timedelta,
              types.FunctionType, types.GeneratorType)
 
@@ -845,14 +847,14 @@ def freeze_time(time_to_freeze=None, tz_offset=0, ignore=None, tick=False, as_ar
         raise SystemError('Calling freeze_time with tick=True is only compatible with CPython')
 
     if isinstance(time_to_freeze, types.FunctionType):
-        return freeze_time(time_to_freeze(), tz_offset, ignore, tick, as_arg, as_kwarg, auto_tick_seconds)
+        return freeze_time(time_to_freeze(), tz_offset, ignore, tick, as_arg, as_kwarg, auto_tick_seconds, real_asyncio=real_asyncio)
 
     if isinstance(time_to_freeze, types.GeneratorType):
-        return freeze_time(next(time_to_freeze), tz_offset, ignore, tick, as_arg, as_kwarg, auto_tick_seconds)
+        return freeze_time(next(time_to_freeze), tz_offset, ignore, tick, as_arg, as_kwarg, auto_tick_seconds, real_asyncio=real_asyncio)
 
     if MayaDT is not None and isinstance(time_to_freeze, MayaDT):
         return freeze_time(time_to_freeze.datetime(), tz_offset, ignore,
-                           tick, as_arg, as_kwarg, auto_tick_seconds)
+                           tick, as_arg, as_kwarg, auto_tick_seconds, real_asyncio=real_asyncio)
 
     if ignore is None:
         ignore = []
@@ -868,6 +870,7 @@ def freeze_time(time_to_freeze=None, tz_offset=0, ignore=None, tick=False, as_ar
         as_arg=as_arg,
         as_kwarg=as_kwarg,
         auto_tick_seconds=auto_tick_seconds,
+        real_asyncio=real_asyncio,
     )
 
 

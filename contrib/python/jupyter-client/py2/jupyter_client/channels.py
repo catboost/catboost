@@ -7,7 +7,7 @@ from __future__ import absolute_import
 
 import atexit
 import errno
-from threading import Thread
+from threading import Thread, Event
 import time
 
 import zmq
@@ -73,6 +73,7 @@ class HBChannel(Thread):
 
         # running is False until `.start()` is called
         self._running = False
+        self._exit = Event()
         # don't start paused
         self._pause = False
         self.poller = zmq.Poller()
@@ -138,7 +139,7 @@ class HBChannel(Thread):
         while self._running:
             if self._pause:
                 # just sleep, and skip the rest of the loop
-                time.sleep(self.time_to_dead)
+                self._exit.wait(self.time_to_dead)
                 continue
 
             since_last_heartbeat = 0.0
@@ -155,7 +156,7 @@ class HBChannel(Thread):
                 # sleep the remainder of the cycle
                 remainder = self.time_to_dead - (time.time() - request_time)
                 if remainder > 0:
-                    time.sleep(remainder)
+                    self._exit.wait(remainder)
                 continue
             else:
                 # nothing was received within the time limit, signal heart failure
@@ -184,6 +185,7 @@ class HBChannel(Thread):
     def stop(self):
         """Stop the channel's event loop and join its thread."""
         self._running = False
+        self._exit.set()
         self.join()
         self.close()
 

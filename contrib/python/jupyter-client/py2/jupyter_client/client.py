@@ -51,7 +51,7 @@ class KernelClient(ConnectionFileMixin):
     # The PyZMQ Context to use for communication with the kernel.
     context = Instance(zmq.Context)
     def _context_default(self):
-        return zmq.Context.instance()
+        return zmq.Context()
 
     # The classes to use for the various channels
     shell_channel_class = Type(ChannelABC)

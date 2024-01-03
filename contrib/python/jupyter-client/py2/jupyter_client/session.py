@@ -186,7 +186,7 @@ class SessionFactory(LoggingConfigurable):
     # not configurable:
     context = Instance('zmq.Context')
     def _context_default(self):
-        return zmq.Context.instance()
+        return zmq.Context()
 
     session = Instance('jupyter_client.session.Session',
                        allow_none=True)
@@ -300,10 +300,10 @@ class Session(Configurable):
     """
 
     debug = Bool(False, config=True, help="""Debug output in the Session""")
-    
+
     check_pid = Bool(True, config=True,
         help="""Whether to check PID to protect against calls after fork.
-        
+
         This check can be disabled if fork-safety is handled elsewhere.
         """)
 
@@ -387,9 +387,9 @@ class Session(Configurable):
     digest_mod = Any()
     def _digest_mod_default(self):
         return hashlib.sha256
-    
+
     auth = Instance(hmac.HMAC, allow_none=True)
-    
+
     def _new_auth(self):
         if self.key:
             self.auth = hmac.HMAC(self.key, digestmod=self.digest_mod)
