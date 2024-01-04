@@ -64,7 +64,7 @@ in [CONTRIBUTING.md](https://github.com/catboost/catboost/blob/master/CONTRIBUTI
 * Instructions for contributors can be found [here](https://catboost.ai/docs/concepts/development-and-contributions.html).
 
 News
------
+-------
 Latest news are published on [twitter](https://twitter.com/catboostml).
 
 Reference Paper
