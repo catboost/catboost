@@ -49,6 +49,7 @@ Supplementary utilities targets (used for testing):
 |------|---------------|-----------|
 |`limited_precision_dsv_diff` |  `$CMAKE_BINARY_DIR/catboost/tools/limited_precision_dsv_diff` | Utility to compare dsv files that may contain floating point numbers with limited precision |
 |`limited_precision_json_diff` |  `$CMAKE_BINARY_DIR/catboost/tools/limited_precision_json_diff` | Utility to compare JSON files that may contain floating point numbers with limited precision |
+|`model_comparator` |  `$CMAKE_BINARY_DIR/catboost/tools/model_comparator` | Utility to compare models saved as files |
 
 ## Build using `build_native.py` {#build-build-native}
 
