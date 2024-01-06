@@ -3,7 +3,7 @@
 
 .. image:: https://img.shields.io/pypi/pyversions/importlib_metadata.svg
 
-.. image:: https://github.com/python/importlib_metadata/workflows/tests/badge.svg
+.. image:: https://github.com/python/importlib_metadata/actions/workflows/main.yml/badge.svg
    :target: https://github.com/python/importlib_metadata/actions?query=workflow%3A%22tests%22
    :alt: tests
 
@@ -43,6 +43,8 @@ were contributed to different versions in the standard library:
 
    * - importlib_metadata
      - stdlib
+   * - 7.0
+     - 3.13
    * - 6.5
      - 3.12
    * - 4.13

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import re
 import abc
@@ -20,7 +22,6 @@ from . import _adapters, _meta, _py39compat
 from ._collections import FreezableDefaultDict, Pair
 from ._compat import (
     NullFinder,
-    StrPath,
     install,
 )
 from ._functools import method_cache, pass_none
@@ -320,14 +321,12 @@ class PackagePath(pathlib.PurePosixPath):
     dist: "Distribution"
 
     def read_text(self, encoding: str = 'utf-8') -> str:  # type: ignore[override]
-        with self.locate().open(encoding=encoding) as stream:
-            return stream.read()
+        return self.locate().read_text(encoding=encoding)
 
     def read_binary(self) -> bytes:
-        with self.locate().open('rb') as stream:
-            return stream.read()
+        return self.locate().read_bytes()
 
-    def locate(self) -> pathlib.Path:
+    def locate(self) -> SimplePath:
         """Return a path-like object for this path"""
         return self.dist.locate_file(self)
 
@@ -341,6 +340,7 @@ class FileHash:
 
 
 class DeprecatedNonAbstract:
+    # Required until Python 3.14
     def __new__(cls, *args, **kwargs):
         all_names = {
             name for subclass in inspect.getmro(cls) for name in vars(subclass)
@@ -360,20 +360,42 @@ class DeprecatedNonAbstract:
 
 
 class Distribution(DeprecatedNonAbstract):
-    """A Python distribution package."""
+    """
+    An abstract Python distribution package.
+
+    Custom providers may derive from this class and define
+    the abstract methods to provide a concrete implementation
+    for their environment.
+    """
 
     @abc.abstractmethod
     def read_text(self, filename) -> Optional[str]:
         """Attempt to load metadata file given by the name.
+
+        Python distribution metadata is organized by blobs of text
+        typically represented as "files" in the metadata directory
+        (e.g. package-1.0.dist-info). These files include things
+        like:
+
+        - METADATA: The distribution metadata including fields
+          like Name and Version and Description.
+        - entry_points.txt: A series of entry points defined by
+          the Setuptools spec in an ini format with sections
+          representing the groups.
+        - RECORD: A record of files as installed by a typical
+          installer.
+
+        A package may provide any set of files, including those
+        not listed here or none at all.
 
         :param filename: The name of the file in the distribution info.
         :return: The text if found, otherwise None.
         """
 
     @abc.abstractmethod
-    def locate_file(self, path: StrPath) -> pathlib.Path:
+    def locate_file(self, path: str | os.PathLike[str]) -> SimplePath:
         """
-        Given a path to a file in this distribution, return a path
+        Given a path to a file in this distribution, return a SimplePath
         to it.
         """
 
@@ -396,16 +418,18 @@ class Distribution(DeprecatedNonAbstract):
             raise PackageNotFoundError(name)
 
     @classmethod
-    def discover(cls, **kwargs) -> Iterable["Distribution"]:
+    def discover(
+        cls, *, context: Optional['DistributionFinder.Context'] = None, **kwargs
+    ) -> Iterable["Distribution"]:
         """Return an iterable of Distribution objects for all packages.
 
         Pass a ``context`` or pass keyword arguments for constructing
         a context.
 
         :context: A ``DistributionFinder.Context`` object.
-        :return: Iterable of Distribution objects for all packages.
+        :return: Iterable of Distribution objects for packages matching
+          the context.
         """
-        context = kwargs.pop('context', None)
         if context and kwargs:
             raise ValueError("cannot accept context and kwargs")
         context = context or DistributionFinder.Context(**kwargs)
@@ -414,8 +438,8 @@ class Distribution(DeprecatedNonAbstract):
         )
 
     @staticmethod
-    def at(path: StrPath) -> "Distribution":
-        """Return a Distribution for the indicated metadata path
+    def at(path: str | os.PathLike[str]) -> "Distribution":
+        """Return a Distribution for the indicated metadata path.
 
         :param path: a string or path-like object
         :return: a concrete Distribution instance for the path
@@ -424,7 +448,7 @@ class Distribution(DeprecatedNonAbstract):
 
     @staticmethod
     def _discover_resolvers():
-        """Search the meta_path for resolvers."""
+        """Search the meta_path for resolvers (MetadataPathFinders)."""
         declared = (
             getattr(finder, 'find_distributions', None) for finder in sys.meta_path
         )
@@ -822,7 +846,7 @@ class PathDistribution(Distribution):
         """
         self._path = path
 
-    def read_text(self, filename: StrPath) -> Optional[str]:
+    def read_text(self, filename: str | os.PathLike[str]) -> Optional[str]:
         with suppress(
             FileNotFoundError,
             IsADirectoryError,
@@ -836,7 +860,7 @@ class PathDistribution(Distribution):
 
     read_text.__doc__ = Distribution.read_text.__doc__
 
-    def locate_file(self, path: StrPath) -> pathlib.Path:
+    def locate_file(self, path: str | os.PathLike[str]) -> SimplePath:
         return self._path.parent / path
 
     @property
