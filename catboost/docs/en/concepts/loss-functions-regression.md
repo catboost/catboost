@@ -294,7 +294,7 @@ No.
 
 | Name                                                            | Optimization            | GPU Support             |
 ------------------------------------------------------------------|-------------------------|-------------------------|
-[{{ error-function--MAE }}](#MAE)                                 |     +                   |     -                   |
+[{{ error-function--MAE }}](#MAE)                                 |     +                   |     +                   |
 [{{ error-function--MAPE }}](#MAPE)                               |     +                   |     +                   |
 [{{ error-function--Poisson }}](#Poisson)                         |     +                   |     +                   |
 [{{ error-function--Quantile }}](#Quantile)                       |     +                   |     +                   |
