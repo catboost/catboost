@@ -12,7 +12,7 @@ _Path = Union[str, Path]
 
 # https://packaging.python.org/en/latest/specifications/core-metadata/#name
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
-_UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9.]+", re.I)
+_UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9._-]+", re.I)
 _NON_ALPHANUMERIC = re.compile(r"[^A-Z0-9]+", re.I)
 _PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
 
@@ -35,6 +35,8 @@ def safe_name(component: str) -> str:
     'hello-world'
     >>> safe_name("hello?world")
     'hello-world'
+    >>> safe_name("hello_world")
+    'hello_world'
     """
     # See pkg_resources.safe_name
     return _UNSAFE_NAME_CHARS.sub("-", component)
