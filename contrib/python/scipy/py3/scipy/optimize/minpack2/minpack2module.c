@@ -1,5 +1,5 @@
 /* File: minpack2module.c
- * This file is auto-generated with f2py (version:1.26.2).
+ * This file is auto-generated with f2py (version:1.26.3).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -33,13 +33,13 @@ typedef char * string;
 /*need_typedefs_generated*/
 
 /********************** See f2py2e/cfuncs.py: cppmacros **********************/
-\
 #define FAILNULL(p) do {                                            \
     if ((p) == NULL) {                                              \
         PyErr_SetString(PyExc_MemoryError, "NULL pointer found");   \
         goto capi_fail;                                             \
     }                                                               \
 } while (0)
+
 
 #define STRINGMALLOC(str,len)\
     if ((str = (string)malloc(len+1)) == NULL) {\
@@ -48,6 +48,7 @@ typedef char * string;
     } else {\
         (str)[len] = '\0';\
     }
+
 
 #if defined(PREPEND_FORTRAN)
 #if defined(NO_APPEND_FORTRAN)
@@ -84,6 +85,7 @@ typedef char * string;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
+
 /* See fortranobject.h for definitions. The macros here are provided for BC. */
 #define rank f2py_rank
 #define shape f2py_shape
@@ -92,6 +94,7 @@ typedef char * string;
 #define flen f2py_flen
 #define slen f2py_slen
 #define size f2py_size
+
 
 /*
 STRINGPADN replaces null values with padding values from the right.
@@ -112,7 +115,9 @@ STRINGPADN(to, N, PADDING, NULLVALUE) is an inverse operation.
         }                                                       \
     } while (0)
 
+
 #define STRINGFREE(str) do {if (!(str == NULL)) free(str);} while (0)
+
 
 #ifdef DEBUGCFUNCS
 #define CFUNCSMESS(mess) fprintf(stderr,"debug-capi:"mess);
@@ -123,6 +128,7 @@ STRINGPADN(to, N, PADDING, NULLVALUE) is an inverse operation.
 #define CFUNCSMESS(mess)
 #define CFUNCSMESSPY(mess,obj)
 #endif
+
 
 #ifndef max
 #define max(a,b) ((a > b) ? (a) : (b))
@@ -136,6 +142,7 @@ STRINGPADN(to, N, PADDING, NULLVALUE) is an inverse operation.
 #ifndef MIN
 #define MIN(a,b) ((a < b) ? (a) : (b))
 #endif
+
 
 /*
 STRINGCOPYN copies N bytes.
@@ -153,6 +160,7 @@ STRINGCOPYN copies N bytes.
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
+
 static int
 double_from_pyobj(double* v, PyObject *obj, const char *errmess)
 {
@@ -192,6 +200,7 @@ double_from_pyobj(double* v, PyObject *obj, const char *errmess)
     }
     return 0;
 }
+
 
 /*
   Create a new string buffer `str` of at most length `len` from a
@@ -715,17 +724,17 @@ PyMODINIT_FUNC PyInit_minpack2(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module minpack2 (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module 'minpack2' is auto-generated with f2py (version:1.26.2).\nFunctions:\n"
+        "This module 'minpack2' is auto-generated with f2py (version:1.26.3).\nFunctions:\n"
 "    stp,f,g,task = dcsrch(stp,f,g,ftol,gtol,xtol,task,stpmin,stpmax,isave,dsave)\n"
 "    stx,fx,dx,sty,fy,dy,stp,brackt = dcstep(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,stpmin,stpmax)\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     minpack2_error = PyErr_NewException ("minpack2.error", NULL, NULL);

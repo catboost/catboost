@@ -68,7 +68,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
     #endif
         return;
     }
-#if NPY_SIMD_F32
+#if 0 && defined(NPY_HAVE_NEON) && !NPY_SIMD_F64
+    /**
+     * The SIMD branch is disabled on armhf(armv7) due to the absence of native SIMD
+     * support for single-precision floating-point division. Only scalar division is
+     * supported natively, and without hardware for performance and accuracy comparison,
+     * it's challenging to evaluate the benefits of emulated SIMD intrinsic versus
+     * native scalar division.
+     *
+     * The `npyv_div_f32` universal intrinsic emulates the division operation using an
+     * approximate reciprocal combined with 3 Newton-Raphson iterations for enhanced
+     * precision. However, this approach has limitations:
+     *
+     * - It can cause unexpected floating-point overflows in special cases, such as when
+     *   the divisor is subnormal (refer: https://github.com/numpy/numpy/issues/25097).
+     *
+     * - The precision may vary between the emulated SIMD and scalar division due to
+     *   non-uniform branches (non-contiguous) in the code, leading to precision
+     *   inconsistencies.
+     *
+     * - Considering the necessity of multiple Newton-Raphson iterations, the performance
+     *   gain may not sufficiently offset these drawbacks.
+     */
+#elif NPY_SIMD_F32
     if (len > npyv_nlanes_f32*2 &&
         !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
         !is_mem_overlap(src1, ssrc1, dst, sdst, len)
@@ -132,8 +154,10 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_add)
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
             for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
-            #if 0 || 0
+            #if 0
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+            #elif 0
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, NPY_NANF);
             #else
                 npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
             #endif
@@ -204,7 +228,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
     #endif
         return;
     }
-#if NPY_SIMD_F32
+#if 0 && defined(NPY_HAVE_NEON) && !NPY_SIMD_F64
+    /**
+     * The SIMD branch is disabled on armhf(armv7) due to the absence of native SIMD
+     * support for single-precision floating-point division. Only scalar division is
+     * supported natively, and without hardware for performance and accuracy comparison,
+     * it's challenging to evaluate the benefits of emulated SIMD intrinsic versus
+     * native scalar division.
+     *
+     * The `npyv_div_f32` universal intrinsic emulates the division operation using an
+     * approximate reciprocal combined with 3 Newton-Raphson iterations for enhanced
+     * precision. However, this approach has limitations:
+     *
+     * - It can cause unexpected floating-point overflows in special cases, such as when
+     *   the divisor is subnormal (refer: https://github.com/numpy/numpy/issues/25097).
+     *
+     * - The precision may vary between the emulated SIMD and scalar division due to
+     *   non-uniform branches (non-contiguous) in the code, leading to precision
+     *   inconsistencies.
+     *
+     * - Considering the necessity of multiple Newton-Raphson iterations, the performance
+     *   gain may not sufficiently offset these drawbacks.
+     */
+#elif NPY_SIMD_F32
     if (len > npyv_nlanes_f32*2 &&
         !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
         !is_mem_overlap(src1, ssrc1, dst, sdst, len)
@@ -268,8 +314,10 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_subtract)
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
             for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
-            #if 0 || 0
+            #if 0
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+            #elif 0
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, NPY_NANF);
             #else
                 npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
             #endif
@@ -340,7 +388,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
     #endif
         return;
     }
-#if NPY_SIMD_F32
+#if 0 && defined(NPY_HAVE_NEON) && !NPY_SIMD_F64
+    /**
+     * The SIMD branch is disabled on armhf(armv7) due to the absence of native SIMD
+     * support for single-precision floating-point division. Only scalar division is
+     * supported natively, and without hardware for performance and accuracy comparison,
+     * it's challenging to evaluate the benefits of emulated SIMD intrinsic versus
+     * native scalar division.
+     *
+     * The `npyv_div_f32` universal intrinsic emulates the division operation using an
+     * approximate reciprocal combined with 3 Newton-Raphson iterations for enhanced
+     * precision. However, this approach has limitations:
+     *
+     * - It can cause unexpected floating-point overflows in special cases, such as when
+     *   the divisor is subnormal (refer: https://github.com/numpy/numpy/issues/25097).
+     *
+     * - The precision may vary between the emulated SIMD and scalar division due to
+     *   non-uniform branches (non-contiguous) in the code, leading to precision
+     *   inconsistencies.
+     *
+     * - Considering the necessity of multiple Newton-Raphson iterations, the performance
+     *   gain may not sufficiently offset these drawbacks.
+     */
+#elif NPY_SIMD_F32
     if (len > npyv_nlanes_f32*2 &&
         !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
         !is_mem_overlap(src1, ssrc1, dst, sdst, len)
@@ -404,8 +474,10 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_multiply)
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
             for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
-            #if 0 || 1
+            #if 1
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+            #elif 0
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, NPY_NANF);
             #else
                 npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
             #endif
@@ -476,7 +548,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
     #endif
         return;
     }
-#if NPY_SIMD_F32
+#if 1 && defined(NPY_HAVE_NEON) && !NPY_SIMD_F64
+    /**
+     * The SIMD branch is disabled on armhf(armv7) due to the absence of native SIMD
+     * support for single-precision floating-point division. Only scalar division is
+     * supported natively, and without hardware for performance and accuracy comparison,
+     * it's challenging to evaluate the benefits of emulated SIMD intrinsic versus
+     * native scalar division.
+     *
+     * The `npyv_div_f32` universal intrinsic emulates the division operation using an
+     * approximate reciprocal combined with 3 Newton-Raphson iterations for enhanced
+     * precision. However, this approach has limitations:
+     *
+     * - It can cause unexpected floating-point overflows in special cases, such as when
+     *   the divisor is subnormal (refer: https://github.com/numpy/numpy/issues/25097).
+     *
+     * - The precision may vary between the emulated SIMD and scalar division due to
+     *   non-uniform branches (non-contiguous) in the code, leading to precision
+     *   inconsistencies.
+     *
+     * - Considering the necessity of multiple Newton-Raphson iterations, the performance
+     *   gain may not sufficiently offset these drawbacks.
+     */
+#elif NPY_SIMD_F32
     if (len > npyv_nlanes_f32*2 &&
         !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
         !is_mem_overlap(src1, ssrc1, dst, sdst, len)
@@ -540,8 +634,10 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_divide)
                 npyv_store_f32((npy_float*)(dst + vstep), r1);
             }
             for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
-            #if 1 || 0
+            #if 0
                 npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, 1.0f);
+            #elif 1
+                npyv_f32 a = npyv_load_till_f32((const npy_float*)src0, len, NPY_NANF);
             #else
                 npyv_f32 a = npyv_load_tillz_f32((const npy_float*)src0, len);
             #endif
@@ -614,7 +710,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
     #endif
         return;
     }
-#if NPY_SIMD_F64
+#if 0 && defined(NPY_HAVE_NEON) && !NPY_SIMD_F64
+    /**
+     * The SIMD branch is disabled on armhf(armv7) due to the absence of native SIMD
+     * support for single-precision floating-point division. Only scalar division is
+     * supported natively, and without hardware for performance and accuracy comparison,
+     * it's challenging to evaluate the benefits of emulated SIMD intrinsic versus
+     * native scalar division.
+     *
+     * The `npyv_div_f32` universal intrinsic emulates the division operation using an
+     * approximate reciprocal combined with 3 Newton-Raphson iterations for enhanced
+     * precision. However, this approach has limitations:
+     *
+     * - It can cause unexpected floating-point overflows in special cases, such as when
+     *   the divisor is subnormal (refer: https://github.com/numpy/numpy/issues/25097).
+     *
+     * - The precision may vary between the emulated SIMD and scalar division due to
+     *   non-uniform branches (non-contiguous) in the code, leading to precision
+     *   inconsistencies.
+     *
+     * - Considering the necessity of multiple Newton-Raphson iterations, the performance
+     *   gain may not sufficiently offset these drawbacks.
+     */
+#elif NPY_SIMD_F64
     if (len > npyv_nlanes_f64*2 &&
         !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
         !is_mem_overlap(src1, ssrc1, dst, sdst, len)
@@ -678,8 +796,10 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_add)
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
             for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
-            #if 0 || 0
+            #if 0
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+            #elif 0
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, NPY_NAN);
             #else
                 npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
             #endif
@@ -750,7 +870,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
     #endif
         return;
     }
-#if NPY_SIMD_F64
+#if 0 && defined(NPY_HAVE_NEON) && !NPY_SIMD_F64
+    /**
+     * The SIMD branch is disabled on armhf(armv7) due to the absence of native SIMD
+     * support for single-precision floating-point division. Only scalar division is
+     * supported natively, and without hardware for performance and accuracy comparison,
+     * it's challenging to evaluate the benefits of emulated SIMD intrinsic versus
+     * native scalar division.
+     *
+     * The `npyv_div_f32` universal intrinsic emulates the division operation using an
+     * approximate reciprocal combined with 3 Newton-Raphson iterations for enhanced
+     * precision. However, this approach has limitations:
+     *
+     * - It can cause unexpected floating-point overflows in special cases, such as when
+     *   the divisor is subnormal (refer: https://github.com/numpy/numpy/issues/25097).
+     *
+     * - The precision may vary between the emulated SIMD and scalar division due to
+     *   non-uniform branches (non-contiguous) in the code, leading to precision
+     *   inconsistencies.
+     *
+     * - Considering the necessity of multiple Newton-Raphson iterations, the performance
+     *   gain may not sufficiently offset these drawbacks.
+     */
+#elif NPY_SIMD_F64
     if (len > npyv_nlanes_f64*2 &&
         !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
         !is_mem_overlap(src1, ssrc1, dst, sdst, len)
@@ -814,8 +956,10 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_subtract)
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
             for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
-            #if 0 || 0
+            #if 0
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+            #elif 0
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, NPY_NAN);
             #else
                 npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
             #endif
@@ -886,7 +1030,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
     #endif
         return;
     }
-#if NPY_SIMD_F64
+#if 0 && defined(NPY_HAVE_NEON) && !NPY_SIMD_F64
+    /**
+     * The SIMD branch is disabled on armhf(armv7) due to the absence of native SIMD
+     * support for single-precision floating-point division. Only scalar division is
+     * supported natively, and without hardware for performance and accuracy comparison,
+     * it's challenging to evaluate the benefits of emulated SIMD intrinsic versus
+     * native scalar division.
+     *
+     * The `npyv_div_f32` universal intrinsic emulates the division operation using an
+     * approximate reciprocal combined with 3 Newton-Raphson iterations for enhanced
+     * precision. However, this approach has limitations:
+     *
+     * - It can cause unexpected floating-point overflows in special cases, such as when
+     *   the divisor is subnormal (refer: https://github.com/numpy/numpy/issues/25097).
+     *
+     * - The precision may vary between the emulated SIMD and scalar division due to
+     *   non-uniform branches (non-contiguous) in the code, leading to precision
+     *   inconsistencies.
+     *
+     * - Considering the necessity of multiple Newton-Raphson iterations, the performance
+     *   gain may not sufficiently offset these drawbacks.
+     */
+#elif NPY_SIMD_F64
     if (len > npyv_nlanes_f64*2 &&
         !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
         !is_mem_overlap(src1, ssrc1, dst, sdst, len)
@@ -950,8 +1116,10 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_multiply)
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
             for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
-            #if 0 || 1
+            #if 1
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+            #elif 0
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, NPY_NAN);
             #else
                 npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
             #endif
@@ -1022,7 +1190,29 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
     #endif
         return;
     }
-#if NPY_SIMD_F64
+#if 1 && defined(NPY_HAVE_NEON) && !NPY_SIMD_F64
+    /**
+     * The SIMD branch is disabled on armhf(armv7) due to the absence of native SIMD
+     * support for single-precision floating-point division. Only scalar division is
+     * supported natively, and without hardware for performance and accuracy comparison,
+     * it's challenging to evaluate the benefits of emulated SIMD intrinsic versus
+     * native scalar division.
+     *
+     * The `npyv_div_f32` universal intrinsic emulates the division operation using an
+     * approximate reciprocal combined with 3 Newton-Raphson iterations for enhanced
+     * precision. However, this approach has limitations:
+     *
+     * - It can cause unexpected floating-point overflows in special cases, such as when
+     *   the divisor is subnormal (refer: https://github.com/numpy/numpy/issues/25097).
+     *
+     * - The precision may vary between the emulated SIMD and scalar division due to
+     *   non-uniform branches (non-contiguous) in the code, leading to precision
+     *   inconsistencies.
+     *
+     * - Considering the necessity of multiple Newton-Raphson iterations, the performance
+     *   gain may not sufficiently offset these drawbacks.
+     */
+#elif NPY_SIMD_F64
     if (len > npyv_nlanes_f64*2 &&
         !is_mem_overlap(src0, ssrc0, dst, sdst, len) &&
         !is_mem_overlap(src1, ssrc1, dst, sdst, len)
@@ -1086,8 +1276,10 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_divide)
                 npyv_store_f64((npy_double*)(dst + vstep), r1);
             }
             for (; len > 0; len -= hstep, src0 += vstep, dst += vstep) {
-            #if 1 || 0
+            #if 0
                 npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, 1.0);
+            #elif 1
+                npyv_f64 a = npyv_load_till_f64((const npy_double*)src0, len, NPY_NAN);
             #else
                 npyv_f64 a = npyv_load_tillz_f64((const npy_double*)src0, len);
             #endif
@@ -1220,7 +1412,7 @@ simd_csquare_f64(npyv_f64 x)
 { return simd_cmul_f64(x, x); }
 #endif
 
-#line 286
+#line 310
 #if NPY_SIMD_F32
 NPY_FINLINE npyv_f32
 simd_cabsolute_f32(npyv_f32 re, npyv_f32 im)
@@ -1264,7 +1456,7 @@ simd_cabsolute_f32(npyv_f32 re, npyv_f32 im)
 }
 #endif // VECTOR
 
-#line 286
+#line 310
 #if NPY_SIMD_F64
 NPY_FINLINE npyv_f64
 simd_cabsolute_f64(npyv_f64 re, npyv_f64 im)
@@ -1312,8 +1504,8 @@ simd_cabsolute_f64(npyv_f64 re, npyv_f64 im)
 /********************************************************************************
  ** Defining ufunc inner functions
  ********************************************************************************/
-#line 342
-#line 350
+#line 366
+#line 374
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -1565,7 +1757,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CFLOAT_add_indexed)
     return 0;
 }
 
-#line 350
+#line 374
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -1817,7 +2009,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CFLOAT_subtract_indexed)
     return 0;
 }
 
-#line 350
+#line 374
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -2070,7 +2262,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CFLOAT_multiply_indexed)
 }
 
 
-#line 606
+#line 630
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_conjugate)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -2158,7 +2350,7 @@ loop_scalar:
     }
 }
 
-#line 606
+#line 630
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CFLOAT_square)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -2247,8 +2439,8 @@ loop_scalar:
 }
 
 
-#line 342
-#line 350
+#line 366
+#line 374
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_add)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -2500,7 +2692,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CDOUBLE_add_indexed)
     return 0;
 }
 
-#line 350
+#line 374
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_subtract)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -2752,7 +2944,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CDOUBLE_subtract_indexed)
     return 0;
 }
 
-#line 350
+#line 374
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_multiply)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3005,7 +3197,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(CDOUBLE_multiply_indexed)
 }
 
 
-#line 606
+#line 630
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_conjugate)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -3093,7 +3285,7 @@ loop_scalar:
     }
 }
 
-#line 606
+#line 630
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(CDOUBLE_square)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {

@@ -1,5 +1,5 @@
 /* File: statlibmodule.c
- * This file is auto-generated with f2py (version:1.26.2).
+ * This file is auto-generated with f2py (version:1.26.3).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -33,6 +33,7 @@ static PyObject *statlib_module;
 /*need_typedefs_generated*/
 
 /********************** See f2py2e/cfuncs.py: cppmacros **********************/
+
 #if defined(PREPEND_FORTRAN)
 #if defined(NO_APPEND_FORTRAN)
 #if defined(UPPERCASE_FORTRAN)
@@ -68,6 +69,7 @@ static PyObject *statlib_module;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
+
 /* See fortranobject.h for definitions. The macros here are provided for BC. */
 #define rank f2py_rank
 #define shape f2py_shape
@@ -77,6 +79,7 @@ static PyObject *statlib_module;
 #define slen f2py_slen
 #define size f2py_size
 
+
 #define CHECKSCALAR(check,tcheck,name,show,var)\
     if (!(check)) {\
         char errstring[256];\
@@ -84,6 +87,7 @@ static PyObject *statlib_module;
         PyErr_SetString(statlib_error,errstring);\
         /*goto capi_fail;*/\
     } else 
+
 #ifdef DEBUGCFUNCS
 #define CFUNCSMESS(mess) fprintf(stderr,"debug-capi:"mess);
 #define CFUNCSMESSPY(mess,obj) CFUNCSMESS(mess) \
@@ -93,6 +97,7 @@ static PyObject *statlib_module;
 #define CFUNCSMESS(mess)
 #define CFUNCSMESSPY(mess,obj)
 #endif
+
 
 #ifndef max
 #define max(a,b) ((a > b) ? (a) : (b))
@@ -109,6 +114,7 @@ static PyObject *statlib_module;
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
+
 static int
 int_from_pyobj(int* v, PyObject *obj, const char *errmess)
 {
@@ -614,18 +620,18 @@ PyMODINIT_FUNC PyInit_statlib(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module statlib (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module 'statlib' is auto-generated with f2py (version:1.26.2).\nFunctions:\n"
+        "This module 'statlib' is auto-generated with f2py (version:1.26.3).\nFunctions:\n"
 "    a,w,pw,ifault = swilk(x,a,init=0,n1=n)\n"
 "    astart,a1,ifault = gscale(test,other)\n"
 "    ifault = prho(n,is)\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     statlib_error = PyErr_NewException ("statlib.error", NULL, NULL);

@@ -1,5 +1,5 @@
 /* File: _fblasmodule.c
- * This file is auto-generated with f2py (version:1.26.2).
+ * This file is auto-generated with f2py (version:1.26.3).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -35,6 +35,7 @@ typedef struct {float r,i;} complex_float;
 /*need_typedefs_generated*/
 
 /********************** See f2py2e/cfuncs.py: cppmacros **********************/
+
 #if defined(PREPEND_FORTRAN)
 #if defined(NO_APPEND_FORTRAN)
 #if defined(UPPERCASE_FORTRAN)
@@ -70,6 +71,7 @@ typedef struct {float r,i;} complex_float;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
+
 #ifdef DEBUGCFUNCS
 #define CFUNCSMESS(mess) fprintf(stderr,"debug-capi:"mess);
 #define CFUNCSMESSPY(mess,obj) CFUNCSMESS(mess) \
@@ -79,6 +81,7 @@ typedef struct {float r,i;} complex_float;
 #define CFUNCSMESS(mess)
 #define CFUNCSMESSPY(mess,obj)
 #endif
+
 
 #ifndef max
 #define max(a,b) ((a > b) ? (a) : (b))
@@ -93,8 +96,11 @@ typedef struct {float r,i;} complex_float;
 #define MIN(a,b) ((a < b) ? (a) : (b))
 #endif
 
+
 #define pyobj_from_complex_float1(v) (PyComplex_FromDoubles(v.r,v.i))
+
 #define pyobj_from_complex_double1(v) (PyComplex_FromDoubles(v.r,v.i))
+
 /* See fortranobject.h for definitions. The macros here are provided for BC. */
 #define rank f2py_rank
 #define shape f2py_shape
@@ -104,6 +110,7 @@ typedef struct {float r,i;} complex_float;
 #define slen f2py_slen
 #define size f2py_size
 
+
 #define CHECKSCALAR(check,tcheck,name,show,var)\
     if (!(check)) {\
         char errstring[256];\
@@ -111,6 +118,7 @@ typedef struct {float r,i;} complex_float;
         PyErr_SetString(_fblas_error,errstring);\
         /*goto capi_fail;*/\
     } else 
+
 #if defined(PREPEND_FORTRAN)
 #if defined(NO_APPEND_FORTRAN)
 #if defined(UPPERCASE_FORTRAN)
@@ -146,6 +154,7 @@ typedef struct {float r,i;} complex_float;
 #define F_WRAPPEDFUNC_US(f,F) F_WRAPPEDFUNC(f,F)
 #endif
 
+
 #define CHECKARRAY(check,tcheck,name) \
     if (!(check)) {\
         PyErr_SetString(_fblas_error,"("tcheck") failed for "name);\
@@ -153,6 +162,7 @@ typedef struct {float r,i;} complex_float;
     } else 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
+
 static int
 complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess) {
     Py_complex c;
@@ -225,6 +235,7 @@ complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess)
     return 0;
 }
 
+
 static int
 double_from_pyobj(double* v, PyObject *obj, const char *errmess)
 {
@@ -265,6 +276,7 @@ double_from_pyobj(double* v, PyObject *obj, const char *errmess)
     return 0;
 }
 
+
 static int
 float_from_pyobj(float* v, PyObject *obj, const char *errmess)
 {
@@ -275,6 +287,7 @@ float_from_pyobj(float* v, PyObject *obj, const char *errmess)
     }
     return 0;
 }
+
 
 static int
 complex_float_from_pyobj(complex_float* v,PyObject *obj,const char *errmess)
@@ -287,6 +300,7 @@ complex_float_from_pyobj(complex_float* v,PyObject *obj,const char *errmess)
     }
     return 0;
 }
+
 
 static int
 int_from_pyobj(int* v, PyObject *obj, const char *errmess)
@@ -334,6 +348,7 @@ int_from_pyobj(int* v, PyObject *obj, const char *errmess)
     }
     return 0;
 }
+
 
 static struct { int nd;npy_intp *d;int *i,*i_tr,tr; } forcombcache;
 static int initforcomb(npy_intp *dims,int nd,int tr) {
@@ -28460,11 +28475,11 @@ PyMODINIT_FUNC PyInit__fblas(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _fblas (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_fblas' is auto-generated with f2py (version:1.26.2).\nFunctions:\n"
+        "This module '_fblas' is auto-generated with f2py (version:1.26.3).\nFunctions:\n"
 "    c,s = srotg(a,b)\n"
 "    c,s = drotg(a,b)\n"
 "    c,s = crotg(a,b)\n"
@@ -28618,7 +28633,7 @@ PyMODINIT_FUNC PyInit__fblas(void) {
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _fblas_error = PyErr_NewException ("_fblas.error", NULL, NULL);

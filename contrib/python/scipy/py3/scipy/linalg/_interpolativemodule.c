@@ -1,5 +1,5 @@
 /* File: _interpolativemodule.c
- * This file is auto-generated with f2py (version:1.26.2).
+ * This file is auto-generated with f2py (version:1.26.3).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -44,12 +44,12 @@ typedef void(*cb_matvec_in_idd__user__routines_typedef)(int *,double *,int *,dou
 typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,double *,double *,double *,double *,double *);
 
 /********************** See f2py2e/cfuncs.py: cppmacros **********************/
+
 #define PRINTPYOBJERR(obj)\
     fprintf(stderr,"_interpolative.error is related to ");\
     PyObject_Print((PyObject *)obj,stderr,Py_PRINT_RAW);\
     fprintf(stderr,"\n");
 
-\
 #define FAILNULL(p) do {                                            \
     if ((p) == NULL) {                                              \
         PyErr_SetString(PyExc_MemoryError, "NULL pointer found");   \
@@ -57,11 +57,16 @@ typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,do
     }                                                               \
 } while (0)
 
+
 #define MEMCOPY(to,from,n)\
     do { FAILNULL(to); FAILNULL(from); (void)memcpy(to,from,n); } while (0)
 
+
 #define pyobj_from_int1(v) (PyLong_FromLong(v))
+
+
 #define pyobj_from_double1(v) (PyFloat_FromDouble(v))
+
 #ifdef DEBUGCFUNCS
 #define CFUNCSMESS(mess) fprintf(stderr,"debug-capi:"mess);
 #define CFUNCSMESSPY(mess,obj) CFUNCSMESS(mess) \
@@ -71,6 +76,7 @@ typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,do
 #define CFUNCSMESS(mess)
 #define CFUNCSMESSPY(mess,obj)
 #endif
+
 
 #ifndef F2PY_THREAD_LOCAL_DECL
 #if defined(_MSC_VER)
@@ -95,7 +101,9 @@ typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,do
 #endif
 #endif
 
+
 #define pyobj_from_complex_double1(v) (PyComplex_FromDoubles(v.r,v.i))
+
 #if defined(PREPEND_FORTRAN)
 #if defined(NO_APPEND_FORTRAN)
 #if defined(UPPERCASE_FORTRAN)
@@ -131,6 +139,7 @@ typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,do
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
+
 /* See fortranobject.h for definitions. The macros here are provided for BC. */
 #define rank f2py_rank
 #define shape f2py_shape
@@ -139,6 +148,7 @@ typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,do
 #define flen f2py_flen
 #define slen f2py_slen
 #define size f2py_size
+
 
 #ifndef max
 #define max(a,b) ((a > b) ? (a) : (b))
@@ -153,6 +163,7 @@ typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,do
 #define MIN(a,b) ((a < b) ? (a) : (b))
 #endif
 
+
 #define CHECKSCALAR(check,tcheck,name,show,var)\
     if (!(check)) {\
         char errstring[256];\
@@ -160,6 +171,7 @@ typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,do
         PyErr_SetString(_interpolative_error,errstring);\
         /*goto capi_fail;*/\
     } else 
+
 #define SWAP(a,b,t) {\
     t *c;\
     c = a;\
@@ -168,6 +180,7 @@ typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,do
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
+
 static int
 int_from_pyobj(int* v, PyObject *obj, const char *errmess)
 {
@@ -215,6 +228,7 @@ int_from_pyobj(int* v, PyObject *obj, const char *errmess)
     return 0;
 }
 
+
 static int
 double_from_pyobj(double* v, PyObject *obj, const char *errmess)
 {
@@ -254,6 +268,7 @@ double_from_pyobj(double* v, PyObject *obj, const char *errmess)
     }
     return 0;
 }
+
 
 static int
 create_cb_arglist(PyObject* fun, PyTupleObject* xa , const int maxnofargs,
@@ -382,6 +397,7 @@ capi_fail:
     Py_XDECREF(tmp_fun);
     return 0;
 }
+
 
 static int
 complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess) {
@@ -12390,11 +12406,11 @@ PyMODINIT_FUNC PyInit__interpolative(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _interpolative (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_interpolative' is auto-generated with f2py (version:1.26.2).\nFunctions:\n"
+        "This module '_interpolative' is auto-generated with f2py (version:1.26.3).\nFunctions:\n"
 "    r = id_srand(n)\n"
 "    id_srandi(t)\n"
 "    id_srando()\n"
@@ -12451,7 +12467,7 @@ PyMODINIT_FUNC PyInit__interpolative(void) {
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _interpolative_error = PyErr_NewException ("_interpolative.error", NULL, NULL);

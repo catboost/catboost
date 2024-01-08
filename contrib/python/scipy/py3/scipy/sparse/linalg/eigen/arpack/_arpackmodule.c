@@ -1,5 +1,5 @@
 /* File: _arpackmodule.c
- * This file is auto-generated with f2py (version:1.26.2).
+ * This file is auto-generated with f2py (version:1.26.3).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -38,13 +38,13 @@ typedef struct {double r,i;} complex_double;
 /*need_typedefs_generated*/
 
 /********************** See f2py2e/cfuncs.py: cppmacros **********************/
-\
 #define FAILNULL(p) do {                                            \
     if ((p) == NULL) {                                              \
         PyErr_SetString(PyExc_MemoryError, "NULL pointer found");   \
         goto capi_fail;                                             \
     }                                                               \
 } while (0)
+
 
 #define STRINGMALLOC(str,len)\
     if ((str = (string)malloc(len+1)) == NULL) {\
@@ -53,6 +53,7 @@ typedef struct {double r,i;} complex_double;
     } else {\
         (str)[len] = '\0';\
     }
+
 
 #if defined(PREPEND_FORTRAN)
 #if defined(NO_APPEND_FORTRAN)
@@ -89,6 +90,7 @@ typedef struct {double r,i;} complex_double;
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
+
 /* See fortranobject.h for definitions. The macros here are provided for BC. */
 #define rank f2py_rank
 #define shape f2py_shape
@@ -98,7 +100,9 @@ typedef struct {double r,i;} complex_double;
 #define slen f2py_slen
 #define size f2py_size
 
+
 #define STRINGFREE(str) do {if (!(str == NULL)) free(str);} while (0)
+
 
 /*
 STRINGPADN replaces null values with padding values from the right.
@@ -119,6 +123,7 @@ STRINGPADN(to, N, PADDING, NULLVALUE) is an inverse operation.
         }                                                       \
     } while (0)
 
+
 #define CHECKSCALAR(check,tcheck,name,show,var)\
     if (!(check)) {\
         char errstring[256];\
@@ -126,6 +131,7 @@ STRINGPADN(to, N, PADDING, NULLVALUE) is an inverse operation.
         PyErr_SetString(_arpack_error,errstring);\
         /*goto capi_fail;*/\
     } else 
+
 #ifdef DEBUGCFUNCS
 #define CFUNCSMESS(mess) fprintf(stderr,"debug-capi:"mess);
 #define CFUNCSMESSPY(mess,obj) CFUNCSMESS(mess) \
@@ -135,6 +141,7 @@ STRINGPADN(to, N, PADDING, NULLVALUE) is an inverse operation.
 #define CFUNCSMESS(mess)
 #define CFUNCSMESSPY(mess,obj)
 #endif
+
 
 #ifndef max
 #define max(a,b) ((a > b) ? (a) : (b))
@@ -149,8 +156,11 @@ STRINGPADN(to, N, PADDING, NULLVALUE) is an inverse operation.
 #define MIN(a,b) ((a < b) ? (a) : (b))
 #endif
 
+
 #define pyobj_from_complex_float1(v) (PyComplex_FromDoubles(v.r,v.i))
+
 #define pyobj_from_complex_double1(v) (PyComplex_FromDoubles(v.r,v.i))
+
 /*
 STRINGCOPYN copies N bytes.
 
@@ -167,6 +177,7 @@ STRINGCOPYN copies N bytes.
 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
+
 static int
 complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess) {
     Py_complex c;
@@ -239,6 +250,7 @@ complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess)
     return 0;
 }
 
+
 static int
 double_from_pyobj(double* v, PyObject *obj, const char *errmess)
 {
@@ -278,6 +290,7 @@ double_from_pyobj(double* v, PyObject *obj, const char *errmess)
     }
     return 0;
 }
+
 
 static int
 int_from_pyobj(int* v, PyObject *obj, const char *errmess)
@@ -325,6 +338,7 @@ int_from_pyobj(int* v, PyObject *obj, const char *errmess)
     }
     return 0;
 }
+
 
 /*
   Create a new string buffer `str` of at most length `len` from a
@@ -424,6 +438,7 @@ capi_fail:
     return 0;
 }
 
+
 static int
 float_from_pyobj(float* v, PyObject *obj, const char *errmess)
 {
@@ -434,6 +449,7 @@ float_from_pyobj(float* v, PyObject *obj, const char *errmess)
     }
     return 0;
 }
+
 
 static int
 character_from_pyobj(character* v, PyObject *obj, const char *errmess) {
@@ -499,6 +515,7 @@ character_from_pyobj(character* v, PyObject *obj, const char *errmess) {
     }
     return 0;
 }
+
 
 static int
 complex_float_from_pyobj(complex_float* v,PyObject *obj,const char *errmess)
@@ -5316,11 +5333,11 @@ PyMODINIT_FUNC PyInit__arpack(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _arpack (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_arpack' is auto-generated with f2py (version:1.26.2).\nFunctions:\n"
+        "This module '_arpack' is auto-generated with f2py (version:1.26.3).\nFunctions:\n"
 "    ido,tol,resid,v,iparam,ipntr,info = ssaupd(ido,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,n=len(resid),ncv=shape(v,1),ldv=shape(v,0),lworkl=len(workl))\n"
 "    ido,tol,resid,v,iparam,ipntr,info = dsaupd(ido,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,n=len(resid),ncv=shape(v,1),ldv=shape(v,0),lworkl=len(workl))\n"
 "    d,z,info = sseupd(rvec,howmny,select,sigma,bmat,which,nev,tol,resid,v,iparam,ipntr,workd,workl,info,ldz=shape(z,0),n=len(resid),ncv=len(select),ldv=shape(v,0),lworkl=len(workl))\n"
@@ -5336,7 +5353,7 @@ PyMODINIT_FUNC PyInit__arpack(void) {
 "COMMON blocks:\n""  /debug/ logfil,ndigit,mgetv0,msaupd,msaup2,msaitr,mseigt,msapps,msgets,mseupd,mnaupd,mnaup2,mnaitr,mneigh,mnapps,mngets,mneupd,mcaupd,mcaup2,mcaitr,mceigh,mcapps,mcgets,mceupd\n""  /timing/ nopx,nbx,nrorth,nitref,nrstrt,tsaupd,tsaup2,tsaitr,tseigt,tsgets,tsapps,tsconv,tnaupd,tnaup2,tnaitr,tneigh,tngets,tnapps,tnconv,tcaupd,tcaup2,tcaitr,tceigh,tcgets,tcapps,tcconv,tmvopx,tmvbx,tgetv0,titref,trvec\n"".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _arpack_error = PyErr_NewException ("_arpack.error", NULL, NULL);

@@ -1,5 +1,5 @@
 /* File: _cobylamodule.c
- * This file is auto-generated with f2py (version:1.26.2).
+ * This file is auto-generated with f2py (version:1.26.3).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -34,6 +34,7 @@ static PyObject *_cobyla_module;
 typedef void(*cb_calcfc_in__cobyla__user__routines_typedef)(int *,int *,double *,double *,double *);
 
 /********************** See f2py2e/cfuncs.py: cppmacros **********************/
+
 #ifndef max
 #define max(a,b) ((a > b) ? (a) : (b))
 #endif
@@ -47,16 +48,19 @@ typedef void(*cb_calcfc_in__cobyla__user__routines_typedef)(int *,int *,double *
 #define MIN(a,b) ((a < b) ? (a) : (b))
 #endif
 
+
 #define PRINTPYOBJERR(obj)\
     fprintf(stderr,"_cobyla.error is related to ");\
     PyObject_Print((PyObject *)obj,stderr,Py_PRINT_RAW);\
     fprintf(stderr,"\n");
+
 
 #define GETSCALARFROMPYTUPLE(tuple,index,var,ctype,mess) {\
         if ((capi_tmp = PyTuple_GetItem((tuple),(index)))==NULL) goto capi_fail;\
         if (!(ctype ## _from_pyobj((var),capi_tmp,mess)))\
             goto capi_fail;\
     }
+
 
 #ifdef DEBUGCFUNCS
 #define CFUNCSMESS(mess) fprintf(stderr,"debug-capi:"mess);
@@ -67,6 +71,7 @@ typedef void(*cb_calcfc_in__cobyla__user__routines_typedef)(int *,int *,double *
 #define CFUNCSMESS(mess)
 #define CFUNCSMESSPY(mess,obj)
 #endif
+
 
 #ifndef F2PY_THREAD_LOCAL_DECL
 #if defined(_MSC_VER)
@@ -90,6 +95,7 @@ typedef void(*cb_calcfc_in__cobyla__user__routines_typedef)(int *,int *,double *
 #define F2PY_THREAD_LOCAL_DECL __thread
 #endif
 #endif
+
 
 #if defined(PREPEND_FORTRAN)
 #if defined(NO_APPEND_FORTRAN)
@@ -126,6 +132,7 @@ typedef void(*cb_calcfc_in__cobyla__user__routines_typedef)(int *,int *,double *
 #define F_FUNC_US(f,F) F_FUNC(f,F)
 #endif
 
+
 /* See fortranobject.h for definitions. The macros here are provided for BC. */
 #define rank f2py_rank
 #define shape f2py_shape
@@ -135,11 +142,13 @@ typedef void(*cb_calcfc_in__cobyla__user__routines_typedef)(int *,int *,double *
 #define slen f2py_slen
 #define size f2py_size
 
+
 #define SWAP(a,b,t) {\
     t *c;\
     c = a;\
     a = b;\
     b = c;}
+
 
 #define CHECKSCALAR(check,tcheck,name,show,var)\
     if (!(check)) {\
@@ -150,6 +159,7 @@ typedef void(*cb_calcfc_in__cobyla__user__routines_typedef)(int *,int *,double *
     } else 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
+
 static int
 double_from_pyobj(double* v, PyObject *obj, const char *errmess)
 {
@@ -189,6 +199,7 @@ double_from_pyobj(double* v, PyObject *obj, const char *errmess)
     }
     return 0;
 }
+
 
 static int
 create_cb_arglist(PyObject* fun, PyTupleObject* xa , const int maxnofargs,
@@ -317,6 +328,7 @@ capi_fail:
     Py_XDECREF(tmp_fun);
     return 0;
 }
+
 
 static int
 int_from_pyobj(int* v, PyObject *obj, const char *errmess)
@@ -856,16 +868,16 @@ PyMODINIT_FUNC PyInit__cobyla(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _cobyla (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_cobyla' is auto-generated with f2py (version:1.26.2).\nFunctions:\n"
+        "This module '_cobyla' is auto-generated with f2py (version:1.26.3).\nFunctions:\n"
 "    x,dinfo = minimize(calcfc,m,x,rhobeg,rhoend,dinfo,iprint=1,maxfun=100,calcfc_extra_args=())\n"
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.26.2");
+    s = PyUnicode_FromString("1.26.3");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _cobyla_error = PyErr_NewException ("_cobyla.error", NULL, NULL);
