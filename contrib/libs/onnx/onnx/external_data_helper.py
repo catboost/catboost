@@ -1,3 +1,5 @@
+# Copyright (c) ONNX Project Contributors
+#
 # SPDX-License-Identifier: Apache-2.0
 import os
 import re
@@ -6,7 +8,7 @@ import uuid
 from itertools import chain
 from typing import Callable, Iterable, Optional
 
-from .onnx_pb import AttributeProto, GraphProto, ModelProto, TensorProto
+from onnx.onnx_pb import AttributeProto, GraphProto, ModelProto, TensorProto
 
 
 class ExternalDataInfo:
@@ -179,7 +181,8 @@ def save_external_data(tensor: TensorProto, base_path: str) -> None:
 
     # Create file if it doesn't exist
     if not os.path.isfile(external_data_file_path):
-        open(external_data_file_path, "ab").close()
+        with open(external_data_file_path, "ab"):
+            pass
 
     # Open file for reading and writing at random locations ('r+b')
     with open(external_data_file_path, "r+b") as data_file:
@@ -263,10 +266,7 @@ def _is_valid_filename(filename: str) -> bool:
     """Utility to check whether the provided filename is valid."""
     exp = re.compile('^[^<>:;,?"*|/]+$')
     match = exp.match(filename)
-    if match:
-        return True
-    else:
-        return False
+    return bool(match)
 
 
 def uses_external_data(tensor: TensorProto) -> bool:

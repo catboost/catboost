@@ -37,6 +37,7 @@ target_sources(contrib-libs-onnx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/attr_proto_util.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/controlflow/defs.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/controlflow/old.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/controlflow/utils.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/data_type_utils.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/function.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/generator/defs.cc
