@@ -71,6 +71,15 @@ TEST(TParseEnumTest, ParseEnumWithCustomDomainName)
     EXPECT_EQ(std::nullopt, TryParseEnum<ECustomDomainName>("b"));
 }
 
+TEST(TParseEnumTest, ParseBitEnum)
+{
+    EXPECT_EQ(ELangs::None, TryParseEnum<ELangs>(""));
+    EXPECT_EQ(ELangs::Cpp, TryParseEnum<ELangs>("cpp"));
+    EXPECT_EQ(ELangs::Cpp | ELangs::Rust, TryParseEnum<ELangs>("cpp|rust"));
+    EXPECT_EQ(ELangs::Cpp | ELangs::Rust, TryParseEnum<ELangs>("cpp | rust"));
+    EXPECT_EQ(std::nullopt, TryParseEnum<ELangs>("unk | rust"));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
