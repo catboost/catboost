@@ -431,7 +431,7 @@ public:
         , Free_(0)
         , IdleTime_(TDuration::Max())
     {
-        sprintf(Name_, "[mtp queue %ld]", ++MtpQueueCounter);
+        snprintf(Name_, sizeof(Name_), "[mtp queue %ld]", ++MtpQueueCounter);
     }
 
     inline ~TImpl() {
