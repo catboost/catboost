@@ -35,6 +35,7 @@ The columns description file is optional. {{ column-desc__default }}
 * [{{ cd-file__col-type__Timestamp }}](#timestamp)
 * [{{ cd-file__col-type__Position }}](#position)
 {% if audience == "internal" %}
+
 {% include [internal__cd-type-of-cd-to-use__desc](../yandex_specific/_includes/column_types.md) %}
 {% endif %}
 
