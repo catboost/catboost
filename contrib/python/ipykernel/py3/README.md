@@ -20,7 +20,7 @@ Follow the instructions from `Installation from source`.
 and then from the root directory
 
 ```bash
-pytest ipykernel
+pytest
 ```
 
 ## Running tests with coverage
@@ -30,7 +30,7 @@ Follow the instructions from `Installation from source`.
 and then from the root directory
 
 ```bash
-pytest ipykernel -vv -s --cov ipykernel --cov-branch --cov-report term-missing:skip-covered --durations 10
+pytest -vv -s --cov ipykernel --cov-branch --cov-report term-missing:skip-covered --durations 10
 ```
 
 ## About the IPython Development Team

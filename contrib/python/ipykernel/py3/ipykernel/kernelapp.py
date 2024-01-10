@@ -624,43 +624,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
-    def _init_asyncio_patch(self):
-        """set default asyncio policy to be compatible with tornado
-
-        Tornado 6 (at least) is not compatible with the default
-        asyncio implementation on Windows
-
-        Pick the older SelectorEventLoopPolicy on Windows
-        if the known-incompatible default policy is in use.
-
-        Support for Proactor via a background thread is available in tornado 6.1,
-        but it is still preferable to run the Selector in the main thread
-        instead of the background.
-
-        do this as early as possible to make it a low priority and overridable
-
-        ref: https://github.com/tornadoweb/tornado/issues/2608
-
-        FIXME: if/when tornado supports the defaults in asyncio without threads,
-               remove and bump tornado requirement for py38.
-               Most likely, this will mean a new Python version
-               where asyncio.ProactorEventLoop supports add_reader and friends.
-
-        """
-        if sys.platform.startswith("win") and sys.version_info >= (3, 8):
-            import asyncio
-
-            try:
-                from asyncio import WindowsProactorEventLoopPolicy, WindowsSelectorEventLoopPolicy
-            except ImportError:
-                pass
-                # not affected
-            else:
-                if type(asyncio.get_event_loop_policy()) is WindowsProactorEventLoopPolicy:
-                    # WindowsProactorEventLoopPolicy is not compatible with tornado 6
-                    # fallback to the pre-3.8 default of Selector
-                    asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
-
     def init_pdb(self):
         """Replace pdb with IPython's version that is interruptible.
 
@@ -680,7 +643,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
     @catch_config_error
     def initialize(self, argv=None):
         """Initialize the application."""
-        self._init_asyncio_patch()
         super().initialize(argv)
         if self.subapp is not None:
             return

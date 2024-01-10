@@ -283,6 +283,11 @@ class Kernel(SingletonConfigurable):
 
         self.control_queue: Queue[t.Any] = Queue()
 
+        # Storing the accepted parameters for do_execute, used in execute_request
+        self._do_exec_accepted_params = _accepts_parameters(
+            self.do_execute, ["cell_meta", "cell_id"]
+        )
+
     def dispatch_control(self, msg):
         self.control_queue.put_nowait(msg)
 
@@ -724,6 +729,8 @@ class Kernel(SingletonConfigurable):
             store_history = content.get("store_history", not silent)
             user_expressions = content.get("user_expressions", {})
             allow_stdin = content.get("allow_stdin", False)
+            cell_meta = parent.get("metadata", {})
+            cell_id = cell_meta.get("cellId")
         except Exception:
             self.log.error("Got bad msg: ")
             self.log.error("%s", parent)
@@ -739,12 +746,6 @@ class Kernel(SingletonConfigurable):
             self.execution_count += 1
             self._publish_execute_input(code, parent, self.execution_count)
 
-        cell_meta = parent.get("metadata", {})
-        cell_id = cell_meta.get("cellId")
-
-        # Check which parameters do_execute can accept
-        accepts_params = _accepts_parameters(self.do_execute, ["cell_meta", "cell_id"])
-
         # Arguments based on the do_execute signature
         do_execute_args = {
             "code": code,
@@ -754,9 +755,9 @@ class Kernel(SingletonConfigurable):
             "allow_stdin": allow_stdin,
         }
 
-        if accepts_params["cell_meta"]:
+        if self._do_exec_accepted_params["cell_meta"]:
             do_execute_args["cell_meta"] = cell_meta
-        if accepts_params["cell_id"]:
+        if self._do_exec_accepted_params["cell_id"]:
             do_execute_args["cell_id"] = cell_id
 
         # Call do_execute with the appropriate arguments

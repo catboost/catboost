@@ -605,6 +605,7 @@ class Debugger:
                 "stoppedThreads": list(self.stopped_threads),
                 "richRendering": True,
                 "exceptionPaths": ["Python Exceptions"],
+                "copyToGlobals": True,
             },
         }
 
