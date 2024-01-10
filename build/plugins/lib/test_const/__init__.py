@@ -139,6 +139,7 @@ CLANG_COVERAGE_TEST_TYPES = (
     "coverage_extractor",
     "exectest",
     "gtest",
+    "go_test",
     # java tests might use shared libraries
     "java",
     "py2test",
