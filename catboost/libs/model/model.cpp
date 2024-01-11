@@ -1341,6 +1341,46 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
     return result;
 }
 
+TVector<int> GetModelCatFeaturesIndices(const TFullModel& model) {
+    const auto features = model.ModelTrees->GetCatFeatures();
+    TVector<int> indices;
+    indices.reserve(features.size());
+    for (const auto& feature : features) {
+        indices.push_back(feature.Position.FlatIndex);
+    }
+    return indices;
+}
+
+TVector<int> GetModelFloatFeaturesIndices(const TFullModel& model) {
+    const auto features = model.ModelTrees->GetFloatFeatures();
+    TVector<int> indices;
+    indices.reserve(features.size());
+    for (const auto& feature : features) {
+        indices.push_back(feature.Position.FlatIndex);
+    }
+    return indices;
+}
+
+TVector<int> GetModelTextFeaturesIndices(const TFullModel& model) {
+    const auto features = model.ModelTrees->GetTextFeatures();
+    TVector<int> indices;
+    indices.reserve(features.size());
+    for (const auto& feature : features) {
+        indices.push_back(feature.Position.FlatIndex);
+    }
+    return indices;
+}
+
+TVector<int> GetModelEmbeddingFeaturesIndices(const TFullModel& model) {
+    const auto features = model.ModelTrees->GetEmbeddingFeatures();
+    TVector<int> indices;
+    indices.reserve(features.size());
+    for (const auto& feature : features) {
+        indices.push_back(feature.Position.FlatIndex);
+    }
+    return indices;
+}
+
 void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullModel* model) {
     model->ModelTrees.GetMutable()->ApplyFeatureNames(featureNames);
 }

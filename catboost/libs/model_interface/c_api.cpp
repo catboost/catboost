@@ -888,5 +888,61 @@ CATBOOST_API bool GetModelUsedFeaturesNames(ModelCalcerHandle* modelHandle, char
     return true;
 }
 
+CATBOOST_API bool GetCatFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
+    const auto featureIndices = GetModelCatFeaturesIndices(*FULL_MODEL_PTR(modelHandle));
+    *indices = (int*)malloc(sizeof(int) * featureIndices.size());
+    if (!*indices) {
+        return false;
+    }
+
+    *count = featureIndices.size();
+    for (size_t i = 0; i != featureIndices.size(); ++i) {
+        (*indices)[i] = featureIndices[i];
+    }
+    return true;
+}
+
+CATBOOST_API bool GetFloatFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
+    const auto featureIndices = GetModelFloatFeaturesIndices(*FULL_MODEL_PTR(modelHandle));
+    *indices = (int*)malloc(sizeof(int) * featureIndices.size());
+    if (!*indices) {
+        return false;
+    }
+
+    *count = featureIndices.size();
+    for (size_t i = 0; i != featureIndices.size(); ++i) {
+        (*indices)[i] = featureIndices[i];
+    }
+    return true;
+}
+
+CATBOOST_API bool GetTextFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
+    const auto featureIndices = GetModelTextFeaturesIndices(*FULL_MODEL_PTR(modelHandle));
+    *indices = (int*)malloc(sizeof(int) * featureIndices.size());
+    if (!*indices) {
+        return false;
+    }
+
+    *count = featureIndices.size();
+    for (size_t i = 0; i != featureIndices.size(); ++i) {
+        (*indices)[i] = featureIndices[i];
+    }
+    return true;
+}
+
+CATBOOST_API bool GetEmbeddingFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
+    const auto featureIndices = GetModelEmbeddingFeaturesIndices(*FULL_MODEL_PTR(modelHandle));
+    *indices = (int*)malloc(sizeof(int) * featureIndices.size());
+    if (!*indices) {
+        return false;
+    }
+
+    *count = featureIndices.size();
+    for (size_t i = 0; i != featureIndices.size(); ++i) {
+        (*indices)[i] = featureIndices[i];
+    }
+    return true;
+}
+
 
 }

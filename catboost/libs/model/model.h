@@ -1384,6 +1384,14 @@ TFullModel DeserializeModel(const TString& serializedModel);
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);
 
+TVector<int> GetModelCatFeaturesIndices(const TFullModel& model);
+
+TVector<int> GetModelFloatFeaturesIndices(const TFullModel& model);
+
+TVector<int> GetModelTextFeaturesIndices(const TFullModel& model);
+
+TVector<int> GetModelEmbeddingFeaturesIndices(const TFullModel& model);
+
 void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullModel* model);
 
 TFullModel SumModels(
