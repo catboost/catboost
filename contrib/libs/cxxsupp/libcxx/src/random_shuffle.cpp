@@ -19,7 +19,7 @@
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 #ifndef _LIBCPP_HAS_NO_THREADS
-static _LIBCPP_CONSTINIT __libcpp_mutex_t __rs_mut = _LIBCPP_MUTEX_INITIALIZER;
+static constinit __libcpp_mutex_t __rs_mut = _LIBCPP_MUTEX_INITIALIZER;
 #endif
 unsigned __rs_default::__c_ = 0;
 
