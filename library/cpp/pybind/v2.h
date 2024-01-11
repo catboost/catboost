@@ -124,9 +124,17 @@ namespace NPyBind {
                 return result;
             }
         };
+
+        struct TParentData {
+            PyTypeObject* ParentType;
+            IGetContextBase* ParentContext;
+        };
+
+        TVector<PyTypeObject*> GetParentTypes(const TVector<TParentData>& parentsData);
+
         template <class TBase>
         struct TContextImpl {
-            TVector<PyTypeObject*> ParentTypes;
+            TVector<TParentData> ParentsData;
             TString ClassShortName;
             TString ClassFullName;
             TString ClassDescription;
@@ -153,31 +161,50 @@ namespace NPyBind {
             return new THolderClass(MakeHolder<TBaseClass>());
         }
 
+        using TParentClassResolver = std::function<TString(const TString&, const THashSet<TString>&)>;
+
+        TString DefaultParentResolver(const TString&, const THashSet<TString>& parentModules);
+
         template <typename TParentTypesTuple, int Ind>
-        void InitializeBasesArray(TVector<PyTypeObject*>& parentTypes) {
+        void InitializeBasesArray(TVector<TParentData>& parentsData, const TParentClassResolver& parentResolver) {
             auto shortName = Detail::TNameCtx<std::tuple_element_t<Ind, TParentTypesTuple>>::GetNameCtx().ClassShortName;
+
+            THashMap<TString, TParentData> module2TParentData;
+            THashSet<TString> parentModules;
+
             for (const auto& [_, module] : TPyModuleRegistry::Get().GetCurrentModules()) {
                 auto it = module.ClassName2Type.find(shortName);
                 if (it != module.ClassName2Type.end()) {
-                    parentTypes[Ind] = it->second;
-                    return;
+                    module2TParentData[module.Name].ParentType = it->second;
+                    module2TParentData[module.Name].ParentContext = module.Class2ContextGetter.at(shortName);
+                    parentModules.insert(module.Name);
                 }
             }
-            ythrow yexception() << "Can't find registrated PyClass for parent class";
+            if (parentModules.empty()) {
+                ythrow yexception() << "Can't find registrated PyClass for parent class";
+            }
+            if (parentModules.size() == 1) {
+                parentsData[Ind] = module2TParentData.begin()->second;
+                return;
+            }
+            TString resolvedModule = parentResolver(shortName, parentModules);
+            parentsData[Ind] = module2TParentData[resolvedModule];
         }
 
         template <typename TParentTypesTuple>
-        TVector<PyTypeObject*> GetParentsTypes() {
+        TVector<TParentData> GetParentsData(const TParentClassResolver& parentResolver) {
             constexpr int nTypes = std::tuple_size_v<TParentTypesTuple>;
             if constexpr (nTypes == 0) {
                 return {};
             }
-            TVector<PyTypeObject*> parentTypes(nTypes);
 
-            [&parentTypes] <std::size_t... Ind> (std::index_sequence<Ind...>) {
-                (InitializeBasesArray<TParentTypesTuple, Ind>(parentTypes), ...);
+            TVector<TParentData> parentsData(nTypes);
+
+            [&parentsData, &parentResolver] <std::size_t... Ind> (std::index_sequence<Ind...>) {
+                (InitializeBasesArray<TParentTypesTuple, Ind>(parentsData, parentResolver), ...);
             }(std::make_index_sequence<nTypes>{});
-            return parentTypes;
+
+            return parentsData;
         }
 
         template <bool InitEnabled>
@@ -233,9 +260,8 @@ namespace NPyBind {
         public:
             TSelectedTraits()
                 : TParent(TThisClass::GetContext().ClassFullName.data(), TThisClass::GetContext().ClassDescription.data(),
-                          TThisClass::GetContext().ParentTypes.empty() ? nullptr : TThisClass::GetContext().ParentTypes[0],
-                          TThisClass::GetContext().ParentTypes.data(),
-                          TThisClass::GetContext().ParentTypes.size())
+                          TThisClass::GetContext().ParentsData.empty() ? nullptr : TThisClass::GetContext().ParentsData[0].ParentType,
+                          Detail::GetParentTypes(TThisClass::GetContext().ParentsData))
             {
                 for (const auto& caller : TThisClass::GetContext().ListCallers) {
                     TParent::AddCaller(caller.first, caller.second);
@@ -349,13 +375,9 @@ namespace NPyBind {
             TSimpleSharedPtr<const TBaseAttrGetter<TSuperClass>> BaseGetter;
         };
 
-        template <class TSuperClass, typename=std::enable_if_t<!std::is_same_v<TSuperClass, void>>>
+        template <class TSuperClass, int Ind, typename=std::enable_if_t<!std::is_same_v<TSuperClass, void>>>
         void ReloadAttrsFromBase() {
-            auto shortName = Detail::TNameCtx<TSuperClass>::GetNameCtx().ClassShortName;
-            if (!M.Class2ContextGetter.count(shortName)) {
-                return;
-            }
-            auto callerBasePtr = M.Class2ContextGetter[shortName];
+            auto callerBasePtr = GetContext().ParentsData[Ind].ParentContext;
             if (auto getContextPtr = dynamic_cast<const Detail::IGetContext<TSuperClass>*>(callerBasePtr)) {
                 auto& ctx = getContextPtr->GetContext();
                 auto getUniqueNames = [](const auto& collection) {
@@ -395,14 +417,14 @@ namespace NPyBind {
             }
         }
 
-        template <class TSuperClass, typename=std::enable_if_t<std::is_same_v<TSuperClass, void>>, typename=void>
+        template <class TSuperClass, int Ind, typename=std::enable_if_t<std::is_same_v<TSuperClass, void>>, typename=void>
         void ReloadAttrsFromBase() {
         }
 
         template<class TParentTypesTuple>
         void ReloadAttrsFromBases() {
             [&]<std::size_t... Ind> (std::index_sequence<Ind...>) {
-                (ReloadAttrsFromBase<std::tuple_element_t<Ind, TParentTypesTuple>>(), ...);
+                (ReloadAttrsFromBase<std::tuple_element_t<Ind, TParentTypesTuple>, Ind>(), ...);
             }(std::make_index_sequence<std::tuple_size_v<TParentTypesTuple>>{});
         }
 
@@ -435,7 +457,7 @@ namespace NPyBind {
             mutable TCallerFunc Func;
         };
     public:
-        TPyClass(const TString& name, const TString& descr = "")
+        TPyClass(const TString& name, const TString& descr = "", const Detail::TParentClassResolver& parentResolver = &Detail::DefaultParentResolver)
             : M(TPyModuleDefinition::GetModule())
         {
             Detail::UpdateClassNamesInModule<TPyClassConfigTraits::InitEnabled>(M, name, TSelectedTraits::GetType());
@@ -444,7 +466,7 @@ namespace NPyBind {
             GetContext().ClassFullName = TString::Join(M.Name, ".", name);
             GetContext().ClassShortName = name;
             GetContext().ClassDescription = descr;
-            GetContext().ParentTypes = Detail::GetParentsTypes<typename TPyClassConfigTraits::TParentPyClasses>();
+            GetContext().ParentsData = Detail::GetParentsData<typename TPyClassConfigTraits::TParentPyClasses>(parentResolver);
             Detail::TNameCtx<TBaseClass>::GetNameCtx().ClassShortName = name;
         }
 

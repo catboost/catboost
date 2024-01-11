@@ -102,7 +102,7 @@ namespace NPyBind {
 
     protected:
         TPythonType(const char* pyTypeName, const char* typeDescr, PyTypeObject* parentType = nullptr,
-                    PyTypeObject** baseTypes = nullptr, Py_ssize_t baseCount = 0)
+                    TVector<PyTypeObject*> baseTypes = {})
             : Attributes(GetObjectAttr, SetObjectAttr)
         {
             PyType.tp_name = pyTypeName;
@@ -112,7 +112,8 @@ namespace NPyBind {
                 Py_INCREF(parentType);
                 PyType.tp_base = parentType;
             }
-            if (baseTypes) {
+            if (!baseTypes.empty()) {
+                Py_ssize_t baseCount = baseTypes.size();
                 PyObject* tuple = PyTuple_New(baseCount);
                 for (Py_ssize_t i = 0; i < baseCount; ++i) {
                     Py_INCREF(baseTypes[i]);
