@@ -29,7 +29,7 @@ class Opts(object):
         if other_args[0] != '--linking-cmdline':
             raise Exception("expected '--linking-cmdline' arg, got {}".format(other_args[0]))
 
-        self.is_msvc_linker = other_args[1].endswith('\\link.exe')
+        self.is_msvc_compatible_linker = other_args[1].endswith('\\link.exe') or other_args[1].endswith('\\lld-link.exe')
 
         is_host_system_windows = self.parsed_args.cmake_host_system_name == 'Windows'
         std_libraries_to_exclude_from_input = (
@@ -38,11 +38,9 @@ class Opts(object):
             else set()
         )
         msvc_preserved_option_prefixes = [
-            'errorreport',
             'machine:',
             'nodefaultlib',
             'nologo',
-            'subsystem',
         ]
 
         self.preserved_options = []
@@ -129,7 +127,7 @@ class FilesCombiner(object):
             # force LIBTOOL even if CMAKE_AR is defined because 'ar' under Darwin does not contain the necessary options
             arch_type = 'LIBTOOL'
             archiver_tool_path = 'libtool'
-        elif opts.is_msvc_linker:
+        elif opts.is_msvc_compatible_linker:
             arch_type = 'LIB'
         elif opts.parsed_args.cmake_ar.endswith('llvm-ar'):
             arch_type = 'LLVM_AR'
@@ -152,7 +150,7 @@ class FilesCombiner(object):
     def do(self, output, input_list):
         input_file_path = None
         try:
-            if self.opts.is_msvc_linker:
+            if self.opts.is_msvc_compatible_linker:
                 # use response file for input (because of Windows cmdline length limitations)
 
                 # can't use NamedTemporaryFile because of permissions issues on Windows
@@ -177,7 +175,7 @@ class FilesCombiner(object):
             if input_file_path is not None:
                 os.remove(input_file_path)
 
-        if not self.opts.is_msvc_linker:
+        if not self.opts.is_msvc_compatible_linker:
             subprocess.check_call([self.opts.parsed_args.cmake_ranlib, output])
 
 
