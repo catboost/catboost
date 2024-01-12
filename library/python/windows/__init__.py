@@ -191,7 +191,9 @@ if on_win():
     def transcode_error(windows_error, to_enc='utf-8'):
         from_enc = 'utf-8' if getattr(windows_error, 'utf8', False) else library.python.strings.guess_default_encoding()
         if from_enc != to_enc:
-            windows_error.strerror = library.python.strings.to_str(windows_error.strerror, to_enc=to_enc, from_enc=from_enc)
+            windows_error.strerror = library.python.strings.to_str(
+                windows_error.strerror, to_enc=to_enc, from_enc=from_enc
+            )
         setattr(windows_error, 'utf8', to_enc == 'utf-8')
 
     class Transaction(object):
@@ -230,14 +232,26 @@ if on_win():
     @win_only
     @require_ctypes
     def replace_file(src, dst):
-        if not ctypes.windll.kernel32.MoveFileExW(unicode_path(src), unicode_path(dst), _MOVEFILE_REPLACE_EXISTING | _MOVEFILE_WRITE_THROUGH):
+        if not ctypes.windll.kernel32.MoveFileExW(
+            unicode_path(src), unicode_path(dst), _MOVEFILE_REPLACE_EXISTING | _MOVEFILE_WRITE_THROUGH
+        ):
             raise ctypes.WinError()
 
     @win_only
     @require_ctypes
     def replace_file_across_devices(src, dst):
-        with Transaction(timeout=_ATOMIC_RENAME_FILE_TRANSACTION_DEFAULT_TIMEOUT, description='ya library.python.windows replace_file_across_devices') as transaction:
-            if not ctypes.windll.kernel32.MoveFileTransactedW(unicode_path(src), unicode_path(dst), None, None, _MOVEFILE_REPLACE_EXISTING | _MOVEFILE_WRITE_THROUGH, transaction):
+        with Transaction(
+            timeout=_ATOMIC_RENAME_FILE_TRANSACTION_DEFAULT_TIMEOUT,
+            description='ya library.python.windows replace_file_across_devices',
+        ) as transaction:
+            if not ctypes.windll.kernel32.MoveFileTransactedW(
+                unicode_path(src),
+                unicode_path(dst),
+                None,
+                None,
+                _MOVEFILE_REPLACE_EXISTING | _MOVEFILE_WRITE_THROUGH,
+                transaction,
+            ):
                 raise ctypes.WinError()
 
     @win_only
@@ -259,13 +273,17 @@ if on_win():
     @win_disabled
     @require_ctypes
     def symlink_dir(src, lnk):
-        if not ctypes.windll.kernel32.CreateSymbolicLinkW(unicode_path(lnk), unicode_path(src), _SYMBOLIC_LINK_FLAG_DIRECTORY):
+        if not ctypes.windll.kernel32.CreateSymbolicLinkW(
+            unicode_path(lnk), unicode_path(src), _SYMBOLIC_LINK_FLAG_DIRECTORY
+        ):
             raise ctypes.WinError()
 
     @win_only
     @require_ctypes
     def lock_file(f, offset, length, raises=True):
-        locked = ctypes.windll.kernel32.LockFile(file_handle(f), _low_dword(offset), _high_dword(offset), _low_dword(length), _high_dword(length))
+        locked = ctypes.windll.kernel32.LockFile(
+            file_handle(f), _low_dword(offset), _high_dword(offset), _low_dword(length), _high_dword(length)
+        )
         if not raises:
             return bool(locked)
         if not locked:
@@ -274,7 +292,9 @@ if on_win():
     @win_only
     @require_ctypes
     def unlock_file(f, offset, length, raises=True):
-        unlocked = ctypes.windll.kernel32.UnlockFile(file_handle(f), _low_dword(offset), _high_dword(offset), _low_dword(length), _high_dword(length))
+        unlocked = ctypes.windll.kernel32.UnlockFile(
+            file_handle(f), _low_dword(offset), _high_dword(offset), _low_dword(length), _high_dword(length)
+        )
         if not raises:
             return bool(unlocked)
         if not unlocked:
@@ -304,6 +324,7 @@ if on_win():
                     # propagate true last error if this attempt fails
                     return func(handling_path)
             raise e
+
         shutil.rmtree(path, onerror=error_handler)
 
     # Don't display the Windows GPF dialog if the invoked program dies.
@@ -337,7 +358,9 @@ if on_win():
     def get_process_handle_count(proc_handle):
         assert isinstance(proc_handle, wintypes.HANDLE)
 
-        GetProcessHandleCount = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HANDLE, wintypes.POINTER(wintypes.DWORD))(("GetProcessHandleCount", ctypes.windll.kernel32))
+        GetProcessHandleCount = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HANDLE, wintypes.POINTER(wintypes.DWORD))(
+            ("GetProcessHandleCount", ctypes.windll.kernel32)
+        )
         hndcnt = wintypes.DWORD()
         if not GetProcessHandleCount(proc_handle, ctypes.byref(hndcnt)):
             raise ctypes.WinError()
@@ -349,7 +372,9 @@ if on_win():
         for flag, value in [(inherit, 1), (protect_from_close, 2)]:
             if flag is not None:
                 assert isinstance(flag, bool)
-                if not ctypes.windll.kernel32.SetHandleInformation(file_handle(file), _low_dword(value), _low_dword(int(flag))):
+                if not ctypes.windll.kernel32.SetHandleInformation(
+                    file_handle(file), _low_dword(value), _low_dword(int(flag))
+                ):
                     raise ctypes.WinError()
 
     @win_only
