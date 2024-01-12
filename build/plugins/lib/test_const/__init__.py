@@ -134,10 +134,12 @@ COVERAGE_ENV_VARS = (
 PYTHON_COVERAGE_PREFIX_FILTER_ENV_NAME = 'PYTHON_COVERAGE_PREFIX_FILTER'
 PYTHON_COVERAGE_EXCLUDE_REGEXP_ENV_NAME = 'PYTHON_COVERAGE_EXCLUDE_REGEXP'
 
+# TODO get rid of this list - resolve nodes should be added automatically depending on the lang of the target module and their deps
 CLANG_COVERAGE_TEST_TYPES = (
     "boost_test",
     "coverage_extractor",
     "exectest",
+    "fuzz",
     "gtest",
     "go_test",
     # java tests might use shared libraries
@@ -147,6 +149,7 @@ CLANG_COVERAGE_TEST_TYPES = (
     "pytest",
     "unittest",
 )
+
 COVERAGE_TABLE_CHUNKS = 20
 COVERAGE_TESTS_TIMEOUT_FACTOR = 1.5
 COVERAGE_YT_PROXY = "hahn.yt.yandex.net"
