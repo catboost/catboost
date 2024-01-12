@@ -170,7 +170,10 @@ macro(_conan_detect_compiler)
             conan_cmake_detect_unix_libcxx(_LIBCXX)
             set(_CONAN_SETTING_COMPILER_LIBCXX ${_LIBCXX})
         endif ()
-    elseif (${CMAKE_${LANGUAGE}_COMPILER_ID} STREQUAL Clang)
+    elseif (${CMAKE_${LANGUAGE}_COMPILER_ID} STREQUAL Clang
+                AND NOT "${CMAKE_${LANGUAGE}_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC"
+                AND NOT "${CMAKE_${LANGUAGE}_SIMULATE_ID}" STREQUAL "MSVC")
+
         string(REPLACE "." ";" VERSION_LIST ${CMAKE_${LANGUAGE}_COMPILER_VERSION})
         list(GET VERSION_LIST 0 MAJOR)
         list(GET VERSION_LIST 1 MINOR)
@@ -190,7 +193,11 @@ macro(_conan_detect_compiler)
             conan_cmake_detect_unix_libcxx(_LIBCXX)
             set(_CONAN_SETTING_COMPILER_LIBCXX ${_LIBCXX})
         endif ()
-    elseif(${CMAKE_${LANGUAGE}_COMPILER_ID} STREQUAL MSVC)
+    elseif(${CMAKE_${LANGUAGE}_COMPILER_ID} STREQUAL MSVC
+                OR (${CMAKE_${LANGUAGE}_COMPILER_ID} STREQUAL Clang
+                    AND "${CMAKE_${LANGUAGE}_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC"
+                    AND "${CMAKE_${LANGUAGE}_SIMULATE_ID}" STREQUAL "MSVC"))
+
         set(_VISUAL "Visual Studio")
         _get_msvc_ide_version(_VISUAL_VERSION)
         if("${_VISUAL_VERSION}" STREQUAL "")
