@@ -170,8 +170,55 @@ struct hash<NYT::TStrongTypedef<T, TTag>>
 template <class T, class TTag>
     requires std::numeric_limits<T>::is_specialized
 class numeric_limits<NYT::TStrongTypedef<T, TTag>>
-    : public numeric_limits<T>
-{ };
+{
+public:
+    #define XX(name) \
+        static constexpr decltype(numeric_limits<T>::name) name = numeric_limits<T>::name;
+
+    XX(is_specialized)
+    XX(is_signed)
+    XX(digits)
+    XX(digits10)
+    XX(max_digits10)
+    XX(is_integer)
+    XX(is_exact)
+    XX(radix)
+    XX(min_exponent)
+    XX(min_exponent10)
+    XX(max_exponent)
+    XX(max_exponent10)
+    XX(has_infinity)
+    XX(has_quiet_NaN)
+    XX(has_signaling_NaN)
+    XX(has_denorm)
+    XX(has_denorm_loss)
+    XX(is_iec559)
+    XX(is_bounded)
+    XX(is_modulo)
+    XX(traps)
+    XX(tinyness_before)
+    XX(round_style)
+
+    #undef XX
+
+    #define XX(name) \
+        static constexpr NYT::TStrongTypedef<T, TTag> name() noexcept \
+        { \
+            return NYT::TStrongTypedef<T, TTag>(numeric_limits<T>::name()); \
+        }
+
+    XX(min)
+    XX(max)
+    XX(lowest)
+    XX(epsilon)
+    XX(round_error)
+    XX(infinity)
+    XX(quiet_NaN)
+    XX(signaling_NaN)
+    XX(denorm_min)
+
+    #undef XX
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -43,8 +43,8 @@ XX(round_style)
 #undef XX
 
 #define XX(name) \
-    static_assert(std::numeric_limits<TMyInt1>::name() == std::numeric_limits<int>::name()); \
-    static_assert(std::numeric_limits<TMyInt2>::name() == std::numeric_limits<int>::name());
+    static_assert(std::numeric_limits<TMyInt1>::name() == TMyInt1(std::numeric_limits<int>::name())); \
+    static_assert(std::numeric_limits<TMyInt2>::name() == TMyInt2(TMyInt1(std::numeric_limits<int>::name())));
 
 XX(min)
 XX(max)
