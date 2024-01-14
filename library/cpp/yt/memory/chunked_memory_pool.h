@@ -3,6 +3,8 @@
 #include "public.h"
 #include "ref.h"
 
+#include <library/cpp/yt/misc/port.h>
+
 #include <util/generic/size_literals.h>
 
 namespace NYT {

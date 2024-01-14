@@ -6,6 +6,8 @@
 
 #include "ref_tracked.h"
 
+#include <library/cpp/yt/misc/port.h>
+
 #include <library/cpp/yt/malloc//malloc.h>
 
 namespace NYT {
