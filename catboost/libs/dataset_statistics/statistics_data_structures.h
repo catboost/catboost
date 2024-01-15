@@ -436,7 +436,8 @@ public:
             SampleIdStatistics,
             GroupwiseStats,
             TargetHistogram,
-            ClassNames
+            ClassNames,
+            ObjectsCount
         )
         == std::tie(
             a.FeatureStatistics,
@@ -444,7 +445,8 @@ public:
             a.SampleIdStatistics,
             a.GroupwiseStats,
             a.TargetHistogram,
-            a.ClassNames
+            a.ClassNames,
+            a.ObjectsCount
         );
     }
 
@@ -454,7 +456,8 @@ public:
         SampleIdStatistics,
         GroupwiseStats,
         TargetHistogram,
-        ClassNames
+        ClassNames,
+        ObjectsCount
     );
 
     SAVELOAD(
@@ -463,7 +466,8 @@ public:
         SampleIdStatistics,
         GroupwiseStats,
         TargetHistogram,
-        ClassNames
+        ClassNames,
+        ObjectsCount
     );
 
     TFeatureStatistics FeatureStatistics;
@@ -473,6 +477,7 @@ public:
 
     TMaybe<TVector<TFloatFeatureHistogram>> TargetHistogram;
     TVector<TString> ClassNames;
+    ui64 ObjectsCount = 0;
 
     void Init(
         const TDataMetaInfo& metaInfo,
@@ -484,6 +489,7 @@ public:
         if (metaInfo.HasGroupId) {
             GroupwiseStats = MakeMaybe(TGroupwiseStats());
         }
+        ObjectsCount = 0;
     }
 
     void SetTargetHistogram(const TVector<TFloatFeatureHistogram>& targetHistogram) {
@@ -494,7 +500,7 @@ public:
 
     void Update(const TDatasetStatistics& update);
     ui64 GetObjectCount() const {
-        return TargetsStatistics.GetObjectCount();
+        return ObjectsCount;
     }
 };
 }

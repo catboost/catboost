@@ -172,7 +172,9 @@ void TTargetsStatistics::Init(const TDataMetaInfo& metaInfo, const TFeatureCusto
             }
             break;
         default:
-            CB_ENSURE(false);
+            CB_ENSURE(TargetType == ERawTargetType::None, "Unexpected target type " << TargetType << ", expected 'None'");
+            CATBOOST_DEBUG_LOG << "No target was found for Target statistics\n";
+            break;
     }
     SetCustomBorders(customBorders, &FloatTargetStatistics);
 }
@@ -206,7 +208,9 @@ NJson::TJsonValue TTargetsStatistics::ToJson() const {
             result.InsertValue("TargetStatistics", AggregateStatistics(StringTargetStatistics));
             break;
         default:
-            CB_ENSURE(false);
+            CB_ENSURE(TargetType == ERawTargetType::None, "Unexpected target type " << TargetType << ", expected 'None'");
+            CATBOOST_DEBUG_LOG << "No target was found, Target statistics is empty\n";
+            break;
     }
     return result;
 }
@@ -463,7 +467,7 @@ NJson::TJsonValue TDatasetStatistics::ToJson() const {
     if (TargetHistogram.Defined()) {
         result.InsertValue("TargetHistogram", AggregateStatistics(TargetHistogram.GetRef()));
     }
-    result.InsertValue("ObjectCount", TargetsStatistics.GetObjectCount());
+    result.InsertValue("ObjectCount", ObjectsCount);
 
     return result;
 }
@@ -472,4 +476,5 @@ void TDatasetStatistics::Update(const TDatasetStatistics& update) {
     FeatureStatistics.Update(update.FeatureStatistics);
     TargetsStatistics.Update(update.TargetsStatistics);
     SampleIdStatistics.Update(update.SampleIdStatistics);
+    ObjectsCount += update.ObjectsCount;
 }

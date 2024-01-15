@@ -262,6 +262,11 @@ public:
             !IsLocal || NextCursor >= ObjectCount,
             "processed object count is less than than specified in metadata: " << NextCursor << "<"
             << ObjectCount);
+        if (IsLocal) {
+            DatasetStatistics.ObjectsCount = ObjectCount;
+        } else {
+            DatasetStatistics.ObjectsCount = NextCursor;
+        }
 
         if (DatasetStatistics.GroupwiseStats.Defined()) {
             DatasetStatistics.GroupwiseStats->Flush();
