@@ -55,7 +55,7 @@ public:
         : T_(other.Get())
     {
         static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
+            std::derived_from<T, TRefCountedBase>,
             "Cast allowed only for types derived from TRefCountedBase");
         if (T_) {
             Ref(T_);
@@ -75,7 +75,7 @@ public:
         : T_(other.Get())
     {
         static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
+            std::derived_from<T, TRefCountedBase>,
             "Cast allowed only for types derived from TRefCountedBase");
         other.T_ = nullptr;
     }
@@ -103,7 +103,7 @@ public:
             std::is_convertible_v<U*, T*>,
             "U* must be convertible to T*");
         static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
+            std::derived_from<T, TRefCountedBase>,
             "Cast allowed only for types derived from TRefCountedBase");
         TIntrusivePtr(other).Swap(*this);
         return *this;
@@ -124,7 +124,7 @@ public:
             std::is_convertible_v<U*, T*>,
             "U* must be convertible to T*");
         static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
+            std::derived_from<T, TRefCountedBase>,
             "Cast allowed only for types derived from TRefCountedBase");
         TIntrusivePtr(std::move(other)).Swap(*this);
         return *this;
