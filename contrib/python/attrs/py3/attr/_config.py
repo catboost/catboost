@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: MIT
 
-
 __all__ = ["set_run_validators", "get_run_validators"]
 
 _run_validators = True
@@ -15,7 +14,8 @@ def set_run_validators(run):
         instead.
     """
     if not isinstance(run, bool):
-        raise TypeError("'run' must be bool.")
+        msg = "'run' must be bool."
+        raise TypeError(msg)
     global _run_validators
     _run_validators = run
 

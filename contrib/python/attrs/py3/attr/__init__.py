@@ -9,6 +9,7 @@ from typing import Callable
 
 from . import converters, exceptions, filters, setters, validators
 from ._cmp import cmp_using
+from ._compat import Protocol
 from ._config import get_run_validators, set_run_validators
 from ._funcs import asdict, assoc, astuple, evolve, has, resolve_types
 from ._make import (
@@ -31,7 +32,7 @@ ib = attr = attrib
 dataclass = partial(attrs, auto_attribs=True)  # happy Easter ;)
 
 
-class AttrsInstance:
+class AttrsInstance(Protocol):
     pass
 
 
@@ -90,8 +91,9 @@ def _make_getattr(mod_name: str) -> Callable:
             "__email__": "",
             "__license__": "license",
         }
-        if name not in dunder_to_metadata.keys():
-            raise AttributeError(f"module {mod_name} has no attribute {name}")
+        if name not in dunder_to_metadata:
+            msg = f"module {mod_name} has no attribute {name}"
+            raise AttributeError(msg)
 
         import sys
         import warnings
@@ -101,7 +103,7 @@ def _make_getattr(mod_name: str) -> Callable:
         else:
             from importlib.metadata import metadata
 
-        if name != "__version_info__":
+        if name not in ("__version__", "__version_info__"):
             warnings.warn(
                 f"Accessing {mod_name}.{name} is deprecated and will be "
                 "removed in a future release. Use importlib.metadata directly "
@@ -113,15 +115,15 @@ def _make_getattr(mod_name: str) -> Callable:
         meta = metadata("attrs")
         if name == "__license__":
             return "MIT"
-        elif name == "__copyright__":
+        if name == "__copyright__":
             return "Copyright (c) 2015 Hynek Schlawack"
-        elif name in ("__uri__", "__url__"):
+        if name in ("__uri__", "__url__"):
             return meta["Project-URL"].split(" ", 1)[-1]
-        elif name == "__version_info__":
+        if name == "__version_info__":
             return VersionInfo._from_version_string(meta["version"])
-        elif name == "__author__":
+        if name == "__author__":
             return meta["Author-email"].rsplit(" ", 1)[0]
-        elif name == "__email__":
+        if name == "__email__":
             return meta["Author-email"].rsplit("<", 1)[1][:-1]
 
         return meta[dunder_to_metadata[name]]
