@@ -1131,7 +1131,7 @@ operator<<(basic_ostream<_CharT, _Traits>& __os, const bitset<_Size>& __x)
                          use_facet<ctype<_CharT> >(__os.getloc()).widen('1'));
 }
 
-#if 0 
+#if 0
 
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 template <class _Traits>

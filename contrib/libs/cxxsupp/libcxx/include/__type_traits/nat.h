@@ -6,17 +6,27 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <__assert>
+#ifndef _LIBCPP___TYPE_TRAITS_NAT_H
+#define _LIBCPP___TYPE_TRAITS_NAT_H
+
 #include <__config>
-#include <cstdio>
-#include <cstdlib>
+
+#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#  pragma GCC system_header
+#endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-_LIBCPP_WEAK
-void __libcpp_assertion_handler(char const* __file, int __line, char const* __expression, char const* __message) {
-  std::fprintf(stderr, "%s:%d: libc++ assertion '%s' failed. %s\n", __file, __line, __expression, __message);
-  std::abort();
-}
+struct __nat
+{
+#ifndef _LIBCPP_CXX03_LANG
+    __nat() = delete;
+    __nat(const __nat&) = delete;
+    __nat& operator=(const __nat&) = delete;
+    ~__nat() = delete;
+#endif
+};
 
 _LIBCPP_END_NAMESPACE_STD
+
+#endif // _LIBCPP___TYPE_TRAITS_NAT_H

@@ -10,6 +10,7 @@
 #define _LIBCPP___ALGORITHM_COPY_H
 
 #include <__algorithm/unwrap_iter.h>
+#include <__algorithm/unwrap_range.h>
 #include <__config>
 #include <__iterator/iterator_traits.h>
 #include <__iterator/reverse_iterator.h>
@@ -58,20 +59,20 @@ pair<_InValueT*, _OutValueT*> __copy_impl(_InValueT* __first, _InValueT* __last,
 
 template <class _InIter, class _OutIter,
           __enable_if_t<is_same<typename remove_const<__iter_value_type<_InIter> >::type, __iter_value_type<_OutIter> >::value
-                      && __is_cpp17_contiguous_iterator<_InIter>::value
-                      && __is_cpp17_contiguous_iterator<_OutIter>::value
-                      && is_trivially_copy_assignable<__iter_value_type<_OutIter> >::value, int> = 0>
+                      && __is_cpp17_contiguous_iterator<typename _InIter::iterator_type>::value
+                      && __is_cpp17_contiguous_iterator<typename _OutIter::iterator_type>::value
+                      && is_trivially_copy_assignable<__iter_value_type<_OutIter> >::value
+                      && __is_reverse_iterator<_InIter>::value
+                      && __is_reverse_iterator<_OutIter>::value, int> = 0>
 inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_AFTER_CXX11
-pair<reverse_iterator<_InIter>, reverse_iterator<_OutIter> >
-__copy_impl(reverse_iterator<_InIter> __first,
-            reverse_iterator<_InIter> __last,
-            reverse_iterator<_OutIter> __result) {
+pair<_InIter, _OutIter>
+__copy_impl(_InIter __first, _InIter __last, _OutIter __result) {
   auto __first_base = std::__unwrap_iter(__first.base());
   auto __last_base = std::__unwrap_iter(__last.base());
   auto __result_base = std::__unwrap_iter(__result.base());
   auto __result_first = __result_base - (__first_base - __last_base);
   std::__copy_impl(__last_base, __first_base, __result_first);
-  return std::make_pair(__last, reverse_iterator<_OutIter>(std::__rewrap_iter(__result.base(), __result_first)));
+  return std::make_pair(__last, _OutIter(std::__rewrap_iter(__result.base(), __result_first)));
 }
 
 template <class _InIter, class _Sent, class _OutIter,
@@ -88,10 +89,11 @@ template <class _InIter, class _Sent, class _OutIter,
                      && is_copy_constructible<_Sent>::value
                      && is_copy_constructible<_OutIter>::value, int> = 0>
 inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_AFTER_CXX11
-pair<_InIter, _OutIter>
-__copy(_InIter __first, _Sent __last, _OutIter __result) {
-  auto __ret = std::__copy_impl(std::__unwrap_iter(__first), std::__unwrap_iter(__last), std::__unwrap_iter(__result));
-  return std::make_pair(std::__rewrap_iter(__first, __ret.first), std::__rewrap_iter(__result, __ret.second));
+pair<_InIter, _OutIter> __copy(_InIter __first, _Sent __last, _OutIter __result) {
+  auto __range = std::__unwrap_range(__first, __last);
+  auto __ret   = std::__copy_impl(std::move(__range.first), std::move(__range.second), std::__unwrap_iter(__result));
+  return std::make_pair(
+      std::__rewrap_range<_Sent>(__first, __ret.first), std::__rewrap_iter(__result, __ret.second));
 }
 
 template <class _InputIterator, class _OutputIterator>

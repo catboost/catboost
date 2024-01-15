@@ -14,6 +14,7 @@
 #include <__iterator/incrementable_traits.h>
 #include <__iterator/readable_traits.h>
 #include <concepts>
+#include <cstddef>
 #include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -500,6 +501,18 @@ template<class _InputIterator>
 using __iter_to_alloc_type = pair<
     typename add_const<typename iterator_traits<_InputIterator>::value_type::first_type>::type,
     typename iterator_traits<_InputIterator>::value_type::second_type>;
+
+template <class _Iter>
+using __iterator_category_type = typename iterator_traits<_Iter>::iterator_category;
+
+template <class _Iter>
+using __iterator_pointer_type = typename iterator_traits<_Iter>::pointer;
+
+template <class _Iter>
+using __iter_diff_t = typename iterator_traits<_Iter>::difference_type;
+
+template<class _InputIterator>
+using __iter_value_type = typename iterator_traits<_InputIterator>::value_type;
 
 _LIBCPP_END_NAMESPACE_STD
 
