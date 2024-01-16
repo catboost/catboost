@@ -34,7 +34,7 @@
 #include <time.h>
 #include <fcntl.h> /* values for fchmodat */
 
-#if __has_include(<sys/sendfile.h>)
+#if __has_include(<sys/sendfile.h>) && !defined(__EMSCRIPTEN__)
 # include <sys/sendfile.h>
 # define _LIBCPP_FILESYSTEM_USE_SENDFILE
 #elif defined(__APPLE__) || __has_include(<copyfile.h>)
