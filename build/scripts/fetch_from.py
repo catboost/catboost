@@ -315,6 +315,10 @@ def chmod(filename, mode):
             raise
 
 
+def make_readonly(filename):
+    chmod(filename, os.stat(filename).st_mode & 0o111 | 0o444)
+
+
 def process(fetched_file, file_name, args, remove=True):
     assert len(args.rename) <= len(args.outputs), ('too few outputs to rename', args.rename, 'into', args.outputs)
 
@@ -326,9 +330,9 @@ def process(fetched_file, file_name, args, remove=True):
     if fetched_file_is_dir:
         for root, _, files in os.walk(fetched_file):
             for filename in files:
-                chmod(os.path.join(root, filename), 0o444)
+                make_readonly(os.path.join(root, filename))
     else:
-        chmod(fetched_file, 0o444)
+        make_readonly(fetched_file)
 
     if args.copy_to:
         hardlink_or_copy(fetched_file, args.copy_to)
@@ -367,7 +371,7 @@ def process(fetched_file, file_name, args, remove=True):
         # Forbid changes to the loaded resource data
         for root, _, files in os.walk(args.untar_to):
             for filename in files:
-                chmod(os.path.join(root, filename), 0o444)
+                make_readonly(os.path.join(root, filename))
 
     for src, dst in zip(args.rename, args.outputs):
         if src == 'RESOURCE':
