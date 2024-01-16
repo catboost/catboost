@@ -145,7 +145,7 @@ Y_UNIT_TEST_SUITE(TModelTreesMetadata) {
         UNIT_ASSERT_EQUAL(model.GetNumCatFeatures(), model.GetMinimalSufficientCatFeaturesVectorSize());
 
         floatIndices = GetModelFloatFeaturesIndices(model);
-        expectedFloatIndices = {2, 4};
+        expectedFloatIndices = {0, 4};
         UNIT_ASSERT_EQUAL(floatIndices.size(), expectedFloatIndices.size());
         for (size_t i = 0; i != floatIndices.size(); ++i) {
             UNIT_ASSERT_EQUAL(expectedFloatIndices[i], floatIndices[i]);
