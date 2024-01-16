@@ -11130,3 +11130,15 @@ def test_carry_model():
     uplifted_model = uplift(model, {factor_id: (0, 1)})
     uplift_model_predict = uplifted_model.predict(pool_without_feature)
     assert np.max((uplift_pool_predict - uplift_model_predict) ** 2)**0.5 < 1e-8, 'Wrong uplift model predict'
+
+
+def test_fit_with_256_categories(task_type):
+    train = np.array([[c] * 5 for c in range(128)])
+    label = np.array([c % 2 for c in range(128)])
+
+    test = np.array([[c + 128] * 5 for c in range(128)])
+    test_label = label
+
+    model = CatBoostClassifier(iterations=5, task_type=task_type)
+
+    model.fit(train, y=label, eval_set=tuple((test, test_label)), cat_features=list(range(5)))
