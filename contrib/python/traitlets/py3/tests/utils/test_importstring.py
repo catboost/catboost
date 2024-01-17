@@ -4,6 +4,7 @@
 # Adapted from enthought.traits, Copyright (c) Enthought, Inc.,
 # also under the terms of the Modified BSD License.
 """Tests for traitlets.utils.importstring."""
+from __future__ import annotations
 
 import os
 from unittest import TestCase

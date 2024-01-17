@@ -304,8 +304,7 @@ class Application(SingletonConfigurable):
                 return log
             if not _log.propagate:
                 break
-            else:
-                _log = _log.parent  # type:ignore[assignment]
+            _log = _log.parent  # type:ignore[assignment]
         return log
 
     logging_config = Dict(
@@ -501,7 +500,7 @@ class Application(SingletonConfigurable):
             if not class_config:
                 continue
             print(classname)
-            pformat_kwargs: StrDict = dict(indent=4, compact=True)
+            pformat_kwargs: StrDict = dict(indent=4, compact=True)  # noqa: C408
 
             for traitname in sorted(class_config):
                 value = class_config[traitname]
@@ -924,7 +923,7 @@ class Application(SingletonConfigurable):
                     if raise_config_file_errors:
                         raise
                     if log:
-                        log.error("Exception while loading config file %s", filename, exc_info=True)
+                        log.error("Exception while loading config file %s", filename, exc_info=True)  # noqa: G201
                 else:
                     if log:
                         log.debug("Loaded config file: %s", loader.full_filename)
@@ -933,7 +932,7 @@ class Application(SingletonConfigurable):
                         collisions = earlier_config.collisions(config)
                         if collisions and log:
                             log.warning(
-                                "Collisions detected in {0} and {1} config files."
+                                "Collisions detected in {0} and {1} config files."  # noqa: G001
                                 " {1} has higher priority: {2}".format(
                                     filename,
                                     loader.full_filename,
@@ -974,8 +973,7 @@ class Application(SingletonConfigurable):
     @catch_config_error
     def load_config_environ(self) -> None:
         """Load config files by environment."""
-
-        PREFIX = self.name.upper()
+        PREFIX = self.name.upper().replace("-", "_")
         new_config = Config()
 
         self.log.debug('Looping through config variables with prefix "%s"', PREFIX)
@@ -1059,7 +1057,7 @@ class Application(SingletonConfigurable):
             self._logging_configured = False
 
     def exit(self, exit_status: int | str | None = 0) -> None:
-        self.log.debug("Exiting application: %s" % self.name)
+        self.log.debug("Exiting application: %s", self.name)
         self.close_handlers()
         sys.exit(exit_status)
 

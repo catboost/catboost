@@ -2,6 +2,7 @@
 """
 Test the trait-type ``UseEnum``.
 """
+from __future__ import annotations
 
 import enum
 import unittest
@@ -280,7 +281,7 @@ class TestFuzzyEnum(unittest.TestCase):
 
         example = FuzzyExample()
         for color in color_choices:
-            for wlen in range(0, 2):
+            for wlen in range(2):
                 value = color[wlen:]
 
                 example.color = value

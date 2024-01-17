@@ -476,7 +476,6 @@ class BaseDescriptor:
         :meth:`BaseDescriptor.instance_init` method of descriptors holding
         other descriptors.
         """
-        pass
 
 
 G = TypeVar("G")
@@ -714,8 +713,7 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
         """
         if self.read_only:
             raise TraitError('The "%s" trait is read-only.' % self.name)
-        else:
-            self.set(obj, value)
+        self.set(obj, value)
 
     def _validate(self, obj: t.Any, value: t.Any) -> G | None:
         if value is None and self.allow_none:
@@ -810,27 +808,27 @@ class TraitType(BaseDescriptor, t.Generic[G, S]):
                         ),
                     )
             raise error
+
+        # this trait caused an error
+        if self.name is None:
+            # this is not the root trait
+            raise TraitError(value, info or self.info(), self)
+
+        # this is the root trait
+        if obj is not None:
+            e = "The '{}' trait of {} instance expected {}, not {}.".format(
+                self.name,
+                class_of(obj),
+                info or self.info(),
+                describe("the", value),
+            )
         else:
-            # this trait caused an error
-            if self.name is None:
-                # this is not the root trait
-                raise TraitError(value, info or self.info(), self)
-            else:
-                # this is the root trait
-                if obj is not None:
-                    e = "The '{}' trait of {} instance expected {}, not {}.".format(
-                        self.name,
-                        class_of(obj),
-                        info or self.info(),
-                        describe("the", value),
-                    )
-                else:
-                    e = "The '{}' trait expected {}, not {}.".format(
-                        self.name,
-                        info or self.info(),
-                        describe("the", value),
-                    )
-                raise TraitError(e)
+            e = "The '{}' trait expected {}, not {}.".format(
+                self.name,
+                info or self.info(),
+                describe("the", value),
+            )
+        raise TraitError(e)
 
     def get_metadata(self, key: str, default: t.Any = None) -> t.Any:
         """DEPRECATED: Get a metadata value.
@@ -905,7 +903,7 @@ class _CallbackWrapper:
         if self.nargs > 4:
             raise TraitError("a trait changed callback must have 0-4 arguments.")
 
-    def __eq__(self, other: t.Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         # The wrapper is equal to the wrapped element
         if isinstance(other, _CallbackWrapper):
             return bool(self.cb == other.cb)
@@ -941,7 +939,7 @@ class MetaHasDescriptors(type):
     """
 
     def __new__(
-        mcls: type[MetaHasDescriptors],  # noqa: N804
+        mcls: type[MetaHasDescriptors],
         name: str,
         bases: tuple[type, ...],
         classdict: dict[str, t.Any],
@@ -993,7 +991,7 @@ class MetaHasDescriptors(type):
 class MetaHasTraits(MetaHasDescriptors):
     """A metaclass for HasTraits."""
 
-    def setup_class(cls: MetaHasTraits, classdict: dict[str, t.Any]) -> None:  # noqa
+    def setup_class(cls: MetaHasTraits, classdict: dict[str, t.Any]) -> None:
         # for only the current class
         cls._trait_default_generators: dict[str, t.Any] = {}
         # also looking at base classes
@@ -1490,7 +1488,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
                     self.set_trait(name, value)
             except TraitError as e:
                 # Roll back in case of TraitError during final cross validation.
-                self.notify_change = lambda x: None  # type:ignore[method-assign, assignment]
+                self.notify_change = lambda x: None  # type:ignore[method-assign, assignment]  # noqa: ARG005
                 for name, changes in cache.items():
                     for change in changes[::-1]:
                         # TODO: Separate in a rollback function per notification type.
@@ -1763,8 +1761,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
         cls = self.__class__
         if not self.has_trait(name):
             raise TraitError(f"Class {cls.__name__} does not have a trait named {name}")
-        else:
-            getattr(cls, name).set(self, value)
+        getattr(cls, name).set(self, value)
 
     @classmethod
     def class_trait_names(cls: type[HasTraits], **metadata: t.Any) -> list[str]:
@@ -2363,15 +2360,11 @@ class ForwardDeclaredType(ForwardDeclaredMixin, Type[G, S]):
     Forward-declared version of Type.
     """
 
-    pass
-
 
 class ForwardDeclaredInstance(ForwardDeclaredMixin, Instance[T]):
     """
     Forward-declared version of Instance.
     """
-
-    pass
 
 
 class This(ClassBasedTraitType[t.Optional[T], t.Optional[T]]):
@@ -4010,8 +4003,7 @@ class Dict(Instance["dict[K, V]"]):
         value = super().validate(obj, value)
         if value is None:
             return value
-        value_dict = self.validate_elements(obj, value)
-        return value_dict
+        return self.validate_elements(obj, value)
 
     def validate_elements(self, obj: t.Any, value: dict[t.Any, t.Any]) -> dict[K, V] | None:
         per_key_override = self._per_key_traits or {}

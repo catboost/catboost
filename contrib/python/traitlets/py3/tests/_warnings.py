@@ -1,5 +1,6 @@
 # From scikit-image: https://github.com/scikit-image/scikit-image/blob/c2f8c4ab123ebe5f7b827bc495625a32bb225c10/skimage/_shared/_warnings.py
 # Licensed under modified BSD license
+from __future__ import annotations
 
 __all__ = ["all_warnings", "expected_warnings"]
 

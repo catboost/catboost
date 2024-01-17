@@ -179,5 +179,4 @@ def repr_type(obj: Any) -> str:
     error messages.
     """
     the_type = type(obj)
-    msg = f"{obj!r} {the_type!r}"
-    return msg
+    return f"{obj!r} {the_type!r}"

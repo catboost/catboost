@@ -50,8 +50,7 @@ def setup(app: t.Any) -> dict[str, t.Any]:
     module instead.
     """
     app.add_object_type("configtrait", "configtrait", objname="Config option")
-    metadata = {"parallel_read_safe": True, "parallel_write_safe": True}
-    return metadata
+    return {"parallel_read_safe": True, "parallel_write_safe": True}
 
 
 def interesting_default_value(dv: t.Any) -> bool:

@@ -324,7 +324,7 @@ class Configurable(HasTraits):
     @classmethod
     def class_print_help(cls, inst: HasTraits | None = None) -> None:
         """Get the help string for a single trait and print it."""
-        print(cls.class_get_help(inst))
+        print(cls.class_get_help(inst))  # noqa: T201
 
     @classmethod
     def _defining_class(

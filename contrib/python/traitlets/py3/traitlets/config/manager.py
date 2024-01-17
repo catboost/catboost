@@ -70,8 +70,7 @@ class BaseJSONConfigManager(LoggingConfigurable):
         filename = self.file_name(section_name)
         self.ensure_config_dir_exists()
 
-        f = open(filename, "w", encoding="utf-8")
-        with f:
+        with open(filename, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
     def update(self, section_name: str, new_data: Any) -> Any:

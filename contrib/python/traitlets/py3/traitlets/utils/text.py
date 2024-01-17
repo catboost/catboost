@@ -1,6 +1,7 @@
 """
 Utilities imported from ipython_genutils
 """
+from __future__ import annotations
 
 import re
 import textwrap
@@ -10,8 +11,7 @@ from typing import List
 
 
 def indent(val: str) -> str:
-    res = _indent(val, "    ")
-    return res
+    return _indent(val, "    ")
 
 
 def wrap_paragraphs(text: str, ncols: int = 80) -> List[str]:

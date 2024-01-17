@@ -2,7 +2,7 @@
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-
+from __future__ import annotations
 
 import argparse
 import os
@@ -58,7 +58,7 @@ def get_argcomplete_cwords() -> t.Optional[t.List[str]]:
     comp_words = comp_words[start:]
 
     # argcomplete.debug("prequote=", cword_prequote, "prefix=", cword_prefix, "suffix=", cword_suffix, "words=", comp_words, "last=", last_wordbreak_pos)
-    return comp_words
+    return comp_words  # noqa: RET504
 
 
 def increment_argcomplete_index() -> None:
