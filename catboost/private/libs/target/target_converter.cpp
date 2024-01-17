@@ -297,9 +297,8 @@ namespace NCB {
 
     class TMakeClassLabelsTargetConverter : public ITargetConverter {
     public:
-        TMakeClassLabelsTargetConverter(bool isMultiClass)
-            : IsMultiClass(isMultiClass)
-            , TargetType(ERawTargetType::None) // just some default
+        TMakeClassLabelsTargetConverter()
+            : TargetType(ERawTargetType::None) // just some default
         {}
 
         TVector<float> Process(
@@ -371,14 +370,6 @@ namespace NCB {
         }
 
     private:
-        void CheckUniqueLabelsSize(size_t size) const {
-            CB_ENSURE(size > 1, "Target contains only one unique value");
-            CB_ENSURE(
-                IsMultiClass || (size == 2),
-                "Target with classes must contain only 2 unique values for binary classification"
-            );
-        }
-
         TVector<float> ProcessMakeClassLabelsImpl(const ITypedSequencePtr<float>& labels,
                                                   NPar::ILocalExecutor* localExecutor) {
             CB_ENSURE_INTERNAL(
@@ -393,8 +384,6 @@ namespace NCB {
                 CB_ENSURE(!std::isnan(value), "NaN values are not supported for target");
                 uniqueLabelsSet.insert(value);
             }
-
-            CheckUniqueLabelsSize(uniqueLabelsSet.size());
 
             TVector<float> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
             Sort(uniqueLabels);
@@ -436,7 +425,6 @@ namespace NCB {
             );
 
             THashSet<TString> uniqueLabelsSet(labels.begin(), labels.end());
-            CheckUniqueLabelsSize(uniqueLabelsSet.size());
 
             TVector<TString> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
             // Kind of heuristic for proper ordering class names if they all are numeric
@@ -470,8 +458,6 @@ namespace NCB {
         }
 
     private:
-        bool IsMultiClass;
-
         ERawTargetType TargetType;
 
         // which map is used depends on source target data type
@@ -638,7 +624,7 @@ namespace NCB {
         }
 
 
-        return MakeHolder<TMakeClassLabelsTargetConverter>(isMultiClass);
+        return MakeHolder<TMakeClassLabelsTargetConverter>();
     }
 
 } // NCB
