@@ -13,7 +13,7 @@ from typing import Any
 
 from .base_comm import BaseComm, BuffersType, CommManager, MaybeDict
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __all__ = [
     "create_comm",
     "get_comm_manager",
@@ -48,7 +48,7 @@ def _get_comm_manager() -> CommManager:
 
     This method is intended to be replaced if needed (if you want to manage multiple CommManagers).
     """
-    global _comm_manager
+    global _comm_manager  # noqa: PLW0603
 
     if _comm_manager is None:
         _comm_manager = CommManager()

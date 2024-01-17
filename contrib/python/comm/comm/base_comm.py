@@ -5,6 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 from __future__ import annotations
 
+import contextlib
 import logging
 import typing as t
 import uuid
@@ -70,21 +71,25 @@ class BaseComm:
 
     def publish_msg(
         self,
-        msg_type: str,
-        data: MaybeDict = None,
-        metadata: MaybeDict = None,
-        buffers: BuffersType = None,
-        **keys: t.Any,
+        msg_type: str,  # noqa: ARG002
+        data: MaybeDict = None,  # noqa: ARG002
+        metadata: MaybeDict = None,  # noqa: ARG002
+        buffers: BuffersType = None,  # noqa: ARG002
+        **keys: t.Any,  # noqa: ARG002
     ) -> None:
-        raise NotImplementedError("publish_msg Comm method is not implemented")
+        msg = "publish_msg Comm method is not implemented"
+        raise NotImplementedError(msg)
 
     def __del__(self) -> None:
         """trigger close on gc"""
-        self.close(deleting=True)
+        with contextlib.suppress(Exception):
+            # any number of things can have gone horribly wrong
+            # when called during interpreter teardown
+            self.close(deleting=True)
 
     # publishing messages
 
-    def open(  # noqa: A003
+    def open(
         self, data: MaybeDict = None, metadata: MaybeDict = None, buffers: BuffersType = None
     ) -> None:
         """Open the frontend-side version of this comm"""
@@ -93,7 +98,8 @@ class BaseComm:
             data = self._open_data
         comm_manager = comm.get_comm_manager()
         if comm_manager is None:
-            raise RuntimeError("Comms cannot be opened without a comm_manager.")
+            msg = "Comms cannot be opened without a comm_manager."  # type:ignore[unreachable]
+            raise RuntimeError(msg)
 
         comm_manager.register_comm(self)
         try:
@@ -211,7 +217,7 @@ class CommManager:
 
         self.targets[target_name] = t.cast(CommTargetCallback, f)
 
-    def unregister_target(self, target_name: str, f: CommTargetCallback) -> CommTargetCallback:
+    def unregister_target(self, target_name: str, f: CommTargetCallback) -> CommTargetCallback:  # noqa: ARG002
         """Unregister a callable registered with register_target"""
         return self.targets.pop(target_name)
 
@@ -245,7 +251,7 @@ class CommManager:
 
     # Message handlers
 
-    def comm_open(self, stream: ZMQStream, ident: str, msg: MessageType) -> None:
+    def comm_open(self, stream: ZMQStream, ident: str, msg: MessageType) -> None:  # noqa: ARG002
         """Handler for comm_open messages"""
         from comm import create_comm
 
@@ -278,7 +284,7 @@ class CommManager:
                 exc_info=True,
             )
 
-    def comm_msg(self, stream: ZMQStream, ident: str, msg: MessageType) -> None:
+    def comm_msg(self, stream: ZMQStream, ident: str, msg: MessageType) -> None:  # noqa: ARG002
         """Handler for comm_msg messages"""
         content = msg["content"]
         comm_id = content["comm_id"]
@@ -291,7 +297,7 @@ class CommManager:
         except Exception:
             logger.error("Exception in comm_msg for %s", comm_id, exc_info=True)
 
-    def comm_close(self, stream: ZMQStream, ident: str, msg: MessageType) -> None:
+    def comm_close(self, stream: ZMQStream, ident: str, msg: MessageType) -> None:  # noqa: ARG002
         """Handler for comm_close messages"""
         content = msg["content"]
         comm_id = content["comm_id"]
