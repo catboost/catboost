@@ -48,6 +48,7 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/legacy_pointer_safety.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/locale.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/memory.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/memory_resource.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/mutex.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/mutex_destructor.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/optional.cpp

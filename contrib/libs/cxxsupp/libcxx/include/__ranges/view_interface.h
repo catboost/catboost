@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
+
 #ifndef _LIBCPP___RANGES_VIEW_INTERFACE_H
 #define _LIBCPP___RANGES_VIEW_INTERFACE_H
 
@@ -28,7 +29,7 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_INCOMPLETE_RANGES)
+#if _LIBCPP_STD_VER > 17
 
 namespace ranges {
 
@@ -167,7 +168,7 @@ public:
 
 } // namespace ranges
 
-#endif // _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_INCOMPLETE_RANGES)
+#endif // _LIBCPP_STD_VER > 17
 
 _LIBCPP_END_NAMESPACE_STD
 

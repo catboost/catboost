@@ -201,19 +201,15 @@ template <class charT> class messages_byname;
 #include <__iterator/istreambuf_iterator.h>
 #include <__iterator/ostreambuf_iterator.h>
 #include <__locale>
-#include <cstdarg> // TODO: Remove this include
+#include <__memory/unique_ptr.h>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <ios>
 #include <limits>
-#include <memory>
+#include <new>
 #include <streambuf>
 #include <version>
-
-#ifndef _LIBCPP_REMOVE_TRANSITIVE_INCLUDES
-#  include <iterator>
-#endif
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 // Most unix variants have catopen.  These are the specific ones that don't.
@@ -269,7 +265,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 //  If the input is "a", the first keyword matches and eofbit is set.
 //  If the input is "abc", no match is found and "ab" are consumed.
 template <class _InputIterator, class _ForwardIterator, class _Ctype>
-_LIBCPP_HIDDEN
+_LIBCPP_HIDE_FROM_ABI
 _ForwardIterator
 __scan_keyword(_InputIterator& __b, _InputIterator __e,
                _ForwardIterator __kb, _ForwardIterator __ke,
@@ -557,7 +553,7 @@ __num_get<_CharT>::__stage2_float_loop(_CharT __ct, bool& __in_units, char& __ex
     char __x = __src[__f];
     if (__x == '-' || __x == '+')
     {
-        if (__a_end == __a || (__a_end[-1] & 0x5F) == (__exp & 0x7F))
+        if (__a_end == __a || (std::toupper(__a_end[-1]) == std::toupper(__exp)))
         {
             *__a_end++ = __x;
             return 0;
@@ -566,9 +562,9 @@ __num_get<_CharT>::__stage2_float_loop(_CharT __ct, bool& __in_units, char& __ex
     }
     if (__x == 'x' || __x == 'X')
         __exp = 'P';
-    else if ((__x & 0x5F) == __exp)
+    else if (std::toupper(__x) == __exp)
     {
-        __exp |= (char) 0x80;
+        __exp = std::tolower(__exp);
         if (__in_units)
         {
             __in_units = false;
@@ -681,8 +677,7 @@ public:
     static locale::id id;
 
 protected:
-    _LIBCPP_INLINE_VISIBILITY
-    ~num_get() {}
+    _LIBCPP_HIDE_FROM_ABI ~num_get() override {}
 
     template <class _Fp>
     _LIBCPP_METHOD_TEMPLATE_IMPLICIT_INSTANTIATION_VIS
@@ -751,17 +746,17 @@ locale::id
 num_get<_CharT, _InputIterator>::id;
 
 template <class _Tp>
-_LIBCPP_HIDDEN _Tp
+_LIBCPP_HIDE_FROM_ABI _Tp
 __num_get_signed_integral(const char* __a, const char* __a_end,
                           ios_base::iostate& __err, int __base)
 {
     if (__a != __a_end)
     {
-        typename remove_reference<decltype(errno)>::type __save_errno = errno;
+        __libcpp_remove_reference_t<decltype(errno)> __save_errno = errno;
         errno = 0;
         char *__p2;
         long long __ll = strtoll_l(__a, &__p2, __base, _LIBCPP_GET_C_LOCALE);
-        typename remove_reference<decltype(errno)>::type __current_errno = errno;
+        __libcpp_remove_reference_t<decltype(errno)> __current_errno = errno;
         if (__current_errno == 0)
             errno = __save_errno;
         if (__p2 != __a_end)
@@ -786,7 +781,7 @@ __num_get_signed_integral(const char* __a, const char* __a_end,
 }
 
 template <class _Tp>
-_LIBCPP_HIDDEN _Tp
+_LIBCPP_HIDE_FROM_ABI _Tp
 __num_get_unsigned_integral(const char* __a, const char* __a_end,
                             ios_base::iostate& __err, int __base)
 {
@@ -797,11 +792,11 @@ __num_get_unsigned_integral(const char* __a, const char* __a_end,
           __err = ios_base::failbit;
           return 0;
         }
-        typename remove_reference<decltype(errno)>::type __save_errno = errno;
+        __libcpp_remove_reference_t<decltype(errno)> __save_errno = errno;
         errno = 0;
         char *__p2;
         unsigned long long __ll = strtoull_l(__a, &__p2, __base, _LIBCPP_GET_C_LOCALE);
-        typename remove_reference<decltype(errno)>::type __current_errno = errno;
+        __libcpp_remove_reference_t<decltype(errno)> __current_errno = errno;
         if (__current_errno == 0)
             errno = __save_errno;
         if (__p2 != __a_end)
@@ -845,17 +840,17 @@ long double __do_strtod<long double>(const char* __a, char** __p2) {
 }
 
 template <class _Tp>
-_LIBCPP_HIDDEN
+_LIBCPP_HIDE_FROM_ABI
 _Tp
 __num_get_float(const char* __a, const char* __a_end, ios_base::iostate& __err)
 {
     if (__a != __a_end)
     {
-        typename remove_reference<decltype(errno)>::type __save_errno = errno;
+        __libcpp_remove_reference_t<decltype(errno)> __save_errno = errno;
         errno = 0;
         char *__p2;
         _Tp __ld = __do_strtod<_Tp>(__a, &__p2);
-        typename remove_reference<decltype(errno)>::type __current_errno = errno;
+        __libcpp_remove_reference_t<decltype(errno)> __current_errno = errno;
         if (__current_errno == 0)
             errno = __save_errno;
         if (__p2 != __a_end)
@@ -1352,8 +1347,7 @@ public:
     static locale::id id;
 
 protected:
-    _LIBCPP_INLINE_VISIBILITY
-    ~num_put() {}
+    _LIBCPP_HIDE_FROM_ABI ~num_put() override {}
 
     virtual iter_type do_put(iter_type __s, ios_base& __iob, char_type __fl,
                              bool __v) const;
@@ -1390,7 +1384,7 @@ locale::id
 num_put<_CharT, _OutputIterator>::id;
 
 template <class _CharT, class _OutputIterator>
-_LIBCPP_HIDDEN
+_LIBCPP_HIDE_FROM_ABI
 _OutputIterator
 __pad_and_output(_OutputIterator __s,
                  const _CharT* __ob, const _CharT* __op, const _CharT* __oe,
@@ -1413,7 +1407,7 @@ __pad_and_output(_OutputIterator __s,
 }
 
 template <class _CharT, class _Traits>
-_LIBCPP_HIDDEN
+_LIBCPP_HIDE_FROM_ABI
 ostreambuf_iterator<_CharT, _Traits>
 __pad_and_output(ostreambuf_iterator<_CharT, _Traits> __s,
                  const _CharT* __ob, const _CharT* __op, const _CharT* __oe,
@@ -1652,7 +1646,7 @@ extern template class _LIBCPP_EXTERN_TEMPLATE_TYPE_VIS num_put<wchar_t>;
 #endif
 
 template <class _CharT, class _InputIterator>
-_LIBCPP_HIDDEN
+_LIBCPP_HIDE_FROM_ABI
 int
 __get_up_to_n_digits(_InputIterator& __b, _InputIterator __e,
                      ios_base::iostate& __err, const ctype<_CharT>& __ct, int __n)
@@ -1798,8 +1792,7 @@ public:
     static locale::id id;
 
 protected:
-    _LIBCPP_INLINE_VISIBILITY
-    ~time_get() {}
+    _LIBCPP_HIDE_FROM_ABI ~time_get() override {}
 
     virtual dateorder do_date_order() const;
     virtual iter_type do_get_time(iter_type __b, iter_type __e, ios_base& __iob,
@@ -2392,7 +2385,9 @@ extern template _LIBCPP_FUNC_VIS __time_get_storage<_CharT>::string_type __time_
 /**/
 
 _LIBCPP_TIME_GET_STORAGE_EXPLICIT_INSTANTIATION(char)
+#ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 _LIBCPP_TIME_GET_STORAGE_EXPLICIT_INSTANTIATION(wchar_t)
+#endif
 #undef _LIBCPP_TIME_GET_STORAGE_EXPLICIT_INSTANTIATION
 
 template <class _CharT, class _InputIterator = istreambuf_iterator<_CharT> >
@@ -2416,26 +2411,25 @@ public:
           __time_get_storage<_CharT>(__nm) {}
 
 protected:
-    _LIBCPP_INLINE_VISIBILITY
-    ~time_get_byname() {}
+    _LIBCPP_HIDE_FROM_ABI ~time_get_byname() override {}
 
     _LIBCPP_INLINE_VISIBILITY
-    virtual dateorder do_date_order() const {return this->__do_date_order();}
+     dateorder do_date_order() const override {return this->__do_date_order();}
 private:
     _LIBCPP_INLINE_VISIBILITY
-    virtual const string_type* __weeks() const  {return this->__weeks_;}
+     const string_type* __weeks() const override  {return this->__weeks_;}
     _LIBCPP_INLINE_VISIBILITY
-    virtual const string_type* __months() const {return this->__months_;}
+     const string_type* __months() const override {return this->__months_;}
     _LIBCPP_INLINE_VISIBILITY
-    virtual const string_type* __am_pm() const  {return this->__am_pm_;}
+     const string_type* __am_pm() const override  {return this->__am_pm_;}
     _LIBCPP_INLINE_VISIBILITY
-    virtual const string_type& __c() const      {return this->__c_;}
+     const string_type& __c() const override      {return this->__c_;}
     _LIBCPP_INLINE_VISIBILITY
-    virtual const string_type& __r() const      {return this->__r_;}
+     const string_type& __r() const override      {return this->__r_;}
     _LIBCPP_INLINE_VISIBILITY
-    virtual const string_type& __x() const      {return this->__x_;}
+     const string_type& __x() const override      {return this->__x_;}
     _LIBCPP_INLINE_VISIBILITY
-    virtual const string_type& __X() const      {return this->__X_;}
+     const string_type& __X() const override      {return this->__X_;}
 };
 
 extern template class _LIBCPP_EXTERN_TEMPLATE_TYPE_VIS time_get_byname<char>;
@@ -2453,8 +2447,10 @@ protected:
     ~__time_put();
     void __do_put(char* __nb, char*& __ne, const tm* __tm,
                   char __fmt, char __mod) const;
+#ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
     void __do_put(wchar_t* __wb, wchar_t*& __we, const tm* __tm,
                   char __fmt, char __mod) const;
+#endif
 };
 
 template <class _CharT, class _OutputIterator = ostreambuf_iterator<_CharT> >
@@ -2483,8 +2479,7 @@ public:
     static locale::id id;
 
 protected:
-    _LIBCPP_INLINE_VISIBILITY
-    ~time_put() {}
+    _LIBCPP_HIDE_FROM_ABI ~time_put() override {}
     virtual iter_type do_put(iter_type __s, ios_base&, char_type, const tm* __tm,
                              char __fmt, char __mod) const;
 
@@ -2575,8 +2570,7 @@ protected:
 #if defined(_MSC_VER) && defined(__clang__)
     ~time_put_byname() {}
 #else
-    _LIBCPP_INLINE_VISIBILITY
-    ~time_put_byname() {}
+    _LIBCPP_HIDE_FROM_ABI ~time_put_byname() override {}
 #endif
 };
 
@@ -2625,8 +2619,7 @@ public:
     static const bool intl = _International;
 
 protected:
-    _LIBCPP_INLINE_VISIBILITY
-    ~moneypunct() {}
+    _LIBCPP_HIDE_FROM_ABI ~moneypunct() override {}
 
     virtual char_type   do_decimal_point() const {return numeric_limits<char_type>::max();}
     virtual char_type   do_thousands_sep() const {return numeric_limits<char_type>::max();}
@@ -2676,18 +2669,17 @@ public:
         : moneypunct<_CharT, _International>(__refs) {init(__nm.c_str());}
 
 protected:
-    _LIBCPP_INLINE_VISIBILITY
-    ~moneypunct_byname() {}
+    _LIBCPP_HIDE_FROM_ABI ~moneypunct_byname() override {}
 
-    virtual char_type   do_decimal_point() const {return __decimal_point_;}
-    virtual char_type   do_thousands_sep() const {return __thousands_sep_;}
-    virtual string      do_grouping()      const {return __grouping_;}
-    virtual string_type do_curr_symbol()   const {return __curr_symbol_;}
-    virtual string_type do_positive_sign() const {return __positive_sign_;}
-    virtual string_type do_negative_sign() const {return __negative_sign_;}
-    virtual int         do_frac_digits()   const {return __frac_digits_;}
-    virtual pattern     do_pos_format()    const {return __pos_format_;}
-    virtual pattern     do_neg_format()    const {return __neg_format_;}
+     char_type   do_decimal_point() const override {return __decimal_point_;}
+     char_type   do_thousands_sep() const override {return __thousands_sep_;}
+     string      do_grouping()      const override {return __grouping_;}
+     string_type do_curr_symbol()   const override {return __curr_symbol_;}
+     string_type do_positive_sign() const override {return __positive_sign_;}
+     string_type do_negative_sign() const override {return __negative_sign_;}
+     int         do_frac_digits()   const override {return __frac_digits_;}
+     pattern     do_pos_format()    const override {return __pos_format_;}
+     pattern     do_neg_format()    const override {return __neg_format_;}
 
 private:
     char_type   __decimal_point_;
@@ -2805,9 +2797,7 @@ public:
     static locale::id id;
 
 protected:
-
-    _LIBCPP_INLINE_VISIBILITY
-    ~money_get() {}
+    _LIBCPP_HIDE_FROM_ABI ~money_get() override {}
 
     virtual iter_type do_get(iter_type __b, iter_type __e, bool __intl,
                              ios_base& __iob, ios_base::iostate& __err,
@@ -2832,7 +2822,7 @@ money_get<_CharT, _InputIterator>::id;
 _LIBCPP_FUNC_VIS void __do_nothing(void*);
 
 template <class _Tp>
-_LIBCPP_HIDDEN
+_LIBCPP_HIDE_FROM_ABI
 void
 __double_or_nothing(unique_ptr<_Tp, void(*)(void*)>& __b, _Tp*& __n, _Tp*& __e)
 {
@@ -3351,8 +3341,7 @@ public:
     static locale::id id;
 
 protected:
-    _LIBCPP_INLINE_VISIBILITY
-    ~money_put() {}
+    _LIBCPP_HIDE_FROM_ABI ~money_put() override {}
 
     virtual iter_type do_put(iter_type __s, bool __intl, ios_base& __iob,
                              char_type __fl, long double __units) const;
@@ -3520,8 +3509,7 @@ public:
     static locale::id id;
 
 protected:
-    _LIBCPP_INLINE_VISIBILITY
-    ~messages() {}
+    _LIBCPP_HIDE_FROM_ABI ~messages() override {}
 
     virtual catalog do_open(const basic_string<char>&, const locale&) const;
     virtual string_type do_get(catalog, int __set, int __msgid,
@@ -3610,8 +3598,7 @@ public:
         : messages<_CharT>(__refs) {}
 
 protected:
-    _LIBCPP_INLINE_VISIBILITY
-    ~messages_byname() {}
+    _LIBCPP_HIDE_FROM_ABI ~messages_byname() override {}
 };
 
 extern template class _LIBCPP_EXTERN_TEMPLATE_TYPE_VIS messages_byname<char>;
@@ -4030,9 +4017,11 @@ _LIBCPP_SUPPRESS_DEPRECATED_POP
         }
         else
         {
-             _LIBCPP_ASSERT(!(__extbufnext_ == NULL && (__extbufend_ != __extbufnext_)), "underflow moving from NULL" );
-             if (__extbufend_ != __extbufnext_)
+             if (__extbufend_ != __extbufnext_) {
+                _LIBCPP_ASSERT(__extbufnext_ != nullptr, "underflow moving from nullptr");
+                _LIBCPP_ASSERT(__extbuf_ != nullptr, "underflow moving into nullptr");
                 _VSTD::memmove(__extbuf_, __extbufnext_, __extbufend_ - __extbufnext_);
+             }
             __extbufnext_ = __extbuf_ + (__extbufend_ - __extbufnext_);
             __extbufend_ = __extbuf_ + (__extbuf_ == __extbuf_min_ ? sizeof(__extbuf_min_) : __ebs_);
             streamsize __nmemb = _VSTD::min(static_cast<streamsize>(this->egptr() - this->eback() - __unget_sz),
@@ -4372,5 +4361,14 @@ _LIBCPP_SUPPRESS_DEPRECATED_POP
 _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
+
+#if !defined(_LIBCPP_REMOVE_TRANSITIVE_INCLUDES) && _LIBCPP_STD_VER <= 20
+#  include <atomic>
+#  include <concepts>
+#  include <cstdarg>
+#  include <iterator>
+#  include <stdexcept>
+#  include <typeinfo>
+#endif
 
 #endif // _LIBCPP_LOCALE

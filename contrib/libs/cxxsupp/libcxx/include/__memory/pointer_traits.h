@@ -25,8 +25,7 @@ template <class _Tp, class = void>
 struct __has_element_type : false_type {};
 
 template <class _Tp>
-struct __has_element_type<_Tp,
-              typename __void_t<typename _Tp::element_type>::type> : true_type {};
+struct __has_element_type<_Tp, __void_t<typename _Tp::element_type> > : true_type {};
 
 template <class _Ptr, bool = __has_element_type<_Ptr>::value>
 struct __pointer_traits_element_type;
@@ -53,8 +52,7 @@ template <class _Tp, class = void>
 struct __has_difference_type : false_type {};
 
 template <class _Tp>
-struct __has_difference_type<_Tp,
-            typename __void_t<typename _Tp::difference_type>::type> : true_type {};
+struct __has_difference_type<_Tp, __void_t<typename _Tp::difference_type> > : true_type {};
 
 template <class _Ptr, bool = __has_difference_type<_Ptr>::value>
 struct __pointer_traits_difference_type
@@ -123,9 +121,8 @@ struct _LIBCPP_TEMPLATE_VIS pointer_traits
 private:
     struct __nat {};
 public:
-    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-    static pointer pointer_to(typename conditional<is_void<element_type>::value,
-                                           __nat, element_type>::type& __r)
+    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_SINCE_CXX20
+    static pointer pointer_to(__conditional_t<is_void<element_type>::value, __nat, element_type>& __r)
         {return pointer::pointer_to(__r);}
 };
 
@@ -145,20 +142,18 @@ struct _LIBCPP_TEMPLATE_VIS pointer_traits<_Tp*>
 private:
     struct __nat {};
 public:
-    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-    static pointer pointer_to(typename conditional<is_void<element_type>::value,
-                                      __nat, element_type>::type& __r) _NOEXCEPT
+    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_SINCE_CXX20
+    static pointer pointer_to(__conditional_t<is_void<element_type>::value, __nat, element_type>& __r) _NOEXCEPT
         {return _VSTD::addressof(__r);}
 };
 
-template <class _From, class _To>
-struct __rebind_pointer {
 #ifndef _LIBCPP_CXX03_LANG
-    typedef typename pointer_traits<_From>::template rebind<_To>        type;
+template <class _From, class _To>
+using __rebind_pointer_t = typename pointer_traits<_From>::template rebind<_To>;
 #else
-    typedef typename pointer_traits<_From>::template rebind<_To>::other type;
+template <class _From, class _To>
+using __rebind_pointer_t = typename pointer_traits<_From>::template rebind<_To>::other;
 #endif
-};
 
 // to_address
 

@@ -25,7 +25,7 @@ inline constexpr bool is_constant_evaluated() noexcept {
 }
 #endif
 
-inline _LIBCPP_CONSTEXPR
+_LIBCPP_HIDE_FROM_ABI inline _LIBCPP_CONSTEXPR
 bool __libcpp_is_constant_evaluated() _NOEXCEPT { return __builtin_is_constant_evaluated(); }
 #else
 inline _LIBCPP_CONSTEXPR
