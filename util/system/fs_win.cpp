@@ -208,6 +208,9 @@ namespace NFsPrivate {
     TString WinReadLink(const TString& name) {
         TFileHandle h = CreateFileWithUtf8Name(name, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING,
                                                FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, true);
+        if (h == INVALID_HANDLE_VALUE) {
+            ythrow TIoSystemError() << "can't open file " << name;
+        }
         TTempBuf buf;
         REPARSE_DATA_BUFFER* rdb = ReadReparsePoint(h, buf);
         if (rdb == nullptr) {
