@@ -400,6 +400,7 @@ class YaTestTags(Enum):
     YtRunner = "ya:yt"
     CopyData = "ya:copydata"
     CopyDataRO = "ya:copydataro"
+    NoPstreeTrim = "ya:no_pstree_trim"
 
 
 class ServiceTags(Enum):
