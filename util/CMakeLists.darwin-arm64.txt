@@ -7,7 +7,19 @@
 
 
 add_subdirectory(charset)
+add_subdirectory(datetime)
+add_subdirectory(digest)
 add_subdirectory(draft)
+add_subdirectory(folder)
+add_subdirectory(generic)
+add_subdirectory(memory)
+add_subdirectory(network)
+add_subdirectory(random)
+add_subdirectory(stream)
+add_subdirectory(string)
+add_subdirectory(system)
+add_subdirectory(thread)
+add_subdirectory(ut)
 
 add_library(yutil)
 target_compile_options(yutil PRIVATE

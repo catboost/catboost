@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(ut)
 
 add_library(util-charset)
 target_link_libraries(util-charset PUBLIC
