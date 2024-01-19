@@ -437,7 +437,7 @@ template <class _Tp>
 struct _LIBCPP_TEMPLATE_VIS __iterator_traits_pointer<_Tp, false> {};
 
 template <class _Tp>
-struct _LIBCPP_TEMPLATE_VIS iterator_traits<_Tp*> : public __iterator_traits_pointer<_Tp, is_object_v<_Tp>> {};
+struct _LIBCPP_TEMPLATE_VIS iterator_traits<_Tp*> : public __iterator_traits_pointer<_Tp, is_object<_Tp>::value> {};
 
 #endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
 
