@@ -40,8 +40,8 @@
 
 namespace NCB {
 
-    class TRawObjectsOrderDataProviderBuilder : public IDataProviderBuilder,
-                                                public IRawObjectsOrderDataVisitor
+    class TRawObjectsOrderDataProviderBuilder final : public IDataProviderBuilder,
+                                                      public IRawObjectsOrderDataVisitor
     {
     public:
         TRawObjectsOrderDataProviderBuilder(
@@ -1083,8 +1083,8 @@ namespace NCB {
     };
 
 
-    class TRawFeaturesOrderDataProviderBuilder : public IDataProviderBuilder,
-                                                 public IRawFeaturesOrderDataVisitor
+    class TRawFeaturesOrderDataProviderBuilder final : public IDataProviderBuilder,
+                                                       public IRawFeaturesOrderDataVisitor
     {
     public:
         static constexpr int OBJECT_CALC_BLOCK_SIZE = 10000;
@@ -2332,7 +2332,7 @@ namespace NCB {
     };
 
 
-    class TLazyQuantizedFeaturesDataProviderBuilder : public TQuantizedFeaturesDataProviderBuilder
+    class TLazyQuantizedFeaturesDataProviderBuilder final : public TQuantizedFeaturesDataProviderBuilder
     {
     public:
         TLazyQuantizedFeaturesDataProviderBuilder(
