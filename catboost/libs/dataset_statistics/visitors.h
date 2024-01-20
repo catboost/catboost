@@ -16,7 +16,7 @@
 
 namespace NCB {
 
-class TDatasetStatisticsFullVisitor: public IRawObjectsOrderDataVisitor {
+class TDatasetStatisticsFullVisitor final : public IRawObjectsOrderDataVisitor {
 public:
     TDatasetStatisticsFullVisitor(
         const TDataProviderBuilderOptions& options,
@@ -342,7 +342,7 @@ private:
     bool ConvertStringTargets;
 };
 
-class TDatasetStatisticsOnlyGroupVisitor: public IRawObjectsOrderDataVisitor {
+class TDatasetStatisticsOnlyGroupVisitor final : public IRawObjectsOrderDataVisitor {
 public:
     explicit TDatasetStatisticsOnlyGroupVisitor(bool isLocal)
         : ObjectCount(0)
