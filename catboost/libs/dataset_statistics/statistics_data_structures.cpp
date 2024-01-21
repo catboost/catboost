@@ -194,6 +194,10 @@ void TTargetsStatistics::Update(ui32 flatTargetIdx, float value) {
     FloatTargetStatistics[flatTargetIdx].Update(value);
 }
 
+void TTargetsStatistics::Update(ui32 flatTargetIdx, ui32 value) {
+    StringTargetStatistics[flatTargetIdx].Update(value);
+}
+
 NJson::TJsonValue TTargetsStatistics::ToJson() const {
     NJson::TJsonValue result;
     InsertEnumType("TargetType", TargetType, &result);

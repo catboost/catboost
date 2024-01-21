@@ -284,7 +284,7 @@ public:
     NJson::TJsonValue ToJson() const override;
 
     void Update(ui32 flatTargetIdx, TStringBuf value);
-
+    void Update(ui32 flatTargetIdx, ui32 value);
     void Update(ui32 flatTargetIdx, float value);
 
     void Update(const TTargetsStatistics& update) {
