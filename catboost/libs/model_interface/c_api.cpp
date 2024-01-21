@@ -15,6 +15,7 @@
 #include <util/system/compiler.h>
 
 #include <algorithm>
+#include <functional>
 #include <new>
 
 struct TModelHandleContent {
@@ -190,6 +191,26 @@ namespace {
             result[docId] = predictions[docId * dim + classId];
         }
     }
+
+    bool GetFeatureIndices(std::function<TVector<int>()> getFeatureIndices, int** indices, size_t* count) {
+        try {
+            auto featureIndices = getFeatureIndices();
+            *indices = (int*)malloc(sizeof(int) * featureIndices.size());
+            if (!*indices) {
+                return false;
+            }
+
+            *count = featureIndices.size();
+            for (size_t i = 0; i != featureIndices.size(); ++i) {
+                (*indices)[i] = featureIndices[i];
+            }
+        } catch(...) {
+            Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+            return false;
+        }
+        return true;
+    }
+
 }  // namespace
 
 extern "C" {
@@ -888,65 +909,32 @@ CATBOOST_API bool GetModelUsedFeaturesNames(ModelCalcerHandle* modelHandle, char
     return true;
 }
 
-bool GetFeatureIndices(const TVector<int>& featureIndices, int** indices, size_t* count) {
-    *indices = (int*)malloc(sizeof(int) * featureIndices.size());
-    if (!*indices) {
-        return false;
-    }
-
-    *count = featureIndices.size();
-    for (size_t i = 0; i != featureIndices.size(); ++i) {
-        (*indices)[i] = featureIndices[i];
-    }
-    return true;
-}
-
 CATBOOST_API bool GetCatFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
-    try {
-        if (!GetFeatureIndices(GetModelCatFeaturesIndices(*FULL_MODEL_PTR(modelHandle)), indices, count)) {
-            return false;
-        }
-    } catch(...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
-        return false;
-    }
-    return true;
+    return GetFeatureIndices(
+        [=] () { return GetModelCatFeaturesIndices(*FULL_MODEL_PTR(modelHandle)); },
+        indices,
+        count);
 }
 
 CATBOOST_API bool GetFloatFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
-    try {
-        if (!GetFeatureIndices(GetModelFloatFeaturesIndices(*FULL_MODEL_PTR(modelHandle)), indices, count)) {
-            return false;
-        }
-    } catch(...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
-        return false;
-    }
-    return true;
+    return GetFeatureIndices(
+        [=] () { return GetModelFloatFeaturesIndices(*FULL_MODEL_PTR(modelHandle)); },
+        indices,
+        count);
 }
 
 CATBOOST_API bool GetTextFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
-    try {
-        if (!GetFeatureIndices(GetModelTextFeaturesIndices(*FULL_MODEL_PTR(modelHandle)), indices, count)) {
-            return false;
-        }
-    } catch(...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
-        return false;
-    }
-    return true;
+    return GetFeatureIndices(
+        [=] () { return GetModelTextFeaturesIndices(*FULL_MODEL_PTR(modelHandle)); },
+        indices,
+        count);
 }
 
 CATBOOST_API bool GetEmbeddingFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
-    try {
-        if (!GetFeatureIndices(GetModelEmbeddingFeaturesIndices(*FULL_MODEL_PTR(modelHandle)), indices, count)) {
-            return false;
-        }
-    } catch(...) {
-        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
-        return false;
-    }
-    return true;
+    return GetFeatureIndices(
+        [=] () { return GetModelEmbeddingFeaturesIndices(*FULL_MODEL_PTR(modelHandle)); },
+        indices,
+        count);
 }
 
 
