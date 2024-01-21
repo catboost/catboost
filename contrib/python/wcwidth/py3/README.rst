@@ -32,7 +32,7 @@ Example
    >>>  text = u'コンニチハ'
 
 Python **incorrectly** uses the *string length* of 5 codepoints rather than the
-*printible length* of 10 cells, so that when using the `rjust` function, the
+*printable length* of 10 cells, so that when using the `rjust` function, the
 output length is wrong::
 
     >>> print(len('コンニチハ'))
@@ -216,8 +216,12 @@ Other Languages
 =======
 History
 =======
+
+0.2.13 *2024-01-06*
+  * **Bugfix** zero-width support for Hangul Jamo (Korean)
+
 0.2.12 *2023-11-21*
-  * re-release to remove .pyi file misplaced in wheel files `Issue #101`.
+  * re-release to remove .pyi file misplaced in wheel files `Issue #101`_.
 
 0.2.11 *2023-11-20*
   * Include tests files in the source distribution (`PR #98`_, `PR #100`_).
