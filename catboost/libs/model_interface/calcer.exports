@@ -49,3 +49,8 @@ C CheckModelMetadataHasKey
 C GetModelInfoValueSize
 C GetModelInfoValue
 C GetModelUsedFeaturesNames
+
+C GetCatFeatureIndices
+C GetFloatFeatureIndices
+C GetTextFeatureIndices
+C GetEmbeddingFeatureIndices

@@ -1341,6 +1341,32 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
     return result;
 }
 
+template <typename T>
+TVector<int> MakeIndicesVector(const TConstArrayRef<T>& features) {
+    TVector<int> indices;
+    indices.reserve(features.size());
+    for (const auto& feature : features) {
+        indices.push_back(feature.Position.FlatIndex);
+    }
+    return indices;
+}
+
+TVector<int> GetModelCatFeaturesIndices(const TFullModel& model) {
+    return MakeIndicesVector(model.ModelTrees->GetCatFeatures());
+}
+
+TVector<int> GetModelFloatFeaturesIndices(const TFullModel& model) {
+    return MakeIndicesVector(model.ModelTrees->GetFloatFeatures());
+}
+
+TVector<int> GetModelTextFeaturesIndices(const TFullModel& model) {
+    return MakeIndicesVector(model.ModelTrees->GetTextFeatures());
+}
+
+TVector<int> GetModelEmbeddingFeaturesIndices(const TFullModel& model) {
+    return MakeIndicesVector(model.ModelTrees->GetEmbeddingFeatures());
+}
+
 void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullModel* model) {
     model->ModelTrees.GetMutable()->ApplyFeatureNames(featureNames);
 }

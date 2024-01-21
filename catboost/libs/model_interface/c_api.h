@@ -402,10 +402,30 @@ CATBOOST_API int GetIntegerCatFeatureHash(long long val);
 CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
+ * Get expected indices of float features used in the model.
+ * indices array must be deallocated using free() after use.
+ * @param modelHandle model handle
+ * @param indices indices of the features
+ * @param count indices size
+ * @return true on success, false on error
+ */
+CATBOOST_API bool GetFloatFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count);
+
+/**
  * Get expected categorical feature count for model
  * @param calcer model handle
  */
 CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
+
+/**
+ * Get expected indices of category features used in the model.
+ * indices array must be deallocated using free() after use.
+ * @param modelHandle model handle
+ * @param indices indices of the features
+ * @param count indices size
+ * @return true on success, false on error
+ */
+CATBOOST_API bool GetCatFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count);
 
 /**
  * Get expected text feature count for model
@@ -414,10 +434,30 @@ CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
 CATBOOST_API size_t GetTextFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
+ * Get expected indices of text features used in the model.
+ * indices array must be deallocated using free() after use.
+ * @param modelHandle model handle
+ * @param indices indices of the features
+ * @param count indices size
+ * @return true on success, false on error
+ */
+CATBOOST_API bool GetTextFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count);
+
+/**
  * Get expected embedding feature count for model
  * @param calcer model handle
  */
 CATBOOST_API size_t GetEmbeddingFeaturesCount(ModelCalcerHandle* modelHandle);
+
+/**
+ * Get expected indices of embedding features used in the model.
+ * indices array must be deallocated using free() after use.
+ * @param modelHandle model handle
+ * @param indices indices of the features
+ * @param count indices size
+ * @return true on success, false on error
+ */
+CATBOOST_API bool GetEmbeddingFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count);
 
 /**
  * Get number of trees in model
