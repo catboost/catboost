@@ -15,7 +15,6 @@
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 
-using namespace NCB;
 
 struct TCalculateStatisticsParams {
     TString OutputPath;
@@ -26,7 +25,7 @@ struct TCalculateStatisticsParams {
     bool OnlyLightStatistics = false;
     bool ConvertStringTargets = false;
     size_t BorderCount = 64;
-    TFeatureCustomBorders FeatureLimits;
+    NCB::TFeatureCustomBorders FeatureLimits;
     ui32 SpotSize = 0;
     ui32 SpotCount = 0;
 

@@ -261,7 +261,7 @@ void OutputSorted(const THashMap<T, ui64>& targets, NJson::TJsonValue* targetsDi
 NJson::TJsonValue TStringTargetStatistic::ToJson() const {
     NJson::TJsonValue result;
     NJson::TJsonValue targetsDistribution;
-    targetsDistribution.SetType(EJsonValueType::JSON_ARRAY);
+    targetsDistribution.SetType(NJson::EJsonValueType::JSON_ARRAY);
     InsertEnumType("TargetType", TargetType, &result);
     switch (TargetType) {
         case ERawTargetType::String:

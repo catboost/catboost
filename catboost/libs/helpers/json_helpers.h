@@ -6,22 +6,24 @@
 
 #include <util/stream/str.h>
 
-using namespace NJson;
-
 
 template <typename T>
-static TJsonValue VectorToJson(const TVector<T>& values) {
-    TJsonValue jsonValue;
-    jsonValue.SetType(EJsonValueType::JSON_ARRAY);
+static NJson::TJsonValue VectorToJson(const TVector<T>& values) {
+    NJson::TJsonValue jsonValue;
+    jsonValue.SetType(NJson::EJsonValueType::JSON_ARRAY);
     for (const auto& value: values) {
-        jsonValue.AppendValue(TJsonValue(value));
+        jsonValue.AppendValue(NJson::TJsonValue(value));
     }
     CB_ENSURE(jsonValue.GetArray().size() == values.size());
     return jsonValue;
 }
 
-static void WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool formatOutput, IOutputStream* out) {
-    TJsonWriterConfig config;
+static void WriteJsonWithCatBoostPrecision(
+    const NJson::TJsonValue& value,
+    bool formatOutput,
+    IOutputStream* out
+) {
+    NJson::TJsonWriterConfig config;
     config.FormatOutput = formatOutput;
     config.FloatNDigits = 9;
     config.DoubleNDigits = 17;
@@ -29,7 +31,7 @@ static void WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool formatO
     WriteJson(out, &value, config);
 }
 
-inline TString WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool formatOutput) {
+inline TString WriteJsonWithCatBoostPrecision(const NJson::TJsonValue& value, bool formatOutput) {
     TStringStream ss;
     WriteJsonWithCatBoostPrecision(value, formatOutput, &ss);
     return ss.Str();
@@ -58,14 +60,14 @@ void FromJson(const NJson::TJsonValue& value, T* result) {
 void FromJson(const NJson::TJsonValue& value, TString* result);
 
 template <typename T>
-static T FromJson(const TJsonValue& value) {
+static T FromJson(const NJson::TJsonValue& value) {
     T result;
     FromJson(value, &result);
     return result;
 }
 
 template <typename T>
-static TVector<T> JsonToVector(const TJsonValue& jsonValue) {
+static TVector<T> JsonToVector(const NJson::TJsonValue& jsonValue) {
     TVector<T> result;
     for (const auto& value: jsonValue.GetArray()) {
         result.push_back(FromJson<T>(value));
@@ -82,11 +84,11 @@ TString WriteTJsonValue(const NJson::TJsonValue& jsonValue);
 
 
 template <typename T>
-static void InsertEnumType(const TString& typeName, const T& value, TJsonValue* jsonValuePtr) {
+static void InsertEnumType(const TString& typeName, const T& value, NJson::TJsonValue* jsonValuePtr) {
     jsonValuePtr->InsertValue(typeName, ToString<T>(value));
 }
 
 template <typename T>
-static void ReadEnumType(const TString& typeName, const TJsonValue& jsonValue, T* valuePtr) {
+static void ReadEnumType(const TString& typeName, const NJson::TJsonValue& jsonValue, T* valuePtr) {
     *valuePtr = FromString<T>(jsonValue[typeName].GetString());
 }

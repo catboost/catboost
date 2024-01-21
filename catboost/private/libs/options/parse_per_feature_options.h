@@ -13,11 +13,9 @@
 
 #include <regex>
 
-using namespace NJson;
-
 namespace NCatboostOptions {
     template<typename TFeatureOptionType>
-    static TFeatureOptionType GetOptionValue(const TJsonValue& option) {
+    static TFeatureOptionType GetOptionValue(const NJson::TJsonValue& option) {
         return FromJson<TFeatureOptionType>(option);
     }
 
@@ -57,8 +55,8 @@ namespace NCatboostOptions {
     }
 
     template<typename TFeatureOptionType>
-    void ConvertFeatureOptionsToCanonicalFormat(const TStringBuf optionName, const TStringBuf optionRegex, TJsonValue* optionsRef) {
-        TJsonValue canonicalOptions(EJsonValueType::JSON_MAP);
+    void ConvertFeatureOptionsToCanonicalFormat(const TStringBuf optionName, const TStringBuf optionRegex, NJson::TJsonValue* optionsRef) {
+        NJson::TJsonValue canonicalOptions(NJson::EJsonValueType::JSON_MAP);
         switch (optionsRef->GetType()) {
             case NJson::EJsonValueType::JSON_STRING: {
                 TMap<TString, TFeatureOptionType> optionsAsMap = ParsePerFeatureOptionsFromString<TFeatureOptionType>(
