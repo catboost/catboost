@@ -362,7 +362,7 @@ def get_require_pic(targets):
 
     return False
 
-def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_runner, dry_run):
+def get_msvs_dir(msvs_installation_path, msvs_version):
     if msvs_installation_path is None:
         program_files = 'Program Files' if msvs_version == '2022' else 'Program Files (x86)'
         msvs_base_dir = f'c:\\{program_files}\\Microsoft Visual Studio\\{msvs_version}'
@@ -375,6 +375,12 @@ def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_run
         msvs_dir = f'{msvs_base_dir}\\Enterprise'
     else:
         raise RuntimeError(f'Microsoft Visual Studio {msvs_version} installation not found')
+
+    return msvs_dir
+
+
+def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_runner, dry_run):
+    msvs_dir = get_msvs_dir(msvs_installation_path, msvs_version)
 
     env_vars = {}
 
@@ -484,6 +490,8 @@ def build(
     else:
         build_environ = os.environ
 
+    msvs_dir = get_msvs_dir(opts.msvs_installation_path, opts.msvs_version)
+
     # can be empty if called for tools build
     catboost_components = get_catboost_components(opts.targets)
 
@@ -496,6 +504,14 @@ def build(
         f'-DCMAKE_BUILD_TYPE={opts.build_type}',
         f'-DCMAKE_TOOLCHAIN_FILE={cmake_target_toolchain}',
     ]
+    if (platform.system().lower() == 'windows') and (not opts.have_cuda):
+        # Use clang-cl for the build without CUDA and standard Microsoft toolchain for the build with CUDA
+        # (as clang-cl is not supported by CUDA yet)
+        cmake_cmd += [
+            f'-DCMAKE_CXX_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
+            f'-DCMAKE_C_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
+            f'-DCMAKE_RC_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\llvm-rc.exe'
+        ]
     if opts.verbose:
         cmake_cmd += ['--log-level=VERBOSE']
     if require_pic:
