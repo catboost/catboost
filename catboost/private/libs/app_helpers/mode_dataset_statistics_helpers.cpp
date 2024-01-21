@@ -237,7 +237,7 @@ static void CalculateHistogram(
 }
 
 
-void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
+void NCB::CalculateDatasetStatisticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
     NPar::TLocalExecutor localExecutor;
 
     int threadCount = (calculateStatisticsParams.ThreadCount == -1) ?

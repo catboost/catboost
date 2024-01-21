@@ -46,7 +46,7 @@ namespace NCB {
 
     using TModeDatasetStatisticsImplementationFactory = NObjectFactory::TParametrizedObjectFactory<IModeDatasetStatisticsImplementation, EImplementationType>;
 
-    void CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams);
+    void CalculateDatasetStatisticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams);
 
     TVector<TIndexRange<ui64>> GetSpots(ui64 datasetSize, ui64 spotSize, ui64 spotCount);
 };

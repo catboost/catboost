@@ -7,7 +7,7 @@ namespace {
         int mode_dataset_statistics(int argc, const char *argv[]) const override {
             TCalculateStatisticsParams params;
             params.ProcessParams(argc, argv);
-            CalculateDatasetStaticsSingleHost(params);
+            CalculateDatasetStatisticsSingleHost(params);
             return 0;
         }
     };
