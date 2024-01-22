@@ -201,7 +201,7 @@ namespace {
             } else {
                 *indices = (int*)malloc(sizeof(int) * featureIndices.size());
                 if (!*indices) {
-                    return false;
+                    throw std::bad_alloc();
                 }
 
                 for (size_t i = 0; i != featureIndices.size(); ++i) {
