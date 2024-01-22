@@ -409,7 +409,7 @@ CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle);
  * @param count indices size
  * @return true on success, false on error
  */
-CATBOOST_API bool GetFloatFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count);
+CATBOOST_API bool GetFloatFeatureIndices(ModelCalcerHandle* modelHandle, size_t** indices, size_t* count);
 
 /**
  * Get expected categorical feature count for model
@@ -425,7 +425,7 @@ CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
  * @param count indices size
  * @return true on success, false on error
  */
-CATBOOST_API bool GetCatFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count);
+CATBOOST_API bool GetCatFeatureIndices(ModelCalcerHandle* modelHandle, size_t** indices, size_t* count);
 
 /**
  * Get expected text feature count for model
@@ -441,7 +441,7 @@ CATBOOST_API size_t GetTextFeaturesCount(ModelCalcerHandle* modelHandle);
  * @param count indices size
  * @return true on success, false on error
  */
-CATBOOST_API bool GetTextFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count);
+CATBOOST_API bool GetTextFeatureIndices(ModelCalcerHandle* modelHandle, size_t** indices, size_t* count);
 
 /**
  * Get expected embedding feature count for model
@@ -457,7 +457,7 @@ CATBOOST_API size_t GetEmbeddingFeaturesCount(ModelCalcerHandle* modelHandle);
  * @param count indices size
  * @return true on success, false on error
  */
-CATBOOST_API bool GetEmbeddingFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count);
+CATBOOST_API bool GetEmbeddingFeatureIndices(ModelCalcerHandle* modelHandle, size_t** indices, size_t* count);
 
 /**
  * Get number of trees in model

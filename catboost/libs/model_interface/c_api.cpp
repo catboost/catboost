@@ -192,14 +192,14 @@ namespace {
         }
     }
 
-    bool GetFeatureIndices(std::function<TVector<int>()> getFeatureIndices, int** indices, size_t* count) {
+    bool GetFeatureIndices(std::function<TVector<size_t>()> getFeatureIndices, size_t** indices, size_t* count) {
         try {
             auto featureIndices = getFeatureIndices();
             *count = featureIndices.size();
             if (!featureIndices.size()) {
                 *indices = nullptr;
             } else {
-                *indices = (int*)malloc(sizeof(int) * featureIndices.size());
+                *indices = (size_t*)malloc(sizeof(size_t) * featureIndices.size());
                 if (!*indices) {
                     throw std::bad_alloc();
                 }
@@ -911,28 +911,28 @@ CATBOOST_API bool GetModelUsedFeaturesNames(ModelCalcerHandle* modelHandle, char
     return true;
 }
 
-CATBOOST_API bool GetCatFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
+CATBOOST_API bool GetCatFeatureIndices(ModelCalcerHandle* modelHandle, size_t** indices, size_t* count) {
     return GetFeatureIndices(
         [=] () { return GetModelCatFeaturesIndices(*FULL_MODEL_PTR(modelHandle)); },
         indices,
         count);
 }
 
-CATBOOST_API bool GetFloatFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
+CATBOOST_API bool GetFloatFeatureIndices(ModelCalcerHandle* modelHandle, size_t** indices, size_t* count) {
     return GetFeatureIndices(
         [=] () { return GetModelFloatFeaturesIndices(*FULL_MODEL_PTR(modelHandle)); },
         indices,
         count);
 }
 
-CATBOOST_API bool GetTextFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
+CATBOOST_API bool GetTextFeatureIndices(ModelCalcerHandle* modelHandle, size_t** indices, size_t* count) {
     return GetFeatureIndices(
         [=] () { return GetModelTextFeaturesIndices(*FULL_MODEL_PTR(modelHandle)); },
         indices,
         count);
 }
 
-CATBOOST_API bool GetEmbeddingFeatureIndices(ModelCalcerHandle* modelHandle, int** indices, size_t* count) {
+CATBOOST_API bool GetEmbeddingFeatureIndices(ModelCalcerHandle* modelHandle, size_t** indices, size_t* count) {
     return GetFeatureIndices(
         [=] () { return GetModelEmbeddingFeaturesIndices(*FULL_MODEL_PTR(modelHandle)); },
         indices,

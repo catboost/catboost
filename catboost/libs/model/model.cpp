@@ -1342,28 +1342,28 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
 }
 
 template <typename T>
-TVector<int> MakeIndicesVector(const TConstArrayRef<T>& features) {
-    TVector<int> indices;
+TVector<size_t> MakeIndicesVector(const TConstArrayRef<T>& features) {
+    TVector<size_t> indices;
     indices.reserve(features.size());
     for (const auto& feature : features) {
-        indices.push_back(feature.Position.FlatIndex);
+        indices.push_back(SafeIntegerCast<size_t>(feature.Position.FlatIndex));
     }
     return indices;
 }
 
-TVector<int> GetModelCatFeaturesIndices(const TFullModel& model) {
+TVector<size_t> GetModelCatFeaturesIndices(const TFullModel& model) {
     return MakeIndicesVector(model.ModelTrees->GetCatFeatures());
 }
 
-TVector<int> GetModelFloatFeaturesIndices(const TFullModel& model) {
+TVector<size_t> GetModelFloatFeaturesIndices(const TFullModel& model) {
     return MakeIndicesVector(model.ModelTrees->GetFloatFeatures());
 }
 
-TVector<int> GetModelTextFeaturesIndices(const TFullModel& model) {
+TVector<size_t> GetModelTextFeaturesIndices(const TFullModel& model) {
     return MakeIndicesVector(model.ModelTrees->GetTextFeatures());
 }
 
-TVector<int> GetModelEmbeddingFeaturesIndices(const TFullModel& model) {
+TVector<size_t> GetModelEmbeddingFeaturesIndices(const TFullModel& model) {
     return MakeIndicesVector(model.ModelTrees->GetEmbeddingFeatures());
 }
 
