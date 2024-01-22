@@ -204,9 +204,7 @@ namespace {
                     throw std::bad_alloc();
                 }
 
-                for (size_t i = 0; i != featureIndices.size(); ++i) {
-                    (*indices)[i] = featureIndices[i];
-                }
+                std::copy(featureIndices.begin(), featureIndices.end(), *indices);
             }
         } catch(...) {
             Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
