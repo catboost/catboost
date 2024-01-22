@@ -233,6 +233,10 @@ namespace types
     explicit operator bool() const;
     long flat_size() const;
     intptr_t id() const;
+    intptr_t baseid() const
+    {
+      return arg.baseid();
+    }
     template <class Expr>
     numpy_texpr_2 &operator=(Expr const &expr);
     template <class Expr>

@@ -52,7 +52,7 @@ namespace xsimd
 #define XSIMD_LITTLE_ENDIAN
 #endif
 #elif defined(_WIN32)
-// We can safely assume that Windows is always little endian
+        // We can safely assume that Windows is always little endian
 #define XSIMD_LITTLE_ENDIAN
 #elif defined(i386) || defined(i486) || defined(intel) || defined(x86) || defined(i86pc) || defined(__alpha) || defined(__osf__)
 #define XSIMD_LITTLE_ENDIAN

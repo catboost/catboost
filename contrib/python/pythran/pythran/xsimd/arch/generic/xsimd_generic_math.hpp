@@ -95,12 +95,12 @@ namespace xsimd
         template <class A>
         inline batch<float, A> bitofsign(batch<float, A> const& self, requires_arch<generic>) noexcept
         {
-            return self & constants::minuszero<batch<float, A>>();
+            return self & constants::signmask<batch<float, A>>();
         }
         template <class A>
         inline batch<double, A> bitofsign(batch<double, A> const& self, requires_arch<generic>) noexcept
         {
-            return self & constants::minuszero<batch<double, A>>();
+            return self & constants::signmask<batch<double, A>>();
         }
 
         // bitwise_cast
@@ -470,16 +470,18 @@ namespace xsimd
             batch_type x = abs(self);
             auto test0 = self < batch_type(0.);
             batch_type r1(0.);
+            auto test1 = 3.f * x < 2.f;
             batch_type z = x / (batch_type(1.) + x);
-            if (any(3.f * x < 2.f))
+            if (any(test1))
             {
                 r1 = detail::erf_kernel<batch_type>::erfc3(z);
+                if (all(test1))
+                    return select(test0, batch_type(2.) - r1, r1);
             }
-            else
-            {
-                z -= batch_type(0.4f);
-                r1 = exp(-x * x) * detail::erf_kernel<batch_type>::erfc2(z);
-            }
+
+            z -= batch_type(0.4f);
+            batch_type r2 = exp(-x * x) * detail::erf_kernel<batch_type>::erfc2(z);
+            r1 = select(test1, r1, r2);
 #ifndef XSIMD_NO_INFINITIES
             r1 = select(x == constants::infinity<batch_type>(), batch_type(0.), r1);
 #endif
@@ -1849,7 +1851,7 @@ namespace xsimd
         {
             using U = as_integer_t<float>;
             return kernel::detail::apply_transform<U>([](float x) noexcept -> U
-                                                      { return std::lroundf(x); },
+                                                      { return std::nearbyintf(x); },
                                                       self);
         }
 
@@ -1859,7 +1861,7 @@ namespace xsimd
         {
             using U = as_integer_t<double>;
             return kernel::detail::apply_transform<U>([](double x) noexcept -> U
-                                                      { return std::llround(x); },
+                                                      { return std::nearbyint(x); },
                                                       self);
         }
 

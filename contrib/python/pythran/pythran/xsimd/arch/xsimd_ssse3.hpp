@@ -105,7 +105,40 @@ namespace xsimd
             }
         }
 
-        // swizzle
+        // rotate_right
+        template <size_t N, class A>
+        inline batch<uint16_t, A> rotate_right(batch<uint16_t, A> const& self, requires_arch<ssse3>) noexcept
+        {
+            return _mm_alignr_epi8(self, self, N);
+        }
+        template <size_t N, class A>
+        inline batch<int16_t, A> rotate_right(batch<int16_t, A> const& self, requires_arch<ssse3>) noexcept
+        {
+            return bitwise_cast<int16_t>(rotate_right<N, A>(bitwise_cast<uint16_t>(self), ssse3 {}));
+        }
+
+        // swizzle (dynamic mask)
+        template <class A>
+        inline batch<uint8_t, A> swizzle(batch<uint8_t, A> const& self, batch<uint8_t, A> mask, requires_arch<ssse3>) noexcept
+        {
+            return _mm_shuffle_epi8(self, mask);
+        }
+        template <class A>
+        inline batch<int8_t, A> swizzle(batch<int8_t, A> const& self, batch<uint8_t, A> mask, requires_arch<ssse3>) noexcept
+        {
+            return _mm_shuffle_epi8(self, mask);
+        }
+
+        template <class A, class T, class IT>
+        inline typename std::enable_if<std::is_arithmetic<T>::value, batch<T, A>>::type
+        swizzle(batch<T, A> const& self, batch<IT, A> mask, requires_arch<ssse3>) noexcept
+        {
+            constexpr auto pikes = static_cast<as_unsigned_integer_t<T>>(0x0706050403020100ul);
+            constexpr auto comb = static_cast<as_unsigned_integer_t<T>>(0x0101010101010101ul * sizeof(T));
+            return bitwise_cast<T>(swizzle(bitwise_cast<uint8_t>(self), bitwise_cast<uint8_t>(mask * comb + pikes), ssse3 {}));
+        }
+
+        // swizzle (constant mask)
         template <class A, uint16_t V0, uint16_t V1, uint16_t V2, uint16_t V3, uint16_t V4, uint16_t V5, uint16_t V6, uint16_t V7>
         inline batch<uint16_t, A> swizzle(batch<uint16_t, A> const& self, batch_constant<batch<uint16_t, A>, V0, V1, V2, V3, V4, V5, V6, V7>, requires_arch<ssse3>) noexcept
         {
@@ -125,14 +158,14 @@ namespace xsimd
                   uint8_t V8, uint8_t V9, uint8_t V10, uint8_t V11, uint8_t V12, uint8_t V13, uint8_t V14, uint8_t V15>
         inline batch<uint8_t, A> swizzle(batch<uint8_t, A> const& self, batch_constant<batch<uint8_t, A>, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15> mask, requires_arch<ssse3>) noexcept
         {
-            return _mm_shuffle_epi8(self, (batch<uint8_t, A>)mask);
+            return swizzle(self, (batch<uint8_t, A>)mask, ssse3 {});
         }
 
         template <class A, uint8_t V0, uint8_t V1, uint8_t V2, uint8_t V3, uint8_t V4, uint8_t V5, uint8_t V6, uint8_t V7,
                   uint8_t V8, uint8_t V9, uint8_t V10, uint8_t V11, uint8_t V12, uint8_t V13, uint8_t V14, uint8_t V15>
         inline batch<int8_t, A> swizzle(batch<int8_t, A> const& self, batch_constant<batch<uint8_t, A>, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15> mask, requires_arch<ssse3>) noexcept
         {
-            return bitwise_cast<int8_t>(swizzle(bitwise_cast<uint8_t>(self), mask, ssse3 {}));
+            return swizzle(self, (batch<uint8_t, A>)mask, ssse3 {});
         }
 
     }

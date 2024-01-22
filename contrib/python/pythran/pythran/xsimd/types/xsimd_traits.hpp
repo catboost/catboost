@@ -86,7 +86,7 @@ namespace xsimd
 
         // consistency checker
         template <class T, class A>
-        void static_check_supported_config()
+        inline void static_check_supported_config()
         {
             (void)static_check_supported_config_emitter<T, A>();
         }

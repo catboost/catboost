@@ -325,6 +325,27 @@ namespace xsimd
     /**
      * @ingroup batch_bitwise
      *
+     * Perform a bitwise shift to the left
+     * @param x batch of \c T_in
+     * @param shift scalar amount to shift
+     * @return shifted \c x.
+     */
+    template <class T, class A>
+    inline batch<T, A> bitwise_lshift(batch<T, A> const& x, int shift) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::bitwise_lshift<A>(x, shift, A {});
+    }
+    template <class T, class A>
+    inline batch<T, A> bitwise_lshift(batch<T, A> const& x, batch<T, A> const& shift) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::bitwise_lshift<A>(x, shift, A {});
+    }
+
+    /**
+     * @ingroup batch_bitwise
+     *
      * Computes the bitwise not of batch \c x.
      * @param x batch involved in the operation.
      * @return the result of the bitwise not.
@@ -378,6 +399,27 @@ namespace xsimd
     {
         detail::static_check_supported_config<T, A>();
         return x | y;
+    }
+
+    /**
+     * @ingroup batch_bitwise
+     *
+     * Perform a bitwise shift to the right
+     * @param x batch of \c T_in
+     * @param shift scalar amount to shift
+     * @return shifted \c x.
+     */
+    template <class T, class A>
+    inline batch<T, A> bitwise_rshift(batch<T, A> const& x, int shift) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::bitwise_rshift<A>(x, shift, A {});
+    }
+    template <class T, class A>
+    inline batch<T, A> bitwise_rshift(batch<T, A> const& x, batch<T, A> const& shift) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::bitwise_rshift<A>(x, shift, A {});
     }
 
     /**
@@ -486,6 +528,19 @@ namespace xsimd
     {
         detail::static_check_supported_config<T, A>();
         return kernel::clip(x, lo, hi, A {});
+    }
+
+    /**
+     * @ingroup batch_data_transfer
+     *
+     * Pick elements from \c x selected by \c mask, and append them to the
+     * resulting vector, zeroing the remaining slots
+     */
+    template <class T, class A>
+    inline batch<T, A> compress(batch<T, A> const& x, batch_bool<T, A> const& mask) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::compress<A>(x, mask, A {});
     }
 
     /**
@@ -607,6 +662,21 @@ namespace xsimd
     }
 
     /**
+     * @ingroup batch_logical
+     *
+     * Element-wise equality comparison of batches of boolean values \c x and \c y.
+     * @param x batch of booleans involved in the comparison.
+     * @param y batch of booleans involved in the comparison.
+     * @return a boolean batch.
+     */
+    template <class T, class A>
+    inline auto eq(batch_bool<T, A> const& x, batch_bool<T, A> const& y) noexcept -> decltype(x == y)
+    {
+        detail::static_check_supported_config<T, A>();
+        return x == y;
+    }
+
+    /**
      * @ingroup batch_math
      *
      * Computes the natural exponential of the batch \c x.
@@ -646,6 +716,19 @@ namespace xsimd
     {
         detail::static_check_supported_config<T, A>();
         return kernel::exp2<A>(x, A {});
+    }
+
+    /**
+     * @ingroup batch_data_transfer
+     *
+     * Load contiguous elements from \c x and place them in slots selected by \c
+     * mask, zeroing the other slots
+     */
+    template <class T, class A>
+    inline batch<T, A> expand(batch<T, A> const& x, batch_bool<T, A> const& mask) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::expand<A>(x, mask, A {});
     }
 
     /**
@@ -991,7 +1074,7 @@ namespace xsimd
      * @return a batch of positive infinity
      */
     template <class B>
-    B infinity()
+    inline B infinity()
     {
         using T = typename B::value_type;
         using A = typename B::arch_type;
@@ -1065,7 +1148,7 @@ namespace xsimd
      * @return a batch of booleans.
      */
     template <class T, class A>
-    inline batch_bool<T, A> isinf(batch<T, A> const& x) noexcept
+    inline typename batch<T, A>::batch_bool_type isinf(batch<T, A> const& x) noexcept
     {
         detail::static_check_supported_config<T, A>();
         return kernel::isinf<A>(x, A {});
@@ -1079,7 +1162,7 @@ namespace xsimd
      * @return a batch of booleans.
      */
     template <class T, class A>
-    inline batch_bool<T, A> isfinite(batch<T, A> const& x) noexcept
+    inline typename batch<T, A>::batch_bool_type isfinite(batch<T, A> const& x) noexcept
     {
         detail::static_check_supported_config<T, A>();
         return kernel::isfinite<A>(x, A {});
@@ -1480,6 +1563,21 @@ namespace xsimd
     }
 
     /**
+     * @ingroup batch_logical
+     *
+     * Element-wise inequality comparison of batches of boolean values \c x and \c y.
+     * @param x batch of booleans involved in the comparison.
+     * @param y batch of booleans involved in the comparison.
+     * @return a boolean batch.
+     */
+    template <class T, class A>
+    inline auto neq(batch_bool<T, A> const& x, batch_bool<T, A> const& y) noexcept -> decltype(x != y)
+    {
+        detail::static_check_supported_config<T, A>();
+        return x != y;
+    }
+
+    /**
      * @ingroup batch_arithmetic
      *
      * Computes the opposite of the batch \c x.
@@ -1716,6 +1814,86 @@ namespace xsimd
     }
 
     /**
+     * @ingroup rotate_left
+     *
+     * Slide the whole batch to the left by \c n bytes, and reintroduce the
+     * slided out elements from the right. This is different from
+     * \c rol that rotates each batch element to the left.
+     *
+     * @tparam N Amount of bytes to rotated to the left.
+     * @param x batch of integer values.
+     * @return rotated batch.
+     */
+    template <size_t N, class T, class A>
+    inline batch<T, A> rotate_left(batch<T, A> const& x) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::rotate_left<N, A>(x, A {});
+    }
+
+    /**
+     * @ingroup rotate_right
+     *
+     * Slide the whole batch to the right by \c n bytes, and reintroduce the
+     * slided out elements from the left. This is different from
+     * \c rol that rotates each batch element to the left.
+     *
+     * @tparam N Amount of bytes to rotate to the right.
+     * @param x batch of integer values.
+     * @return rotated batch.
+     */
+    template <size_t N, class T, class A>
+    inline batch<T, A> rotate_right(batch<T, A> const& x) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::rotate_right<N, A>(x, A {});
+    }
+
+    /**
+     * @ingroup batch_bitwise
+     *
+     * Perform a bitwise shift to the left, reintroducing the shifted out bits
+     * to the right
+     * @param x batch to rotate
+     * @param shift scalar amount to shift
+     * @return rotated \c x.
+     */
+    template <class T, class A>
+    inline batch<T, A> rotl(batch<T, A> const& x, int shift) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::rotl<A>(x, shift, A {});
+    }
+    template <class T, class A>
+    inline batch<T, A> rotl(batch<T, A> const& x, batch<T, A> const& shift) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::rotl<A>(x, shift, A {});
+    }
+
+    /**
+     * @ingroup batch_bitwise
+     *
+     * Perform a bitwise shift to the right, reintroducing the shifted out bits
+     * to the left.
+     * @param x batch to rotate
+     * @param shift scalar amount to shift
+     * @return rotated \c x.
+     */
+    template <class T, class A>
+    inline batch<T, A> rotr(batch<T, A> const& x, int shift) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::rotr<A>(x, shift, A {});
+    }
+    template <class T, class A>
+    inline batch<T, A> rotr(batch<T, A> const& x, batch<T, A> const& shift) noexcept
+    {
+        detail::static_check_supported_config<T, A>();
+        return kernel::rotr<A>(x, shift, A {});
+    }
+
+    /**
      * @ingroup batch_rounding
      *
      * Computes the batch of nearest integer values to scalars in \c x (in
@@ -1827,6 +2005,31 @@ namespace xsimd
     {
         detail::static_check_supported_config<T, A>();
         return kernel::select<A>(cond, true_br, false_br, A {});
+    }
+
+    /**
+     * @ingroup batch_data_transfer
+     *
+     * Combine elements from \c x and \c y according to selector \c mask
+     * @param x batch
+     * @param y batch
+     * @param mask constant batch mask of integer elements of the same size as
+     * element of \c x and \c y. Each element of the mask index the vector that
+     * would be formed by the concatenation of \c x and \c y. For instance
+     * \code{.cpp}
+     * batch_constant<batch<uint32_t, sse2>, 0, 4, 3, 7>
+     * \endcode
+     * Picks \c x[0], \c y[0], \c x[3], \c y[3]
+     *
+     * @return combined batch
+     */
+    template <class T, class A, class Vt, Vt... Values>
+    inline typename std::enable_if<std::is_arithmetic<T>::value, batch<T, A>>::type
+    shuffle(batch<T, A> const& x, batch<T, A> const& y, batch_constant<batch<Vt, A>, Values...> mask) noexcept
+    {
+        static_assert(sizeof(T) == sizeof(Vt), "consistent mask");
+        detail::static_check_supported_config<T, A>();
+        return kernel::shuffle<A>(x, y, mask, A {});
     }
 
     /**
@@ -2109,7 +2312,7 @@ namespace xsimd
     /**
      * @ingroup batch_data_transfer
      *
-     * Rearrange elements from \c x according to mask \c mask
+     * Rearrange elements from \c x according to constant mask \c mask
      * @param x batch
      * @param mask constant batch mask of integer elements of the same size as
      * element of \c x
@@ -2125,6 +2328,32 @@ namespace xsimd
     }
     template <class T, class A, class Vt, Vt... Values>
     inline batch<std::complex<T>, A> swizzle(batch<std::complex<T>, A> const& x, batch_constant<batch<Vt, A>, Values...> mask) noexcept
+    {
+        static_assert(sizeof(T) == sizeof(Vt), "consistent mask");
+        detail::static_check_supported_config<T, A>();
+        return kernel::swizzle<A>(x, mask, A {});
+    }
+
+    /**
+     * @ingroup batch_data_transfer
+     *
+     * Rearrange elements from \c x according to mask \c mask
+     * @param x batch
+     * @param mask batch mask of integer elements of the same size as
+     * element of \c x
+     * @return swizzled batch
+     */
+    template <class T, class A, class Vt>
+    inline typename std::enable_if<std::is_arithmetic<T>::value, batch<T, A>>::type
+    swizzle(batch<T, A> const& x, batch<Vt, A> mask) noexcept
+    {
+        static_assert(sizeof(T) == sizeof(Vt), "consistent mask");
+        detail::static_check_supported_config<T, A>();
+        return kernel::swizzle<A>(x, mask, A {});
+    }
+
+    template <class T, class A, class Vt>
+    inline batch<std::complex<T>, A> swizzle(batch<std::complex<T>, A> const& x, batch<Vt, A> mask) noexcept
     {
         static_assert(sizeof(T) == sizeof(Vt), "consistent mask");
         detail::static_check_supported_config<T, A>();

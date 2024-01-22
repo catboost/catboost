@@ -37,7 +37,7 @@ namespace xsimd
     {                                                              \
         using register_type = VECTOR_TYPE;                         \
         register_type data;                                        \
-        operator register_type() const noexcept                    \
+        inline operator register_type() const noexcept             \
         {                                                          \
             return data;                                           \
         }                                                          \
