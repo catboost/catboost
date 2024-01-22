@@ -195,14 +195,18 @@ namespace {
     bool GetFeatureIndices(std::function<TVector<int>()> getFeatureIndices, int** indices, size_t* count) {
         try {
             auto featureIndices = getFeatureIndices();
-            *indices = (int*)malloc(sizeof(int) * featureIndices.size());
-            if (!*indices) {
-                return false;
-            }
-
             *count = featureIndices.size();
-            for (size_t i = 0; i != featureIndices.size(); ++i) {
-                (*indices)[i] = featureIndices[i];
+            if (!featureIndices.size()) {
+                *indices = nullptr;
+            } else {
+                *indices = (int*)malloc(sizeof(int) * featureIndices.size());
+                if (!*indices) {
+                    return false;
+                }
+
+                for (size_t i = 0; i != featureIndices.size(); ++i) {
+                    (*indices)[i] = featureIndices[i];
+                }
             }
         } catch(...) {
             Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
