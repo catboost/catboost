@@ -24,6 +24,8 @@
 # See the README file for information on usage and redistribution.
 #
 
+from __future__ import annotations
+
 import atexit
 import builtins
 import io
@@ -40,7 +42,7 @@ from enum import IntEnum
 from pathlib import Path
 
 try:
-    import defusedxml.ElementTree as ElementTree
+    from defusedxml import ElementTree
 except ImportError:
     ElementTree = None
 
@@ -90,7 +92,7 @@ try:
         raise ImportError(msg)
 
 except ImportError as v:
-    core = DeferredError(ImportError("The _imaging C module is not installed."))
+    core = DeferredError.new(ImportError("The _imaging C module is not installed."))
     # Explanations for ways that we know we might have an import error
     if str(v).startswith("Module use of python"):
         # The _imaging C module is present, but not compiled for
@@ -355,10 +357,11 @@ def init():
     if _initialized >= 2:
         return 0
 
+    parent_name = __name__.rpartition(".")[0]
     for plugin in _plugins:
         try:
             logger.debug("Importing %s", plugin)
-            __import__(f"PIL.{plugin}", globals(), locals(), [])
+            __import__(f"{parent_name}.{plugin}", globals(), locals(), [])
         except ImportError as e:
             logger.debug("Image: failed to import %s: %s", plugin, e)
 
@@ -476,8 +479,8 @@ class Image:
     * :py:func:`~PIL.Image.frombytes`
     """
 
-    format = None
-    format_description = None
+    format: str | None = None
+    format_description: str | None = None
     _close_exclusive_fp_after_loading = True
 
     def __init__(self):
@@ -527,15 +530,19 @@ class Image:
     def __enter__(self):
         return self
 
+    def _close_fp(self):
+        if getattr(self, "_fp", False):
+            if self._fp != self.fp:
+                self._fp.close()
+            self._fp = DeferredError(ValueError("Operation on closed image"))
+        if self.fp:
+            self.fp.close()
+
     def __exit__(self, *args):
-        if hasattr(self, "fp") and getattr(self, "_exclusive_fp", False):
-            if getattr(self, "_fp", False):
-                if self._fp != self.fp:
-                    self._fp.close()
-                self._fp = DeferredError(ValueError("Operation on closed image"))
-            if self.fp:
-                self.fp.close()
-        self.fp = None
+        if hasattr(self, "fp"):
+            if getattr(self, "_exclusive_fp", False):
+                self._close_fp()
+            self.fp = None
 
     def close(self):
         """
@@ -549,16 +556,12 @@ class Image:
         :py:meth:`~PIL.Image.Image.load` method. See :ref:`file-handling` for
         more information.
         """
-        try:
-            if getattr(self, "_fp", False):
-                if self._fp != self.fp:
-                    self._fp.close()
-                self._fp = DeferredError(ValueError("Operation on closed image"))
-            if self.fp:
-                self.fp.close()
-            self.fp = None
-        except Exception as msg:
-            logger.debug("Error closing: %s", msg)
+        if hasattr(self, "fp"):
+            try:
+                self._close_fp()
+                self.fp = None
+            except Exception as msg:
+                logger.debug("Error closing: %s", msg)
 
         if getattr(self, "map", None):
             self.map = None
@@ -791,6 +794,9 @@ class Image:
         but loads data into this image instead of creating a new image object.
         """
 
+        if self.width == 0 or self.height == 0:
+            return
+
         # may pass tuple instead of argument list
         if len(args) == 1 and isinstance(args[0], tuple):
             args = args[0]
@@ -878,12 +884,12 @@ class Image:
         "L", "RGB" and "CMYK". The ``matrix`` argument only supports "L"
         and "RGB".
 
-        When translating a color image to greyscale (mode "L"),
+        When translating a color image to grayscale (mode "L"),
         the library uses the ITU-R 601-2 luma transform::
 
             L = R * 299/1000 + G * 587/1000 + B * 114/1000
 
-        The default method of converting a greyscale ("L") or "RGB"
+        The default method of converting a grayscale ("L") or "RGB"
         image into a bilevel (mode "1") image uses Floyd-Steinberg
         dither to approximate the original image luminosity levels. If
         dither is ``None``, all values larger than 127 are set to 255 (white),
@@ -1156,7 +1162,7 @@ class Image:
             if palette.mode != "P":
                 msg = "bad mode for palette image"
                 raise ValueError(msg)
-            if self.mode != "RGB" and self.mode != "L":
+            if self.mode not in {"RGB", "L"}:
                 msg = "only RGB or L mode images can be quantized to a palette"
                 raise ValueError(msg)
             im = self.im.convert("P", dither, palette.im)
@@ -1174,7 +1180,7 @@ class Image:
 
         return im
 
-    def copy(self):
+    def copy(self) -> Image:
         """
         Copies this image. Use this method if you wish to paste things
         into an image, but still retain the original.
@@ -1187,7 +1193,7 @@ class Image:
 
     __copy__ = copy
 
-    def crop(self, box=None):
+    def crop(self, box=None) -> Image:
         """
         Returns a rectangular region from this image. The box is a
         4-tuple defining the left, upper, right, and lower pixel
@@ -1238,7 +1244,7 @@ class Image:
         Configures the image file loader so it returns a version of the
         image that as closely as possible matches the given mode and
         size. For example, you can use this method to convert a color
-        JPEG to greyscale while loading it.
+        JPEG to grayscale while loading it.
 
         If any changes are made, returns a tuple with the chosen ``mode`` and
         ``box`` with coordinates of the original image within the altered one.
@@ -1284,9 +1290,9 @@ class Image:
         if self.im.bands == 1 or multiband:
             return self._new(filter.filter(self.im))
 
-        ims = []
-        for c in range(self.im.bands):
-            ims.append(self._new(filter.filter(self.im.getband(c))))
+        ims = [
+            self._new(filter.filter(self.im.getband(c))) for c in range(self.im.bands)
+        ]
         return merge(self.mode, ims)
 
     def getbands(self):
@@ -1335,10 +1341,7 @@ class Image:
         self.load()
         if self.mode in ("1", "L", "P"):
             h = self.im.histogram()
-            out = []
-            for i in range(256):
-                if h[i]:
-                    out.append((h[i], i))
+            out = [(h[i], i) for i in range(256) if h[i]]
             if len(out) > maxcolors:
                 return None
             return out
@@ -1379,10 +1382,7 @@ class Image:
 
         self.load()
         if self.im.bands > 1:
-            extrema = []
-            for i in range(self.im.bands):
-                extrema.append(self.im.getband(i).getextrema())
-            return tuple(extrema)
+            return tuple(self.im.getband(i).getextrema() for i in range(self.im.bands))
         return self.im.getextrema()
 
     def _getxmp(self, xmp_tags):
@@ -1610,13 +1610,13 @@ class Image:
         than one band, the histograms for all bands are concatenated (for
         example, the histogram for an "RGB" image contains 768 values).
 
-        A bilevel image (mode "1") is treated as a greyscale ("L") image
+        A bilevel image (mode "1") is treated as a grayscale ("L") image
         by this method.
 
         If a mask is provided, the method returns a histogram for those
         parts of the image where the mask image is non-zero. The mask
         image must have the same size as the image, and be either a
-        bi-level image (mode "1") or a greyscale image ("L").
+        bi-level image (mode "1") or a grayscale image ("L").
 
         :param mask: An optional mask.
         :param extrema: An optional tuple of manually-specified extrema.
@@ -1636,13 +1636,13 @@ class Image:
         """
         Calculates and returns the entropy for the image.
 
-        A bilevel image (mode "1") is treated as a greyscale ("L")
+        A bilevel image (mode "1") is treated as a grayscale ("L")
         image by this method.
 
         If a mask is provided, the method employs the histogram for
         those parts of the image where the mask image is non-zero.
         The mask image must have the same size as the image, and be
-        either a bi-level image (mode "1") or a greyscale image ("L").
+        either a bi-level image (mode "1") or a grayscale image ("L").
 
         :param mask: An optional mask.
         :param extrema: An optional tuple of manually-specified extrema.
@@ -1658,7 +1658,7 @@ class Image:
             return self.im.entropy(extrema)
         return self.im.entropy()
 
-    def paste(self, im, box=None, mask=None):
+    def paste(self, im, box=None, mask=None) -> None:
         """
         Pastes another image into this image. The box argument is either
         a 2-tuple giving the upper left corner, a 4-tuple defining the
@@ -1862,7 +1862,8 @@ class Image:
                     # do things the hard way
                     im = self.im.convert(mode)
                     if im.mode not in ("LA", "PA", "RGBA"):
-                        raise ValueError from e  # sanity check
+                        msg = "alpha channel could not be added"
+                        raise ValueError(msg) from e  # sanity check
                     self.im = im
                 self.pyaccess = None
                 self._mode = self.im.mode
@@ -2350,7 +2351,7 @@ class Image:
             (w, h), Transform.AFFINE, matrix, resample, fillcolor=fillcolor
         )
 
-    def save(self, fp, format=None, **params):
+    def save(self, fp, format=None, **params) -> None:
         """
         Saves this image under the given filename.  If no format is
         specified, the format to use is determined from the filename
@@ -2448,7 +2449,7 @@ class Image:
         if open_fp:
             fp.close()
 
-    def seek(self, frame):
+    def seek(self, frame) -> Image:
         """
         Seeks to the given frame in this sequence file. If you seek
         beyond the end of the sequence, the method raises an
@@ -2467,7 +2468,8 @@ class Image:
 
         # overridden by file handlers
         if frame != 0:
-            raise EOFError
+            msg = "no more images in file"
+            raise EOFError(msg)
 
     def show(self, title=None):
         """
@@ -2534,7 +2536,7 @@ class Image:
 
         return self._new(self.im.getband(channel))
 
-    def tell(self):
+    def tell(self) -> int:
         """
         Returns the current frame number. See :py:meth:`~PIL.Image.Image.seek`.
 
@@ -2641,7 +2643,7 @@ class Image:
         resample=Resampling.NEAREST,
         fill=1,
         fillcolor=None,
-    ):
+    ) -> Image:
         """
         Transforms this image.  This method creates a new image with the
         given size, and the same mode as the original, and copies data
@@ -2874,7 +2876,7 @@ class ImageTransformHandler:
 
 
 def _wedge():
-    """Create greyscale wedge (for debugging only)"""
+    """Create grayscale wedge (for debugging only)"""
 
     return Image()._new(core.wedge("L"))
 
@@ -2900,7 +2902,7 @@ def _check_size(size):
     return True
 
 
-def new(mode, size, color=0):
+def new(mode, size, color=0) -> Image:
     """
     Creates a new image with the given mode and size.
 
@@ -2939,7 +2941,7 @@ def new(mode, size, color=0):
     return im._new(core.fill(mode, size, color))
 
 
-def frombytes(mode, size, data, decoder_name="raw", *args):
+def frombytes(mode, size, data, decoder_name="raw", *args) -> Image:
     """
     Creates a copy of an image memory from pixel data in a buffer.
 
@@ -2965,15 +2967,16 @@ def frombytes(mode, size, data, decoder_name="raw", *args):
 
     _check_size(size)
 
-    # may pass tuple instead of argument list
-    if len(args) == 1 and isinstance(args[0], tuple):
-        args = args[0]
-
-    if decoder_name == "raw" and args == ():
-        args = mode
-
     im = new(mode, size)
-    im.frombytes(data, decoder_name, args)
+    if im.width != 0 and im.height != 0:
+        # may pass tuple instead of argument list
+        if len(args) == 1 and isinstance(args[0], tuple):
+            args = args[0]
+
+        if decoder_name == "raw" and args == ():
+            args = mode
+
+        im.frombytes(data, decoder_name, args)
     return im
 
 
@@ -3094,7 +3097,8 @@ def fromarray(obj, mode=None):
         try:
             mode, rawmode = _fromarray_typemap[typekey]
         except KeyError as e:
-            msg = "Cannot handle this data type: %s, %s" % typekey
+            typekey_shape, typestr = typekey
+            msg = f"Cannot handle this data type: {typekey_shape}, {typestr}"
             raise TypeError(msg) from e
     else:
         rawmode = mode
@@ -3186,7 +3190,7 @@ def _decompression_bomb_check(size):
         )
 
 
-def open(fp, mode="r", formats=None):
+def open(fp, mode="r", formats=None) -> Image:
     """
     Opens and identifies the given image file.
 
@@ -3411,7 +3415,7 @@ def merge(mode, bands):
 # Plugin registry
 
 
-def register_open(id, factory, accept=None):
+def register_open(id, factory, accept=None) -> None:
     """
     Register an image file plugin.  This function should not be used
     in application code.
@@ -3465,7 +3469,7 @@ def register_save_all(id, driver):
     SAVE_ALL[id.upper()] = driver
 
 
-def register_extension(id, extension):
+def register_extension(id, extension) -> None:
     """
     Registers an image extension.  This function should not be
     used in application code.
