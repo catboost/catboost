@@ -24,6 +24,4 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_SYSTEM_PROCESSOR STREQUAL 
   include(CMakeLists.darwin-arm64.txt)
 elseif (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" AND NOT HAVE_CUDA)
   include(CMakeLists.windows-x86_64.txt)
-elseif (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" AND HAVE_CUDA)
-  include(CMakeLists.windows-x86_64-cuda.txt)
 endif()

@@ -97,6 +97,8 @@ Python iterables.
 |                        | `rstrip <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.rstrip>`_,                                                                                 |
 |                        | `filter_except <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.filter_except>`_,                                                                   |
 |                        | `map_except <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.map_except>`_,                                                                         |
+|                        | `filter_map <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.filter_map>`_,                                                                         |
+|                        | `iter_suppress <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.iter_suppress>`_,                                                                   |
 |                        | `nth_or_last <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.nth_or_last>`_,                                                                       |
 |                        | `unique_in_window <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.unique_in_window>`_,                                                             |
 |                        | `before_and_after <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.before_and_after>`_,                                                             |
@@ -107,6 +109,7 @@ Python iterables.
 |                        | `unique_justseen <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.unique_justseen>`_,                                                               |
 |                        | `duplicates_everseen <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.duplicates_everseen>`_,                                                       |
 |                        | `duplicates_justseen <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.duplicates_justseen>`_,                                                       |
+|                        | `classify_unique <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.classify_unique>`_,                                                               |
 |                        | `longest_common_prefix <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.longest_common_prefix>`_,                                                   |
 |                        | `takewhile_inclusive <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.takewhile_inclusive>`_                                                        |
 +------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -159,7 +162,9 @@ Python iterables.
 |                        | `sieve <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.sieve>`_,                                                                                   |
 |                        | `factor <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.factor>`_,                                                                                 |
 |                        | `matmul <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.matmul>`_,                                                                                 |
-|                        | `sum_of_squares <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.sum_of_squares>`_                                                                  |
+|                        | `sum_of_squares <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.sum_of_squares>`_,                                                                 |
+|                        | `totient <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.totient>`_,                                                                               |
+|                        | `reshape <https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.reshape>`_                                                                                |
 +------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 

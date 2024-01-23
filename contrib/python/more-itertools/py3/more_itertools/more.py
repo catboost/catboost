@@ -19,7 +19,7 @@ from itertools import (
     zip_longest,
     product,
 )
-from math import exp, factorial, floor, log
+from math import exp, factorial, floor, log, perm, comb
 from queue import Empty, Queue
 from random import random, randrange, uniform
 from operator import itemgetter, mul, sub, gt, lt, ge, le
@@ -68,8 +68,10 @@ __all__ = [
     'divide',
     'duplicates_everseen',
     'duplicates_justseen',
+    'classify_unique',
     'exactly_n',
     'filter_except',
+    'filter_map',
     'first',
     'gray_product',
     'groupby_transform',
@@ -83,6 +85,7 @@ __all__ = [
     'is_sorted',
     'islice_extended',
     'iterate',
+    'iter_suppress',
     'last',
     'locate',
     'longest_common_prefix',
@@ -198,15 +201,14 @@ def first(iterable, default=_marker):
     ``next(iter(iterable), default)``.
 
     """
-    try:
-        return next(iter(iterable))
-    except StopIteration as e:
-        if default is _marker:
-            raise ValueError(
-                'first() was called on an empty iterable, and no '
-                'default value was provided.'
-            ) from e
-        return default
+    for item in iterable:
+        return item
+    if default is _marker:
+        raise ValueError(
+            'first() was called on an empty iterable, and no '
+            'default value was provided.'
+        )
+    return default
 
 
 def last(iterable, default=_marker):
@@ -582,6 +584,9 @@ def strictly_n(iterable, n, too_short=None, too_long=None):
         >>> list(strictly_n(iterable, n))
         ['a', 'b', 'c', 'd']
 
+    Note that the returned iterable must be consumed in order for the check to
+    be made.
+
     By default, *too_short* and *too_long* are functions that raise
     ``ValueError``.
 
@@ -919,7 +924,7 @@ def substrings_indexes(seq, reverse=False):
 
 
 class bucket:
-    """Wrap *iterable* and return an object that buckets it iterable into
+    """Wrap *iterable* and return an object that buckets the iterable into
     child iterables based on a *key* function.
 
         >>> iterable = ['a1', 'b1', 'c1', 'a2', 'b2', 'c2', 'b3']
@@ -3222,6 +3227,8 @@ class time_limited:
     stops if  the time elapsed is greater than *limit_seconds*. If your time
     limit is 1 second, but it takes 2 seconds to generate the first item from
     the iterable, the function will run for 2 seconds and not yield anything.
+    As a special case, when *limit_seconds* is zero, the iterator never
+    returns anything.
 
     """
 
@@ -3237,6 +3244,9 @@ class time_limited:
         return self
 
     def __next__(self):
+        if self.limit_seconds == 0:
+            self.timed_out = True
+            raise StopIteration
         item = next(self._iterable)
         if monotonic() - self._start_time > self.limit_seconds:
             self.timed_out = True
@@ -3356,7 +3366,7 @@ def iequals(*iterables):
     >>> iequals("abc", "acb")
     False
 
-    Not to be confused with :func:`all_equals`, which checks whether all
+    Not to be confused with :func:`all_equal`, which checks whether all
     elements of iterable are equal to each other.
 
     """
@@ -3853,7 +3863,7 @@ def nth_permutation(iterable, r, index):
     elif not 0 <= r < n:
         raise ValueError
     else:
-        c = factorial(n) // factorial(n - r)
+        c = perm(n, r)
 
     if index < 0:
         index += c
@@ -3898,7 +3908,7 @@ def nth_combination_with_replacement(iterable, r, index):
     if (r < 0) or (r > n):
         raise ValueError
 
-    c = factorial(n + r - 1) // (factorial(r) * factorial(n - 1))
+    c = comb(n + r - 1, r)
 
     if index < 0:
         index += c
@@ -3911,9 +3921,7 @@ def nth_combination_with_replacement(iterable, r, index):
     while r:
         r -= 1
         while n >= 0:
-            num_combs = factorial(n + r - 1) // (
-                factorial(r) * factorial(n - 1)
-            )
+            num_combs = comb(n + r - 1, r)
             if index < num_combs:
                 break
             n -= 1
@@ -4015,9 +4023,9 @@ def combination_index(element, iterable):
     for i, j in enumerate(reversed(indexes), start=1):
         j = n - j
         if i <= j:
-            index += factorial(j) // (factorial(i) * factorial(j - i))
+            index += comb(j, i)
 
-    return factorial(n + 1) // (factorial(k + 1) * factorial(n - k)) - index
+    return comb(n + 1, k + 1) - index
 
 
 def combination_with_replacement_index(element, iterable):
@@ -4057,7 +4065,7 @@ def combination_with_replacement_index(element, iterable):
             break
     else:
         raise ValueError(
-            'element is not a combination with replacment of iterable'
+            'element is not a combination with replacement of iterable'
         )
 
     n = len(pool)
@@ -4066,11 +4074,13 @@ def combination_with_replacement_index(element, iterable):
         occupations[p] += 1
 
     index = 0
+    cumulative_sum = 0
     for k in range(1, n):
-        j = l + n - 1 - k - sum(occupations[:k])
+        cumulative_sum += occupations[k - 1]
+        j = l + n - 1 - k - cumulative_sum
         i = n - k
         if i <= j:
-            index += factorial(j) // (factorial(i) * factorial(j - i))
+            index += comb(j, i)
 
     return index
 
@@ -4296,7 +4306,7 @@ def duplicates_everseen(iterable, key=None):
     >>> list(duplicates_everseen('AaaBbbCccAaa', str.lower))
     ['a', 'a', 'b', 'b', 'c', 'c', 'A', 'a', 'a']
 
-    This function is analagous to :func:`unique_everseen` and is subject to
+    This function is analogous to :func:`unique_everseen` and is subject to
     the same performance considerations.
 
     """
@@ -4326,10 +4336,52 @@ def duplicates_justseen(iterable, key=None):
     >>> list(duplicates_justseen('AaaBbbCccAaa', str.lower))
     ['a', 'a', 'b', 'b', 'c', 'c', 'a', 'a']
 
-    This function is analagous to :func:`unique_justseen`.
+    This function is analogous to :func:`unique_justseen`.
 
     """
     return flatten(g for _, g in groupby(iterable, key) for _ in g)
+
+
+def classify_unique(iterable, key=None):
+    """Classify each element in terms of its uniqueness.
+
+    For each element in the input iterable, return a 3-tuple consisting of:
+
+    1. The element itself
+    2. ``False`` if the element is equal to the one preceding it in the input,
+       ``True`` otherwise (i.e. the equivalent of :func:`unique_justseen`)
+    3. ``False`` if this element has been seen anywhere in the input before,
+       ``True`` otherwise (i.e. the equivalent of :func:`unique_everseen`)
+
+    >>> list(classify_unique('otto'))    # doctest: +NORMALIZE_WHITESPACE
+    [('o', True,  True),
+     ('t', True,  True),
+     ('t', False, False),
+     ('o', True,  False)]
+
+    This function is analogous to :func:`unique_everseen` and is subject to
+    the same performance considerations.
+
+    """
+    seen_set = set()
+    seen_list = []
+    use_key = key is not None
+    previous = None
+
+    for i, element in enumerate(iterable):
+        k = key(element) if use_key else element
+        is_unique_justseen = not i or previous != k
+        previous = k
+        is_unique_everseen = False
+        try:
+            if k not in seen_set:
+                seen_set.add(k)
+                is_unique_everseen = True
+        except TypeError:
+            if k not in seen_list:
+                seen_list.append(k)
+                is_unique_everseen = True
+        yield element, is_unique_justseen, is_unique_everseen
 
 
 def minmax(iterable_or_value, *others, key=None, default=_marker):
@@ -4529,10 +4581,8 @@ def takewhile_inclusive(predicate, iterable):
     :func:`takewhile` would return ``[1, 4]``.
     """
     for x in iterable:
-        if predicate(x):
-            yield x
-        else:
-            yield x
+        yield x
+        if not predicate(x):
             break
 
 
@@ -4567,3 +4617,40 @@ def outer_product(func, xs, ys, *args, **kwargs):
         starmap(lambda x, y: func(x, y, *args, **kwargs), product(xs, ys)),
         n=len(ys),
     )
+
+
+def iter_suppress(iterable, *exceptions):
+    """Yield each of the items from *iterable*. If the iteration raises one of
+    the specified *exceptions*, that exception will be suppressed and iteration
+    will stop.
+
+    >>> from itertools import chain
+    >>> def breaks_at_five(x):
+    ...     while True:
+    ...         if x >= 5:
+    ...             raise RuntimeError
+    ...         yield x
+    ...         x += 1
+    >>> it_1 = iter_suppress(breaks_at_five(1), RuntimeError)
+    >>> it_2 = iter_suppress(breaks_at_five(2), RuntimeError)
+    >>> list(chain(it_1, it_2))
+    [1, 2, 3, 4, 2, 3, 4]
+    """
+    try:
+        yield from iterable
+    except exceptions:
+        return
+
+
+def filter_map(func, iterable):
+    """Apply *func* to every element of *iterable*, yielding only those which
+    are not ``None``.
+
+    >>> elems = ['1', 'a', '2', 'b', '3']
+    >>> list(filter_map(lambda s: int(s) if s.isnumeric() else None, elems))
+    [1, 2, 3]
+    """
+    for x in iterable:
+        y = func(x)
+        if y is not None:
+            yield y

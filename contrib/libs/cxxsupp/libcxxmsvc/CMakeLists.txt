@@ -6,17 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-float16-float16_avx_impl)
-target_link_libraries(cpp-float16-float16_avx_impl PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-)
-target_sources_custom(cpp-float16-float16_avx_impl
-  .avx
-  SRCS
-  ${CMAKE_SOURCE_DIR}/library/cpp/float16/float16_avx_impl/float16_avx.cpp
-  CUSTOM_FLAGS
-  /arch:AVX
-  /DAVX_ENABLED=1
-)
+if (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" AND HAVE_CUDA)
+  include(CMakeLists.windows-x86_64-cuda.txt)
+endif()

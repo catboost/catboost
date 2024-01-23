@@ -26,5 +26,5 @@ target_sources_custom(util-charset
   SRCS
   ${CMAKE_SOURCE_DIR}/util/charset/wide_sse41.cpp
   CUSTOM_FLAGS
-  -msse4.1
+  /D__SSE4_1__=1
 )

@@ -21,7 +21,7 @@ set_property(
   APPEND
   PROPERTY
   COMPILE_OPTIONS
-  -mavx2
+  /D__AVX2__=1
 )
 set_property(
   SOURCE
@@ -29,5 +29,5 @@ set_property(
   APPEND
   PROPERTY
   COMPILE_OPTIONS
-  -mavx2
+  /D__AVX2__=1
 )

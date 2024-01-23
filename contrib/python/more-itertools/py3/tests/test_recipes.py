@@ -103,7 +103,7 @@ class ConsumeTests(TestCase):
         self.assertEqual(0, next(r))
 
     def test_negative_consume(self):
-        """Check that negative consumsion throws an error"""
+        """Check that negative consumption throws an error"""
         r = (x for x in range(10))
         self.assertRaises(ValueError, lambda: mi.consume(r, -1))
 
@@ -203,7 +203,7 @@ class NcyclesTests(TestCase):
         n = mi.ncycles(range(100), 0)
         self.assertRaises(StopIteration, lambda: next(n))
 
-    def test_pathalogical_case(self):
+    def test_pathological_case(self):
         """asking for negative cycles should return an empty iterator"""
         n = mi.ncycles(range(100), -10)
         self.assertRaises(StopIteration, lambda: next(n))
@@ -931,6 +931,11 @@ class IterIndexTests(TestCase):
                 expected = [0, 1, 4, 7]
                 self.assertEqual(actual, expected)
 
+    def test_stop(self):
+        actual = list(mi.iter_index('AABCADEAF', 'A', stop=7))
+        expected = [0, 1, 4]
+        self.assertEqual(actual, expected)
+
 
 class SieveTests(TestCase):
     def test_basic(self):
@@ -994,6 +999,15 @@ class BatchedTests(TestCase):
                 actual = list(mi.batched(iterable, n))
                 self.assertEqual(actual, expected)
 
+    def test_strict(self):
+        with self.assertRaises(ValueError):
+            list(mi.batched('ABCDEFG', 3, strict=True))
+
+        self.assertEqual(
+            list(mi.batched('ABCDEF', 3, strict=True)),
+            [('A', 'B', 'C'), ('D', 'E', 'F')],
+        )
+
 
 class TransposeTests(TestCase):
     def test_empty(self):
@@ -1020,6 +1034,47 @@ class TransposeTests(TestCase):
         actual = list(mi.transpose(it))
         expected = [(10, 20, 30), (11, 21, 31), (12, 22, 32)]
         self.assertEqual(actual, expected)
+
+
+class ReshapeTests(TestCase):
+    def test_empty(self):
+        actual = list(mi.reshape([], 3))
+        self.assertEqual(actual, [])
+
+    def test_zero(self):
+        matrix = [(0, 1, 2, 3), (4, 5, 6, 7), (8, 9, 10, 11)]
+        with self.assertRaises(ValueError):
+            list(mi.reshape(matrix, 0))
+
+    def test_basic(self):
+        matrix = [(0, 1, 2, 3), (4, 5, 6, 7), (8, 9, 10, 11)]
+        for cols, expected in (
+            (
+                1,
+                [
+                    (0,),
+                    (1,),
+                    (2,),
+                    (3,),
+                    (4,),
+                    (5,),
+                    (6,),
+                    (7,),
+                    (8,),
+                    (9,),
+                    (10,),
+                    (11,),
+                ],
+            ),
+            (2, [(0, 1), (2, 3), (4, 5), (6, 7), (8, 9), (10, 11)]),
+            (3, [(0, 1, 2), (3, 4, 5), (6, 7, 8), (9, 10, 11)]),
+            (4, [(0, 1, 2, 3), (4, 5, 6, 7), (8, 9, 10, 11)]),
+            (6, [(0, 1, 2, 3, 4, 5), (6, 7, 8, 9, 10, 11)]),
+            (12, [(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)]),
+        ):
+            with self.subTest(cols=cols):
+                actual = list(mi.reshape(matrix, cols))
+                self.assertEqual(actual, expected)
 
 
 class MatMulTests(TestCase):
@@ -1096,3 +1151,20 @@ class PolynomialDerivativeTests(TestCase):
             with self.subTest(coefficients=coefficients):
                 actual = mi.polynomial_derivative(coefficients)
                 self.assertEqual(actual, expected)
+
+
+class TotientTests(TestCase):
+    def test_basic(self):
+        for n, expected in (
+            (1, 1),
+            (2, 1),
+            (3, 2),
+            (4, 2),
+            (9, 6),
+            (12, 4),
+            (128_884_753_939, 128_884_753_938),
+            (999953 * 999983, 999952 * 999982),
+            (6**20, 1 * 2**19 * 2 * 3**19),
+        ):
+            with self.subTest(n=n):
+                self.assertEqual(mi.totient(n), expected)
