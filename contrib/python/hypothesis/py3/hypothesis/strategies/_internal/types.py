@@ -625,17 +625,18 @@ _global_type_lookup: typing.Dict[
     BaseExceptionGroup: st.builds(
         BaseExceptionGroup,
         st.text(),
-        st.lists(st.from_type(BaseException), min_size=1),
+        st.lists(st.from_type(BaseException), min_size=1, max_size=5),
     ),
     ExceptionGroup: st.builds(
         ExceptionGroup,
         st.text(),
-        st.lists(st.from_type(Exception), min_size=1),
+        st.lists(st.from_type(Exception), min_size=1, max_size=5),
     ),
     enumerate: st.builds(enumerate, st.just(())),
     filter: st.builds(filter, st.just(lambda _: None), st.just(())),
     map: st.builds(map, st.just(lambda _: None), st.just(())),
     reversed: st.builds(reversed, st.just(())),
+    zip: st.builds(zip),  # avoids warnings on PyPy 7.3.14+
     property: st.builds(property, st.just(lambda _: None)),
     classmethod: st.builds(classmethod, st.just(lambda self: self)),
     staticmethod: st.builds(staticmethod, st.just(lambda self: self)),

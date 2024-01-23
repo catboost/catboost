@@ -1438,7 +1438,7 @@ def _from_type(thing: Type[Ex]) -> SearchStrategy[Ex]:
                 kwargs[k] = from_type_guarded(hints[k])
                 if p.default is not Parameter.empty and kwargs[k] is not ...:
                     kwargs[k] = just(p.default) | kwargs[k]
-        if params and not kwargs:
+        if params and not kwargs and not issubclass(thing, BaseException):
             from_type_repr = repr_call(from_type, (thing,), {})
             builds_repr = repr_call(builds, (thing,), {})
             warnings.warn(

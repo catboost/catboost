@@ -286,8 +286,11 @@ class JupyterApp(Application):
         loop.close()
 
 
-class JupyterAsyncApp(Application):
+class JupyterAsyncApp(JupyterApp):
     """A Jupyter application that runs on an asyncio loop."""
+
+    name = "jupyter_async"  # override in subclasses
+    description = "An Async Jupyter Application"
 
     # Set to True for tornado-based apps.
     _prefer_selector_loop = False
