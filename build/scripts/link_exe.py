@@ -55,7 +55,7 @@ def prune_cuda_libraries(cmd, prune_arches, nvprune_exe, build_root):
     tmp_names_gen = name_generator('cuda_pruned_libs')
 
     arch_args = []
-    for arch in prune_arches.split(','):
+    for arch in prune_arches.split(':'):
         arch_args.append('-gencode')
         arch_args.append('arch={},code={}'.format(compute_arch(arch), arch))
 
@@ -200,7 +200,8 @@ def parse_args():
     parser.add_option('--source-root')
     parser.add_option('--clang-ver')
     parser.add_option('--dynamic-cuda', action='store_true')
-    parser.add_option('--cuda-architectures')
+    parser.add_option('--cuda-architectures',
+                      help='List of supported CUDA architectures, separated by ":" (e.g. "sm_52:compute_70:lto_90a"')
     parser.add_option('--nvprune-exe')
     parser.add_option('--build-root')
     parser.add_option('--arch')
