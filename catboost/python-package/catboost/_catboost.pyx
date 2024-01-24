@@ -3509,7 +3509,7 @@ ctypedef fused IBuilderVisitor:
 
 
 cdef TVector[TPair] _make_pairs_vector(pairs, pairs_weight=None) except *:
-    if pairs_weight:
+    if pairs_weight is not None:
         if len(pairs) != len(pairs_weight):
             raise CatBoostError(
                 'len(pairs_weight) = {} is not equal to len(pairs) = {} '.format(
@@ -3523,7 +3523,7 @@ cdef TVector[TPair] _make_pairs_vector(pairs, pairs_weight=None) except *:
     for pair_idx, pair in enumerate(pairs):
         pairs_vector[pair_idx].WinnerId = <ui32>pair[0]
         pairs_vector[pair_idx].LoserId = <ui32>pair[1]
-        pairs_vector[pair_idx].Weight = <float>(pairs_weight[pair_idx] if pairs_weight else 1.0)
+        pairs_vector[pair_idx].Weight = <float>(pairs_weight[pair_idx] if pairs_weight is not None else 1.0)
     return pairs_vector
 
 
