@@ -10,6 +10,7 @@ import sys
 import pythran
 import pythran.types.tog
 
+import setuptools
 from distutils.errors import CompileError
 
 logger = logging.getLogger("pythran")
