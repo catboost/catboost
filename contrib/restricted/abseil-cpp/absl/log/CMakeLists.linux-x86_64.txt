@@ -36,12 +36,14 @@ target_sources(abseil-cpp-absl-log PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/initialize.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/check_op.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/conditions.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/fnmatch.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/globals.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/log_format.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/log_message.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/log_sink_set.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/nullguard.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/proto.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/vlog_config.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_entry.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_sink.cc
 )

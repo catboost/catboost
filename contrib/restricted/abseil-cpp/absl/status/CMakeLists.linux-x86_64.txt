@@ -27,6 +27,7 @@ target_link_libraries(abseil-cpp-absl-status PUBLIC
   abseil-cpp-absl-types
 )
 target_sources(abseil-cpp-absl-status PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/internal/status_internal.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status_payload_printer.cc
 )
