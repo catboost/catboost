@@ -185,6 +185,7 @@ struct TEnumTraits<T, true>
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO(babenko): drop in favor of TEnumIndexedArray
 //! A statically sized vector with elements of type |T| indexed by
 //! the items of enumeration type |E|.
 /*!

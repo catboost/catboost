@@ -12,6 +12,7 @@
 #include <library/cpp/yt/small_containers/compact_vector.h>
 
 #include <library/cpp/yt/misc/enum.h>
+#include <library/cpp/yt/misc/enum_indexed_array.h>
 
 #include <util/system/platform.h>
 
@@ -390,6 +391,27 @@ struct TValueFormatter<THashMultiMap<K, V>>
     static void Do(TStringBuilderBase* builder, const THashMultiMap<K, V>& collection, TStringBuf /*format*/)
     {
         FormatKeyValueRange(builder, collection, TDefaultFormatter());
+    }
+};
+
+// TEnumIndexedArray
+template <class E, class T>
+struct TValueFormatter<TEnumIndexedArray<E, T>>
+{
+    static void Do(TStringBuilderBase* builder, const TEnumIndexedArray<E, T>& collection, TStringBuf format)
+    {
+        builder->AppendChar('{');
+        bool firstItem = true;
+        for (const auto& index : TEnumTraits<E>::GetDomainValues()) {
+            if (!firstItem) {
+                builder->AppendString(DefaultJoinToStringDelimiter);
+            }
+            FormatValue(builder, index, format);
+            builder->AppendString(": ");
+            FormatValue(builder, collection[index], format);
+            firstItem = false;
+        }
+        builder->AppendChar('}');
     }
 };
 
