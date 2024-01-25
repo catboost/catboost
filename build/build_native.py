@@ -490,8 +490,6 @@ def build(
     else:
         build_environ = os.environ
 
-    msvs_dir = get_msvs_dir(opts.msvs_installation_path, opts.msvs_version)
-
     # can be empty if called for tools build
     catboost_components = get_catboost_components(opts.targets)
 
@@ -505,6 +503,8 @@ def build(
         f'-DCMAKE_TOOLCHAIN_FILE={cmake_target_toolchain}',
     ]
     if (platform.system().lower() == 'windows') and (not opts.have_cuda):
+        msvs_dir = get_msvs_dir(opts.msvs_installation_path, opts.msvs_version)
+
         # Use clang-cl for the build without CUDA and standard Microsoft toolchain for the build with CUDA
         # (as clang-cl is not supported by CUDA yet)
         cmake_cmd += [
