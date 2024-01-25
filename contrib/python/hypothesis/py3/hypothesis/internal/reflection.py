@@ -19,7 +19,7 @@ import re
 import sys
 import textwrap
 import types
-from functools import wraps
+from functools import partial, wraps
 from io import StringIO
 from keyword import iskeyword
 from tokenize import COMMENT, detect_encoding, generate_tokens, untokenize
@@ -432,6 +432,8 @@ def extract_lambda_source(f):
 
 
 def get_pretty_function_description(f):
+    if isinstance(f, partial):
+        return pretty(f)
     if not hasattr(f, "__name__"):
         return repr(f)
     name = f.__name__
