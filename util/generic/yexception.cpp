@@ -119,9 +119,11 @@ std::string CurrentExceptionTypeName() {
 void TSystemError::Init() {
     yexception& exc = *this;
 
-    exc << TStringBuf("(");
-    exc << TStringBuf(LastSystemErrorText(Status_));
-    exc << TStringBuf(") ");
+    exc << "(Error "sv
+        << Status_
+        << ": "sv
+        << TStringBuf(LastSystemErrorText(Status_))
+        << ") "sv;
 }
 
 NPrivateException::yexception::yexception() {
