@@ -132,7 +132,9 @@ catboost_logger_lock = Lock()
 def log_fixup(log_cout=sys.stdout, log_cerr=sys.stderr):
     if catboost_logger_lock.acquire(False):
         try:
-            _set_logger(_get_stream_like_object(log_cout), _get_stream_like_object(log_cerr))
+            cout = _get_stream_like_object(log_cout)
+            cerr = _get_stream_like_object(log_cerr)
+            _set_logger(cout, cerr)
             yield
         finally:
             _reset_logger()
