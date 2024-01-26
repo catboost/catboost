@@ -8,6 +8,7 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+import inspect
 import math
 from collections import defaultdict
 from typing import NoReturn, Union
@@ -25,6 +26,10 @@ from hypothesis.utils.dynamicvariables import DynamicVariable
 from hypothesis.vendor.pretty import IDKey
 
 
+def _calling_function_name(frame):
+    return frame.f_back.f_code.co_name
+
+
 def reject() -> NoReturn:
     if _current_build_context.value is None:
         note_deprecation(
@@ -32,7 +37,8 @@ def reject() -> NoReturn:
             since="2023-09-25",
             has_codemod=False,
         )
-    raise UnsatisfiedAssumption
+    f = _calling_function_name(inspect.currentframe())
+    raise UnsatisfiedAssumption(f"reject() in {f}")
 
 
 def assume(condition: object) -> bool:
@@ -49,7 +55,8 @@ def assume(condition: object) -> bool:
             has_codemod=False,
         )
     if not condition:
-        raise UnsatisfiedAssumption
+        f = _calling_function_name(inspect.currentframe())
+        raise UnsatisfiedAssumption(f"failed to satisfy assume() in {f}")
     return True
 
 

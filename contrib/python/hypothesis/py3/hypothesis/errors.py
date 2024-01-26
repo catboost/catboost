@@ -23,6 +23,9 @@ class UnsatisfiedAssumption(HypothesisException):
     If you're seeing this error something has gone wrong.
     """
 
+    def __init__(self, reason=None):
+        self.reason = reason
+
 
 class NoSuchExample(HypothesisException):
     """The condition we have been asked to satisfy appears to be always false.

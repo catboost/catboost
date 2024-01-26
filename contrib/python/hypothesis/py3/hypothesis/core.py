@@ -1005,10 +1005,10 @@ class StateForActualGivenExecution:
                     f"{self.test.__name__} returned {result!r} instead.",
                     HealthCheck.return_value,
                 )
-        except UnsatisfiedAssumption:
+        except UnsatisfiedAssumption as e:
             # An "assume" check failed, so instead we inform the engine that
             # this test run was invalid.
-            data.mark_invalid()
+            data.mark_invalid(e.reason)
         except StopTest:
             # The engine knows how to handle this control exception, so it's
             # OK to re-raise it.
