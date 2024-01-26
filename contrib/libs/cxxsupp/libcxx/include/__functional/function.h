@@ -23,6 +23,7 @@
 #include <__memory/builtin_new_allocator.h>
 #include <__memory/compressed_pair.h>
 #include <__memory/unique_ptr.h>
+#include <__type_traits/strip_signature.h>
 #include <__utility/forward.h>
 #include <__utility/move.h>
 #include <__utility/piecewise_construct.h>
@@ -261,16 +262,16 @@ class __base<_Rp(_ArgTypes...)>
     __base& operator=(const __base&);
 public:
     _LIBCPP_INLINE_VISIBILITY __base() {}
-    _LIBCPP_INLINE_VISIBILITY virtual ~__base() {}
+    _LIBCPP_HIDE_FROM_ABI_VIRTUAL virtual ~__base() {}
     virtual __base* __clone() const = 0;
     virtual void __clone(__base*) const = 0;
     virtual void destroy() _NOEXCEPT = 0;
     virtual void destroy_deallocate() _NOEXCEPT = 0;
     virtual _Rp operator()(_ArgTypes&& ...) = 0;
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
     virtual const void* target(const type_info&) const _NOEXCEPT = 0;
     virtual const std::type_info& target_type() const _NOEXCEPT = 0;
-#endif // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_HAS_NO_RTTI
 };
 
 // __func implements __base for a given functor type.
@@ -304,10 +305,10 @@ public:
     virtual void destroy() _NOEXCEPT;
     virtual void destroy_deallocate() _NOEXCEPT;
     virtual _Rp operator()(_ArgTypes&&... __arg);
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
     virtual const void* target(const type_info&) const _NOEXCEPT;
     virtual const std::type_info& target_type() const _NOEXCEPT;
-#endif // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_HAS_NO_RTTI
 };
 
 template<class _Fp, class _Alloc, class _Rp, class ..._ArgTypes>
@@ -355,7 +356,7 @@ __func<_Fp, _Alloc, _Rp(_ArgTypes...)>::operator()(_ArgTypes&& ... __arg)
     return __f_(_VSTD::forward<_ArgTypes>(__arg)...);
 }
 
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
 
 template<class _Fp, class _Alloc, class _Rp, class ..._ArgTypes>
 const void*
@@ -373,7 +374,7 @@ __func<_Fp, _Alloc, _Rp(_ArgTypes...)>::target_type() const _NOEXCEPT
     return typeid(_Fp);
 }
 
-#endif // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_HAS_NO_RTTI
 
 // __value_func creates a value-type from a __func.
 
@@ -381,7 +382,9 @@ template <class _Fp> class __value_func;
 
 template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
 {
+    _LIBCPP_SUPPRESS_DEPRECATED_PUSH
     typename aligned_storage<3 * sizeof(void*)>::type __buf_;
+    _LIBCPP_SUPPRESS_DEPRECATED_POP
 
     typedef __base<_Rp(_ArgTypes...)> __func;
     __func* __f_;
@@ -514,7 +517,9 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
             return;
         if ((void*)__f_ == &__buf_ && (void*)__f.__f_ == &__f.__buf_)
         {
+            _LIBCPP_SUPPRESS_DEPRECATED_PUSH
             typename aligned_storage<sizeof(__buf_)>::type __tempbuf;
+            _LIBCPP_SUPPRESS_DEPRECATED_POP
             __func* __t = __as_base(&__tempbuf);
             __f_->__clone(__t);
             __f_->destroy();
@@ -548,7 +553,7 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
     _LIBCPP_INLINE_VISIBILITY
     explicit operator bool() const _NOEXCEPT { return __f_ != nullptr; }
 
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
     _LIBCPP_INLINE_VISIBILITY
     const std::type_info& target_type() const _NOEXCEPT
     {
@@ -564,7 +569,7 @@ template <class _Rp, class... _ArgTypes> class __value_func<_Rp(_ArgTypes...)>
             return nullptr;
         return (const _Tp*)__f_->target(typeid(_Tp));
     }
-#endif // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_HAS_NO_RTTI
 };
 
 // Storage for a functor object, to be used with __policy to manage copy and
@@ -611,7 +616,7 @@ struct __policy
     {
         static const _LIBCPP_CONSTEXPR __policy __policy_ = {nullptr, nullptr,
                                                              true,
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
                                                              &typeid(void)
 #else
                                                              nullptr
@@ -637,7 +642,7 @@ struct __policy
     __choose_policy(/* is_small = */ false_type) {
       static const _LIBCPP_CONSTEXPR __policy __policy_ = {
           &__large_clone<_Fun>, &__large_destroy<_Fun>, false,
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
           &typeid(typename _Fun::_Target)
 #else
           nullptr
@@ -652,7 +657,7 @@ struct __policy
     {
         static const _LIBCPP_CONSTEXPR __policy __policy_ = {
             nullptr, nullptr, false,
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
             &typeid(typename _Fun::_Target)
 #else
             nullptr
@@ -856,7 +861,7 @@ template <class _Rp, class... _ArgTypes> class __policy_func<_Rp(_ArgTypes...)>
         return !__policy_->__is_null;
     }
 
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
     _LIBCPP_INLINE_VISIBILITY
     const std::type_info& target_type() const _NOEXCEPT
     {
@@ -873,7 +878,7 @@ template <class _Rp, class... _ArgTypes> class __policy_func<_Rp(_ArgTypes...)>
         else
             return reinterpret_cast<const _Tp*>(&__buf_.__small);
     }
-#endif // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_HAS_NO_RTTI
 };
 
 #if defined(_LIBCPP_HAS_BLOCKS_RUNTIME)
@@ -940,7 +945,7 @@ public:
         return _VSTD::__invoke(__f_, _VSTD::forward<_ArgTypes>(__arg)...);
     }
 
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
     virtual const void* target(type_info const& __ti) const _NOEXCEPT {
         if (__ti == typeid(__func::__block_type))
             return &__f_;
@@ -950,7 +955,7 @@ public:
     virtual const std::type_info& target_type() const _NOEXCEPT {
         return typeid(__func::__block_type);
     }
-#endif // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_HAS_NO_RTTI
 };
 
 #endif // _LIBCPP_HAS_EXTENSION_BLOCKS
@@ -1051,56 +1056,17 @@ public:
     // function invocation:
     _Rp operator()(_ArgTypes...) const;
 
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
     // function target access:
     const std::type_info& target_type() const _NOEXCEPT;
     template <typename _Tp> _Tp* target() _NOEXCEPT;
     template <typename _Tp> const _Tp* target() const _NOEXCEPT;
-#endif // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_HAS_NO_RTTI
 };
 
 #if _LIBCPP_STD_VER >= 17
 template<class _Rp, class ..._Ap>
 function(_Rp(*)(_Ap...)) -> function<_Rp(_Ap...)>;
-
-template<class _Fp>
-struct __strip_signature;
-
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...)> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) const> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) volatile> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) const volatile> { using type = _Rp(_Ap...); };
-
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) &> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) const &> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) volatile &> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) const volatile &> { using type = _Rp(_Ap...); };
-
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) noexcept> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) const noexcept> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) volatile noexcept> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) const volatile noexcept> { using type = _Rp(_Ap...); };
-
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) & noexcept> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) const & noexcept> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) volatile & noexcept> { using type = _Rp(_Ap...); };
-template<class _Rp, class _Gp, class ..._Ap>
-struct __strip_signature<_Rp (_Gp::*) (_Ap...) const volatile & noexcept> { using type = _Rp(_Ap...); };
 
 template<class _Fp, class _Stripped = typename __strip_signature<decltype(&_Fp::operator())>::type>
 function(_Fp) -> function<_Stripped>;
@@ -1190,7 +1156,7 @@ function<_Rp(_ArgTypes...)>::operator()(_ArgTypes... __arg) const
     return __f_(_VSTD::forward<_ArgTypes>(__arg)...);
 }
 
-#ifndef _LIBCPP_NO_RTTI
+#ifndef _LIBCPP_HAS_NO_RTTI
 
 template<class _Rp, class ..._ArgTypes>
 const std::type_info&
@@ -1215,7 +1181,7 @@ function<_Rp(_ArgTypes...)>::target() const _NOEXCEPT
     return __f_.template target<_Tp>();
 }
 
-#endif // _LIBCPP_NO_RTTI
+#endif // _LIBCPP_HAS_NO_RTTI
 
 template <class _Rp, class... _ArgTypes>
 inline _LIBCPP_INLINE_VISIBILITY

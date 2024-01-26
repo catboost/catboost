@@ -10,8 +10,8 @@
 #define _LIBCPP___TUPLE_TUPLE_ELEMENT_H
 
 #include <__config>
-#include <__tuple/tuple_indices.h>
-#include <__tuple/tuple_types.h>
+#include <__tuple_dir/tuple_indices.h>
+#include <__tuple_dir/tuple_types.h>
 #include <__type_traits/add_const.h>
 #include <__type_traits/add_cv.h>
 #include <__type_traits/add_volatile.h>
@@ -73,7 +73,6 @@ using __type_pack_element _LIBCPP_NODEBUG = typename decltype(
             typename __make_tuple_indices<sizeof...(_Types)>::type
         >{})
   )::type;
-
 #else // !defined(__CUDACC__) || !defined(_MSC_VER)
 template <size_t _Idx, class ..._Types>
 struct __y_type_pack_element {

@@ -15,7 +15,6 @@
 #include <__algorithm/min_element.h>
 #include <__algorithm/partial_sort.h>
 #include <__algorithm/unwrap_iter.h>
-#include <__bits>
 #include <__config>
 #include <__debug>
 #include <__debug_utils/randomize_range.h>
@@ -24,8 +23,13 @@
 #include <__iterator/iterator_traits.h>
 #include <__memory/destruct_n.h>
 #include <__memory/unique_ptr.h>
+#include <__type_traits/is_arithmetic.h>
+#include <__type_traits/is_trivially_copy_assignable.h>
+#include <__type_traits/is_trivially_copy_constructible.h>
 #include <__utility/move.h>
+#include <bit>
 #include <climits>
+#include <cstdint>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -626,7 +630,7 @@ inline _LIBCPP_HIDE_FROM_ABI _Number __log2i(_Number __n) {
 template <class _WrappedComp, class _RandomAccessIterator>
 _LIBCPP_HIDDEN void __sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _WrappedComp __wrapped_comp) {
   typedef typename iterator_traits<_RandomAccessIterator>::difference_type difference_type;
-  difference_type __depth_limit = 2 * __log2i(__last - __first);
+  difference_type __depth_limit = 2 * std::__log2i(__last - __first);
 
   using _Unwrap = _UnwrapAlgPolicy<_WrappedComp>;
   using _AlgPolicy = typename _Unwrap::_AlgPolicy;

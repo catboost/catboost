@@ -404,7 +404,6 @@ _LIBCPP_HIDE_FROM_ABI __float_result __format_buffer_general_lower_case(__float_
       // In fixed mode the algorithm truncates trailing spaces and possibly the
       // radix point. There's no good guess for the position of the radix point
       // therefore scan the output after the first digit.
-
       __result.__radix_point = _VSTD::find(__first, __result.__last, '.');
     }
   }
@@ -498,7 +497,7 @@ _LIBCPP_HIDE_FROM_ABI _OutIt __format_locale_specific_form(
     const __float_result& __result,
     _VSTD::locale __loc,
     __format_spec::__parsed_specifications<_CharT> __specs) {
-  const auto& __np = use_facet<numpunct<_CharT>>(__loc);
+  const auto& __np = std::use_facet<numpunct<_CharT>>(__loc);
   string __grouping = __np.grouping();
   char* __first = __result.__integral;
   // When no radix point or exponent are present __last will be __result.__last.
@@ -665,7 +664,7 @@ __format_floating_point(_Tp __value, auto& __ctx, __format_spec::__parsed_specif
       if (__result.__exponent == __result.__last)
         // if P > X >= -4, the conversion is with style f or F and precision P - 1 - X.
         // By including the radix point it calculates P - (1 + X)
-        __p -= __result.__radix_point - __buffer.begin();
+        __p -= __result.__radix_point - __result.__integral;
       else
         // otherwise, the conversion is with style e or E and precision P - 1.
         --__p;

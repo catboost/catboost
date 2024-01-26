@@ -15,7 +15,7 @@
 #include <cstring>
 
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
-# error #include <source_location>
+#include <source_location>
 #endif
 
 namespace boost

@@ -26,6 +26,12 @@ template <bool _Bp, class _Tp = void> using __enable_if_t _LIBCPP_NODEBUG = type
 template <bool _Bp, class _Tp = void> using enable_if_t = typename enable_if<_Bp, _Tp>::type;
 #endif
 
+// CUDA headers use libc++ internals.
+#ifdef __CUDACC__
+template <bool _Cond, class _Ret = void>
+using __lazy_enable_if _LIBCPP_NODEBUG = __enable_if_t<_Cond, _Ret>;
+#endif
+
 _LIBCPP_END_NAMESPACE_STD
 
 #endif // _LIBCPP___TYPE_TRAITS_ENABLE_IF_H
