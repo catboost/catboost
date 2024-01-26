@@ -240,61 +240,63 @@ BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']
 
 
 def compare_metrics_with_diff(custom_metric, fit_eval, calc_eval, eps=1e-7):
-    csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
-    csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
+    with open(fit_eval, "r") as fit_eval_file, open(calc_eval, "r") as calc_eval_file:
+        csv_fit = csv.reader(fit_eval_file, dialect='excel-tab')
+        csv_calc = csv.reader(calc_eval_file, dialect='excel-tab')
 
-    head_fit = next(csv_fit)
-    head_calc = next(csv_calc)
+        head_fit = next(csv_fit)
+        head_calc = next(csv_calc)
 
-    if isinstance(custom_metric, str):
-        custom_metric = [custom_metric]
+        if isinstance(custom_metric, str):
+            custom_metric = [custom_metric]
 
-    for metric_name in deepcopy(custom_metric):
-        if metric_name in BY_CLASS_METRICS:
-            custom_metric.remove(metric_name)
+        for metric_name in deepcopy(custom_metric):
+            if metric_name in BY_CLASS_METRICS:
+                custom_metric.remove(metric_name)
 
-            for fit_metric_name in head_fit:
-                if fit_metric_name[:len(metric_name)] == metric_name:
-                    custom_metric.append(fit_metric_name)
+                for fit_metric_name in head_fit:
+                    if fit_metric_name[:len(metric_name)] == metric_name:
+                        custom_metric.append(fit_metric_name)
 
-    col_idx_fit = {}
-    col_idx_calc = {}
+        col_idx_fit = {}
+        col_idx_calc = {}
 
-    for metric_name in custom_metric:
-        col_idx_fit[metric_name] = head_fit.index(metric_name)
-        col_idx_calc[metric_name] = head_calc.index(metric_name)
+        for metric_name in custom_metric:
+            col_idx_fit[metric_name] = head_fit.index(metric_name)
+            col_idx_calc[metric_name] = head_calc.index(metric_name)
 
-    while True:
-        try:
-            line_fit = next(csv_fit)
-            line_calc = next(csv_calc)
-            for metric_name in custom_metric:
-                fit_value = float(line_fit[col_idx_fit[metric_name]])
-                calc_value = float(line_calc[col_idx_calc[metric_name]])
-                max_abs = max(abs(fit_value), abs(calc_value))
-                err = abs(fit_value - calc_value) / max_abs if max_abs > 0 else 0
-                if err > eps:
-                    raise Exception('{}, iter {}: fit vs calc = {} vs {}, err = {} > eps = {}'.format(
-                        metric_name, line_fit[0], fit_value, calc_value, err, eps))
-        except StopIteration:
-            break
+        while True:
+            try:
+                line_fit = next(csv_fit)
+                line_calc = next(csv_calc)
+                for metric_name in custom_metric:
+                    fit_value = float(line_fit[col_idx_fit[metric_name]])
+                    calc_value = float(line_calc[col_idx_calc[metric_name]])
+                    max_abs = max(abs(fit_value), abs(calc_value))
+                    err = abs(fit_value - calc_value) / max_abs if max_abs > 0 else 0
+                    if err > eps:
+                        raise Exception('{}, iter {}: fit vs calc = {} vs {}, err = {} > eps = {}'.format(
+                            metric_name, line_fit[0], fit_value, calc_value, err, eps))
+            except StopIteration:
+                break
 
 
 def compare_evals(fit_eval, calc_eval, skip_header=False):
-    csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
-    csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
-    if skip_header:
-        next(csv_fit)
-        next(csv_calc)
-    while True:
-        try:
-            line_fit = next(csv_fit)
-            line_calc = next(csv_calc)
-            if line_fit[:-1] != line_calc:
-                return False
-        except StopIteration:
-            break
-    return True
+    with open(fit_eval, "r") as fit_eval_file, open(calc_eval, "r") as calc_eval_file:
+        csv_fit = csv.reader(fit_eval_file, dialect='excel-tab')
+        csv_calc = csv.reader(calc_eval_file, dialect='excel-tab')
+        if skip_header:
+            next(csv_fit)
+            next(csv_calc)
+        while True:
+            try:
+                line_fit = next(csv_fit)
+                line_calc = next(csv_calc)
+                if line_fit[:-1] != line_calc:
+                    return False
+            except StopIteration:
+                break
+        return True
 
 
 def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, atol=1e-8, skip_last_column_in_fit=True):
