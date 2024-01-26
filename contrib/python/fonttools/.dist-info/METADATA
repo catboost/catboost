@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.47.0
+Version: 4.47.2
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -374,6 +374,18 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.47.2 (released 2024-01-11)
+----------------------------
+
+Minor release to fix uploading wheels to PyPI.
+
+4.47.1 (released 2024-01-11)
+----------------------------
+
+- [merge] Improve help message and add standard command line options (#3408)
+- [otlLib] Pass ``ttFont`` to ``name.addName`` in ``buildStatTable`` (#3406)
+- [featureVars] Re-use ``FeatureVariationRecord``'s when possible (#3413)
 
 4.47.0 (released 2023-12-18)
 ----------------------------

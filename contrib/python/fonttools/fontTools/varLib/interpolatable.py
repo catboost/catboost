@@ -376,9 +376,6 @@ def test_gen(
                     size1 = m1Vec[0] * m1Vec[0]
                     midSize = midVector[0] * midVector[0]
 
-                    power = 1
-                    t = tolerance**power
-
                     for overweight, problem_type in enumerate(
                         (
                             InterpolatableProblem.UNDERWEIGHT,
@@ -386,8 +383,7 @@ def test_gen(
                         )
                     ):
                         if overweight:
-                            expectedSize = sqrt(size0 * size1)
-                            expectedSize = (size0 + size1) - expectedSize
+                            expectedSize = max(size0, size1)
                             continue
                         else:
                             expectedSize = sqrt(size0 * size1)
@@ -406,13 +402,9 @@ def test_gen(
                         ) or (overweight and 1e-5 + expectedSize / tolerance < midSize):
                             try:
                                 if overweight:
-                                    this_tolerance = (expectedSize / midSize) ** (
-                                        1 / power
-                                    )
+                                    this_tolerance = expectedSize / midSize
                                 else:
-                                    this_tolerance = (midSize / expectedSize) ** (
-                                        1 / power
-                                    )
+                                    this_tolerance = midSize / expectedSize
                             except ZeroDivisionError:
                                 this_tolerance = 0
                             log.debug("tolerance %g", this_tolerance)

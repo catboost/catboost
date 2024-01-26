@@ -2781,14 +2781,13 @@ def buildStatTable(
     """
     ttFont["STAT"] = ttLib.newTable("STAT")
     statTable = ttFont["STAT"].table = ot.STAT()
-    nameTable = ttFont["name"]
     statTable.ElidedFallbackNameID = _addName(
-        nameTable, elidedFallbackName, windows=windowsNames, mac=macNames
+        ttFont, elidedFallbackName, windows=windowsNames, mac=macNames
     )
 
     # 'locations' contains data for AxisValue Format 4
     axisRecords, axisValues = _buildAxisRecords(
-        axes, nameTable, windowsNames=windowsNames, macNames=macNames
+        axes, ttFont, windowsNames=windowsNames, macNames=macNames
     )
     if not locations:
         statTable.Version = 0x00010001
@@ -2797,10 +2796,10 @@ def buildStatTable(
         # requires a higher table version
         statTable.Version = 0x00010002
         multiAxisValues = _buildAxisValuesFormat4(
-            locations, axes, nameTable, windowsNames=windowsNames, macNames=macNames
+            locations, axes, ttFont, windowsNames=windowsNames, macNames=macNames
         )
         axisValues = multiAxisValues + axisValues
-    nameTable.names.sort()
+    ttFont["name"].names.sort()
 
     # Store AxisRecords
     axisRecordArray = ot.AxisRecordArray()
@@ -2820,14 +2819,14 @@ def buildStatTable(
         statTable.AxisValueCount = len(axisValues)
 
 
-def _buildAxisRecords(axes, nameTable, windowsNames=True, macNames=True):
+def _buildAxisRecords(axes, ttFont, windowsNames=True, macNames=True):
     axisRecords = []
     axisValues = []
     for axisRecordIndex, axisDict in enumerate(axes):
         axis = ot.AxisRecord()
         axis.AxisTag = axisDict["tag"]
         axis.AxisNameID = _addName(
-            nameTable, axisDict["name"], 256, windows=windowsNames, mac=macNames
+            ttFont, axisDict["name"], 256, windows=windowsNames, mac=macNames
         )
         axis.AxisOrdering = axisDict.get("ordering", axisRecordIndex)
         axisRecords.append(axis)
@@ -2837,7 +2836,7 @@ def _buildAxisRecords(axes, nameTable, windowsNames=True, macNames=True):
             axisValRec.AxisIndex = axisRecordIndex
             axisValRec.Flags = axisVal.get("flags", 0)
             axisValRec.ValueNameID = _addName(
-                nameTable, axisVal["name"], windows=windowsNames, mac=macNames
+                ttFont, axisVal["name"], windows=windowsNames, mac=macNames
             )
 
             if "value" in axisVal:
@@ -2863,9 +2862,7 @@ def _buildAxisRecords(axes, nameTable, windowsNames=True, macNames=True):
     return axisRecords, axisValues
 
 
-def _buildAxisValuesFormat4(
-    locations, axes, nameTable, windowsNames=True, macNames=True
-):
+def _buildAxisValuesFormat4(locations, axes, ttFont, windowsNames=True, macNames=True):
     axisTagToIndex = {}
     for axisRecordIndex, axisDict in enumerate(axes):
         axisTagToIndex[axisDict["tag"]] = axisRecordIndex
@@ -2875,7 +2872,7 @@ def _buildAxisValuesFormat4(
         axisValRec = ot.AxisValue()
         axisValRec.Format = 4
         axisValRec.ValueNameID = _addName(
-            nameTable, axisLocationDict["name"], windows=windowsNames, mac=macNames
+            ttFont, axisLocationDict["name"], windows=windowsNames, mac=macNames
         )
         axisValRec.Flags = axisLocationDict.get("flags", 0)
         axisValueRecords = []
@@ -2891,7 +2888,8 @@ def _buildAxisValuesFormat4(
     return axisValues
 
 
-def _addName(nameTable, value, minNameID=0, windows=True, mac=True):
+def _addName(ttFont, value, minNameID=0, windows=True, mac=True):
+    nameTable = ttFont["name"]
     if isinstance(value, int):
         # Already a nameID
         return value
@@ -2916,5 +2914,5 @@ def _addName(nameTable, value, minNameID=0, windows=True, mac=True):
     else:
         raise TypeError("value must be int, str, dict or list")
     return nameTable.addMultilingualName(
-        names, windows=windows, mac=mac, minNameID=minNameID
+        names, ttFont=ttFont, windows=windows, mac=mac, minNameID=minNameID
     )
