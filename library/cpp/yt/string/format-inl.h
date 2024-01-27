@@ -415,27 +415,6 @@ struct TValueFormatter<TEnumIndexedArray<E, T>>
     }
 };
 
-// TEnumIndexedVector
-template <class E, class T>
-struct TValueFormatter<TEnumIndexedVector<E, T>>
-{
-    static void Do(TStringBuilderBase* builder, const TEnumIndexedVector<E, T>& collection, TStringBuf format)
-    {
-        builder->AppendChar('{');
-        bool firstItem = true;
-        for (const auto& index : TEnumTraits<E>::GetDomainValues()) {
-            if (!firstItem) {
-                builder->AppendString(DefaultJoinToStringDelimiter);
-            }
-            FormatValue(builder, index, format);
-            builder->AppendString(": ");
-            FormatValue(builder, collection[index], format);
-            firstItem = false;
-        }
-        builder->AppendChar('}');
-    }
-};
-
 // std::pair
 template <class T1, class T2>
 struct TValueFormatter<std::pair<T1, T2>>

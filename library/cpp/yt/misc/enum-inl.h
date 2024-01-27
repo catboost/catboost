@@ -302,67 +302,6 @@ T TEnumTraits<T, true>::FromString(TStringBuf literal)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class E, class T, E Min, E Max>
-constexpr TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector()
-    : Items_{}
-{ }
-
-template <class E, class T, E Min, E Max>
-constexpr TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector(std::initializer_list<T> elements)
-    : Items_{}
-{
-    Y_ASSERT(std::distance(elements.begin(), elements.end()) <= N);
-    size_t index = 0;
-    for (const auto& element : elements) {
-        Items_[index++] = element;
-    }
-}
-
-template <class E, class T, E Min, E Max>
-T& TEnumIndexedVector<E, T, Min, Max>::operator[] (E index)
-{
-    Y_ASSERT(index >= Min && index <= Max);
-    return Items_[ToUnderlying(index) - ToUnderlying(Min)];
-}
-
-template <class E, class T, E Min, E Max>
-const T& TEnumIndexedVector<E, T, Min, Max>::operator[] (E index) const
-{
-    return const_cast<TEnumIndexedVector&>(*this)[index];
-}
-
-template <class E, class T, E Min, E Max>
-T* TEnumIndexedVector<E, T, Min, Max>::begin()
-{
-    return Items_.data();
-}
-
-template <class E, class T, E Min, E Max>
-const T* TEnumIndexedVector<E, T, Min, Max>::begin() const
-{
-    return Items_.data();
-}
-
-template <class E, class T, E Min, E Max>
-T* TEnumIndexedVector<E, T, Min, Max>::end()
-{
-    return begin() + N;
-}
-
-template <class E, class T, E Min, E Max>
-const T* TEnumIndexedVector<E, T, Min, Max>::end() const
-{
-    return begin() + N;
-}
-
-template <class E, class T, E Min, E Max>
-bool TEnumIndexedVector<E, T, Min, Max>::IsDomainValue(E value)
-{
-    return value >= Min && value <= Max;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 #define ENUM__BINARY_BITWISE_OPERATOR(T, assignOp, op) \
     [[maybe_unused]] inline constexpr T operator op (T lhs, T rhs) \
     { \
