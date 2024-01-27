@@ -149,4 +149,42 @@ Y_UNIT_TEST_SUITE(TStringInputOutputTest) {
         // Check old stream is in a valid state
         output1 << "baz";
     }
+
+    // There is no distinct tests for Out<> via IOutputStream.
+    // Let's tests strings output here.
+    Y_UNIT_TEST(TestWritingWideStrings) {
+        using namespace std::literals::string_literals;
+        TString str;
+        TStringOutput stream(str);
+
+        // test char16_t
+        const char16_t* utf16Data = u"Быть или не быть? Вот в чём вопрос";
+        stream << std::u16string(utf16Data);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+
+        stream << std::u16string_view(utf16Data);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+
+        // test char32_t
+        const char32_t* utf32Data = U"Быть или не быть? Вот в чём вопрос";
+        stream << std::u32string(utf32Data);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+
+        stream << std::u32string_view(utf32Data);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+
+        // test wchar_t
+        const wchar_t* wcharData = L"Быть или не быть? Вот в чём вопрос";
+        stream << std::wstring(wcharData);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+
+        stream << std::wstring_view(wcharData);
+        UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
+        str.clear();
+    }
 }

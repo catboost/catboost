@@ -70,24 +70,13 @@ void Out<wchar32>(IOutputStream& o, wchar32 ch) {
     o.Write(buffer, length);
 }
 
-static void WriteString(IOutputStream& o, const wchar16* w, size_t n) {
+template <typename TCharType>
+static void WriteString(IOutputStream& o, const TCharType* w, size_t n) {
     const size_t buflen = (n * MAX_UTF8_BYTES); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
     TTempBuf buffer(buflen + 1);
-    char* const data = buffer.Data();
     size_t written = 0;
-    WideToUTF8(w, n, data, written);
-    data[written] = 0;
-    o.Write(data, written);
-}
-
-static void WriteString(IOutputStream& o, const wchar32* w, size_t n) {
-    const size_t buflen = (n * MAX_UTF8_BYTES); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
-    TTempBuf buffer(buflen + 1);
-    char* const data = buffer.Data();
-    size_t written = 0;
-    WideToUTF8(w, n, data, written);
-    data[written] = 0;
-    o.Write(data, written);
+    WideToUTF8(w, n, buffer.Data(), written);
+    o.Write(buffer.Data(), written);
 }
 
 template <>
@@ -101,8 +90,28 @@ void Out<std::string>(IOutputStream& o, const std::string& p) {
 }
 
 template <>
+void Out<std::wstring>(IOutputStream& o, const std::wstring& p) {
+    WriteString(o, p.data(), p.length());
+}
+
+template <>
+void Out<std::u16string>(IOutputStream& o, const std::u16string& p) {
+    WriteString(o, p.data(), p.length());
+}
+
+template <>
+void Out<std::u32string>(IOutputStream& o, const std::u32string& p) {
+    WriteString(o, p.data(), p.length());
+}
+
+template <>
 void Out<std::string_view>(IOutputStream& o, const std::string_view& p) {
     o.Write(p.data(), p.length());
+}
+
+template <>
+void Out<std::wstring_view>(IOutputStream& o, const std::wstring_view& p) {
+    WriteString(o, p.data(), p.length());
 }
 
 template <>

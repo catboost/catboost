@@ -49,8 +49,8 @@ namespace NDetail {
 
     inline wchar32 ReadSurrogatePair(const wchar16* chars) noexcept {
         const wchar32 SURROGATE_OFFSET = static_cast<wchar32>(0x10000 - (0xD800 << 10) - 0xDC00);
-        wchar16 lead = chars[0];
-        wchar16 tail = chars[1];
+        wchar32 lead = chars[0];
+        wchar32 tail = chars[1];
 
         Y_ASSERT(IsW16SurrogateLead(lead));
         Y_ASSERT(IsW16SurrogateTail(tail));
@@ -98,7 +98,7 @@ inline wchar32 ReadSymbol(const wchar32* begin, const wchar32* end) noexcept {
 }
 
 //! presuming input data is either big enought of null terminated
-inline wchar32 ReadSymbolAndAdvance(const wchar16*& begin) noexcept {
+inline wchar32 ReadSymbolAndAdvance(const char16_t*& begin) noexcept {
     Y_ASSERT(*begin);
     if (IsW16SurrogateLead(begin[0])) {
         if (IsW16SurrogateTail(begin[1])) {
@@ -117,12 +117,30 @@ inline wchar32 ReadSymbolAndAdvance(const wchar16*& begin) noexcept {
 }
 
 //! presuming input data is either big enought of null terminated
-inline wchar32 ReadSymbolAndAdvance(const wchar32*& begin) noexcept {
+inline wchar32 ReadSymbolAndAdvance(const char32_t*& begin) noexcept {
     Y_ASSERT(*begin);
     return *(begin++);
 }
 
-inline wchar32 ReadSymbolAndAdvance(const wchar16*& begin, const wchar16* end) noexcept {
+inline wchar32 ReadSymbolAndAdvance(const wchar_t*& begin) noexcept {
+    // According to
+    // https://en.cppreference.com/w/cpp/language/types
+    // wchar_t holds UTF-16 on Windows and UTF-32 on Linux / macOS
+    //
+    // Apply reinterpret cast and dispatch to a proper type
+
+#ifdef _win_
+    using TDistinctChar = char16_t;
+#else
+    using TDistinctChar = char32_t;
+#endif
+    const TDistinctChar*& distinctBegin = reinterpret_cast<const TDistinctChar*&>(begin);
+    wchar32 result = ReadSymbolAndAdvance(distinctBegin);
+    begin = reinterpret_cast<const wchar_t*&>(distinctBegin);
+    return result;
+}
+
+inline wchar32 ReadSymbolAndAdvance(const char16_t*& begin, const char16_t* end) noexcept {
     Y_ASSERT(begin < end);
     if (IsW16SurrogateLead(begin[0])) {
         if (begin + 1 != end && IsW16SurrogateTail(begin[1])) {
@@ -142,6 +160,25 @@ inline wchar32 ReadSymbolAndAdvance(const wchar16*& begin, const wchar16* end) n
 inline wchar32 ReadSymbolAndAdvance(const wchar32*& begin, const wchar32* end) noexcept {
     Y_ASSERT(begin < end);
     return *(begin++);
+}
+
+inline wchar32 ReadSymbolAndAdvance(const wchar_t*& begin, const wchar_t* end) noexcept {
+    // According to
+    // https://en.cppreference.com/w/cpp/language/types
+    // wchar_t holds UTF-16 on Windows and UTF-32 on Linux / macOS
+    //
+    // Apply reinterpret cast and dispatch to a proper type
+
+#ifdef _win_
+    using TDistinctChar = char16_t;
+#else
+    using TDistinctChar = char32_t;
+#endif
+    const TDistinctChar* distinctBegin = reinterpret_cast<const TDistinctChar*>(begin);
+    const TDistinctChar* distinctEnd = reinterpret_cast<const TDistinctChar*>(end);
+    wchar32 result = ::ReadSymbolAndAdvance(distinctBegin, distinctEnd);
+    begin = reinterpret_cast<const wchar_t*>(distinctBegin);
+    return result;
 }
 
 template <class T>
