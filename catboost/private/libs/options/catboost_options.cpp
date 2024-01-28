@@ -788,7 +788,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
     if (subsample.IsSet()) {
-        CB_ENSURE(bootstrapType != EBootstrapType::Bayesian, "Error: default bootstrap type (bayesian) doesn't support taken fraction option");
+        CB_ENSURE(bootstrapType != EBootstrapType::Bayesian, "Error: default bootstrap type (bayesian) doesn't support 'subsample' option");
     } else {
         if (bootstrapType == EBootstrapType::MVS) {
             subsample.SetDefault(0.8);

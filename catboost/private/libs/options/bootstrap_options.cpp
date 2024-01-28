@@ -14,7 +14,7 @@ namespace NCatboostOptions {
             case EBootstrapType::Bayesian: {
                 if (TakenFraction.IsSet()) {
                     ythrow TCatBoostException()
-                        << "Error: bayesian bootstrap doesn't support taken fraction option";
+                        << "Error: bayesian bootstrap doesn't support 'subsample' option";
                 }
                 break;
             }
