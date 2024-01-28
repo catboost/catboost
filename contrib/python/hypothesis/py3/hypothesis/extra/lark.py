@@ -34,6 +34,7 @@ from hypothesis import strategies as st
 from hypothesis.errors import InvalidArgument
 from hypothesis.internal.conjecture.utils import calc_label_from_name
 from hypothesis.internal.validation import check_type
+from hypothesis.strategies._internal.regex import IncompatibleWithAlphabet
 from hypothesis.strategies._internal.utils import cacheable, defines_strategy
 
 __all__ = ["from_lark"]
@@ -59,7 +60,7 @@ class LarkStrategy(st.SearchStrategy):
     See ``from_lark`` for details.
     """
 
-    def __init__(self, grammar, start, explicit):
+    def __init__(self, grammar, start, explicit, alphabet):
         assert isinstance(grammar, lark.lark.Lark)
         if start is None:
             start = grammar.options.start
@@ -86,38 +87,66 @@ class LarkStrategy(st.SearchStrategy):
             t = r.origin
             self.names_to_symbols[t.name] = t
 
+        disallowed = set()
+        self.terminal_strategies = {}
         for t in terminals:
             self.names_to_symbols[t.name] = Terminal(t.name)
-
-        self.start = st.sampled_from([self.names_to_symbols[s] for s in start])
+            s = st.from_regex(t.pattern.to_regexp(), fullmatch=True, alphabet=alphabet)
+            try:
+                s.validate()
+            except IncompatibleWithAlphabet:
+                disallowed.add(t.name)
+            else:
+                self.terminal_strategies[t.name] = s
 
         self.ignored_symbols = tuple(self.names_to_symbols[n] for n in ignore_names)
 
-        self.terminal_strategies = {
-            t.name: st.from_regex(t.pattern.to_regexp(), fullmatch=True)
-            for t in terminals
-        }
-        unknown_explicit = set(explicit) - get_terminal_names(
-            terminals, rules, ignore_names
-        )
-        if unknown_explicit:
+        all_terminals = get_terminal_names(terminals, rules, ignore_names)
+        if unknown_explicit := sorted(set(explicit) - all_terminals):
             raise InvalidArgument(
-                "The following arguments were passed as explicit_strategies, "
-                "but there is no such terminal production in this grammar: "
-                + repr(sorted(unknown_explicit))
+                "The following arguments were passed as explicit_strategies, but "
+                f"there is no {unknown_explicit} terminal production in this grammar."
+            )
+        if missing_declared := sorted(
+            all_terminals - {t.name for t in terminals} - set(explicit)
+        ):
+            raise InvalidArgument(
+                f"Undefined terminal{'s' * (len(missing_declared) > 1)} "
+                f"{sorted(missing_declared)!r}. Generation does not currently "
+                "support use of %declare unless you pass `explicit`, a dict of "
+                f"names-to-strategies, such as `{{{missing_declared[0]!r}: "
+                'st.just("")}}`'
             )
         self.terminal_strategies.update(explicit)
 
         nonterminals = {}
 
         for rule in rules:
-            nonterminals.setdefault(rule.origin.name, []).append(tuple(rule.expansion))
+            if disallowed.isdisjoint(r.name for r in rule.expansion):
+                nonterminals.setdefault(rule.origin.name, []).append(
+                    tuple(rule.expansion)
+                )
 
-        for v in nonterminals.values():
-            v.sort(key=len)
+        allowed_rules = {*self.terminal_strategies, *nonterminals}
+        while dict(nonterminals) != (
+            nonterminals := {
+                k: clean
+                for k, v in nonterminals.items()
+                if (clean := [x for x in v if all(r.name in allowed_rules for r in x)])
+            }
+        ):
+            allowed_rules = {*self.terminal_strategies, *nonterminals}
+
+        if set(start).isdisjoint(allowed_rules):
+            raise InvalidArgument(
+                f"No start rule {tuple(start)} is allowed by {alphabet=}"
+            )
+        self.start = st.sampled_from(
+            [self.names_to_symbols[s] for s in start if s in allowed_rules]
+        )
 
         self.nonterminal_strategies = {
-            k: st.sampled_from(v) for k, v in nonterminals.items()
+            k: st.sampled_from(sorted(v, key=len)) for k, v in nonterminals.items()
         }
 
         self.__rule_labels = {}
@@ -138,15 +167,7 @@ class LarkStrategy(st.SearchStrategy):
 
     def draw_symbol(self, data, symbol, draw_state):
         if isinstance(symbol, Terminal):
-            try:
-                strategy = self.terminal_strategies[symbol.name]
-            except KeyError:
-                raise InvalidArgument(
-                    "Undefined terminal %r. Generation does not currently support "
-                    "use of %%declare unless you pass `explicit`, a dict of "
-                    'names-to-strategies, such as `{%r: st.just("")}`'
-                    % (symbol.name, symbol.name)
-                ) from None
+            strategy = self.terminal_strategies[symbol.name]
             draw_state.append(data.draw(strategy))
         else:
             assert isinstance(symbol, NonTerminal)
@@ -181,6 +202,7 @@ def from_lark(
     *,
     start: Optional[str] = None,
     explicit: Optional[Dict[str, st.SearchStrategy[str]]] = None,
+    alphabet: st.SearchStrategy[str] = st.characters(codec="utf-8"),
 ) -> st.SearchStrategy[str]:
     """A strategy for strings accepted by the given context-free grammar.
 
@@ -214,4 +236,4 @@ def from_lark(
             k: v.map(check_explicit(f"explicit[{k!r}]={v!r}"))
             for k, v in explicit.items()
         }
-    return LarkStrategy(grammar, start, explicit)
+    return LarkStrategy(grammar, start, explicit, alphabet)
