@@ -52,6 +52,11 @@ def prune_cuda_libraries(cmd, prune_arches, nvprune_exe, build_root):
         _, ver = arch.split('_', 1)
         return 'compute_{}'.format(ver)
 
+    libs_to_prune = set(CUDA_LIBRARIES)
+
+    # does not contain device code, nothing to prune
+    libs_to_prune.remove('-lcudart_static')
+
     tmp_names_gen = name_generator('cuda_pruned_libs')
 
     arch_args = []
@@ -62,10 +67,10 @@ def prune_cuda_libraries(cmd, prune_arches, nvprune_exe, build_root):
     flags = []
     cuda_deps = set()
     for flag in reversed(cmd):
-        if flag in CUDA_LIBRARIES:
+        if flag in libs_to_prune:
             cuda_deps.add('lib' + flag[2:] + '.a')
             flag += '_pruned'
-        elif flag.startswith('-L') and any(f in cuda_deps for f in os.listdir(flag[2:])):
+        elif flag.startswith('-L') and os.path.exists(flag[2:]) and os.path.isdir(flag[2:]) and any(f in cuda_deps for f in os.listdir(flag[2:])):
             from_dirpath = flag[2:]
             from_deps = list(cuda_deps & set(os.listdir(from_dirpath)))
 
