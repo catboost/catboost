@@ -236,6 +236,25 @@ target_proto_messages(contrib-libs-coreml PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/Scaler.proto
   ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/TreeEnsemble.proto
 )
+target_sources(contrib-libs-coreml PRIVATE
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/ArrayFeatureExtractor.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/CategoricalMapping.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/DataStructures.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/DictVectorizer.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/FeatureTypes.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/FeatureVectorizer.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/GLMClassifier.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/GLMRegressor.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/Identity.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/Imputer.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/Model.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/NeuralNetwork.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/Normalizer.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/OneHotEncoder.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/SVM.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/Scaler.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/coreml/TreeEnsemble.pb.h
+)
 target_proto_addincls(contrib-libs-coreml
   ./
   ${CMAKE_SOURCE_DIR}/

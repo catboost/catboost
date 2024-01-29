@@ -34,6 +34,15 @@ target_link_libraries(libs-model-flatbuffers PUBLIC
   libs-helpers-flatbuffers
 )
 target_sources(libs-model-flatbuffers PRIVATE
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.h
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/features.iter.fbs.h
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.h
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.iter.fbs.h
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.h
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/model.iter.fbs.h
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/features.bfbs
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.bfbs
+  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/model.bfbs
   ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.cpp
   ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.cpp
   ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.cpp

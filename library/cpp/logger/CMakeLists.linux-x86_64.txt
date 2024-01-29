@@ -24,6 +24,10 @@ target_link_libraries(library-cpp-logger PUBLIC
   cpp-deprecated-atomic
 )
 target_sources(library-cpp-logger PRIVATE
+  ${CMAKE_SOURCE_DIR}/library/cpp/logger/all.h
+  ${CMAKE_SOURCE_DIR}/library/cpp/logger/priority.h
+  ${CMAKE_SOURCE_DIR}/library/cpp/logger/record.h
+  ${CMAKE_SOURCE_DIR}/library/cpp/logger/reopen.h
   ${CMAKE_SOURCE_DIR}/library/cpp/logger/backend.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/logger/backend_creator.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/logger/composite.cpp

@@ -25,6 +25,17 @@ target_link_libraries(contrib-libs-protobuf PUBLIC
   cpp-sanitizer-include
 )
 target_sources(contrib-libs-protobuf PRIVATE
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
+  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.pb.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any_lite.cc

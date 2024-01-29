@@ -26,6 +26,7 @@ target_link_libraries(catboost-libs-column_description PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(catboost-libs-column_description PRIVATE
+  ${CMAKE_BINARY_DIR}/catboost/libs/column_description/column.h_serialized.h
   ${CMAKE_SOURCE_DIR}/catboost/libs/column_description/cd_parser.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/column_description/column.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/column_description/feature_tag.cpp
