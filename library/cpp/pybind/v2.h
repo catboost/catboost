@@ -564,6 +564,16 @@ namespace NPyBind {
         NPyBind::TModuleHolder::Instance().AddModuleMethod<TModuleMethodCaller<TFunctionSignature, function>::Call>(name, descr);
     }
 
+    template <typename TFunctionSignature, TFunctionSignature function>
+    void DefRawImpl(const TString& name, const TString& descr = "") {
+        NPyBind::TModuleHolder::Instance().AddModuleMethod<[](PyObject*, PyObject* args, PyObject* kwargs) -> PyObject* {
+            return BuildPyObject(function(args, kwargs));
+        }>(name, descr);
+    }
+
 #define DefFunc(NAME, FUNC) NPyBind::DefImpl<decltype(FUNC), FUNC>(NAME)
 #define DefFuncDescr(NAME, FUNC, DESCR) NPyBind::DefImpl<decltype(FUNC), FUNC>(NAME, DESCR)
+
+#define DefRawFunc(NAME, FUNC) NPyBind::DefRawImpl<decltype(FUNC), FUNC>(NAME)
+#define DefRawFuncDescr(NAME, FUNC, DESCR) NPyBind::DefRawImpl<decltype(FUNC), FUNC>(NAME, DESCR)
 };

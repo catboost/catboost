@@ -26,6 +26,10 @@ namespace NPyBind {
         NPyBind::TPyObjectPtr Exception;
     };
 
+    // Throw it when you set py error but function return type is not PyObject*.
+    // Look into examples for more details.
+    struct TPyNativeErrorException final: public yexception {};
+
     //Private api for creating PyBind python module
     //Needs only for overriding pybind python module in library which imports other pybind library
     namespace NPrivate {

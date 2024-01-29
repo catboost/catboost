@@ -42,6 +42,7 @@ namespace NPyBind {
         TModuleHolder();
     private:
         typedef PyCFunction TModuleMethod;
+        typedef PyCFunctionWithKeywords TModuleMethodWithKeywords;
 #if PY_MAJOR_VERSION >= 3
         typedef PyObject* (*TModuleInitFunc)();
 #else
@@ -99,19 +100,33 @@ namespace NPyBind {
         TVector<TSimpleSharedPtr<TPyModuleDefWithName>> ModuleDefs;
 #endif
 
-        template <TModuleMethod method>
-        static PyObject* MethodWrapper(PyObject* obj, PyObject* args) {
+        template <typename TFunction>
+        static PyObject* FunctionWrapper(TFunction&& func) {
             try {
-                PyObject* res = method(obj, args);
+                PyObject* res = func();
                 if (!res && !PyErr_Occurred())
                     ythrow yexception() << "\nModule method exited with NULL, but didn't set Error.\n Options:\n -- Return correct value or None;\n -- Set python exception;\n -- Throw c++ exception.";
                 return res;
+            } catch (const TPyNativeErrorException&) {
+                if (!PyErr_Occurred()) {
+                    PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred while trying to call module method (py error was expected to be set, but something went wrong).");
+                }
             } catch (const std::exception& ex) {
                 PyErr_SetString(TExceptionsHolder::Instance().ToPyException(ex).Get(), ex.what());
             } catch (...) {
                 PyErr_SetString(PyExc_RuntimeError, "Unknown error occurred while trying to call module method");
             }
             return nullptr;
+        }
+
+        template <TModuleMethod method>
+        static PyObject* MethodWrapper(PyObject* obj, PyObject* args) {
+            return FunctionWrapper([=] { return method(obj, args); });
+        }
+
+        template <TModuleMethodWithKeywords method>
+        static PyObject* MethodWithKeywordsWrapper(PyObject* obj, PyObject* args, PyObject* kwargs) {
+            return FunctionWrapper([=] { return method(obj, args, kwargs); });
         }
 
     public:
@@ -129,6 +144,11 @@ namespace NPyBind {
         template <TModuleMethod method>
         void AddModuleMethod(const TString& name, const TString& descr = "") {
             Methods.back()->push_back(TMethodDef(name, MethodWrapper<method>, descr, METH_VARARGS));
+        }
+
+        template <TModuleMethodWithKeywords method>
+        void AddModuleMethod(const TString& name, const TString& descr = "") {
+            Methods.back()->push_back(TMethodDef(name, (TModuleMethod)&MethodWithKeywordsWrapper<method>, descr, METH_VARARGS | METH_KEYWORDS));
         }
 
         TPyObjectPtr InitModule(const TString& name) {
