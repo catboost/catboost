@@ -3,7 +3,8 @@
 #include <stddef.h>
 
 #include <library/cpp/yt/misc/enum.h>
-#include <library/cpp/yt/misc/enum_indexed_array.h>
+
+#include <library/cpp/yt/containers/enum_indexed_array.h>
 
 #include <util/system/types.h>
 

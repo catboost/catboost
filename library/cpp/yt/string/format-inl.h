@@ -11,8 +11,9 @@
 
 #include <library/cpp/yt/small_containers/compact_vector.h>
 
+#include <library/cpp/yt/containers/enum_indexed_array.h>
+
 #include <library/cpp/yt/misc/enum.h>
-#include <library/cpp/yt/misc/enum_indexed_array.h>
 
 #include <util/system/platform.h>
 

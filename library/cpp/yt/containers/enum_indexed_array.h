@@ -1,6 +1,6 @@
 #pragma once
 
-#include "enum.h"
+#include <library/cpp/yt/misc/enum.h>
 
 namespace NYT {
 
