@@ -8,6 +8,10 @@
 #include <vector>
 #include <initializer_list>
 
+#ifdef _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
+    #include <type_traits>
+#endif
+
 template <class T, class A>
 class TVector: public std::vector<T, TReboundAllocator<A, T>> {
 public:
