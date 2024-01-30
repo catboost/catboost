@@ -159,8 +159,8 @@ CATBOOST_API bool CalcModelPredictionFlat(
  * Flat here means that float features and categorical feature are in the same float array.
  * @param calcer model handle
  * @param docCount number of objects
- * @param treeStart the index of the first tree to be used when applying the model
- * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param treeStart the index of the first tree to be used when applying the model (zero-based)
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
  * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
  * @param floatFeaturesSize float values array size
  * @param result pointer to user allocated results vector
@@ -201,8 +201,8 @@ CATBOOST_API bool CalcModelPredictionFlatTransposed(
  * taking into consideration only the trees in the range [treeStart; treeEnd)
  * @param calcer model handle
  * @param docCount number of objects
- * @param treeStart the index of the first tree to be used when applying the model
- * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param treeStart the index of the first tree to be used when applying the model (zero-based)
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
  * @param floatFeatures array of array of float (first dimension is feature index, second is object index)
  * @param floatFeaturesSize float values array size
  * @param result pointer to user allocated results vector
@@ -244,8 +244,8 @@ CATBOOST_API bool CalcModelPrediction(
  * taking into consideration only the trees in the range [treeStart; treeEnd)
  * @param calcer model handle
  * @param docCount object count
- * @param treeStart the index of the first tree to be used when applying the model
- * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param treeStart the index of the first tree to be used when applying the model (zero-based)
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
  * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
  * @param floatFeaturesSize float feature count
  * @param catFeatures array of array of char* categorical value pointers.
@@ -296,8 +296,8 @@ CATBOOST_API bool CalcModelPredictionText(
  * taking into consideration only the trees in the range [treeStart; treeEnd)
  * @param calcer model handle
  * @param docCount object count
- * @param treeStart the index of the first tree to be used when applying the model
- * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param treeStart the index of the first tree to be used when applying the model (zero-based)
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
  * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
  * @param floatFeaturesSize float feature count
  * @param catFeatures array of array of char* categorical value pointers.
@@ -356,8 +356,8 @@ CATBOOST_API bool CalcModelPredictionTextAndEmbeddings(
  * taking into consideration only the trees in the range [treeStart; treeEnd)
  * @param calcer model handle
  * @param docCount object count
- * @param treeStart the index of the first tree to be used when applying the model
- * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param treeStart the index of the first tree to be used when applying the model (zero-based)
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
  * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
  * @param floatFeaturesSize float feature count
  * @param catFeatures array of array of char* categorical value pointers.
@@ -409,8 +409,8 @@ CATBOOST_API bool CalcModelPredictionSingle(
  * Calculate raw model prediction on float features and string categorical feature values for single object
  * taking into consideration only the trees in the range [treeStart; treeEnd)
  * @param calcer model handle
- * @param treeStart the index of the first tree to be used when applying the model
- * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param treeStart the index of the first tree to be used when applying the model (zero-based)
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive, zero-based)
  * @param floatFeatures array of float features
  * @param floatFeaturesSize float feature count
  * @param catFeatures array of char* categorical feature value pointers.
