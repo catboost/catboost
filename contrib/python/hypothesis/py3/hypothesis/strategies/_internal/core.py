@@ -2100,10 +2100,10 @@ class DataObject:
 
     def draw(self, strategy: SearchStrategy[Ex], label: Any = None) -> Ex:
         check_strategy(strategy, "strategy")
-        result = self.conjecture_data.draw(strategy)
         self.count += 1
         printer = RepresentationPrinter(context=current_build_context())
         desc = f"Draw {self.count}{'' if label is None else f' ({label})'}: "
+        result = self.conjecture_data.draw(strategy, observe_as=f"generate:{desc}")
         if TESTCASE_CALLBACKS:
             self.conjecture_data._observability_args[desc] = to_jsonable(result)
 

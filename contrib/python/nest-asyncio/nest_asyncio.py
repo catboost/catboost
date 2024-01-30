@@ -188,7 +188,7 @@ def _patch_loop(loop):
     cls._run_once = _run_once
     cls._check_running = _check_running
     cls._check_runnung = _check_running  # typo in Python 3.7 source
-    cls._num_runs_pending = 0
+    cls._num_runs_pending = 1 if loop.is_running() else 0
     cls._is_proactorloop = (
         os.name == 'nt' and issubclass(cls, asyncio.ProactorEventLoop))
     if sys.version_info < (3, 7, 0):

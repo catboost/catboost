@@ -3,7 +3,7 @@
 Introduction
 ------------
 
-By design asyncio `does not allow <https://bugs.python.org/issue22239>`_
+By design asyncio `does not allow <https://github.com/python/cpython/issues/66435>`_
 its event loop to be nested. This presents a practical problem:
 When in an environment where the event loop is
 already running it's impossible to run tasks and wait
@@ -41,7 +41,7 @@ Loops from other projects, such as uvloop or quamash,
 generally can't be patched.
 
 
-.. |Build| image:: https://github.com/erdewit/nest_asyncio/workflows/Test/badge.svg?branche=master
+.. |Build| image:: https://github.com/erdewit/nest_asyncio/actions/workflows/test.yml/badge.svg?branche=master
    :alt: Build
    :target: https://github.com/erdewit/nest_asyncio/actions
 

@@ -15,6 +15,7 @@ import contextlib
 import datetime
 import inspect
 import io
+import math
 import sys
 import time
 import types
@@ -605,6 +606,7 @@ def execute_explicit_examples(state, wrapped_test, arguments, kwargs, original_s
                     data=empty_data,
                     how_generated="explicit example",
                     string_repr=state._string_repr,
+                    timing=state._timing_features,
                 )
                 deliver_json_blob(tc)
 
@@ -816,34 +818,30 @@ class StateForActualGivenExecution:
 
         self._string_repr = ""
         text_repr = None
-        if self.settings.deadline is None:
+        if self.settings.deadline is None and not TESTCASE_CALLBACKS:
             test = self.test
         else:
 
             @proxies(self.test)
             def test(*args, **kwargs):
-                arg_drawtime = sum(data.draw_times)
-                initial_draws = len(data.draw_times)
+                arg_drawtime = math.fsum(data.draw_times.values())
                 start = time.perf_counter()
                 try:
                     result = self.test(*args, **kwargs)
                 finally:
                     finish = time.perf_counter()
-                    internal_draw_time = sum(data.draw_times[initial_draws:])
-                    runtime = datetime.timedelta(
-                        seconds=finish - start - internal_draw_time
-                    )
+                    in_drawtime = math.fsum(data.draw_times.values()) - arg_drawtime
+                    runtime = datetime.timedelta(seconds=finish - start - in_drawtime)
                     self._timing_features = {
-                        "time_running_test": finish - start - internal_draw_time,
-                        "time_drawing_args": arg_drawtime,
-                        "time_interactive_draws": internal_draw_time,
+                        "execute_test": finish - start - in_drawtime,
+                        **data.draw_times,
                     }
 
-                current_deadline = self.settings.deadline
-                if not is_final:
-                    current_deadline = (current_deadline // 4) * 5
-                if runtime >= current_deadline:
-                    raise DeadlineExceeded(runtime, self.settings.deadline)
+                if (current_deadline := self.settings.deadline) is not None:
+                    if not is_final:
+                        current_deadline = (current_deadline // 4) * 5
+                    if runtime >= current_deadline:
+                        raise DeadlineExceeded(runtime, self.settings.deadline)
                 return result
 
         def run(data):
@@ -854,10 +852,9 @@ class StateForActualGivenExecution:
             args = self.stuff.args
             kwargs = dict(self.stuff.kwargs)
             if example_kwargs is None:
-                a, kw, argslices = context.prep_args_kwargs_from_strategies(
-                    (), self.stuff.given_kwargs
+                kw, argslices = context.prep_args_kwargs_from_strategies(
+                    self.stuff.given_kwargs
                 )
-                assert not a, "strategies all moved to kwargs by now"
             else:
                 kw = example_kwargs
                 argslices = {}
@@ -944,7 +941,7 @@ class StateForActualGivenExecution:
         if expected_failure is not None:
             exception, traceback = expected_failure
             if isinstance(exception, DeadlineExceeded) and (
-                runtime_secs := self._timing_features.get("time_running_test")
+                runtime_secs := self._timing_features.get("execute_test")
             ):
                 report(
                     "Unreliable test timings! On an initial run, this "
@@ -1066,11 +1063,12 @@ class StateForActualGivenExecution:
                     how_generated=f"generated during {phase} phase",
                     string_repr=self._string_repr,
                     arguments={**self._jsonable_arguments, **data._observability_args},
-                    metadata=self._timing_features,
+                    timing=self._timing_features,
+                    metadata={},
                     coverage=tractable_coverage_report(trace) or None,
                 )
                 deliver_json_blob(tc)
-            self._timing_features.clear()
+            self._timing_features = {}
 
     def run_engine(self):
         """Run the test function many times, on database input and generated
@@ -1184,17 +1182,17 @@ class StateForActualGivenExecution:
                     "status": "passed" if sys.exc_info()[0] else "failed",
                     "status_reason": str(origin or "unexpected/flaky pass"),
                     "representation": self._string_repr,
+                    "arguments": self._jsonable_arguments,
                     "how_generated": "minimal failing example",
                     "features": {
                         **{
-                            k: v
+                            f"target:{k}".strip(":"): v
                             for k, v in ran_example.target_observations.items()
-                            if isinstance(k, str)
                         },
                         **ran_example.events,
-                        **self._timing_features,
                     },
-                    "coverage": None,  # TODO: expose this?
+                    "timing": self._timing_features,
+                    "coverage": None,  # Not recorded when we're replaying the MFE
                     "metadata": {"traceback": tb},
                 }
                 deliver_json_blob(tc)

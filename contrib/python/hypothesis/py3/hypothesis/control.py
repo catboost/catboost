@@ -105,16 +105,13 @@ class BuildContext:
             )
         )
 
-    def prep_args_kwargs_from_strategies(self, arg_strategies, kwarg_strategies):
+    def prep_args_kwargs_from_strategies(self, kwarg_strategies):
         arg_labels = {}
-        all_s = [(None, s) for s in arg_strategies] + list(kwarg_strategies.items())
-        args = []
         kwargs = {}
-        for i, (k, s) in enumerate(all_s):
+        for k, s in kwarg_strategies.items():
             start_idx = self.data.index
-            obj = self.data.draw(s)
+            obj = self.data.draw(s, observe_as=f"generate:{k}")
             end_idx = self.data.index
-            assert k is not None
             kwargs[k] = obj
 
             # This high up the stack, we can't see or really do much with the conjecture
@@ -124,10 +121,10 @@ class BuildContext:
             # pass a dict of such out so that the pretty-printer knows where to place
             # the which-parts-matter comments later.
             if start_idx != end_idx:
-                arg_labels[k or i] = (start_idx, end_idx)
+                arg_labels[k] = (start_idx, end_idx)
                 self.data.arg_slices.add((start_idx, end_idx))
 
-        return args, kwargs, arg_labels
+        return kwargs, arg_labels
 
     def __enter__(self):
         self.assign_variable = _current_build_context.with_value(self)

@@ -37,6 +37,7 @@ def make_testcase(
     how_generated: str = "unknown",
     string_repr: str = "<unknown>",
     arguments: Optional[dict] = None,
+    timing: Dict[str, float],
     metadata: Optional[dict] = None,
     coverage: Optional[Dict[str, List[int]]] = None,
 ) -> dict:
@@ -65,6 +66,7 @@ def make_testcase(
             },
             **data.events,
         },
+        "timing": timing,
         "metadata": {
             **(metadata or {}),
             "traceback": getattr(data.extra_information, "_expected_traceback", None),
