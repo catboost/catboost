@@ -14,6 +14,10 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
 ## Native artifacts build requirements
 
+### [Python interpreter](https://www.python.org/)
+
+  Python 3.x interpreter with [`six` package](https://pypi.org/project/six/) installed is required. Python is used in some auxiliary scripts and [`conan` package manager](#conan) uses it.
+
 ### [CMake](https://cmake.org/)
 
   |Condition|Minimum version|
@@ -63,7 +67,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   Other CUDA versions (11.0+) can also be used but require changing target compute architecture options in affected CMake targets.
 
-### [Conan](https://conan.io/)
+### [Conan](https://conan.io/) {#conan}
 
   Version 1.57.0 - 1.62.0. Version 1.62.0 is required if you use python 3.12. Version 2.x support is [in progress](https://github.com/catboost/catboost/issues/2582).
 
