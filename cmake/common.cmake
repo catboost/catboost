@@ -103,7 +103,7 @@ endfunction()
 
 function(generate_enum_serilization Tgt Input)
   set(opts "")
-  set(oneval_args INCLUDE_HEADERS)
+  set(oneval_args INCLUDE_HEADERS GEN_HEADER)
   set(multival_args "")
   cmake_parse_arguments(ENUM_SERIALIZATION_ARGS
     "${opts}"
@@ -116,7 +116,7 @@ function(generate_enum_serilization Tgt Input)
 
   get_filename_component(BaseName ${Input} NAME)
   add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp ${ENUM_SERIALIZATION_ARGS_GEN_HEADER}
     COMMAND
       ${enum_parser_bin}
       ${Input}
@@ -124,6 +124,9 @@ function(generate_enum_serilization Tgt Input)
       --output ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
     DEPENDS ${Input} ${enum_parser_dependency}
   )
+  if (ENUM_SERIALIZATION_ARGS_GEN_HEADER)
+    set_property(SOURCE ${ENUM_SERIALIZATION_ARGS_GEN_HEADER} PROPERTY GENERATED On)
+  endif()
   target_sources(${Tgt} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp)
 endfunction()
 
