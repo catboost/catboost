@@ -92,6 +92,8 @@ macro(_conan_check_system_name)
         set(CONAN_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
         if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
             set(CONAN_SYSTEM_NAME Macos)
+            message(STATUS "CMake-Conan: cmake_osx_deployment_target=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+            set(_CONAN_SETTING_OS_VERSION ${CMAKE_OSX_DEPLOYMENT_TARGET})
         endif()
         if(${CMAKE_SYSTEM_NAME} STREQUAL "QNX")
             set(CONAN_SYSTEM_NAME Neutrino)
@@ -279,7 +281,7 @@ function(conan_cmake_settings result)
     endforeach()
 
     if(NOT _SETTINGS OR ARGUMENTS_PROFILE_AUTO STREQUAL "ALL")
-        set(ARGUMENTS_PROFILE_AUTO arch build_type compiler compiler.version
+        set(ARGUMENTS_PROFILE_AUTO arch os.version build_type compiler compiler.version
                                    compiler.runtime compiler.libcxx compiler.toolset)
     endif()
 
@@ -455,7 +457,7 @@ function(conan_cmake_detect_vs_runtime result)
 endfunction()
 
 function(_collect_settings result)
-    set(ARGUMENTS_PROFILE_AUTO arch build_type compiler compiler.version
+    set(ARGUMENTS_PROFILE_AUTO arch os.version build_type compiler compiler.version
                             compiler.runtime compiler.libcxx compiler.toolset
                             compiler.cppstd)
     foreach(ARG ${ARGUMENTS_PROFILE_AUTO})
