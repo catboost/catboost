@@ -29,6 +29,13 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(i686|x86_64|AMD64)$")
   if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     string(APPEND _GNU_MARCH_C_CXX_FLAGS " -D_YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE")
   endif()
+elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$")
+  if (CMAKE_SYSTEM_NAME MATCHES "^(Darwin|Linux)$")
+    # Clang 13+ generates outline atomics by default if '-rtlib=compiler_rt' is specified or system's
+    # libgcc version is >= 9.3.1 : https://github.com/llvm/llvm-project/commit/c5e7e649d537067dec7111f3de1430d0fc8a4d11
+    # Disable this behaviour because our build links with contrib/libs/cxxsupp/builtins that does not contain outline atomics yet
+    string(APPEND _GNU_MARCH_C_CXX_FLAGS " -mno-outline-atomics")
+  endif()
 elseif (ANDROID AND (CMAKE_ANDROID_ARCH_ABI STREQUAL "armeabi-v7a"))
   string(APPEND _GNU_MARCH_C_CXX_FLAGS " -mfloat-abi=softfp")
 endif()
