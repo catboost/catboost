@@ -65,7 +65,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
 ### [Conan](https://conan.io/)
 
-  Version 1.57.0 - 1.59.0. Version 2.x support is [in progress](https://github.com/catboost/catboost/issues/2582).
+  Version 1.57.0 - 1.62.0. Version 1.62.0 is required if you use python 3.12. Version 2.x support is [in progress](https://github.com/catboost/catboost/issues/2582).
 
   Used for some dependencies.
 
