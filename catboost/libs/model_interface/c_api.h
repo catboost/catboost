@@ -154,6 +154,30 @@ CATBOOST_API bool CalcModelPredictionFlat(
 
 /**
  * **Use this method only if you really understand what you want.**
+ * Calculate raw model predictions on flat feature vectors
+ * taking into consideration only the trees in the range [treeStart; treeEnd)
+ * Flat here means that float features and categorical feature are in the same float array.
+ * @param calcer model handle
+ * @param docCount number of objects
+ * @param treeStart the index of the first tree to be used when applying the model
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
+ * @param floatFeaturesSize float values array size
+ * @param result pointer to user allocated results vector
+ * @param resultSize Result size should be equal to modelApproxDimension * docCount
+ * (e.g. for non multiclass models should be equal to docCount)
+ * @return false if error occured
+ */
+CATBOOST_API bool CalcModelPredictionFlatStaged(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    size_t treeStart, size_t treeEnd,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    double* result, size_t resultSize);
+
+
+/**
+ * **Use this method only if you really understand what you want.**
  * Calculate raw model predictions on transposed dataset layout
  * @param calcer model handle
  * @param docCount number of objects
@@ -169,6 +193,30 @@ CATBOOST_API bool CalcModelPredictionFlatTransposed(
     size_t docCount,
     const float** floatFeatures, size_t floatFeaturesSize,
     double* result, size_t resultSize);
+
+
+/**
+ * **Use this method only if you really understand what you want.**
+ * Calculate raw model predictions on transposed dataset layout
+ * taking into consideration only the trees in the range [treeStart; treeEnd)
+ * @param calcer model handle
+ * @param docCount number of objects
+ * @param treeStart the index of the first tree to be used when applying the model
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param floatFeatures array of array of float (first dimension is feature index, second is object index)
+ * @param floatFeaturesSize float values array size
+ * @param result pointer to user allocated results vector
+ * @param resultSize Result size should be equal to modelApproxDimension * docCount
+ * (e.g. for non multiclass models should be equal to docCount)
+ * @return false if error occured
+ */
+CATBOOST_API bool CalcModelPredictionFlatTransposedStaged(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    size_t treeStart, size_t treeEnd,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    double* result, size_t resultSize);
+
 
 /**
  * Calculate raw model predictions on float features and string categorical feature values
@@ -193,6 +241,32 @@ CATBOOST_API bool CalcModelPrediction(
 
 /**
  * Calculate raw model predictions on float features and string categorical feature values
+ * taking into consideration only the trees in the range [treeStart; treeEnd)
+ * @param calcer model handle
+ * @param docCount object count
+ * @param treeStart the index of the first tree to be used when applying the model
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
+ * @param floatFeaturesSize float feature count
+ * @param catFeatures array of array of char* categorical value pointers.
+ * String pointer should point to zero terminated string.
+ * @param catFeaturesSize categorical feature count
+ * @param result pointer to user allocated results vector
+ * @param resultSize result size should be equal to modelApproxDimension * docCount
+ * (e.g. for non multiclass models should be equal to docCount)
+ * @return false if error occured
+ */
+CATBOOST_API bool CalcModelPredictionStaged(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    size_t treeStart, size_t treeEnd,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    const char*** catFeatures, size_t catFeaturesSize,
+    double* result, size_t resultSize);
+
+
+/**
+ * Calculate raw model predictions on float features and string categorical feature values
  * @param calcer model handle
  * @param docCount object count
  * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
@@ -211,6 +285,36 @@ CATBOOST_API bool CalcModelPrediction(
 CATBOOST_API bool CalcModelPredictionText(
     ModelCalcerHandle* modelHandle,
     size_t docCount,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    const char*** catFeatures, size_t catFeaturesSize,
+    const char*** textFeatures, size_t textFeaturesSize,
+    double* result, size_t resultSize);
+
+
+/**
+ * Calculate raw model predictions on float features and string categorical feature values
+ * taking into consideration only the trees in the range [treeStart; treeEnd)
+ * @param calcer model handle
+ * @param docCount object count
+ * @param treeStart the index of the first tree to be used when applying the model
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
+ * @param floatFeaturesSize float feature count
+ * @param catFeatures array of array of char* categorical value pointers.
+ * String pointer should point to zero terminated string.
+ * @param catFeaturesSize categorical feature count
+ * @param textFeatures array of array of char* text value pointers.
+ * String pointer should point to zero terminated string.
+ * @param textFeaturesSize text feature count
+ * @param result pointer to user allocated results vector
+ * @param resultSize result size should be equal to modelApproxDimension * docCount
+ * (e.g. for non multiclass models should be equal to docCount)
+ * @return false if error occured
+ */
+CATBOOST_API bool CalcModelPredictionTextStaged(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    size_t treeStart, size_t treeEnd,
     const float** floatFeatures, size_t floatFeaturesSize,
     const char*** catFeatures, size_t catFeaturesSize,
     const char*** textFeatures, size_t textFeaturesSize,
@@ -248,6 +352,40 @@ CATBOOST_API bool CalcModelPredictionTextAndEmbeddings(
 
 
 /**
+ * Calculate raw model predictions on float features and string categorical feature values
+ * taking into consideration only the trees in the range [treeStart; treeEnd)
+ * @param calcer model handle
+ * @param docCount object count
+ * @param treeStart the index of the first tree to be used when applying the model
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
+ * @param floatFeaturesSize float feature count
+ * @param catFeatures array of array of char* categorical value pointers.
+ * String pointer should point to zero terminated string.
+ * @param catFeaturesSize categorical feature count
+ * @param textFeatures array of array of char* text value pointers.
+ * String pointer should point to zero terminated string.
+ * @param textFeaturesSize text feature count
+ * @param embeddingFeatures array of array of array of float (first dimension is object index, second is feature index, third is index in embedding array).
+ * String pointer should point to zero terminated string.
+ * @param embeddingFeaturesSize embedding feature count
+ * @param result pointer to user allocated results vector
+ * @param resultSize result size should be equal to modelApproxDimension * docCount
+ * (e.g. for non multiclass models should be equal to docCount)
+ * @return false if error occured
+ */
+CATBOOST_API bool CalcModelPredictionTextAndEmbeddingsStaged(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    size_t treeStart, size_t treeEnd,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    const char*** catFeatures, size_t catFeaturesSize,
+    const char*** textFeatures, size_t textFeaturesSize,
+    const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize,
+    double* result, size_t resultSize);
+
+
+/**
  * Calculate raw model prediction on float features and string categorical feature values for single object
  * @param calcer model handle
  * @param floatFeatures array of float features
@@ -262,6 +400,30 @@ CATBOOST_API bool CalcModelPredictionTextAndEmbeddings(
  */
 CATBOOST_API bool CalcModelPredictionSingle(
         ModelCalcerHandle* modelHandle,
+        const float* floatFeatures, size_t floatFeaturesSize,
+        const char** catFeatures, size_t catFeaturesSize,
+        double* result, size_t resultSize);
+
+
+/**
+ * Calculate raw model prediction on float features and string categorical feature values for single object
+ * taking into consideration only the trees in the range [treeStart; treeEnd)
+ * @param calcer model handle
+ * @param treeStart the index of the first tree to be used when applying the model
+ * @param treeEnd the index of the last tree to be used when applying the model (non-inclusive)
+ * @param floatFeatures array of float features
+ * @param floatFeaturesSize float feature count
+ * @param catFeatures array of char* categorical feature value pointers.
+ * Each string pointer should point to zero terminated string.
+ * @param catFeaturesSize categorical feature count
+ * @param result pointer to user allocated results vector (or single double)
+ * @param resultSize result size should be equal to modelApproxDimension
+ * (e.g. for non multiclass models should be equal to 1)
+ * @return false if error occured
+ */
+CATBOOST_API bool CalcModelPredictionSingleStaged(
+        ModelCalcerHandle* modelHandle,
+        size_t treeStart, size_t treeEnd,
         const float* floatFeatures, size_t floatFeaturesSize,
         const char** catFeatures, size_t catFeaturesSize,
         double* result, size_t resultSize);
