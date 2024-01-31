@@ -17,10 +17,10 @@ namespace {
         struct tm tm;
         instant.LocalTime(&tm);
 
-        // both stftime and sprintf exclude the terminating null byte from the return value
+        // both stftime and snprintf exclude the terminating null byte from the return value
         char* pos = begin;
         pos += strftime(pos, end - pos, "%Y-%m-%d %H:%M:%S.", &tm);
-        pos += sprintf(pos, "%03" PRIu32, instant.MilliSecondsOfSecond());
+        pos += snprintf(pos, end - pos, "%03" PRIu32, instant.MilliSecondsOfSecond());
         pos += strftime(pos, end - pos, " %z", &tm);
         Y_ABORT_UNLESS(LocalTimeSBufferSize - 1 == pos - begin); // together with Y_ABORT_UNLESS above this also implies pos<=end
         return (pos - begin);
