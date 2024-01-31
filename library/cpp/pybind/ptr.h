@@ -13,6 +13,11 @@ namespace NPyBind {
         }
 
         static inline void UnRef(T* t) noexcept {
+#ifdef Py_DEBUG
+            if (!Py_IsInitialized()) {
+                return;
+            }
+#endif
             Py_XDECREF(t);
         }
 
