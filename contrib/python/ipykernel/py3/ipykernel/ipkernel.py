@@ -2,6 +2,7 @@
 
 import asyncio
 import builtins
+import gc
 import getpass
 import os
 import signal
@@ -14,6 +15,7 @@ from functools import partial
 import comm
 from IPython.core import release
 from IPython.utils.tokenutil import line_at_cursor, token_at_cursor
+from jupyter_client.session import extract_header
 from traitlets import Any, Bool, HasTraits, Instance, List, Type, observe, observe_compat
 from zmq.eventloop.zmqstream import ZMQStream
 
@@ -22,6 +24,7 @@ from .comm.manager import CommManager
 from .compiler import XCachingCompiler
 from .debugger import Debugger, _is_debugpy_available
 from .eventloops import _use_appnope
+from .iostream import OutStream
 from .kernelbase import Kernel as KernelBase
 from .kernelbase import _accepts_parameters
 from .zmqshell import ZMQInteractiveShell
@@ -150,6 +153,14 @@ class IPythonKernel(KernelBase):
             import appnope  # type:ignore[import-untyped]
 
             appnope.nope()
+
+        self._new_threads_parent_header = {}
+        self._initialize_thread_hooks()
+
+        if hasattr(gc, "callbacks"):
+            # while `gc.callbacks` exists since Python 3.3, pypy does not
+            # implement it even as of 3.9.
+            gc.callbacks.append(self._clean_thread_parent_frames)
 
     help_links = List(
         [
@@ -340,6 +351,12 @@ class IPythonKernel(KernelBase):
         finally:
             # restore the previous sigint handler
             signal.signal(signal.SIGINT, save_sigint)
+
+    async def execute_request(self, stream, ident, parent):
+        """Override for cell output - cell reconciliation."""
+        parent_header = extract_header(parent)
+        self._associate_new_top_level_threads_with(parent_header)
+        await super().execute_request(stream, ident, parent)
 
     async def do_execute(
         self,
@@ -705,6 +722,83 @@ class IPythonKernel(KernelBase):
         if self.shell:
             self.shell.reset(False)
         return dict(status="ok")
+
+    def _associate_new_top_level_threads_with(self, parent_header):
+        """Store the parent header to associate it with new top-level threads"""
+        self._new_threads_parent_header = parent_header
+
+    def _initialize_thread_hooks(self):
+        """Store thread hierarchy and thread-parent_header associations."""
+        stdout = self._stdout
+        stderr = self._stderr
+        kernel_thread_ident = threading.get_ident()
+        kernel = self
+        _threading_Thread_run = threading.Thread.run
+        _threading_Thread__init__ = threading.Thread.__init__
+
+        def run_closure(self: threading.Thread):
+            """Wrap the `threading.Thread.start` to intercept thread identity.
+
+            This is needed because there is no "start" hook yet, but there
+            might be one in the future: https://bugs.python.org/issue14073
+
+            This is a no-op if the `self._stdout` and `self._stderr` are not
+            sub-classes of `OutStream`.
+            """
+
+            try:
+                parent = self._ipykernel_parent_thread_ident  # type:ignore[attr-defined]
+            except AttributeError:
+                return
+            for stream in [stdout, stderr]:
+                if isinstance(stream, OutStream):
+                    if parent == kernel_thread_ident:
+                        stream._thread_to_parent_header[
+                            self.ident
+                        ] = kernel._new_threads_parent_header
+                    else:
+                        stream._thread_to_parent[self.ident] = parent
+            _threading_Thread_run(self)
+
+        def init_closure(self: threading.Thread, *args, **kwargs):
+            _threading_Thread__init__(self, *args, **kwargs)
+            self._ipykernel_parent_thread_ident = threading.get_ident()  # type:ignore[attr-defined]
+
+        threading.Thread.__init__ = init_closure  # type:ignore[method-assign]
+        threading.Thread.run = run_closure  # type:ignore[method-assign]
+
+    def _clean_thread_parent_frames(
+        self, phase: t.Literal["start", "stop"], info: t.Dict[str, t.Any]
+    ):
+        """Clean parent frames of threads which are no longer running.
+        This is meant to be invoked by garbage collector callback hook.
+
+        The implementation enumerates the threads because there is no "exit" hook yet,
+        but there might be one in the future: https://bugs.python.org/issue14073
+
+        This is a no-op if the `self._stdout` and `self._stderr` are not
+        sub-classes of `OutStream`.
+        """
+        # Only run before the garbage collector starts
+        if phase != "start":
+            return
+        active_threads = {thread.ident for thread in threading.enumerate()}
+        for stream in [self._stdout, self._stderr]:
+            if isinstance(stream, OutStream):
+                thread_to_parent_header = stream._thread_to_parent_header
+                for identity in list(thread_to_parent_header.keys()):
+                    if identity not in active_threads:
+                        try:
+                            del thread_to_parent_header[identity]
+                        except KeyError:
+                            pass
+                thread_to_parent = stream._thread_to_parent
+                for identity in list(thread_to_parent.keys()):
+                    if identity not in active_threads:
+                        try:
+                            del thread_to_parent[identity]
+                        except KeyError:
+                            pass
 
 
 # This exists only for backwards compatibility - use IPythonKernel instead

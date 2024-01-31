@@ -21,9 +21,12 @@ See https://github.com/HypothesisWorks/hypothesis/issues/3140 for details.
 
 import base64
 import json
+import os
 import sys
+import warnings
 from inspect import signature
 
+import _hypothesis_globals
 import pytest
 
 try:
@@ -94,6 +97,19 @@ if tuple(map(int, pytest.__version__.split(".")[:2])) < (4, 6):  # pragma: no co
     warnings.warn(PYTEST_TOO_OLD_MESSAGE % (pytest.__version__,), stacklevel=1)
 
 else:
+    # Restart side-effect detection as early as possible, to maximize coverage. We
+    # need balanced increment/decrement in configure/sessionstart to support nested
+    # pytest (e.g. runpytest_inprocess), so this early increment in effect replaces
+    # the first one in pytest_configure.
+    _configured = False
+    if not os.environ.get("HYPOTHESIS_EXTEND_INITIALIZATION"):
+        _hypothesis_globals.in_initialization += 1
+        if "hypothesis" in sys.modules:
+            # Some other plugin has imported hypothesis, so we'll check if there
+            # have been undetected side-effects and warn if so.
+            from hypothesis.configuration import notice_initialization_restarted
+
+            notice_initialization_restarted()
 
     def pytest_addoption(parser):
         group = parser.getgroup("hypothesis", "Hypothesis")
@@ -147,6 +163,12 @@ else:
         return f"hypothesis profile {settings._current_profile!r}{settings_str}"
 
     def pytest_configure(config):
+        global _configured
+        # skip first increment because we pre-incremented at import time
+        if _configured:
+            _hypothesis_globals.in_initialization += 1
+        _configured = True
+
         config.addinivalue_line("markers", "hypothesis: Tests which use hypothesis.")
         if not _any_hypothesis_option(config):
             return
@@ -406,6 +428,9 @@ else:
         for item in items:
             if isinstance(item, pytest.Function) and is_hypothesis_test(item.obj):
                 item.add_marker("hypothesis")
+
+    def pytest_sessionstart(session):
+        _hypothesis_globals.in_initialization -= 1
 
     # Monkeypatch some internals to prevent applying @pytest.fixture() to a
     # function which has already been decorated with @hypothesis.given().

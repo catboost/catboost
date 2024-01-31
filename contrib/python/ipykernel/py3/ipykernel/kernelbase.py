@@ -61,6 +61,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 from ipykernel.jsonutil import json_clean
 
 from ._version import kernel_protocol_version
+from .iostream import OutStream
 
 
 def _accepts_parameters(meth, param_names):
@@ -272,6 +273,13 @@ class Kernel(SingletonConfigurable):
     def __init__(self, **kwargs):
         """Initialize the kernel."""
         super().__init__(**kwargs)
+
+        # Kernel application may swap stdout and stderr to OutStream,
+        # which is the case in `IPKernelApp.init_io`, hence `sys.stdout`
+        # can already by different from TextIO at initialization time.
+        self._stdout: OutStream | t.TextIO = sys.stdout
+        self._stderr: OutStream | t.TextIO = sys.stderr
+
         # Build dict of handlers for message types
         self.shell_handlers = {}
         for msg_type in self.msg_types:

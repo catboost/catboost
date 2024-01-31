@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipykernel
-Version: 6.28.0
+Version: 6.29.0
 Summary: IPython Kernel for Jupyter
 Project-URL: Homepage, https://ipython.org
 Author-email: IPython Development Team <ipython-dev@scipy.org>
@@ -78,7 +78,7 @@ Provides-Extra: test
 Requires-Dist: flaky; extra == 'test'
 Requires-Dist: ipyparallel; extra == 'test'
 Requires-Dist: pre-commit; extra == 'test'
-Requires-Dist: pytest-asyncio; extra == 'test'
+Requires-Dist: pytest-asyncio==0.23.2; extra == 'test'
 Requires-Dist: pytest-cov; extra == 'test'
 Requires-Dist: pytest-timeout; extra == 'test'
 Requires-Dist: pytest>=7.0; extra == 'test'

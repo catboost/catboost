@@ -5,6 +5,7 @@
 
 import asyncio
 import atexit
+import contextvars
 import io
 import os
 import sys
@@ -12,7 +13,7 @@ import threading
 import traceback
 import warnings
 from binascii import b2a_hex
-from collections import deque
+from collections import defaultdict, deque
 from io import StringIO, TextIOBase
 from threading import local
 from typing import Any, Callable, Deque, Dict, Optional
@@ -412,7 +413,7 @@ class OutStream(TextIOBase):
         name : str {'stderr', 'stdout'}
             the name of the standard stream to replace
         pipe : object
-            the pip object
+            the pipe object
         echo : bool
             whether to echo output
         watchfd : bool (default, True)
@@ -446,13 +447,19 @@ class OutStream(TextIOBase):
         self.pub_thread = pub_thread
         self.name = name
         self.topic = b"stream." + name.encode()
-        self.parent_header = {}
+        self._parent_header: contextvars.ContextVar[Dict[str, Any]] = contextvars.ContextVar(
+            "parent_header"
+        )
+        self._parent_header.set({})
+        self._thread_to_parent = {}
+        self._thread_to_parent_header = {}
+        self._parent_header_global = {}
         self._master_pid = os.getpid()
         self._flush_pending = False
         self._subprocess_flush_pending = False
         self._io_loop = pub_thread.io_loop
         self._buffer_lock = threading.RLock()
-        self._buffer = StringIO()
+        self._buffers = defaultdict(StringIO)
         self.echo = None
         self._isatty = bool(isatty)
         self._should_watch = False
@@ -494,6 +501,30 @@ class OutStream(TextIOBase):
             else:
                 msg = "echo argument must be a file-like object"
                 raise ValueError(msg)
+
+    @property
+    def parent_header(self):
+        try:
+            # asyncio-specific
+            return self._parent_header.get()
+        except LookupError:
+            try:
+                # thread-specific
+                identity = threading.current_thread().ident
+                # retrieve the outermost (oldest ancestor,
+                # discounting the kernel thread) thread identity
+                while identity in self._thread_to_parent:
+                    identity = self._thread_to_parent[identity]
+                # use the header of the oldest ancestor
+                return self._thread_to_parent_header[identity]
+            except KeyError:
+                # global (fallback)
+                return self._parent_header_global
+
+    @parent_header.setter
+    def parent_header(self, value):
+        self._parent_header_global = value
+        return self._parent_header.set(value)
 
     def isatty(self):
         """Return a bool indicating whether this is an 'interactive' stream.
@@ -598,28 +629,28 @@ class OutStream(TextIOBase):
                 if self.echo is not sys.__stderr__:
                     print(f"Flush failed: {e}", file=sys.__stderr__)
 
-        data = self._flush_buffer()
-        if data:
-            # FIXME: this disables Session's fork-safe check,
-            # since pub_thread is itself fork-safe.
-            # There should be a better way to do this.
-            self.session.pid = os.getpid()
-            content = {"name": self.name, "text": data}
-            msg = self.session.msg("stream", content, parent=self.parent_header)
+        for parent, data in self._flush_buffers():
+            if data:
+                # FIXME: this disables Session's fork-safe check,
+                # since pub_thread is itself fork-safe.
+                # There should be a better way to do this.
+                self.session.pid = os.getpid()
+                content = {"name": self.name, "text": data}
+                msg = self.session.msg("stream", content, parent=parent)
 
-            # Each transform either returns a new
-            # message or None. If None is returned,
-            # the message has been 'used' and we return.
-            for hook in self._hooks:
-                msg = hook(msg)
-                if msg is None:
-                    return
+                # Each transform either returns a new
+                # message or None. If None is returned,
+                # the message has been 'used' and we return.
+                for hook in self._hooks:
+                    msg = hook(msg)
+                    if msg is None:
+                        return
 
-            self.session.send(
-                self.pub_thread,
-                msg,
-                ident=self.topic,
-            )
+                self.session.send(
+                    self.pub_thread,
+                    msg,
+                    ident=self.topic,
+                )
 
     def write(self, string: str) -> Optional[int]:  # type:ignore[override]
         """Write to current stream after encoding if necessary
@@ -630,6 +661,7 @@ class OutStream(TextIOBase):
             number of items from input parameter written to stream.
 
         """
+        parent = self.parent_header
 
         if not isinstance(string, str):
             msg = f"write() argument must be str, not {type(string)}"  # type:ignore[unreachable]
@@ -649,7 +681,7 @@ class OutStream(TextIOBase):
         is_child = not self._is_master_process()
         # only touch the buffer in the IO thread to avoid races
         with self._buffer_lock:
-            self._buffer.write(string)
+            self._buffers[frozenset(parent.items())].write(string)
         if is_child:
             # mp.Pool cannot be trusted to flush promptly (or ever),
             # and this helps.
@@ -675,19 +707,20 @@ class OutStream(TextIOBase):
         """Test whether the stream is writable."""
         return True
 
-    def _flush_buffer(self):
+    def _flush_buffers(self):
         """clear the current buffer and return the current buffer data."""
-        buf = self._rotate_buffer()
-        data = buf.getvalue()
-        buf.close()
-        return data
+        buffers = self._rotate_buffers()
+        for frozen_parent, buffer in buffers.items():
+            data = buffer.getvalue()
+            buffer.close()
+            yield dict(frozen_parent), data
 
-    def _rotate_buffer(self):
+    def _rotate_buffers(self):
         """Returns the current buffer and replaces it with an empty buffer."""
         with self._buffer_lock:
-            old_buffer = self._buffer
-            self._buffer = StringIO()
-        return old_buffer
+            old_buffers = self._buffers
+            self._buffers = defaultdict(StringIO)
+        return old_buffers
 
     @property
     def _hooks(self):

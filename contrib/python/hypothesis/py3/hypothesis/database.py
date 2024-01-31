@@ -59,7 +59,7 @@ def _db_for_path(path=None):
                 "https://hypothesis.readthedocs.io/en/latest/settings.html#settings-profiles"
             )
 
-        path = storage_directory("examples")
+        path = storage_directory("examples", intent_to_write=False)
         if not _usable_dir(path):  # pragma: no cover
             warnings.warn(
                 "The database setting is not configured, and the default "
@@ -495,6 +495,8 @@ class GitHubArtifactDatabase(ExampleDatabase):
         self._initialized = True
 
     def _initialize_db(self) -> None:
+        # Trigger warning that we suppressed earlier by intent_to_write=False
+        storage_directory(self.path.name)
         # Create the cache directory if it doesn't exist
         self.path.mkdir(exist_ok=True, parents=True)
 

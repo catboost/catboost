@@ -15,6 +15,8 @@ It verifies your code against a wide range of input and minimizes any
 failing examples it finds.
 """
 
+import _hypothesis_globals
+
 from hypothesis._settings import HealthCheck, Phase, Verbosity, settings
 from hypothesis.control import (
     assume,
@@ -54,3 +56,6 @@ __all__ = [
 
 run()
 del run
+
+_hypothesis_globals.in_initialization -= 1
+del _hypothesis_globals
