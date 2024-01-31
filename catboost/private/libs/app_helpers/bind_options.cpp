@@ -1222,7 +1222,7 @@ void BindQuantizerDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJs
             }
             CB_ENSURE(!(*plainJsonPtr)["class_names"].GetArray().empty(), "Empty class names list" << namesLine);
         })
-        .Help("Takes effect only with MultiClass/LogLoss loss functions. Wihout this parameter classes are 0, 1, ..., classes-count - 1");
+        .Help("Takes effect only with MultiClass/LogLoss loss functions. Without this parameter classes are 0, 1, ..., classes-count - 1");
 }
 
 void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
