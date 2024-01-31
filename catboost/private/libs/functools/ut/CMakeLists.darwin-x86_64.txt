@@ -59,6 +59,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-private-libs-functools-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-private-libs-functools-ut
   system_allocator
 )

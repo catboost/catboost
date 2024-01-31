@@ -111,6 +111,12 @@ set_yunittest_property(
   TEST
   util-system-ut
   PROPERTY
+  ENVIRONMENT
+)
+set_yunittest_property(
+  TEST
+  util-system-ut
+  PROPERTY
   TIMEOUT
   3600
 )

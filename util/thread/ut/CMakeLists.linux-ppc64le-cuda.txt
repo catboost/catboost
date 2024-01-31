@@ -65,6 +65,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  util-thread-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(util-thread-ut
   system_allocator
 )

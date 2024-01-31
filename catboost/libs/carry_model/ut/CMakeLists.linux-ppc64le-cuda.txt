@@ -65,6 +65,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-libs-carry_model-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-libs-carry_model-ut
   system_allocator
 )

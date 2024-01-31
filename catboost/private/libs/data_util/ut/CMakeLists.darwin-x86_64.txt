@@ -57,6 +57,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-private-libs-data_util-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-private-libs-data_util-ut
   system_allocator
 )

@@ -65,6 +65,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-private-libs-quantization_schema-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-private-libs-quantization_schema-ut
   cpp-malloc-jemalloc
 )

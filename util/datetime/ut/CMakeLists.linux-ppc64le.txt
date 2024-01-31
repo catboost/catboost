@@ -64,6 +64,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  util-datetime-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(util-datetime-ut
   system_allocator
 )

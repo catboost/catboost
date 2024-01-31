@@ -64,6 +64,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  util-memory-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(util-memory-ut
   cpp-malloc-jemalloc
 )

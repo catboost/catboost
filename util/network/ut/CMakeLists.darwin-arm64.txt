@@ -60,6 +60,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  util-network-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(util-network-ut
   system_allocator
 )

@@ -66,6 +66,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-cuda-ctrs-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-cuda-ctrs-ut
   cpp-malloc-jemalloc
 )

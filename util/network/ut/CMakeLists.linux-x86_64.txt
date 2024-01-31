@@ -67,6 +67,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  util-network-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(util-network-ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache

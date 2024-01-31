@@ -70,6 +70,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-cuda-gpu_data-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-cuda-gpu_data-ut
   cpp-malloc-jemalloc
 )

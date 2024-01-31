@@ -111,6 +111,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  util-generic-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(util-generic-ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache

@@ -74,6 +74,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-cuda-methods-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-cuda-methods-ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache

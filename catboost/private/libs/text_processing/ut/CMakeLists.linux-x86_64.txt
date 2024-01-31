@@ -65,6 +65,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-private-libs-text_processing-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-private-libs-text_processing-ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache

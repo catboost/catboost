@@ -68,6 +68,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-private-libs-quantized_pool-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-private-libs-quantized_pool-ut
   system_allocator
 )

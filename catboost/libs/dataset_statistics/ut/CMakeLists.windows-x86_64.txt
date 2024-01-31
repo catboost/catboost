@@ -52,6 +52,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-libs-dataset_statistics-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-libs-dataset_statistics-ut
   system_allocator
 )

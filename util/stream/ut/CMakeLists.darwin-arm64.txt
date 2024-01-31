@@ -73,6 +73,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  util-stream-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(util-stream-ut
   system_allocator
 )

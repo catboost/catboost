@@ -75,6 +75,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  model_ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(model_ut
   system_allocator
 )

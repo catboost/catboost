@@ -65,6 +65,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  json_options_ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(json_options_ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache

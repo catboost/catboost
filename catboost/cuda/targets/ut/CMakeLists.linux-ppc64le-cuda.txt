@@ -76,6 +76,12 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+set_yunittest_property(
+  TEST
+  catboost-cuda-targets-ut
+  PROPERTY
+  ENVIRONMENT
+)
 target_allocator(catboost-cuda-targets-ut
   system_allocator
 )
