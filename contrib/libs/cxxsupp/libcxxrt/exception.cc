@@ -297,19 +297,19 @@ using namespace ABI_NAMESPACE;
  */
 static _Unwind_Reason_Code trace(struct _Unwind_Context *context, void *c)
 {
-       Dl_info myinfo;
-       int mylookup =
-               dladdr(reinterpret_cast<void *>(__cxa_current_exception_type), &myinfo);
-       void *ip = reinterpret_cast<void*>(_Unwind_GetIP(context));
-       Dl_info info;
-       if (dladdr(ip, &info) != 0)
-       {
-               if (mylookup == 0 || strcmp(info.dli_fname, myinfo.dli_fname) != 0)
-               {
-                       printf("%p:%s() in %s\n", ip, info.dli_sname, info.dli_fname);
-               }
-       }
-       return _URC_CONTINUE_UNWIND;
+	Dl_info myinfo;
+	int mylookup =
+		dladdr(reinterpret_cast<void *>(__cxa_current_exception_type), &myinfo);
+	void *ip = reinterpret_cast<void*>(_Unwind_GetIP(context));
+	Dl_info info;
+	if (dladdr(ip, &info) != 0)
+	{
+		if (mylookup == 0 || strcmp(info.dli_fname, myinfo.dli_fname) != 0)
+		{
+			printf("%p:%s() in %s\n", ip, info.dli_sname, info.dli_fname);
+		}
+	}
+	return _URC_CONTINUE_UNWIND;
 }
 
 static void bt_terminate_handler() {
@@ -898,10 +898,10 @@ extern "C" void __cxa_throw(void *thrown_exception,
                             std::type_info *tinfo,
                             void(*dest)(void*))
 {
-       if (cxa_throw_hook)
-       {
-           cxa_throw_hook(thrown_exception, tinfo, dest);
-       }
+	if (cxa_throw_hook)
+	{
+		cxa_throw_hook(thrown_exception, tinfo, dest);
+	}
 
 	__cxa_exception *ex = __cxa_init_primary_exception(thrown_exception, tinfo, dest);
 	ex->referenceCount = 1;
