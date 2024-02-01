@@ -27,6 +27,7 @@
 #pragma once
 
 #include <cstdio>
+#include <exception>
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/system/cuda/detail/execution_policy.h>
