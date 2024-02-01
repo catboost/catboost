@@ -23,7 +23,7 @@ from hypothesis.internal.reflection import get_pretty_function_description
 from hypothesis.internal.validation import check_type
 from hypothesis.reporting import report, verbose_report
 from hypothesis.utils.dynamicvariables import DynamicVariable
-from hypothesis.vendor.pretty import IDKey
+from hypothesis.vendor.pretty import IDKey, pretty
 
 
 def _calling_function_name(frame):
@@ -167,9 +167,11 @@ def should_note():
     return context.is_final or settings.default.verbosity >= Verbosity.verbose
 
 
-def note(value: str) -> None:
+def note(value: object) -> None:
     """Report this value for the minimal failing example."""
     if should_note():
+        if not isinstance(value, str):
+            value = pretty(value)
         report(value)
 
 

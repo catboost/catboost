@@ -531,18 +531,10 @@ class SampledFromStrategy(SearchStrategy):
         if isinstance(result, SearchStrategy) and all(
             isinstance(x, SearchStrategy) for x in self.elements
         ):
-            max_num_strats = 3
-            preamble = (
-                f"(first {max_num_strats}) "
-                if len(self.elements) > max_num_strats
-                else ""
-            )
-            strat_reprs = ", ".join(
-                map(get_pretty_function_description, self.elements[:max_num_strats])
-            )
             data._sampled_from_all_strategies_elements_message = (
                 "sample_from was given a collection of strategies: "
-                f"{preamble}{strat_reprs}. Was one_of intended?"
+                "{!r}. Was one_of intended?",
+                self.elements,
             )
         if result is filter_not_satisfied:
             data.mark_invalid(f"Aborted test because unable to satisfy {self!r}")

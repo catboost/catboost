@@ -920,11 +920,11 @@ class StateForActualGivenExecution:
             except TypeError as e:
                 # If we sampled from a sequence of strategies, AND failed with a
                 # TypeError, *AND that exception mentions SearchStrategy*, add a note:
-                if "SearchStrategy" in str(e):
-                    try:
-                        add_note(e, data._sampled_from_all_strategies_elements_message)
-                    except AttributeError:
-                        pass
+                if "SearchStrategy" in str(e) and hasattr(
+                    data, "_sampled_from_all_strategies_elements_message"
+                ):
+                    msg, format_arg = data._sampled_from_all_strategies_elements_message
+                    add_note(e, msg.format(format_arg))
                 raise
 
         # self.test_runner can include the execute_example method, or setup/teardown
