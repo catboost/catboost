@@ -97,6 +97,10 @@ class CanonicalObject(dict):
         raise TypeError("Iterating canonical object is not implemented")
 
 
+def canonical_path(path):
+    return path.replace('\\', '/')
+
+
 class ExternalDataInfo(object):
 
     def __init__(self, data):
@@ -178,6 +182,7 @@ class ExternalDataInfo(object):
             attrs["diff_tool_timeout"] = diff_tool_timeout
         if size is not None:
             attrs["size"] = size
+        path = canonical_path(path)
         return cls._serialize(ExternalSchema.File, path, checksum, attrs=attrs)
 
     @classmethod
