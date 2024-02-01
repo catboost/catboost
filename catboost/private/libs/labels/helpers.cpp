@@ -9,6 +9,8 @@
 namespace NCB {
     ERawTargetType GetRawTargetType(const NJson::TJsonValue& classLabel) {
         switch (classLabel.GetType()) {
+            case NJson::JSON_BOOLEAN:
+                return ERawTargetType::Boolean;
             case NJson::JSON_INTEGER:
                 return ERawTargetType::Integer;
             case NJson::JSON_DOUBLE:
@@ -22,7 +24,12 @@ namespace NCB {
     }
 
     TString ClassLabelToString(const NJson::TJsonValue& classLabel) {
+        static TString trueStr("true");
+        static TString falseStr("false");
+
         switch (classLabel.GetType()) {
+            case NJson::JSON_BOOLEAN:
+                return classLabel.GetBoolean() ? trueStr : falseStr;
             case NJson::JSON_INTEGER:
                 return ToString(classLabel.GetInteger());
             case NJson::JSON_DOUBLE:
@@ -53,6 +60,9 @@ namespace NCB {
         const auto classLabel0 = classLabels->front();
 
         switch (classLabel0.GetType()) {
+            case NJson::JSON_BOOLEAN:
+                *classLabels = {NJson::TJsonValue(false), NJson::TJsonValue(true)};
+                break;
             case NJson::JSON_INTEGER:
                 classLabels->push_back(NJson::TJsonValue(classLabel0.GetInteger() + 1));
                 break;
@@ -65,6 +75,21 @@ namespace NCB {
             default:
                 CB_ENSURE_INTERNAL(false, "bad class label type: " << classLabel0.GetType());
         }
+    }
+
+    void CheckBooleanClassLabels(TConstArrayRef<NJson::TJsonValue> booleanClassLabels) {
+        CB_ENSURE_INTERNAL(
+            booleanClassLabels.size() == 2,
+            "Boolean target can have only exactly two classes"
+        );
+        CB_ENSURE_INTERNAL(
+            booleanClassLabels[0].GetBoolean() == false,
+            "Expected class label 0 to be 'false'"
+        );
+        CB_ENSURE_INTERNAL(
+            booleanClassLabels[1].GetBoolean() == true,
+            "Expected lass label 1 to be 'true'"
+        );
     }
 
 }

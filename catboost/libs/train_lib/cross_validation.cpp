@@ -605,6 +605,7 @@ TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
     );
 
     switch (dataProvider.RawTargetData.GetTargetType()) {
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
         case ERawTargetType::Float: {
             TVector<float> rawTargetData;

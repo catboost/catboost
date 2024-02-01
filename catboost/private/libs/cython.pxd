@@ -85,6 +85,7 @@ cdef extern from "catboost/private/libs/options/enums.h" namespace "NCB":
     cdef cppclass ERawTargetType:
         bool_t operator==(ERawTargetType)
 
+    cdef ERawTargetType ERawTargetType_Boolean "NCB::ERawTargetType::Boolean"
     cdef ERawTargetType ERawTargetType_Integer "NCB::ERawTargetType::Integer"
     cdef ERawTargetType ERawTargetType_Float "NCB::ERawTargetType::Float"
     cdef ERawTargetType ERawTargetType_String "NCB::ERawTargetType::String"
@@ -104,4 +105,3 @@ cdef extern from "catboost/private/libs/data_types/groupid.h":
     ctypedef ui32 TSubgroupId
     cdef TGroupId CalcGroupIdFor(const TStringBuf& token) except +ProcessException
     cdef TSubgroupId CalcSubgroupIdFor(const TStringBuf& token) except +ProcessException
-

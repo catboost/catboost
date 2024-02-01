@@ -419,6 +419,7 @@ namespace NCB {
     };
 
     enum class ERawTargetType : ui32 {
+        Boolean,
         Integer,
         Float,
         String,

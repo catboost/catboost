@@ -221,13 +221,13 @@ public:
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 localObjectIdx, float value) override {
-        if (MetaInfo.TargetType == ERawTargetType::Integer) {
-            DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, ui32(value));
-        } else {
+        if (MetaInfo.TargetType == ERawTargetType::Float) {
             DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
             with_lock(TargetLock) {
                 FloatTarget[0].push_back(value);
             }
+        } else {
+            DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, ui32(value));
         }
         Y_UNUSED(localObjectIdx);
     }
@@ -244,13 +244,13 @@ public:
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
-        if (MetaInfo.TargetType == ERawTargetType::Integer) {
-            DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, ui32(value));
-        } else {
+        if (MetaInfo.TargetType == ERawTargetType::Float) {
             DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
             with_lock(TargetLock) {
                 FloatTarget[flatTargetIdx].push_back(value);
             }
+        } else {
+            DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, ui32(value));
         }
         Y_UNUSED(localObjectIdx);
     }

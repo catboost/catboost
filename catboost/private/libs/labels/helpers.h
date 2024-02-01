@@ -19,4 +19,6 @@ namespace NCB {
     // For AllowConstLabel: Training won't work properly with single-dimensional approx for multiclass, so make a
     // 'phantom' second dimension.
     void MaybeAddPhantomSecondClass(TVector<NJson::TJsonValue>* classLabels);
+
+    void CheckBooleanClassLabels(TConstArrayRef<NJson::TJsonValue> booleanClassLabels);
 }

@@ -170,6 +170,7 @@ CV_CSV_PATH = 'result.csv'
 FIMP_NPY_PATH = 'feature_importance.npy'
 FIMP_TXT_PATH = 'feature_importance.txt'
 OIMP_PATH = 'object_importances.txt'
+SCORE_PATH = 'score.txt'
 OUTPUT_QUANTIZED_POOL_PATH = 'quantized_pool.bin'
 TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
@@ -1930,28 +1931,81 @@ def test_multiclass_classes_count(task_type, missed_classes):
     ]
 
 
-@pytest.mark.parametrize('label_type', ['string', 'int'])
-def test_multiclass_custom_class_labels(label_type, task_type):
-    if label_type == 'int':
-        train_labels = [1, 2]
+@pytest.mark.parametrize(
+    'loss_function',
+    ['Logloss', 'MultiClass'],
+    ids=['loss_function=%s' % s for s in ['Logloss', 'MultiClass']]
+)
+@pytest.mark.parametrize(
+    'label_type,class_count',
+    [
+        pytest.param(
+            'boolean', 2,
+            id='label_type=boolean-class_count=2'
+        ),
+        pytest.param(
+            'string', 2,
+            id='label_type=string-class_count=2'
+        ),
+        pytest.param(
+            'int', 2,
+            id='label_type=int-class_count=2'
+        ),
+        pytest.param(
+            'string', 5,
+            id='label_type=string-class_count=5'
+        ),
+        pytest.param(
+            'int', 5,
+            id='label_type=int-class_count=5'
+        ),
+    ]
+)
+def test_custom_class_labels(loss_function, label_type, class_count, task_type):
+    if label_type == 'boolean':
+        assert (class_count == 2)
+        labels = [False, True]
+    elif label_type == 'int':
+        labels = {2 : [1, 2], 5 : [1, 3, 2, 10, 20]}[class_count]
     elif label_type == 'string':
-        train_labels = ['Class1', 'Class2']
+        labels = {
+            2 : ['Class1', 'Class2'],
+            5 : ['Class1', 'Class3', 'Class2', 'Class10', 'Class20']
+        }[class_count]
+
     prng = np.random.RandomState(seed=0)
-    train_pool = Pool(prng.random_sample(size=(100, 10)), label=prng.choice(train_labels, size=100))
-    test_pool = Pool(prng.random_sample(size=(50, 10)))
-    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
-    classifier.fit(train_pool)
-    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
-    classifier.save_model(output_model_path)
-    new_classifier = CatBoostClassifier()
-    new_classifier.load_model(output_model_path)
-    pred = new_classifier.predict_proba(test_pool)
-    classes = new_classifier.predict(test_pool)
-    assert pred.shape == (50, 2)
-    assert all(((class1 in train_labels) for class1 in classes))
-    preds_path = test_output_path(PREDS_TXT_PATH)
-    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
-    return local_canonical_file(preds_path)
+    train_pool = Pool(prng.random_sample(size=(100, 10)), label=prng.choice(labels, size=100))
+    test_features = prng.random_sample(size=(50, 10))
+    test_label = prng.choice(labels, size=50)
+
+    classifier = CatBoostClassifier(iterations=2, loss_function=loss_function, thread_count=8, task_type=task_type, devices='0')
+
+    if (loss_function == 'Logloss') and (class_count != 2):
+        with pytest.raises(CatBoostError):
+            classifier.fit(train_pool)
+    else:
+        classifier.fit(train_pool)
+        output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+        classifier.save_model(output_model_path)
+        new_classifier = CatBoostClassifier()
+        new_classifier.load_model(output_model_path)
+        pred = new_classifier.predict_proba(test_features)
+        classes = new_classifier.predict(test_features)
+        assert pred.shape == (50, class_count)
+        assert all(((class1 in labels) for class1 in classes))
+        preds_path = test_output_path(PREDS_TXT_PATH)
+        np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+
+        score = new_classifier.score(test_features, test_label)
+
+        score_path = test_output_path(SCORE_PATH)
+        with open(score_path, 'w') as score_file:
+            score_file.write(f'{score:.8f}')
+
+        return [
+            local_canonical_file(preds_path, diff_tool=get_limited_precision_dsv_diff_tool(1e-6, False)),
+            local_canonical_file(score_path, diff_tool=get_limited_precision_dsv_diff_tool(1e-6, False)),
+        ]
 
 
 def test_multiclass_custom_class_labels_from_files(task_type):
@@ -11148,7 +11202,7 @@ def test_fit_with_256_categories(task_type):
 @pytest.mark.parametrize('allow_const_label', [False, True], ids=['allow_const_label=False', 'allow_const_label=True'])
 def test_allow_const_label(task_type, problem_type, allow_const_label):
     label = {
-        'binclass': 0,
+        'binclass': True,
         'multiclass': 'Class',
         'regression': 0.0,
         'ranking': 1.0

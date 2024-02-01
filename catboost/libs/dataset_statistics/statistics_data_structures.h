@@ -284,7 +284,7 @@ public:
     NJson::TJsonValue ToJson() const override;
 
     void Update(ui32 flatTargetIdx, TStringBuf value);
-    void Update(ui32 flatTargetIdx, ui32 value);
+    void Update(ui32 flatTargetIdx, ui32 value);    // use for boolean as well
     void Update(ui32 flatTargetIdx, float value);
 
     void Update(const TTargetsStatistics& update) {
@@ -305,6 +305,7 @@ public:
         switch (TargetType) {
             case ERawTargetType::Float:
                 return FloatTargetStatistics[0].GetObjectCount();
+            case ERawTargetType::Boolean:
             case ERawTargetType::Integer:
             case ERawTargetType::String:
                 return DiscreteTargetStatistics[0].GetObjectCount();

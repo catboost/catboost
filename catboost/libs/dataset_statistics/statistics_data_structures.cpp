@@ -164,6 +164,7 @@ void TTargetsStatistics::Init(const TDataMetaInfo& metaInfo, const TFeatureCusto
         case ERawTargetType::Float:
             FloatTargetStatistics.resize(TargetCount);
             break;
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
         case ERawTargetType::String:
             DiscreteTargetStatistics.resize(TargetCount);
@@ -207,6 +208,7 @@ NJson::TJsonValue TTargetsStatistics::ToJson() const {
         case ERawTargetType::Float:
             result.InsertValue("TargetStatistics", AggregateStatistics(FloatTargetStatistics));
             break;
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
         case ERawTargetType::String:
             result.InsertValue("TargetStatistics", AggregateStatistics(DiscreteTargetStatistics));
@@ -271,6 +273,7 @@ NJson::TJsonValue TDiscreteTargetStatistic::ToJson() const {
         case ERawTargetType::String:
             OutputSorted(StringTargets, &targetsDistribution);
             break;
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
             OutputSorted(IntegerTargets, &targetsDistribution);
             break;
