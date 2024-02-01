@@ -25,7 +25,7 @@ public:
     void Initialize(bool isMultiClass, const TString& classLabelParams);
     void InitializeBinClass();
     void InitializeMultiClass(int approxDimension);
-    void InitializeMultiClass(TConstArrayRef<float> targets, int classesCount);
+    void InitializeMultiClass(TConstArrayRef<float> targets, int classesCount, bool allowConstLabel);
 
     void ValidateLabels(TConstArrayRef<float> labels) const;
 

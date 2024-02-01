@@ -297,8 +297,10 @@ namespace NCB {
 
     class TMakeClassLabelsTargetConverter : public ITargetConverter {
     public:
-        TMakeClassLabelsTargetConverter()
-            : TargetType(ERawTargetType::None) // just some default
+        TMakeClassLabelsTargetConverter(bool isMultiClass, bool allowConstLabel)
+            : IsMultiClass(isMultiClass)
+            , AllowConstLabel(allowConstLabel)
+            , TargetType(ERawTargetType::None) // just some default
         {}
 
         TVector<float> Process(
@@ -333,7 +335,7 @@ namespace NCB {
                 default:
                     CB_ENSURE(false, "Uexpected target type");
             }
-            Y_ASSERT(classCount > 1);
+            Y_ASSERT(AllowConstLabel || (classCount > 1));
             return classCount;
         }
 
@@ -370,6 +372,16 @@ namespace NCB {
         }
 
     private:
+        void CheckUniqueLabelsSize(size_t size) const {
+            CB_ENSURE(AllowConstLabel || (size > 1), "Target contains only one unique value");
+            CB_ENSURE(
+                IsMultiClass || (size <= 2),
+                "Target with classes must contain "
+                << (AllowConstLabel ? "no more than" : "only")
+                << " 2 unique values for binary classification"
+            );
+        }
+
         TVector<float> ProcessMakeClassLabelsImpl(const ITypedSequencePtr<float>& labels,
                                                   NPar::ILocalExecutor* localExecutor) {
             CB_ENSURE_INTERNAL(
@@ -384,6 +396,8 @@ namespace NCB {
                 CB_ENSURE(!std::isnan(value), "NaN values are not supported for target");
                 uniqueLabelsSet.insert(value);
             }
+
+            CheckUniqueLabelsSize(uniqueLabelsSet.size());
 
             TVector<float> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
             Sort(uniqueLabels);
@@ -425,6 +439,7 @@ namespace NCB {
             );
 
             THashSet<TString> uniqueLabelsSet(labels.begin(), labels.end());
+            CheckUniqueLabelsSize(uniqueLabelsSet.size());
 
             TVector<TString> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
             // Kind of heuristic for proper ordering class names if they all are numeric
@@ -458,6 +473,9 @@ namespace NCB {
         }
 
     private:
+        bool IsMultiClass;
+        bool AllowConstLabel;
+
         ERawTargetType TargetType;
 
         // which map is used depends on source target data type
@@ -556,7 +574,8 @@ namespace NCB {
                                                   TMaybe<float> targetBorder,
                                                   size_t targetDim,
                                                   TMaybe<ui32> classCount,
-                                                  const TVector<NJson::TJsonValue>& inputClassLabels) {
+                                                  const TVector<NJson::TJsonValue>& inputClassLabels,
+                                                  bool allowConstLabel) {
 
         CB_ENSURE_INTERNAL(!isMultiClass || isClass, "isMultiClass is true, but isClass is false");
         CB_ENSURE_INTERNAL(!isMultiLabel || isMultiClass, "isMultiLabel is true, but isMultiClass is false");
@@ -624,7 +643,7 @@ namespace NCB {
         }
 
 
-        return MakeHolder<TMakeClassLabelsTargetConverter>();
+        return MakeHolder<TMakeClassLabelsTargetConverter>(isMultiClass, allowConstLabel);
     }
 
 } // NCB

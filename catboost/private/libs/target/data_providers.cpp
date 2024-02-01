@@ -8,6 +8,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/private/libs/labels/helpers.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/class_label_options.h>
@@ -40,6 +41,7 @@ namespace NCB {
         TMaybe<float> targetBorder,
         bool classCountUnknown,
         const TVector<NJson::TJsonValue> inputClassLabels,
+        bool allowConstLabel,
         TVector<NJson::TJsonValue>* outputClassLabels,
         NPar::ILocalExecutor* localExecutor,
         ui32* classCount)
@@ -59,7 +61,8 @@ namespace NCB {
             targetBorder,
             targetDim,
             classCountUnknown ? Nothing() : TMaybe<ui32>(*classCount),
-            inputClassLabels);
+            inputClassLabels,
+            allowConstLabel);
 
         TVector<TSharedVector<float>> trainingTarget(targetDim);
         for (auto targetIdx : xrange(targetDim)) {
@@ -347,6 +350,7 @@ namespace NCB {
         TMaybe<ui32> knownModelApproxDimension,
         bool knownIsClassification,
         const TInputClassificationInfo& inputClassificationInfo,
+        bool allowConstLabel,
         bool skipMinMaxPairsCheck
     ) {
         auto isAnyOfMetrics = [&](bool predicate(ELossFunction)) {
@@ -466,7 +470,8 @@ namespace NCB {
             ),
             /*CreatePairs*/ isAnyOfMetrics(IsPairwiseMetric),
             /*SkipMinMaxPairsCheck*/ skipMinMaxPairsCheck,
-            /*MaxPairsCount*/ maxPairsCount
+            /*MaxPairsCount*/ maxPairsCount,
+            /*AllowConstLabel*/ allowConstLabel
         };
         return options;
     }
@@ -476,6 +481,7 @@ namespace NCB {
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
         const TInputClassificationInfo& inputClassificationInfo,
+        bool allowConstLabel,
         bool skipMinMaxPairsCheck
     ) {
         return MakeTargetCreationOptions(
@@ -486,6 +492,7 @@ namespace NCB {
             knownModelApproxDimension,
             /*knownIsClassification*/ false,
             inputClassificationInfo,
+            allowConstLabel,
             skipMinMaxPairsCheck
         );
     }
@@ -638,6 +645,7 @@ namespace NCB {
             updatedInputClassificationInfo.TargetBorder,
             !knownClassCount,
             updatedInputClassificationInfo.ClassLabels,
+            targetCreationOptions.AllowConstLabel,
             &outputClassificationInfo->ClassLabels,
             localExecutor,
             &classCount
@@ -681,6 +689,14 @@ namespace NCB {
                 metricsThatRequireTargetCanBeSkipped || rawData.GetTarget(),
                 "Multi classification loss/metrics require label data"
             );
+
+            if ((classCount == 1) && targetCreationOptions.AllowConstLabel) {
+                // Training won't work properly with single-dimensional approx for multiclass, so make a
+                // 'phantom' second dimension.
+                classCount = 2;
+                MaybeAddPhantomSecondClass(&(outputClassificationInfo->ClassLabels));
+            }
+
             CB_ENSURE(
                 classCount >= 2,
                 "Multiclass metric/loss specified but target data does not have more than one different labels"
@@ -689,7 +705,8 @@ namespace NCB {
             if (!(*outputClassificationInfo->LabelConverter)->IsInitialized()) {
                 (*outputClassificationInfo->LabelConverter)->InitializeMultiClass(
                     *maybeConvertedTarget[0],
-                    classCount
+                    classCount,
+                    targetCreationOptions.AllowConstLabel
                 );
             }
 
@@ -1045,6 +1062,7 @@ namespace NCB {
             updatedMetricsDescriptions,
             model.GetDimensionsCount(),
             inputClassificationInfo,
+            /*allowConstLabel*/ true, // won't be used in this case anyway
             skipMinMaxPairsCheck
         );
         result.TargetData = CreateTargetDataProvider(
@@ -1199,7 +1217,8 @@ namespace NCB {
             srcData.RawTargetData,
             metricsDescriptions,
             model.GetDimensionsCount(),
-            inputClassificationInfo
+            inputClassificationInfo,
+            /*allowConstLabel*/ true // won't be used in this case anyway
         );
         result.TargetData = CreateTargetDataProvider(
             srcData.RawTargetData,

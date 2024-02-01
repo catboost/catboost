@@ -2,8 +2,6 @@
 
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/cpp/json/json_value.h>
-
 #include <util/string/cast.h>
 #include <util/system/compiler.h>
 
@@ -44,6 +42,29 @@ namespace NCB {
             result.push_back(ClassLabelToString(classLabel));
         }
         return result;
+    }
+
+    void MaybeAddPhantomSecondClass(TVector<NJson::TJsonValue>* classLabels) {
+        if (classLabels->empty()) {
+            return;
+        }
+        CB_ENSURE_INTERNAL(classLabels->size() == 1, "MaybeAddPhantomSecondClass: classLabels's size != 1");
+
+        const auto classLabel0 = classLabels->front();
+
+        switch (classLabel0.GetType()) {
+            case NJson::JSON_INTEGER:
+                classLabels->push_back(NJson::TJsonValue(classLabel0.GetInteger() + 1));
+                break;
+            case NJson::JSON_DOUBLE:
+                classLabels->push_back(NJson::TJsonValue(classLabel0.GetDouble() + 1.0));
+                break;
+            case NJson::JSON_STRING:
+                classLabels->push_back(NJson::TJsonValue(classLabel0.GetString() + "_2"));
+                break;
+            default:
+                CB_ENSURE_INTERNAL(false, "bad class label type: " << classLabel0.GetType());
+        }
     }
 
 }

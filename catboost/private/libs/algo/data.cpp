@@ -172,7 +172,8 @@ namespace NCB {
             srcData->RawTargetData,
             GetMetricDescriptions(*params),
             /*knownModelApproxDimension*/ Nothing(),
-            inputClassificationInfo
+            inputClassificationInfo,
+            dataProcessingOptions.AllowConstLabel.Get()
         );
 
         CB_ENSURE(dataCanBeEmpty || srcData->RawTargetData.GetObjectCount() > 0, "Dataset " << datasetName  << " is empty");

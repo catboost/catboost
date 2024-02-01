@@ -11142,3 +11142,44 @@ def test_fit_with_256_categories(task_type):
     model = CatBoostClassifier(iterations=5, task_type=task_type)
 
     model.fit(train, y=label, eval_set=tuple((test, test_label)), cat_features=list(range(5)))
+
+
+@pytest.mark.parametrize('problem_type', PROBLEM_TYPES, ids=['problem_type=%s' % pt for pt in PROBLEM_TYPES])
+@pytest.mark.parametrize('allow_const_label', [False, True], ids=['allow_const_label=False', 'allow_const_label=True'])
+def test_allow_const_label(task_type, problem_type, allow_const_label):
+    label = {
+        'binclass': 0,
+        'multiclass': 'Class',
+        'regression': 0.0,
+        'ranking': 1.0
+    }[problem_type]
+
+    loss_function = {
+        'binclass': 'Logloss',
+        'multiclass': 'MultiClass',
+        'regression': 'RMSE',
+        'ranking': 'YetiRank'
+    }[problem_type]
+
+    params = {
+        'task_type': task_type,
+        'iterations': 5,
+        'loss_function': loss_function,
+        'allow_const_label': allow_const_label,
+        'devices': '0'
+    }
+
+    if problem_type == 'ranking':
+        group_id = [0] * 5 + [1] * 4 + [2] * 6 + [3] * 5
+    else:
+        group_id = None
+
+    features, labels = generate_random_labeled_dataset(n_samples=20, n_features=5, labels=[label])
+
+    model = CatBoost(params)
+    if allow_const_label:
+        model.fit(features, labels, group_id=group_id)
+        model.predict(features)
+    else:
+        with pytest.raises(CatBoostError):
+            model.fit(features, labels, group_id=group_id)
