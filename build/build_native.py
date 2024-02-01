@@ -341,8 +341,12 @@ def cross_build(opts: Opts, cmd_runner=None):
         '--no-imports',
         f'-pr:h={conan_host_profile}',
         '-pr:b=default',
-        os.path.join(source_root_dir, 'conanfile.txt')
     ]
+    if opts.target_platform.startswith('darwin-'):
+        conan_libs_cmd += ['-s:h', f'os.version={opts.macosx_version_min}']
+
+    conan_libs_cmd += [os.path.join(source_root_dir, 'conanfile.txt')]
+
     logging.info(f"Run conan to build libs for target platform {opts.target_platform}")
     cmd_runner.run(conan_libs_cmd)
 
