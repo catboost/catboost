@@ -35,6 +35,7 @@ function(target_cython_sources Tgt Scope)
         "-I$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_INCLUDE_DIRS>>,$<SEMICOLON>-I>"
       COMMAND_EXPAND_LISTS
       DEPENDS ${OUTPUT_INCLUDES}
+      MAIN_DEPENDENCY ${Input}
     )
     target_sources(${Tgt} ${Scope} ${CppCythonOutput})
   endforeach()
