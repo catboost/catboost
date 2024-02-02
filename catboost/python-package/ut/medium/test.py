@@ -4180,6 +4180,48 @@ def test_grid_search_several_grids(task_type):
     assert results['params']['border_count'] in grids[grid_num]['border_count']
 
 
+def test_grid_search_complex_params(task_type):
+    n25_index = 25
+    n75_index = 75
+
+    train_labels = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+    prng = np.random.RandomState(seed=0)
+    pool = Pool(prng.random_sample(size=(1000, 100)), label=prng.choice(train_labels, size=1000))
+
+    params = {
+        'depth': [4, 7, 10],
+        'per_float_feature_quantization': [
+            None,
+            [f'{n25_index}:border_count=1024'],
+            [f'{n75_index}:border_count=1024'],
+            [f'{n25_index}:border_count=1024', f'{n75_index}:border_count=1024']
+        ],
+        'l2_leaf_reg': [1, 3, 5, 7, 9],
+        'iterations': [10],
+        'learning_rate': [0.3],
+        'verbose': [100]
+    }
+
+    cbr = CatBoostRegressor(task_type=task_type, devices='0')
+    results = cbr.grid_search(
+        params,
+        pool,
+        cv=3,
+        partition_random_seed=42,
+        calc_cv_statistics=True,
+        search_by_train_test_split=True,
+        refit=True,
+        shuffle=True,
+        stratified=None,
+        train_size=0.8,
+        verbose=5,
+        plot=True
+    )
+
+    for name, values in params.items():
+        assert ((name in results['params']) and (results['params'][name] in values))
+
+
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)

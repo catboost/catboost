@@ -1097,12 +1097,7 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
 
     cdef cppclass TBestOptionValuesWithCvResult:
         TVector[TCVResult] CvResult
-        THashMap[TString, bool_t] BoolOptions
-        THashMap[TString, int] IntOptions
-        THashMap[TString, ui32] UIntOptions
-        THashMap[TString, double] DoubleOptions
-        THashMap[TString, TString] StringOptions
-        THashMap[TString, TVector[double]] ListOfDoublesOptions
+        TJsonValue BestParams
 
     cdef void GridSearch(
         const TJsonValue& grid,
@@ -5265,19 +5260,7 @@ cdef class _CatBoost:
             )
             result_metrics.add(name)
 
-        best_params = {}
-        for key, value in results.BoolOptions:
-            best_params[to_native_str(key)] = value
-        for key, value in results.IntOptions:
-            best_params[to_native_str(key)] = value
-        for key, value in results.UIntOptions:
-            best_params[to_native_str(key)] = value
-        for key, value in results.DoubleOptions:
-            best_params[to_native_str(key)] = value
-        for key, value in results.StringOptions:
-            best_params[to_native_str(key)] = to_native_str(value)
-        for key, value in results.ListOfDoublesOptions:
-            best_params[to_native_str(key)] = [float(elem) for elem in value]
+        best_params = loads(to_native_str(WriteTJsonValue(results.BestParams)))
         search_result = {}
         search_result["params"] = best_params
         if return_cv_results:
