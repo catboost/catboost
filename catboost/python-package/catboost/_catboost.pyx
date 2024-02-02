@@ -6225,12 +6225,17 @@ cpdef get_num_feature_values_sample(
 cpdef _check_train_params(dict params):
     skip_params = [
         'cat_features',
+        'text_features',
+        'embedding_features',
         'input_borders',
         'ignored_features',
         'monotone_constraints',
         'feature_weights',
         'first_feature_use_penalties',
-        'per_object_feature_penalties'
+        'per_object_feature_penalties',
+        'per_float_feature_quantization',
+        'per_feature_ctr',
+        'fixed_binary_splits'
     ]
 
     params_to_check = {}
