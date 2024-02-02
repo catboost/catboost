@@ -6223,22 +6223,20 @@ cpdef get_num_feature_values_sample(
 
 
 cpdef _check_train_params(dict params):
-    params_to_check = params.copy()
-    if 'cat_features' in params_to_check:
-        del params_to_check['cat_features']
-    if 'input_borders' in params_to_check:
-        del params_to_check['input_borders']
-    if 'ignored_features' in params_to_check:
-        del params_to_check['ignored_features']
-    if 'monotone_constraints' in params_to_check:
-        del params_to_check['monotone_constraints']
-    if 'feature_weights' in params_to_check:
-        del params_to_check['feature_weights']
-    if 'first_feature_use_penalties' in params_to_check:
-        del params_to_check['first_feature_use_penalties']
-    if 'per_object_feature_penalties' in params_to_check:
-        del params_to_check['per_object_feature_penalties']
+    skip_params = [
+        'cat_features',
+        'input_borders',
+        'ignored_features',
+        'monotone_constraints',
+        'feature_weights',
+        'first_feature_use_penalties',
+        'per_object_feature_penalties'
+    ]
 
+    params_to_check = {}
+    for key, value in iteritems(params):
+        if key not in skip_params:
+            params_to_check[key] = value
 
     prep_params = _PreprocessParams(params_to_check)
     CheckFitParams(
