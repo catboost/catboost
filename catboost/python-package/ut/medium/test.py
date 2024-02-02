@@ -2601,7 +2601,8 @@ def test_generated_metrics_default_params():
         metrics.WKappa, metrics.Combination, metrics.MAE, metrics.PairLogit, metrics.Kappa, metrics.MRR, metrics.RMSE,
         metrics.Poisson, metrics.BalancedAccuracy, metrics.Accuracy, metrics.MultiClass, metrics.HammingLoss,
         metrics.QueryRMSE, metrics.RMSEWithUncertainty, metrics.QueryAUC, metrics.LogLinQuantile, metrics.Recall,
-        metrics.BalancedErrorRate, metrics.MultiRMSE, metrics.Quantile, metrics.PFound
+        metrics.BalancedErrorRate, metrics.MultiRMSE, metrics.Quantile, metrics.PFound, metrics.Cox,
+        metrics.PairLogitPairwise, metrics.UserPerObjMetric, metrics.SurvivalAft
     )
     for metric in metrics_without_default_params:
         assert str(metric()) == metric.__name__
@@ -2626,7 +2627,7 @@ def _test_generated_metrics(loss_function, train_pool, test_pool, metrics, task)
     for metric in metrics:
         assert np.allclose(td_results[metric], ag_results[metric]), "Different results for {}".format(metric)
 
-    if task not in ("ranking", "multiclassification", "multiregression"):
+    if task not in ("ranking", "multiclassification", "multiregression", "survival_regression"):
         preds = model.predict(test_pool, prediction_type='RawFormulaVal')
         for metric, metric_obj in metrics.items():
             score = metric_obj.eval(test_pool.get_label(), preds)[0]
@@ -2778,6 +2779,31 @@ def test_generated_ranking_groupwise_metric():
             'AUC': metrics.AUC()
         },
         "ranking"
+    )
+
+
+def test_generated_survival_aft():
+    cd_file = data_file('survival_aft', 'train.cd')
+    _test_generated_metrics(
+        'SurvivalAft',
+        Pool(data=data_file('survival_aft', 'train'), column_description=cd_file),
+        Pool(data=data_file('survival_aft', 'test'), column_description=cd_file),
+        {
+            'SurvivalAft': metrics.SurvivalAft()
+        },
+        "survival_regression"
+    )
+
+
+def test_generated_cox():
+    _test_generated_metrics(
+        'Cox',
+        Pool(data=TRAIN_FILE, column_description=CD_FILE),
+        Pool(data=TEST_FILE, column_description=CD_FILE),
+        {
+            'Cox': metrics.Cox()
+        },
+        "survival_regression"
     )
 
 
