@@ -16,9 +16,9 @@ depending on either. This file should have no imports outside of stdlib.
 import os
 
 in_initialization = 1
-"""If nonzero, indicates that hypothesis is still initializing (importing or loading
+"""If >0, indicates that hypothesis is still initializing (importing or loading
 the test environment). `import hypothesis` will cause this number to be decremented,
-and the pytest plugin increments at load time, then decrements it just before the test
+and the pytest plugin increments at load time, then decrements it just before each test
 session starts. However, this leads to a hole in coverage if another pytest plugin
 imports hypothesis before our plugin is loaded. HYPOTHESIS_EXTEND_INITIALIZATION may
 be set to pre-increment the value on behalf of _hypothesis_pytestplugin, plugging the

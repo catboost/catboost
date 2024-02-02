@@ -9,6 +9,7 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 
 import os
+import sys
 import warnings
 from pathlib import Path
 
@@ -45,7 +46,7 @@ _first_postinit_what = None
 
 
 def check_sideeffect_during_initialization(
-    what: str, *fmt_args: object, extra: str = ""
+    what: str, *fmt_args: object, is_restart: bool = False
 ) -> None:
     """Called from locations that should not be executed during initialization, for example
     touching disk or materializing lazy/deferred strategies from plugins. If initialization
@@ -60,13 +61,29 @@ def check_sideeffect_during_initialization(
     # notice_initialization_restarted() to be called if in_initialization changes away from zero.
     if _first_postinit_what is not None:
         return
-    elif _hypothesis_globals.in_initialization:
+    elif _hypothesis_globals.in_initialization > 0:
+        msg = what.format(*fmt_args)
+        if is_restart:
+            when = "between importing hypothesis and loading the hypothesis plugin"
+        elif "_hypothesis_pytestplugin" in sys.modules or os.getenv(
+            "HYPOTHESIS_EXTEND_INITIALIZATION"
+        ):
+            when = "during pytest plugin or conftest initialization"
+        else:  # pragma: no cover
+            # This can be triggered by Hypothesis plugins, but is really annoying
+            # to test automatically - drop st.text().example() in hypothesis.run()
+            # to manually confirm that we get the warning.
+            when = "at import time"
         # Note: -Werror is insufficient under pytest, as doesn't take effect until
         # test session start.
-        msg = what.format(*fmt_args)
+        text = (
+            f"Slow code in plugin: avoid {msg} {when}!  Set PYTHONWARNINGS=error "
+            "to get a traceback and show which plugin is responsible."
+        )
+        if is_restart:
+            text += " Additionally, set HYPOTHESIS_EXTEND_INITIALIZATION=1 to pinpoint the exact location."
         warnings.warn(
-            f"Slow code in plugin: avoid {msg} at import time!  Set PYTHONWARNINGS=error "
-            "to get a traceback and show which plugin is responsible." + extra,
+            text,
             HypothesisSideeffectWarning,
             stacklevel=3,
         )
@@ -87,5 +104,5 @@ def notice_initialization_restarted(*, warn: bool = True) -> None:
             check_sideeffect_during_initialization(
                 what,
                 *fmt_args,
-                extra=" Additionally, set HYPOTHESIS_EXTEND_INITIALIZATION=1 to pinpoint the exact location.",
+                is_restart=True,
             )

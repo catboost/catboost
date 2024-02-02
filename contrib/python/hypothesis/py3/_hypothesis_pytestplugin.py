@@ -101,7 +101,6 @@ else:
     # need balanced increment/decrement in configure/sessionstart to support nested
     # pytest (e.g. runpytest_inprocess), so this early increment in effect replaces
     # the first one in pytest_configure.
-    _configured = False
     if not os.environ.get("HYPOTHESIS_EXTEND_INITIALIZATION"):
         _hypothesis_globals.in_initialization += 1
         if "hypothesis" in sys.modules:
@@ -163,12 +162,6 @@ else:
         return f"hypothesis profile {settings._current_profile!r}{settings_str}"
 
     def pytest_configure(config):
-        global _configured
-        # skip first increment because we pre-incremented at import time
-        if _configured:
-            _hypothesis_globals.in_initialization += 1
-        _configured = True
-
         config.addinivalue_line("markers", "hypothesis: Tests which use hypothesis.")
         if not _any_hypothesis_option(config):
             return
@@ -430,6 +423,7 @@ else:
                 item.add_marker("hypothesis")
 
     def pytest_sessionstart(session):
+        # Note: may be called multiple times, so we can go negative
         _hypothesis_globals.in_initialization -= 1
 
     # Monkeypatch some internals to prevent applying @pytest.fixture() to a
