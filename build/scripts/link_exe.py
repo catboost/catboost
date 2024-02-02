@@ -4,6 +4,7 @@ import os.path
 import sys
 import subprocess
 import optparse
+import textwrap
 
 import process_command_files as pcf
 
@@ -43,31 +44,74 @@ CUDA_LIBRARIES = {
 }
 
 
-def prune_cuda_libraries(cmd, prune_arches, nvprune_exe, build_root):
-    def name_generator(prefix):
-        for idx in itertools.count():
-            yield prefix + '_' + str(idx)
+class CUDAManager:
+    def __init__(self, known_arches, nvprune_exe):
+        self.fatbin_libs = self._known_fatbin_libs(set(CUDA_LIBRARIES))
 
-    def compute_arch(arch):
+        self.prune_args = []
+        if known_arches:
+            for arch in known_arches.split(':'):
+                self.prune_args.append('-gencode')
+                self.prune_args.append(self._arch_flag(arch))
+
+        self.nvprune_exe = nvprune_exe
+
+    def has_cuda_fatbins(self, cmd):
+        return bool(set(cmd) & self.fatbin_libs)
+
+    def _known_fatbin_libs(self, libs):
+        libs_wo_device_code = {
+            '-lcudart_static'
+        }
+        return set(libs) - libs_wo_device_code
+
+    def _arch_flag(self, arch):
         _, ver = arch.split('_', 1)
-        return 'compute_{}'.format(ver)
+        return 'arch=compute_{},code={}'.format(ver, arch)
 
-    libs_to_prune = set(CUDA_LIBRARIES)
+    def prune_lib(self, inp_fname, out_fname):
+        if self.prune_args:
+            prune_command = [self.nvprune_exe] + self.prune_args + ['--output-file', out_fname, inp_fname]
+            subprocess.check_call(prune_command)
 
-    # does not contain device code, nothing to prune
-    libs_to_prune.remove('-lcudart_static')
+    def write_linker_script(self, f):
+        # This script simply says:
+        # * Place all `.nv_fatbin` input sections from all input files into one `.nv_fatbin` output section of output file
+        # * Place it after `.bss` section
+        #
+        # Motivation can be found here: https://maskray.me/blog/2021-07-04-sections-and-overwrite-sections#insert-before-and-insert-after
+        # TL;DR - we put section with a lot of GPU code directly after the last meaningful section in the binary
+        # (which turns out to be .bss)
+        # In that case, we decrease chances of relocation overflows from .text to .bss,
+        # because now these sections are close to each other
+        script = textwrap.dedent("""
+            SECTIONS {
+                .nv_fatbin : { *(.nv_fatbin) }
+            } INSERT AFTER .bss
+        """).strip()
 
-    tmp_names_gen = name_generator('cuda_pruned_libs')
+        f.write(script)
 
-    arch_args = []
-    for arch in prune_arches.split(':'):
-        arch_args.append('-gencode')
-        arch_args.append('arch={},code={}'.format(compute_arch(arch), arch))
+
+def process_cuda_libraries(cmd, cuda_manager, build_root):
+    if not cuda_manager.has_cuda_fatbins(cmd):
+        return cmd
+
+    def tmpdir_generator(prefix):
+        for idx in itertools.count():
+            path = os.path.abspath(os.path.join(build_root, prefix + '_' + str(idx)))
+            os.makedirs(path)
+            yield path
+
+    tmpdir_gen = tmpdir_generator('cuda_pruned_libs')
 
     flags = []
     cuda_deps = set()
+
+    # Because each directory flag only affects flags that follow it,
+    # for correct pruning we need to process that in reversed order
     for flag in reversed(cmd):
-        if flag in libs_to_prune:
+        if flag in cuda_manager.fatbin_libs:
             cuda_deps.add('lib' + flag[2:] + '.a')
             flag += '_pruned'
         elif flag.startswith('-L') and os.path.exists(flag[2:]) and os.path.isdir(flag[2:]) and any(f in cuda_deps for f in os.listdir(flag[2:])):
@@ -75,14 +119,12 @@ def prune_cuda_libraries(cmd, prune_arches, nvprune_exe, build_root):
             from_deps = list(cuda_deps & set(os.listdir(from_dirpath)))
 
             if from_deps:
-                to_dirpath = os.path.abspath(os.path.join(build_root, next(tmp_names_gen)))
-                os.makedirs(to_dirpath)
+                to_dirpath = next(tmpdir_gen)
 
                 for f in from_deps:
-                    # prune lib
                     from_path = os.path.join(from_dirpath, f)
                     to_path = os.path.join(to_dirpath, f[:-2] + '_pruned.a')
-                    subprocess.check_call([nvprune_exe] + arch_args + ['--output-file', to_path, from_path])
+                    cuda_manager.prune_lib(from_path, to_path)
                     cuda_deps.remove(f)
 
                 # do not remove current directory
@@ -93,7 +135,16 @@ def prune_cuda_libraries(cmd, prune_arches, nvprune_exe, build_root):
         flags.append(flag)
 
     assert not cuda_deps, ('Unresolved CUDA deps: ' + ','.join(cuda_deps))
-    return reversed(flags)
+    flags = list(reversed(flags))
+
+    # add custom linker script
+    to_dirpath = next(tmpdir_generator('cuda_linker_script'))
+    script_path = os.path.join(to_dirpath, 'script')
+    with open(script_path, 'w') as f:
+        cuda_manager.write_linker_script(f)
+    flags.append('-Wl,--script={}'.format(script_path))
+
+    return flags
 
 
 def remove_excessive_flags(cmd):
@@ -234,10 +285,12 @@ if __name__ == '__main__':
         else:
             cmd.append('-Wl,-no-pie')
 
+
     if opts.dynamic_cuda:
         cmd = fix_cmd_for_dynamic_cuda(cmd)
-    elif opts.cuda_architectures:
-        cmd = prune_cuda_libraries(cmd, opts.cuda_architectures, opts.nvprune_exe, opts.build_root)
+    else:
+        cuda_manager = CUDAManager(opts.cuda_architectures, opts.nvprune_exe)
+        cmd = process_cuda_libraries(cmd, cuda_manager, opts.build_root)
     cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
 
     if opts.custom_step:
