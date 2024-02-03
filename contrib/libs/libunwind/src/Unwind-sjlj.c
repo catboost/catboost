@@ -77,7 +77,7 @@ struct _Unwind_FunctionContext {
 #if !defined(FOR_DYLD)
 
 #if defined(__APPLE__)
-#include <System/pthread_machdep.h>
+#error #include <System/pthread_machdep.h>
 #else
 static _LIBUNWIND_THREAD_LOCAL struct _Unwind_FunctionContext *stack = NULL;
 #endif
