@@ -1,8 +1,8 @@
 Metadata-Version: 2.1
 Name: scikit-learn
-Version: 1.3.2
+Version: 1.4.0
 Summary: A set of python modules for machine learning and data mining
-Home-page: http://scikit-learn.org
+Home-page: https://scikit-learn.org
 Download-URL: https://pypi.org/project/scikit-learn/#files
 Maintainer: Andreas Mueller
 Maintainer-email: amueller@ais.uni-bonn.de
@@ -23,32 +23,31 @@ Classifier: Operating System :: POSIX
 Classifier: Operating System :: Unix
 Classifier: Operating System :: MacOS
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
-Requires-Python: >=3.8
+Requires-Python: >=3.9
 License-File: COPYING
-Requires-Dist: numpy <2.0,>=1.17.3
-Requires-Dist: scipy >=1.5.0
-Requires-Dist: joblib >=1.1.1
+Requires-Dist: numpy <2.0,>=1.19.5
+Requires-Dist: scipy >=1.6.0
+Requires-Dist: joblib >=1.2.0
 Requires-Dist: threadpoolctl >=2.0.0
 Provides-Extra: benchmark
-Requires-Dist: matplotlib >=3.1.3 ; extra == 'benchmark'
-Requires-Dist: pandas >=1.0.5 ; extra == 'benchmark'
+Requires-Dist: matplotlib >=3.3.4 ; extra == 'benchmark'
+Requires-Dist: pandas >=1.1.5 ; extra == 'benchmark'
 Requires-Dist: memory-profiler >=0.57.0 ; extra == 'benchmark'
 Provides-Extra: docs
-Requires-Dist: matplotlib >=3.1.3 ; extra == 'docs'
-Requires-Dist: scikit-image >=0.16.2 ; extra == 'docs'
-Requires-Dist: pandas >=1.0.5 ; extra == 'docs'
+Requires-Dist: matplotlib >=3.3.4 ; extra == 'docs'
+Requires-Dist: scikit-image >=0.17.2 ; extra == 'docs'
+Requires-Dist: pandas >=1.1.5 ; extra == 'docs'
 Requires-Dist: seaborn >=0.9.0 ; extra == 'docs'
 Requires-Dist: memory-profiler >=0.57.0 ; extra == 'docs'
 Requires-Dist: sphinx >=6.0.0 ; extra == 'docs'
 Requires-Dist: sphinx-copybutton >=0.5.2 ; extra == 'docs'
-Requires-Dist: sphinx-gallery >=0.10.1 ; extra == 'docs'
+Requires-Dist: sphinx-gallery >=0.15.0 ; extra == 'docs'
 Requires-Dist: numpydoc >=1.2.0 ; extra == 'docs'
 Requires-Dist: Pillow >=7.1.2 ; extra == 'docs'
 Requires-Dist: pooch >=1.6.0 ; extra == 'docs'
@@ -56,22 +55,24 @@ Requires-Dist: sphinx-prompt >=1.3.0 ; extra == 'docs'
 Requires-Dist: sphinxext-opengraph >=0.4.2 ; extra == 'docs'
 Requires-Dist: plotly >=5.14.0 ; extra == 'docs'
 Provides-Extra: examples
-Requires-Dist: matplotlib >=3.1.3 ; extra == 'examples'
-Requires-Dist: scikit-image >=0.16.2 ; extra == 'examples'
-Requires-Dist: pandas >=1.0.5 ; extra == 'examples'
+Requires-Dist: matplotlib >=3.3.4 ; extra == 'examples'
+Requires-Dist: scikit-image >=0.17.2 ; extra == 'examples'
+Requires-Dist: pandas >=1.1.5 ; extra == 'examples'
 Requires-Dist: seaborn >=0.9.0 ; extra == 'examples'
 Requires-Dist: pooch >=1.6.0 ; extra == 'examples'
 Requires-Dist: plotly >=5.14.0 ; extra == 'examples'
 Provides-Extra: tests
-Requires-Dist: matplotlib >=3.1.3 ; extra == 'tests'
-Requires-Dist: scikit-image >=0.16.2 ; extra == 'tests'
-Requires-Dist: pandas >=1.0.5 ; extra == 'tests'
+Requires-Dist: matplotlib >=3.3.4 ; extra == 'tests'
+Requires-Dist: scikit-image >=0.17.2 ; extra == 'tests'
+Requires-Dist: pandas >=1.1.5 ; extra == 'tests'
 Requires-Dist: pytest >=7.1.2 ; extra == 'tests'
 Requires-Dist: pytest-cov >=2.9.0 ; extra == 'tests'
 Requires-Dist: ruff >=0.0.272 ; extra == 'tests'
 Requires-Dist: black >=23.3.0 ; extra == 'tests'
 Requires-Dist: mypy >=1.3 ; extra == 'tests'
 Requires-Dist: pyamg >=4.0.0 ; extra == 'tests'
+Requires-Dist: polars >=0.19.12 ; extra == 'tests'
+Requires-Dist: pyarrow >=12.0.0 ; extra == 'tests'
 Requires-Dist: numpydoc >=1.2.0 ; extra == 'tests'
 Requires-Dist: pooch >=1.6.0 ; extra == 'tests'
 
@@ -109,14 +110,14 @@ Requires-Dist: pooch >=1.6.0 ; extra == 'tests'
 .. |Benchmark| image:: https://img.shields.io/badge/Benchmarked%20by-asv-blue
 .. _`Benchmark`: https://scikit-learn.org/scikit-learn-benchmarks/
 
-.. |PythonMinVersion| replace:: 3.8
-.. |NumPyMinVersion| replace:: 1.17.3
-.. |SciPyMinVersion| replace:: 1.5.0
-.. |JoblibMinVersion| replace:: 1.1.1
+.. |PythonMinVersion| replace:: 3.9
+.. |NumPyMinVersion| replace:: 1.19.5
+.. |SciPyMinVersion| replace:: 1.6.0
+.. |JoblibMinVersion| replace:: 1.2.0
 .. |ThreadpoolctlMinVersion| replace:: 2.0.0
-.. |MatplotlibMinVersion| replace:: 3.1.3
-.. |Scikit-ImageMinVersion| replace:: 0.16.2
-.. |PandasMinVersion| replace:: 1.0.5
+.. |MatplotlibMinVersion| replace:: 3.3.4
+.. |Scikit-ImageMinVersion| replace:: 0.17.2
+.. |PandasMinVersion| replace:: 1.1.5
 .. |SeabornMinVersion| replace:: 0.9.0
 .. |PytestMinVersion| replace:: 7.1.2
 .. |PlotlyMinVersion| replace:: 5.14.0
@@ -157,7 +158,7 @@ scikit-learn 1.0 and later require Python 3.7 or newer.
 scikit-learn 1.1 and later require Python 3.8 or newer.
 
 Scikit-learn plotting capabilities (i.e., functions start with ``plot_`` and
-classes end with "Display") require Matplotlib (>= |MatplotlibMinVersion|).
+classes end with ``Display``) require Matplotlib (>= |MatplotlibMinVersion|).
 For running the examples Matplotlib >= |MatplotlibMinVersion| is required.
 A few examples require scikit-image >= |Scikit-ImageMinVersion|, a few examples
 require pandas >= |PandasMinVersion|, some examples require seaborn >=
@@ -166,7 +167,7 @@ require pandas >= |PandasMinVersion|, some examples require seaborn >=
 User installation
 ~~~~~~~~~~~~~~~~~
 
-If you already have a working installation of numpy and scipy,
+If you already have a working installation of NumPy and SciPy,
 the easiest way to install scikit-learn is using ``pip``::
 
     pip install -U scikit-learn

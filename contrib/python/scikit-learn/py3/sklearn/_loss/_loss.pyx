@@ -55,8 +55,8 @@ cdef inline double log1pexp(double x) noexcept nogil:
 
 cdef inline void sum_exp_minus_max(
     const int i,
-    const Y_DTYPE_C[:, :] raw_prediction,  # IN
-    Y_DTYPE_C *p                           # OUT
+    const floating_in[:, :] raw_prediction,  # IN
+    floating_in *p                           # OUT
 ) noexcept nogil:
     # Thread local buffers are used to stores results of this function via p.
     # The results are stored as follows:
@@ -482,9 +482,8 @@ cdef inline double cgradient_half_binomial(
     double y_true,
     double raw_prediction
 ) noexcept nogil:
-    # y_pred - y_true = expit(raw_prediction) - y_true
-    # Numerically more stable, see
-    # http://fa.bianp.net/blog/2019/evaluate_logistic/
+    # gradient = y_pred - y_true = expit(raw_prediction) - y_true
+    # Numerically more stable, see http://fa.bianp.net/blog/2019/evaluate_logistic/
     #     if raw_prediction < 0:
     #         exp_tmp = exp(raw_prediction)
     #         return ((1 - y_true) * exp_tmp - y_true) / (1 + exp_tmp)
@@ -495,12 +494,22 @@ cdef inline double cgradient_half_binomial(
     #     return expit(raw_prediction) - y_true
     # i.e. no "if else" and an own inline implementation of expit instead of
     #     from scipy.special.cython_special cimport expit
-    # The case distinction raw_prediction < 0 in the stable implementation
-    # does not provide significant better precision. Therefore we go without
-    # it.
+    # The case distinction raw_prediction < 0 in the stable implementation does not
+    # provide significant better precision apart from protecting overflow of exp(..).
+    # The branch (if else), however, can incur runtime costs of up to 30%.
+    # Instead, we help branch prediction by almost always ending in the first if clause
+    # and making the second branch (else) a bit simpler. This has the exact same
+    # precision but is faster than the stable implementation.
+    # As branching criteria, we use the same cutoff as in log1pexp. Note that the
+    # maximal value to get gradient = -1 with y_true = 1 is -37.439198610162731
+    # (based on mpmath), and scipy.special.logit(np.finfo(float).eps) ~ -36.04365.
     cdef double exp_tmp
-    exp_tmp = exp(-raw_prediction)
-    return ((1 - y_true) - y_true * exp_tmp) / (1 + exp_tmp)
+    if raw_prediction > -37:
+        exp_tmp = exp(-raw_prediction)
+        return ((1 - y_true) - y_true * exp_tmp) / (1 + exp_tmp)
+    else:
+        # expit(raw_prediction) = exp(raw_prediction) for raw_prediction <= -37
+        return exp(raw_prediction) - y_true
 
 
 cdef inline double_pair closs_grad_half_binomial(
@@ -508,21 +517,24 @@ cdef inline double_pair closs_grad_half_binomial(
     double raw_prediction
 ) noexcept nogil:
     cdef double_pair lg
-    if raw_prediction <= 0:
+    # Same if else conditions as in log1pexp.
+    if raw_prediction <= -37:
         lg.val2 = exp(raw_prediction)  # used as temporary
-        if raw_prediction <= -37:
-            lg.val1 = lg.val2 - y_true * raw_prediction              # loss
-        else:
-            lg.val1 = log1p(lg.val2) - y_true * raw_prediction       # loss
+        lg.val1 = lg.val2 - y_true * raw_prediction                  # loss
+        lg.val2 -= y_true                                            # gradient
+    elif raw_prediction <= -2:
+        lg.val2 = exp(raw_prediction)  # used as temporary
+        lg.val1 = log1p(lg.val2) - y_true * raw_prediction           # loss
         lg.val2 = ((1 - y_true) * lg.val2 - y_true) / (1 + lg.val2)  # gradient
+    elif raw_prediction <= 18:
+        lg.val2 = exp(-raw_prediction)  # used as temporary
+        # log1p(exp(x)) = log(1 + exp(x)) = x + log1p(exp(-x))
+        lg.val1 = log1p(lg.val2) + (1 - y_true) * raw_prediction     # loss
+        lg.val2 = ((1 - y_true) - y_true * lg.val2) / (1 + lg.val2)  # gradient
     else:
         lg.val2 = exp(-raw_prediction)  # used as temporary
-        if raw_prediction <= 18:
-            # log1p(exp(x)) = log(1 + exp(x)) = x + log1p(exp(-x))
-            lg.val1 = log1p(lg.val2) + (1 - y_true) * raw_prediction  # loss
-        else:
-            lg.val1 = lg.val2 + (1 - y_true) * raw_prediction         # loss
-        lg.val2 = ((1 - y_true) - y_true * lg.val2) / (1 + lg.val2)   # gradient
+        lg.val1 = lg.val2 + (1 - y_true) * raw_prediction            # loss
+        lg.val2 = ((1 - y_true) - y_true * lg.val2) / (1 + lg.val2)  # gradient
     return lg
 
 
@@ -531,12 +543,18 @@ cdef inline double_pair cgrad_hess_half_binomial(
     double raw_prediction
 ) noexcept nogil:
     # with y_pred = expit(raw)
-    # hessian = y_pred * (1 - y_pred) = exp(raw) / (1 + exp(raw))**2
+    # hessian = y_pred * (1 - y_pred) = exp( raw) / (1 + exp( raw))**2
     #                                 = exp(-raw) / (1 + exp(-raw))**2
     cdef double_pair gh
-    gh.val2 = exp(-raw_prediction)  # used as temporary
-    gh.val1 = ((1 - y_true) - y_true * gh.val2) / (1 + gh.val2)  # gradient
-    gh.val2 = gh.val2 / (1 + gh.val2)**2                         # hessian
+    # See comment in cgradient_half_binomial.
+    if raw_prediction > -37:
+        gh.val2 = exp(-raw_prediction)  # used as temporary
+        gh.val1 = ((1 - y_true) - y_true * gh.val2) / (1 + gh.val2)  # gradient
+        gh.val2 = gh.val2 / (1 + gh.val2)**2                         # hessian
+    else:
+        gh.val2 = exp(raw_prediction)
+        gh.val1 = gh.val2 - y_true
+        gh.val2 *= (1 - gh.val2)
     return gh
 
 
@@ -622,7 +640,9 @@ cdef class CyLossFunction:
         """
         pass
 
-    cdef double_pair cy_grad_hess(self, double y_true, double raw_prediction) noexcept nogil:
+    cdef double_pair cy_grad_hess(
+        self, double y_true, double raw_prediction
+    ) noexcept nogil:
         """Compute gradient and hessian.
 
         Gradient and hessian of loss w.r.t. raw_prediction for a single sample.
@@ -649,13 +669,15 @@ cdef class CyLossFunction:
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,        # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
-        """Compute the pointwise loss value for each input.
+        """Compute the point-wise loss value for each input.
+
+        The point-wise loss is written to `loss_out` and no array is returned.
 
         Parameters
         ----------
@@ -669,23 +691,20 @@ cdef class CyLossFunction:
             A location into which the result is stored.
         n_threads : int
             Number of threads used by OpenMP (if any).
-
-        Returns
-        -------
-        loss : array of shape (n_samples,)
-            Element-wise loss function.
         """
         pass
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,    # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         """Compute gradient of loss w.r.t raw_prediction for each input.
+
+        The gradient is written to `gradient_out` and no array is returned.
 
         Parameters
         ----------
@@ -699,24 +718,22 @@ cdef class CyLossFunction:
             A location into which the result is stored.
         n_threads : int
             Number of threads used by OpenMP (if any).
-
-        Returns
-        -------
-        gradient : array of shape (n_samples,)
-            Element-wise gradients.
         """
         pass
 
     def loss_gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,        # OUT
-        G_DTYPE_C[::1] gradient_out,    # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         """Compute loss and gradient of loss w.r.t raw_prediction.
+
+        The loss and gradient are written to `loss_out` and `gradient_out` and no arrays
+        are returned.
 
         Parameters
         ----------
@@ -732,29 +749,23 @@ cdef class CyLossFunction:
             A location into which the gradient is stored.
         n_threads : int
             Number of threads used by OpenMP (if any).
-
-        Returns
-        -------
-        loss : array of shape (n_samples,)
-            Element-wise loss function.
-
-        gradient : array of shape (n_samples,)
-            Element-wise gradients.
         """
         self.loss(y_true, raw_prediction, sample_weight, loss_out, n_threads)
         self.gradient(y_true, raw_prediction, sample_weight, gradient_out, n_threads)
-        return np.asarray(loss_out), np.asarray(gradient_out)
 
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,    # OUT
-        G_DTYPE_C[::1] hessian_out,     # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         """Compute gradient and hessian of loss w.r.t raw_prediction.
+
+        The gradient and hessian are written to `gradient_out` and `hessian_out` and no
+        arrays are returned.
 
         Parameters
         ----------
@@ -770,14 +781,6 @@ cdef class CyLossFunction:
             A location into which the hessian is stored.
         n_threads : int
             Number of threads used by OpenMP (if any).
-
-        Returns
-        -------
-        gradient : array of shape (n_samples,)
-            Element-wise gradients.
-
-        hessian : array of shape (n_samples,)
-            Element-wise hessians.
         """
         pass
 
@@ -804,10 +807,10 @@ cdef class CyHalfSquaredError(CyLossFunction):
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
         cdef:
@@ -825,15 +828,13 @@ cdef class CyHalfSquaredError(CyLossFunction):
             ):
                 loss_out[i] = sample_weight[i] * closs_half_squared_error(y_true[i], raw_prediction[i])
 
-        return np.asarray(loss_out)
-
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -851,15 +852,13 @@ cdef class CyHalfSquaredError(CyLossFunction):
             ):
                 gradient_out[i] = sample_weight[i] * cgradient_half_squared_error(y_true[i], raw_prediction[i])
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
-        G_DTYPE_C[::1] hessian_out,           # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
@@ -881,8 +880,6 @@ cdef class CyHalfSquaredError(CyLossFunction):
                 dbl2 = cgrad_hess_half_squared_error(y_true[i], raw_prediction[i])
                 gradient_out[i] = sample_weight[i] * dbl2.val1
                 hessian_out[i] = sample_weight[i] * dbl2.val2
-
-        return np.asarray(gradient_out), np.asarray(hessian_out)
 
 cdef class CyAbsoluteError(CyLossFunction):
     """Absolute Error with identity link.
@@ -906,10 +903,10 @@ cdef class CyAbsoluteError(CyLossFunction):
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
         cdef:
@@ -927,15 +924,13 @@ cdef class CyAbsoluteError(CyLossFunction):
             ):
                 loss_out[i] = sample_weight[i] * closs_absolute_error(y_true[i], raw_prediction[i])
 
-        return np.asarray(loss_out)
-
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -953,15 +948,13 @@ cdef class CyAbsoluteError(CyLossFunction):
             ):
                 gradient_out[i] = sample_weight[i] * cgradient_absolute_error(y_true[i], raw_prediction[i])
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
-        G_DTYPE_C[::1] hessian_out,           # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
@@ -983,8 +976,6 @@ cdef class CyAbsoluteError(CyLossFunction):
                 dbl2 = cgrad_hess_absolute_error(y_true[i], raw_prediction[i])
                 gradient_out[i] = sample_weight[i] * dbl2.val1
                 hessian_out[i] = sample_weight[i] * dbl2.val2
-
-        return np.asarray(gradient_out), np.asarray(hessian_out)
 
 cdef class CyPinballLoss(CyLossFunction):
     """Quantile Loss aka Pinball Loss with identity link.
@@ -1013,10 +1004,10 @@ cdef class CyPinballLoss(CyLossFunction):
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
         cdef:
@@ -1034,15 +1025,13 @@ cdef class CyPinballLoss(CyLossFunction):
             ):
                 loss_out[i] = sample_weight[i] * closs_pinball_loss(y_true[i], raw_prediction[i], self.quantile)
 
-        return np.asarray(loss_out)
-
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1060,15 +1049,13 @@ cdef class CyPinballLoss(CyLossFunction):
             ):
                 gradient_out[i] = sample_weight[i] * cgradient_pinball_loss(y_true[i], raw_prediction[i], self.quantile)
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
-        G_DTYPE_C[::1] hessian_out,           # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
@@ -1090,8 +1077,6 @@ cdef class CyPinballLoss(CyLossFunction):
                 dbl2 = cgrad_hess_pinball_loss(y_true[i], raw_prediction[i], self.quantile)
                 gradient_out[i] = sample_weight[i] * dbl2.val1
                 hessian_out[i] = sample_weight[i] * dbl2.val2
-
-        return np.asarray(gradient_out), np.asarray(hessian_out)
 
 cdef class CyHuberLoss(CyLossFunction):
     """Huber Loss with identity link.
@@ -1118,10 +1103,10 @@ cdef class CyHuberLoss(CyLossFunction):
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
         cdef:
@@ -1139,15 +1124,13 @@ cdef class CyHuberLoss(CyLossFunction):
             ):
                 loss_out[i] = sample_weight[i] * closs_huber_loss(y_true[i], raw_prediction[i], self.delta)
 
-        return np.asarray(loss_out)
-
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1165,15 +1148,13 @@ cdef class CyHuberLoss(CyLossFunction):
             ):
                 gradient_out[i] = sample_weight[i] * cgradient_huber_loss(y_true[i], raw_prediction[i], self.delta)
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
-        G_DTYPE_C[::1] hessian_out,           # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
@@ -1195,8 +1176,6 @@ cdef class CyHuberLoss(CyLossFunction):
                 dbl2 = cgrad_hess_huber_loss(y_true[i], raw_prediction[i], self.delta)
                 gradient_out[i] = sample_weight[i] * dbl2.val1
                 hessian_out[i] = sample_weight[i] * dbl2.val2
-
-        return np.asarray(gradient_out), np.asarray(hessian_out)
 
 cdef class CyHalfPoissonLoss(CyLossFunction):
     """Half Poisson deviance loss with log-link.
@@ -1229,10 +1208,10 @@ cdef class CyHalfPoissonLoss(CyLossFunction):
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
         cdef:
@@ -1250,15 +1229,13 @@ cdef class CyHalfPoissonLoss(CyLossFunction):
             ):
                 loss_out[i] = sample_weight[i] * closs_half_poisson(y_true[i], raw_prediction[i])
 
-        return np.asarray(loss_out)
-
     def loss_gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1281,14 +1258,13 @@ cdef class CyHalfPoissonLoss(CyLossFunction):
                 loss_out[i] = sample_weight[i] * dbl2.val1
                 gradient_out[i] = sample_weight[i] * dbl2.val2
 
-        return np.asarray(loss_out), np.asarray(gradient_out)
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1306,15 +1282,13 @@ cdef class CyHalfPoissonLoss(CyLossFunction):
             ):
                 gradient_out[i] = sample_weight[i] * cgradient_half_poisson(y_true[i], raw_prediction[i])
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
-        G_DTYPE_C[::1] hessian_out,           # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
@@ -1336,8 +1310,6 @@ cdef class CyHalfPoissonLoss(CyLossFunction):
                 dbl2 = cgrad_hess_half_poisson(y_true[i], raw_prediction[i])
                 gradient_out[i] = sample_weight[i] * dbl2.val1
                 hessian_out[i] = sample_weight[i] * dbl2.val2
-
-        return np.asarray(gradient_out), np.asarray(hessian_out)
 
 cdef class CyHalfGammaLoss(CyLossFunction):
     """Half Gamma deviance loss with log-link.
@@ -1368,10 +1340,10 @@ cdef class CyHalfGammaLoss(CyLossFunction):
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
         cdef:
@@ -1389,15 +1361,13 @@ cdef class CyHalfGammaLoss(CyLossFunction):
             ):
                 loss_out[i] = sample_weight[i] * closs_half_gamma(y_true[i], raw_prediction[i])
 
-        return np.asarray(loss_out)
-
     def loss_gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1420,14 +1390,13 @@ cdef class CyHalfGammaLoss(CyLossFunction):
                 loss_out[i] = sample_weight[i] * dbl2.val1
                 gradient_out[i] = sample_weight[i] * dbl2.val2
 
-        return np.asarray(loss_out), np.asarray(gradient_out)
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1445,15 +1414,13 @@ cdef class CyHalfGammaLoss(CyLossFunction):
             ):
                 gradient_out[i] = sample_weight[i] * cgradient_half_gamma(y_true[i], raw_prediction[i])
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
-        G_DTYPE_C[::1] hessian_out,           # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
@@ -1475,8 +1442,6 @@ cdef class CyHalfGammaLoss(CyLossFunction):
                 dbl2 = cgrad_hess_half_gamma(y_true[i], raw_prediction[i])
                 gradient_out[i] = sample_weight[i] * dbl2.val1
                 hessian_out[i] = sample_weight[i] * dbl2.val2
-
-        return np.asarray(gradient_out), np.asarray(hessian_out)
 
 cdef class CyHalfTweedieLoss(CyLossFunction):
     """Half Tweedie deviance loss with log-link.
@@ -1524,10 +1489,10 @@ cdef class CyHalfTweedieLoss(CyLossFunction):
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
         cdef:
@@ -1545,15 +1510,13 @@ cdef class CyHalfTweedieLoss(CyLossFunction):
             ):
                 loss_out[i] = sample_weight[i] * closs_half_tweedie(y_true[i], raw_prediction[i], self.power)
 
-        return np.asarray(loss_out)
-
     def loss_gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1576,14 +1539,13 @@ cdef class CyHalfTweedieLoss(CyLossFunction):
                 loss_out[i] = sample_weight[i] * dbl2.val1
                 gradient_out[i] = sample_weight[i] * dbl2.val2
 
-        return np.asarray(loss_out), np.asarray(gradient_out)
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1601,15 +1563,13 @@ cdef class CyHalfTweedieLoss(CyLossFunction):
             ):
                 gradient_out[i] = sample_weight[i] * cgradient_half_tweedie(y_true[i], raw_prediction[i], self.power)
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
-        G_DTYPE_C[::1] hessian_out,           # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
@@ -1631,8 +1591,6 @@ cdef class CyHalfTweedieLoss(CyLossFunction):
                 dbl2 = cgrad_hess_half_tweedie(y_true[i], raw_prediction[i], self.power)
                 gradient_out[i] = sample_weight[i] * dbl2.val1
                 hessian_out[i] = sample_weight[i] * dbl2.val2
-
-        return np.asarray(gradient_out), np.asarray(hessian_out)
 
 cdef class CyHalfTweedieLossIdentity(CyLossFunction):
     """Half Tweedie deviance loss with identity link.
@@ -1669,10 +1627,10 @@ cdef class CyHalfTweedieLossIdentity(CyLossFunction):
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
         cdef:
@@ -1690,15 +1648,13 @@ cdef class CyHalfTweedieLossIdentity(CyLossFunction):
             ):
                 loss_out[i] = sample_weight[i] * closs_half_tweedie_identity(y_true[i], raw_prediction[i], self.power)
 
-        return np.asarray(loss_out)
-
     def loss_gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1721,14 +1677,13 @@ cdef class CyHalfTweedieLossIdentity(CyLossFunction):
                 loss_out[i] = sample_weight[i] * dbl2.val1
                 gradient_out[i] = sample_weight[i] * dbl2.val2
 
-        return np.asarray(loss_out), np.asarray(gradient_out)
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1746,15 +1701,13 @@ cdef class CyHalfTweedieLossIdentity(CyLossFunction):
             ):
                 gradient_out[i] = sample_weight[i] * cgradient_half_tweedie_identity(y_true[i], raw_prediction[i], self.power)
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
-        G_DTYPE_C[::1] hessian_out,           # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
@@ -1776,8 +1729,6 @@ cdef class CyHalfTweedieLossIdentity(CyLossFunction):
                 dbl2 = cgrad_hess_half_tweedie_identity(y_true[i], raw_prediction[i], self.power)
                 gradient_out[i] = sample_weight[i] * dbl2.val1
                 hessian_out[i] = sample_weight[i] * dbl2.val2
-
-        return np.asarray(gradient_out), np.asarray(hessian_out)
 
 cdef class CyHalfBinomialLoss(CyLossFunction):
     """Half Binomial deviance loss with logit link.
@@ -1802,10 +1753,10 @@ cdef class CyHalfBinomialLoss(CyLossFunction):
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
         cdef:
@@ -1823,15 +1774,13 @@ cdef class CyHalfBinomialLoss(CyLossFunction):
             ):
                 loss_out[i] = sample_weight[i] * closs_half_binomial(y_true[i], raw_prediction[i])
 
-        return np.asarray(loss_out)
-
     def loss_gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1854,14 +1803,13 @@ cdef class CyHalfBinomialLoss(CyLossFunction):
                 loss_out[i] = sample_weight[i] * dbl2.val1
                 gradient_out[i] = sample_weight[i] * dbl2.val2
 
-        return np.asarray(loss_out), np.asarray(gradient_out)
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1879,15 +1827,13 @@ cdef class CyHalfBinomialLoss(CyLossFunction):
             ):
                 gradient_out[i] = sample_weight[i] * cgradient_half_binomial(y_true[i], raw_prediction[i])
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
-        G_DTYPE_C[::1] hessian_out,           # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
@@ -1909,8 +1855,6 @@ cdef class CyHalfBinomialLoss(CyLossFunction):
                 dbl2 = cgrad_hess_half_binomial(y_true[i], raw_prediction[i])
                 gradient_out[i] = sample_weight[i] * dbl2.val1
                 hessian_out[i] = sample_weight[i] * dbl2.val2
-
-        return np.asarray(gradient_out), np.asarray(hessian_out)
 
 cdef class CyExponentialLoss(CyLossFunction):
     """"Exponential loss with (half) logit link
@@ -1935,10 +1879,10 @@ cdef class CyExponentialLoss(CyLossFunction):
 
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
         int n_threads=1
     ):
         cdef:
@@ -1956,15 +1900,13 @@ cdef class CyExponentialLoss(CyLossFunction):
             ):
                 loss_out[i] = sample_weight[i] * closs_exponential(y_true[i], raw_prediction[i])
 
-        return np.asarray(loss_out)
-
     def loss_gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] loss_out,              # OUT
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] loss_out,             # OUT
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -1987,14 +1929,13 @@ cdef class CyExponentialLoss(CyLossFunction):
                 loss_out[i] = sample_weight[i] * dbl2.val1
                 gradient_out[i] = sample_weight[i] * dbl2.val2
 
-        return np.asarray(loss_out), np.asarray(gradient_out)
 
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
@@ -2012,15 +1953,13 @@ cdef class CyExponentialLoss(CyLossFunction):
             ):
                 gradient_out[i] = sample_weight[i] * cgradient_exponential(y_true[i], raw_prediction[i])
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,          # IN
-        const Y_DTYPE_C[::1] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,   # IN
-        G_DTYPE_C[::1] gradient_out,          # OUT
-        G_DTYPE_C[::1] hessian_out,           # OUT
+        const floating_in[::1] y_true,          # IN
+        const floating_in[::1] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,   # IN
+        floating_out[::1] gradient_out,         # OUT
+        floating_out[::1] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
@@ -2042,8 +1981,6 @@ cdef class CyExponentialLoss(CyLossFunction):
                 dbl2 = cgrad_hess_exponential(y_true[i], raw_prediction[i])
                 gradient_out[i] = sample_weight[i] * dbl2.val1
                 hessian_out[i] = sample_weight[i] * dbl2.val2
-
-        return np.asarray(gradient_out), np.asarray(hessian_out)
 
 
 # The multinomial deviance loss is also known as categorical cross-entropy or
@@ -2067,18 +2004,18 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
     # opposite are welcome.
     def loss(
         self,
-        const Y_DTYPE_C[::1] y_true,           # IN
-        const Y_DTYPE_C[:, :] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,    # IN
-        G_DTYPE_C[::1] loss_out,               # OUT
+        const floating_in[::1] y_true,           # IN
+        const floating_in[:, :] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,    # IN
+        floating_out[::1] loss_out,              # OUT
         int n_threads=1
     ):
         cdef:
             int i, k
             int n_samples = y_true.shape[0]
             int n_classes = raw_prediction.shape[1]
-            Y_DTYPE_C max_value, sum_exps
-            Y_DTYPE_C*  p  # temporary buffer
+            floating_in max_value, sum_exps
+            floating_in*  p  # temporary buffer
 
         # We assume n_samples > n_classes. In this case having the inner loop
         # over n_classes is a good default.
@@ -2090,7 +2027,7 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
             with nogil, parallel(num_threads=n_threads):
                 # Define private buffer variables as each thread might use its
                 # own.
-                p = <Y_DTYPE_C *> malloc(sizeof(Y_DTYPE_C) * (n_classes + 2))
+                p = <floating_in *> malloc(sizeof(floating_in) * (n_classes + 2))
 
                 for i in prange(n_samples, schedule='static'):
                     sum_exp_minus_max(i, raw_prediction, p)
@@ -2106,7 +2043,7 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
                 free(p)
         else:
             with nogil, parallel(num_threads=n_threads):
-                p = <Y_DTYPE_C *> malloc(sizeof(Y_DTYPE_C) * (n_classes + 2))
+                p = <floating_in *> malloc(sizeof(floating_in) * (n_classes + 2))
 
                 for i in prange(n_samples, schedule='static'):
                     sum_exp_minus_max(i, raw_prediction, p)
@@ -2123,30 +2060,28 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
 
                 free(p)
 
-        return np.asarray(loss_out)
-
     def loss_gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,           # IN
-        const Y_DTYPE_C[:, :] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,    # IN
-        G_DTYPE_C[::1] loss_out,               # OUT
-        G_DTYPE_C[:, :] gradient_out,          # OUT
+        const floating_in[::1] y_true,           # IN
+        const floating_in[:, :] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,    # IN
+        floating_out[::1] loss_out,              # OUT
+        floating_out[:, :] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
             int i, k
             int n_samples = y_true.shape[0]
             int n_classes = raw_prediction.shape[1]
-            Y_DTYPE_C max_value, sum_exps
-            Y_DTYPE_C*  p  # temporary buffer
+            floating_in max_value, sum_exps
+            floating_in*  p  # temporary buffer
 
         if sample_weight is None:
             # inner loop over n_classes
             with nogil, parallel(num_threads=n_threads):
                 # Define private buffer variables as each thread might use its
                 # own.
-                p = <Y_DTYPE_C *> malloc(sizeof(Y_DTYPE_C) * (n_classes + 2))
+                p = <floating_in *> malloc(sizeof(floating_in) * (n_classes + 2))
 
                 for i in prange(n_samples, schedule='static'):
                     sum_exp_minus_max(i, raw_prediction, p)
@@ -2165,7 +2100,7 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
                 free(p)
         else:
             with nogil, parallel(num_threads=n_threads):
-                p = <Y_DTYPE_C *> malloc(sizeof(Y_DTYPE_C) * (n_classes + 2))
+                p = <floating_in *> malloc(sizeof(floating_in) * (n_classes + 2))
 
                 for i in prange(n_samples, schedule='static'):
                     sum_exp_minus_max(i, raw_prediction, p)
@@ -2185,29 +2120,27 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
 
                 free(p)
 
-        return np.asarray(loss_out), np.asarray(gradient_out)
-
     def gradient(
         self,
-        const Y_DTYPE_C[::1] y_true,           # IN
-        const Y_DTYPE_C[:, :] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,    # IN
-        G_DTYPE_C[:, :] gradient_out,          # OUT
+        const floating_in[::1] y_true,           # IN
+        const floating_in[:, :] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,    # IN
+        floating_out[:, :] gradient_out,         # OUT
         int n_threads=1
     ):
         cdef:
             int i, k
             int n_samples = y_true.shape[0]
             int n_classes = raw_prediction.shape[1]
-            Y_DTYPE_C sum_exps
-            Y_DTYPE_C*  p  # temporary buffer
+            floating_in sum_exps
+            floating_in*  p  # temporary buffer
 
         if sample_weight is None:
             # inner loop over n_classes
             with nogil, parallel(num_threads=n_threads):
                 # Define private buffer variables as each thread might use its
                 # own.
-                p = <Y_DTYPE_C *> malloc(sizeof(Y_DTYPE_C) * (n_classes + 2))
+                p = <floating_in *> malloc(sizeof(floating_in) * (n_classes + 2))
 
                 for i in prange(n_samples, schedule='static'):
                     sum_exp_minus_max(i, raw_prediction, p)
@@ -2221,7 +2154,7 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
                 free(p)
         else:
             with nogil, parallel(num_threads=n_threads):
-                p = <Y_DTYPE_C *> malloc(sizeof(Y_DTYPE_C) * (n_classes + 2))
+                p = <floating_in *> malloc(sizeof(floating_in) * (n_classes + 2))
 
                 for i in prange(n_samples, schedule='static'):
                     sum_exp_minus_max(i, raw_prediction, p)
@@ -2234,30 +2167,28 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
 
                 free(p)
 
-        return np.asarray(gradient_out)
-
     def gradient_hessian(
         self,
-        const Y_DTYPE_C[::1] y_true,           # IN
-        const Y_DTYPE_C[:, :] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,    # IN
-        G_DTYPE_C[:, :] gradient_out,          # OUT
-        G_DTYPE_C[:, :] hessian_out,           # OUT
+        const floating_in[::1] y_true,           # IN
+        const floating_in[:, :] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,    # IN
+        floating_out[:, :] gradient_out,         # OUT
+        floating_out[:, :] hessian_out,          # OUT
         int n_threads=1
     ):
         cdef:
             int i, k
             int n_samples = y_true.shape[0]
             int n_classes = raw_prediction.shape[1]
-            Y_DTYPE_C sum_exps
-            Y_DTYPE_C* p  # temporary buffer
+            floating_in sum_exps
+            floating_in* p  # temporary buffer
 
         if sample_weight is None:
             # inner loop over n_classes
             with nogil, parallel(num_threads=n_threads):
                 # Define private buffer variables as each thread might use its
                 # own.
-                p = <Y_DTYPE_C *> malloc(sizeof(Y_DTYPE_C) * (n_classes + 2))
+                p = <floating_in *> malloc(sizeof(floating_in) * (n_classes + 2))
 
                 for i in prange(n_samples, schedule='static'):
                     sum_exp_minus_max(i, raw_prediction, p)
@@ -2273,7 +2204,7 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
                 free(p)
         else:
             with nogil, parallel(num_threads=n_threads):
-                p = <Y_DTYPE_C *> malloc(sizeof(Y_DTYPE_C) * (n_classes + 2))
+                p = <floating_in *> malloc(sizeof(floating_in) * (n_classes + 2))
 
                 for i in prange(n_samples, schedule='static'):
                     sum_exp_minus_max(i, raw_prediction, p)
@@ -2288,34 +2219,31 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
 
                 free(p)
 
-        return np.asarray(gradient_out), np.asarray(hessian_out)
-
-
     # This method simplifies the implementation of hessp in linear models,
     # i.e. the matrix-vector product of the full hessian, not only of the
     # diagonal (in the classes) approximation as implemented above.
     def gradient_proba(
         self,
-        const Y_DTYPE_C[::1] y_true,           # IN
-        const Y_DTYPE_C[:, :] raw_prediction,  # IN
-        const Y_DTYPE_C[::1] sample_weight,    # IN
-        G_DTYPE_C[:, :] gradient_out,          # OUT
-        G_DTYPE_C[:, :] proba_out,             # OUT
+        const floating_in[::1] y_true,           # IN
+        const floating_in[:, :] raw_prediction,  # IN
+        const floating_in[::1] sample_weight,    # IN
+        floating_out[:, :] gradient_out,         # OUT
+        floating_out[:, :] proba_out,            # OUT
         int n_threads=1
     ):
         cdef:
             int i, k
             int n_samples = y_true.shape[0]
             int n_classes = raw_prediction.shape[1]
-            Y_DTYPE_C sum_exps
-            Y_DTYPE_C*  p  # temporary buffer
+            floating_in sum_exps
+            floating_in*  p  # temporary buffer
 
         if sample_weight is None:
             # inner loop over n_classes
             with nogil, parallel(num_threads=n_threads):
                 # Define private buffer variables as each thread might use its
                 # own.
-                p = <Y_DTYPE_C *> malloc(sizeof(Y_DTYPE_C) * (n_classes + 2))
+                p = <floating_in *> malloc(sizeof(floating_in) * (n_classes + 2))
 
                 for i in prange(n_samples, schedule='static'):
                     sum_exp_minus_max(i, raw_prediction, p)
@@ -2329,7 +2257,7 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
                 free(p)
         else:
             with nogil, parallel(num_threads=n_threads):
-                p = <Y_DTYPE_C *> malloc(sizeof(Y_DTYPE_C) * (n_classes + 2))
+                p = <floating_in *> malloc(sizeof(floating_in) * (n_classes + 2))
 
                 for i in prange(n_samples, schedule='static'):
                     sum_exp_minus_max(i, raw_prediction, p)
@@ -2341,5 +2269,3 @@ cdef class CyHalfMultinomialLoss(CyLossFunction):
                         gradient_out[i, k] = (proba_out[i, k] - (y_true[i] == k)) * sample_weight[i]
 
                 free(p)
-
-        return np.asarray(gradient_out), np.asarray(proba_out)
