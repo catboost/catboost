@@ -429,7 +429,10 @@ namespace NCB {
                         SafeIntegerCast<ui32>(targets.size()),
                         [targetsRef] (int i) {
                             auto value = targetsRef[i];
-                            CB_ENSURE(!std::isnan(value), "NaN values are not supported for target");
+                            CB_ENSURE_INTERNAL(
+                                !std::isnan(value),
+                                "TargetType is specified as Boolean but labels contain NaNs"
+                            );
                             CB_ENSURE_INTERNAL(
                                 (value == 0.0f) || (value == 1.0f),
                                 "TargetType is specified as Boolean but labels contain non-{0,1} data"
@@ -440,7 +443,10 @@ namespace NCB {
                     bool hasValues[2] = {false, false};
 
                     for (float value : targets) {
-                        CB_ENSURE(!std::isnan(value), "NaN values are not supported for target");
+                        CB_ENSURE_INTERNAL(
+                            !std::isnan(value),
+                            "TargetType is specified as Boolean but labels contain NaNs"
+                        );
 
                         if (value == 0.0f) {
                             hasValues[0] = true;
