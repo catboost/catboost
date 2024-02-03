@@ -59,6 +59,10 @@ class CUDAManager:
     def has_cuda_fatbins(self, cmd):
         return bool(set(cmd) & self.fatbin_libs)
 
+    @property
+    def can_prune_libs(self):
+        return self.prune_args and self.nvprune_exe
+
     def _known_fatbin_libs(self, libs):
         libs_wo_device_code = {
             '-lcudart_static'
@@ -103,14 +107,24 @@ def process_cuda_libraries(cmd, cuda_manager, build_root):
             os.makedirs(path)
             yield path
 
+    # add custom linker script
+    to_dirpath = next(tmpdir_generator('cuda_linker_script'))
+    script_path = os.path.join(to_dirpath, 'script')
+    with open(script_path, 'w') as f:
+        cuda_manager.write_linker_script(f)
+    flags_with_linker = list(cmd) + ['-Wl,--script={}'.format(script_path)]
+
+    if not cuda_manager.can_prune_libs:
+        return flags_with_linker
+
     tmpdir_gen = tmpdir_generator('cuda_pruned_libs')
 
-    flags = []
+    flags_pruned = []
     cuda_deps = set()
 
     # Because each directory flag only affects flags that follow it,
     # for correct pruning we need to process that in reversed order
-    for flag in reversed(cmd):
+    for flag in reversed(flags_with_linker):
         if flag in cuda_manager.fatbin_libs:
             cuda_deps.add('lib' + flag[2:] + '.a')
             flag += '_pruned'
@@ -130,21 +144,12 @@ def process_cuda_libraries(cmd, cuda_manager, build_root):
                 # do not remove current directory
                 # because it can contain other libraries we want link to
                 # instead we just add new directory with pruned libs
-                flags.append('-L' + to_dirpath)
+                flags_pruned.append('-L' + to_dirpath)
 
-        flags.append(flag)
+        flags_pruned.append(flag)
 
     assert not cuda_deps, ('Unresolved CUDA deps: ' + ','.join(cuda_deps))
-    flags = list(reversed(flags))
-
-    # add custom linker script
-    to_dirpath = next(tmpdir_generator('cuda_linker_script'))
-    script_path = os.path.join(to_dirpath, 'script')
-    with open(script_path, 'w') as f:
-        cuda_manager.write_linker_script(f)
-    flags.append('-Wl,--script={}'.format(script_path))
-
-    return flags
+    return reversed(flags_pruned)
 
 
 def remove_excessive_flags(cmd):
