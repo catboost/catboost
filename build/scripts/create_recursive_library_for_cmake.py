@@ -6,6 +6,7 @@
 
 import argparse
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -129,9 +130,9 @@ class FilesCombiner(object):
             archiver_tool_path = 'libtool'
         elif opts.is_msvc_compatible_linker:
             arch_type = 'LIB'
-        elif opts.parsed_args.cmake_ar.endswith('llvm-ar'):
+        elif re.match('^(|.*/)llvm\-ar(\-[\d])?', opts.parsed_args.cmake_ar):
             arch_type = 'LLVM_AR'
-        elif opts.parsed_args.cmake_ar.endswith('ar'):
+        elif re.match('^(|.*/)(gcc\-)?ar(\-[\d])?', opts.parsed_args.cmake_ar):
             arch_type = 'GNU_AR'
         else:
             raise Exception('Unsupported arch type for CMAKE_AR={}'.format(opts.parsed_args.cmake_ar))
