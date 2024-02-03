@@ -162,8 +162,11 @@ def wcswidth(pwcs, n=None, unicode_version='auto'):
     Given a unicode string, return its printable length on a terminal.
 
     :param str pwcs: Measure width of given unicode string.
-    :param int n: When ``n`` is None (default), return the length of the
-        entire string, otherwise width the first ``n`` characters specified.
+    :param int n: When ``n`` is None (default), return the length of the entire
+        string, otherwise only the first ``n`` characters are measured. This
+        argument exists only for compatibility with the C POSIX function
+        signature. It is suggested instead to use python's string slicing
+        capability, ``wcswidth(pwcs[:n])``
     :param str unicode_version: An explicit definition of the unicode version
         level to use for determination, may be ``auto`` (default), which uses
         the Environment Variable, ``UNICODE_VERSION`` if defined, or the latest
