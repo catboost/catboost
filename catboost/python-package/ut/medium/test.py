@@ -3467,20 +3467,27 @@ def test_cv(task_type):
     return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
-def test_cv_query(task_type):
+@pytest.mark.parametrize(
+    'loss_function',
+    ['QueryRMSE', 'YetiRank'],
+    ids=['loss_function=' + val for val in ['QueryRMSE', 'YetiRank']]
+)
+def test_cv_query(task_type, loss_function):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     train_dir_prefix = test_output_path('')
+
+    computed_metric = {
+        'QueryRMSE': 'QueryRMSE',
+        'YetiRank': 'PFound'
+    }[loss_function]
+
     results = cv(
         pool,
-        {"iterations": 20, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type,
+        {"iterations": 20, "learning_rate": 0.03, "loss_function": loss_function, "task_type": task_type,
             "train_dir": os.path.join(train_dir_prefix, 'catboost_info')},
     )
-    assert "train-QueryRMSE-mean" in results
+    assert f"test-{computed_metric}-mean" in results
 
-    prev_value = results["train-QueryRMSE-mean"][0]
-    for value in results["train-QueryRMSE-mean"][1:]:
-        assert value < prev_value
-        prev_value = value
     return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 

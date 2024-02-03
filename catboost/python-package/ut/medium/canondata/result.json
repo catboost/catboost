@@ -226,8 +226,11 @@
     "test.test_cv_pairs_generated[CPU]": {
         "uri": "file://test.test_cv_pairs_generated_CPU_/catboost_training.json"
     },
-    "test.test_cv_query[CPU]": {
-        "uri": "file://test.test_cv_query_CPU_/catboost_training.json"
+    "test.test_cv_query[CPU-loss_function=QueryRMSE]": {
+        "uri": "file://test.test_cv_query_CPU-loss_function=QueryRMSE_/catboost_training.json"
+    },
+    "test.test_cv_query[CPU-loss_function=YetiRank]": {
+        "uri": "file://test.test_cv_query_CPU-loss_function=YetiRank_/catboost_training.json"
     },
     "test.test_cv_skip_train[CPU]": {
         "uri": "file://test.test_cv_skip_train_CPU_/catboost_training.json"

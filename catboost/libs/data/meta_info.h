@@ -15,6 +15,8 @@
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 
+#include <limits>
+
 
 namespace NCB {
 
@@ -36,11 +38,29 @@ namespace NCB {
     };
 
     struct TTargetStats {
-        float MinValue = 0;
-        float MaxValue = 0;
+        float MinValue = std::numeric_limits<float>::max();
+        float MaxValue = std::numeric_limits<float>::lowest();
 
     public:
         operator NJson::TJsonValue() const;
+
+        void Update(float value) {
+            if (value < MinValue) {
+                MinValue = value;
+            }
+            if (value > MaxValue) {
+                MaxValue = value;
+            }
+        }
+
+        void Update(const TTargetStats& update) {
+            if (update.MinValue < MinValue) {
+                MinValue = update.MinValue;
+            }
+            if (update.MaxValue > MaxValue) {
+                MaxValue = update.MaxValue;
+            }
+        }
     };
 
     struct TDataMetaInfo {
