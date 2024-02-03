@@ -361,6 +361,19 @@ def test_survival_aft_with_nondefault_distributions(boosting_type, distribution_
     ]
 
 
+def test_survival_aft_on_incompatible_target():
+    cmd_fit = (
+        '--loss-function', 'SurvivalAft',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '100',
+        '-T', '4',
+    )
+    with pytest.raises(yatest.common.ExecutionError):
+        execute_catboost_fit('CPU', cmd_fit)
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('n_trees', [100, 500])
 @pytest.mark.parametrize('target_count', [1, 2, 3])

@@ -372,6 +372,8 @@ namespace NCB {
         bool hasMultiQuantile = isAnyOfMetrics(
             [] (auto metric) { return metric == ELossFunction::MultiQuantile; });
         bool hasMultiLabelOnlyMetrics = isAnyOfMetrics(IsMultiLabelOnlyMetric);
+        bool hasSurvivalAft = isAnyOfMetrics(
+            [] (auto metric) { return metric == ELossFunction::SurvivalAft; });
         bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
@@ -406,6 +408,8 @@ namespace NCB {
                 );
                 multiClassTargetData = false;
             } else {
+                CB_ENSURE(!hasSurvivalAft, "SurvivalAft is compatible only with a single-dimensional model");
+
                 for (const auto& metricDescription : metricDescriptions) {
                     auto metricLossFunction = metricDescription.GetLossFunction();
                     CB_ENSURE(
@@ -524,16 +528,27 @@ namespace NCB {
                 return IsGroupwiseMetric(lossFunction) && !IsPairwiseMetric(lossFunction);
             }
         );
+        bool hasSurvivalRegressionMetrics = isAnyOfMetrics(IsSurvivalRegressionMetric);
+        bool hasAnyRegressionTypeMetrics = hasSurvivalRegressionMetrics || isAnyOfMetrics(
+            [](ELossFunction lossFunction) {
+                return IsRegressionMetric(lossFunction) || IsMultiRegressionMetric(lossFunction);
+            }
+        );
+
 
         if (needTargetDataForCtrs) {
             CB_ENSURE(target, "CTR features require Target data");
         }
 
-        if (isAnyOfMetrics(IsRegressionMetric)) {
+        if (hasAnyRegressionTypeMetrics) {
             CB_ENSURE(
                 metricsThatRequireTargetCanBeSkipped || target,
                 "Regression loss/metrics require target data"
             );
+        }
+
+        if (target && hasSurvivalRegressionMetrics) {
+            CB_ENSURE(target->size() == 2, "Survival regression objective/metrics require 2-dimensional target");
         }
 
         if ((mainLossFunction && IsUserDefined(mainLossFunction->GetLossFunction())) ||
