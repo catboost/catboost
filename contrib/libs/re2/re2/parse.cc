@@ -1177,7 +1177,17 @@ void FactorAlternationImpl::Round3(Regexp** sub, int nsub,
           for (CharClass::iterator it = cc->begin(); it != cc->end(); ++it)
             ccb.AddRange(it->lo, it->hi);
         } else if (re->op() == kRegexpLiteral) {
-          ccb.AddRangeFlags(re->rune(), re->rune(), re->parse_flags());
+          if (re->parse_flags() & Regexp::FoldCase) {
+            // AddFoldedRange() can terminate prematurely if the character class
+            // already contains the rune. For example, if it contains 'a' and we
+            // want to add folded 'a', it sees 'a' and stops without adding 'A'.
+            // To avoid that, we use an empty character class and then merge it.
+            CharClassBuilder tmp;
+            tmp.AddRangeFlags(re->rune(), re->rune(), re->parse_flags());
+            ccb.AddCharClass(&tmp);
+          } else {
+            ccb.AddRangeFlags(re->rune(), re->rune(), re->parse_flags());
+          }
         } else {
           LOG(DFATAL) << "RE2: unexpected op: " << re->op() << " "
                       << re->ToString();
@@ -2057,6 +2067,17 @@ bool Regexp::ParseState::ParsePerlFlags(absl::string_view* s) {
   if (!(flags_ & PerlX) || t.size() < 2 || t[0] != '(' || t[1] != '?') {
     status_->set_code(kRegexpInternalError);
     LOG(DFATAL) << "Bad call to ParseState::ParsePerlFlags";
+    return false;
+  }
+
+  // Check for look-around assertions. This is NOT because we support them! ;)
+  // As per https://github.com/google/re2/issues/468, we really want to report
+  // kRegexpBadPerlOp (not kRegexpBadNamedCapture) for look-behind assertions.
+  // Additionally, it would be nice to report not "(?<", but "(?<=" or "(?<!".
+  if ((t.size() > 3 && (t[2] == '=' || t[2] == '!')) ||
+      (t.size() > 4 && t[2] == '<' && (t[3] == '=' || t[3] == '!'))) {
+    status_->set_code(kRegexpBadPerlOp);
+    status_->set_error_arg(absl::string_view(t.data(), t[2] == '<' ? 4 : 3));
     return false;
   }
 
