@@ -427,7 +427,7 @@ void TRawTargetData::PrepareForInitialization(
 }
 
 
-ERawTargetType TRawTargetDataProvider::GetTargetType() const {
+ERawTargetType TRawTargetDataProvider::GetTargetType() const noexcept {
     return Data.TargetType;
 }
 

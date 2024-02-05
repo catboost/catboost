@@ -232,14 +232,14 @@ cdef extern from "Python.h":
 
 cdef extern from "catboost/libs/logging/logging.h":
     ctypedef void(*TCustomLoggingFunctionPtr)(const char *, size_t len, void *) except * with gil
-    cdef void SetCustomLoggingFunction(TCustomLoggingFunctionPtr, TCustomLoggingFunctionPtr, void*, void*)
-    cdef void RestoreOriginalLogger()
-    cdef void ResetTraceBackend(const TString&)
+    cdef void SetCustomLoggingFunction(TCustomLoggingFunctionPtr, TCustomLoggingFunctionPtr, void*, void*) except +ProcessException
+    cdef void RestoreOriginalLogger() except +ProcessException
+    cdef void ResetTraceBackend(const TString&) except +ProcessException
 
 
 cdef extern from "catboost/libs/cat_feature/cat_feature.h":
-    cdef ui32 CalcCatFeatureHash(TStringBuf feature) except +ProcessException
-    cdef float ConvertCatFeatureHashToFloat(ui32 hashVal) except +ProcessException
+    cdef ui32 CalcCatFeatureHash(TStringBuf feature)
+    cdef float ConvertCatFeatureHashToFloat(ui32 hashVal)
 
 
 cdef class Py_FloatSequencePtr:
@@ -547,7 +547,7 @@ cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "
 
     cdef TString ConvertTreeToOnnxProto(
         const TFullModel& model,
-        const TString& userParametersJson)
+        const TString& userParametersJson) nogil except +ProcessException
 
 cdef extern from "catboost/libs/model/utils.h":
     cdef TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model) nogil except +ProcessException
@@ -986,7 +986,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TConstArrayRef[bool_t] catFeaturesMask,
         IRawObjectsOrderDataVisitor* builderVisitor,
         ILocalExecutor* localExecutor) nogil except +ProcessException
-    cdef size_t GetNumPairs(const TDataProvider& dataProvider) except +ProcessException
+    cdef size_t GetNumPairs(const TDataProvider& dataProvider)
     cdef TConstArrayRef[TPair] GetUngroupedPairs(const TDataProvider& dataProvider) except +ProcessException
     cdef void TrainEvalSplit(
         const TDataProvider& srcDataProvider,
@@ -997,7 +997,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         int threadCount,
         ui64 cpuUsedRamLimit
     ) except +ProcessException
-    cdef TAtomicSharedPtr[TTbbLocalExecutor] GetCachedLocalExecutor(int threadsCount)
+    cdef TAtomicSharedPtr[TTbbLocalExecutor] GetCachedLocalExecutor(int threadsCount) except +ProcessException
     cdef size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) except +ProcessException
     cdef void GetNumFeatureValuesSample(
         const TFullModel& model,
@@ -1043,7 +1043,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TMetricsPlotCalcerPythonWrapper(TVector[TString]& metrics, TFullModel& model, int ntree_start, int ntree_end,
                                         int eval_period, int thread_count, TString& tmpDir,
                                         bool_t flag) except +ProcessException
-        TVector[const IMetric*] GetMetricRawPtrs() const
+        TVector[const IMetric*] GetMetricRawPtrs() except +ProcessException  # in fact it is const, but Cython is unable to parse 'const except'
         TVector[TVector[double]] ComputeScores() except +ProcessException
         void AddPool(const TDataProvider& srcData) except +ProcessException
 
@@ -2064,7 +2064,7 @@ cdef TFeaturesLayout* _init_features_layout(
     embedding_features,
     feature_names,
     feature_tags
-) except*:
+) except *:
     cdef TVector[ui32] cat_features_vector
     cdef TVector[ui32] text_features_vector
     cdef TVector[ui32] embedding_features_vector
@@ -2111,7 +2111,7 @@ cdef TFeaturesLayout* _init_features_layout(
         feature_tags_map,
         all_features_are_sparse)
 
-cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLayout, EFeatureType featureType) except *:
+cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLayout, EFeatureType featureType) except +:
     cdef TVector[bool_t] mask
     mask.resize(featuresLayout.GetExternalFeatureCount(), False)
 
@@ -2122,7 +2122,7 @@ cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLa
 
     return mask
 
-cdef TVector[ui32] _get_main_data_feature_idx_to_dst_feature_idx(const TFeaturesLayout* featuresLayout, bool_t hasSeparateEmbeddingFeaturesData):
+cdef TVector[ui32] _get_main_data_feature_idx_to_dst_feature_idx(const TFeaturesLayout* featuresLayout, bool_t hasSeparateEmbeddingFeaturesData) except +:
     cdef TVector[ui32] result
 
     if hasSeparateEmbeddingFeaturesData:
@@ -2428,7 +2428,7 @@ cdef TVector[np.float32_t] get_embedding_array_as_vector(
     ui32 flat_feature_idx,
     size_t embedding_dimension,
     src_array
-):
+) except *:
     cdef TVector[np.float32_t] object_embedding_data
     if len(src_array) != embedding_dimension:
         raise CatBoostError(
@@ -3644,7 +3644,7 @@ def _set_label_from_num_nparray_objects_order(
         for object_idx in xrange(object_count):
             builder_visitor[0].AddTarget(target_idx, object_idx, <float>label[object_idx][target_idx])
 
-cdef ERawTargetType _py_target_type_to_raw_target_data(py_label_type) except *:
+cdef ERawTargetType _py_target_type_to_raw_target_data(py_label_type) noexcept:
     if py_label_type in (bool, np.bool_):
         return ERawTargetType_Boolean
     elif np.issubdtype(py_label_type, np.floating):
@@ -4556,7 +4556,7 @@ cpdef _have_equal_features(_PoolBase pool1, _PoolBase pool2, bool_t ignore_spars
     )
 
 
-cdef pair[int, int] _check_and_get_interaction_indices(_PoolBase pool, interaction_indices):
+cdef pair[int, int] _check_and_get_interaction_indices(_PoolBase pool, interaction_indices) except *:
     cdef pair[int, int] pair_of_features
     if not isinstance(interaction_indices, list):
         raise CatBoostError(
@@ -6120,7 +6120,7 @@ cpdef convert_features_to_indices(indices_or_names, cd_path, pool_metainfo_path)
     return loads(to_native_str(WriteTJsonValue(indices_or_names_as_json)))
 
 
-cdef TArrayRef[float] get_array_ref(np.ndarray[np.float32_t, ndim=1] src):
+cdef TArrayRef[float] get_array_ref(np.ndarray[np.float32_t, ndim=1] src) noexcept:
     return TArrayRef[float](<float*>src.data, <size_t>src.shape[0])
 
 

@@ -268,7 +268,7 @@ void SetDataFromScipyCsrSparse(
     );
 }
 
-size_t GetNumPairs(const NCB::TDataProvider& dataProvider);
+size_t GetNumPairs(const NCB::TDataProvider& dataProvider) noexcept;
 TConstArrayRef<TPair> GetUngroupedPairs(const NCB::TDataProvider& dataProvider);
 
 

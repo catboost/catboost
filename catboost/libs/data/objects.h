@@ -249,7 +249,7 @@ namespace NCB {
             return EqualTo(rhs);
         }
 
-        ui32 GetObjectCount() const {
+        ui32 GetObjectCount() const noexcept {
             return ObjectsGrouping->GetObjectCount();
         }
 
@@ -297,7 +297,7 @@ namespace NCB {
 
         // The following Get* functions are common for all implementations, so they're in this base class
 
-        TFeaturesLayoutPtr GetFeaturesLayout() const {
+        TFeaturesLayoutPtr GetFeaturesLayout() const noexcept {
             return CommonData.FeaturesLayout;
         }
 
@@ -321,11 +321,11 @@ namespace NCB {
             return CommonData.SubgroupIds.GetMaybeStringData();
         }
 
-        TMaybeData<TConstArrayRef<TString>> GetSampleIds() const { // [objectIdx]
+        TMaybeData<TConstArrayRef<TString>> GetSampleIds() const noexcept { // [objectIdx]
             return CommonData.SampleId;
         }
 
-        TMaybeData<TConstArrayRef<ui64>> GetTimestamp() const { // [objectIdx]
+        TMaybeData<TConstArrayRef<ui64>> GetTimestamp() const noexcept { // [objectIdx]
             return CommonData.Timestamp;
         }
 

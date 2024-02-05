@@ -211,7 +211,7 @@ NJson::TJsonValue GetTrainingOptions(
     return catboostOptionsJson;
 }
 
-size_t GetNumPairs(const NCB::TDataProvider& dataProvider) {
+size_t GetNumPairs(const NCB::TDataProvider& dataProvider) noexcept {
     size_t result = 0;
     const NCB::TMaybeData<NCB::TRawPairsData>& maybePairsData = dataProvider.RawTargetData.GetPairs();
     if (maybePairsData) {

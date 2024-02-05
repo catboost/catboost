@@ -9,6 +9,6 @@ cdef extern from "catboost/private/libs/data_util/path_with_scheme.h" namespace 
     cdef cppclass TPathWithScheme:
         TString Scheme
         TString Path
-        TPathWithScheme() except +ProcessException
+        TPathWithScheme()
         TPathWithScheme(const TStringBuf& pathWithScheme, const TStringBuf& defaultScheme) except +ProcessException
-        bool_t Inited() except +ProcessException
+        bool_t Inited()

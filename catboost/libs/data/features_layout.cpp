@@ -253,7 +253,7 @@ const TFeatureMetaInfo& TFeaturesLayout::GetExternalFeatureMetaInfo(ui32 externa
     return ExternalIdxToMetaInfo[externalFeatureIdx];
 }
 
-TConstArrayRef<TFeatureMetaInfo> TFeaturesLayout::GetExternalFeaturesMetaInfo() const {
+TConstArrayRef<TFeatureMetaInfo> TFeaturesLayout::GetExternalFeaturesMetaInfo() const noexcept {
     return ExternalIdxToMetaInfo;
 }
 
@@ -271,11 +271,11 @@ EFeatureType TFeaturesLayout::GetExternalFeatureType(ui32 externalFeatureIdx) co
     return ExternalIdxToMetaInfo[externalFeatureIdx].Type;
 }
 
-bool TFeaturesLayout::IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const {
+bool TFeaturesLayout::IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const noexcept {
     return (size_t)externalFeatureIdx < ExternalIdxToMetaInfo.size();
 }
 
-bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
+bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const noexcept {
     switch (type) {
         case EFeatureType::Float:
             return (size_t)internalFeatureIdx < FloatFeatureInternalIdxToExternalIdx.size();
@@ -288,39 +288,39 @@ bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeat
     }
 }
 
-bool TFeaturesLayout::IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const {
+bool TFeaturesLayout::IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const noexcept {
     if ((size_t)externalFeatureIdx >= ExternalIdxToMetaInfo.size()) {
         return false;
     }
     return ExternalIdxToMetaInfo[externalFeatureIdx].Type == type;
 }
 
-ui32 TFeaturesLayout::GetFloatFeatureCount() const {
+ui32 TFeaturesLayout::GetFloatFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)FloatFeatureInternalIdxToExternalIdx.size();
 }
 
-ui32 TFeaturesLayout::GetCatFeatureCount() const {
+ui32 TFeaturesLayout::GetCatFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)CatFeatureInternalIdxToExternalIdx.size();
 }
 
-ui32 TFeaturesLayout::GetTextFeatureCount() const {
+ui32 TFeaturesLayout::GetTextFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)TextFeatureInternalIdxToExternalIdx.size();
 }
 
-ui32 TFeaturesLayout::GetEmbeddingFeatureCount() const {
+ui32 TFeaturesLayout::GetEmbeddingFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)EmbeddingFeatureInternalIdxToExternalIdx.size();
 }
 
-ui32 TFeaturesLayout::GetExternalFeatureCount() const {
+ui32 TFeaturesLayout::GetExternalFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)ExternalIdxToMetaInfo.size();
 }
 
-ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const {
+ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const noexcept {
     switch (type) {
         case EFeatureType::Float:
             return GetFloatFeatureCount();
@@ -333,7 +333,7 @@ ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const {
     }
 }
 
-bool TFeaturesLayout::HasSparseFeatures(bool checkOnlyAvailable) const {
+bool TFeaturesLayout::HasSparseFeatures(bool checkOnlyAvailable) const noexcept {
     return FindIf(
         ExternalIdxToMetaInfo,
         [=] (const TFeatureMetaInfo& metaInfo) {
@@ -342,7 +342,7 @@ bool TFeaturesLayout::HasSparseFeatures(bool checkOnlyAvailable) const {
     );
 }
 
-void TFeaturesLayout::IgnoreExternalFeature(ui32 externalFeatureIdx) {
+void TFeaturesLayout::IgnoreExternalFeature(ui32 externalFeatureIdx) noexcept {
     if (externalFeatureIdx >= ExternalIdxToMetaInfo.size()) {
         return;
     }
@@ -352,30 +352,30 @@ void TFeaturesLayout::IgnoreExternalFeature(ui32 externalFeatureIdx) {
     metaInfo.IsAvailable = false;
 }
 
-void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) {
+void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) noexcept {
     for (auto ignoredFeature : ignoredFeatures) {
         IgnoreExternalFeature(ignoredFeature);
     }
 }
 
-TConstArrayRef<ui32> TFeaturesLayout::GetFloatFeatureInternalIdxToExternalIdx() const {
+TConstArrayRef<ui32> TFeaturesLayout::GetFloatFeatureInternalIdxToExternalIdx() const noexcept {
     return FloatFeatureInternalIdxToExternalIdx;
 }
 
-TConstArrayRef<ui32> TFeaturesLayout::GetCatFeatureInternalIdxToExternalIdx() const {
+TConstArrayRef<ui32> TFeaturesLayout::GetCatFeatureInternalIdxToExternalIdx() const noexcept {
     return CatFeatureInternalIdxToExternalIdx;
 }
 
-TConstArrayRef<ui32> TFeaturesLayout::GetTextFeatureInternalIdxToExternalIdx() const {
+TConstArrayRef<ui32> TFeaturesLayout::GetTextFeatureInternalIdxToExternalIdx() const noexcept {
     return TextFeatureInternalIdxToExternalIdx;
 }
 
-TConstArrayRef<ui32> TFeaturesLayout::GetEmbeddingFeatureInternalIdxToExternalIdx() const {
+TConstArrayRef<ui32> TFeaturesLayout::GetEmbeddingFeatureInternalIdxToExternalIdx() const noexcept {
     return EmbeddingFeatureInternalIdxToExternalIdx;
 }
 
 
-const THashMap<TString, TVector<ui32>>& TFeaturesLayout::GetTagToExternalIndices() const {
+const THashMap<TString, TVector<ui32>>& TFeaturesLayout::GetTagToExternalIndices() const noexcept {
     return TagToExternalIndices;
 }
 
@@ -422,7 +422,7 @@ void TFeaturesLayout::SetExternalFeatureIds(TConstArrayRef<TString> featureIds) 
     }
 }
 
-bool TFeaturesLayout::HasAvailableAndNotIgnoredFeatures() const {
+bool TFeaturesLayout::HasAvailableAndNotIgnoredFeatures() const noexcept {
     for (const auto& metaInfo : ExternalIdxToMetaInfo) {
         if (metaInfo.IsAvailable && !metaInfo.IsIgnored) {
             return true;

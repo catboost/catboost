@@ -152,7 +152,7 @@ namespace NCB {
         const TFeatureMetaInfo& GetExternalFeatureMetaInfo(ui32 externalFeatureIdx) const;
 
         // prefer this method to GetExternalFeatureIds
-        TConstArrayRef<TFeatureMetaInfo> GetExternalFeaturesMetaInfo() const;
+        TConstArrayRef<TFeatureMetaInfo> GetExternalFeaturesMetaInfo() const noexcept;
 
         TString GetExternalFeatureDescription(ui32 internalFeatureIdx, EFeatureType type) const;
 
@@ -208,30 +208,30 @@ namespace NCB {
 
         EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) const;
 
-        bool IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const;
+        bool IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const noexcept;
 
-        bool IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const;
+        bool IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const noexcept;
 
-        bool IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const;
+        bool IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const noexcept;
 
-        ui32 GetFloatFeatureCount() const;
+        ui32 GetFloatFeatureCount() const noexcept;
 
-        ui32 GetCatFeatureCount() const;
+        ui32 GetCatFeatureCount() const noexcept;
 
-        ui32 GetTextFeatureCount() const;
+        ui32 GetTextFeatureCount() const noexcept;
 
-        ui32 GetEmbeddingFeatureCount() const;
+        ui32 GetEmbeddingFeatureCount() const noexcept;
 
-        ui32 GetExternalFeatureCount() const;
+        ui32 GetExternalFeatureCount() const noexcept;
 
-        ui32 GetFeatureCount(EFeatureType type) const;
+        ui32 GetFeatureCount(EFeatureType type) const noexcept;
 
-        bool HasSparseFeatures(bool checkOnlyAvailable = true) const;
+        bool HasSparseFeatures(bool checkOnlyAvailable = true) const noexcept;
 
-        void IgnoreExternalFeature(ui32 externalFeatureIdx);
+        void IgnoreExternalFeature(ui32 externalFeatureIdx) noexcept;
 
         // indices in list can be outside of range of features in layout - such features are ignored
-        void IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures);
+        void IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) noexcept;
 
         // Function must get one param -  TFeatureIdx<FeatureType>
         template <EFeatureType FeatureType, class Function>
@@ -245,17 +245,17 @@ namespace NCB {
             }
         }
 
-        TConstArrayRef<ui32> GetFloatFeatureInternalIdxToExternalIdx() const;
+        TConstArrayRef<ui32> GetFloatFeatureInternalIdxToExternalIdx() const noexcept;
 
-        TConstArrayRef<ui32> GetCatFeatureInternalIdxToExternalIdx() const;
+        TConstArrayRef<ui32> GetCatFeatureInternalIdxToExternalIdx() const noexcept;
 
-        TConstArrayRef<ui32> GetTextFeatureInternalIdxToExternalIdx() const;
+        TConstArrayRef<ui32> GetTextFeatureInternalIdxToExternalIdx() const noexcept;
 
-        TConstArrayRef<ui32> GetEmbeddingFeatureInternalIdxToExternalIdx() const;
+        TConstArrayRef<ui32> GetEmbeddingFeatureInternalIdxToExternalIdx() const noexcept;
 
-        const THashMap<TString, TVector<ui32>>& GetTagToExternalIndices() const;
+        const THashMap<TString, TVector<ui32>>& GetTagToExternalIndices() const noexcept;
 
-        bool HasAvailableAndNotIgnoredFeatures() const;
+        bool HasAvailableAndNotIgnoredFeatures() const noexcept;
 
         void AddFeature(TFeatureMetaInfo&& featureMetaInfo);
 

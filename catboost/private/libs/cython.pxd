@@ -103,5 +103,5 @@ cdef extern from "catboost/private/libs/quantization_schema/schema.h" namespace 
 cdef extern from "catboost/private/libs/data_types/groupid.h":
     ctypedef ui64 TGroupId
     ctypedef ui32 TSubgroupId
-    cdef TGroupId CalcGroupIdFor(const TStringBuf& token) except +ProcessException
-    cdef TSubgroupId CalcSubgroupIdFor(const TStringBuf& token) except +ProcessException
+    cdef TGroupId CalcGroupIdFor(const TStringBuf& token)
+    cdef TSubgroupId CalcSubgroupIdFor(const TStringBuf& token)

@@ -121,7 +121,7 @@ namespace NCB {
 
         operator NJson::TJsonValue() const;
 
-        ui32 GetFeatureCount() const {
+        ui32 GetFeatureCount() const noexcept {
             return FeaturesLayout ? FeaturesLayout->GetExternalFeatureCount() : 0;
         }
     };
