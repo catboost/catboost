@@ -5852,7 +5852,12 @@ cdef class _MetricCalcerBase:
         raise CatBoostError('Can\'t deepcopy _MetricCalcerBase object')
 
 
-cdef to_tvector(np.ndarray[double, ndim=1, mode="c"] x):
+cdef TVector[float] to_tvector_float(np.ndarray[float, ndim=1, mode="c"] x) except +:
+    cdef TVector[float] result
+    result.assign(<float *>x.data, <float *>x.data + x.shape[0])
+    return result
+
+cdef TVector[double] to_tvector_double(np.ndarray[double, ndim=1, mode="c"] x) except +:
     cdef TVector[double] result
     result.assign(<double *>x.data, <double *>x.data + x.shape[0])
     return result
@@ -5868,17 +5873,17 @@ cpdef _eval_metric_util(
 
     cdef TVector[TVector[float]] label
     for labelIdx in xrange(len(label_param)):
-        label.push_back(to_tvector(np.array(label_param[labelIdx], dtype='double').ravel()))
+        label.push_back(to_tvector_float(np.array(label_param[labelIdx], dtype=np.float32).ravel()))
 
     cdef TVector[TVector[double]] approx
     for i in xrange(len(approx_param)):
-        approx.push_back(to_tvector(np.array(approx_param[i], dtype='double').ravel()))
+        approx.push_back(to_tvector_double(np.array(approx_param[i], dtype=np.float64).ravel()))
 
     cdef TVector[float] weight
     if weight_param is not None:
         if (len(weight_param) != doc_count):
             raise CatBoostError('Label and weight should have same sizes.')
-        weight = to_tvector(np.array(weight_param, dtype='double').ravel())
+        weight = to_tvector_float(np.array(weight_param, dtype=np.float32).ravel())
 
     cdef TString group_id_strbuf
 
@@ -5895,7 +5900,7 @@ cpdef _eval_metric_util(
     if group_weight_param is not None:
         if (len(group_weight_param) != doc_count):
             raise CatBoostError('Label and group weight should have same sizes.')
-        group_weight = to_tvector(np.array(group_weight_param, dtype='double').ravel())
+        group_weight = to_tvector_float(np.array(group_weight_param, dtype=np.float32).ravel())
 
     cdef TString subgroup_id_strbuf
 
