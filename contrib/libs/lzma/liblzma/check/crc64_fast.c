@@ -184,6 +184,20 @@ calc_hi(uint64_t poly, uint64_t a)
 	MASK_H(in, mask, high)
 
 
+// MSVC (VS2015 - VS2022) produces bad 32-bit x86 code from the CLMUL CRC
+// code when optimizations are enabled (release build). According to the bug
+// report, the ebx register is corrupted and the calculated result is wrong.
+// Trying to workaround the problem with "__asm mov ebx, ebx" didn't help.
+// The following pragma works and performance is still good. x86-64 builds
+// aren't affected by this problem.
+//
+// NOTE: Another pragma after the function restores the optimizations.
+// If the #if condition here is updated, the other one must be updated too.
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(__clang__) \
+		&& defined(_M_IX86)
+#	pragma optimize("g", off)
+#endif
+
 // EDG-based compilers (Intel's classic compiler and compiler for E2K) can
 // define __GNUC__ but the attribute must not be used with them.
 // The new Clang-based ICX needs the attribute.
@@ -191,6 +205,14 @@ calc_hi(uint64_t poly, uint64_t a)
 // NOTE: Build systems check for this too, keep them in sync with this.
 #if (defined(__GNUC__) || defined(__clang__)) && !defined(__EDG__)
 __attribute__((__target__("ssse3,sse4.1,pclmul")))
+#endif
+// The intrinsics use 16-byte-aligned reads from buf, thus they may read
+// up to 15 bytes before or after the buffer (depending on the alignment
+// of the buf argument). The values of the extra bytes are ignored.
+// This unavoidably trips -fsanitize=address so address sanitizier has
+// to be disabled for this function.
+#if lzma_has_attribute(__no_sanitize_address__)
+__attribute__((__no_sanitize_address__))
 #endif
 static uint64_t
 crc64_clmul(const uint8_t *buf, size_t size, uint64_t crc)
@@ -242,7 +264,7 @@ crc64_clmul(const uint8_t *buf, size_t size, uint64_t crc)
 	// C = buf + size == aligned_buf + size2
 	// D = buf + size + skip_end == aligned_buf + size2 + skip_end
 	const size_t skip_start = (size_t)((uintptr_t)buf & 15);
-	const size_t skip_end = (size_t)(-(uintptr_t)(buf + size) & 15);
+	const size_t skip_end = (size_t)((0U - (uintptr_t)(buf + size)) & 15);
 	const __m128i *aligned_buf = (const __m128i *)(
 			(uintptr_t)buf & ~(uintptr_t)15);
 
@@ -371,6 +393,10 @@ crc64_clmul(const uint8_t *buf, size_t size, uint64_t crc)
 #	pragma GCC diagnostic pop
 #endif
 }
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(__clang__) \
+		&& defined(_M_IX86)
+#	pragma optimize("", on)
+#endif
 #endif
 
 

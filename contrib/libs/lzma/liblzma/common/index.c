@@ -10,6 +10,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "common.h"
 #include "index.h"
 #include "stream_flags_common.h"
 
@@ -658,6 +659,12 @@ lzma_index_append(lzma_index *i, const lzma_allocator *allocator,
 
 	// Check that uncompressed size will not overflow.
 	if (uncompressed_base + uncompressed_size > LZMA_VLI_MAX)
+		return LZMA_DATA_ERROR;
+
+	// Check that the new unpadded sum will not overflow. This is
+	// checked again in index_file_size(), but the unpadded sum is
+	// passed to vli_ceil4() which expects a valid lzma_vli value.
+	if (compressed_base + unpadded_size > UNPADDED_SIZE_MAX)
 		return LZMA_DATA_ERROR;
 
 	// Check that the file size will stay within limits.

@@ -24,7 +24,15 @@
 #	include <config.h>
 #endif
 
-// Get standard-compliant stdio functions under MinGW and MinGW-w64.
+// This #define ensures that C99 and POSIX compliant stdio functions are
+// available with MinGW-w64 (both 32-bit and 64-bit). Modern MinGW-w64 adds
+// this automatically, for example, when the compiler is in C99 (or later)
+// mode when building against msvcrt.dll. It still doesn't hurt to be explicit
+// that we always want this and #define this unconditionally.
+//
+// With Universal CRT (UCRT) this is less important because UCRT contains
+// C99-compatible stdio functions. It's still nice to #define this as UCRT
+// doesn't support the POSIX thousand separator flag in printf (like "%'u").
 #ifdef __MINGW32__
 #	define __USE_MINGW_ANSI_STDIO 1
 #endif
@@ -127,7 +135,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-// Pre-C99 systems lack stdbool.h. All the code in LZMA Utils must be written
+// Pre-C99 systems lack stdbool.h. All the code in XZ Utils must be written
 // so that it works with fake bool type, for example:
 //
 //    bool foo = (flags & 0x100) != 0;
@@ -149,17 +157,7 @@ typedef unsigned char _Bool;
 #	define __bool_true_false_are_defined 1
 #endif
 
-// string.h should be enough but let's include strings.h and memory.h too if
-// they exists, since that shouldn't do any harm, but may improve portability.
 #include <string.h>
-
-#ifdef HAVE_STRINGS_H
-#	include <strings.h>
-#endif
-
-#ifdef HAVE_MEMORY_H
-#	include <memory.h>
-#endif
 
 // As of MSVC 2013, inline and restrict are supported with
 // non-standard keywords.

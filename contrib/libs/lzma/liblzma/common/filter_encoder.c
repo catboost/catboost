@@ -37,9 +37,12 @@ typedef struct {
 	uint64_t (*block_size)(const void *options);
 
 	/// Tells the size of the Filter Properties field. If options are
-	/// invalid, UINT32_MAX is returned. If this is NULL, props_size_fixed
-	/// is used.
+	/// invalid, LZMA_OPTIONS_ERROR is returned and size is set to
+	/// UINT32_MAX.
 	lzma_ret (*props_size_get)(uint32_t *size, const void *options);
+
+	/// Some filters will always have the same size Filter Properties
+	/// field. If props_size_get is NULL, this value is used.
 	uint32_t props_size_fixed;
 
 	/// Encodes Filter Properties.
@@ -216,17 +219,17 @@ lzma_filters_update(lzma_stream *strm, const lzma_filter *filters)
 
 extern lzma_ret
 lzma_raw_encoder_init(lzma_next_coder *next, const lzma_allocator *allocator,
-		const lzma_filter *options)
+		const lzma_filter *filters)
 {
 	return lzma_raw_coder_init(next, allocator,
-			options, (lzma_filter_find)(&encoder_find), true);
+			filters, (lzma_filter_find)(&encoder_find), true);
 }
 
 
 extern LZMA_API(lzma_ret)
-lzma_raw_encoder(lzma_stream *strm, const lzma_filter *options)
+lzma_raw_encoder(lzma_stream *strm, const lzma_filter *filters)
 {
-	lzma_next_strm_init(lzma_raw_coder_init, strm, options,
+	lzma_next_strm_init(lzma_raw_coder_init, strm, filters,
 			(lzma_filter_find)(&encoder_find), true);
 
 	strm->internal->supported_actions[LZMA_RUN] = true;
