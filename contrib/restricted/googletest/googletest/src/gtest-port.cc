@@ -72,7 +72,7 @@
 #endif
 
 #ifdef GTEST_OS_QNX
-#include <devctl.h>
+#error #include <devctl.h>
 #include <fcntl.h>
 #include <sys/procfs.h>
 #endif  // GTEST_OS_QNX
