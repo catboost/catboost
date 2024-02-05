@@ -1487,7 +1487,7 @@ class ConjectureData:
             assert min_value is not None
             assert max_value is not None
             width = max_value - min_value + 1
-            assert width <= 1024  # arbitrary practical limit
+            assert width <= 255  # arbitrary practical limit
             assert len(weights) == width
 
         if forced is not None and (min_value is None or max_value is None):
@@ -1558,6 +1558,16 @@ class ConjectureData:
         return self.provider.draw_bytes(size, forced=forced)
 
     def draw_boolean(self, p: float = 0.5, *, forced: Optional[bool] = None) -> bool:
+        # Internally, we treat probabilities lower than 1 / 2**64 as
+        # unconditionally false.
+        #
+        # Note that even if we lift this 64 bit restriction in the future, p
+        # cannot be 0 (1) when forced is True (False).
+        if forced is True:
+            assert p > 2 ** (-64)
+        if forced is False:
+            assert p < (1 - 2 ** (-64))
+
         return self.provider.draw_boolean(p, forced=forced)
 
     def as_result(self) -> Union[ConjectureResult, _Overrun]:
