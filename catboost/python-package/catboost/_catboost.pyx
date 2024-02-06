@@ -2838,7 +2838,7 @@ cdef object _set_features_order_data_pd_data_frame(
     return new_data_holders
 
 
-@cython.wraparound(False)
+@cython.boundscheck(False)
 @cython.initializedcheck(False)
 @cython.wraparound(False)
 cdef _set_data_np(
