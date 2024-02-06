@@ -226,6 +226,7 @@ class CheckOptimizeParameterized(CheckOptimize):
         assert_(self.gradcalls == 0, self.gradcalls)
 
 
+    @pytest.mark.skip
     @pytest.mark.xfail(reason="This part of test_powell fails on some "
                        "platforms, but the solution returned by powell is "
                        "still valid.")

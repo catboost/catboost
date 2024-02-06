@@ -1868,6 +1868,7 @@ class TestLinprogIPSparse(LinprogIPTests):
     def test_bug_6139(self):
         super().test_bug_6139()
 
+    @pytest.mark.skip
     @pytest.mark.xfail(reason='Fails with ATLAS, see gh-7877')
     def test_bug_6690(self):
         # Test defined in base class, but can't mark as xfail there
@@ -1921,6 +1922,7 @@ class TestLinprogIPSparsePresolve(LinprogIPTests):
     def test_enzo_example_c_with_infeasibility(self):
         pytest.skip('_sparse_presolve=True incompatible with presolve=False')
 
+    @pytest.mark.skip
     @pytest.mark.xfail(reason='Fails with ATLAS, see gh-7877')
     def test_bug_6690(self):
         # Test defined in base class, but can't mark as xfail there

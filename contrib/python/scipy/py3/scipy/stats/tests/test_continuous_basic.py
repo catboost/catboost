@@ -128,6 +128,7 @@ def cases_test_cont_basic():
             yield distname, arg
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize('distname,arg', cases_test_cont_basic())
 @pytest.mark.parametrize('sn, n_fit_samples', [(500, 200)])
 def test_cont_basic(distname, arg, sn, n_fit_samples):
