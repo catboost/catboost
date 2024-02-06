@@ -38,7 +38,7 @@
 #	include <proto/exec.h>
 
 #elif defined(__QNX__)
-#	include <sys/syspage.h>
+#	error #include <sys/syspage.h>
 #	include <string.h>
 
 #elif defined(TUKLIB_PHYSMEM_AIX)
