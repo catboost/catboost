@@ -2267,13 +2267,14 @@ cdef object _set_features_order_embedding_features_data(
     cdef ui32 flat_feature_idx = 0
     cdef ui32 embedding_feature_idx = 0
     cdef ITypedSequencePtr[TEmbeddingData] embedding_factor_data
+    cdef TConstArrayRef[ui32] flat_feature_indices = features_layout[0].GetEmbeddingFeatureInternalIdxToExternalIdx()
 
     cdef bool_t src_is_dict = isinstance(embedding_features_data, dict)
     if src_is_dict and (feature_names is None):
         feature_names = [i for i in xrange(features_layout[0].GetExternalFeatureCount())]
 
     new_data_holders = []
-    for flat_feature_idx in features_layout[0].GetEmbeddingFeatureInternalIdxToExternalIdx():
+    for flat_feature_idx in flat_feature_indices:
         new_data_holders += create_embedding_factor_data(
             flat_feature_idx,
             embedding_features_data[feature_names[flat_feature_idx] if src_is_dict else embedding_feature_idx],
@@ -2296,6 +2297,7 @@ cdef object _set_objects_order_embedding_features_data(
     cdef ui32 flat_feature_idx = 0
     cdef ui32 embedding_feature_idx = 0
     cdef TEmbeddingData object_embedding_data
+    cdef TConstArrayRef[ui32] flat_feature_indices
 
     cdef bool_t src_is_dict = isinstance(embedding_features_data, dict)
 
@@ -2307,7 +2309,8 @@ cdef object _set_objects_order_embedding_features_data(
     if len(embedding_features_data) > 0:
         object_count = len(next(iter(embedding_features_data.values())) if src_is_dict else embedding_features_data[0])
         if object_count > 0:
-            for flat_feature_idx in features_layout[0].GetEmbeddingFeatureInternalIdxToExternalIdx():
+            flat_feature_indices = features_layout[0].GetEmbeddingFeatureInternalIdxToExternalIdx()
+            for flat_feature_idx in flat_feature_indices:
                 embedding_feature_data = embedding_features_data[feature_names[flat_feature_idx] if src_is_dict else embedding_feature_idx]
                 embedding_dimension = len(embedding_feature_data[0])
                 for object_idx in xrange(object_count):
@@ -4384,7 +4387,8 @@ cdef class _PoolBase:
         cat_feature_indices : list
         """
         cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
-        return [int(i) for i in featuresLayout[0].GetCatFeatureInternalIdxToExternalIdx()]
+        cdef TConstArrayRef[ui32] cat_feature_indices = featuresLayout[0].GetCatFeatureInternalIdxToExternalIdx()
+        return [int(i) for i in cat_feature_indices]
 
     cpdef get_text_feature_indices(self):
         """
@@ -4395,7 +4399,8 @@ cdef class _PoolBase:
         text_feature_indices : list
         """
         cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
-        return [int(i) for i in featuresLayout[0].GetTextFeatureInternalIdxToExternalIdx()]
+        cdef TConstArrayRef[ui32] text_feature_indices = featuresLayout[0].GetTextFeatureInternalIdxToExternalIdx()
+        return [int(i) for i in text_feature_indices]
 
     cpdef get_embedding_feature_indices(self):
         """
@@ -4406,7 +4411,8 @@ cdef class _PoolBase:
         embedding_feature_indices : list
         """
         cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
-        return [int(i) for i in featuresLayout[0].GetEmbeddingFeatureInternalIdxToExternalIdx()]
+        cdef TConstArrayRef[ui32] embedding_feature_indices = featuresLayout[0].GetEmbeddingFeatureInternalIdxToExternalIdx()
+        return [int(i) for i in embedding_feature_indices]
 
     cpdef get_weight(self):
         """
