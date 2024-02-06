@@ -108,6 +108,6 @@ if (
 
     # Remove files more than a week old, to cap the size on disk
     max_age = (date.today() - timedelta(days=8)).isoformat()
-    for f in storage_directory("observed").glob("*.jsonl"):
+    for f in storage_directory("observed", intent_to_write=False).glob("*.jsonl"):
         if f.stem < max_age:  # pragma: no branch
             f.unlink(missing_ok=True)
