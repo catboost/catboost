@@ -230,6 +230,13 @@ class MultiTargetCustomObjective:
 cdef extern from "Python.h":
     char* PyUnicode_AsUTF8AndSize(object s, Py_ssize_t* l)
 
+
+cdef extern from "<future>" namespace "std":
+    cdef cppclass future[T]:
+        bool_t valid()
+        void get() except +ProcessException
+
+
 cdef extern from "catboost/libs/logging/logging.h":
     ctypedef void(*TCustomLoggingFunctionPtr)(const char *, size_t len, void *) except * with gil
     cdef void SetCustomLoggingFunction(TCustomLoggingFunctionPtr, TCustomLoggingFunctionPtr, void*, void*) except +ProcessException
@@ -977,6 +984,17 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
     cdef void ThrowCppExceptionWithMessage(const TString&) nogil
+    cdef void AsyncSetDataFromCythonMemoryViewCOrder[TFloatOrInteger](
+        ui32 objCount,
+        TFloatOrInteger* data,
+        size_t objStride,    # dim 0
+        size_t elementStride,   # dim 1
+        bool_t hasSeparateEmbeddingFeaturesData,
+        TConstArrayRef[ui32] mainDataFeatureIdxToDstFeatureIdx,
+        TConstArrayRef[bool_t] isCatFeature,  # can be empty, it means no categorical data
+        IRawObjectsOrderDataVisitor* builderVisitor,
+        ILocalExecutor* localExecutor,
+        future[void]* result) nogil except +ProcessException
     cdef void SetDataFromScipyCsrSparse[TFloatOrUi64](
         TConstArrayRef[ui32] rowMarkup,
         TConstArrayRef[TFloatOrUi64] values,
@@ -2845,8 +2863,7 @@ cdef _set_data_np(
     const float [:,:] num_feature_values,
     object [:,:] cat_feature_values, # cannot be const due to https://github.com/cython/cython/issues/2485
     bool_t has_separate_embedding_features_data,
-    const TFeaturesLayout* features_layout,
-    IRawObjectsOrderDataVisitor* builder_visitor
+    Py_ObjectsOrderBuilderVisitor py_builder_visitor
 ):
     if (num_feature_values is None) and (cat_feature_values is None):
         raise CatBoostError('both num_feature_values and cat_feature_values are empty')
@@ -2854,32 +2871,61 @@ cdef _set_data_np(
     cdef ui32 doc_count = <ui32>(
         num_feature_values.shape[0] if num_feature_values is not None else cat_feature_values.shape[0]
     )
+    if doc_count == 0:
+        return
+
+    cdef IRawObjectsOrderDataVisitor* builder_visitor
+    py_builder_visitor.get_raw_objects_order_data_visitor(&builder_visitor)
+
+    cdef const TFeaturesLayout* features_layout
+    py_builder_visitor.get_features_layout(&features_layout)
 
     cdef TVector[ui32] main_data_feature_idx_to_dst_feature_idx = _get_main_data_feature_idx_to_dst_feature_idx(features_layout, has_separate_embedding_features_data)
+    cdef TConstArrayRef[ui32] main_data_feature_idx_to_dst_feature_idx_ref = <TConstArrayRef[ui32]>main_data_feature_idx_to_dst_feature_idx
+
     cdef ui32 num_feature_count = <ui32>(num_feature_values.shape[1] if num_feature_values is not None else 0)
     cdef ui32 cat_feature_count = <ui32>(cat_feature_values.shape[1] if cat_feature_values is not None else 0)
+
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
+    cdef TConstArrayRef[bool_t] is_cat_feature_ref = <TConstArrayRef[bool_t]>is_cat_feature_mask
+    cdef TConstArrayRef[bool_t] empty_mask
 
     cdef ui32 doc_idx
     cdef ui32 num_feature_idx
     cdef ui32 cat_feature_idx
 
+    cdef future[void] num_features_future
+
+    if num_feature_count > 0:
+        AsyncSetDataFromCythonMemoryViewCOrder[np.float32_t](
+            doc_count,
+            &num_feature_values[0, 0],
+            num_feature_values.strides[0] / sizeof(np.float32_t),
+            num_feature_values.strides[1] / sizeof(np.float32_t),
+            has_separate_embedding_features_data,
+            TConstArrayRef[ui32](&main_data_feature_idx_to_dst_feature_idx_ref[0], num_feature_count),
+            empty_mask,
+            builder_visitor,
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get(),
+            &num_features_future
+        )
+
     cdef ui32 src_feature_idx
-    for doc_idx in xrange(doc_count):
-        src_feature_idx = <ui32>0
-        for num_feature_idx in xrange(num_feature_count):
-            builder_visitor[0].AddFloatFeature(
-                doc_idx,
-                main_data_feature_idx_to_dst_feature_idx[src_feature_idx],
-                num_feature_values[doc_idx, num_feature_idx]
-            )
-            src_feature_idx += 1
-        for cat_feature_idx in xrange(cat_feature_count):
-            builder_visitor[0].AddCatFeature(
-                doc_idx,
-                main_data_feature_idx_to_dst_feature_idx[src_feature_idx],
-                <TStringBuf>to_arcadia_string(cat_feature_values[doc_idx, cat_feature_idx])
-            )
-            src_feature_idx += 1
+
+    if cat_feature_values is not None:
+        for doc_idx in xrange(doc_count):
+            src_feature_idx = num_feature_count
+            for cat_feature_idx in xrange(cat_feature_count):
+                builder_visitor[0].AddCatFeature(
+                    doc_idx,
+                    main_data_feature_idx_to_dst_feature_idx[src_feature_idx],
+                    <TStringBuf>to_arcadia_string(cat_feature_values[doc_idx, cat_feature_idx])
+                )
+                src_feature_idx += 1
+
+    if num_features_future.valid():
+        num_features_future.get()
+
 
 # scipy.sparse matrixes always have default value 0
 cdef _set_cat_features_default_values_for_scipy_sparse(
@@ -3472,9 +3518,9 @@ cdef _set_data(data, embedding_features_data, feature_names, const TFeaturesLayo
     new_data_holders = []
 
     if isinstance(data, FeaturesData):
-        _set_data_np(data.num_feature_data, data.cat_feature_data, embedding_features_data is not None, features_layout, py_builder_visitor.builder_visitor)
+        _set_data_np(data.num_feature_data, data.cat_feature_data, embedding_features_data is not None, py_builder_visitor)
     elif isinstance(data, np.ndarray) and data.dtype == np.float32:
-        _set_data_np(data, None, embedding_features_data is not None, features_layout, py_builder_visitor.builder_visitor)
+        _set_data_np(data, None, embedding_features_data is not None, py_builder_visitor)
     elif isinstance(data, SPARSE_MATRIX_TYPES):
         _set_objects_order_data_scipy_sparse_matrix(data, embedding_features_data is not None, features_layout, py_builder_visitor)
     else:
