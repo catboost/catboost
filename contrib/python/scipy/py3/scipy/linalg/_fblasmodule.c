@@ -1,5 +1,5 @@
 /* File: _fblasmodule.c
- * This file is auto-generated with f2py (version:1.26.3).
+ * This file is auto-generated with f2py (version:1.26.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -28475,11 +28475,11 @@ PyMODINIT_FUNC PyInit__fblas(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module _fblas (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.26.3");
+    s = PyUnicode_FromString("1.26.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module '_fblas' is auto-generated with f2py (version:1.26.3).\nFunctions:\n"
+        "This module '_fblas' is auto-generated with f2py (version:1.26.4).\nFunctions:\n"
 "    c,s = srotg(a,b)\n"
 "    c,s = drotg(a,b)\n"
 "    c,s = crotg(a,b)\n"
@@ -28633,7 +28633,7 @@ PyMODINIT_FUNC PyInit__fblas(void) {
 ".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.26.3");
+    s = PyUnicode_FromString("1.26.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     _fblas_error = PyErr_NewException ("_fblas.error", NULL, NULL);

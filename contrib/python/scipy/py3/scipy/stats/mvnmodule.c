@@ -1,5 +1,5 @@
 /* File: mvnmodule.c
- * This file is auto-generated with f2py (version:1.26.3).
+ * This file is auto-generated with f2py (version:1.26.4).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Wed Nov 24 04:33:34 2021
@@ -916,18 +916,18 @@ PyMODINIT_FUNC PyInit_mvn(void) {
     if (PyErr_Occurred())
         {PyErr_SetString(PyExc_ImportError, "can't initialize module mvn (failed to import numpy)"); return m;}
     d = PyModule_GetDict(m);
-    s = PyUnicode_FromString("1.26.3");
+    s = PyUnicode_FromString("1.26.4");
     PyDict_SetItemString(d, "__version__", s);
     Py_DECREF(s);
     s = PyUnicode_FromString(
-        "This module 'mvn' is auto-generated with f2py (version:1.26.3).\nFunctions:\n"
+        "This module 'mvn' is auto-generated with f2py (version:1.26.4).\nFunctions:\n"
 "    value,inform = mvnun(lower,upper,means,covar,maxpts=d*1000,abseps=1e-06,releps=1e-06)\n"
 "    value,inform = mvnun_weighted(lower,upper,means,weights,covar,maxpts=d*1000,abseps=1e-06,releps=1e-06)\n"
 "    error,value,inform = mvndst(lower,upper,infin,correl,maxpts=2000,abseps=1e-06,releps=1e-06)\n"
 "COMMON blocks:\n""  /dkblck/ ivls\n"".");
     PyDict_SetItemString(d, "__doc__", s);
     Py_DECREF(s);
-    s = PyUnicode_FromString("1.26.3");
+    s = PyUnicode_FromString("1.26.4");
     PyDict_SetItemString(d, "__f2py_numpy_version__", s);
     Py_DECREF(s);
     mvn_error = PyErr_NewException ("mvn.error", NULL, NULL);

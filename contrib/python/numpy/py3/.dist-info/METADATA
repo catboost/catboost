@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: numpy
-Version: 1.26.3
+Version: 1.26.4
 Summary: Fundamental package for array computing in Python
 Home-page: https://numpy.org
 Author: Travis E. Oliphant et al.
@@ -69,11 +69,6 @@ License: Copyright (c) 2005-2023, NumPy Developers.
         Files: vendored-meson/meson/*
         License: Apache 2.0
           For license text, see vendored-meson/meson/COPYING
-        
-        Name: meson-python
-        Files: vendored-meson/meson-python/*
-        License: MIT
-          For license text, see vendored-meson/meson-python/LICENSE
         
         Name: spin
         Files: .spin/cmds.py

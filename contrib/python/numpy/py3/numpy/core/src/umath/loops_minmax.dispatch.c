@@ -320,7 +320,8 @@ simd_binary_ccc_max_s8(const npyv_lanetype_s8 *ip1, const npyv_lanetype_s8 *ip2,
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_max_s8(const npyv_lanetype_s8 *ip1, npy_intp sip1,
                            const npyv_lanetype_s8 *ip2, npy_intp sip2,
@@ -483,7 +484,8 @@ simd_binary_ccc_min_s8(const npyv_lanetype_s8 *ip1, const npyv_lanetype_s8 *ip2,
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_min_s8(const npyv_lanetype_s8 *ip1, npy_intp sip1,
                            const npyv_lanetype_s8 *ip2, npy_intp sip2,
@@ -646,7 +648,8 @@ simd_binary_ccc_maxp_s8(const npyv_lanetype_s8 *ip1, const npyv_lanetype_s8 *ip2
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_maxp_s8(const npyv_lanetype_s8 *ip1, npy_intp sip1,
                            const npyv_lanetype_s8 *ip2, npy_intp sip2,
@@ -809,7 +812,8 @@ simd_binary_ccc_minp_s8(const npyv_lanetype_s8 *ip1, const npyv_lanetype_s8 *ip2
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_minp_s8(const npyv_lanetype_s8 *ip1, npy_intp sip1,
                            const npyv_lanetype_s8 *ip2, npy_intp sip2,
@@ -974,7 +978,8 @@ simd_binary_ccc_max_u8(const npyv_lanetype_u8 *ip1, const npyv_lanetype_u8 *ip2,
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_max_u8(const npyv_lanetype_u8 *ip1, npy_intp sip1,
                            const npyv_lanetype_u8 *ip2, npy_intp sip2,
@@ -1137,7 +1142,8 @@ simd_binary_ccc_min_u8(const npyv_lanetype_u8 *ip1, const npyv_lanetype_u8 *ip2,
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_min_u8(const npyv_lanetype_u8 *ip1, npy_intp sip1,
                            const npyv_lanetype_u8 *ip2, npy_intp sip2,
@@ -1300,7 +1306,8 @@ simd_binary_ccc_maxp_u8(const npyv_lanetype_u8 *ip1, const npyv_lanetype_u8 *ip2
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_maxp_u8(const npyv_lanetype_u8 *ip1, npy_intp sip1,
                            const npyv_lanetype_u8 *ip2, npy_intp sip2,
@@ -1463,7 +1470,8 @@ simd_binary_ccc_minp_u8(const npyv_lanetype_u8 *ip1, const npyv_lanetype_u8 *ip2
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_minp_u8(const npyv_lanetype_u8 *ip1, npy_intp sip1,
                            const npyv_lanetype_u8 *ip2, npy_intp sip2,
@@ -1628,7 +1636,8 @@ simd_binary_ccc_max_s16(const npyv_lanetype_s16 *ip1, const npyv_lanetype_s16 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_max_s16(const npyv_lanetype_s16 *ip1, npy_intp sip1,
                            const npyv_lanetype_s16 *ip2, npy_intp sip2,
@@ -1791,7 +1800,8 @@ simd_binary_ccc_min_s16(const npyv_lanetype_s16 *ip1, const npyv_lanetype_s16 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_min_s16(const npyv_lanetype_s16 *ip1, npy_intp sip1,
                            const npyv_lanetype_s16 *ip2, npy_intp sip2,
@@ -1954,7 +1964,8 @@ simd_binary_ccc_maxp_s16(const npyv_lanetype_s16 *ip1, const npyv_lanetype_s16 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_maxp_s16(const npyv_lanetype_s16 *ip1, npy_intp sip1,
                            const npyv_lanetype_s16 *ip2, npy_intp sip2,
@@ -2117,7 +2128,8 @@ simd_binary_ccc_minp_s16(const npyv_lanetype_s16 *ip1, const npyv_lanetype_s16 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_minp_s16(const npyv_lanetype_s16 *ip1, npy_intp sip1,
                            const npyv_lanetype_s16 *ip2, npy_intp sip2,
@@ -2282,7 +2294,8 @@ simd_binary_ccc_max_u16(const npyv_lanetype_u16 *ip1, const npyv_lanetype_u16 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_max_u16(const npyv_lanetype_u16 *ip1, npy_intp sip1,
                            const npyv_lanetype_u16 *ip2, npy_intp sip2,
@@ -2445,7 +2458,8 @@ simd_binary_ccc_min_u16(const npyv_lanetype_u16 *ip1, const npyv_lanetype_u16 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_min_u16(const npyv_lanetype_u16 *ip1, npy_intp sip1,
                            const npyv_lanetype_u16 *ip2, npy_intp sip2,
@@ -2608,7 +2622,8 @@ simd_binary_ccc_maxp_u16(const npyv_lanetype_u16 *ip1, const npyv_lanetype_u16 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_maxp_u16(const npyv_lanetype_u16 *ip1, npy_intp sip1,
                            const npyv_lanetype_u16 *ip2, npy_intp sip2,
@@ -2771,7 +2786,8 @@ simd_binary_ccc_minp_u16(const npyv_lanetype_u16 *ip1, const npyv_lanetype_u16 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_minp_u16(const npyv_lanetype_u16 *ip1, npy_intp sip1,
                            const npyv_lanetype_u16 *ip2, npy_intp sip2,
@@ -2936,7 +2952,8 @@ simd_binary_ccc_max_s32(const npyv_lanetype_s32 *ip1, const npyv_lanetype_s32 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_max_s32(const npyv_lanetype_s32 *ip1, npy_intp sip1,
                            const npyv_lanetype_s32 *ip2, npy_intp sip2,
@@ -3099,7 +3116,8 @@ simd_binary_ccc_min_s32(const npyv_lanetype_s32 *ip1, const npyv_lanetype_s32 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_min_s32(const npyv_lanetype_s32 *ip1, npy_intp sip1,
                            const npyv_lanetype_s32 *ip2, npy_intp sip2,
@@ -3262,7 +3280,8 @@ simd_binary_ccc_maxp_s32(const npyv_lanetype_s32 *ip1, const npyv_lanetype_s32 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_maxp_s32(const npyv_lanetype_s32 *ip1, npy_intp sip1,
                            const npyv_lanetype_s32 *ip2, npy_intp sip2,
@@ -3425,7 +3444,8 @@ simd_binary_ccc_minp_s32(const npyv_lanetype_s32 *ip1, const npyv_lanetype_s32 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_minp_s32(const npyv_lanetype_s32 *ip1, npy_intp sip1,
                            const npyv_lanetype_s32 *ip2, npy_intp sip2,
@@ -3590,7 +3610,8 @@ simd_binary_ccc_max_u32(const npyv_lanetype_u32 *ip1, const npyv_lanetype_u32 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_max_u32(const npyv_lanetype_u32 *ip1, npy_intp sip1,
                            const npyv_lanetype_u32 *ip2, npy_intp sip2,
@@ -3753,7 +3774,8 @@ simd_binary_ccc_min_u32(const npyv_lanetype_u32 *ip1, const npyv_lanetype_u32 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_min_u32(const npyv_lanetype_u32 *ip1, npy_intp sip1,
                            const npyv_lanetype_u32 *ip2, npy_intp sip2,
@@ -3916,7 +3938,8 @@ simd_binary_ccc_maxp_u32(const npyv_lanetype_u32 *ip1, const npyv_lanetype_u32 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_maxp_u32(const npyv_lanetype_u32 *ip1, npy_intp sip1,
                            const npyv_lanetype_u32 *ip2, npy_intp sip2,
@@ -4079,7 +4102,8 @@ simd_binary_ccc_minp_u32(const npyv_lanetype_u32 *ip1, const npyv_lanetype_u32 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_minp_u32(const npyv_lanetype_u32 *ip1, npy_intp sip1,
                            const npyv_lanetype_u32 *ip2, npy_intp sip2,
@@ -4244,7 +4268,8 @@ simd_binary_ccc_max_s64(const npyv_lanetype_s64 *ip1, const npyv_lanetype_s64 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_max_s64(const npyv_lanetype_s64 *ip1, npy_intp sip1,
                            const npyv_lanetype_s64 *ip2, npy_intp sip2,
@@ -4407,7 +4432,8 @@ simd_binary_ccc_min_s64(const npyv_lanetype_s64 *ip1, const npyv_lanetype_s64 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_min_s64(const npyv_lanetype_s64 *ip1, npy_intp sip1,
                            const npyv_lanetype_s64 *ip2, npy_intp sip2,
@@ -4570,7 +4596,8 @@ simd_binary_ccc_maxp_s64(const npyv_lanetype_s64 *ip1, const npyv_lanetype_s64 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_maxp_s64(const npyv_lanetype_s64 *ip1, npy_intp sip1,
                            const npyv_lanetype_s64 *ip2, npy_intp sip2,
@@ -4733,7 +4760,8 @@ simd_binary_ccc_minp_s64(const npyv_lanetype_s64 *ip1, const npyv_lanetype_s64 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_minp_s64(const npyv_lanetype_s64 *ip1, npy_intp sip1,
                            const npyv_lanetype_s64 *ip2, npy_intp sip2,
@@ -4898,7 +4926,8 @@ simd_binary_ccc_max_u64(const npyv_lanetype_u64 *ip1, const npyv_lanetype_u64 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_max_u64(const npyv_lanetype_u64 *ip1, npy_intp sip1,
                            const npyv_lanetype_u64 *ip2, npy_intp sip2,
@@ -5061,7 +5090,8 @@ simd_binary_ccc_min_u64(const npyv_lanetype_u64 *ip1, const npyv_lanetype_u64 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_min_u64(const npyv_lanetype_u64 *ip1, npy_intp sip1,
                            const npyv_lanetype_u64 *ip2, npy_intp sip2,
@@ -5224,7 +5254,8 @@ simd_binary_ccc_maxp_u64(const npyv_lanetype_u64 *ip1, const npyv_lanetype_u64 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_maxp_u64(const npyv_lanetype_u64 *ip1, npy_intp sip1,
                            const npyv_lanetype_u64 *ip2, npy_intp sip2,
@@ -5387,7 +5418,8 @@ simd_binary_ccc_minp_u64(const npyv_lanetype_u64 *ip1, const npyv_lanetype_u64 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 0
+#if 0 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_minp_u64(const npyv_lanetype_u64 *ip1, npy_intp sip1,
                            const npyv_lanetype_u64 *ip2, npy_intp sip2,
@@ -5552,7 +5584,8 @@ simd_binary_ccc_max_f32(const npyv_lanetype_f32 *ip1, const npyv_lanetype_f32 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 1
+#if 1 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_max_f32(const npyv_lanetype_f32 *ip1, npy_intp sip1,
                            const npyv_lanetype_f32 *ip2, npy_intp sip2,
@@ -5715,7 +5748,8 @@ simd_binary_ccc_min_f32(const npyv_lanetype_f32 *ip1, const npyv_lanetype_f32 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 1
+#if 1 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_min_f32(const npyv_lanetype_f32 *ip1, npy_intp sip1,
                            const npyv_lanetype_f32 *ip2, npy_intp sip2,
@@ -5878,7 +5912,8 @@ simd_binary_ccc_maxp_f32(const npyv_lanetype_f32 *ip1, const npyv_lanetype_f32 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 1
+#if 1 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_maxp_f32(const npyv_lanetype_f32 *ip1, npy_intp sip1,
                            const npyv_lanetype_f32 *ip2, npy_intp sip2,
@@ -6041,7 +6076,8 @@ simd_binary_ccc_minp_f32(const npyv_lanetype_f32 *ip1, const npyv_lanetype_f32 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 1
+#if 1 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_minp_f32(const npyv_lanetype_f32 *ip1, npy_intp sip1,
                            const npyv_lanetype_f32 *ip2, npy_intp sip2,
@@ -6206,7 +6242,8 @@ simd_binary_ccc_max_f64(const npyv_lanetype_f64 *ip1, const npyv_lanetype_f64 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 1
+#if 1 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_max_f64(const npyv_lanetype_f64 *ip1, npy_intp sip1,
                            const npyv_lanetype_f64 *ip2, npy_intp sip2,
@@ -6369,7 +6406,8 @@ simd_binary_ccc_min_f64(const npyv_lanetype_f64 *ip1, const npyv_lanetype_f64 *i
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 1
+#if 1 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_min_f64(const npyv_lanetype_f64 *ip1, npy_intp sip1,
                            const npyv_lanetype_f64 *ip2, npy_intp sip2,
@@ -6532,7 +6570,8 @@ simd_binary_ccc_maxp_f64(const npyv_lanetype_f64 *ip1, const npyv_lanetype_f64 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 1
+#if 1 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_maxp_f64(const npyv_lanetype_f64 *ip1, npy_intp sip1,
                            const npyv_lanetype_f64 *ip2, npy_intp sip2,
@@ -6695,7 +6734,8 @@ simd_binary_ccc_minp_f64(const npyv_lanetype_f64 *ip1, const npyv_lanetype_f64 *
     }
 }
 // non-contiguous for float 32/64-bit memory access
-#if 1
+#if 1 && !defined(NPY_HAVE_NEON)
+// unroll scalars faster than non-contiguous vector load/store on Arm
 static inline void
 simd_binary_minp_f64(const npyv_lanetype_f64 *ip1, npy_intp sip1,
                            const npyv_lanetype_f64 *ip2, npy_intp sip2,
@@ -6744,10 +6784,10 @@ simd_binary_minp_f64(const npyv_lanetype_f64 *ip1, npy_intp sip1,
 /*******************************************************************************
  ** Defining ufunc inner functions
  ******************************************************************************/
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -6763,7 +6803,7 @@ simd_binary_minp_f64(const npyv_lanetype_f64 *ip1, npy_intp sip1,
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -6779,7 +6819,7 @@ simd_binary_minp_f64(const npyv_lanetype_f64 *ip1, npy_intp sip1,
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -6795,7 +6835,7 @@ simd_binary_minp_f64(const npyv_lanetype_f64 *ip1, npy_intp sip1,
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -6813,7 +6853,7 @@ simd_binary_minp_f64(const npyv_lanetype_f64 *ip1, npy_intp sip1,
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_max_i
 
@@ -6921,22 +6961,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UBYTE_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ubyte v0 = *((npy_ubyte *)(ip1 + (i + 0) * is1));
             npy_ubyte u0 = *((npy_ubyte *)(ip2 + (i + 0) * is2));
             *((npy_ubyte *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ubyte v1 = *((npy_ubyte *)(ip1 + (i + 1) * is1));
             npy_ubyte u1 = *((npy_ubyte *)(ip2 + (i + 1) * is2));
             *((npy_ubyte *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ubyte v2 = *((npy_ubyte *)(ip1 + (i + 2) * is1));
             npy_ubyte u2 = *((npy_ubyte *)(ip2 + (i + 2) * is2));
             *((npy_ubyte *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ubyte v3 = *((npy_ubyte *)(ip1 + (i + 3) * is1));
             npy_ubyte u3 = *((npy_ubyte *)(ip2 + (i + 3) * is2));
             *((npy_ubyte *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -6988,7 +7028,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_min_i
 
@@ -7096,22 +7136,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UBYTE_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ubyte v0 = *((npy_ubyte *)(ip1 + (i + 0) * is1));
             npy_ubyte u0 = *((npy_ubyte *)(ip2 + (i + 0) * is2));
             *((npy_ubyte *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ubyte v1 = *((npy_ubyte *)(ip1 + (i + 1) * is1));
             npy_ubyte u1 = *((npy_ubyte *)(ip2 + (i + 1) * is2));
             *((npy_ubyte *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ubyte v2 = *((npy_ubyte *)(ip1 + (i + 2) * is1));
             npy_ubyte u2 = *((npy_ubyte *)(ip2 + (i + 2) * is2));
             *((npy_ubyte *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ubyte v3 = *((npy_ubyte *)(ip1 + (i + 3) * is1));
             npy_ubyte u3 = *((npy_ubyte *)(ip2 + (i + 3) * is2));
             *((npy_ubyte *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -7163,7 +7203,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_maxp_i
 
@@ -7271,22 +7311,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UBYTE_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ubyte v0 = *((npy_ubyte *)(ip1 + (i + 0) * is1));
             npy_ubyte u0 = *((npy_ubyte *)(ip2 + (i + 0) * is2));
             *((npy_ubyte *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ubyte v1 = *((npy_ubyte *)(ip1 + (i + 1) * is1));
             npy_ubyte u1 = *((npy_ubyte *)(ip2 + (i + 1) * is2));
             *((npy_ubyte *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ubyte v2 = *((npy_ubyte *)(ip1 + (i + 2) * is1));
             npy_ubyte u2 = *((npy_ubyte *)(ip2 + (i + 2) * is2));
             *((npy_ubyte *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ubyte v3 = *((npy_ubyte *)(ip1 + (i + 3) * is1));
             npy_ubyte u3 = *((npy_ubyte *)(ip2 + (i + 3) * is2));
             *((npy_ubyte *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -7338,7 +7378,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_minp_i
 
@@ -7446,22 +7486,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UBYTE_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ubyte v0 = *((npy_ubyte *)(ip1 + (i + 0) * is1));
             npy_ubyte u0 = *((npy_ubyte *)(ip2 + (i + 0) * is2));
             *((npy_ubyte *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ubyte v1 = *((npy_ubyte *)(ip1 + (i + 1) * is1));
             npy_ubyte u1 = *((npy_ubyte *)(ip2 + (i + 1) * is2));
             *((npy_ubyte *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ubyte v2 = *((npy_ubyte *)(ip1 + (i + 2) * is1));
             npy_ubyte u2 = *((npy_ubyte *)(ip2 + (i + 2) * is2));
             *((npy_ubyte *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ubyte v3 = *((npy_ubyte *)(ip1 + (i + 3) * is1));
             npy_ubyte u3 = *((npy_ubyte *)(ip2 + (i + 3) * is2));
             *((npy_ubyte *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -7514,10 +7554,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -7533,7 +7573,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -7549,7 +7589,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -7565,7 +7605,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -7583,7 +7623,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_max_i
 
@@ -7691,22 +7731,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(USHORT_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ushort v0 = *((npy_ushort *)(ip1 + (i + 0) * is1));
             npy_ushort u0 = *((npy_ushort *)(ip2 + (i + 0) * is2));
             *((npy_ushort *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ushort v1 = *((npy_ushort *)(ip1 + (i + 1) * is1));
             npy_ushort u1 = *((npy_ushort *)(ip2 + (i + 1) * is2));
             *((npy_ushort *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ushort v2 = *((npy_ushort *)(ip1 + (i + 2) * is1));
             npy_ushort u2 = *((npy_ushort *)(ip2 + (i + 2) * is2));
             *((npy_ushort *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ushort v3 = *((npy_ushort *)(ip1 + (i + 3) * is1));
             npy_ushort u3 = *((npy_ushort *)(ip2 + (i + 3) * is2));
             *((npy_ushort *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -7758,7 +7798,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_min_i
 
@@ -7866,22 +7906,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(USHORT_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ushort v0 = *((npy_ushort *)(ip1 + (i + 0) * is1));
             npy_ushort u0 = *((npy_ushort *)(ip2 + (i + 0) * is2));
             *((npy_ushort *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ushort v1 = *((npy_ushort *)(ip1 + (i + 1) * is1));
             npy_ushort u1 = *((npy_ushort *)(ip2 + (i + 1) * is2));
             *((npy_ushort *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ushort v2 = *((npy_ushort *)(ip1 + (i + 2) * is1));
             npy_ushort u2 = *((npy_ushort *)(ip2 + (i + 2) * is2));
             *((npy_ushort *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ushort v3 = *((npy_ushort *)(ip1 + (i + 3) * is1));
             npy_ushort u3 = *((npy_ushort *)(ip2 + (i + 3) * is2));
             *((npy_ushort *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -7933,7 +7973,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_maxp_i
 
@@ -8041,22 +8081,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(USHORT_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ushort v0 = *((npy_ushort *)(ip1 + (i + 0) * is1));
             npy_ushort u0 = *((npy_ushort *)(ip2 + (i + 0) * is2));
             *((npy_ushort *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ushort v1 = *((npy_ushort *)(ip1 + (i + 1) * is1));
             npy_ushort u1 = *((npy_ushort *)(ip2 + (i + 1) * is2));
             *((npy_ushort *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ushort v2 = *((npy_ushort *)(ip1 + (i + 2) * is1));
             npy_ushort u2 = *((npy_ushort *)(ip2 + (i + 2) * is2));
             *((npy_ushort *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ushort v3 = *((npy_ushort *)(ip1 + (i + 3) * is1));
             npy_ushort u3 = *((npy_ushort *)(ip2 + (i + 3) * is2));
             *((npy_ushort *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -8108,7 +8148,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_minp_i
 
@@ -8216,22 +8256,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(USHORT_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ushort v0 = *((npy_ushort *)(ip1 + (i + 0) * is1));
             npy_ushort u0 = *((npy_ushort *)(ip2 + (i + 0) * is2));
             *((npy_ushort *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ushort v1 = *((npy_ushort *)(ip1 + (i + 1) * is1));
             npy_ushort u1 = *((npy_ushort *)(ip2 + (i + 1) * is2));
             *((npy_ushort *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ushort v2 = *((npy_ushort *)(ip1 + (i + 2) * is1));
             npy_ushort u2 = *((npy_ushort *)(ip2 + (i + 2) * is2));
             *((npy_ushort *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ushort v3 = *((npy_ushort *)(ip1 + (i + 3) * is1));
             npy_ushort u3 = *((npy_ushort *)(ip2 + (i + 3) * is2));
             *((npy_ushort *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -8284,10 +8324,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_INT == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -8303,7 +8343,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_INT == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -8319,7 +8359,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_INT == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -8335,7 +8375,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_INT == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -8353,7 +8393,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_max_i
 
@@ -8461,22 +8501,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UINT_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_uint v0 = *((npy_uint *)(ip1 + (i + 0) * is1));
             npy_uint u0 = *((npy_uint *)(ip2 + (i + 0) * is2));
             *((npy_uint *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_uint v1 = *((npy_uint *)(ip1 + (i + 1) * is1));
             npy_uint u1 = *((npy_uint *)(ip2 + (i + 1) * is2));
             *((npy_uint *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_uint v2 = *((npy_uint *)(ip1 + (i + 2) * is1));
             npy_uint u2 = *((npy_uint *)(ip2 + (i + 2) * is2));
             *((npy_uint *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_uint v3 = *((npy_uint *)(ip1 + (i + 3) * is1));
             npy_uint u3 = *((npy_uint *)(ip2 + (i + 3) * is2));
             *((npy_uint *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -8528,7 +8568,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_min_i
 
@@ -8636,22 +8676,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UINT_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_uint v0 = *((npy_uint *)(ip1 + (i + 0) * is1));
             npy_uint u0 = *((npy_uint *)(ip2 + (i + 0) * is2));
             *((npy_uint *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_uint v1 = *((npy_uint *)(ip1 + (i + 1) * is1));
             npy_uint u1 = *((npy_uint *)(ip2 + (i + 1) * is2));
             *((npy_uint *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_uint v2 = *((npy_uint *)(ip1 + (i + 2) * is1));
             npy_uint u2 = *((npy_uint *)(ip2 + (i + 2) * is2));
             *((npy_uint *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_uint v3 = *((npy_uint *)(ip1 + (i + 3) * is1));
             npy_uint u3 = *((npy_uint *)(ip2 + (i + 3) * is2));
             *((npy_uint *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -8703,7 +8743,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_maxp_i
 
@@ -8811,22 +8851,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UINT_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_uint v0 = *((npy_uint *)(ip1 + (i + 0) * is1));
             npy_uint u0 = *((npy_uint *)(ip2 + (i + 0) * is2));
             *((npy_uint *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_uint v1 = *((npy_uint *)(ip1 + (i + 1) * is1));
             npy_uint u1 = *((npy_uint *)(ip2 + (i + 1) * is2));
             *((npy_uint *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_uint v2 = *((npy_uint *)(ip1 + (i + 2) * is1));
             npy_uint u2 = *((npy_uint *)(ip2 + (i + 2) * is2));
             *((npy_uint *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_uint v3 = *((npy_uint *)(ip1 + (i + 3) * is1));
             npy_uint u3 = *((npy_uint *)(ip2 + (i + 3) * is2));
             *((npy_uint *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -8878,7 +8918,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_minp_i
 
@@ -8986,22 +9026,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UINT_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_uint v0 = *((npy_uint *)(ip1 + (i + 0) * is1));
             npy_uint u0 = *((npy_uint *)(ip2 + (i + 0) * is2));
             *((npy_uint *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_uint v1 = *((npy_uint *)(ip1 + (i + 1) * is1));
             npy_uint u1 = *((npy_uint *)(ip2 + (i + 1) * is2));
             *((npy_uint *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_uint v2 = *((npy_uint *)(ip1 + (i + 2) * is1));
             npy_uint u2 = *((npy_uint *)(ip2 + (i + 2) * is2));
             *((npy_uint *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_uint v3 = *((npy_uint *)(ip1 + (i + 3) * is1));
             npy_uint u3 = *((npy_uint *)(ip2 + (i + 3) * is2));
             *((npy_uint *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -9054,10 +9094,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONG == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -9073,7 +9113,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONG == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -9089,7 +9129,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONG == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -9105,7 +9145,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONG == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -9123,7 +9163,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_max_i
 
@@ -9231,22 +9271,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONG_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ulong v0 = *((npy_ulong *)(ip1 + (i + 0) * is1));
             npy_ulong u0 = *((npy_ulong *)(ip2 + (i + 0) * is2));
             *((npy_ulong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ulong v1 = *((npy_ulong *)(ip1 + (i + 1) * is1));
             npy_ulong u1 = *((npy_ulong *)(ip2 + (i + 1) * is2));
             *((npy_ulong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ulong v2 = *((npy_ulong *)(ip1 + (i + 2) * is1));
             npy_ulong u2 = *((npy_ulong *)(ip2 + (i + 2) * is2));
             *((npy_ulong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ulong v3 = *((npy_ulong *)(ip1 + (i + 3) * is1));
             npy_ulong u3 = *((npy_ulong *)(ip2 + (i + 3) * is2));
             *((npy_ulong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -9298,7 +9338,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_min_i
 
@@ -9406,22 +9446,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONG_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ulong v0 = *((npy_ulong *)(ip1 + (i + 0) * is1));
             npy_ulong u0 = *((npy_ulong *)(ip2 + (i + 0) * is2));
             *((npy_ulong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ulong v1 = *((npy_ulong *)(ip1 + (i + 1) * is1));
             npy_ulong u1 = *((npy_ulong *)(ip2 + (i + 1) * is2));
             *((npy_ulong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ulong v2 = *((npy_ulong *)(ip1 + (i + 2) * is1));
             npy_ulong u2 = *((npy_ulong *)(ip2 + (i + 2) * is2));
             *((npy_ulong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ulong v3 = *((npy_ulong *)(ip1 + (i + 3) * is1));
             npy_ulong u3 = *((npy_ulong *)(ip2 + (i + 3) * is2));
             *((npy_ulong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -9473,7 +9513,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_maxp_i
 
@@ -9581,22 +9621,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONG_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ulong v0 = *((npy_ulong *)(ip1 + (i + 0) * is1));
             npy_ulong u0 = *((npy_ulong *)(ip2 + (i + 0) * is2));
             *((npy_ulong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ulong v1 = *((npy_ulong *)(ip1 + (i + 1) * is1));
             npy_ulong u1 = *((npy_ulong *)(ip2 + (i + 1) * is2));
             *((npy_ulong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ulong v2 = *((npy_ulong *)(ip1 + (i + 2) * is1));
             npy_ulong u2 = *((npy_ulong *)(ip2 + (i + 2) * is2));
             *((npy_ulong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ulong v3 = *((npy_ulong *)(ip1 + (i + 3) * is1));
             npy_ulong u3 = *((npy_ulong *)(ip2 + (i + 3) * is2));
             *((npy_ulong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -9648,7 +9688,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_minp_i
 
@@ -9756,22 +9796,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONG_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ulong v0 = *((npy_ulong *)(ip1 + (i + 0) * is1));
             npy_ulong u0 = *((npy_ulong *)(ip2 + (i + 0) * is2));
             *((npy_ulong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ulong v1 = *((npy_ulong *)(ip1 + (i + 1) * is1));
             npy_ulong u1 = *((npy_ulong *)(ip2 + (i + 1) * is2));
             *((npy_ulong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ulong v2 = *((npy_ulong *)(ip1 + (i + 2) * is1));
             npy_ulong u2 = *((npy_ulong *)(ip2 + (i + 2) * is2));
             *((npy_ulong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ulong v3 = *((npy_ulong *)(ip1 + (i + 3) * is1));
             npy_ulong u3 = *((npy_ulong *)(ip2 + (i + 3) * is2));
             *((npy_ulong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -9824,10 +9864,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -9843,7 +9883,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -9859,7 +9899,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -9875,7 +9915,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -9893,7 +9933,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_max_i
 
@@ -10001,22 +10041,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONGLONG_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ulonglong v0 = *((npy_ulonglong *)(ip1 + (i + 0) * is1));
             npy_ulonglong u0 = *((npy_ulonglong *)(ip2 + (i + 0) * is2));
             *((npy_ulonglong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ulonglong v1 = *((npy_ulonglong *)(ip1 + (i + 1) * is1));
             npy_ulonglong u1 = *((npy_ulonglong *)(ip2 + (i + 1) * is2));
             *((npy_ulonglong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ulonglong v2 = *((npy_ulonglong *)(ip1 + (i + 2) * is1));
             npy_ulonglong u2 = *((npy_ulonglong *)(ip2 + (i + 2) * is2));
             *((npy_ulonglong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ulonglong v3 = *((npy_ulonglong *)(ip1 + (i + 3) * is1));
             npy_ulonglong u3 = *((npy_ulonglong *)(ip2 + (i + 3) * is2));
             *((npy_ulonglong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -10068,7 +10108,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_min_i
 
@@ -10176,22 +10216,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONGLONG_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ulonglong v0 = *((npy_ulonglong *)(ip1 + (i + 0) * is1));
             npy_ulonglong u0 = *((npy_ulonglong *)(ip2 + (i + 0) * is2));
             *((npy_ulonglong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ulonglong v1 = *((npy_ulonglong *)(ip1 + (i + 1) * is1));
             npy_ulonglong u1 = *((npy_ulonglong *)(ip2 + (i + 1) * is2));
             *((npy_ulonglong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ulonglong v2 = *((npy_ulonglong *)(ip1 + (i + 2) * is1));
             npy_ulonglong u2 = *((npy_ulonglong *)(ip2 + (i + 2) * is2));
             *((npy_ulonglong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ulonglong v3 = *((npy_ulonglong *)(ip1 + (i + 3) * is1));
             npy_ulonglong u3 = *((npy_ulonglong *)(ip2 + (i + 3) * is2));
             *((npy_ulonglong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -10243,7 +10283,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_maxp_i
 
@@ -10351,22 +10391,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONGLONG_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ulonglong v0 = *((npy_ulonglong *)(ip1 + (i + 0) * is1));
             npy_ulonglong u0 = *((npy_ulonglong *)(ip2 + (i + 0) * is2));
             *((npy_ulonglong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ulonglong v1 = *((npy_ulonglong *)(ip1 + (i + 1) * is1));
             npy_ulonglong u1 = *((npy_ulonglong *)(ip2 + (i + 1) * is2));
             *((npy_ulonglong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ulonglong v2 = *((npy_ulonglong *)(ip1 + (i + 2) * is1));
             npy_ulonglong u2 = *((npy_ulonglong *)(ip2 + (i + 2) * is2));
             *((npy_ulonglong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ulonglong v3 = *((npy_ulonglong *)(ip1 + (i + 3) * is1));
             npy_ulonglong u3 = *((npy_ulonglong *)(ip2 + (i + 3) * is2));
             *((npy_ulonglong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -10418,7 +10458,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_minp_i
 
@@ -10526,22 +10566,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONGLONG_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_ulonglong v0 = *((npy_ulonglong *)(ip1 + (i + 0) * is1));
             npy_ulonglong u0 = *((npy_ulonglong *)(ip2 + (i + 0) * is2));
             *((npy_ulonglong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_ulonglong v1 = *((npy_ulonglong *)(ip1 + (i + 1) * is1));
             npy_ulonglong u1 = *((npy_ulonglong *)(ip2 + (i + 1) * is2));
             *((npy_ulonglong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_ulonglong v2 = *((npy_ulonglong *)(ip1 + (i + 2) * is1));
             npy_ulonglong u2 = *((npy_ulonglong *)(ip2 + (i + 2) * is2));
             *((npy_ulonglong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_ulonglong v3 = *((npy_ulonglong *)(ip1 + (i + 3) * is1));
             npy_ulonglong u3 = *((npy_ulonglong *)(ip2 + (i + 3) * is2));
             *((npy_ulonglong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -10594,10 +10634,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -10613,7 +10653,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -10629,7 +10669,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -10645,7 +10685,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -10663,7 +10703,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONGLONG_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_max_i
 
@@ -10771,22 +10811,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(BYTE_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_byte v0 = *((npy_byte *)(ip1 + (i + 0) * is1));
             npy_byte u0 = *((npy_byte *)(ip2 + (i + 0) * is2));
             *((npy_byte *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_byte v1 = *((npy_byte *)(ip1 + (i + 1) * is1));
             npy_byte u1 = *((npy_byte *)(ip2 + (i + 1) * is2));
             *((npy_byte *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_byte v2 = *((npy_byte *)(ip1 + (i + 2) * is1));
             npy_byte u2 = *((npy_byte *)(ip2 + (i + 2) * is2));
             *((npy_byte *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_byte v3 = *((npy_byte *)(ip1 + (i + 3) * is1));
             npy_byte u3 = *((npy_byte *)(ip2 + (i + 3) * is2));
             *((npy_byte *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -10838,7 +10878,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_min_i
 
@@ -10946,22 +10986,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(BYTE_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_byte v0 = *((npy_byte *)(ip1 + (i + 0) * is1));
             npy_byte u0 = *((npy_byte *)(ip2 + (i + 0) * is2));
             *((npy_byte *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_byte v1 = *((npy_byte *)(ip1 + (i + 1) * is1));
             npy_byte u1 = *((npy_byte *)(ip2 + (i + 1) * is2));
             *((npy_byte *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_byte v2 = *((npy_byte *)(ip1 + (i + 2) * is1));
             npy_byte u2 = *((npy_byte *)(ip2 + (i + 2) * is2));
             *((npy_byte *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_byte v3 = *((npy_byte *)(ip1 + (i + 3) * is1));
             npy_byte u3 = *((npy_byte *)(ip2 + (i + 3) * is2));
             *((npy_byte *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -11013,7 +11053,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_maxp_i
 
@@ -11121,22 +11161,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(BYTE_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_byte v0 = *((npy_byte *)(ip1 + (i + 0) * is1));
             npy_byte u0 = *((npy_byte *)(ip2 + (i + 0) * is2));
             *((npy_byte *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_byte v1 = *((npy_byte *)(ip1 + (i + 1) * is1));
             npy_byte u1 = *((npy_byte *)(ip2 + (i + 1) * is2));
             *((npy_byte *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_byte v2 = *((npy_byte *)(ip1 + (i + 2) * is1));
             npy_byte u2 = *((npy_byte *)(ip2 + (i + 2) * is2));
             *((npy_byte *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_byte v3 = *((npy_byte *)(ip1 + (i + 3) * is1));
             npy_byte u3 = *((npy_byte *)(ip2 + (i + 3) * is2));
             *((npy_byte *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -11188,7 +11228,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_minp_i
 
@@ -11296,22 +11336,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(BYTE_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_byte v0 = *((npy_byte *)(ip1 + (i + 0) * is1));
             npy_byte u0 = *((npy_byte *)(ip2 + (i + 0) * is2));
             *((npy_byte *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_byte v1 = *((npy_byte *)(ip1 + (i + 1) * is1));
             npy_byte u1 = *((npy_byte *)(ip2 + (i + 1) * is2));
             *((npy_byte *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_byte v2 = *((npy_byte *)(ip1 + (i + 2) * is1));
             npy_byte u2 = *((npy_byte *)(ip2 + (i + 2) * is2));
             *((npy_byte *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_byte v3 = *((npy_byte *)(ip1 + (i + 3) * is1));
             npy_byte u3 = *((npy_byte *)(ip2 + (i + 3) * is2));
             *((npy_byte *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -11364,10 +11404,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -11383,7 +11423,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -11399,7 +11439,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -11415,7 +11455,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -11433,7 +11473,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_max_i
 
@@ -11541,22 +11581,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(SHORT_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_short v0 = *((npy_short *)(ip1 + (i + 0) * is1));
             npy_short u0 = *((npy_short *)(ip2 + (i + 0) * is2));
             *((npy_short *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_short v1 = *((npy_short *)(ip1 + (i + 1) * is1));
             npy_short u1 = *((npy_short *)(ip2 + (i + 1) * is2));
             *((npy_short *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_short v2 = *((npy_short *)(ip1 + (i + 2) * is1));
             npy_short u2 = *((npy_short *)(ip2 + (i + 2) * is2));
             *((npy_short *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_short v3 = *((npy_short *)(ip1 + (i + 3) * is1));
             npy_short u3 = *((npy_short *)(ip2 + (i + 3) * is2));
             *((npy_short *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -11608,7 +11648,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_min_i
 
@@ -11716,22 +11756,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(SHORT_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_short v0 = *((npy_short *)(ip1 + (i + 0) * is1));
             npy_short u0 = *((npy_short *)(ip2 + (i + 0) * is2));
             *((npy_short *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_short v1 = *((npy_short *)(ip1 + (i + 1) * is1));
             npy_short u1 = *((npy_short *)(ip2 + (i + 1) * is2));
             *((npy_short *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_short v2 = *((npy_short *)(ip1 + (i + 2) * is1));
             npy_short u2 = *((npy_short *)(ip2 + (i + 2) * is2));
             *((npy_short *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_short v3 = *((npy_short *)(ip1 + (i + 3) * is1));
             npy_short u3 = *((npy_short *)(ip2 + (i + 3) * is2));
             *((npy_short *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -11783,7 +11823,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_maxp_i
 
@@ -11891,22 +11931,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(SHORT_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_short v0 = *((npy_short *)(ip1 + (i + 0) * is1));
             npy_short u0 = *((npy_short *)(ip2 + (i + 0) * is2));
             *((npy_short *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_short v1 = *((npy_short *)(ip1 + (i + 1) * is1));
             npy_short u1 = *((npy_short *)(ip2 + (i + 1) * is2));
             *((npy_short *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_short v2 = *((npy_short *)(ip1 + (i + 2) * is1));
             npy_short u2 = *((npy_short *)(ip2 + (i + 2) * is2));
             *((npy_short *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_short v3 = *((npy_short *)(ip1 + (i + 3) * is1));
             npy_short u3 = *((npy_short *)(ip2 + (i + 3) * is2));
             *((npy_short *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -11958,7 +11998,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_minp_i
 
@@ -12066,22 +12106,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(SHORT_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_short v0 = *((npy_short *)(ip1 + (i + 0) * is1));
             npy_short u0 = *((npy_short *)(ip2 + (i + 0) * is2));
             *((npy_short *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_short v1 = *((npy_short *)(ip1 + (i + 1) * is1));
             npy_short u1 = *((npy_short *)(ip2 + (i + 1) * is2));
             *((npy_short *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_short v2 = *((npy_short *)(ip1 + (i + 2) * is1));
             npy_short u2 = *((npy_short *)(ip2 + (i + 2) * is2));
             *((npy_short *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_short v3 = *((npy_short *)(ip1 + (i + 3) * is1));
             npy_short u3 = *((npy_short *)(ip2 + (i + 3) * is2));
             *((npy_short *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -12134,10 +12174,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_INT == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -12153,7 +12193,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_INT == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -12169,7 +12209,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_INT == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -12185,7 +12225,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_INT == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -12203,7 +12243,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_max_i
 
@@ -12311,22 +12351,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(INT_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_int v0 = *((npy_int *)(ip1 + (i + 0) * is1));
             npy_int u0 = *((npy_int *)(ip2 + (i + 0) * is2));
             *((npy_int *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_int v1 = *((npy_int *)(ip1 + (i + 1) * is1));
             npy_int u1 = *((npy_int *)(ip2 + (i + 1) * is2));
             *((npy_int *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_int v2 = *((npy_int *)(ip1 + (i + 2) * is1));
             npy_int u2 = *((npy_int *)(ip2 + (i + 2) * is2));
             *((npy_int *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_int v3 = *((npy_int *)(ip1 + (i + 3) * is1));
             npy_int u3 = *((npy_int *)(ip2 + (i + 3) * is2));
             *((npy_int *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -12378,7 +12418,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_min_i
 
@@ -12486,22 +12526,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(INT_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_int v0 = *((npy_int *)(ip1 + (i + 0) * is1));
             npy_int u0 = *((npy_int *)(ip2 + (i + 0) * is2));
             *((npy_int *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_int v1 = *((npy_int *)(ip1 + (i + 1) * is1));
             npy_int u1 = *((npy_int *)(ip2 + (i + 1) * is2));
             *((npy_int *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_int v2 = *((npy_int *)(ip1 + (i + 2) * is1));
             npy_int u2 = *((npy_int *)(ip2 + (i + 2) * is2));
             *((npy_int *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_int v3 = *((npy_int *)(ip1 + (i + 3) * is1));
             npy_int u3 = *((npy_int *)(ip2 + (i + 3) * is2));
             *((npy_int *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -12553,7 +12593,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_maxp_i
 
@@ -12661,22 +12701,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(INT_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_int v0 = *((npy_int *)(ip1 + (i + 0) * is1));
             npy_int u0 = *((npy_int *)(ip2 + (i + 0) * is2));
             *((npy_int *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_int v1 = *((npy_int *)(ip1 + (i + 1) * is1));
             npy_int u1 = *((npy_int *)(ip2 + (i + 1) * is2));
             *((npy_int *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_int v2 = *((npy_int *)(ip1 + (i + 2) * is1));
             npy_int u2 = *((npy_int *)(ip2 + (i + 2) * is2));
             *((npy_int *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_int v3 = *((npy_int *)(ip1 + (i + 3) * is1));
             npy_int u3 = *((npy_int *)(ip2 + (i + 3) * is2));
             *((npy_int *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -12728,7 +12768,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_minp_i
 
@@ -12836,22 +12876,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(INT_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_int v0 = *((npy_int *)(ip1 + (i + 0) * is1));
             npy_int u0 = *((npy_int *)(ip2 + (i + 0) * is2));
             *((npy_int *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_int v1 = *((npy_int *)(ip1 + (i + 1) * is1));
             npy_int u1 = *((npy_int *)(ip2 + (i + 1) * is2));
             *((npy_int *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_int v2 = *((npy_int *)(ip1 + (i + 2) * is1));
             npy_int u2 = *((npy_int *)(ip2 + (i + 2) * is2));
             *((npy_int *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_int v3 = *((npy_int *)(ip1 + (i + 3) * is1));
             npy_int u3 = *((npy_int *)(ip2 + (i + 3) * is2));
             *((npy_int *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -12904,10 +12944,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONG == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -12923,7 +12963,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONG == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -12939,7 +12979,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONG == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -12955,7 +12995,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONG == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -12973,7 +13013,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_max_i
 
@@ -13081,22 +13121,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONG_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_long v0 = *((npy_long *)(ip1 + (i + 0) * is1));
             npy_long u0 = *((npy_long *)(ip2 + (i + 0) * is2));
             *((npy_long *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_long v1 = *((npy_long *)(ip1 + (i + 1) * is1));
             npy_long u1 = *((npy_long *)(ip2 + (i + 1) * is2));
             *((npy_long *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_long v2 = *((npy_long *)(ip1 + (i + 2) * is1));
             npy_long u2 = *((npy_long *)(ip2 + (i + 2) * is2));
             *((npy_long *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_long v3 = *((npy_long *)(ip1 + (i + 3) * is1));
             npy_long u3 = *((npy_long *)(ip2 + (i + 3) * is2));
             *((npy_long *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -13148,7 +13188,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_min_i
 
@@ -13256,22 +13296,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONG_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_long v0 = *((npy_long *)(ip1 + (i + 0) * is1));
             npy_long u0 = *((npy_long *)(ip2 + (i + 0) * is2));
             *((npy_long *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_long v1 = *((npy_long *)(ip1 + (i + 1) * is1));
             npy_long u1 = *((npy_long *)(ip2 + (i + 1) * is2));
             *((npy_long *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_long v2 = *((npy_long *)(ip1 + (i + 2) * is1));
             npy_long u2 = *((npy_long *)(ip2 + (i + 2) * is2));
             *((npy_long *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_long v3 = *((npy_long *)(ip1 + (i + 3) * is1));
             npy_long u3 = *((npy_long *)(ip2 + (i + 3) * is2));
             *((npy_long *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -13323,7 +13363,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_maxp_i
 
@@ -13431,22 +13471,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONG_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_long v0 = *((npy_long *)(ip1 + (i + 0) * is1));
             npy_long u0 = *((npy_long *)(ip2 + (i + 0) * is2));
             *((npy_long *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_long v1 = *((npy_long *)(ip1 + (i + 1) * is1));
             npy_long u1 = *((npy_long *)(ip2 + (i + 1) * is2));
             *((npy_long *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_long v2 = *((npy_long *)(ip1 + (i + 2) * is1));
             npy_long u2 = *((npy_long *)(ip2 + (i + 2) * is2));
             *((npy_long *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_long v3 = *((npy_long *)(ip1 + (i + 3) * is1));
             npy_long u3 = *((npy_long *)(ip2 + (i + 3) * is2));
             *((npy_long *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -13498,7 +13538,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_minp_i
 
@@ -13606,22 +13646,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONG_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_long v0 = *((npy_long *)(ip1 + (i + 0) * is1));
             npy_long u0 = *((npy_long *)(ip2 + (i + 0) * is2));
             *((npy_long *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_long v1 = *((npy_long *)(ip1 + (i + 1) * is1));
             npy_long u1 = *((npy_long *)(ip2 + (i + 1) * is2));
             *((npy_long *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_long v2 = *((npy_long *)(ip1 + (i + 2) * is1));
             npy_long u2 = *((npy_long *)(ip2 + (i + 2) * is2));
             *((npy_long *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_long v3 = *((npy_long *)(ip1 + (i + 3) * is1));
             npy_long u3 = *((npy_long *)(ip2 + (i + 3) * is2));
             *((npy_long *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -13674,10 +13714,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -13693,7 +13733,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -13709,7 +13749,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -13725,7 +13765,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -13743,7 +13783,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_max_i
 
@@ -13851,22 +13891,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGLONG_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_longlong v0 = *((npy_longlong *)(ip1 + (i + 0) * is1));
             npy_longlong u0 = *((npy_longlong *)(ip2 + (i + 0) * is2));
             *((npy_longlong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_longlong v1 = *((npy_longlong *)(ip1 + (i + 1) * is1));
             npy_longlong u1 = *((npy_longlong *)(ip2 + (i + 1) * is2));
             *((npy_longlong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_longlong v2 = *((npy_longlong *)(ip1 + (i + 2) * is1));
             npy_longlong u2 = *((npy_longlong *)(ip2 + (i + 2) * is2));
             *((npy_longlong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_longlong v3 = *((npy_longlong *)(ip1 + (i + 3) * is1));
             npy_longlong u3 = *((npy_longlong *)(ip2 + (i + 3) * is2));
             *((npy_longlong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -13918,7 +13958,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (0 && 0)
 #define SCALAR_OP scalar_min_i
 
@@ -14026,22 +14066,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGLONG_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_longlong v0 = *((npy_longlong *)(ip1 + (i + 0) * is1));
             npy_longlong u0 = *((npy_longlong *)(ip2 + (i + 0) * is2));
             *((npy_longlong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_longlong v1 = *((npy_longlong *)(ip1 + (i + 1) * is1));
             npy_longlong u1 = *((npy_longlong *)(ip2 + (i + 1) * is2));
             *((npy_longlong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_longlong v2 = *((npy_longlong *)(ip1 + (i + 2) * is1));
             npy_longlong u2 = *((npy_longlong *)(ip2 + (i + 2) * is2));
             *((npy_longlong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_longlong v3 = *((npy_longlong *)(ip1 + (i + 3) * is1));
             npy_longlong u3 = *((npy_longlong *)(ip2 + (i + 3) * is2));
             *((npy_longlong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -14093,7 +14133,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_maxp_i
 
@@ -14201,22 +14241,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGLONG_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_longlong v0 = *((npy_longlong *)(ip1 + (i + 0) * is1));
             npy_longlong u0 = *((npy_longlong *)(ip2 + (i + 0) * is2));
             *((npy_longlong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_longlong v1 = *((npy_longlong *)(ip1 + (i + 1) * is1));
             npy_longlong u1 = *((npy_longlong *)(ip2 + (i + 1) * is2));
             *((npy_longlong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_longlong v2 = *((npy_longlong *)(ip1 + (i + 2) * is1));
             npy_longlong u2 = *((npy_longlong *)(ip2 + (i + 2) * is2));
             *((npy_longlong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_longlong v3 = *((npy_longlong *)(ip1 + (i + 3) * is1));
             npy_longlong u3 = *((npy_longlong *)(ip2 + (i + 3) * is2));
             *((npy_longlong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -14268,7 +14308,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (0 && 1)
 #define SCALAR_OP scalar_minp_i
 
@@ -14376,22 +14416,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGLONG_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_longlong v0 = *((npy_longlong *)(ip1 + (i + 0) * is1));
             npy_longlong u0 = *((npy_longlong *)(ip2 + (i + 0) * is2));
             *((npy_longlong *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_longlong v1 = *((npy_longlong *)(ip1 + (i + 1) * is1));
             npy_longlong u1 = *((npy_longlong *)(ip2 + (i + 1) * is2));
             *((npy_longlong *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_longlong v2 = *((npy_longlong *)(ip1 + (i + 2) * is1));
             npy_longlong u2 = *((npy_longlong *)(ip2 + (i + 2) * is2));
             *((npy_longlong *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_longlong v3 = *((npy_longlong *)(ip1 + (i + 3) * is1));
             npy_longlong u3 = *((npy_longlong *)(ip2 + (i + 3) * is2));
             *((npy_longlong *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -14444,10 +14484,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_FLOAT == 8
     #if 1
         #define TO_SIMD_SFX(X) X##_f8
@@ -14463,7 +14503,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_FLOAT == 16
     #if 1
         #define TO_SIMD_SFX(X) X##_f16
@@ -14479,7 +14519,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_FLOAT == 32
     #if 1
         #define TO_SIMD_SFX(X) X##_f32
@@ -14495,7 +14535,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_FLOAT == 64
     #if 1
         #define TO_SIMD_SFX(X) X##_f64
@@ -14513,7 +14553,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (1 && 0)
 #define SCALAR_OP scalar_max_f
 
@@ -14621,22 +14661,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_float v0 = *((npy_float *)(ip1 + (i + 0) * is1));
             npy_float u0 = *((npy_float *)(ip2 + (i + 0) * is2));
             *((npy_float *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_float v1 = *((npy_float *)(ip1 + (i + 1) * is1));
             npy_float u1 = *((npy_float *)(ip2 + (i + 1) * is2));
             *((npy_float *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_float v2 = *((npy_float *)(ip1 + (i + 2) * is1));
             npy_float u2 = *((npy_float *)(ip2 + (i + 2) * is2));
             *((npy_float *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_float v3 = *((npy_float *)(ip1 + (i + 3) * is1));
             npy_float u3 = *((npy_float *)(ip2 + (i + 3) * is2));
             *((npy_float *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -14688,7 +14728,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (1 && 0)
 #define SCALAR_OP scalar_min_f
 
@@ -14796,22 +14836,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_float v0 = *((npy_float *)(ip1 + (i + 0) * is1));
             npy_float u0 = *((npy_float *)(ip2 + (i + 0) * is2));
             *((npy_float *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_float v1 = *((npy_float *)(ip1 + (i + 1) * is1));
             npy_float u1 = *((npy_float *)(ip2 + (i + 1) * is2));
             *((npy_float *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_float v2 = *((npy_float *)(ip1 + (i + 2) * is1));
             npy_float u2 = *((npy_float *)(ip2 + (i + 2) * is2));
             *((npy_float *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_float v3 = *((npy_float *)(ip1 + (i + 3) * is1));
             npy_float u3 = *((npy_float *)(ip2 + (i + 3) * is2));
             *((npy_float *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -14863,7 +14903,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (1 && 1)
 #define SCALAR_OP scalar_maxp_f
 
@@ -14971,22 +15011,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_float v0 = *((npy_float *)(ip1 + (i + 0) * is1));
             npy_float u0 = *((npy_float *)(ip2 + (i + 0) * is2));
             *((npy_float *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_float v1 = *((npy_float *)(ip1 + (i + 1) * is1));
             npy_float u1 = *((npy_float *)(ip2 + (i + 1) * is2));
             *((npy_float *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_float v2 = *((npy_float *)(ip1 + (i + 2) * is1));
             npy_float u2 = *((npy_float *)(ip2 + (i + 2) * is2));
             *((npy_float *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_float v3 = *((npy_float *)(ip1 + (i + 3) * is1));
             npy_float u3 = *((npy_float *)(ip2 + (i + 3) * is2));
             *((npy_float *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -15038,7 +15078,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (1 && 1)
 #define SCALAR_OP scalar_minp_f
 
@@ -15146,22 +15186,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_float v0 = *((npy_float *)(ip1 + (i + 0) * is1));
             npy_float u0 = *((npy_float *)(ip2 + (i + 0) * is2));
             *((npy_float *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_float v1 = *((npy_float *)(ip1 + (i + 1) * is1));
             npy_float u1 = *((npy_float *)(ip2 + (i + 1) * is2));
             *((npy_float *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_float v2 = *((npy_float *)(ip1 + (i + 2) * is1));
             npy_float u2 = *((npy_float *)(ip2 + (i + 2) * is2));
             *((npy_float *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_float v3 = *((npy_float *)(ip1 + (i + 3) * is1));
             npy_float u3 = *((npy_float *)(ip2 + (i + 3) * is2));
             *((npy_float *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -15214,10 +15254,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_DOUBLE == 8
     #if 1
         #define TO_SIMD_SFX(X) X##_f8
@@ -15233,7 +15273,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_DOUBLE == 16
     #if 1
         #define TO_SIMD_SFX(X) X##_f16
@@ -15249,7 +15289,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_DOUBLE == 32
     #if 1
         #define TO_SIMD_SFX(X) X##_f32
@@ -15265,7 +15305,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_DOUBLE == 64
     #if 1
         #define TO_SIMD_SFX(X) X##_f64
@@ -15283,7 +15323,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(FLOAT_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (1 && 0)
 #define SCALAR_OP scalar_max_d
 
@@ -15391,22 +15431,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_double v0 = *((npy_double *)(ip1 + (i + 0) * is1));
             npy_double u0 = *((npy_double *)(ip2 + (i + 0) * is2));
             *((npy_double *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_double v1 = *((npy_double *)(ip1 + (i + 1) * is1));
             npy_double u1 = *((npy_double *)(ip2 + (i + 1) * is2));
             *((npy_double *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_double v2 = *((npy_double *)(ip1 + (i + 2) * is1));
             npy_double u2 = *((npy_double *)(ip2 + (i + 2) * is2));
             *((npy_double *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_double v3 = *((npy_double *)(ip1 + (i + 3) * is1));
             npy_double u3 = *((npy_double *)(ip2 + (i + 3) * is2));
             *((npy_double *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -15458,7 +15498,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (1 && 0)
 #define SCALAR_OP scalar_min_d
 
@@ -15566,22 +15606,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_double v0 = *((npy_double *)(ip1 + (i + 0) * is1));
             npy_double u0 = *((npy_double *)(ip2 + (i + 0) * is2));
             *((npy_double *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_double v1 = *((npy_double *)(ip1 + (i + 1) * is1));
             npy_double u1 = *((npy_double *)(ip2 + (i + 1) * is2));
             *((npy_double *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_double v2 = *((npy_double *)(ip1 + (i + 2) * is1));
             npy_double u2 = *((npy_double *)(ip2 + (i + 2) * is2));
             *((npy_double *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_double v3 = *((npy_double *)(ip1 + (i + 3) * is1));
             npy_double u3 = *((npy_double *)(ip2 + (i + 3) * is2));
             *((npy_double *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -15633,7 +15673,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (1 && 1)
 #define SCALAR_OP scalar_maxp_d
 
@@ -15741,22 +15781,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_double v0 = *((npy_double *)(ip1 + (i + 0) * is1));
             npy_double u0 = *((npy_double *)(ip2 + (i + 0) * is2));
             *((npy_double *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_double v1 = *((npy_double *)(ip1 + (i + 1) * is1));
             npy_double u1 = *((npy_double *)(ip2 + (i + 1) * is2));
             *((npy_double *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_double v2 = *((npy_double *)(ip1 + (i + 2) * is1));
             npy_double u2 = *((npy_double *)(ip2 + (i + 2) * is2));
             *((npy_double *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_double v3 = *((npy_double *)(ip1 + (i + 3) * is1));
             npy_double u3 = *((npy_double *)(ip2 + (i + 3) * is2));
             *((npy_double *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -15808,7 +15848,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (1 && 1)
 #define SCALAR_OP scalar_minp_d
 
@@ -15916,22 +15956,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_double v0 = *((npy_double *)(ip1 + (i + 0) * is1));
             npy_double u0 = *((npy_double *)(ip2 + (i + 0) * is2));
             *((npy_double *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_double v1 = *((npy_double *)(ip1 + (i + 1) * is1));
             npy_double u1 = *((npy_double *)(ip2 + (i + 1) * is2));
             *((npy_double *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_double v2 = *((npy_double *)(ip1 + (i + 2) * is1));
             npy_double u2 = *((npy_double *)(ip2 + (i + 2) * is2));
             *((npy_double *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_double v3 = *((npy_double *)(ip1 + (i + 3) * is1));
             npy_double u3 = *((npy_double *)(ip2 + (i + 3) * is2));
             *((npy_double *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -15984,10 +16024,10 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_fmin_indexed)
 #endif // !fp_only || (is_fp && fp_only)
 
 
-#line 293
+#line 294
 #undef TO_SIMD_SFX
 #if 0
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGDOUBLE == 8
     #if 1
         #define TO_SIMD_SFX(X) X##_f8
@@ -16003,7 +16043,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGDOUBLE == 16
     #if 1
         #define TO_SIMD_SFX(X) X##_f16
@@ -16019,7 +16059,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGDOUBLE == 32
     #if 1
         #define TO_SIMD_SFX(X) X##_f32
@@ -16035,7 +16075,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_fmin_indexed)
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 298
+#line 299
 #elif NPY_SIMD && NPY_BITSOF_LONGDOUBLE == 64
     #if 1
         #define TO_SIMD_SFX(X) X##_f64
@@ -16053,7 +16093,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(DOUBLE_fmin_indexed)
 
 #endif
 
-#line 320
+#line 321
 #if !0 || (1 && 0)
 #define SCALAR_OP scalar_max_l
 
@@ -16161,22 +16201,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_maximum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_longdouble v0 = *((npy_longdouble *)(ip1 + (i + 0) * is1));
             npy_longdouble u0 = *((npy_longdouble *)(ip2 + (i + 0) * is2));
             *((npy_longdouble *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_longdouble v1 = *((npy_longdouble *)(ip1 + (i + 1) * is1));
             npy_longdouble u1 = *((npy_longdouble *)(ip2 + (i + 1) * is2));
             *((npy_longdouble *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_longdouble v2 = *((npy_longdouble *)(ip1 + (i + 2) * is1));
             npy_longdouble u2 = *((npy_longdouble *)(ip2 + (i + 2) * is2));
             *((npy_longdouble *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_longdouble v3 = *((npy_longdouble *)(ip1 + (i + 3) * is1));
             npy_longdouble u3 = *((npy_longdouble *)(ip2 + (i + 3) * is2));
             *((npy_longdouble *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -16228,7 +16268,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_maximum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !0 || (1 && 0)
 #define SCALAR_OP scalar_min_l
 
@@ -16336,22 +16376,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_minimum)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_longdouble v0 = *((npy_longdouble *)(ip1 + (i + 0) * is1));
             npy_longdouble u0 = *((npy_longdouble *)(ip2 + (i + 0) * is2));
             *((npy_longdouble *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_longdouble v1 = *((npy_longdouble *)(ip1 + (i + 1) * is1));
             npy_longdouble u1 = *((npy_longdouble *)(ip2 + (i + 1) * is2));
             *((npy_longdouble *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_longdouble v2 = *((npy_longdouble *)(ip1 + (i + 2) * is1));
             npy_longdouble u2 = *((npy_longdouble *)(ip2 + (i + 2) * is2));
             *((npy_longdouble *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_longdouble v3 = *((npy_longdouble *)(ip1 + (i + 3) * is1));
             npy_longdouble u3 = *((npy_longdouble *)(ip2 + (i + 3) * is2));
             *((npy_longdouble *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -16403,7 +16443,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_minimum_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (1 && 1)
 #define SCALAR_OP scalar_maxp_l
 
@@ -16511,22 +16551,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_fmax)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_longdouble v0 = *((npy_longdouble *)(ip1 + (i + 0) * is1));
             npy_longdouble u0 = *((npy_longdouble *)(ip2 + (i + 0) * is2));
             *((npy_longdouble *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_longdouble v1 = *((npy_longdouble *)(ip1 + (i + 1) * is1));
             npy_longdouble u1 = *((npy_longdouble *)(ip2 + (i + 1) * is2));
             *((npy_longdouble *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_longdouble v2 = *((npy_longdouble *)(ip1 + (i + 2) * is1));
             npy_longdouble u2 = *((npy_longdouble *)(ip2 + (i + 2) * is2));
             *((npy_longdouble *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_longdouble v3 = *((npy_longdouble *)(ip1 + (i + 3) * is1));
             npy_longdouble u3 = *((npy_longdouble *)(ip2 + (i + 3) * is2));
             *((npy_longdouble *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);
@@ -16578,7 +16618,7 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_fmax_indexed)
 
 #endif // !fp_only || (is_fp && fp_only)
 
-#line 320
+#line 321
 #if !1 || (1 && 1)
 #define SCALAR_OP scalar_minp_l
 
@@ -16686,22 +16726,22 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_fmin)
              * result of iteration 1.
              */
 
-            #line 430
+            #line 431
             npy_longdouble v0 = *((npy_longdouble *)(ip1 + (i + 0) * is1));
             npy_longdouble u0 = *((npy_longdouble *)(ip2 + (i + 0) * is2));
             *((npy_longdouble *)(op1 + (i + 0) * os1)) = SCALAR_OP(v0, u0);
             
-#line 430
+#line 431
             npy_longdouble v1 = *((npy_longdouble *)(ip1 + (i + 1) * is1));
             npy_longdouble u1 = *((npy_longdouble *)(ip2 + (i + 1) * is2));
             *((npy_longdouble *)(op1 + (i + 1) * os1)) = SCALAR_OP(v1, u1);
             
-#line 430
+#line 431
             npy_longdouble v2 = *((npy_longdouble *)(ip1 + (i + 2) * is1));
             npy_longdouble u2 = *((npy_longdouble *)(ip2 + (i + 2) * is2));
             *((npy_longdouble *)(op1 + (i + 2) * os1)) = SCALAR_OP(v2, u2);
             
-#line 430
+#line 431
             npy_longdouble v3 = *((npy_longdouble *)(ip1 + (i + 3) * is1));
             npy_longdouble u3 = *((npy_longdouble *)(ip2 + (i + 3) * is2));
             *((npy_longdouble *)(op1 + (i + 3) * os1)) = SCALAR_OP(v3, u3);

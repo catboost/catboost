@@ -26,8 +26,8 @@
  *   when there's no native FUSED support instead of fallback to libc
  */
 #if NPY_SIMD_FMA3  // native support
-#line 23
-#if NPY_SIMD_F64
+#line 24
+#if NPY_SIMD_F64 && 0
 /*
  * Vectorized Cody-Waite range reduction technique
  * Performs the reduction step x* = x - y*C in three steps:
@@ -46,8 +46,8 @@ simd_range_reduction_f64(npyv_f64 x, npyv_f64 y, npyv_f64 c1, npyv_f64 c2, npyv_
 }
 #endif
 
-#line 23
-#if NPY_SIMD_F32
+#line 24
+#if NPY_SIMD_F32 && 1
 /*
  * Vectorized Cody-Waite range reduction technique
  * Performs the reduction step x* = x - y*C in three steps:
@@ -66,9 +66,11 @@ simd_range_reduction_f32(npyv_f32 x, npyv_f32 y, npyv_f32 c1, npyv_f32 c2, npyv_
 }
 #endif
 
-
-#if NPY_SIMD_F64
-#line 47
+/* Disable SIMD code and revert to libm: see
+ * https://mail.python.org/archives/list/numpy-discussion@python.org/thread/C6EYZZSR4EWGVKHAZXLE7IBILRMNVK7L/
+ * for detailed discussion on this*/
+#if 0 // NPY_SIMD_F64
+#line 50
 #if defined(NPY_OS_WIN32) || defined(NPY_OS_CYGWIN)
 NPY_FINLINE npyv_f64
 #else
@@ -90,7 +92,7 @@ simd_cos_scalar_f64(npyv_f64 out, npy_uint64 cmp_bits)
     return npyv_loada_f64(out_copy);
 }
 
-#line 47
+#line 50
 #if defined(NPY_OS_WIN32) || defined(NPY_OS_CYGWIN)
 NPY_FINLINE npyv_f64
 #else
@@ -208,7 +210,7 @@ simd_sin_poly_f64(npyv_f64 r, npyv_u64 ir, npyv_u64 sign)
     return npyv_reinterpret_f64_u64(npyv_xor_u64(npyv_xor_u64(npyv_reinterpret_u64_f64(y), sign), odd));
 }
 
-#line 167
+#line 170
 NPY_FINLINE void
 simd_cos_f64(const double *src, npy_intp ssrc, double *dst, npy_intp sdst, npy_intp len)
 {
@@ -254,7 +256,7 @@ simd_cos_f64(const double *src, npy_intp ssrc, double *dst, npy_intp sdst, npy_i
     npyv_cleanup();
 }
 
-#line 167
+#line 170
 NPY_FINLINE void
 simd_sin_f64(const double *src, npy_intp ssrc, double *dst, npy_intp sdst, npy_intp len)
 {
@@ -473,7 +475,7 @@ simd_sincos_f32(const float *src, npy_intp ssrc, float *dst, npy_intp sdst,
 #endif // NPY_SIMD_FP32
 #endif // NYP_SIMD_FMA3
 
-#line 388
+#line 391
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cos)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -507,7 +509,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_cos)
 #endif
 }
 
-#line 388
+#line 391
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_sin)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -542,7 +544,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_sin)
 }
 
 
-#line 426
+#line 429
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_sin)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -572,7 +574,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_sin)
 #endif
 }
 
-#line 426
+#line 429
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_cos)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {

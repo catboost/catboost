@@ -604,6 +604,8 @@ simd_unary_nc_negative_s8(const npyv_lanetype_s8 *ip, npy_intp istride,
 #undef UNROLL
 #define UNROLL 2
 #endif
+// X86 does better with unrolled scalar for heavy non-contiguous
+#ifndef NPY_HAVE_SSE2
 static NPY_INLINE void
 simd_unary_nn_negative_s8(const npyv_lanetype_s8 *ip, npy_intp istride,
                              npyv_lanetype_s8 *op, npy_intp ostride,
@@ -614,112 +616,112 @@ simd_unary_nn_negative_s8(const npyv_lanetype_s8 *ip, npy_intp istride,
 
     // unrolled vector loop
     for (; len >= wstep; len -= wstep, ip += istride*wstep, op += ostride*wstep) {
-    #line 211
+    #line 213
     #if UNROLL > 0
         npyv_s8 v_0 = npyv_loadn_s8(ip + 0 * vstep * istride, istride);
         npyv_s8 r_0 = npyv_negative_s8(v_0);
         npyv_storen_s8(op + 0 * vstep * ostride, ostride, r_0);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 1
         npyv_s8 v_1 = npyv_loadn_s8(ip + 1 * vstep * istride, istride);
         npyv_s8 r_1 = npyv_negative_s8(v_1);
         npyv_storen_s8(op + 1 * vstep * ostride, ostride, r_1);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 2
         npyv_s8 v_2 = npyv_loadn_s8(ip + 2 * vstep * istride, istride);
         npyv_s8 r_2 = npyv_negative_s8(v_2);
         npyv_storen_s8(op + 2 * vstep * ostride, ostride, r_2);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 3
         npyv_s8 v_3 = npyv_loadn_s8(ip + 3 * vstep * istride, istride);
         npyv_s8 r_3 = npyv_negative_s8(v_3);
         npyv_storen_s8(op + 3 * vstep * ostride, ostride, r_3);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 4
         npyv_s8 v_4 = npyv_loadn_s8(ip + 4 * vstep * istride, istride);
         npyv_s8 r_4 = npyv_negative_s8(v_4);
         npyv_storen_s8(op + 4 * vstep * ostride, ostride, r_4);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 5
         npyv_s8 v_5 = npyv_loadn_s8(ip + 5 * vstep * istride, istride);
         npyv_s8 r_5 = npyv_negative_s8(v_5);
         npyv_storen_s8(op + 5 * vstep * ostride, ostride, r_5);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 6
         npyv_s8 v_6 = npyv_loadn_s8(ip + 6 * vstep * istride, istride);
         npyv_s8 r_6 = npyv_negative_s8(v_6);
         npyv_storen_s8(op + 6 * vstep * ostride, ostride, r_6);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 7
         npyv_s8 v_7 = npyv_loadn_s8(ip + 7 * vstep * istride, istride);
         npyv_s8 r_7 = npyv_negative_s8(v_7);
         npyv_storen_s8(op + 7 * vstep * ostride, ostride, r_7);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 8
         npyv_s8 v_8 = npyv_loadn_s8(ip + 8 * vstep * istride, istride);
         npyv_s8 r_8 = npyv_negative_s8(v_8);
         npyv_storen_s8(op + 8 * vstep * ostride, ostride, r_8);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 9
         npyv_s8 v_9 = npyv_loadn_s8(ip + 9 * vstep * istride, istride);
         npyv_s8 r_9 = npyv_negative_s8(v_9);
         npyv_storen_s8(op + 9 * vstep * ostride, ostride, r_9);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 10
         npyv_s8 v_10 = npyv_loadn_s8(ip + 10 * vstep * istride, istride);
         npyv_s8 r_10 = npyv_negative_s8(v_10);
         npyv_storen_s8(op + 10 * vstep * ostride, ostride, r_10);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 11
         npyv_s8 v_11 = npyv_loadn_s8(ip + 11 * vstep * istride, istride);
         npyv_s8 r_11 = npyv_negative_s8(v_11);
         npyv_storen_s8(op + 11 * vstep * ostride, ostride, r_11);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 12
         npyv_s8 v_12 = npyv_loadn_s8(ip + 12 * vstep * istride, istride);
         npyv_s8 r_12 = npyv_negative_s8(v_12);
         npyv_storen_s8(op + 12 * vstep * ostride, ostride, r_12);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 13
         npyv_s8 v_13 = npyv_loadn_s8(ip + 13 * vstep * istride, istride);
         npyv_s8 r_13 = npyv_negative_s8(v_13);
         npyv_storen_s8(op + 13 * vstep * ostride, ostride, r_13);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 14
         npyv_s8 v_14 = npyv_loadn_s8(ip + 14 * vstep * istride, istride);
         npyv_s8 r_14 = npyv_negative_s8(v_14);
         npyv_storen_s8(op + 14 * vstep * ostride, ostride, r_14);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 15
         npyv_s8 v_15 = npyv_loadn_s8(ip + 15 * vstep * istride, istride);
         npyv_s8 r_15 = npyv_negative_s8(v_15);
@@ -738,6 +740,7 @@ simd_unary_nn_negative_s8(const npyv_lanetype_s8 *ip, npy_intp istride,
         *op = scalar_negative(*ip);
     }
 }
+#endif // NPY_HAVE_SSE2
 #endif // 0
 #undef UNROLL
 #endif // NPY_SIMD
@@ -1167,6 +1170,8 @@ simd_unary_nc_negative_u8(const npyv_lanetype_u8 *ip, npy_intp istride,
 #undef UNROLL
 #define UNROLL 2
 #endif
+// X86 does better with unrolled scalar for heavy non-contiguous
+#ifndef NPY_HAVE_SSE2
 static NPY_INLINE void
 simd_unary_nn_negative_u8(const npyv_lanetype_u8 *ip, npy_intp istride,
                              npyv_lanetype_u8 *op, npy_intp ostride,
@@ -1177,112 +1182,112 @@ simd_unary_nn_negative_u8(const npyv_lanetype_u8 *ip, npy_intp istride,
 
     // unrolled vector loop
     for (; len >= wstep; len -= wstep, ip += istride*wstep, op += ostride*wstep) {
-    #line 211
+    #line 213
     #if UNROLL > 0
         npyv_u8 v_0 = npyv_loadn_u8(ip + 0 * vstep * istride, istride);
         npyv_u8 r_0 = npyv_negative_u8(v_0);
         npyv_storen_u8(op + 0 * vstep * ostride, ostride, r_0);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 1
         npyv_u8 v_1 = npyv_loadn_u8(ip + 1 * vstep * istride, istride);
         npyv_u8 r_1 = npyv_negative_u8(v_1);
         npyv_storen_u8(op + 1 * vstep * ostride, ostride, r_1);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 2
         npyv_u8 v_2 = npyv_loadn_u8(ip + 2 * vstep * istride, istride);
         npyv_u8 r_2 = npyv_negative_u8(v_2);
         npyv_storen_u8(op + 2 * vstep * ostride, ostride, r_2);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 3
         npyv_u8 v_3 = npyv_loadn_u8(ip + 3 * vstep * istride, istride);
         npyv_u8 r_3 = npyv_negative_u8(v_3);
         npyv_storen_u8(op + 3 * vstep * ostride, ostride, r_3);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 4
         npyv_u8 v_4 = npyv_loadn_u8(ip + 4 * vstep * istride, istride);
         npyv_u8 r_4 = npyv_negative_u8(v_4);
         npyv_storen_u8(op + 4 * vstep * ostride, ostride, r_4);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 5
         npyv_u8 v_5 = npyv_loadn_u8(ip + 5 * vstep * istride, istride);
         npyv_u8 r_5 = npyv_negative_u8(v_5);
         npyv_storen_u8(op + 5 * vstep * ostride, ostride, r_5);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 6
         npyv_u8 v_6 = npyv_loadn_u8(ip + 6 * vstep * istride, istride);
         npyv_u8 r_6 = npyv_negative_u8(v_6);
         npyv_storen_u8(op + 6 * vstep * ostride, ostride, r_6);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 7
         npyv_u8 v_7 = npyv_loadn_u8(ip + 7 * vstep * istride, istride);
         npyv_u8 r_7 = npyv_negative_u8(v_7);
         npyv_storen_u8(op + 7 * vstep * ostride, ostride, r_7);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 8
         npyv_u8 v_8 = npyv_loadn_u8(ip + 8 * vstep * istride, istride);
         npyv_u8 r_8 = npyv_negative_u8(v_8);
         npyv_storen_u8(op + 8 * vstep * ostride, ostride, r_8);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 9
         npyv_u8 v_9 = npyv_loadn_u8(ip + 9 * vstep * istride, istride);
         npyv_u8 r_9 = npyv_negative_u8(v_9);
         npyv_storen_u8(op + 9 * vstep * ostride, ostride, r_9);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 10
         npyv_u8 v_10 = npyv_loadn_u8(ip + 10 * vstep * istride, istride);
         npyv_u8 r_10 = npyv_negative_u8(v_10);
         npyv_storen_u8(op + 10 * vstep * ostride, ostride, r_10);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 11
         npyv_u8 v_11 = npyv_loadn_u8(ip + 11 * vstep * istride, istride);
         npyv_u8 r_11 = npyv_negative_u8(v_11);
         npyv_storen_u8(op + 11 * vstep * ostride, ostride, r_11);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 12
         npyv_u8 v_12 = npyv_loadn_u8(ip + 12 * vstep * istride, istride);
         npyv_u8 r_12 = npyv_negative_u8(v_12);
         npyv_storen_u8(op + 12 * vstep * ostride, ostride, r_12);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 13
         npyv_u8 v_13 = npyv_loadn_u8(ip + 13 * vstep * istride, istride);
         npyv_u8 r_13 = npyv_negative_u8(v_13);
         npyv_storen_u8(op + 13 * vstep * ostride, ostride, r_13);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 14
         npyv_u8 v_14 = npyv_loadn_u8(ip + 14 * vstep * istride, istride);
         npyv_u8 r_14 = npyv_negative_u8(v_14);
         npyv_storen_u8(op + 14 * vstep * ostride, ostride, r_14);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 15
         npyv_u8 v_15 = npyv_loadn_u8(ip + 15 * vstep * istride, istride);
         npyv_u8 r_15 = npyv_negative_u8(v_15);
@@ -1301,6 +1306,7 @@ simd_unary_nn_negative_u8(const npyv_lanetype_u8 *ip, npy_intp istride,
         *op = scalar_negative(*ip);
     }
 }
+#endif // NPY_HAVE_SSE2
 #endif // 0
 #undef UNROLL
 #endif // NPY_SIMD
@@ -1730,6 +1736,8 @@ simd_unary_nc_negative_s16(const npyv_lanetype_s16 *ip, npy_intp istride,
 #undef UNROLL
 #define UNROLL 2
 #endif
+// X86 does better with unrolled scalar for heavy non-contiguous
+#ifndef NPY_HAVE_SSE2
 static NPY_INLINE void
 simd_unary_nn_negative_s16(const npyv_lanetype_s16 *ip, npy_intp istride,
                              npyv_lanetype_s16 *op, npy_intp ostride,
@@ -1740,112 +1748,112 @@ simd_unary_nn_negative_s16(const npyv_lanetype_s16 *ip, npy_intp istride,
 
     // unrolled vector loop
     for (; len >= wstep; len -= wstep, ip += istride*wstep, op += ostride*wstep) {
-    #line 211
+    #line 213
     #if UNROLL > 0
         npyv_s16 v_0 = npyv_loadn_s16(ip + 0 * vstep * istride, istride);
         npyv_s16 r_0 = npyv_negative_s16(v_0);
         npyv_storen_s16(op + 0 * vstep * ostride, ostride, r_0);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 1
         npyv_s16 v_1 = npyv_loadn_s16(ip + 1 * vstep * istride, istride);
         npyv_s16 r_1 = npyv_negative_s16(v_1);
         npyv_storen_s16(op + 1 * vstep * ostride, ostride, r_1);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 2
         npyv_s16 v_2 = npyv_loadn_s16(ip + 2 * vstep * istride, istride);
         npyv_s16 r_2 = npyv_negative_s16(v_2);
         npyv_storen_s16(op + 2 * vstep * ostride, ostride, r_2);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 3
         npyv_s16 v_3 = npyv_loadn_s16(ip + 3 * vstep * istride, istride);
         npyv_s16 r_3 = npyv_negative_s16(v_3);
         npyv_storen_s16(op + 3 * vstep * ostride, ostride, r_3);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 4
         npyv_s16 v_4 = npyv_loadn_s16(ip + 4 * vstep * istride, istride);
         npyv_s16 r_4 = npyv_negative_s16(v_4);
         npyv_storen_s16(op + 4 * vstep * ostride, ostride, r_4);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 5
         npyv_s16 v_5 = npyv_loadn_s16(ip + 5 * vstep * istride, istride);
         npyv_s16 r_5 = npyv_negative_s16(v_5);
         npyv_storen_s16(op + 5 * vstep * ostride, ostride, r_5);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 6
         npyv_s16 v_6 = npyv_loadn_s16(ip + 6 * vstep * istride, istride);
         npyv_s16 r_6 = npyv_negative_s16(v_6);
         npyv_storen_s16(op + 6 * vstep * ostride, ostride, r_6);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 7
         npyv_s16 v_7 = npyv_loadn_s16(ip + 7 * vstep * istride, istride);
         npyv_s16 r_7 = npyv_negative_s16(v_7);
         npyv_storen_s16(op + 7 * vstep * ostride, ostride, r_7);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 8
         npyv_s16 v_8 = npyv_loadn_s16(ip + 8 * vstep * istride, istride);
         npyv_s16 r_8 = npyv_negative_s16(v_8);
         npyv_storen_s16(op + 8 * vstep * ostride, ostride, r_8);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 9
         npyv_s16 v_9 = npyv_loadn_s16(ip + 9 * vstep * istride, istride);
         npyv_s16 r_9 = npyv_negative_s16(v_9);
         npyv_storen_s16(op + 9 * vstep * ostride, ostride, r_9);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 10
         npyv_s16 v_10 = npyv_loadn_s16(ip + 10 * vstep * istride, istride);
         npyv_s16 r_10 = npyv_negative_s16(v_10);
         npyv_storen_s16(op + 10 * vstep * ostride, ostride, r_10);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 11
         npyv_s16 v_11 = npyv_loadn_s16(ip + 11 * vstep * istride, istride);
         npyv_s16 r_11 = npyv_negative_s16(v_11);
         npyv_storen_s16(op + 11 * vstep * ostride, ostride, r_11);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 12
         npyv_s16 v_12 = npyv_loadn_s16(ip + 12 * vstep * istride, istride);
         npyv_s16 r_12 = npyv_negative_s16(v_12);
         npyv_storen_s16(op + 12 * vstep * ostride, ostride, r_12);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 13
         npyv_s16 v_13 = npyv_loadn_s16(ip + 13 * vstep * istride, istride);
         npyv_s16 r_13 = npyv_negative_s16(v_13);
         npyv_storen_s16(op + 13 * vstep * ostride, ostride, r_13);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 14
         npyv_s16 v_14 = npyv_loadn_s16(ip + 14 * vstep * istride, istride);
         npyv_s16 r_14 = npyv_negative_s16(v_14);
         npyv_storen_s16(op + 14 * vstep * ostride, ostride, r_14);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 15
         npyv_s16 v_15 = npyv_loadn_s16(ip + 15 * vstep * istride, istride);
         npyv_s16 r_15 = npyv_negative_s16(v_15);
@@ -1864,6 +1872,7 @@ simd_unary_nn_negative_s16(const npyv_lanetype_s16 *ip, npy_intp istride,
         *op = scalar_negative(*ip);
     }
 }
+#endif // NPY_HAVE_SSE2
 #endif // 0
 #undef UNROLL
 #endif // NPY_SIMD
@@ -2293,6 +2302,8 @@ simd_unary_nc_negative_u16(const npyv_lanetype_u16 *ip, npy_intp istride,
 #undef UNROLL
 #define UNROLL 2
 #endif
+// X86 does better with unrolled scalar for heavy non-contiguous
+#ifndef NPY_HAVE_SSE2
 static NPY_INLINE void
 simd_unary_nn_negative_u16(const npyv_lanetype_u16 *ip, npy_intp istride,
                              npyv_lanetype_u16 *op, npy_intp ostride,
@@ -2303,112 +2314,112 @@ simd_unary_nn_negative_u16(const npyv_lanetype_u16 *ip, npy_intp istride,
 
     // unrolled vector loop
     for (; len >= wstep; len -= wstep, ip += istride*wstep, op += ostride*wstep) {
-    #line 211
+    #line 213
     #if UNROLL > 0
         npyv_u16 v_0 = npyv_loadn_u16(ip + 0 * vstep * istride, istride);
         npyv_u16 r_0 = npyv_negative_u16(v_0);
         npyv_storen_u16(op + 0 * vstep * ostride, ostride, r_0);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 1
         npyv_u16 v_1 = npyv_loadn_u16(ip + 1 * vstep * istride, istride);
         npyv_u16 r_1 = npyv_negative_u16(v_1);
         npyv_storen_u16(op + 1 * vstep * ostride, ostride, r_1);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 2
         npyv_u16 v_2 = npyv_loadn_u16(ip + 2 * vstep * istride, istride);
         npyv_u16 r_2 = npyv_negative_u16(v_2);
         npyv_storen_u16(op + 2 * vstep * ostride, ostride, r_2);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 3
         npyv_u16 v_3 = npyv_loadn_u16(ip + 3 * vstep * istride, istride);
         npyv_u16 r_3 = npyv_negative_u16(v_3);
         npyv_storen_u16(op + 3 * vstep * ostride, ostride, r_3);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 4
         npyv_u16 v_4 = npyv_loadn_u16(ip + 4 * vstep * istride, istride);
         npyv_u16 r_4 = npyv_negative_u16(v_4);
         npyv_storen_u16(op + 4 * vstep * ostride, ostride, r_4);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 5
         npyv_u16 v_5 = npyv_loadn_u16(ip + 5 * vstep * istride, istride);
         npyv_u16 r_5 = npyv_negative_u16(v_5);
         npyv_storen_u16(op + 5 * vstep * ostride, ostride, r_5);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 6
         npyv_u16 v_6 = npyv_loadn_u16(ip + 6 * vstep * istride, istride);
         npyv_u16 r_6 = npyv_negative_u16(v_6);
         npyv_storen_u16(op + 6 * vstep * ostride, ostride, r_6);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 7
         npyv_u16 v_7 = npyv_loadn_u16(ip + 7 * vstep * istride, istride);
         npyv_u16 r_7 = npyv_negative_u16(v_7);
         npyv_storen_u16(op + 7 * vstep * ostride, ostride, r_7);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 8
         npyv_u16 v_8 = npyv_loadn_u16(ip + 8 * vstep * istride, istride);
         npyv_u16 r_8 = npyv_negative_u16(v_8);
         npyv_storen_u16(op + 8 * vstep * ostride, ostride, r_8);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 9
         npyv_u16 v_9 = npyv_loadn_u16(ip + 9 * vstep * istride, istride);
         npyv_u16 r_9 = npyv_negative_u16(v_9);
         npyv_storen_u16(op + 9 * vstep * ostride, ostride, r_9);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 10
         npyv_u16 v_10 = npyv_loadn_u16(ip + 10 * vstep * istride, istride);
         npyv_u16 r_10 = npyv_negative_u16(v_10);
         npyv_storen_u16(op + 10 * vstep * ostride, ostride, r_10);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 11
         npyv_u16 v_11 = npyv_loadn_u16(ip + 11 * vstep * istride, istride);
         npyv_u16 r_11 = npyv_negative_u16(v_11);
         npyv_storen_u16(op + 11 * vstep * ostride, ostride, r_11);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 12
         npyv_u16 v_12 = npyv_loadn_u16(ip + 12 * vstep * istride, istride);
         npyv_u16 r_12 = npyv_negative_u16(v_12);
         npyv_storen_u16(op + 12 * vstep * ostride, ostride, r_12);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 13
         npyv_u16 v_13 = npyv_loadn_u16(ip + 13 * vstep * istride, istride);
         npyv_u16 r_13 = npyv_negative_u16(v_13);
         npyv_storen_u16(op + 13 * vstep * ostride, ostride, r_13);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 14
         npyv_u16 v_14 = npyv_loadn_u16(ip + 14 * vstep * istride, istride);
         npyv_u16 r_14 = npyv_negative_u16(v_14);
         npyv_storen_u16(op + 14 * vstep * ostride, ostride, r_14);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 15
         npyv_u16 v_15 = npyv_loadn_u16(ip + 15 * vstep * istride, istride);
         npyv_u16 r_15 = npyv_negative_u16(v_15);
@@ -2427,6 +2438,7 @@ simd_unary_nn_negative_u16(const npyv_lanetype_u16 *ip, npy_intp istride,
         *op = scalar_negative(*ip);
     }
 }
+#endif // NPY_HAVE_SSE2
 #endif // 0
 #undef UNROLL
 #endif // NPY_SIMD
@@ -2856,6 +2868,8 @@ simd_unary_nc_negative_s32(const npyv_lanetype_s32 *ip, npy_intp istride,
 #undef UNROLL
 #define UNROLL 2
 #endif
+// X86 does better with unrolled scalar for heavy non-contiguous
+#ifndef NPY_HAVE_SSE2
 static NPY_INLINE void
 simd_unary_nn_negative_s32(const npyv_lanetype_s32 *ip, npy_intp istride,
                              npyv_lanetype_s32 *op, npy_intp ostride,
@@ -2866,112 +2880,112 @@ simd_unary_nn_negative_s32(const npyv_lanetype_s32 *ip, npy_intp istride,
 
     // unrolled vector loop
     for (; len >= wstep; len -= wstep, ip += istride*wstep, op += ostride*wstep) {
-    #line 211
+    #line 213
     #if UNROLL > 0
         npyv_s32 v_0 = npyv_loadn_s32(ip + 0 * vstep * istride, istride);
         npyv_s32 r_0 = npyv_negative_s32(v_0);
         npyv_storen_s32(op + 0 * vstep * ostride, ostride, r_0);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 1
         npyv_s32 v_1 = npyv_loadn_s32(ip + 1 * vstep * istride, istride);
         npyv_s32 r_1 = npyv_negative_s32(v_1);
         npyv_storen_s32(op + 1 * vstep * ostride, ostride, r_1);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 2
         npyv_s32 v_2 = npyv_loadn_s32(ip + 2 * vstep * istride, istride);
         npyv_s32 r_2 = npyv_negative_s32(v_2);
         npyv_storen_s32(op + 2 * vstep * ostride, ostride, r_2);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 3
         npyv_s32 v_3 = npyv_loadn_s32(ip + 3 * vstep * istride, istride);
         npyv_s32 r_3 = npyv_negative_s32(v_3);
         npyv_storen_s32(op + 3 * vstep * ostride, ostride, r_3);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 4
         npyv_s32 v_4 = npyv_loadn_s32(ip + 4 * vstep * istride, istride);
         npyv_s32 r_4 = npyv_negative_s32(v_4);
         npyv_storen_s32(op + 4 * vstep * ostride, ostride, r_4);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 5
         npyv_s32 v_5 = npyv_loadn_s32(ip + 5 * vstep * istride, istride);
         npyv_s32 r_5 = npyv_negative_s32(v_5);
         npyv_storen_s32(op + 5 * vstep * ostride, ostride, r_5);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 6
         npyv_s32 v_6 = npyv_loadn_s32(ip + 6 * vstep * istride, istride);
         npyv_s32 r_6 = npyv_negative_s32(v_6);
         npyv_storen_s32(op + 6 * vstep * ostride, ostride, r_6);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 7
         npyv_s32 v_7 = npyv_loadn_s32(ip + 7 * vstep * istride, istride);
         npyv_s32 r_7 = npyv_negative_s32(v_7);
         npyv_storen_s32(op + 7 * vstep * ostride, ostride, r_7);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 8
         npyv_s32 v_8 = npyv_loadn_s32(ip + 8 * vstep * istride, istride);
         npyv_s32 r_8 = npyv_negative_s32(v_8);
         npyv_storen_s32(op + 8 * vstep * ostride, ostride, r_8);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 9
         npyv_s32 v_9 = npyv_loadn_s32(ip + 9 * vstep * istride, istride);
         npyv_s32 r_9 = npyv_negative_s32(v_9);
         npyv_storen_s32(op + 9 * vstep * ostride, ostride, r_9);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 10
         npyv_s32 v_10 = npyv_loadn_s32(ip + 10 * vstep * istride, istride);
         npyv_s32 r_10 = npyv_negative_s32(v_10);
         npyv_storen_s32(op + 10 * vstep * ostride, ostride, r_10);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 11
         npyv_s32 v_11 = npyv_loadn_s32(ip + 11 * vstep * istride, istride);
         npyv_s32 r_11 = npyv_negative_s32(v_11);
         npyv_storen_s32(op + 11 * vstep * ostride, ostride, r_11);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 12
         npyv_s32 v_12 = npyv_loadn_s32(ip + 12 * vstep * istride, istride);
         npyv_s32 r_12 = npyv_negative_s32(v_12);
         npyv_storen_s32(op + 12 * vstep * ostride, ostride, r_12);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 13
         npyv_s32 v_13 = npyv_loadn_s32(ip + 13 * vstep * istride, istride);
         npyv_s32 r_13 = npyv_negative_s32(v_13);
         npyv_storen_s32(op + 13 * vstep * ostride, ostride, r_13);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 14
         npyv_s32 v_14 = npyv_loadn_s32(ip + 14 * vstep * istride, istride);
         npyv_s32 r_14 = npyv_negative_s32(v_14);
         npyv_storen_s32(op + 14 * vstep * ostride, ostride, r_14);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 15
         npyv_s32 v_15 = npyv_loadn_s32(ip + 15 * vstep * istride, istride);
         npyv_s32 r_15 = npyv_negative_s32(v_15);
@@ -2990,6 +3004,7 @@ simd_unary_nn_negative_s32(const npyv_lanetype_s32 *ip, npy_intp istride,
         *op = scalar_negative(*ip);
     }
 }
+#endif // NPY_HAVE_SSE2
 #endif // 1
 #undef UNROLL
 #endif // NPY_SIMD
@@ -3419,6 +3434,8 @@ simd_unary_nc_negative_u32(const npyv_lanetype_u32 *ip, npy_intp istride,
 #undef UNROLL
 #define UNROLL 2
 #endif
+// X86 does better with unrolled scalar for heavy non-contiguous
+#ifndef NPY_HAVE_SSE2
 static NPY_INLINE void
 simd_unary_nn_negative_u32(const npyv_lanetype_u32 *ip, npy_intp istride,
                              npyv_lanetype_u32 *op, npy_intp ostride,
@@ -3429,112 +3446,112 @@ simd_unary_nn_negative_u32(const npyv_lanetype_u32 *ip, npy_intp istride,
 
     // unrolled vector loop
     for (; len >= wstep; len -= wstep, ip += istride*wstep, op += ostride*wstep) {
-    #line 211
+    #line 213
     #if UNROLL > 0
         npyv_u32 v_0 = npyv_loadn_u32(ip + 0 * vstep * istride, istride);
         npyv_u32 r_0 = npyv_negative_u32(v_0);
         npyv_storen_u32(op + 0 * vstep * ostride, ostride, r_0);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 1
         npyv_u32 v_1 = npyv_loadn_u32(ip + 1 * vstep * istride, istride);
         npyv_u32 r_1 = npyv_negative_u32(v_1);
         npyv_storen_u32(op + 1 * vstep * ostride, ostride, r_1);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 2
         npyv_u32 v_2 = npyv_loadn_u32(ip + 2 * vstep * istride, istride);
         npyv_u32 r_2 = npyv_negative_u32(v_2);
         npyv_storen_u32(op + 2 * vstep * ostride, ostride, r_2);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 3
         npyv_u32 v_3 = npyv_loadn_u32(ip + 3 * vstep * istride, istride);
         npyv_u32 r_3 = npyv_negative_u32(v_3);
         npyv_storen_u32(op + 3 * vstep * ostride, ostride, r_3);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 4
         npyv_u32 v_4 = npyv_loadn_u32(ip + 4 * vstep * istride, istride);
         npyv_u32 r_4 = npyv_negative_u32(v_4);
         npyv_storen_u32(op + 4 * vstep * ostride, ostride, r_4);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 5
         npyv_u32 v_5 = npyv_loadn_u32(ip + 5 * vstep * istride, istride);
         npyv_u32 r_5 = npyv_negative_u32(v_5);
         npyv_storen_u32(op + 5 * vstep * ostride, ostride, r_5);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 6
         npyv_u32 v_6 = npyv_loadn_u32(ip + 6 * vstep * istride, istride);
         npyv_u32 r_6 = npyv_negative_u32(v_6);
         npyv_storen_u32(op + 6 * vstep * ostride, ostride, r_6);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 7
         npyv_u32 v_7 = npyv_loadn_u32(ip + 7 * vstep * istride, istride);
         npyv_u32 r_7 = npyv_negative_u32(v_7);
         npyv_storen_u32(op + 7 * vstep * ostride, ostride, r_7);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 8
         npyv_u32 v_8 = npyv_loadn_u32(ip + 8 * vstep * istride, istride);
         npyv_u32 r_8 = npyv_negative_u32(v_8);
         npyv_storen_u32(op + 8 * vstep * ostride, ostride, r_8);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 9
         npyv_u32 v_9 = npyv_loadn_u32(ip + 9 * vstep * istride, istride);
         npyv_u32 r_9 = npyv_negative_u32(v_9);
         npyv_storen_u32(op + 9 * vstep * ostride, ostride, r_9);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 10
         npyv_u32 v_10 = npyv_loadn_u32(ip + 10 * vstep * istride, istride);
         npyv_u32 r_10 = npyv_negative_u32(v_10);
         npyv_storen_u32(op + 10 * vstep * ostride, ostride, r_10);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 11
         npyv_u32 v_11 = npyv_loadn_u32(ip + 11 * vstep * istride, istride);
         npyv_u32 r_11 = npyv_negative_u32(v_11);
         npyv_storen_u32(op + 11 * vstep * ostride, ostride, r_11);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 12
         npyv_u32 v_12 = npyv_loadn_u32(ip + 12 * vstep * istride, istride);
         npyv_u32 r_12 = npyv_negative_u32(v_12);
         npyv_storen_u32(op + 12 * vstep * ostride, ostride, r_12);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 13
         npyv_u32 v_13 = npyv_loadn_u32(ip + 13 * vstep * istride, istride);
         npyv_u32 r_13 = npyv_negative_u32(v_13);
         npyv_storen_u32(op + 13 * vstep * ostride, ostride, r_13);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 14
         npyv_u32 v_14 = npyv_loadn_u32(ip + 14 * vstep * istride, istride);
         npyv_u32 r_14 = npyv_negative_u32(v_14);
         npyv_storen_u32(op + 14 * vstep * ostride, ostride, r_14);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 15
         npyv_u32 v_15 = npyv_loadn_u32(ip + 15 * vstep * istride, istride);
         npyv_u32 r_15 = npyv_negative_u32(v_15);
@@ -3553,6 +3570,7 @@ simd_unary_nn_negative_u32(const npyv_lanetype_u32 *ip, npy_intp istride,
         *op = scalar_negative(*ip);
     }
 }
+#endif // NPY_HAVE_SSE2
 #endif // 1
 #undef UNROLL
 #endif // NPY_SIMD
@@ -3982,6 +4000,8 @@ simd_unary_nc_negative_s64(const npyv_lanetype_s64 *ip, npy_intp istride,
 #undef UNROLL
 #define UNROLL 2
 #endif
+// X86 does better with unrolled scalar for heavy non-contiguous
+#ifndef NPY_HAVE_SSE2
 static NPY_INLINE void
 simd_unary_nn_negative_s64(const npyv_lanetype_s64 *ip, npy_intp istride,
                              npyv_lanetype_s64 *op, npy_intp ostride,
@@ -3992,112 +4012,112 @@ simd_unary_nn_negative_s64(const npyv_lanetype_s64 *ip, npy_intp istride,
 
     // unrolled vector loop
     for (; len >= wstep; len -= wstep, ip += istride*wstep, op += ostride*wstep) {
-    #line 211
+    #line 213
     #if UNROLL > 0
         npyv_s64 v_0 = npyv_loadn_s64(ip + 0 * vstep * istride, istride);
         npyv_s64 r_0 = npyv_negative_s64(v_0);
         npyv_storen_s64(op + 0 * vstep * ostride, ostride, r_0);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 1
         npyv_s64 v_1 = npyv_loadn_s64(ip + 1 * vstep * istride, istride);
         npyv_s64 r_1 = npyv_negative_s64(v_1);
         npyv_storen_s64(op + 1 * vstep * ostride, ostride, r_1);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 2
         npyv_s64 v_2 = npyv_loadn_s64(ip + 2 * vstep * istride, istride);
         npyv_s64 r_2 = npyv_negative_s64(v_2);
         npyv_storen_s64(op + 2 * vstep * ostride, ostride, r_2);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 3
         npyv_s64 v_3 = npyv_loadn_s64(ip + 3 * vstep * istride, istride);
         npyv_s64 r_3 = npyv_negative_s64(v_3);
         npyv_storen_s64(op + 3 * vstep * ostride, ostride, r_3);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 4
         npyv_s64 v_4 = npyv_loadn_s64(ip + 4 * vstep * istride, istride);
         npyv_s64 r_4 = npyv_negative_s64(v_4);
         npyv_storen_s64(op + 4 * vstep * ostride, ostride, r_4);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 5
         npyv_s64 v_5 = npyv_loadn_s64(ip + 5 * vstep * istride, istride);
         npyv_s64 r_5 = npyv_negative_s64(v_5);
         npyv_storen_s64(op + 5 * vstep * ostride, ostride, r_5);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 6
         npyv_s64 v_6 = npyv_loadn_s64(ip + 6 * vstep * istride, istride);
         npyv_s64 r_6 = npyv_negative_s64(v_6);
         npyv_storen_s64(op + 6 * vstep * ostride, ostride, r_6);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 7
         npyv_s64 v_7 = npyv_loadn_s64(ip + 7 * vstep * istride, istride);
         npyv_s64 r_7 = npyv_negative_s64(v_7);
         npyv_storen_s64(op + 7 * vstep * ostride, ostride, r_7);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 8
         npyv_s64 v_8 = npyv_loadn_s64(ip + 8 * vstep * istride, istride);
         npyv_s64 r_8 = npyv_negative_s64(v_8);
         npyv_storen_s64(op + 8 * vstep * ostride, ostride, r_8);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 9
         npyv_s64 v_9 = npyv_loadn_s64(ip + 9 * vstep * istride, istride);
         npyv_s64 r_9 = npyv_negative_s64(v_9);
         npyv_storen_s64(op + 9 * vstep * ostride, ostride, r_9);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 10
         npyv_s64 v_10 = npyv_loadn_s64(ip + 10 * vstep * istride, istride);
         npyv_s64 r_10 = npyv_negative_s64(v_10);
         npyv_storen_s64(op + 10 * vstep * ostride, ostride, r_10);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 11
         npyv_s64 v_11 = npyv_loadn_s64(ip + 11 * vstep * istride, istride);
         npyv_s64 r_11 = npyv_negative_s64(v_11);
         npyv_storen_s64(op + 11 * vstep * ostride, ostride, r_11);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 12
         npyv_s64 v_12 = npyv_loadn_s64(ip + 12 * vstep * istride, istride);
         npyv_s64 r_12 = npyv_negative_s64(v_12);
         npyv_storen_s64(op + 12 * vstep * ostride, ostride, r_12);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 13
         npyv_s64 v_13 = npyv_loadn_s64(ip + 13 * vstep * istride, istride);
         npyv_s64 r_13 = npyv_negative_s64(v_13);
         npyv_storen_s64(op + 13 * vstep * ostride, ostride, r_13);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 14
         npyv_s64 v_14 = npyv_loadn_s64(ip + 14 * vstep * istride, istride);
         npyv_s64 r_14 = npyv_negative_s64(v_14);
         npyv_storen_s64(op + 14 * vstep * ostride, ostride, r_14);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 15
         npyv_s64 v_15 = npyv_loadn_s64(ip + 15 * vstep * istride, istride);
         npyv_s64 r_15 = npyv_negative_s64(v_15);
@@ -4116,6 +4136,7 @@ simd_unary_nn_negative_s64(const npyv_lanetype_s64 *ip, npy_intp istride,
         *op = scalar_negative(*ip);
     }
 }
+#endif // NPY_HAVE_SSE2
 #endif // 1
 #undef UNROLL
 #endif // NPY_SIMD
@@ -4545,6 +4566,8 @@ simd_unary_nc_negative_u64(const npyv_lanetype_u64 *ip, npy_intp istride,
 #undef UNROLL
 #define UNROLL 2
 #endif
+// X86 does better with unrolled scalar for heavy non-contiguous
+#ifndef NPY_HAVE_SSE2
 static NPY_INLINE void
 simd_unary_nn_negative_u64(const npyv_lanetype_u64 *ip, npy_intp istride,
                              npyv_lanetype_u64 *op, npy_intp ostride,
@@ -4555,112 +4578,112 @@ simd_unary_nn_negative_u64(const npyv_lanetype_u64 *ip, npy_intp istride,
 
     // unrolled vector loop
     for (; len >= wstep; len -= wstep, ip += istride*wstep, op += ostride*wstep) {
-    #line 211
+    #line 213
     #if UNROLL > 0
         npyv_u64 v_0 = npyv_loadn_u64(ip + 0 * vstep * istride, istride);
         npyv_u64 r_0 = npyv_negative_u64(v_0);
         npyv_storen_u64(op + 0 * vstep * ostride, ostride, r_0);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 1
         npyv_u64 v_1 = npyv_loadn_u64(ip + 1 * vstep * istride, istride);
         npyv_u64 r_1 = npyv_negative_u64(v_1);
         npyv_storen_u64(op + 1 * vstep * ostride, ostride, r_1);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 2
         npyv_u64 v_2 = npyv_loadn_u64(ip + 2 * vstep * istride, istride);
         npyv_u64 r_2 = npyv_negative_u64(v_2);
         npyv_storen_u64(op + 2 * vstep * ostride, ostride, r_2);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 3
         npyv_u64 v_3 = npyv_loadn_u64(ip + 3 * vstep * istride, istride);
         npyv_u64 r_3 = npyv_negative_u64(v_3);
         npyv_storen_u64(op + 3 * vstep * ostride, ostride, r_3);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 4
         npyv_u64 v_4 = npyv_loadn_u64(ip + 4 * vstep * istride, istride);
         npyv_u64 r_4 = npyv_negative_u64(v_4);
         npyv_storen_u64(op + 4 * vstep * ostride, ostride, r_4);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 5
         npyv_u64 v_5 = npyv_loadn_u64(ip + 5 * vstep * istride, istride);
         npyv_u64 r_5 = npyv_negative_u64(v_5);
         npyv_storen_u64(op + 5 * vstep * ostride, ostride, r_5);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 6
         npyv_u64 v_6 = npyv_loadn_u64(ip + 6 * vstep * istride, istride);
         npyv_u64 r_6 = npyv_negative_u64(v_6);
         npyv_storen_u64(op + 6 * vstep * ostride, ostride, r_6);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 7
         npyv_u64 v_7 = npyv_loadn_u64(ip + 7 * vstep * istride, istride);
         npyv_u64 r_7 = npyv_negative_u64(v_7);
         npyv_storen_u64(op + 7 * vstep * ostride, ostride, r_7);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 8
         npyv_u64 v_8 = npyv_loadn_u64(ip + 8 * vstep * istride, istride);
         npyv_u64 r_8 = npyv_negative_u64(v_8);
         npyv_storen_u64(op + 8 * vstep * ostride, ostride, r_8);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 9
         npyv_u64 v_9 = npyv_loadn_u64(ip + 9 * vstep * istride, istride);
         npyv_u64 r_9 = npyv_negative_u64(v_9);
         npyv_storen_u64(op + 9 * vstep * ostride, ostride, r_9);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 10
         npyv_u64 v_10 = npyv_loadn_u64(ip + 10 * vstep * istride, istride);
         npyv_u64 r_10 = npyv_negative_u64(v_10);
         npyv_storen_u64(op + 10 * vstep * ostride, ostride, r_10);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 11
         npyv_u64 v_11 = npyv_loadn_u64(ip + 11 * vstep * istride, istride);
         npyv_u64 r_11 = npyv_negative_u64(v_11);
         npyv_storen_u64(op + 11 * vstep * ostride, ostride, r_11);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 12
         npyv_u64 v_12 = npyv_loadn_u64(ip + 12 * vstep * istride, istride);
         npyv_u64 r_12 = npyv_negative_u64(v_12);
         npyv_storen_u64(op + 12 * vstep * ostride, ostride, r_12);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 13
         npyv_u64 v_13 = npyv_loadn_u64(ip + 13 * vstep * istride, istride);
         npyv_u64 r_13 = npyv_negative_u64(v_13);
         npyv_storen_u64(op + 13 * vstep * ostride, ostride, r_13);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 14
         npyv_u64 v_14 = npyv_loadn_u64(ip + 14 * vstep * istride, istride);
         npyv_u64 r_14 = npyv_negative_u64(v_14);
         npyv_storen_u64(op + 14 * vstep * ostride, ostride, r_14);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 15
         npyv_u64 v_15 = npyv_loadn_u64(ip + 15 * vstep * istride, istride);
         npyv_u64 r_15 = npyv_negative_u64(v_15);
@@ -4679,6 +4702,7 @@ simd_unary_nn_negative_u64(const npyv_lanetype_u64 *ip, npy_intp istride,
         *op = scalar_negative(*ip);
     }
 }
+#endif // NPY_HAVE_SSE2
 #endif // 1
 #undef UNROLL
 #endif // NPY_SIMD
@@ -5108,6 +5132,8 @@ simd_unary_nc_negative_f32(const npyv_lanetype_f32 *ip, npy_intp istride,
 #undef UNROLL
 #define UNROLL 2
 #endif
+// X86 does better with unrolled scalar for heavy non-contiguous
+#ifndef NPY_HAVE_SSE2
 static NPY_INLINE void
 simd_unary_nn_negative_f32(const npyv_lanetype_f32 *ip, npy_intp istride,
                              npyv_lanetype_f32 *op, npy_intp ostride,
@@ -5118,112 +5144,112 @@ simd_unary_nn_negative_f32(const npyv_lanetype_f32 *ip, npy_intp istride,
 
     // unrolled vector loop
     for (; len >= wstep; len -= wstep, ip += istride*wstep, op += ostride*wstep) {
-    #line 211
+    #line 213
     #if UNROLL > 0
         npyv_f32 v_0 = npyv_loadn_f32(ip + 0 * vstep * istride, istride);
         npyv_f32 r_0 = npyv_negative_f32(v_0);
         npyv_storen_f32(op + 0 * vstep * ostride, ostride, r_0);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 1
         npyv_f32 v_1 = npyv_loadn_f32(ip + 1 * vstep * istride, istride);
         npyv_f32 r_1 = npyv_negative_f32(v_1);
         npyv_storen_f32(op + 1 * vstep * ostride, ostride, r_1);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 2
         npyv_f32 v_2 = npyv_loadn_f32(ip + 2 * vstep * istride, istride);
         npyv_f32 r_2 = npyv_negative_f32(v_2);
         npyv_storen_f32(op + 2 * vstep * ostride, ostride, r_2);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 3
         npyv_f32 v_3 = npyv_loadn_f32(ip + 3 * vstep * istride, istride);
         npyv_f32 r_3 = npyv_negative_f32(v_3);
         npyv_storen_f32(op + 3 * vstep * ostride, ostride, r_3);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 4
         npyv_f32 v_4 = npyv_loadn_f32(ip + 4 * vstep * istride, istride);
         npyv_f32 r_4 = npyv_negative_f32(v_4);
         npyv_storen_f32(op + 4 * vstep * ostride, ostride, r_4);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 5
         npyv_f32 v_5 = npyv_loadn_f32(ip + 5 * vstep * istride, istride);
         npyv_f32 r_5 = npyv_negative_f32(v_5);
         npyv_storen_f32(op + 5 * vstep * ostride, ostride, r_5);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 6
         npyv_f32 v_6 = npyv_loadn_f32(ip + 6 * vstep * istride, istride);
         npyv_f32 r_6 = npyv_negative_f32(v_6);
         npyv_storen_f32(op + 6 * vstep * ostride, ostride, r_6);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 7
         npyv_f32 v_7 = npyv_loadn_f32(ip + 7 * vstep * istride, istride);
         npyv_f32 r_7 = npyv_negative_f32(v_7);
         npyv_storen_f32(op + 7 * vstep * ostride, ostride, r_7);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 8
         npyv_f32 v_8 = npyv_loadn_f32(ip + 8 * vstep * istride, istride);
         npyv_f32 r_8 = npyv_negative_f32(v_8);
         npyv_storen_f32(op + 8 * vstep * ostride, ostride, r_8);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 9
         npyv_f32 v_9 = npyv_loadn_f32(ip + 9 * vstep * istride, istride);
         npyv_f32 r_9 = npyv_negative_f32(v_9);
         npyv_storen_f32(op + 9 * vstep * ostride, ostride, r_9);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 10
         npyv_f32 v_10 = npyv_loadn_f32(ip + 10 * vstep * istride, istride);
         npyv_f32 r_10 = npyv_negative_f32(v_10);
         npyv_storen_f32(op + 10 * vstep * ostride, ostride, r_10);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 11
         npyv_f32 v_11 = npyv_loadn_f32(ip + 11 * vstep * istride, istride);
         npyv_f32 r_11 = npyv_negative_f32(v_11);
         npyv_storen_f32(op + 11 * vstep * ostride, ostride, r_11);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 12
         npyv_f32 v_12 = npyv_loadn_f32(ip + 12 * vstep * istride, istride);
         npyv_f32 r_12 = npyv_negative_f32(v_12);
         npyv_storen_f32(op + 12 * vstep * ostride, ostride, r_12);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 13
         npyv_f32 v_13 = npyv_loadn_f32(ip + 13 * vstep * istride, istride);
         npyv_f32 r_13 = npyv_negative_f32(v_13);
         npyv_storen_f32(op + 13 * vstep * ostride, ostride, r_13);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 14
         npyv_f32 v_14 = npyv_loadn_f32(ip + 14 * vstep * istride, istride);
         npyv_f32 r_14 = npyv_negative_f32(v_14);
         npyv_storen_f32(op + 14 * vstep * ostride, ostride, r_14);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 15
         npyv_f32 v_15 = npyv_loadn_f32(ip + 15 * vstep * istride, istride);
         npyv_f32 r_15 = npyv_negative_f32(v_15);
@@ -5242,6 +5268,7 @@ simd_unary_nn_negative_f32(const npyv_lanetype_f32 *ip, npy_intp istride,
         *op = scalar_negative(*ip);
     }
 }
+#endif // NPY_HAVE_SSE2
 #endif // 1
 #undef UNROLL
 #endif // NPY_SIMD_F32
@@ -5671,6 +5698,8 @@ simd_unary_nc_negative_f64(const npyv_lanetype_f64 *ip, npy_intp istride,
 #undef UNROLL
 #define UNROLL 2
 #endif
+// X86 does better with unrolled scalar for heavy non-contiguous
+#ifndef NPY_HAVE_SSE2
 static NPY_INLINE void
 simd_unary_nn_negative_f64(const npyv_lanetype_f64 *ip, npy_intp istride,
                              npyv_lanetype_f64 *op, npy_intp ostride,
@@ -5681,112 +5710,112 @@ simd_unary_nn_negative_f64(const npyv_lanetype_f64 *ip, npy_intp istride,
 
     // unrolled vector loop
     for (; len >= wstep; len -= wstep, ip += istride*wstep, op += ostride*wstep) {
-    #line 211
+    #line 213
     #if UNROLL > 0
         npyv_f64 v_0 = npyv_loadn_f64(ip + 0 * vstep * istride, istride);
         npyv_f64 r_0 = npyv_negative_f64(v_0);
         npyv_storen_f64(op + 0 * vstep * ostride, ostride, r_0);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 1
         npyv_f64 v_1 = npyv_loadn_f64(ip + 1 * vstep * istride, istride);
         npyv_f64 r_1 = npyv_negative_f64(v_1);
         npyv_storen_f64(op + 1 * vstep * ostride, ostride, r_1);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 2
         npyv_f64 v_2 = npyv_loadn_f64(ip + 2 * vstep * istride, istride);
         npyv_f64 r_2 = npyv_negative_f64(v_2);
         npyv_storen_f64(op + 2 * vstep * ostride, ostride, r_2);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 3
         npyv_f64 v_3 = npyv_loadn_f64(ip + 3 * vstep * istride, istride);
         npyv_f64 r_3 = npyv_negative_f64(v_3);
         npyv_storen_f64(op + 3 * vstep * ostride, ostride, r_3);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 4
         npyv_f64 v_4 = npyv_loadn_f64(ip + 4 * vstep * istride, istride);
         npyv_f64 r_4 = npyv_negative_f64(v_4);
         npyv_storen_f64(op + 4 * vstep * ostride, ostride, r_4);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 5
         npyv_f64 v_5 = npyv_loadn_f64(ip + 5 * vstep * istride, istride);
         npyv_f64 r_5 = npyv_negative_f64(v_5);
         npyv_storen_f64(op + 5 * vstep * ostride, ostride, r_5);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 6
         npyv_f64 v_6 = npyv_loadn_f64(ip + 6 * vstep * istride, istride);
         npyv_f64 r_6 = npyv_negative_f64(v_6);
         npyv_storen_f64(op + 6 * vstep * ostride, ostride, r_6);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 7
         npyv_f64 v_7 = npyv_loadn_f64(ip + 7 * vstep * istride, istride);
         npyv_f64 r_7 = npyv_negative_f64(v_7);
         npyv_storen_f64(op + 7 * vstep * ostride, ostride, r_7);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 8
         npyv_f64 v_8 = npyv_loadn_f64(ip + 8 * vstep * istride, istride);
         npyv_f64 r_8 = npyv_negative_f64(v_8);
         npyv_storen_f64(op + 8 * vstep * ostride, ostride, r_8);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 9
         npyv_f64 v_9 = npyv_loadn_f64(ip + 9 * vstep * istride, istride);
         npyv_f64 r_9 = npyv_negative_f64(v_9);
         npyv_storen_f64(op + 9 * vstep * ostride, ostride, r_9);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 10
         npyv_f64 v_10 = npyv_loadn_f64(ip + 10 * vstep * istride, istride);
         npyv_f64 r_10 = npyv_negative_f64(v_10);
         npyv_storen_f64(op + 10 * vstep * ostride, ostride, r_10);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 11
         npyv_f64 v_11 = npyv_loadn_f64(ip + 11 * vstep * istride, istride);
         npyv_f64 r_11 = npyv_negative_f64(v_11);
         npyv_storen_f64(op + 11 * vstep * ostride, ostride, r_11);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 12
         npyv_f64 v_12 = npyv_loadn_f64(ip + 12 * vstep * istride, istride);
         npyv_f64 r_12 = npyv_negative_f64(v_12);
         npyv_storen_f64(op + 12 * vstep * ostride, ostride, r_12);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 13
         npyv_f64 v_13 = npyv_loadn_f64(ip + 13 * vstep * istride, istride);
         npyv_f64 r_13 = npyv_negative_f64(v_13);
         npyv_storen_f64(op + 13 * vstep * ostride, ostride, r_13);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 14
         npyv_f64 v_14 = npyv_loadn_f64(ip + 14 * vstep * istride, istride);
         npyv_f64 r_14 = npyv_negative_f64(v_14);
         npyv_storen_f64(op + 14 * vstep * ostride, ostride, r_14);
     #endif
     
-#line 211
+#line 213
     #if UNROLL > 15
         npyv_f64 v_15 = npyv_loadn_f64(ip + 15 * vstep * istride, istride);
         npyv_f64 r_15 = npyv_negative_f64(v_15);
@@ -5805,6 +5834,7 @@ simd_unary_nn_negative_f64(const npyv_lanetype_f64 *ip, npy_intp istride,
         *op = scalar_negative(*ip);
     }
 }
+#endif // NPY_HAVE_SSE2
 #endif // 1
 #undef UNROLL
 #endif // NPY_SIMD_F64
@@ -5814,10 +5844,10 @@ simd_unary_nn_negative_f64(const npyv_lanetype_f64 *ip, npy_intp istride,
 /********************************************************************************
  ** Defining ufunc inner functions
  ********************************************************************************/
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -5833,7 +5863,7 @@ simd_unary_nn_negative_f64(const npyv_lanetype_f64 *ip, npy_intp istride,
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -5849,7 +5879,7 @@ simd_unary_nn_negative_f64(const npyv_lanetype_f64 *ip, npy_intp istride,
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -5865,7 +5895,7 @@ simd_unary_nn_negative_f64(const npyv_lanetype_f64 *ip, npy_intp istride,
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -5883,7 +5913,7 @@ simd_unary_nn_negative_f64(const npyv_lanetype_f64 *ip, npy_intp istride,
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UBYTE_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -5921,8 +5951,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UBYTE_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -5945,97 +5975,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UBYTE_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_ubyte in_0 = *((const npy_ubyte *)(ip + 0 * istep));
         *((npy_ubyte *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_ubyte in_1 = *((const npy_ubyte *)(ip + 1 * istep));
         *((npy_ubyte *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_ubyte in_2 = *((const npy_ubyte *)(ip + 2 * istep));
         *((npy_ubyte *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_ubyte in_3 = *((const npy_ubyte *)(ip + 3 * istep));
         *((npy_ubyte *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_ubyte in_4 = *((const npy_ubyte *)(ip + 4 * istep));
         *((npy_ubyte *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_ubyte in_5 = *((const npy_ubyte *)(ip + 5 * istep));
         *((npy_ubyte *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_ubyte in_6 = *((const npy_ubyte *)(ip + 6 * istep));
         *((npy_ubyte *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_ubyte in_7 = *((const npy_ubyte *)(ip + 7 * istep));
         *((npy_ubyte *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_ubyte in_8 = *((const npy_ubyte *)(ip + 8 * istep));
         *((npy_ubyte *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_ubyte in_9 = *((const npy_ubyte *)(ip + 9 * istep));
         *((npy_ubyte *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_ubyte in_10 = *((const npy_ubyte *)(ip + 10 * istep));
         *((npy_ubyte *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_ubyte in_11 = *((const npy_ubyte *)(ip + 11 * istep));
         *((npy_ubyte *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_ubyte in_12 = *((const npy_ubyte *)(ip + 12 * istep));
         *((npy_ubyte *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_ubyte in_13 = *((const npy_ubyte *)(ip + 13 * istep));
         *((npy_ubyte *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_ubyte in_14 = *((const npy_ubyte *)(ip + 14 * istep));
         *((npy_ubyte *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_ubyte in_15 = *((const npy_ubyte *)(ip + 15 * istep));
         *((npy_ubyte *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -6055,10 +6085,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -6074,7 +6104,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -6090,7 +6120,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -6106,7 +6136,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -6124,7 +6154,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(USHORT_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -6162,8 +6192,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(USHORT_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -6186,97 +6216,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(USHORT_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_ushort in_0 = *((const npy_ushort *)(ip + 0 * istep));
         *((npy_ushort *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_ushort in_1 = *((const npy_ushort *)(ip + 1 * istep));
         *((npy_ushort *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_ushort in_2 = *((const npy_ushort *)(ip + 2 * istep));
         *((npy_ushort *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_ushort in_3 = *((const npy_ushort *)(ip + 3 * istep));
         *((npy_ushort *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_ushort in_4 = *((const npy_ushort *)(ip + 4 * istep));
         *((npy_ushort *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_ushort in_5 = *((const npy_ushort *)(ip + 5 * istep));
         *((npy_ushort *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_ushort in_6 = *((const npy_ushort *)(ip + 6 * istep));
         *((npy_ushort *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_ushort in_7 = *((const npy_ushort *)(ip + 7 * istep));
         *((npy_ushort *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_ushort in_8 = *((const npy_ushort *)(ip + 8 * istep));
         *((npy_ushort *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_ushort in_9 = *((const npy_ushort *)(ip + 9 * istep));
         *((npy_ushort *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_ushort in_10 = *((const npy_ushort *)(ip + 10 * istep));
         *((npy_ushort *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_ushort in_11 = *((const npy_ushort *)(ip + 11 * istep));
         *((npy_ushort *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_ushort in_12 = *((const npy_ushort *)(ip + 12 * istep));
         *((npy_ushort *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_ushort in_13 = *((const npy_ushort *)(ip + 13 * istep));
         *((npy_ushort *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_ushort in_14 = *((const npy_ushort *)(ip + 14 * istep));
         *((npy_ushort *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_ushort in_15 = *((const npy_ushort *)(ip + 15 * istep));
         *((npy_ushort *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -6296,10 +6326,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_INT == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -6315,7 +6345,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_INT == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -6331,7 +6361,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_INT == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -6347,7 +6377,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_INT == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -6365,7 +6395,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UINT_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -6403,8 +6433,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UINT_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -6427,97 +6457,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(UINT_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_uint in_0 = *((const npy_uint *)(ip + 0 * istep));
         *((npy_uint *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_uint in_1 = *((const npy_uint *)(ip + 1 * istep));
         *((npy_uint *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_uint in_2 = *((const npy_uint *)(ip + 2 * istep));
         *((npy_uint *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_uint in_3 = *((const npy_uint *)(ip + 3 * istep));
         *((npy_uint *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_uint in_4 = *((const npy_uint *)(ip + 4 * istep));
         *((npy_uint *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_uint in_5 = *((const npy_uint *)(ip + 5 * istep));
         *((npy_uint *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_uint in_6 = *((const npy_uint *)(ip + 6 * istep));
         *((npy_uint *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_uint in_7 = *((const npy_uint *)(ip + 7 * istep));
         *((npy_uint *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_uint in_8 = *((const npy_uint *)(ip + 8 * istep));
         *((npy_uint *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_uint in_9 = *((const npy_uint *)(ip + 9 * istep));
         *((npy_uint *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_uint in_10 = *((const npy_uint *)(ip + 10 * istep));
         *((npy_uint *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_uint in_11 = *((const npy_uint *)(ip + 11 * istep));
         *((npy_uint *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_uint in_12 = *((const npy_uint *)(ip + 12 * istep));
         *((npy_uint *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_uint in_13 = *((const npy_uint *)(ip + 13 * istep));
         *((npy_uint *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_uint in_14 = *((const npy_uint *)(ip + 14 * istep));
         *((npy_uint *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_uint in_15 = *((const npy_uint *)(ip + 15 * istep));
         *((npy_uint *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -6537,10 +6567,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONG == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -6556,7 +6586,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONG == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -6572,7 +6602,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONG == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -6588,7 +6618,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONG == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -6606,7 +6636,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONG_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -6644,8 +6674,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONG_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -6668,97 +6698,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONG_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_ulong in_0 = *((const npy_ulong *)(ip + 0 * istep));
         *((npy_ulong *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_ulong in_1 = *((const npy_ulong *)(ip + 1 * istep));
         *((npy_ulong *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_ulong in_2 = *((const npy_ulong *)(ip + 2 * istep));
         *((npy_ulong *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_ulong in_3 = *((const npy_ulong *)(ip + 3 * istep));
         *((npy_ulong *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_ulong in_4 = *((const npy_ulong *)(ip + 4 * istep));
         *((npy_ulong *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_ulong in_5 = *((const npy_ulong *)(ip + 5 * istep));
         *((npy_ulong *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_ulong in_6 = *((const npy_ulong *)(ip + 6 * istep));
         *((npy_ulong *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_ulong in_7 = *((const npy_ulong *)(ip + 7 * istep));
         *((npy_ulong *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_ulong in_8 = *((const npy_ulong *)(ip + 8 * istep));
         *((npy_ulong *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_ulong in_9 = *((const npy_ulong *)(ip + 9 * istep));
         *((npy_ulong *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_ulong in_10 = *((const npy_ulong *)(ip + 10 * istep));
         *((npy_ulong *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_ulong in_11 = *((const npy_ulong *)(ip + 11 * istep));
         *((npy_ulong *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_ulong in_12 = *((const npy_ulong *)(ip + 12 * istep));
         *((npy_ulong *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_ulong in_13 = *((const npy_ulong *)(ip + 13 * istep));
         *((npy_ulong *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_ulong in_14 = *((const npy_ulong *)(ip + 14 * istep));
         *((npy_ulong *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_ulong in_15 = *((const npy_ulong *)(ip + 15 * istep));
         *((npy_ulong *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -6778,10 +6808,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -6797,7 +6827,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -6813,7 +6843,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -6829,7 +6859,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -6847,7 +6877,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONGLONG_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -6885,8 +6915,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONGLONG_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -6909,97 +6939,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(ULONGLONG_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_ulonglong in_0 = *((const npy_ulonglong *)(ip + 0 * istep));
         *((npy_ulonglong *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_ulonglong in_1 = *((const npy_ulonglong *)(ip + 1 * istep));
         *((npy_ulonglong *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_ulonglong in_2 = *((const npy_ulonglong *)(ip + 2 * istep));
         *((npy_ulonglong *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_ulonglong in_3 = *((const npy_ulonglong *)(ip + 3 * istep));
         *((npy_ulonglong *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_ulonglong in_4 = *((const npy_ulonglong *)(ip + 4 * istep));
         *((npy_ulonglong *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_ulonglong in_5 = *((const npy_ulonglong *)(ip + 5 * istep));
         *((npy_ulonglong *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_ulonglong in_6 = *((const npy_ulonglong *)(ip + 6 * istep));
         *((npy_ulonglong *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_ulonglong in_7 = *((const npy_ulonglong *)(ip + 7 * istep));
         *((npy_ulonglong *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_ulonglong in_8 = *((const npy_ulonglong *)(ip + 8 * istep));
         *((npy_ulonglong *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_ulonglong in_9 = *((const npy_ulonglong *)(ip + 9 * istep));
         *((npy_ulonglong *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_ulonglong in_10 = *((const npy_ulonglong *)(ip + 10 * istep));
         *((npy_ulonglong *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_ulonglong in_11 = *((const npy_ulonglong *)(ip + 11 * istep));
         *((npy_ulonglong *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_ulonglong in_12 = *((const npy_ulonglong *)(ip + 12 * istep));
         *((npy_ulonglong *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_ulonglong in_13 = *((const npy_ulonglong *)(ip + 13 * istep));
         *((npy_ulonglong *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_ulonglong in_14 = *((const npy_ulonglong *)(ip + 14 * istep));
         *((npy_ulonglong *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_ulonglong in_15 = *((const npy_ulonglong *)(ip + 15 * istep));
         *((npy_ulonglong *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -7019,10 +7049,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -7038,7 +7068,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -7054,7 +7084,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -7070,7 +7100,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_BYTE == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -7088,7 +7118,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(BYTE_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -7126,8 +7156,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(BYTE_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -7150,97 +7180,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(BYTE_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_byte in_0 = *((const npy_byte *)(ip + 0 * istep));
         *((npy_byte *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_byte in_1 = *((const npy_byte *)(ip + 1 * istep));
         *((npy_byte *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_byte in_2 = *((const npy_byte *)(ip + 2 * istep));
         *((npy_byte *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_byte in_3 = *((const npy_byte *)(ip + 3 * istep));
         *((npy_byte *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_byte in_4 = *((const npy_byte *)(ip + 4 * istep));
         *((npy_byte *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_byte in_5 = *((const npy_byte *)(ip + 5 * istep));
         *((npy_byte *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_byte in_6 = *((const npy_byte *)(ip + 6 * istep));
         *((npy_byte *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_byte in_7 = *((const npy_byte *)(ip + 7 * istep));
         *((npy_byte *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_byte in_8 = *((const npy_byte *)(ip + 8 * istep));
         *((npy_byte *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_byte in_9 = *((const npy_byte *)(ip + 9 * istep));
         *((npy_byte *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_byte in_10 = *((const npy_byte *)(ip + 10 * istep));
         *((npy_byte *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_byte in_11 = *((const npy_byte *)(ip + 11 * istep));
         *((npy_byte *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_byte in_12 = *((const npy_byte *)(ip + 12 * istep));
         *((npy_byte *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_byte in_13 = *((const npy_byte *)(ip + 13 * istep));
         *((npy_byte *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_byte in_14 = *((const npy_byte *)(ip + 14 * istep));
         *((npy_byte *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_byte in_15 = *((const npy_byte *)(ip + 15 * istep));
         *((npy_byte *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -7260,10 +7290,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -7279,7 +7309,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -7295,7 +7325,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -7311,7 +7341,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_SHORT == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -7329,7 +7359,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(SHORT_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -7367,8 +7397,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(SHORT_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -7391,97 +7421,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(SHORT_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_short in_0 = *((const npy_short *)(ip + 0 * istep));
         *((npy_short *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_short in_1 = *((const npy_short *)(ip + 1 * istep));
         *((npy_short *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_short in_2 = *((const npy_short *)(ip + 2 * istep));
         *((npy_short *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_short in_3 = *((const npy_short *)(ip + 3 * istep));
         *((npy_short *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_short in_4 = *((const npy_short *)(ip + 4 * istep));
         *((npy_short *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_short in_5 = *((const npy_short *)(ip + 5 * istep));
         *((npy_short *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_short in_6 = *((const npy_short *)(ip + 6 * istep));
         *((npy_short *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_short in_7 = *((const npy_short *)(ip + 7 * istep));
         *((npy_short *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_short in_8 = *((const npy_short *)(ip + 8 * istep));
         *((npy_short *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_short in_9 = *((const npy_short *)(ip + 9 * istep));
         *((npy_short *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_short in_10 = *((const npy_short *)(ip + 10 * istep));
         *((npy_short *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_short in_11 = *((const npy_short *)(ip + 11 * istep));
         *((npy_short *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_short in_12 = *((const npy_short *)(ip + 12 * istep));
         *((npy_short *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_short in_13 = *((const npy_short *)(ip + 13 * istep));
         *((npy_short *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_short in_14 = *((const npy_short *)(ip + 14 * istep));
         *((npy_short *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_short in_15 = *((const npy_short *)(ip + 15 * istep));
         *((npy_short *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -7501,10 +7531,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_INT == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -7520,7 +7550,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_INT == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -7536,7 +7566,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_INT == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -7552,7 +7582,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_INT == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -7570,7 +7600,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(INT_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -7608,8 +7638,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(INT_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -7632,97 +7662,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(INT_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_int in_0 = *((const npy_int *)(ip + 0 * istep));
         *((npy_int *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_int in_1 = *((const npy_int *)(ip + 1 * istep));
         *((npy_int *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_int in_2 = *((const npy_int *)(ip + 2 * istep));
         *((npy_int *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_int in_3 = *((const npy_int *)(ip + 3 * istep));
         *((npy_int *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_int in_4 = *((const npy_int *)(ip + 4 * istep));
         *((npy_int *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_int in_5 = *((const npy_int *)(ip + 5 * istep));
         *((npy_int *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_int in_6 = *((const npy_int *)(ip + 6 * istep));
         *((npy_int *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_int in_7 = *((const npy_int *)(ip + 7 * istep));
         *((npy_int *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_int in_8 = *((const npy_int *)(ip + 8 * istep));
         *((npy_int *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_int in_9 = *((const npy_int *)(ip + 9 * istep));
         *((npy_int *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_int in_10 = *((const npy_int *)(ip + 10 * istep));
         *((npy_int *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_int in_11 = *((const npy_int *)(ip + 11 * istep));
         *((npy_int *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_int in_12 = *((const npy_int *)(ip + 12 * istep));
         *((npy_int *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_int in_13 = *((const npy_int *)(ip + 13 * istep));
         *((npy_int *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_int in_14 = *((const npy_int *)(ip + 14 * istep));
         *((npy_int *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_int in_15 = *((const npy_int *)(ip + 15 * istep));
         *((npy_int *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -7742,10 +7772,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONG == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -7761,7 +7791,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONG == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -7777,7 +7807,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONG == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -7793,7 +7823,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONG == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -7811,7 +7841,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONG_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -7849,8 +7879,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONG_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -7873,97 +7903,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONG_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_long in_0 = *((const npy_long *)(ip + 0 * istep));
         *((npy_long *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_long in_1 = *((const npy_long *)(ip + 1 * istep));
         *((npy_long *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_long in_2 = *((const npy_long *)(ip + 2 * istep));
         *((npy_long *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_long in_3 = *((const npy_long *)(ip + 3 * istep));
         *((npy_long *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_long in_4 = *((const npy_long *)(ip + 4 * istep));
         *((npy_long *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_long in_5 = *((const npy_long *)(ip + 5 * istep));
         *((npy_long *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_long in_6 = *((const npy_long *)(ip + 6 * istep));
         *((npy_long *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_long in_7 = *((const npy_long *)(ip + 7 * istep));
         *((npy_long *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_long in_8 = *((const npy_long *)(ip + 8 * istep));
         *((npy_long *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_long in_9 = *((const npy_long *)(ip + 9 * istep));
         *((npy_long *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_long in_10 = *((const npy_long *)(ip + 10 * istep));
         *((npy_long *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_long in_11 = *((const npy_long *)(ip + 11 * istep));
         *((npy_long *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_long in_12 = *((const npy_long *)(ip + 12 * istep));
         *((npy_long *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_long in_13 = *((const npy_long *)(ip + 13 * istep));
         *((npy_long *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_long in_14 = *((const npy_long *)(ip + 14 * istep));
         *((npy_long *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_long in_15 = *((const npy_long *)(ip + 15 * istep));
         *((npy_long *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -7983,10 +8013,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 8
     #if 0
         #define TO_SIMD_SFX(X) X##_f8
@@ -8002,7 +8032,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 16
     #if 0
         #define TO_SIMD_SFX(X) X##_f16
@@ -8018,7 +8048,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 32
     #if 0
         #define TO_SIMD_SFX(X) X##_f32
@@ -8034,7 +8064,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGLONG == 64
     #if 0
         #define TO_SIMD_SFX(X) X##_f64
@@ -8052,7 +8082,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGLONG_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -8090,8 +8120,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGLONG_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -8114,97 +8144,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGLONG_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_longlong in_0 = *((const npy_longlong *)(ip + 0 * istep));
         *((npy_longlong *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_longlong in_1 = *((const npy_longlong *)(ip + 1 * istep));
         *((npy_longlong *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_longlong in_2 = *((const npy_longlong *)(ip + 2 * istep));
         *((npy_longlong *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_longlong in_3 = *((const npy_longlong *)(ip + 3 * istep));
         *((npy_longlong *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_longlong in_4 = *((const npy_longlong *)(ip + 4 * istep));
         *((npy_longlong *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_longlong in_5 = *((const npy_longlong *)(ip + 5 * istep));
         *((npy_longlong *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_longlong in_6 = *((const npy_longlong *)(ip + 6 * istep));
         *((npy_longlong *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_longlong in_7 = *((const npy_longlong *)(ip + 7 * istep));
         *((npy_longlong *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_longlong in_8 = *((const npy_longlong *)(ip + 8 * istep));
         *((npy_longlong *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_longlong in_9 = *((const npy_longlong *)(ip + 9 * istep));
         *((npy_longlong *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_longlong in_10 = *((const npy_longlong *)(ip + 10 * istep));
         *((npy_longlong *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_longlong in_11 = *((const npy_longlong *)(ip + 11 * istep));
         *((npy_longlong *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_longlong in_12 = *((const npy_longlong *)(ip + 12 * istep));
         *((npy_longlong *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_longlong in_13 = *((const npy_longlong *)(ip + 13 * istep));
         *((npy_longlong *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_longlong in_14 = *((const npy_longlong *)(ip + 14 * istep));
         *((npy_longlong *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_longlong in_15 = *((const npy_longlong *)(ip + 15 * istep));
         *((npy_longlong *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -8224,10 +8254,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_FLOAT == 8
     #if 1
         #define TO_SIMD_SFX(X) X##_f8
@@ -8243,7 +8273,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_FLOAT == 16
     #if 1
         #define TO_SIMD_SFX(X) X##_f16
@@ -8259,7 +8289,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_FLOAT == 32
     #if 1
         #define TO_SIMD_SFX(X) X##_f32
@@ -8275,7 +8305,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_FLOAT == 64
     #if 1
         #define TO_SIMD_SFX(X) X##_f64
@@ -8293,7 +8323,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -8331,8 +8361,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -8355,97 +8385,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_float in_0 = *((const npy_float *)(ip + 0 * istep));
         *((npy_float *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_float in_1 = *((const npy_float *)(ip + 1 * istep));
         *((npy_float *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_float in_2 = *((const npy_float *)(ip + 2 * istep));
         *((npy_float *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_float in_3 = *((const npy_float *)(ip + 3 * istep));
         *((npy_float *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_float in_4 = *((const npy_float *)(ip + 4 * istep));
         *((npy_float *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_float in_5 = *((const npy_float *)(ip + 5 * istep));
         *((npy_float *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_float in_6 = *((const npy_float *)(ip + 6 * istep));
         *((npy_float *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_float in_7 = *((const npy_float *)(ip + 7 * istep));
         *((npy_float *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_float in_8 = *((const npy_float *)(ip + 8 * istep));
         *((npy_float *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_float in_9 = *((const npy_float *)(ip + 9 * istep));
         *((npy_float *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_float in_10 = *((const npy_float *)(ip + 10 * istep));
         *((npy_float *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_float in_11 = *((const npy_float *)(ip + 11 * istep));
         *((npy_float *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_float in_12 = *((const npy_float *)(ip + 12 * istep));
         *((npy_float *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_float in_13 = *((const npy_float *)(ip + 13 * istep));
         *((npy_float *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_float in_14 = *((const npy_float *)(ip + 14 * istep));
         *((npy_float *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_float in_15 = *((const npy_float *)(ip + 15 * istep));
         *((npy_float *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -8465,10 +8495,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_DOUBLE == 8
     #if 1
         #define TO_SIMD_SFX(X) X##_f8
@@ -8484,7 +8514,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_DOUBLE == 16
     #if 1
         #define TO_SIMD_SFX(X) X##_f16
@@ -8500,7 +8530,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_DOUBLE == 32
     #if 1
         #define TO_SIMD_SFX(X) X##_f32
@@ -8516,7 +8546,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_DOUBLE == 64
     #if 1
         #define TO_SIMD_SFX(X) X##_f64
@@ -8534,7 +8564,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -8572,8 +8602,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -8596,97 +8626,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_double in_0 = *((const npy_double *)(ip + 0 * istep));
         *((npy_double *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_double in_1 = *((const npy_double *)(ip + 1 * istep));
         *((npy_double *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_double in_2 = *((const npy_double *)(ip + 2 * istep));
         *((npy_double *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_double in_3 = *((const npy_double *)(ip + 3 * istep));
         *((npy_double *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_double in_4 = *((const npy_double *)(ip + 4 * istep));
         *((npy_double *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_double in_5 = *((const npy_double *)(ip + 5 * istep));
         *((npy_double *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_double in_6 = *((const npy_double *)(ip + 6 * istep));
         *((npy_double *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_double in_7 = *((const npy_double *)(ip + 7 * istep));
         *((npy_double *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_double in_8 = *((const npy_double *)(ip + 8 * istep));
         *((npy_double *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_double in_9 = *((const npy_double *)(ip + 9 * istep));
         *((npy_double *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_double in_10 = *((const npy_double *)(ip + 10 * istep));
         *((npy_double *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_double in_11 = *((const npy_double *)(ip + 11 * istep));
         *((npy_double *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_double in_12 = *((const npy_double *)(ip + 12 * istep));
         *((npy_double *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_double in_13 = *((const npy_double *)(ip + 13 * istep));
         *((npy_double *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_double in_14 = *((const npy_double *)(ip + 14 * istep));
         *((npy_double *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_double in_15 = *((const npy_double *)(ip + 15 * istep));
         *((npy_double *)(op + 15 * ostep)) = scalar_negative(in_15);
@@ -8706,10 +8736,10 @@ clear:
 #endif
 }
 
-#line 254
+#line 257
 #undef TO_SIMD_SFX
 #if 0
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGDOUBLE == 8
     #if 1
         #define TO_SIMD_SFX(X) X##_f8
@@ -8725,7 +8755,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s8
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGDOUBLE == 16
     #if 1
         #define TO_SIMD_SFX(X) X##_f16
@@ -8741,7 +8771,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s16
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGDOUBLE == 32
     #if 1
         #define TO_SIMD_SFX(X) X##_f32
@@ -8757,7 +8787,7 @@ clear:
         #define TO_SIMD_SFX(X) X##_s32
     #endif
 
-#line 259
+#line 262
 #elif NPY_SIMD && NPY_BITSOF_LONGDOUBLE == 64
     #if 1
         #define TO_SIMD_SFX(X) X##_f64
@@ -8775,7 +8805,7 @@ clear:
 
 #endif
 
-#line 280
+#line 283
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_negative)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -8813,8 +8843,8 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_negative)
                 );
                 goto clear;
             }
-        // SSE2 does better with unrolled scalar for heavy non-contiguous
-        #if !defined(NPY_HAVE_SSE2)
+        // X86 does better with unrolled scalar for heavy non-contiguous
+        #ifndef NPY_HAVE_SSE2
             else if (istride != 1 && ostride != 1) {
                 // non-contiguous input and output
                 TO_SIMD_SFX(simd_unary_nn_negative)(
@@ -8837,97 +8867,97 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(LONGDOUBLE_negative)
      */
     #define UNROLL 8
     for (; len >= UNROLL; len -= UNROLL, ip += istep*UNROLL, op += ostep*UNROLL) {
-    #line 344
+    #line 347
     #if UNROLL > 0
         const npy_longdouble in_0 = *((const npy_longdouble *)(ip + 0 * istep));
         *((npy_longdouble *)(op + 0 * ostep)) = scalar_negative(in_0);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 1
         const npy_longdouble in_1 = *((const npy_longdouble *)(ip + 1 * istep));
         *((npy_longdouble *)(op + 1 * ostep)) = scalar_negative(in_1);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 2
         const npy_longdouble in_2 = *((const npy_longdouble *)(ip + 2 * istep));
         *((npy_longdouble *)(op + 2 * ostep)) = scalar_negative(in_2);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 3
         const npy_longdouble in_3 = *((const npy_longdouble *)(ip + 3 * istep));
         *((npy_longdouble *)(op + 3 * ostep)) = scalar_negative(in_3);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 4
         const npy_longdouble in_4 = *((const npy_longdouble *)(ip + 4 * istep));
         *((npy_longdouble *)(op + 4 * ostep)) = scalar_negative(in_4);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 5
         const npy_longdouble in_5 = *((const npy_longdouble *)(ip + 5 * istep));
         *((npy_longdouble *)(op + 5 * ostep)) = scalar_negative(in_5);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 6
         const npy_longdouble in_6 = *((const npy_longdouble *)(ip + 6 * istep));
         *((npy_longdouble *)(op + 6 * ostep)) = scalar_negative(in_6);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 7
         const npy_longdouble in_7 = *((const npy_longdouble *)(ip + 7 * istep));
         *((npy_longdouble *)(op + 7 * ostep)) = scalar_negative(in_7);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 8
         const npy_longdouble in_8 = *((const npy_longdouble *)(ip + 8 * istep));
         *((npy_longdouble *)(op + 8 * ostep)) = scalar_negative(in_8);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 9
         const npy_longdouble in_9 = *((const npy_longdouble *)(ip + 9 * istep));
         *((npy_longdouble *)(op + 9 * ostep)) = scalar_negative(in_9);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 10
         const npy_longdouble in_10 = *((const npy_longdouble *)(ip + 10 * istep));
         *((npy_longdouble *)(op + 10 * ostep)) = scalar_negative(in_10);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 11
         const npy_longdouble in_11 = *((const npy_longdouble *)(ip + 11 * istep));
         *((npy_longdouble *)(op + 11 * ostep)) = scalar_negative(in_11);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 12
         const npy_longdouble in_12 = *((const npy_longdouble *)(ip + 12 * istep));
         *((npy_longdouble *)(op + 12 * ostep)) = scalar_negative(in_12);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 13
         const npy_longdouble in_13 = *((const npy_longdouble *)(ip + 13 * istep));
         *((npy_longdouble *)(op + 13 * ostep)) = scalar_negative(in_13);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 14
         const npy_longdouble in_14 = *((const npy_longdouble *)(ip + 14 * istep));
         *((npy_longdouble *)(op + 14 * ostep)) = scalar_negative(in_14);
     #endif
     
-#line 344
+#line 347
     #if UNROLL > 15
         const npy_longdouble in_15 = *((const npy_longdouble *)(ip + 15 * istep));
         *((npy_longdouble *)(op + 15 * ostep)) = scalar_negative(in_15);
