@@ -53,6 +53,7 @@ NPY_VISIBILITY_HIDDEN PyObject *csr_column_index2_method(PyObject *, PyObject *)
 NPY_VISIBILITY_HIDDEN PyObject *csr_sample_values_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_count_blocks_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_sample_offsets_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *csr_hstack_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *expandptr_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *test_throw_error_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_has_sorted_indices_method(PyObject *, PyObject *);
@@ -133,6 +134,7 @@ static struct PyMethodDef sparsetools_methods[] = {
         {"csr_sample_values", (PyCFunction)csr_sample_values_method, METH_VARARGS, NULL},
         {"csr_count_blocks", (PyCFunction)csr_count_blocks_method, METH_VARARGS, NULL},
         {"csr_sample_offsets", (PyCFunction)csr_sample_offsets_method, METH_VARARGS, NULL},
+        {"csr_hstack", (PyCFunction)csr_hstack_method, METH_VARARGS, NULL},
         {"expandptr", (PyCFunction)expandptr_method, METH_VARARGS, NULL},
         {"test_throw_error", (PyCFunction)test_throw_error_method, METH_VARARGS, NULL},
         {"csr_has_sorted_indices", (PyCFunction)csr_has_sorted_indices_method, METH_VARARGS, NULL},

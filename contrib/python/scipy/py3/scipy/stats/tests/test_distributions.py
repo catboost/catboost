@@ -317,6 +317,9 @@ class TestChi:
     # "Exact" value of chi.sf(10, 4), as computed by Wolfram Alpha with
     #     1 - CDF[ChiDistribution[4], 10]
     CHI_SF_10_4 = 9.83662422461598e-21
+    # "Exact" value of chi.mean(df=1000) as computed by Wolfram Alpha with
+    #       Mean[ChiDistribution[1000]]
+    CHI_MEAN_1000 = 31.614871896980
 
     def test_sf(self):
         s = stats.chi.sf(10, 4)
@@ -325,6 +328,10 @@ class TestChi:
     def test_isf(self):
         x = stats.chi.isf(self.CHI_SF_10_4, 4)
         assert_allclose(x, 10, rtol=1e-15)
+
+    def test_mean(self):
+        x = stats.chi.mean(df=1000)
+        assert_allclose(x, self.CHI_MEAN_1000, rtol=1e-12)
 
 
 class TestNBinom:
@@ -1249,6 +1256,20 @@ class TestLogistic:
 
         _assert_less_or_close_loglike(stats.logistic, data, func)
 
+    @pytest.mark.parametrize('testlogcdf', [True, False])
+    def test_logcdfsf_tails(self, testlogcdf):
+        # Test either logcdf or logsf.  By symmetry, we can use the same
+        # expected values for both by switching the sign of x for logsf.
+        x = np.array([-10000, -800, 17, 50, 500])
+        if testlogcdf:
+            y = stats.logistic.logcdf(x)
+        else:
+            y = stats.logistic.logsf(-x)
+        # The expected values were computed with mpmath.
+        expected = [-10000.0, -800.0, -4.139937633089748e-08,
+                    -1.9287498479639178e-22, -7.124576406741286e-218]
+        assert_allclose(y, expected, rtol=2e-15)
+
 
 class TestLogser:
     def setup_method(self):
@@ -1412,11 +1433,10 @@ class TestPareto:
                                                     - 2)/(data.min() - 2)))))
         assert_equal(loc_mle_a, 2)
 
-    @pytest.mark.filterwarnings("ignore:invalid value encountered in "
-                                "double_scalars")
     @pytest.mark.parametrize("rvs_shape", [1, 2])
     @pytest.mark.parametrize("rvs_loc", [0, 2])
     @pytest.mark.parametrize("rvs_scale", [1, 5])
+    @np.errstate(invalid="ignore")
     def test_fit_MLE_comp_optimzer(self, rvs_shape, rvs_loc, rvs_scale):
         data = stats.pareto.rvs(size=100, b=rvs_shape, scale=rvs_scale,
                                 loc=rvs_loc)
@@ -3977,6 +3997,43 @@ class TestNct:
         assert_allclose(nct_stats, expected_stats, rtol=1e-9)
 
 
+class TestRecipInvGauss:
+
+    def test_pdf_endpoint(self):
+        p = stats.recipinvgauss.pdf(0, 0.6)
+        assert p == 0.0
+
+    def test_logpdf_endpoint(self):
+        logp = stats.recipinvgauss.logpdf(0, 0.6)
+        assert logp == -np.inf
+
+    def test_cdf_small_x(self):
+        # The expected value was computer with mpmath:
+        #
+        # import mpmath
+        #
+        # mpmath.mp.dps = 100
+        #
+        # def recipinvgauss_cdf_mp(x, mu):
+        #     x = mpmath.mpf(x)
+        #     mu = mpmath.mpf(mu)
+        #     trm1 = 1/mu - x
+        #     trm2 = 1/mu + x
+        #     isqx = 1/mpmath.sqrt(x)
+        #     return (mpmath.ncdf(-isqx*trm1)
+        #             - mpmath.exp(2/mu)*mpmath.ncdf(-isqx*trm2))
+        #
+        p = stats.recipinvgauss.cdf(0.05, 0.5)
+        expected = 6.590396159501331e-20
+        assert_allclose(p, expected, rtol=1e-14)
+
+    def test_sf_large_x(self):
+        # The expected value was computed with mpmath; see test_cdf_small.
+        p = stats.recipinvgauss.sf(80, 0.5)
+        expected = 2.699819200556787e-18
+        assert_allclose(p, expected, 5e-15)
+
+
 class TestRice:
     def test_rice_zero_b(self):
         # rice distribution should work with b=0, cf gh-2164
@@ -5628,7 +5685,7 @@ def test_invweibull():
     def optimizer(func, x0, args=(), disp=0):
         return fmin(func, x0, args=args, disp=disp, xtol=1e-12, ftol=1e-12)
 
-    x = np.array([1, 1.25, 2, 2.5, 2.8,  3, 3.8, 4, 5, 8, 10, 12, 64, 99])
+    x = np.array([1, 1.25, 2, 2.5, 2.8, 3, 3.8, 4, 5, 8, 10, 12, 64, 99])
     c, loc, scale = stats.invweibull.fit(x, floc=0, optimizer=optimizer)
     assert_allclose(c, 1.048482, rtol=5e-6)
     assert loc == 0
@@ -5780,11 +5837,24 @@ class TestArgus:
         x = stats.argus.rvs(50, size=500, random_state=325)
         assert_almost_equal(stats.argus(50).mean(), x.mean(), decimal=4)
 
-    def test_argus_rvs_ratio_uniforms(self):
-        # test that the ratio of uniforms algorithms works for chi > 2.611
-        x = stats.argus.rvs(3.5, size=1500, random_state=1535)
-        assert_almost_equal(stats.argus(3.5).mean(), x.mean(), decimal=3)
-        assert_almost_equal(stats.argus(3.5).std(), x.std(), decimal=3)
+    @pytest.mark.parametrize('chi, random_state', [
+            [0.1, 325],   # chi <= 0.5: rejection method case 1
+            [1.3, 155],   # 0.5 < chi <= 1.8: rejection method case 2
+            [3.5, 135]    # chi > 1.8: transform conditional Gamma distribution
+        ])
+    def test_rvs(self, chi, random_state):
+        x = stats.argus.rvs(chi, size=500, random_state=random_state)
+        _, p = stats.kstest(x, "argus", (chi, ))
+        assert_(p > 0.05)
+
+    @pytest.mark.parametrize('chi', [1e-9, 1e-6])
+    def test_rvs_small_chi(self, chi):
+        # test for gh-11699 => rejection method case 1 can even handle chi=0
+        # the CDF of the distribution for chi=0 is 1 - (1 - x**2)**(3/2)
+        # test rvs against distribution of limit chi=0
+        r = stats.argus.rvs(chi, size=500, random_state=890981)
+        _, p = stats.kstest(r, lambda x: 1 - (1 - x**2)**(3/2))
+        assert_(p > 0.05)
 
     # Expected values were computed with mpmath.
     @pytest.mark.parametrize('chi, expected_mean',
@@ -6060,6 +6130,17 @@ def test_support_broadcasting_gh13294_regression():
     assert_equal(b2, ex_b2)
     assert a2.shape == ex_a2.shape
     assert b2.shape == ex_b2.shape
+
+
+def test_stats_broadcasting_gh14953_regression():
+    # test case in gh14953
+    loc = [0., 0.]
+    scale = [[1.], [2.], [3.]]
+    assert_equal(stats.norm.var(loc, scale), [[1., 1.], [4., 4.], [9., 9.]])
+    # test some edge cases
+    loc = np.empty((0, ))
+    scale = np.empty((1, 0))
+    assert stats.norm.var(loc, scale).shape == (1, 0)
 
 
 # Check a few values of the cosine distribution's cdf, sf, ppf and

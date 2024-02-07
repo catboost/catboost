@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from scipy.stats import bootstrap
+from scipy.stats import bootstrap, BootstrapDegenerateDistributionWarning
 from numpy.testing import assert_allclose, assert_equal
 from scipy import stats
 from scipy.stats import _bootstrap as _bootstrap
@@ -351,6 +351,38 @@ def test_bootstrap_vectorized_1samp(method, axis):
                      random_state=0)
     assert_allclose(res1.confidence_interval, res2.confidence_interval)
     assert_allclose(res1.standard_error, res2.standard_error)
+
+
+@pytest.mark.parametrize("method", ["basic", "percentile", "BCa"])
+def test_bootstrap_degenerate(method):
+    data = 35 * [10000.]
+    if method == "BCa":
+        with np.errstate(invalid='ignore'):
+            with pytest.warns(BootstrapDegenerateDistributionWarning):
+                res = bootstrap([data, ], np.mean, method=method)
+                assert_equal(res.confidence_interval, (np.nan, np.nan))
+    else:
+        res = bootstrap([data, ], np.mean, method=method)
+        assert_equal(res.confidence_interval, (10000., 10000.))
+    assert_equal(res.standard_error, 0)
+
+
+@pytest.mark.parametrize("method", ["basic", "percentile", "BCa"])
+def test_bootstrap_gh15678(method):
+    # Check that gh-15678 is fixed: when statistic function returned a Python
+    # float, method="BCa" failed when trying to add a dimension to the float
+    rng = np.random.default_rng(354645618886684)
+    dist = stats.norm(loc=2, scale=4)
+    data = dist.rvs(size=100, random_state=rng)
+    data = (data,)
+    res = bootstrap(data, stats.skew, method=method, n_resamples=100,
+                    random_state=np.random.default_rng(9563))
+    # this always worked because np.apply_along_axis returns NumPy data type
+    ref = bootstrap(data, stats.skew, method=method, n_resamples=100,
+                    random_state=np.random.default_rng(9563), vectorized=False)
+    assert_allclose(res.confidence_interval, ref.confidence_interval)
+    assert_allclose(res.standard_error, ref.standard_error)
+    assert isinstance(res.standard_error, np.float64)
 
 
 def test_jackknife_resample():
