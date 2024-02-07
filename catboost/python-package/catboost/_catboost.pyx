@@ -1808,7 +1808,7 @@ cdef class _PreprocessGrids:
                     self.custom_rnd_dist_gens[to_arcadia_string(rnd_name)] = _BuildCustomRandomDistributionGenerator(values)
                     self.rdg_enumeration += 1
                 else:
-                    raise CatBoostError("Error: not iterable and not random distribytion generator object at grid")
+                    raise CatBoostError("Error: not iterable and not random distribution generator object at grid")
 
         return params_to_json
 
