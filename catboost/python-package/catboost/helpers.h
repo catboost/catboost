@@ -244,18 +244,34 @@ void AsyncSetDataFromCythonMemoryViewCOrder(
                         }
                     );
                 } else {
-                    NPar::ParallelFor(
-                        *localExecutor,
-                        0,
-                        objCount,
-                        [=] (ui32 objIdx) {
-                            const TFloatOrInteger* dataPtr = data + objIdx * objStride;
-                            for (auto featureIdx : mainDataFeatureIdxToDstFeatureIdx) {
-                                builderVisitor->AddFloatFeature(objIdx, featureIdx, *dataPtr);
-                                dataPtr += elementStride;
+                    if ((elementStride == 1) && std::is_same<TFloatOrInteger, float>::value) {
+                        size_t featureCount = mainDataFeatureIdxToDstFeatureIdx.size();
+                        NPar::ParallelFor(
+                            *localExecutor,
+                            0,
+                            objCount,
+                            [=] (ui32 objIdx) {
+                                const TFloatOrInteger* dataPtr = data + objIdx * objStride;
+                                builderVisitor->AddAllFloatFeatures(
+                                    objIdx,
+                                    TConstArrayRef<float>(dataPtr, featureCount)
+                                );
                             }
-                        }
-                    );
+                        );
+                    } else {
+                        NPar::ParallelFor(
+                            *localExecutor,
+                            0,
+                            objCount,
+                            [=] (ui32 objIdx) {
+                                const TFloatOrInteger* dataPtr = data + objIdx * objStride;
+                                for (auto featureIdx : mainDataFeatureIdxToDstFeatureIdx) {
+                                    builderVisitor->AddFloatFeature(objIdx, featureIdx, *dataPtr);
+                                    dataPtr += elementStride;
+                                }
+                            }
+                        );
+                    }
                 }
             }
         )
