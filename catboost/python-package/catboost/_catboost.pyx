@@ -5642,7 +5642,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     return results_output
 
 
-cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
+cdef _convert_to_visible_labels(EPredictionType predictionType, const TVector[TVector[double]]& raws, int thread_count, TFullModel* model):
     cdef size_t objectCount
     cdef size_t objectIdx
     cdef size_t dim
