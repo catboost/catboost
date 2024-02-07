@@ -35,7 +35,7 @@
 
 #elif defined(AMIGA) || defined(__AROS__)
 #	define __USE_INLINE__
-#	include <proto/exec.h>
+#	error #include <proto/exec.h>
 
 #elif defined(__QNX__)
 #	error #include <sys/syspage.h>
