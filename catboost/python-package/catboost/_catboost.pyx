@@ -1,6 +1,6 @@
 # distutils: language = c++
 # coding: utf-8
-# cython: wraparound=False, boundscheck=False
+# cython: wraparound=False, boundscheck=False, initializedcheck=False
 
 from catboost.base_defs cimport *
 from catboost.libs.model.cython cimport *
@@ -2848,7 +2848,6 @@ cdef object _set_features_order_data_pd_data_frame(
     return new_data_holders
 
 
-@cython.initializedcheck(False)
 cdef _set_data_np(
     const float [:,:] num_feature_values,
     object [:,:] cat_feature_values, # cannot be const due to https://github.com/cython/cython/issues/2485
