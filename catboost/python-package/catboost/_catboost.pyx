@@ -283,7 +283,6 @@ cdef class Py_EmbeddingSequencePtr:
 
 
 @cython.boundscheck(False)
-@cython.wraparound(False)
 def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_or_bool_dtype, ndim=1] array):
 
     """
@@ -329,7 +328,6 @@ def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_or_bool_dtype, n
 
 # returns (Py_EmbeddingSequencePtr, new data holders array)
 @cython.boundscheck(False)
-@cython.wraparound(False)
 def make_embedding_type_cast_array_holder(
     size_t flat_feature_idx,
     np.ndarray[numpy_num_or_bool_dtype, ndim=1] first_element,
@@ -2163,7 +2161,6 @@ cdef _get_object_count(data):
         return np.shape(data)[0]
 
 @cython.boundscheck(False)
-@cython.wraparound(False)
 def _set_features_order_data_features_data(
     np.ndarray[numpy_num_or_bool_dtype, ndim=2] num_feature_values,
     np.ndarray[object, ndim=2] cat_feature_values,
@@ -2218,7 +2215,6 @@ def _set_features_order_data_features_data(
         dst_feature_idx += 1
 
 @cython.boundscheck(False)
-@cython.wraparound(False)
 def _set_features_order_data_ndarray(
     np.ndarray[numpy_num_or_bool_dtype, ndim=2] feature_values,
     ui32 [:] src_feature_idx_to_dst_feature_idx,
@@ -2858,7 +2854,6 @@ cdef object _set_features_order_data_pd_data_frame(
 
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-@cython.wraparound(False)
 cdef _set_data_np(
     const float [:,:] num_feature_values,
     object [:,:] cat_feature_values, # cannot be const due to https://github.com/cython/cython/issues/2485
@@ -3675,7 +3670,6 @@ cdef _set_timestamp(timestamp, IBuilderVisitor* builder_visitor):
 
 
 @cython.boundscheck(False)
-@cython.wraparound(False)
 def _set_label_from_num_nparray_objects_order(
     np.ndarray[numpy_num_or_bool_dtype, ndim=2] label,
     Py_ObjectsOrderBuilderVisitor py_builder_visitor
