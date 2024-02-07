@@ -2361,10 +2361,12 @@ cdef create_num_factor_data(
     cdef TIntrusivePtr[IResourceHolder] num_factor_data_holder
 
     cdef Py_FloatSequencePtr py_num_factor_data
+    cdef TArrayRef[float] data_buffer
 
+    cdef ui32 doc_count = len(column_values)
     cdef ui32 doc_idx
 
-    if len(column_values) == 0:
+    if doc_count == 0:
         result[0] = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.float32_t](
             <const np.float32_t*>nullptr,
             <const np.float32_t*>nullptr
@@ -2378,9 +2380,10 @@ cdef create_num_factor_data(
         return [column_values]
     else:
         num_factor_data = new TVectorHolder[float]()
-        num_factor_data.Get()[0].Data.resize(len(column_values))
-        for doc_idx in xrange(len(column_values)):
-            num_factor_data.Get()[0].Data[doc_idx] = get_float_feature(
+        num_factor_data.Get()[0].Data.resize(doc_count)
+        data_buffer = TArrayRef[float](num_factor_data.Get()[0].Data.data(), doc_count)
+        for doc_idx in xrange(doc_count):
+            data_buffer[doc_idx] = get_float_feature(
                 doc_idx,
                 flat_feature_idx,
                 column_values[doc_idx]
