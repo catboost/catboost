@@ -1673,7 +1673,7 @@ cdef EPredictionType string_to_prediction_type(prediction_type_str) except *:
     return prediction_type
 
 cdef transform_predictions(const TVector[TVector[double]]& predictions, EPredictionType predictionType, int thread_count, TFullModel* model):
-    approx_dimension = model.GetDimensionsCount()
+    cdef size_t approx_dimension = model.GetDimensionsCount()
 
     if approx_dimension == 1:
         if predictionType == EPredictionType_Class:
