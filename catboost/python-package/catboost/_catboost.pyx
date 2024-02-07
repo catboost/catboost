@@ -5649,7 +5649,7 @@ cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[
     cdef size_t dimIdx
     cdef TConstArrayRef[double] raws1d
 
-    if predictionType == string_to_prediction_type('Class'):
+    if predictionType == EPredictionType_Class:
         loss_function = _get_loss_function_name(model[0])
         if loss_function in ('MultiLogloss', 'MultiCrossEntropy'):
             return _2d_vector_of_double_to_np_array(raws).astype(int)
