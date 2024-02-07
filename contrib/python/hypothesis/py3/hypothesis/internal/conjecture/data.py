@@ -1093,12 +1093,12 @@ class PrimitiveProvider:
                 if clamped != result and not (math.isnan(result) and allow_nan):
                     self._cd.stop_example(discard=True)
                     self._cd.start_example(DRAW_FLOAT_LABEL)
-                    self._write_float(clamped)
+                    self._draw_float(forced=clamped)
                     result = clamped
             else:
                 result = nasty_floats[i - 1]
 
-                self._write_float(result)
+                self._draw_float(forced=result)
 
             self._cd.stop_example()  # (DRAW_FLOAT_LABEL)
             self._cd.stop_example()  # (FLOAT_STRATEGY_DO_DRAW_LABEL)
@@ -1170,23 +1170,13 @@ class PrimitiveProvider:
             # sign_aware_lte(forced, -0.0) does not correctly handle the
             # math.nan case here.
             forced_sign_bit = math.copysign(1, forced) == -1
-
-        self._cd.start_example(DRAW_FLOAT_LABEL)
-        try:
-            is_negative = self._cd.draw_bits(1, forced=forced_sign_bit)
-            f = lex_to_float(
-                self._cd.draw_bits(
-                    64, forced=None if forced is None else float_to_lex(abs(forced))
-                )
+        is_negative = self._cd.draw_bits(1, forced=forced_sign_bit)
+        f = lex_to_float(
+            self._cd.draw_bits(
+                64, forced=None if forced is None else float_to_lex(abs(forced))
             )
-            return -f if is_negative else f
-        finally:
-            self._cd.stop_example()
-
-    def _write_float(self, f: float) -> None:
-        sign = float_to_int(f) >> 63
-        self._cd.draw_bits(1, forced=sign)
-        self._cd.draw_bits(64, forced=float_to_lex(abs(f)))
+        )
+        return -f if is_negative else f
 
     def _draw_unbounded_integer(self, *, forced: Optional[int] = None) -> int:
         forced_i = None

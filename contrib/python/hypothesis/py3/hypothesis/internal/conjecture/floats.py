@@ -99,7 +99,7 @@ del i, b
 
 
 def decode_exponent(e: int) -> int:
-    """Take draw_bits(11) and turn it into a suitable floating point exponent
+    """Take an integer and turn it into a suitable floating point exponent
     such that lexicographically simpler leads to simpler floats."""
     assert 0 <= e <= MAX_EXPONENT
     return ENCODING_TABLE[e]

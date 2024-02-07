@@ -144,6 +144,7 @@ _python_argcomplete_global() {
         __python_argcomplete_expand_tilde_by_ref executable
     else
         executable="${words[1]}"
+        __python_argcomplete_expand_tilde_by_ref executable
         req_argv=( "${words[@]:1}" )
     fi
 
