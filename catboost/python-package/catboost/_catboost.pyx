@@ -1820,7 +1820,7 @@ cdef class _PreprocessGrids:
         dumps_grid = dumps(prepared_grids, cls=_NumpyAwareEncoder)
         self.tree = ReadTJsonValue(to_arcadia_string(dumps_grid))
 
-cdef TString to_arcadia_string(s) except *:
+cdef inline TString to_arcadia_string(s) except *:
     cdef const unsigned char[:] bytes_s
     cdef const char* utf8_str_pointer
     cdef Py_ssize_t utf8_str_size
@@ -1847,7 +1847,7 @@ cdef TString to_arcadia_string(s) except *:
         bytes_s = s
     return TString(<const char*>&bytes_s[0], len(bytes_s))
 
-cdef to_native_str(binary):
+cdef inline to_native_str(binary):
     if PY_MAJOR_VERSION >= 3 and hasattr(binary, 'decode'):
         return binary.decode()
     return binary
@@ -2337,7 +2337,7 @@ cdef object _set_objects_order_embedding_features_data(
     return new_data_holders
 
 
-cdef float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_idx, src_value) except*:
+cdef inline float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_idx, src_value) except*:
     try:
         return _FloatOrNan(src_value)
     except TypeError as e:
@@ -2398,7 +2398,7 @@ cdef create_num_factor_data(
 
         return []
 
-cdef get_cat_factor_bytes_representation(
+cdef inline get_cat_factor_bytes_representation(
     int non_default_doc_idx, # can be -1 - that means default value for sparse data
     ui32 feature_idx,
     object factor,
@@ -2418,7 +2418,7 @@ cdef get_cat_factor_bytes_representation(
             ' should be converted to string.'.format(doc_description, feature_idx, factor)
         )
 
-cdef get_text_factor_bytes_representation(
+cdef inline get_text_factor_bytes_representation(
     int non_default_doc_idx, # can be -1 - that means default value for sparse data
     ui32 feature_idx,
     object factor,
@@ -2439,7 +2439,7 @@ cdef get_text_factor_bytes_representation(
         )
 
 
-cdef TVector[np.float32_t] get_embedding_array_as_vector(
+cdef inline TVector[np.float32_t] get_embedding_array_as_vector(
     ui32 object_idx,
     ui32 flat_feature_idx,
     size_t embedding_dimension,
@@ -2478,7 +2478,7 @@ cdef TVector[np.float32_t] get_embedding_array_as_vector(
 
 
 # returns new data holders array
-cdef get_embedding_array_data(
+cdef inline get_embedding_array_data(
     ui32 object_idx,
     ui32 flat_feature_idx,
     size_t embedding_dimension,
@@ -2945,7 +2945,7 @@ cdef _get_categorical_feature_value_from_scipy_sparse(
     else:
         factor_string_buf[0] = ToString[i64](<i64>value)
 
-cdef _add_single_feature_value_from_scipy_sparse(
+cdef inline _add_single_feature_value_from_scipy_sparse(
     int doc_idx,
     ui32 feature_idx,
     value,
@@ -3528,7 +3528,7 @@ cdef _set_data(data, embedding_features_data, feature_names, const TFeaturesLayo
     return new_data_holders
 
 
-cdef TString obj_to_arcadia_string(obj) except *:
+cdef inline TString obj_to_arcadia_string(obj) except *:
     INT64_MIN = -9223372036854775808
     INT64_MAX =  9223372036854775807
     cdef type obj_type = type(obj)
@@ -3587,7 +3587,7 @@ cdef _set_weight_features_order(weight, IRawFeaturesOrderDataVisitor* builder_vi
         weightVector.push_back(float(weight[i]))
     builder_visitor[0].AddWeights(<TConstArrayRef[float]>weightVector)
 
-cdef TGroupId _calc_group_id_for(i, py_group_ids) except *:
+cdef inline TGroupId _calc_group_id_for(i, py_group_ids) except *:
     cdef TString id_as_strbuf
 
     try:
@@ -3621,7 +3621,7 @@ cdef _set_group_weight_features_order(group_weight, IRawFeaturesOrderDataVisitor
         groupWeightVector.push_back(float(group_weight[i]))
     builder_visitor[0].AddGroupWeights(<TConstArrayRef[float]>groupWeightVector)
 
-cdef TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids) except *:
+cdef inline TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids) except *:
     cdef TString id_as_strbuf
 
     try:
@@ -6165,8 +6165,8 @@ cpdef convert_features_to_indices(indices_or_names, cd_path, pool_metainfo_path)
     return loads(to_native_str(WriteTJsonValue(indices_or_names_as_json)))
 
 
-cdef TArrayRef[float] get_array_ref(np.ndarray[np.float32_t, ndim=1] src) noexcept:
-    return TArrayRef[float](<float*>src.data, <size_t>src.shape[0])
+cdef inline TArrayRef[float] get_array_ref(np.float32_t[::1] src) noexcept:
+    return TArrayRef[float](&src[0], <size_t>src.shape[0])
 
 
 cpdef get_num_feature_values_sample(
