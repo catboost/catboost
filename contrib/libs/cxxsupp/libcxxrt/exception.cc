@@ -99,7 +99,7 @@ static inline _Unwind_Reason_Code continueUnwinding(struct _Unwind_Exception *ex
 }
 
 
-extern "C" void __cxa_free_exception(void *thrown_exception) noexcept;
+extern "C" void __cxa_free_exception(void *thrown_exception) _LIBCXXRT_NOEXCEPT;
 extern "C" void __cxa_free_dependent_exception(void *thrown_exception);
 extern "C" void* __dynamic_cast(const void *sub,
                                 const __class_type_info *src,
@@ -176,7 +176,7 @@ struct __cxa_thread_info
  */
 struct __cxa_dependent_exception
 {
-#if __LP64__
+#ifdef __LP64__
 	void *reserve;
 	void *primaryException;
 #endif
@@ -195,7 +195,7 @@ struct __cxa_dependent_exception
 	const char *languageSpecificData;
 	void *catchTemp;
 	void *adjustedPtr;
-#if !__LP64__
+#ifndef __LP64__
 	void *primaryException;
 #endif
 	_Unwind_Exception unwindHeader;
@@ -219,8 +219,8 @@ namespace std
 	class exception
 	{
 		public:
-			virtual ~exception();
-			virtual const char* what() const noexcept;
+			virtual ~exception() _LIBCXXRT_NOEXCEPT;
+			virtual const char* what() const _LIBCXXRT_NOEXCEPT;
 	};
 
 }
@@ -282,7 +282,7 @@ namespace std
 {
 	// Forward declaration of standard library terminate() function used to
 	// abort execution.
-	void terminate(void) noexcept;
+	void terminate(void) _LIBCXXRT_NOEXCEPT;
 }
 
 using namespace ABI_NAMESPACE;
@@ -711,7 +711,7 @@ static constexpr size_t backtrace_buffer_size = 0;
  * emergency buffer if malloc() fails, and may block if there are no such
  * buffers available.
  */
-extern "C" void *__cxa_allocate_exception(size_t thrown_size) noexcept
+extern "C" void *__cxa_allocate_exception(size_t thrown_size) _LIBCXXRT_NOEXCEPT
 {
 	size_t size = thrown_size + exception_size + backtrace_buffer_size;
 	char *buffer = alloc_or_die(size);
@@ -736,7 +736,7 @@ extern "C" void *__cxa_allocate_dependent_exception(void)
  * In this implementation, it is also called by __cxa_end_catch() and during
  * thread cleanup.
  */
-extern "C" void __cxa_free_exception(void *thrown_exception) noexcept
+extern "C" void __cxa_free_exception(void *thrown_exception) _LIBCXXRT_NOEXCEPT
 {
 	__cxa_exception *ex = reinterpret_cast<__cxa_exception*>(thrown_exception) - 1;
 	// Free the object that was thrown, calling its destructor
@@ -791,7 +791,7 @@ void __cxa_free_dependent_exception(void *thrown_exception)
  * a handler, prints a back trace before aborting.
  */
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
-extern "C" void *__cxa_begin_catch(void *e) noexcept;
+extern "C" void *__cxa_begin_catch(void *e) _LIBCXXRT_NOEXCEPT;
 #else
 extern "C" void *__cxa_begin_catch(void *e);
 #endif
@@ -871,7 +871,7 @@ static void throw_exception(__cxa_exception *ex)
 }
 
 extern "C" __cxa_exception *__cxa_init_primary_exception(
-		void *object, std::type_info* tinfo, void (*dest)(void *)) noexcept {
+		void *object, std::type_info* tinfo, void (*dest)(void *)) _LIBCXXRT_NOEXCEPT {
 	__cxa_exception *ex = reinterpret_cast<__cxa_exception*>(object) - 1;
 
 	ex->referenceCount = 0;
@@ -1363,7 +1363,7 @@ BEGIN_PERSONALITY_FUNCTION(__gxx_personality_v0)
  * C++ exceptions) of the unadjusted pointer (for foreign exceptions).
  */
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
-extern "C" void *__cxa_begin_catch(void *e) noexcept
+extern "C" void *__cxa_begin_catch(void *e) _LIBCXXRT_NOEXCEPT
 #else
 extern "C" void *__cxa_begin_catch(void *e)
 #endif
@@ -1572,14 +1572,14 @@ namespace pathscale
 	/**
 	 * Sets whether unexpected and terminate handlers should be thread-local.
 	 */
-	void set_use_thread_local_handlers(bool flag) noexcept
+	void set_use_thread_local_handlers(bool flag) _LIBCXXRT_NOEXCEPT
 	{
 		thread_local_handlers = flag;
 	}
 	/**
 	 * Sets a thread-local unexpected handler.  
 	 */
-	unexpected_handler set_unexpected(unexpected_handler f) noexcept
+	unexpected_handler set_unexpected(unexpected_handler f) _LIBCXXRT_NOEXCEPT
 	{
 		static __cxa_thread_info *info = thread_info();
 		unexpected_handler old = info->unexpectedHandler;
@@ -1589,7 +1589,7 @@ namespace pathscale
 	/**
 	 * Sets a thread-local terminate handler.  
 	 */
-	terminate_handler set_terminate(terminate_handler f) noexcept
+	terminate_handler set_terminate(terminate_handler f) _LIBCXXRT_NOEXCEPT
 	{
 		static __cxa_thread_info *info = thread_info();
 		terminate_handler old = info->terminateHandler;
@@ -1604,7 +1604,7 @@ namespace std
 	 * Sets the function that will be called when an exception specification is
 	 * violated.
 	 */
-	unexpected_handler set_unexpected(unexpected_handler f) noexcept
+	unexpected_handler set_unexpected(unexpected_handler f) _LIBCXXRT_NOEXCEPT
 	{
 		if (thread_local_handlers) { return pathscale::set_unexpected(f); }
 
@@ -1613,7 +1613,7 @@ namespace std
 	/**
 	 * Sets the function that is called to terminate the program.
 	 */
-	terminate_handler set_terminate(terminate_handler f) noexcept
+	terminate_handler set_terminate(terminate_handler f) _LIBCXXRT_NOEXCEPT
 	{
 		if (thread_local_handlers) { return pathscale::set_terminate(f); }
 
@@ -1623,7 +1623,7 @@ namespace std
 	 * Terminates the program, calling a custom terminate implementation if
 	 * required.
 	 */
-	void terminate() noexcept
+	void terminate() _LIBCXXRT_NOEXCEPT
 	{
 		static __cxa_thread_info *info = thread_info();
 		if (0 != info && 0 != info->terminateHandler)
@@ -1656,7 +1656,7 @@ namespace std
 	 * Returns whether there are any exceptions currently being thrown that
 	 * have not been caught.  This can occur inside a nested catch statement.
 	 */
-	bool uncaught_exception() noexcept
+	bool uncaught_exception() _LIBCXXRT_NOEXCEPT
 	{
 		__cxa_thread_info *info = thread_info();
 		return info->globals.uncaughtExceptions != 0;
@@ -1665,7 +1665,7 @@ namespace std
 	 * Returns the number of exceptions currently being thrown that have not
 	 * been caught.  This can occur inside a nested catch statement.
 	 */
-	int uncaught_exceptions() noexcept
+	int uncaught_exceptions() _LIBCXXRT_NOEXCEPT
 	{
 		__cxa_thread_info *info = thread_info();
 		return info->globals.uncaughtExceptions;
@@ -1673,7 +1673,7 @@ namespace std
 	/**
 	 * Returns the current unexpected handler.
 	 */
-	unexpected_handler get_unexpected() noexcept
+	unexpected_handler get_unexpected() _LIBCXXRT_NOEXCEPT
 	{
 		__cxa_thread_info *info = thread_info();
 		if (info->unexpectedHandler)
@@ -1685,7 +1685,7 @@ namespace std
 	/**
 	 * Returns the current terminate handler.
 	 */
-	terminate_handler get_terminate() noexcept
+	terminate_handler get_terminate() _LIBCXXRT_NOEXCEPT
 	{
 		__cxa_thread_info *info = thread_info();
 		if (info->terminateHandler)
