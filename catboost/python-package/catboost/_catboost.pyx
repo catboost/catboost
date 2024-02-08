@@ -89,6 +89,17 @@ ctypedef fused numpy_indices_dtype:
     np.uint64_t
 
 
+ctypedef fused categories_codes_dtype:
+    np.int8_t
+    np.int16_t
+    np.int32_t
+    np.int64_t
+    np.uint8_t
+    np.uint16_t
+    np.uint32_t
+    np.uint64_t
+
+
 ctypedef fused numpy_num_or_bool_dtype:
     # np.npy_bool   - can't add it - Cython confuses it with np.uint8_t
     np.int8_t
@@ -2688,6 +2699,30 @@ cdef object _set_features_order_data_pd_data_frame_sparse_column(
     return new_data_holders
 
 
+cdef _set_hashed_cat_values(
+    ui32 flat_feature_idx,
+    const categories_codes_dtype[:] categories_codes,
+    TConstArrayRef[ui32] categories_as_hashed_cat_values_ref,
+    TArrayRef[ui32] hashed_cat_values_ref
+):
+    cdef ui32 doc_count = categories_codes.shape[0]
+
+    cdef categories_codes_dtype category_code
+    cdef ui32 doc_idx
+
+
+    for doc_idx in xrange(doc_count):
+        category_code = categories_codes[doc_idx]
+        if category_code == -1:
+            raise CatBoostError(
+                'Invalid type for cat_feature[object_idx={},feature_idx={}]=NaN :'
+                ' cat_features must be integer or string, real number values and NaN values'
+                ' should be converted to string.'.format(doc_idx, flat_feature_idx)
+            )
+
+        hashed_cat_values_ref[doc_idx] = categories_as_hashed_cat_values_ref[category_code]
+
+
 cdef _set_features_order_data_pd_data_frame_categorical_column(
     ui32 flat_feature_idx,
     object column_values, # pd.Categorical, but Cython requires cimport to provide type here
@@ -2699,18 +2734,15 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
     IRawFeaturesOrderDataVisitor* builder_visitor
 ):
     cdef ui32 categories_size = len(column_values.categories)
-
-    cdef np.ndarray categories_codes = column_values.codes
-    cdef ui32 doc_count = categories_codes.shape[0]
+    cdef ui32 doc_count = len(column_values.codes)
 
     # access through TArrayRef is faster
     cdef TArrayRef[ui32] categories_as_hashed_cat_values_ref
+
     cdef TVector[ui32] hashed_cat_values
+    cdef TArrayRef[ui32] hashed_cat_values_ref
 
     cdef ui32 category_idx
-    cdef ui32 doc_idx
-    cdef i32 category_code
-
 
     # TODO(akhropov): make yresize accessible in Cython
     categories_as_hashed_cat_values[0].resize(categories_size)
@@ -2732,16 +2764,73 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
 
     # TODO(akhropov): make yresize accessible in Cython
     hashed_cat_values.resize(doc_count)
-    for doc_idx in xrange(doc_count):
-        category_code = categories_codes[doc_idx]
-        if category_code == -1:
-            raise CatBoostError(
-                'Invalid type for cat_feature[object_idx={},feature_idx={}]=NaN :'
-                ' cat_features must be integer or string, real number values and NaN values'
-                ' should be converted to string.'.format(doc_idx, flat_feature_idx)
-            )
+    hashed_cat_values_ref = <TArrayRef[ui32]>hashed_cat_values
 
-        hashed_cat_values[doc_idx] = categories_as_hashed_cat_values_ref[category_code]
+    categories_codes_dtype = column_values.codes.dtype
+
+    if categories_codes_dtype == np.int8:
+        _set_hashed_cat_values[np.int8_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.int16:
+        _set_hashed_cat_values[np.int16_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.int32:
+        _set_hashed_cat_values[np.int32_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.int64:
+        _set_hashed_cat_values[np.int64_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.uint8:
+        _set_hashed_cat_values[np.uint8_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.uint16:
+        _set_hashed_cat_values[np.uint16_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.uint32:
+        _set_hashed_cat_values[np.uint32_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.uint64:
+        _set_hashed_cat_values[np.uint64_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    else:
+        raise TypeError(
+            "Unexpected dtype of pandas.Categorical.codes for feature_idx={}: {} ".format(
+                flat_feature_idx,
+                categories_codes_dtype
+            )
+        )
 
     builder_visitor[0].AddCatFeature(
         flat_feature_idx,
