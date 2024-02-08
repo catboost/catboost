@@ -1252,10 +1252,7 @@ cdef _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
 
 
 cdef _vector_of_double_to_np_array(const TVector[double]& vec):
-    result = np.empty(vec.size(), dtype=_npfloat64)
-    for i in xrange(vec.size()):
-        result[i] = vec[i]
-    return result
+    return _constarrayref_of_double_to_np_array(<TConstArrayRef[double]>vec)
 
 
 cdef _2d_vector_of_double_to_np_array(const TVector[TVector[double]]& vectors):
