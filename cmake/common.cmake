@@ -115,17 +115,28 @@ function(generate_enum_serilization Tgt Input)
   get_built_tool_path(enum_parser_bin enum_parser_dependency tools/enum_parser/enum_parser enum_parser)
 
   get_filename_component(BaseName ${Input} NAME)
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp ${ENUM_SERIALIZATION_ARGS_GEN_HEADER}
-    COMMAND
-      ${enum_parser_bin}
-      ${Input}
-      --include-path ${ENUM_SERIALIZATION_ARGS_INCLUDE_HEADERS}
-      --output ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
-    DEPENDS ${Input} ${enum_parser_dependency}
-  )
   if (ENUM_SERIALIZATION_ARGS_GEN_HEADER)
     set_property(SOURCE ${ENUM_SERIALIZATION_ARGS_GEN_HEADER} PROPERTY GENERATED On)
+    add_custom_command(
+      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp ${ENUM_SERIALIZATION_ARGS_GEN_HEADER}
+      COMMAND
+        ${enum_parser_bin}
+        ${Input}
+        --include-path ${ENUM_SERIALIZATION_ARGS_INCLUDE_HEADERS}
+        --output ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
+        --header ${ENUM_SERIALIZATION_ARGS_GEN_HEADER}
+      DEPENDS ${Input} ${enum_parser_dependency}
+    )
+  else()
+    add_custom_command(
+      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
+      COMMAND
+        ${enum_parser_bin}
+        ${Input}
+        --include-path ${ENUM_SERIALIZATION_ARGS_INCLUDE_HEADERS}
+        --output ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
+      DEPENDS ${Input} ${enum_parser_dependency}
+    )
   endif()
   target_sources(${Tgt} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp)
 endfunction()
