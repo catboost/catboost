@@ -185,7 +185,7 @@ PUBLIC_ALIASED_MODULES = [
 PRIVATE_BUT_PRESENT_MODULES = ['numpy.' + s for s in [
     "compat",
     "compat.py3k",
-    #"conftest",
+    "conftest",
     "core",
     "core.arrayprint",
     "core.defchararray",
