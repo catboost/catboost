@@ -4956,20 +4956,20 @@ cdef class _CatBoost:
         return transform_predictions(pred, predictionType, thread_count, self.__model)
 
     cpdef _base_virtual_ensembles_predict(self, _PoolBase pool, str prediction_type, int ntree_end, int virtual_ensembles_count, int thread_count, bool_t verbose):
-            cdef TVector[TVector[double]] pred
-            cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
-            thread_count = UpdateThreadCount(thread_count);
-            with nogil:
-                pred = ApplyUncertaintyPredictions(
-                    dereference(self.__model),
-                    dereference(pool.__pool.Get()),
-                    verbose,
-                    predictionType,
-                    ntree_end,
-                    virtual_ensembles_count,
-                    thread_count
-                )
-            return np.transpose(_2d_vector_of_double_to_np_array(pred))
+        cdef TVector[TVector[double]] pred
+        cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
+        thread_count = UpdateThreadCount(thread_count);
+        with nogil:
+            pred = ApplyUncertaintyPredictions(
+                dereference(self.__model),
+                dereference(pool.__pool.Get()),
+                verbose,
+                predictionType,
+                ntree_end,
+                virtual_ensembles_count,
+                thread_count
+            )
+        return np.transpose(_2d_vector_of_double_to_np_array(pred))
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
         thread_count = UpdateThreadCount(thread_count);
