@@ -5507,10 +5507,10 @@ cdef class _CatBoost:
         self.__model.ModelTrees.GetMutable().GetModelTreeData().Get().SetLeafValues(model_leafs)
 
     cpdef _set_feature_names(self, feature_names):
-            cdef TVector[TString] feature_names_vector
-            for value in feature_names:
-                feature_names_vector.push_back(to_arcadia_string(str(value)))
-            SetModelExternalFeatureNames(feature_names_vector, self.__model)
+        cdef TVector[TString] feature_names_vector
+        for value in feature_names:
+            feature_names_vector.push_back(to_arcadia_string(str(value)))
+        SetModelExternalFeatureNames(feature_names_vector, self.__model)
 
     cpdef _convert_oblivious_to_asymmetric(self):
         self.__model.ModelTrees.GetMutable().ConvertObliviousToAsymmetric()
