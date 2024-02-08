@@ -1244,103 +1244,137 @@ cdef bool_t _CallbackAfterIteration(
         with nogil:
             ThrowCppExceptionWithMessage(errorMessage)
 
-cdef _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
-    result = np.empty(arr.size(), dtype=_npfloat64)
+cdef np.ndarray _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
+    cdef np.ndarray[np.float64_t, ndim=1] result = np.empty(arr.size(), dtype=_npfloat64)
+    cdef np.float64_t[::1] result_view = result
     for i in xrange(arr.size()):
-        result[i] = arr[i]
+        result_view[i] = arr[i]
     return result
 
 
-cdef _vector_of_double_to_np_array(const TVector[double]& vec):
+cdef np.ndarray _vector_of_double_to_np_array(const TVector[double]& vec):
     return _constarrayref_of_double_to_np_array(<TConstArrayRef[double]>vec)
 
 
-cdef _2d_vector_of_double_to_np_array(const TVector[TVector[double]]& vectors):
+cdef np.ndarray _2d_vector_of_double_to_np_array(const TVector[TVector[double]]& vectors):
     cdef size_t subvec_size = vectors[0].size() if not vectors.empty() else 0
-    result = np.empty([vectors.size(), subvec_size], dtype=_npfloat64)
+
+    cdef np.ndarray[np.float64_t, ndim=2] result = np.empty([vectors.size(), subvec_size], dtype=_npfloat64)
+    cdef np.float64_t[:,::1] result_view = result
+
+    # result = np.empty([vectors.size(), subvec_size], dtype=_npfloat64)
     for i in xrange(vectors.size()):
         assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
         for j in xrange(subvec_size):
-            result[i][j] = vectors[i][j]
+            result_view[i, j] = vectors[i][j]
     return result
 
 
-cdef _3d_vector_of_double_to_np_array(const TVector[TVector[TVector[double]]]& vectors):
+cdef np.ndarray _3d_vector_of_double_to_np_array(const TVector[TVector[TVector[double]]]& vectors):
     cdef size_t subvec_size = vectors[0].size() if not vectors.empty() else 0
     cdef size_t sub_subvec_size = vectors[0][0].size() if subvec_size != 0 else 0
-    result = np.empty([vectors.size(), subvec_size, sub_subvec_size], dtype=_npfloat64)
+
+    cdef np.ndarray[np.float64_t, ndim=3] result = np.empty(
+        [vectors.size(), subvec_size, sub_subvec_size],
+        dtype=_npfloat64
+    )
+    cdef np.float64_t[:,:,::1] result_view = result
+
     for i in xrange(vectors.size()):
         assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
         for j in xrange(subvec_size):
             assert vectors[i][j].size() == sub_subvec_size, "All subvectors should have the same length"
             for k in xrange(sub_subvec_size):
-                result[i][j][k] = vectors[i][j][k]
+                result_view[i, j, k] = vectors[i][j][k]
     return result
 
-cdef _reorder_axes_for_python_3d_shap_values(TVector[TVector[TVector[TVector[double]]]]& vectors):
+cdef np.ndarray _reorder_axes_for_python_3d_shap_values(TVector[TVector[TVector[TVector[double]]]]& vectors):
     cdef size_t featuresCount = vectors.size() if not vectors.empty() else 0
     assert featuresCount == vectors[0].size()
     cdef size_t approx_dimension = vectors[0][0].size() if featuresCount != 0 else 0
     assert approx_dimension == 1
     cdef size_t doc_size = vectors[0][0][0].size() if approx_dimension != 0 else 0
-    result = np.empty([doc_size, featuresCount, featuresCount], dtype=_npfloat64)
+
+    cdef np.ndarray[np.float64_t, ndim=3] result = np.empty(
+        [doc_size, featuresCount, featuresCount],
+        dtype=_npfloat64
+    )
+    cdef np.float64_t[:,:,::1] result_view = result
+
     cdef size_t doc, feature1, feature2
     for doc in xrange(doc_size):
         for feature1 in xrange(featuresCount):
             for feature2 in xrange(featuresCount):
-                result[doc][feature1][feature2] = vectors[feature1][feature2][0][doc]
+                result_view[doc, feature1, feature2] = vectors[feature1][feature2][0][doc]
     return result
 
-cdef _reorder_axes_for_python_4d_shap_values(TVector[TVector[TVector[TVector[double]]]]& vectors):
+cdef np.ndarray _reorder_axes_for_python_4d_shap_values(TVector[TVector[TVector[TVector[double]]]]& vectors):
     cdef size_t featuresCount = vectors.size() if not vectors.empty() else 0
     assert featuresCount == vectors[0].size()
     cdef size_t approx_dimension = vectors[0][0].size() if featuresCount != 0 else 0
     assert approx_dimension > 1
     cdef size_t doc_size = vectors[0][0][0].size() if approx_dimension != 0 else 0
-    result = np.empty([doc_size, approx_dimension, featuresCount, featuresCount], dtype=_npfloat64)
+    #result = np.empty([doc_size, approx_dimension, featuresCount, featuresCount], dtype=_npfloat64)
+    cdef np.ndarray[np.float64_t, ndim=4] result = np.empty(
+        [doc_size, approx_dimension, featuresCount, featuresCount],
+        dtype=_npfloat64
+    )
+    cdef np.float64_t[:,:,:,::1] result_view = result
+
     cdef size_t doc, dim, feature1, feature2
     for doc in xrange(doc_size):
         for dim in xrange(approx_dimension):
             for feature1 in xrange(featuresCount):
                 for feature2 in xrange(featuresCount):
-                    result[doc][dim][feature1][feature2] = vectors[feature1][feature2][dim][doc]
+                    result_view[doc, dim, feature1, feature2] = vectors[feature1][feature2][dim][doc]
     return result
 
 
-cdef _vector_of_uints_to_np_array(const TVector[ui32]& vec):
-    result = np.empty(vec.size(), dtype=np.uint32)
+cdef np.ndarray _vector_of_uints_to_np_array(const TVector[ui32]& vec):
+    cdef np.ndarray[np.uint32_t, ndim=1] result = np.empty(vec.size(), dtype=np.uint32)
+    cdef np.uint32_t[::1] result_view = result
+
     for i in xrange(vec.size()):
-        result[i] = vec[i]
+        result_view[i] = vec[i]
     return result
 
 
-cdef _vector_of_ints_to_np_array(const TVector[int]& vec):
-    result = np.empty(vec.size(), dtype=int)
+cdef np.ndarray _vector_of_ints_to_np_array(const TVector[int]& vec):
+    cdef np.ndarray[np.int_t, ndim=1] result = np.empty(vec.size(), dtype=np.int_)
+    cdef np.int_t[::1] result_view = result
+
     for i in xrange(vec.size()):
-        result[i] = vec[i]
+        result_view[i] = vec[i]
     return result
 
 
-cdef _vector_of_uints_to_2d_np_array(const TVector[ui32]& vec, int row_count, int column_count):
+cdef np.ndarray _vector_of_uints_to_2d_np_array(const TVector[ui32]& vec, int row_count, int column_count):
     assert vec.size() == row_count * column_count
-    result = np.empty((row_count, column_count), dtype=np.uint32)
+
+    cdef np.ndarray[np.uint32_t, ndim=2] result = np.empty((row_count, column_count), dtype=np.uint32)
+    cdef np.uint32_t[:,::1] result_view = result
+
     for row_num in xrange(row_count):
         for col_num in xrange(column_count):
-            result[row_num][col_num] = vec[row_num * column_count + col_num]
+            result[row_num, col_num] = vec[row_num * column_count + col_num]
     return result
 
 
-cdef _vector_of_floats_to_np_array(const TVector[float]& vec):
-    result = np.empty(vec.size(), dtype=_npfloat32)
+cdef np.ndarray _vector_of_floats_to_np_array(const TVector[float]& vec):
+    cdef np.ndarray[np.float32_t, ndim=1] result = np.empty(vec.size(), dtype=_npfloat32)
+    cdef np.float32_t[::1] result_view = result
+
     for i in xrange(vec.size()):
-        result[i] = vec[i]
+        result_view[i] = vec[i]
     return result
 
 
-cdef _vector_of_size_t_to_np_array(const TVector[size_t]& vec):
-    result = np.empty(vec.size(), dtype=np.uint32)
+cdef np.ndarray _vector_of_size_t_to_np_array(const TVector[size_t]& vec):
+    cdef np.ndarray[np.uint32_t, ndim=1] result = np.empty(vec.size(), dtype=np.uint32)
+    cdef np.uint32_t[::1] result_view = result
+
     for i in xrange(vec.size()):
-        result[i] = vec[i]
+        result_view[i] = vec[i]
     return result
 
 
