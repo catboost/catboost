@@ -81,6 +81,6 @@ static constexpr size_t NumericHash(T t) noexcept {
 }
 
 template <class T>
-static constexpr T CombineHashes(T l, T r) noexcept {
+[[nodiscard]] static constexpr T CombineHashes(T l, T r) noexcept {
     return IntHash(l) ^ r;
 }
