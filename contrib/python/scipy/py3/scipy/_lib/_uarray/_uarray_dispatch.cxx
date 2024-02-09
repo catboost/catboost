@@ -35,7 +35,14 @@ public:
     return py_ref(object);
   }
 
-  ~py_ref() { Py_XDECREF(obj_); }
+  ~py_ref() {
+#ifdef Py_DEBUG
+    if (!Py_IsInitialized()) {
+        return;
+    }
+#endif
+    Py_XDECREF(obj_);
+  }
 
   py_ref & operator=(const py_ref & other) noexcept {
     py_ref(other).swap(*this);
