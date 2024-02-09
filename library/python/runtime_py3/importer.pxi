@@ -27,7 +27,7 @@ Y_PYTHON_EXTENDED_SOURCE_SEARCH = _os.environ.get(env_extended_source_search) or
 
 def _init_venv():
     if not _path_isabs(executable):
-        raise RuntimeError('path in sys.executable is not absolute: {}'.format(executable))
+        raise RuntimeError(f'path in sys.executable is not absolute: {executable}')
 
     # Creative copy-paste from site.py
     exe_dir, _ = _path_split(executable)
@@ -50,7 +50,7 @@ def _init_venv():
         if _path_isfile(conffile)
         ]
     if not candidate_confs:
-        raise RuntimeError('{} not found'.format(conf_basename))
+        raise RuntimeError(f'{conf_basename} not found')
     virtual_conf = candidate_confs[0]
     with FileIO(virtual_conf, 'r') as f:
         for line in f:
@@ -60,7 +60,7 @@ def _init_venv():
                 value = value.strip()
                 if key == cfg_source_root:
                     return value
-    raise RuntimeError('{} key not found in {}'.format(cfg_source_root, virtual_conf))
+    raise RuntimeError(f'{cfg_source_root} key not found in {virtual_conf}')
 
 
 def _get_source_root():
@@ -175,7 +175,7 @@ def mod_path(mod):
     return py_prefix + _b(mod).replace(b'.', b'/') + b'.py'
 
 
-class ResourceImporter(object):
+class ResourceImporter:
 
     """ A meta_path importer that loads code from built-in resources.
     """
@@ -292,7 +292,7 @@ class ResourceImporter(object):
         path = path.replace(_b('\\'), _b('/'))
         data = resfs_read(path, builtin=True)
         if data is None:
-            raise IOError(path)  # Y_PYTHON_ENTRY_POINT=:resource_files
+            raise OSError(path)  # Y_PYTHON_ENTRY_POINT=:resource_files
         return data
 
     # PEP-302 extension 2 of 3: get __file__ without importing.
@@ -513,8 +513,7 @@ class ArcadiaSourceFinder:
                     m = rx.match(mod)
                     if m:
                         found.append((prefix + m.group(1), self.is_package(mod)))
-            for cm in found:
-                yield cm
+            yield from found
 
             # Yield from file system
             for path in paths:
