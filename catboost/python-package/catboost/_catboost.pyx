@@ -1032,6 +1032,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TVector[TString]& sampleIdsVector,
         TVector[TArrayRef[float]]* numFeaturesColumns
     ) except +ProcessException
+    TMetricsAndTimeLeftHistory GetTrainingMetrics(const TFullModel& model) except +ProcessException
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -5198,6 +5199,7 @@ cdef class _CatBoost:
         tmp_model.Load(wrapper.Get())
         self.model_blob = None
         self.__model.Swap(tmp_model)
+        self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
@@ -5205,6 +5207,7 @@ cdef class _CatBoost:
         tmp_model = ReadModel(to_arcadia_string(fspath(model_file)), modelType)
         self.model_blob = None
         self.__model.Swap(tmp_model)
+        self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
         cdef EModelType modelType = string_to_model_type(format)
@@ -5238,6 +5241,7 @@ cdef class _CatBoost:
         self.model_blob = serialized_model_str
         cdef TFullModel tmp_model = ReadZeroCopyModel(<char*>serialized_model_str, len(serialized_model_str))
         self.__model.Swap(tmp_model)
+        self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _get_params(self):
         try:

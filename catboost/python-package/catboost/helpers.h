@@ -13,6 +13,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/target/data_providers.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/train_lib/options_helper.h>
 
 #include <library/cpp/json/json_value.h>
@@ -377,3 +378,6 @@ void GetNumFeatureValuesSample(
     const TVector<TString>& sampleIdsVector,
     TVector<TArrayRef<float>>* numFeaturesColumns
 );
+
+
+TMetricsAndTimeLeftHistory GetTrainingMetrics(const TFullModel& model);

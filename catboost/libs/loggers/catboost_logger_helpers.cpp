@@ -1,12 +1,59 @@
 #include "catboost_logger_helpers.h"
 #include "logger.h"
 
+#include <catboost/libs/helpers/json_helpers.h>
+
+#include <type_traits>
+
+
 TTimeInfo::TTimeInfo(const TProfileResults& profileResults)
     : IterationTime(profileResults.CurrentTime)
     , PassedTime(profileResults.PassedTime)
     , RemainingTime(profileResults.RemainingTime)
 {
 }
+
+NJson::TJsonValue TMetricsAndTimeLeftHistory::SaveMetrics() const {
+    auto saveToJson = [&](const auto& field) {
+        NJson::TJsonValue dst;
+        TJsonFieldHelper<std::remove_const_t<std::remove_reference_t<decltype(field)>>>::Write(field, &dst);
+        return dst;
+    };
+
+    NJson::TJsonValue result(NJson::JSON_MAP);
+    result["learn_metrics_history"] = saveToJson(LearnMetricsHistory);
+    result["test_metrics_history"] = saveToJson(TestMetricsHistory);
+    if (BestIteration) {
+        result["best_iteration"] = saveToJson(*BestIteration);
+    }
+    result["learn_best_error"] = saveToJson(LearnBestError);
+    result["test_best_error"] = saveToJson(TestBestError);
+
+    return result;
+}
+
+TMetricsAndTimeLeftHistory TMetricsAndTimeLeftHistory::LoadMetrics(const NJson::TJsonValue& rhs) {
+    const auto& rhsMap = rhs.GetMap();
+
+    auto loadFromJson = [&] (TStringBuf name, auto* field) {
+        TJsonFieldHelper<std::remove_reference_t<decltype(*field)>>::Read(
+            rhsMap.at(name),
+            field
+        );
+    };
+
+    TMetricsAndTimeLeftHistory result;
+    loadFromJson("learn_metrics_history",  &result.LearnMetricsHistory);
+    loadFromJson("test_metrics_history",  &result.TestMetricsHistory);
+    if (rhsMap.contains("best_iteration")) {
+        result.BestIteration = rhsMap.at("best_iteration").GetUIntegerSafe();
+    }
+    loadFromJson("learn_best_error", &result.LearnBestError);
+    loadFromJson("test_best_error", &result.TestBestError);
+
+    return result;
+}
+
 
 void TMetricsAndTimeLeftHistory::TryUpdateBestError(const IMetric& metric, double error, THashMap<TString, double>& bestError, bool updateBestIteration) {
     TString metricDescription = metric.GetDescription();

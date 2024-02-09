@@ -71,6 +71,7 @@ generate_random_labeled_dataset = lib.generate_random_labeled_dataset
 generate_dataset_with_num_and_cat_features = lib.generate_dataset_with_num_and_cat_features
 load_dataset_as_dataframe = lib.load_dataset_as_dataframe
 load_pool_features_as_df = lib.load_pool_features_as_df
+compare_with_limited_precision = lib.compare_with_limited_precision
 
 
 fails_on_gpu = pytest.mark.fails_on_gpu
@@ -1330,16 +1331,21 @@ def test_model_pickling(task_type):
 def test_save_load_equality(task_type):
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
 
+    def check_equality(model1, model2):
+        assert model1 == model2
+        for attr in ('best_score_', 'evals_result_', 'best_iteration_'):
+            assert compare_with_limited_precision(getattr(model1, attr), getattr(model2, attr))
+
     def check_load_from_stream(model):
         cb_stream = CatBoost()
         with open(output_model_path, 'rb') as stream:
             cb_stream.load_model(stream=stream)
-        assert model == cb_stream
+        check_equality(model, cb_stream)
 
     def check_load_from_string(model):
         cb_blob = CatBoost()
         cb_blob.load_model(blob=open(output_model_path, 'rb').read())
-        assert model == cb_blob
+        check_equality(model, cb_blob)
 
     def fill_check_model(params, train_file, test_file, cd_file):
         model, _ = fit_from_file(params, train_file, test_file, cd_file)

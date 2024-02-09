@@ -12,6 +12,7 @@ add_library(catboost-libs-loggers)
 target_link_libraries(catboost-libs-loggers PUBLIC
   contrib-libs-cxxsupp
   yutil
+  catboost-libs-helpers
   catboost-libs-logging
   private-libs-options
   catboost-libs-metrics

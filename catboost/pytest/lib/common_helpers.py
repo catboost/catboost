@@ -29,6 +29,7 @@ __all__ = [
     'permute_dataset_columns',
     'remove_time_from_json',
     'test_output_path',
+    'compare_with_limited_precision'
 ]
 
 try:
@@ -425,3 +426,34 @@ def get_limited_precision_numpy_diff_tool(rtol=None, atol=None):
     if atol is not None:
         diff_tool += ['--atol', str(atol)]
     return diff_tool
+
+
+# arguments can be JSON-like simple data structures
+def compare_with_limited_precision(lhs, rhs, rtol=1e-6, atol=1e-8):
+    if isinstance(lhs, dict):
+        if not isinstance(rhs, dict):
+            return False
+        if len(lhs) != len(rhs):
+            return False
+        for k in lhs.keys():
+            if k not in rhs:
+                return False
+            if not compare_with_limited_precision(lhs[k], rhs[k], rtol, atol):
+                return False
+        return True
+    elif isinstance(lhs, list):
+        if not isinstance(rhs, list):
+            return False
+        if len(lhs) != len(rhs):
+            return False
+        return all((compare_with_limited_precision(lhs[i], rhs[i], rtol, atol) for i in range(len(lhs))))
+    elif isinstance(lhs, np.ndarray):
+        if not isinstance(rhs, np.ndarray):
+            return False
+        return np.allclose(lhs, rhs, rtol=rtol, atol=atol, equal_nan=True)
+    elif isinstance(lhs, (float, np.floating)):
+        if not isinstance(rhs, (float, np.floating)):
+            return False
+        return abs(lhs - rhs) <= atol + rtol * abs(rhs)
+    else:
+        return lhs == rhs

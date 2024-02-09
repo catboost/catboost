@@ -717,6 +717,8 @@ static void SaveModel(
             trainingDataForCpu.Learn->ObjectsData
         ).WithFeatureEstimators(
             trainingDataForCpu.FeatureEstimators
+        ).WithMetrics(
+            ctx.LearnProgress->MetricsAndTimeHistory
         );
 
         const TVector<TTargetClassifier>* targetClassifiers = &ctx.CtrsHelper.GetTargetClassifiers();

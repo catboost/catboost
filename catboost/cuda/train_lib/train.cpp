@@ -472,7 +472,8 @@ namespace NCatboostCuda {
                 .WithCoreModelFrom(
                     modelPtr)
                 .WithObjectsDataFrom(trainingData.Learn->ObjectsData)
-                .WithFeatureEstimators(trainingData.FeatureEstimators);
+                .WithFeatureEstimators(trainingData.FeatureEstimators)
+                .WithMetrics(*metricsAndTimeHistory);
 
             if (dstModel) {
                 coreModelToFullModelConverter.Do(true, dstModel, localExecutor, &targetClassifiers);
