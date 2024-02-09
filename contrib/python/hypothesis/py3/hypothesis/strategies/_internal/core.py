@@ -70,6 +70,7 @@ from hypothesis.internal.charmap import (
 from hypothesis.internal.compat import (
     Concatenate,
     ParamSpec,
+    bit_count,
     ceil,
     floor,
     get_type_hints,
@@ -202,6 +203,48 @@ def sampled_from(
     that behaviour, use ``sampled_from(seq) if seq else nothing()``.
     """
     values = check_sample(elements, "sampled_from")
+    try:
+        if isinstance(elements, type) and issubclass(elements, enum.Enum):
+            repr_ = f"sampled_from({elements.__module__}.{elements.__name__})"
+        else:
+            repr_ = f"sampled_from({elements!r})"
+    except Exception:  # pragma: no cover
+        repr_ = None
+    if isclass(elements) and issubclass(elements, enum.Flag):
+        # Combinations of enum.Flag members (including empty) are also members.  We generate these
+        # dynamically, because static allocation takes O(2^n) memory.  LazyStrategy is used for the
+        # ease of force_repr.
+        # Add all named values, both flag bits (== list(elements)) and aliases. The aliases are
+        # necessary for full coverage for flags that would fail enum.NAMED_FLAGS check, and they
+        # are also nice values to shrink to.
+        flags = sorted(
+            set(elements.__members__.values()),
+            key=lambda v: (bit_count(v.value), v.value),
+        )
+        # Finally, try to construct the empty state if it is not named. It's placed at the
+        # end so that we shrink to named values.
+        flags_with_empty = flags
+        if not flags or flags[0].value != 0:
+            try:
+                flags_with_empty = [*flags, elements(0)]
+            except TypeError:  # pragma: no cover
+                # Happens on some python versions (at least 3.12) when there are no named values
+                pass
+        inner = [
+            # Consider one or no named flags set, with shrink-to-named-flag behaviour.
+            # Special cases (length zero or one) are handled by the inner sampled_from.
+            sampled_from(flags_with_empty),
+        ]
+        if len(flags) > 1:
+            inner += [
+                # Uniform distribution over number of named flags or combinations set. The overlap
+                # at r=1 is intentional, it may lead to oversampling but gives consistent shrinking
+                # behaviour.
+                integers(min_value=1, max_value=len(flags))
+                .flatmap(lambda r: sets(sampled_from(flags), min_size=r, max_size=r))
+                .map(lambda s: elements(reduce(operator.or_, s))),
+            ]
+        return LazyStrategy(one_of, args=inner, kwargs={}, force_repr=repr_)
     if not values:
         if (
             isinstance(elements, type)
@@ -217,21 +260,6 @@ def sampled_from(
         raise InvalidArgument("Cannot sample from a length-zero sequence.")
     if len(values) == 1:
         return just(values[0])
-    try:
-        if isinstance(elements, type) and issubclass(elements, enum.Enum):
-            repr_ = f"sampled_from({elements.__module__}.{elements.__name__})"
-        else:
-            repr_ = f"sampled_from({elements!r})"
-    except Exception:  # pragma: no cover
-        repr_ = None
-    if isclass(elements) and issubclass(elements, enum.Flag):
-        # Combinations of enum.Flag members are also members.  We generate
-        # these dynamically, because static allocation takes O(2^n) memory.
-        # LazyStrategy is used for the ease of force_repr.
-        inner = sets(sampled_from(list(values)), min_size=1).map(
-            lambda s: reduce(operator.or_, s)
-        )
-        return LazyStrategy(lambda: inner, args=[], kwargs={}, force_repr=repr_)
     return SampledFromStrategy(values, repr_)
 
 

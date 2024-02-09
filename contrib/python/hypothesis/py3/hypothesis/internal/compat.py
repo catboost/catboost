@@ -16,7 +16,7 @@ import platform
 import sys
 import typing
 from functools import partial
-from typing import Any, ForwardRef, get_args
+from typing import Any, ForwardRef, List, Optional, get_args
 
 try:
     BaseExceptionGroup = BaseExceptionGroup
@@ -178,6 +178,25 @@ def ceil(x):
     if y != x and x > 0:
         return y + 1
     return y
+
+
+def extract_bits(x: int, /, width: Optional[int] = None) -> List[int]:
+    assert x >= 0
+    result = []
+    while x:
+        result.append(x & 1)
+        x >>= 1
+    if width is not None:
+        result = (result + [0] * width)[:width]
+    result.reverse()
+    return result
+
+
+# int.bit_count was added sometime around python 3.9
+try:
+    bit_count = int.bit_count
+except AttributeError:  # pragma: no cover
+    bit_count = lambda self: sum(extract_bits(abs(self)))
 
 
 def bad_django_TestCase(runner):
