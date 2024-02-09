@@ -3,6 +3,8 @@
 #include "json_helper.h"
 #include "metric_options.h"
 
+#include <catboost/libs/helpers/json_helpers.h>
+
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/generic/fwd.h>
@@ -409,7 +411,7 @@ TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions) {
     TString paramType = StripString(ToString(lossOptions["type"]), EqualsStripAdapter('"'));
     paramType += ":";
     TLossParams lossParams;
-    NCatboostOptions::TJsonFieldHelper<TLossParams, false>::Read(lossOptions["params"], &lossParams);
+    TJsonFieldHelper<TLossParams, false>::Read(lossOptions["params"], &lossParams);
     const auto& paramsMap = lossParams.GetParamsMap();
     for (const auto& paramName : lossParams.GetUserSpecifiedKeyOrder()) {
         const TString& paramValue = StripString(paramsMap.at(paramName), EqualsStripAdapter('"'));

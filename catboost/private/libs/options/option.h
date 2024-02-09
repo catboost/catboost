@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/json_helpers.h>
 
 #include <util/generic/string.h>
 
@@ -126,7 +127,7 @@ namespace NCatboostOptions {
         friend struct ::THash;
 
         template <class, bool>
-        friend class TJsonFieldHelper;
+        friend class ::TJsonFieldHelper;
 
     private:
         TValue Value;

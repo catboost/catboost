@@ -184,7 +184,7 @@ void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolL
                 }
             }
         }
-        NCatboostOptions::TJsonFieldHelper<TVector<TVector<int>>>::Write(
+        TJsonFieldHelper<TVector<TVector<int>>>::Write(
             featuresToEvaluate,
             &(*catBoostJsonOptions)["features_to_evaluate"]);
     }

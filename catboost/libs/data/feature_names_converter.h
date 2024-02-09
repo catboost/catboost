@@ -8,6 +8,8 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/monotone_constraints.h>
 
+#include <catboost/libs/helpers/json_helpers.h>
+
 #include <library/cpp/json/json_reader.h>
 
 #include <util/generic/algorithm.h>
@@ -129,7 +131,7 @@ void ConvertFeaturesForSelectFromStringToIndices(const TSource& stringsToIndices
         }
     }
     Sort(featuresForSelect);
-    NCatboostOptions::TJsonFieldHelper<TVector<int>>::Write(
+    TJsonFieldHelper<TVector<int>>::Write(
         TVector<int>(featuresForSelect.begin(), Unique(featuresForSelect.begin(), featuresForSelect.end())),
         &(*featuresSelectJsonOptions)["features_for_select"]);
 }
