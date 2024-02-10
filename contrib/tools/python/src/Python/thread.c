@@ -101,7 +101,7 @@ PyThread_init_thread(void)
 static size_t _pythread_stacksize = 0;
 
 #ifdef SGI_THREADS
-#include "thread_sgi.h"
+#error #include "thread_sgi.h"
 #endif
 
 #ifdef SOLARIS_THREADS
@@ -109,11 +109,11 @@ static size_t _pythread_stacksize = 0;
 #endif
 
 #ifdef SUN_LWP
-#include "thread_lwp.h"
+#error #include "thread_lwp.h"
 #endif
 
 #ifdef HAVE_PTH
-#include "thread_pth.h"
+#error #include "thread_pth.h"
 #undef _POSIX_THREADS
 #endif
 
@@ -130,19 +130,19 @@ static size_t _pythread_stacksize = 0;
 #endif
 
 #ifdef OS2_THREADS
-#include "thread_os2.h"
+#error #include "thread_os2.h"
 #endif
 
 #ifdef BEOS_THREADS
-#include "thread_beos.h"
+#error #include "thread_beos.h"
 #endif
 
 #ifdef PLAN9_THREADS
-#include "thread_plan9.h"
+#error #include "thread_plan9.h"
 #endif
 
 #ifdef ATHEOS_THREADS
-#include "thread_atheos.h"
+#error #include "thread_atheos.h"
 #endif
 
 /*
