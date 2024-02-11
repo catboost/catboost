@@ -29,8 +29,6 @@ namespace NResource {
     IStore* CommonStore();
 
     struct TRegHelper {
-        inline TRegHelper(const TStringBuf key, const TStringBuf data) {
-            CommonStore()->Store(key, data);
-        }
+        TRegHelper(const TStringBuf key, const TStringBuf data);
     };
 }
