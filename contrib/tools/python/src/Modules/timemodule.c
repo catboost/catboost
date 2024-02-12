@@ -87,8 +87,8 @@ static long main_thread;
 #ifdef __BEOS__
 #include <time.h>
 /* For bigtime_t, snooze(). - [cjh] */
-#include <support/SupportDefs.h>
-#include <kernel/OS.h>
+#error #include <support/SupportDefs.h>
+#error #include <kernel/OS.h>
 #endif
 
 #ifdef RISCOS
