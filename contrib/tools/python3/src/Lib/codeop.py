@@ -88,6 +88,7 @@ def _compile(source, filename, symbol, incomplete_input=True):
         flags |= PyCF_DONT_IMPLY_DEDENT
     return compile(source, filename, symbol, flags)
 
+
 def compile_command(source, filename="<input>", symbol="single"):
     r"""Compile a command and determine whether it is incomplete.
 

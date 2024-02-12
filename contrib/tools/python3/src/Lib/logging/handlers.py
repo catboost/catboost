@@ -1442,6 +1442,7 @@ class QueueHandler(logging.Handler):
         """
         logging.Handler.__init__(self)
         self.queue = queue
+        self.listener = None  # will be set to listener if configured via dictConfig()
 
     def enqueue(self, record):
         """

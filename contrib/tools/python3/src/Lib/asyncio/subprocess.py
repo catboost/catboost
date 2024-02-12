@@ -148,10 +148,11 @@ class Process:
     async def _feed_stdin(self, input):
         debug = self._loop.get_debug()
         try:
-            self.stdin.write(input)
-            if debug:
-                logger.debug(
-                    '%r communicate: feed stdin (%s bytes)', self, len(input))
+            if input is not None:
+                self.stdin.write(input)
+                if debug:
+                    logger.debug(
+                        '%r communicate: feed stdin (%s bytes)', self, len(input))
 
             await self.stdin.drain()
         except (BrokenPipeError, ConnectionResetError) as exc:
@@ -185,7 +186,7 @@ class Process:
         return output
 
     async def communicate(self, input=None):
-        if input is not None:
+        if self.stdin is not None:
             stdin = self._feed_stdin(input)
         else:
             stdin = self._noop()

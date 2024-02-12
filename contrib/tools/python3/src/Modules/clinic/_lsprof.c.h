@@ -2,6 +2,12 @@
 preserve
 [clinic start generated code]*/
 
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#  include "pycore_gc.h"            // PyGC_Head
+#  include "pycore_runtime.h"       // _Py_ID()
+#endif
+
+
 PyDoc_STRVAR(_lsprof_Profiler_getstats__doc__,
 "getstats($self, /)\n"
 "--\n"
@@ -45,4 +51,4 @@ _lsprof_Profiler_getstats(ProfilerObject *self, PyTypeObject *cls, PyObject *con
     }
     return _lsprof_Profiler_getstats_impl(self, cls);
 }
-/*[clinic end generated code: output=5c9d87d89863dc83 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=cc3b236bc414a372 input=a9049054013a1b77]*/

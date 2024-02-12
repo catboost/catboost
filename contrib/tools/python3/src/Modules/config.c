@@ -66,9 +66,8 @@ extern PyObject* PyInit__posixsubprocess(void); // _posixsubprocess
 extern PyObject* PyInit__queue(void); // _queue
 extern PyObject* PyInit__random(void); // _random
 extern PyObject* PyInit__sha1(void); // _sha1
-extern PyObject* PyInit__sha256(void); // _sha256
+extern PyObject* PyInit__sha2(void); // _sha2
 extern PyObject* PyInit__sha3(void); // _sha3
-extern PyObject* PyInit__sha512(void); // _sha512
 extern PyObject* PyInit__signal(void); // _signal
 extern PyObject* PyInit__socket(void); // _socket
 extern PyObject* PyInit__sre(void); // _sre
@@ -80,7 +79,9 @@ extern PyObject* PyInit__struct(void); // _struct
 extern PyObject* PyInit__symtable(void); // _symtable
 extern PyObject* PyInit__thread(void); // _thread
 extern PyObject* PyInit__tracemalloc(void); // _tracemalloc
+extern PyObject* PyInit__typing(void); // _typing
 extern PyObject* PyInit__weakref(void); // _weakref
+extern PyObject* PyInit__xxinterpchannels(void); // _xxinterpchannels
 extern PyObject* PyInit__xxsubinterpreters(void); // _xxsubinterpreters
 extern PyObject* PyInit__xxtestfuzz(void); // _xxtestfuzz
 extern PyObject* PyInit__zoneinfo(void); // _zoneinfo
@@ -94,15 +95,15 @@ extern PyObject* PyInit_faulthandler(void); // faulthandler
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_fcntl(void); // fcntl
 #endif
-#if defined(_MSC_VER)
-extern PyObject* PyInit_nt(void); // nt
-#endif
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_grp(void); // grp
 #endif
 extern PyObject* PyInit_itertools(void); // itertools
 extern PyObject* PyInit_math(void); // math
 extern PyObject* PyInit_mmap(void); // mmap
+#if defined(_MSC_VER)
+extern PyObject* PyInit_nt(void); // nt
+#endif
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_posix(void); // posix
 #endif
@@ -149,6 +150,7 @@ extern PyObject* PyMarshal_Init(void);
 extern PyObject* PyInit__imp(void);
 extern PyObject* PyInit_gc(void);
 extern PyObject* PyInit__ast(void);
+extern PyObject* PyInit__tokenize(void);
 extern PyObject* _PyWarnings_Init(void);
 extern PyObject* PyInit__string(void);
 
@@ -198,9 +200,8 @@ struct _inittab _PyImport_Inittab[] = {
     {"_queue", PyInit__queue},
     {"_random", PyInit__random},
     {"_sha1", PyInit__sha1},
-    {"_sha256", PyInit__sha256},
+    {"_sha2", PyInit__sha2},
     {"_sha3", PyInit__sha3},
-    {"_sha512", PyInit__sha512},
     {"_signal", PyInit__signal},
     {"_socket", PyInit__socket},
     {"_sre", PyInit__sre},
@@ -212,7 +213,9 @@ struct _inittab _PyImport_Inittab[] = {
     {"_symtable", PyInit__symtable},
     {"_thread", PyInit__thread},
     {"_tracemalloc", PyInit__tracemalloc},
+    {"_typing", PyInit__typing},
     {"_weakref", PyInit__weakref},
+    {"_xxinterpchannels", PyInit__xxinterpchannels},
     {"_xxsubinterpreters", PyInit__xxsubinterpreters},
     {"_xxtestfuzz", PyInit__xxtestfuzz},
     {"_zoneinfo", PyInit__zoneinfo},
@@ -222,9 +225,6 @@ struct _inittab _PyImport_Inittab[] = {
     {"binascii", PyInit_binascii},
     {"cmath", PyInit_cmath},
     {"errno", PyInit_errno},
-#if defined(_MSC_VER)
-    {"nt", PyInit_nt},
-#endif
     {"faulthandler", PyInit_faulthandler},
 #if !defined(_MSC_VER)
     {"fcntl", PyInit_fcntl},
@@ -235,6 +235,9 @@ struct _inittab _PyImport_Inittab[] = {
     {"itertools", PyInit_itertools},
     {"math", PyInit_math},
     {"mmap", PyInit_mmap},
+#if defined(_MSC_VER)
+    {"nt", PyInit_nt},
+#endif
 #if !defined(_MSC_VER)
     {"posix", PyInit_posix},
 #endif
@@ -285,6 +288,9 @@ struct _inittab _PyImport_Inittab[] = {
 
     /* This lives in Python/Python-ast.c */
     {"_ast", PyInit__ast},
+
+    /* This lives in Python/Python-tokenizer.c */
+    {"_tokenize", PyInit__tokenize},
 
     /* These entries are here for sys.builtin_module_names */
     {"builtins", NULL},

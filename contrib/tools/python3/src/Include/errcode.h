@@ -32,7 +32,6 @@ extern "C" {
 #define E_INTERACT_STOP  28      /* Interactive mode stopped tokenization */
 #define E_COLUMNOVERFLOW 29      /* Column offset overflow */
 
-
 #ifdef __cplusplus
 }
 #endif

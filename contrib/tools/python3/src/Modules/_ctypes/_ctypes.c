@@ -101,8 +101,6 @@ bytes(cdata)
 #ifndef Py_BUILD_CORE_BUILTIN
 #  define Py_BUILD_CORE_MODULE 1
 #endif
-#define NEEDS_PY_IDENTIFIER
-
 #define PY_SSIZE_T_CLEAN
 
 #include "Python.h"
@@ -123,11 +121,13 @@ bytes(cdata)
 #define IS_INTRESOURCE(x) (((size_t)(x) >> 16) == 0)
 #endif
 #else
-#include "ctypes_dlfcn.h"
+#include <dlfcn.h>
 #endif
 #include "ctypes.h"
 
 #include "pycore_long.h"          // _PyLong_GetZero()
+
+ctypes_state global_state;
 
 PyObject *PyExc_ArgError = NULL;
 
@@ -140,10 +140,6 @@ static PyTypeObject Simple_Type;
    strong reference to _ctypes._unpickle() function */
 static PyObject *_unpickle;
 
-#ifdef MS_WIN32
-PyObject *ComError;  // Borrowed reference to: &PyComError_Type
-#endif
-
 
 /****************************************************************/
 
@@ -153,13 +149,32 @@ typedef struct {
     PyObject *dict;
 } DictRemoverObject;
 
+static int
+_DictRemover_traverse(DictRemoverObject *self, visitproc visit, void *arg)
+{
+    Py_VISIT(Py_TYPE(self));
+    Py_VISIT(self->key);
+    Py_VISIT(self->dict);
+    return 0;
+}
+
+static int
+_DictRemover_clear(DictRemoverObject *self)
+{
+    Py_CLEAR(self->key);
+    Py_CLEAR(self->dict);
+    return 0;
+}
+
 static void
 _DictRemover_dealloc(PyObject *myself)
 {
+    PyTypeObject *tp = Py_TYPE(myself);
     DictRemoverObject *self = (DictRemoverObject *)myself;
-    Py_XDECREF(self->key);
-    Py_XDECREF(self->dict);
-    Py_TYPE(self)->tp_free(myself);
+    PyObject_GC_UnTrack(myself);
+    (void)_DictRemover_clear(self);
+    tp->tp_free(myself);
+    Py_DECREF(tp);
 }
 
 static PyObject *
@@ -176,47 +191,23 @@ _DictRemover_call(PyObject *myself, PyObject *args, PyObject *kw)
     Py_RETURN_NONE;
 }
 
-static PyTypeObject DictRemover_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "_ctypes.DictRemover",                      /* tp_name */
-    sizeof(DictRemoverObject),                  /* tp_basicsize */
-    0,                                          /* tp_itemsize */
-    _DictRemover_dealloc,                       /* tp_dealloc */
-    0,                                          /* tp_vectorcall_offset */
-    0,                                          /* tp_getattr */
-    0,                                          /* tp_setattr */
-    0,                                          /* tp_as_async */
-    0,                                          /* tp_repr */
-    0,                                          /* tp_as_number */
-    0,                                          /* tp_as_sequence */
-    0,                                          /* tp_as_mapping */
-    0,                                          /* tp_hash */
-    _DictRemover_call,                          /* tp_call */
-    0,                                          /* tp_str */
-    0,                                          /* tp_getattro */
-    0,                                          /* tp_setattro */
-    0,                                          /* tp_as_buffer */
-/* XXX should participate in GC? */
-    Py_TPFLAGS_DEFAULT,                         /* tp_flags */
-    PyDoc_STR("deletes a key from a dictionary"), /* tp_doc */
-    0,                                          /* tp_traverse */
-    0,                                          /* tp_clear */
-    0,                                          /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    0,                                          /* tp_iter */
-    0,                                          /* tp_iternext */
-    0,                                          /* tp_methods */
-    0,                                          /* tp_members */
-    0,                                          /* tp_getset */
-    0,                                          /* tp_base */
-    0,                                          /* tp_dict */
-    0,                                          /* tp_descr_get */
-    0,                                          /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    0,                                          /* tp_init */
-    0,                                          /* tp_alloc */
-    0,                                          /* tp_new */
-    0,                                          /* tp_free */
+PyDoc_STRVAR(dictremover_doc, "deletes a key from a dictionary");
+
+static PyType_Slot dictremover_slots[] = {
+    {Py_tp_dealloc, _DictRemover_dealloc},
+    {Py_tp_traverse, _DictRemover_traverse},
+    {Py_tp_clear, _DictRemover_clear},
+    {Py_tp_call, _DictRemover_call},
+    {Py_tp_doc, (void *)dictremover_doc},
+    {0, NULL},
+};
+
+static PyType_Spec dictremover_spec = {
+    .name = "_ctypes.DictRemover",
+    .basicsize = sizeof(DictRemoverObject),
+    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC |
+              Py_TPFLAGS_IMMUTABLETYPE),
+    .slots = dictremover_slots,
 };
 
 int
@@ -227,17 +218,16 @@ PyDict_SetItemProxy(PyObject *dict, PyObject *key, PyObject *item)
     PyObject *proxy;
     int result;
 
-    obj = _PyObject_CallNoArgs((PyObject *)&DictRemover_Type);
+    ctypes_state *st = GLOBAL_STATE();
+    obj = _PyObject_CallNoArgs((PyObject *)st->DictRemover_Type);
     if (obj == NULL)
         return -1;
 
     remover = (DictRemoverObject *)obj;
     assert(remover->key == NULL);
     assert(remover->dict == NULL);
-    Py_INCREF(key);
-    remover->key = key;
-    Py_INCREF(dict);
-    remover->dict = dict;
+    remover->key = Py_NewRef(key);
+    remover->dict = Py_NewRef(dict);
 
     proxy = PyWeakref_NewProxy(item, obj);
     Py_DECREF(obj);
@@ -397,9 +387,9 @@ _ctypes_alloc_format_string_with_shape(int ndim, const Py_ssize_t *shape,
         strcat(new_prefix, "(");
         for (k = 0; k < ndim; ++k) {
             if (k < ndim-1) {
-                sprintf(buf, "%"PY_FORMAT_SIZE_T"d,", shape[k]);
+                sprintf(buf, "%zd,", shape[k]);
             } else {
-                sprintf(buf, "%"PY_FORMAT_SIZE_T"d)", shape[k]);
+                sprintf(buf, "%zd)", shape[k]);
             }
             strcat(new_prefix, buf);
         }
@@ -420,23 +410,45 @@ typedef struct {
     PyObject *keep;  // If set, a reference to the original CDataObject.
 } StructParamObject;
 
+static int
+StructParam_traverse(StructParamObject *self, visitproc visit, void *arg)
+{
+    Py_VISIT(Py_TYPE(self));
+    return 0;
+}
+
+static int
+StructParam_clear(StructParamObject *self)
+{
+    Py_CLEAR(self->keep);
+    return 0;
+}
 
 static void
 StructParam_dealloc(PyObject *myself)
 {
     StructParamObject *self = (StructParamObject *)myself;
-    Py_XDECREF(self->keep);
+    PyTypeObject *tp = Py_TYPE(self);
+    PyObject_GC_UnTrack(myself);
+    (void)StructParam_clear(self);
     PyMem_Free(self->ptr);
-    Py_TYPE(self)->tp_free(myself);
+    tp->tp_free(myself);
+    Py_DECREF(tp);
 }
 
+static PyType_Slot structparam_slots[] = {
+    {Py_tp_traverse, StructParam_traverse},
+    {Py_tp_clear, StructParam_clear},
+    {Py_tp_dealloc, StructParam_dealloc},
+    {0, NULL},
+};
 
-static PyTypeObject StructParam_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "_ctypes.StructParam_Type",
-    .tp_basicsize = sizeof(StructParamObject),
-    .tp_dealloc = StructParam_dealloc,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+static PyType_Spec structparam_spec = {
+    .name = "_ctypes.StructParam_Type",
+    .basicsize = sizeof(StructParamObject),
+    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+              Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_DISALLOW_INSTANTIATION),
+    .slots = structparam_slots,
 };
 
 
@@ -465,7 +477,9 @@ StructUnionType_paramfunc(CDataObject *self)
         /* Create a Python object which calls PyMem_Free(ptr) in
            its deallocator. The object will be destroyed
            at _ctypes_callproc() cleanup. */
-        obj = (&StructParam_Type)->tp_alloc(&StructParam_Type, 0);
+        ctypes_state *st = GLOBAL_STATE();
+        PyTypeObject *tp = st->StructParam_Type;
+        obj = tp->tp_alloc(tp, 0);
         if (obj == NULL) {
             PyMem_Free(ptr);
             return NULL;
@@ -476,8 +490,7 @@ StructUnionType_paramfunc(CDataObject *self)
         struct_param->keep = Py_NewRef(self);
     } else {
         ptr = self->b_ptr;
-        obj = (PyObject *)self;
-        Py_INCREF(obj);
+        obj = Py_NewRef(self);
     }
 
     parg = PyCArgObject_new();
@@ -502,8 +515,6 @@ StructUnionType_new(PyTypeObject *type, PyObject *args, PyObject *kwds, int isSt
     PyTypeObject *result;
     PyObject *fields;
     StgDictObject *dict;
-    _Py_IDENTIFIER(_abstract_);
-    _Py_IDENTIFIER(_fields_);
 
     /* create the new instance (which is a class,
        since we are a metatype!) */
@@ -512,7 +523,7 @@ StructUnionType_new(PyTypeObject *type, PyObject *args, PyObject *kwds, int isSt
         return NULL;
 
     /* keep this for bw compatibility */
-    int r = _PyDict_ContainsId(result->tp_dict, &PyId__abstract_);
+    int r = PyDict_Contains(result->tp_dict, &_Py_ID(_abstract_));
     if (r > 0)
         return (PyObject *)result;
     if (r < 0) {
@@ -544,9 +555,9 @@ StructUnionType_new(PyTypeObject *type, PyObject *args, PyObject *kwds, int isSt
 
     dict->paramfunc = StructUnionType_paramfunc;
 
-    fields = _PyDict_GetItemIdWithError((PyObject *)dict, &PyId__fields_);
+    fields = PyDict_GetItemWithError((PyObject *)dict, &_Py_ID(_fields_));
     if (fields) {
-        if (_PyObject_SetAttrId((PyObject *)result, &PyId__fields_, fields) < 0) {
+        if (PyObject_SetAttr((PyObject *)result, &_Py_ID(_fields_), fields) < 0) {
             Py_DECREF(result);
             return NULL;
         }
@@ -779,7 +790,7 @@ CDataType_in_dll(PyObject *type, PyObject *args)
         return NULL;
     }
 #else
-    address = (void *)ctypes_dlsym(handle, name);
+    address = (void *)dlsym(handle, name);
     if (!address) {
 #ifdef __CYGWIN__
 /* dlerror() isn't very helpful on cygwin */
@@ -787,7 +798,7 @@ CDataType_in_dll(PyObject *type, PyObject *args)
                      "symbol '%s' not found",
                      name);
 #else
-        PyErr_SetString(PyExc_ValueError, ctypes_dlerror());
+        PyErr_SetString(PyExc_ValueError, dlerror());
 #endif
         return NULL;
     }
@@ -801,16 +812,15 @@ PyDoc_STRVAR(from_param_doc,
 static PyObject *
 CDataType_from_param(PyObject *type, PyObject *value)
 {
-    _Py_IDENTIFIER(_as_parameter_);
     PyObject *as_parameter;
     int res = PyObject_IsInstance(value, type);
     if (res == -1)
         return NULL;
     if (res) {
-        Py_INCREF(value);
-        return value;
+        return Py_NewRef(value);
     }
-    if (PyCArg_CheckExact(value)) {
+    ctypes_state *st = GLOBAL_STATE();
+    if (PyCArg_CheckExact(st, value)) {
         PyCArgObject *p = (PyCArgObject *)value;
         PyObject *ob = p->obj;
         const char *ob_name;
@@ -824,8 +834,7 @@ CDataType_from_param(PyObject *type, PyObject *value)
             if (res == -1)
                 return NULL;
             if (res) {
-                Py_INCREF(value);
-                return value;
+                return Py_NewRef(value);
             }
         }
         ob_name = (ob) ? Py_TYPE(ob)->tp_name : "???";
@@ -835,7 +844,7 @@ CDataType_from_param(PyObject *type, PyObject *value)
         return NULL;
     }
 
-    if (_PyObject_LookupAttrId(value, &PyId__as_parameter_, &as_parameter) < 0) {
+    if (_PyObject_LookupAttr(value, &_Py_ID(_as_parameter_), &as_parameter) < 0) {
         return NULL;
     }
     if (as_parameter) {
@@ -1059,8 +1068,7 @@ PyCPointerType_paramfunc(CDataObject *self)
 
     parg->tag = 'P';
     parg->pffi_type = &ffi_type_pointer;
-    Py_INCREF(self);
-    parg->obj = (PyObject *)self;
+    parg->obj = Py_NewRef(self);
     parg->value.p = *(void **)self->b_ptr;
     return parg;
 }
@@ -1072,7 +1080,7 @@ PyCPointerType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     StgDictObject *stgdict;
     PyObject *proto;
     PyObject *typedict;
-    _Py_IDENTIFIER(_type_);
+
 
     typedict = PyTuple_GetItem(args, 2);
     if (!typedict)
@@ -1092,7 +1100,7 @@ PyCPointerType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     stgdict->paramfunc = PyCPointerType_paramfunc;
     stgdict->flags |= TYPEFLAG_ISPOINTER;
 
-    proto = _PyDict_GetItemIdWithError(typedict, &PyId__type_); /* Borrowed ref */
+    proto = PyDict_GetItemWithError(typedict, &_Py_ID(_type_)); /* Borrowed ref */
     if (proto) {
         StgDictObject *itemdict;
         const char *current_format;
@@ -1150,7 +1158,7 @@ static PyObject *
 PyCPointerType_set_type(PyTypeObject *self, PyObject *type)
 {
     StgDictObject *dict;
-    _Py_IDENTIFIER(_type_);
+
 
     dict = PyType_stgdict((PyObject *)self);
     if (!dict) {
@@ -1162,7 +1170,7 @@ PyCPointerType_set_type(PyTypeObject *self, PyObject *type)
     if (-1 == PyCPointerType_SetProto(dict, type))
         return NULL;
 
-    if (-1 == _PyDict_SetItemId((PyObject *)dict, &PyId__type_, type))
+    if (-1 == PyDict_SetItem((PyObject *)dict, &_Py_ID(_type_), type))
         return NULL;
 
     Py_RETURN_NONE;
@@ -1177,8 +1185,7 @@ PyCPointerType_from_param(PyObject *type, PyObject *value)
 
     if (value == Py_None) {
         /* ConvParam will convert to a NULL pointer later */
-        Py_INCREF(value);
-        return value;
+        return Py_NewRef(value);
     }
 
     typedict = PyType_stgdict(type);
@@ -1212,8 +1219,7 @@ PyCPointerType_from_param(PyObject *type, PyObject *value)
             return NULL;
         }
         if (ret) {
-            Py_INCREF(value);
-            return value;
+            return Py_NewRef(value);
         }
     }
     return CDataType_from_param(type, value);
@@ -1457,16 +1463,13 @@ PyCArrayType_paramfunc(CDataObject *self)
     p->tag = 'P';
     p->pffi_type = &ffi_type_pointer;
     p->value.p = (char *)self->b_ptr;
-    Py_INCREF(self);
-    p->obj = (PyObject *)self;
+    p->obj = Py_NewRef(self);
     return p;
 }
 
 static PyObject *
 PyCArrayType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    _Py_IDENTIFIER(_length_);
-    _Py_IDENTIFIER(_type_);
     PyTypeObject *result;
     StgDictObject *stgdict;
     StgDictObject *itemdict;
@@ -1485,7 +1488,7 @@ PyCArrayType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     stgdict = NULL;
     type_attr = NULL;
 
-    if (_PyObject_LookupAttrId((PyObject *)result, &PyId__length_, &length_attr) < 0) {
+    if (_PyObject_LookupAttr((PyObject *)result, &_Py_ID(_length_), &length_attr) < 0) {
         goto error;
     }
     if (!length_attr) {
@@ -1518,7 +1521,7 @@ PyCArrayType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         goto error;
     }
 
-    if (_PyObject_LookupAttrId((PyObject *)result, &PyId__type_, &type_attr) < 0) {
+    if (_PyObject_LookupAttr((PyObject *)result, &_Py_ID(_type_), &type_attr) < 0) {
         goto error;
     }
     if (!type_attr) {
@@ -1663,7 +1666,6 @@ static const char SIMPLE_TYPE_CHARS[] = "cbBhHiIlLdfuzZqQPXOv?g";
 static PyObject *
 c_wchar_p_from_param(PyObject *type, PyObject *value)
 {
-    _Py_IDENTIFIER(_as_parameter_);
     PyObject *as_parameter;
     int res;
     if (value == Py_None) {
@@ -1689,8 +1691,7 @@ c_wchar_p_from_param(PyObject *type, PyObject *value)
     if (res == -1)
         return NULL;
     if (res) {
-        Py_INCREF(value);
-        return value;
+        return Py_NewRef(value);
     }
     if (ArrayObject_Check(value) || PointerObject_Check(value)) {
         /* c_wchar array instance or pointer(c_wchar(...)) */
@@ -1699,21 +1700,20 @@ c_wchar_p_from_param(PyObject *type, PyObject *value)
         assert(dt); /* Cannot be NULL for pointer or array objects */
         dict = dt && dt->proto ? PyType_stgdict(dt->proto) : NULL;
         if (dict && (dict->setfunc == _ctypes_get_fielddesc("u")->setfunc)) {
-            Py_INCREF(value);
-            return value;
+            return Py_NewRef(value);
         }
     }
-    if (PyCArg_CheckExact(value)) {
+    ctypes_state *st = GLOBAL_STATE();
+    if (PyCArg_CheckExact(st, value)) {
         /* byref(c_char(...)) */
         PyCArgObject *a = (PyCArgObject *)value;
         StgDictObject *dict = PyObject_stgdict(a->obj);
         if (dict && (dict->setfunc == _ctypes_get_fielddesc("u")->setfunc)) {
-            Py_INCREF(value);
-            return value;
+            return Py_NewRef(value);
         }
     }
 
-    if (_PyObject_LookupAttrId(value, &PyId__as_parameter_, &as_parameter) < 0) {
+    if (_PyObject_LookupAttr(value, &_Py_ID(_as_parameter_), &as_parameter) < 0) {
         return NULL;
     }
     if (as_parameter) {
@@ -1730,7 +1730,6 @@ c_wchar_p_from_param(PyObject *type, PyObject *value)
 static PyObject *
 c_char_p_from_param(PyObject *type, PyObject *value)
 {
-    _Py_IDENTIFIER(_as_parameter_);
     PyObject *as_parameter;
     int res;
     if (value == Py_None) {
@@ -1756,8 +1755,7 @@ c_char_p_from_param(PyObject *type, PyObject *value)
     if (res == -1)
         return NULL;
     if (res) {
-        Py_INCREF(value);
-        return value;
+        return Py_NewRef(value);
     }
     if (ArrayObject_Check(value) || PointerObject_Check(value)) {
         /* c_char array instance or pointer(c_char(...)) */
@@ -1766,21 +1764,20 @@ c_char_p_from_param(PyObject *type, PyObject *value)
         assert(dt); /* Cannot be NULL for pointer or array objects */
         dict = dt && dt->proto ? PyType_stgdict(dt->proto) : NULL;
         if (dict && (dict->setfunc == _ctypes_get_fielddesc("c")->setfunc)) {
-            Py_INCREF(value);
-            return value;
+            return Py_NewRef(value);
         }
     }
-    if (PyCArg_CheckExact(value)) {
+    ctypes_state *st = GLOBAL_STATE();
+    if (PyCArg_CheckExact(st, value)) {
         /* byref(c_char(...)) */
         PyCArgObject *a = (PyCArgObject *)value;
         StgDictObject *dict = PyObject_stgdict(a->obj);
         if (dict && (dict->setfunc == _ctypes_get_fielddesc("c")->setfunc)) {
-            Py_INCREF(value);
-            return value;
+            return Py_NewRef(value);
         }
     }
 
-    if (_PyObject_LookupAttrId(value, &PyId__as_parameter_, &as_parameter) < 0) {
+    if (_PyObject_LookupAttr(value, &_Py_ID(_as_parameter_), &as_parameter) < 0) {
         return NULL;
     }
     if (as_parameter) {
@@ -1797,7 +1794,6 @@ c_char_p_from_param(PyObject *type, PyObject *value)
 static PyObject *
 c_void_p_from_param(PyObject *type, PyObject *value)
 {
-    _Py_IDENTIFIER(_as_parameter_);
     StgDictObject *stgd;
     PyObject *as_parameter;
     int res;
@@ -1865,22 +1861,20 @@ c_void_p_from_param(PyObject *type, PyObject *value)
         return NULL;
     if (res) {
         /* c_void_p instances */
-        Py_INCREF(value);
-        return value;
+        return Py_NewRef(value);
     }
 /* ctypes array or pointer instance */
     if (ArrayObject_Check(value) || PointerObject_Check(value)) {
         /* Any array or pointer is accepted */
-        Py_INCREF(value);
-        return value;
+        return Py_NewRef(value);
     }
 /* byref(...) */
-    if (PyCArg_CheckExact(value)) {
+    ctypes_state *st = GLOBAL_STATE();
+    if (PyCArg_CheckExact(st, value)) {
         /* byref(c_xxx()) */
         PyCArgObject *a = (PyCArgObject *)value;
         if (a->tag == 'P') {
-            Py_INCREF(value);
-            return value;
+            return Py_NewRef(value);
         }
     }
 /* function pointer */
@@ -1911,15 +1905,14 @@ c_void_p_from_param(PyObject *type, PyObject *value)
                 return NULL;
             parg->pffi_type = &ffi_type_pointer;
             parg->tag = 'Z';
-            Py_INCREF(value);
-            parg->obj = value;
+            parg->obj = Py_NewRef(value);
             /* Remember: b_ptr points to where the pointer is stored! */
             parg->value.p = *(void **)(((CDataObject *)value)->b_ptr);
             return (PyObject *)parg;
         }
     }
 
-    if (_PyObject_LookupAttrId(value, &PyId__as_parameter_, &as_parameter) < 0) {
+    if (_PyObject_LookupAttr(value, &_Py_ID(_as_parameter_), &as_parameter) < 0) {
         return NULL;
     }
     if (as_parameter) {
@@ -1997,8 +1990,7 @@ static PyObject *CreateSwappedType(PyTypeObject *type, PyObject *args, PyObject 
     stgdict->setfunc = fmt->setfunc_swapped;
     stgdict->getfunc = fmt->getfunc_swapped;
 
-    Py_INCREF(proto);
-    stgdict->proto = proto;
+    stgdict->proto = Py_NewRef(proto);
 
     /* replace the class dict by our updated spam dict */
     if (-1 == PyDict_Update((PyObject *)stgdict, result->tp_dict)) {
@@ -2033,8 +2025,7 @@ PyCSimpleType_paramfunc(CDataObject *self)
 
     parg->tag = fmt[0];
     parg->pffi_type = fd->pffi_type;
-    Py_INCREF(self);
-    parg->obj = (PyObject *)self;
+    parg->obj = Py_NewRef(self);
     memcpy(&parg->value, self->b_ptr, self->b_size);
     return parg;
 }
@@ -2042,7 +2033,6 @@ PyCSimpleType_paramfunc(CDataObject *self)
 static PyObject *
 PyCSimpleType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    _Py_IDENTIFIER(_type_);
     PyTypeObject *result;
     StgDictObject *stgdict;
     PyObject *proto;
@@ -2057,7 +2047,7 @@ PyCSimpleType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (result == NULL)
         return NULL;
 
-    if (_PyObject_LookupAttrId((PyObject *)result, &PyId__type_, &proto) < 0) {
+    if (_PyObject_LookupAttr((PyObject *)result, &_Py_ID(_type_), &proto) < 0) {
         return NULL;
     }
     if (!proto) {
@@ -2227,7 +2217,6 @@ PyCSimpleType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static PyObject *
 PyCSimpleType_from_param(PyObject *type, PyObject *value)
 {
-    _Py_IDENTIFIER(_as_parameter_);
     StgDictObject *dict;
     const char *fmt;
     PyCArgObject *parg;
@@ -2241,8 +2230,7 @@ PyCSimpleType_from_param(PyObject *type, PyObject *value)
     if (res == -1)
         return NULL;
     if (res) {
-        Py_INCREF(value);
-        return value;
+        return Py_NewRef(value);
     }
 
     dict = PyType_stgdict(type);
@@ -2268,24 +2256,31 @@ PyCSimpleType_from_param(PyObject *type, PyObject *value)
     parg->obj = fd->setfunc(&parg->value, value, 0);
     if (parg->obj)
         return (PyObject *)parg;
-    PyErr_Clear();
+    PyObject *exc = PyErr_GetRaisedException();
     Py_DECREF(parg);
 
-    if (_PyObject_LookupAttrId(value, &PyId__as_parameter_, &as_parameter) < 0) {
+    if (_PyObject_LookupAttr(value, &_Py_ID(_as_parameter_), &as_parameter) < 0) {
+        Py_XDECREF(exc);
         return NULL;
     }
     if (as_parameter) {
         if (_Py_EnterRecursiveCall("while processing _as_parameter_")) {
             Py_DECREF(as_parameter);
+            Py_XDECREF(exc);
             return NULL;
         }
         value = PyCSimpleType_from_param(type, as_parameter);
         _Py_LeaveRecursiveCall();
         Py_DECREF(as_parameter);
+        Py_XDECREF(exc);
         return value;
     }
-    PyErr_SetString(PyExc_TypeError,
-                    "wrong type");
+    if (exc) {
+        PyErr_SetRaisedException(exc);
+    }
+    else {
+        PyErr_SetString(PyExc_TypeError, "wrong type");
+    }
     return NULL;
 }
 
@@ -2348,7 +2343,6 @@ PyTypeObject PyCSimpleType_Type = {
 static PyObject *
 converters_from_argtypes(PyObject *ob)
 {
-    _Py_IDENTIFIER(from_param);
     PyObject *converters;
     Py_ssize_t i;
 
@@ -2428,7 +2422,7 @@ converters_from_argtypes(PyObject *ob)
         }
  */
 
-        if (_PyObject_LookupAttrId(tp, &PyId_from_param, &cnv) <= 0) {
+        if (_PyObject_LookupAttr(tp, &_Py_ID(from_param), &cnv) <= 0) {
             Py_DECREF(converters);
             Py_DECREF(ob);
             if (!PyErr_Occurred()) {
@@ -2449,10 +2443,6 @@ make_funcptrtype_dict(StgDictObject *stgdict)
 {
     PyObject *ob;
     PyObject *converters = NULL;
-    _Py_IDENTIFIER(_flags_);
-    _Py_IDENTIFIER(_argtypes_);
-    _Py_IDENTIFIER(_restype_);
-    _Py_IDENTIFIER(_check_retval_);
 
     stgdict->align = _ctypes_get_fielddesc("P")->pffi_type->alignment;
     stgdict->length = 1;
@@ -2461,7 +2451,7 @@ make_funcptrtype_dict(StgDictObject *stgdict)
     stgdict->getfunc = NULL;
     stgdict->ffi_type_pointer = ffi_type_pointer;
 
-    ob = _PyDict_GetItemIdWithError((PyObject *)stgdict, &PyId__flags_);
+    ob = PyDict_GetItemWithError((PyObject *)stgdict, &_Py_ID(_flags_));
     if (!ob || !PyLong_Check(ob)) {
         if (!PyErr_Occurred()) {
             PyErr_SetString(PyExc_TypeError,
@@ -2472,29 +2462,27 @@ make_funcptrtype_dict(StgDictObject *stgdict)
     stgdict->flags = PyLong_AsUnsignedLongMask(ob) | TYPEFLAG_ISPOINTER;
 
     /* _argtypes_ is optional... */
-    ob = _PyDict_GetItemIdWithError((PyObject *)stgdict, &PyId__argtypes_);
+    ob = PyDict_GetItemWithError((PyObject *)stgdict, &_Py_ID(_argtypes_));
     if (ob) {
         converters = converters_from_argtypes(ob);
         if (!converters)
             return -1;
-        Py_INCREF(ob);
-        stgdict->argtypes = ob;
+        stgdict->argtypes = Py_NewRef(ob);
         stgdict->converters = converters;
     }
     else if (PyErr_Occurred()) {
         return -1;
     }
 
-    ob = _PyDict_GetItemIdWithError((PyObject *)stgdict, &PyId__restype_);
+    ob = PyDict_GetItemWithError((PyObject *)stgdict, &_Py_ID(_restype_));
     if (ob) {
         if (ob != Py_None && !PyType_stgdict(ob) && !PyCallable_Check(ob)) {
             PyErr_SetString(PyExc_TypeError,
                 "_restype_ must be a type, a callable, or None");
             return -1;
         }
-        Py_INCREF(ob);
-        stgdict->restype = ob;
-        if (_PyObject_LookupAttrId(ob, &PyId__check_retval_,
+        stgdict->restype = Py_NewRef(ob);
+        if (_PyObject_LookupAttr(ob, &_Py_ID(_check_retval_),
                                    &stgdict->checker) < 0)
         {
             return -1;
@@ -2511,8 +2499,7 @@ make_funcptrtype_dict(StgDictObject *stgdict)
                 "_errcheck_ must be callable");
             return -1;
         }
-        Py_INCREF(ob);
-        stgdict->errcheck = ob;
+        stgdict->errcheck = Py_NewRef(ob);
     }
     else if (PyErr_Occurred()) {
         return -1;
@@ -2532,8 +2519,7 @@ PyCFuncPtrType_paramfunc(CDataObject *self)
 
     parg->tag = 'P';
     parg->pffi_type = &ffi_type_pointer;
-    Py_INCREF(self);
-    parg->obj = (PyObject *)self;
+    parg->obj = Py_NewRef(self);
     parg->value.p = *(void **)self->b_ptr;
     return parg;
 }
@@ -2645,8 +2631,7 @@ PyCData_GetContainer(CDataObject *self)
             if (self->b_objects == NULL)
                 return NULL;
         } else {
-            Py_INCREF(Py_None);
-            self->b_objects = Py_None;
+            self->b_objects = Py_NewRef(Py_None);
         }
     }
     return self;
@@ -2810,8 +2795,7 @@ PyCData_NewGetBuffer(PyObject *myself, Py_buffer *view, int flags)
     if (view == NULL) return 0;
 
     view->buf = self->b_ptr;
-    view->obj = myself;
-    Py_INCREF(myself);
+    view->obj = Py_NewRef(myself);
     view->len = self->b_size;
     view->readonly = 0;
     /* use default format character if not set */
@@ -2898,8 +2882,7 @@ PyCData_setstate(PyObject *myself, PyObject *args)
 static PyObject *
 PyCData_from_outparam(PyObject *self, PyObject *args)
 {
-    Py_INCREF(self);
-    return self;
+    return Py_NewRef(self);
 }
 
 static PyMethodDef PyCData_methods[] = {
@@ -3004,8 +2987,7 @@ PyCData_FromBaseObj(PyObject *type, PyObject *base, Py_ssize_t index, char *adr)
         assert(CDataObject_Check(base));
         cmem->b_ptr = adr;
         cmem->b_needsfree = 0;
-        Py_INCREF(base);
-        cmem->b_base = (CDataObject *)base;
+        cmem->b_base = (CDataObject *)Py_NewRef(base);
         cmem->b_index = index;
     } else { /* copy contents of adr */
         if (-1 == PyCData_MallocBuffer(cmem, dict)) {
@@ -3142,8 +3124,7 @@ _PyCData_set(CDataObject *dst, PyObject *type, SETFUNC setfunc, PyObject *value,
         if (value == NULL)
             return NULL;
 
-        Py_INCREF(value);
-        return value;
+        return Py_NewRef(value);
     }
 
     if (PyCPointerTypeObject_Check(type)
@@ -3266,8 +3247,7 @@ static PyObject *
 PyCFuncPtr_get_errcheck(PyCFuncPtrObject *self, void *Py_UNUSED(ignored))
 {
     if (self->errcheck) {
-        Py_INCREF(self->errcheck);
-        return self->errcheck;
+        return Py_NewRef(self->errcheck);
     }
     Py_RETURN_NONE;
 }
@@ -3275,7 +3255,6 @@ PyCFuncPtr_get_errcheck(PyCFuncPtrObject *self, void *Py_UNUSED(ignored))
 static int
 PyCFuncPtr_set_restype(PyCFuncPtrObject *self, PyObject *ob, void *Py_UNUSED(ignored))
 {
-    _Py_IDENTIFIER(_check_retval_);
     PyObject *checker, *oldchecker;
     if (ob == NULL) {
         oldchecker = self->checker;
@@ -3289,7 +3268,7 @@ PyCFuncPtr_set_restype(PyCFuncPtrObject *self, PyObject *ob, void *Py_UNUSED(ign
                         "restype must be a type, a callable, or None");
         return -1;
     }
-    if (_PyObject_LookupAttrId(ob, &PyId__check_retval_, &checker) < 0) {
+    if (_PyObject_LookupAttr(ob, &_Py_ID(_check_retval_), &checker) < 0) {
         return -1;
     }
     oldchecker = self->checker;
@@ -3305,14 +3284,12 @@ PyCFuncPtr_get_restype(PyCFuncPtrObject *self, void *Py_UNUSED(ignored))
 {
     StgDictObject *dict;
     if (self->restype) {
-        Py_INCREF(self->restype);
-        return self->restype;
+        return Py_NewRef(self->restype);
     }
     dict = PyObject_stgdict((PyObject *)self);
     assert(dict); /* Cannot be NULL for PyCFuncPtrObject instances */
     if (dict->restype) {
-        Py_INCREF(dict->restype);
-        return dict->restype;
+        return Py_NewRef(dict->restype);
     } else {
         Py_RETURN_NONE;
     }
@@ -3342,14 +3319,12 @@ PyCFuncPtr_get_argtypes(PyCFuncPtrObject *self, void *Py_UNUSED(ignored))
 {
     StgDictObject *dict;
     if (self->argtypes) {
-        Py_INCREF(self->argtypes);
-        return self->argtypes;
+        return Py_NewRef(self->argtypes);
     }
     dict = PyObject_stgdict((PyObject *)self);
     assert(dict); /* Cannot be NULL for PyCFuncPtrObject instances */
     if (dict->argtypes) {
-        Py_INCREF(dict->argtypes);
-        return dict->argtypes;
+        return Py_NewRef(dict->argtypes);
     } else {
         Py_RETURN_NONE;
     }
@@ -3618,7 +3593,7 @@ PyCFuncPtr_FromDll(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
 #else
-    address = (PPROC)ctypes_dlsym(handle, name);
+    address = (PPROC)dlsym(handle, name);
     if (!address) {
 #ifdef __CYGWIN__
 /* dlerror() isn't very helpful on cygwin */
@@ -3626,7 +3601,7 @@ PyCFuncPtr_FromDll(PyTypeObject *type, PyObject *args, PyObject *kwds)
                      "function '%s' not found",
                      name);
 #else
-        PyErr_SetString(PyExc_AttributeError, ctypes_dlerror());
+        PyErr_SetString(PyExc_AttributeError, dlerror());
 #endif
         Py_DECREF(ftuple);
         return NULL;
@@ -3643,8 +3618,7 @@ PyCFuncPtr_FromDll(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    Py_XINCREF(paramflags);
-    self->paramflags = paramflags;
+    self->paramflags = Py_XNewRef(paramflags);
 
     *(void **)self->b_ptr = address;
     Py_INCREF(dll);
@@ -3654,8 +3628,7 @@ PyCFuncPtr_FromDll(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    Py_INCREF(self);
-    self->callable = (PyObject *)self;
+    self->callable = Py_NewRef(self);
     return (PyObject *)self;
 }
 
@@ -3680,8 +3653,7 @@ PyCFuncPtr_FromVtblIndex(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     self = (PyCFuncPtrObject *)GenericPyCData_new(type, args, kwds);
     self->index = index + 0x1000;
-    Py_XINCREF(paramflags);
-    self->paramflags = paramflags;
+    self->paramflags = Py_XNewRef(paramflags);
     if (iid_len == sizeof(GUID))
         self->iid = iid;
     return (PyObject *)self;
@@ -3779,8 +3751,7 @@ PyCFuncPtr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    Py_INCREF(callable);
-    self->callable = callable;
+    self->callable = Py_NewRef(callable);
 
     self->thunk = thunk;
     *(void **)self->b_ptr = (void *)thunk->pcl_exec;
@@ -3828,23 +3799,20 @@ _get_arg(int *pindex, PyObject *name, PyObject *defval, PyObject *inargs, PyObje
     if (*pindex < PyTuple_GET_SIZE(inargs)) {
         v = PyTuple_GET_ITEM(inargs, *pindex);
         ++*pindex;
-        Py_INCREF(v);
-        return v;
+        return Py_NewRef(v);
     }
     if (kwds && name) {
         v = PyDict_GetItemWithError(kwds, name);
         if (v) {
             ++*pindex;
-            Py_INCREF(v);
-            return v;
+            return Py_NewRef(v);
         }
         else if (PyErr_Occurred()) {
             return NULL;
         }
     }
     if (defval) {
-        Py_INCREF(defval);
-        return defval;
+        return Py_NewRef(defval);
     }
     /* we can't currently emit a better error message */
     if (name)
@@ -3899,8 +3867,7 @@ _build_callargs(PyCFuncPtrObject *self, PyObject *argtypes,
         if (self->index)
             return PyTuple_GetSlice(inargs, 1, PyTuple_GET_SIZE(inargs));
 #endif
-        Py_INCREF(inargs);
-        return inargs;
+        return Py_NewRef(inargs);
     }
 
     len = PyTuple_GET_SIZE(argtypes);
@@ -4083,10 +4050,9 @@ _build_result(PyObject *result, PyObject *callargs,
             PyTuple_SET_ITEM(tup, index, v);
             index++;
         } else if (bit & outmask) {
-            _Py_IDENTIFIER(__ctypes_from_outparam__);
 
             v = PyTuple_GET_ITEM(callargs, i);
-            v = _PyObject_CallMethodIdNoArgs(v, &PyId___ctypes_from_outparam__);
+            v = PyObject_CallMethodNoArgs(v, &_Py_ID(__ctypes_from_outparam__));
             if (v == NULL || numretvals == 1) {
                 Py_DECREF(callargs);
                 return v;
@@ -4369,7 +4335,6 @@ _init_pos_args(PyObject *self, PyTypeObject *type,
     StgDictObject *dict;
     PyObject *fields;
     Py_ssize_t i;
-    _Py_IDENTIFIER(_fields_);
 
     if (PyType_stgdict((PyObject *)type->tp_base)) {
         index = _init_pos_args(self, type->tp_base,
@@ -4380,7 +4345,7 @@ _init_pos_args(PyObject *self, PyTypeObject *type,
     }
 
     dict = PyType_stgdict((PyObject *)type);
-    fields = _PyDict_GetItemIdWithError((PyObject *)dict, &PyId__fields_);
+    fields = PyDict_GetItemWithError((PyObject *)dict, &_Py_ID(_fields_));
     if (fields == NULL) {
         if (PyErr_Occurred()) {
             return -1;
@@ -4989,8 +4954,7 @@ static PyObject *
 Simple_from_outparm(PyObject *self, PyObject *args)
 {
     if (_ctypes_simple_instance((PyObject *)Py_TYPE(self))) {
-        Py_INCREF(self);
-        return self;
+        return Py_NewRef(self);
     }
     /* call stgdict->getfunc */
     return Simple_get_value((CDataObject *)self, NULL);
@@ -5513,46 +5477,46 @@ comerror_init(PyObject *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
-static PyTypeObject PyComError_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "_ctypes.COMError",         /* tp_name */
-    sizeof(PyBaseExceptionObject), /* tp_basicsize */
-    0,                          /* tp_itemsize */
-    0,                          /* tp_dealloc */
-    0,                          /* tp_vectorcall_offset */
-    0,                          /* tp_getattr */
-    0,                          /* tp_setattr */
-    0,                          /* tp_as_async */
-    0,                          /* tp_repr */
-    0,                          /* tp_as_number */
-    0,                          /* tp_as_sequence */
-    0,                          /* tp_as_mapping */
-    0,                          /* tp_hash */
-    0,                          /* tp_call */
-    0,                          /* tp_str */
-    0,                          /* tp_getattro */
-    0,                          /* tp_setattro */
-    0,                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,   /* tp_flags */
-    PyDoc_STR(comerror_doc),    /* tp_doc */
-    0,                          /* tp_traverse */
-    0,                          /* tp_clear */
-    0,                          /* tp_richcompare */
-    0,                          /* tp_weaklistoffset */
-    0,                          /* tp_iter */
-    0,                          /* tp_iternext */
-    0,                          /* tp_methods */
-    0,                          /* tp_members */
-    0,                          /* tp_getset */
-    0,                          /* tp_base */
-    0,                          /* tp_dict */
-    0,                          /* tp_descr_get */
-    0,                          /* tp_descr_set */
-    0,                          /* tp_dictoffset */
-    (initproc)comerror_init,    /* tp_init */
-    0,                          /* tp_alloc */
-    0,                          /* tp_new */
+static int
+comerror_clear(PyObject *self)
+{
+    return ((PyTypeObject *)PyExc_BaseException)->tp_clear(self);
+}
+
+static int
+comerror_traverse(PyObject *self, visitproc visit, void *arg)
+{
+    Py_VISIT(Py_TYPE(self));
+    return ((PyTypeObject *)PyExc_BaseException)->tp_traverse(self, visit, arg);
+}
+
+static void
+comerror_dealloc(PyObject *self)
+{
+    PyTypeObject *tp = Py_TYPE(self);
+    PyObject_GC_UnTrack(self);
+    (void)comerror_clear(self);
+    tp->tp_free(self);
+    Py_DECREF(tp);
+}
+
+static PyType_Slot comerror_slots[] = {
+    {Py_tp_doc, (void *)PyDoc_STR(comerror_doc)},
+    {Py_tp_init, comerror_init},
+    {Py_tp_traverse, comerror_traverse},
+    {Py_tp_dealloc, comerror_dealloc},
+    {Py_tp_clear, comerror_clear},
+    {0, NULL},
 };
+
+static PyType_Spec comerror_spec = {
+    .name = "_ctypes.COMError",
+    .basicsize = sizeof(PyBaseExceptionObject),
+    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
+              Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE),
+    .slots = comerror_slots,
+};
+
 #endif  // MS_WIN32
 
 static PyObject *
@@ -5624,8 +5588,7 @@ cast(void *ptr, PyObject *src, PyObject *ctype)
             if (obj->b_objects == NULL)
                 goto failed;
         }
-        Py_XINCREF(obj->b_objects);
-        result->b_objects = obj->b_objects;
+        result->b_objects = Py_XNewRef(obj->b_objects);
         if (result->b_objects && PyDict_CheckExact(result->b_objects)) {
             PyObject *index;
             int rc;
@@ -5695,12 +5658,23 @@ _ctypes_add_types(PyObject *mod)
         } \
     } while (0)
 
+#define CREATE_TYPE(MOD, TP, SPEC, BASE) do {                       \
+    PyObject *type = PyType_FromMetaclass(NULL, MOD, SPEC,          \
+                                          (PyObject *)BASE);        \
+    if (type == NULL) {                                             \
+        return -1;                                                  \
+    }                                                               \
+    TP = (PyTypeObject *)type;                                      \
+} while (0)
+
+    ctypes_state *st = GLOBAL_STATE();
+
     /* Note:
        ob_type is the metatype (the 'type'), defaults to PyType_Type,
        tp_base is the base type, defaults to 'object' aka PyBaseObject_Type.
     */
-    TYPE_READY(&PyCArg_Type);
-    TYPE_READY(&PyCThunk_Type);
+    CREATE_TYPE(mod, st->PyCArg_Type, &carg_spec, NULL);
+    CREATE_TYPE(mod, st->PyCThunk_Type, &cthunk_spec, NULL);
     TYPE_READY(&PyCData_Type);
     /* StgDict is derived from PyDict_Type */
     TYPE_READY_BASE(&PyCStgDict_Type, &PyDict_Type);
@@ -5733,25 +5707,24 @@ _ctypes_add_types(PyObject *mod)
      * Simple classes
      */
 
-    /* PyCField_Type is derived from PyBaseObject_Type */
-    TYPE_READY(&PyCField_Type);
+    CREATE_TYPE(mod, st->PyCField_Type, &cfield_spec, NULL);
 
     /*************************************************
      *
      * Other stuff
      */
 
-    DictRemover_Type.tp_new = PyType_GenericNew;
-    TYPE_READY(&DictRemover_Type);
-    TYPE_READY(&StructParam_Type);
+    CREATE_TYPE(mod, st->DictRemover_Type, &dictremover_spec, NULL);
+    CREATE_TYPE(mod, st->StructParam_Type, &structparam_spec, NULL);
 
 #ifdef MS_WIN32
-    TYPE_READY_BASE(&PyComError_Type, (PyTypeObject*)PyExc_Exception);
+    CREATE_TYPE(mod, st->PyComError_Type, &comerror_spec, PyExc_Exception);
 #endif
 
 #undef TYPE_READY
 #undef TYPE_READY_BASE
 #undef MOD_ADD_TYPE
+#undef CREATE_TYPE
     return 0;
 }
 
@@ -5775,7 +5748,8 @@ _ctypes_add_objects(PyObject *mod)
     MOD_ADD("_pointer_type_cache", Py_NewRef(_ctypes_ptrtype_cache));
 
 #ifdef MS_WIN32
-    MOD_ADD("COMError", Py_NewRef(ComError));
+    ctypes_state *st = GLOBAL_STATE();
+    MOD_ADD("COMError", Py_NewRef(st->PyComError_Type));
     MOD_ADD("FUNCFLAG_HRESULT", PyLong_FromLong(FUNCFLAG_HRESULT));
     MOD_ADD("FUNCFLAG_STDCALL", PyLong_FromLong(FUNCFLAG_STDCALL));
 #endif
@@ -5805,6 +5779,7 @@ _ctypes_add_objects(PyObject *mod)
     MOD_ADD("RTLD_GLOBAL", PyLong_FromLong(RTLD_GLOBAL));
     MOD_ADD("CTYPES_MAX_ARGCOUNT", PyLong_FromLong(CTYPES_MAX_ARGCOUNT));
     MOD_ADD("ArgumentError", Py_NewRef(PyExc_ArgError));
+    MOD_ADD("SIZEOF_TIME_T", PyLong_FromSsize_t(SIZEOF_TIME_T));
     return 0;
 #undef MOD_ADD
 }
@@ -5831,9 +5806,6 @@ _ctypes_mod_exec(PyObject *mod)
     if (_ctypes_add_types(mod) < 0) {
         return -1;
     }
-#ifdef MS_WIN32
-    ComError = (PyObject*)&PyComError_Type;
-#endif
 
     if (_ctypes_add_objects(mod) < 0) {
         return -1;

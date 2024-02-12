@@ -17,10 +17,12 @@ struct validator {
 static int validate_stmts(struct validator *, asdl_stmt_seq *);
 static int validate_exprs(struct validator *, asdl_expr_seq *, expr_context_ty, int);
 static int validate_patterns(struct validator *, asdl_pattern_seq *, int);
+static int validate_type_params(struct validator *, asdl_type_param_seq *);
 static int _validate_nonempty_seq(asdl_seq *, const char *, const char *);
 static int validate_stmt(struct validator *, stmt_ty);
 static int validate_expr(struct validator *, expr_ty, expr_context_ty);
 static int validate_pattern(struct validator *, pattern_ty, int);
+static int validate_typeparam(struct validator *, type_param_ty);
 
 #define VALIDATE_POSITIONS(node) \
     if (node->lineno > node->end_lineno) { \
@@ -731,6 +733,7 @@ validate_stmt(struct validator *state, stmt_ty stmt)
     switch (stmt->kind) {
     case FunctionDef_kind:
         ret = validate_body(state, stmt->v.FunctionDef.body, "FunctionDef") &&
+            validate_type_params(state, stmt->v.FunctionDef.type_params) &&
             validate_arguments(state, stmt->v.FunctionDef.args) &&
             validate_exprs(state, stmt->v.FunctionDef.decorator_list, Load, 0) &&
             (!stmt->v.FunctionDef.returns ||
@@ -738,6 +741,7 @@ validate_stmt(struct validator *state, stmt_ty stmt)
         break;
     case ClassDef_kind:
         ret = validate_body(state, stmt->v.ClassDef.body, "ClassDef") &&
+            validate_type_params(state, stmt->v.ClassDef.type_params) &&
             validate_exprs(state, stmt->v.ClassDef.bases, Load, 0) &&
             validate_keywords(state, stmt->v.ClassDef.keywords) &&
             validate_exprs(state, stmt->v.ClassDef.decorator_list, Load, 0);
@@ -767,6 +771,16 @@ validate_stmt(struct validator *state, stmt_ty stmt)
                (!stmt->v.AnnAssign.value ||
                 validate_expr(state, stmt->v.AnnAssign.value, Load)) &&
                validate_expr(state, stmt->v.AnnAssign.annotation, Load);
+        break;
+    case TypeAlias_kind:
+        if (stmt->v.TypeAlias.name->kind != Name_kind) {
+            PyErr_SetString(PyExc_TypeError,
+                            "TypeAlias with non-Name name");
+            return 0;
+        }
+        ret = validate_expr(state, stmt->v.TypeAlias.name, Store) &&
+            validate_type_params(state, stmt->v.TypeAlias.type_params) &&
+            validate_expr(state, stmt->v.TypeAlias.value, Load);
         break;
     case For_kind:
         ret = validate_expr(state, stmt->v.For.target, Store) &&
@@ -915,6 +929,7 @@ validate_stmt(struct validator *state, stmt_ty stmt)
         break;
     case AsyncFunctionDef_kind:
         ret = validate_body(state, stmt->v.AsyncFunctionDef.body, "AsyncFunctionDef") &&
+            validate_type_params(state, stmt->v.AsyncFunctionDef.type_params) &&
             validate_arguments(state, stmt->v.AsyncFunctionDef.args) &&
             validate_exprs(state, stmt->v.AsyncFunctionDef.decorator_list, Load, 0) &&
             (!stmt->v.AsyncFunctionDef.returns ||
@@ -987,9 +1002,44 @@ validate_patterns(struct validator *state, asdl_pattern_seq *patterns, int star_
     return 1;
 }
 
+static int
+validate_typeparam(struct validator *state, type_param_ty tp)
+{
+    VALIDATE_POSITIONS(tp);
+    int ret = -1;
+    switch (tp->kind) {
+        case TypeVar_kind:
+            ret = validate_name(tp->v.TypeVar.name) &&
+                (!tp->v.TypeVar.bound ||
+                 validate_expr(state, tp->v.TypeVar.bound, Load));
+            break;
+        case ParamSpec_kind:
+            ret = validate_name(tp->v.ParamSpec.name);
+            break;
+        case TypeVarTuple_kind:
+            ret = validate_name(tp->v.TypeVarTuple.name);
+            break;
+    }
+    return ret;
+}
+
+static int
+validate_type_params(struct validator *state, asdl_type_param_seq *tps)
+{
+    Py_ssize_t i;
+    for (i = 0; i < asdl_seq_LEN(tps); i++) {
+        type_param_ty tp = asdl_seq_GET(tps, i);
+        if (tp) {
+            if (!validate_typeparam(state, tp))
+                return 0;
+        }
+    }
+    return 1;
+}
+
 
 /* See comments in symtable.c. */
-#define COMPILER_STACK_FRAME_SCALE 3
+#define COMPILER_STACK_FRAME_SCALE 2
 
 int
 _PyAST_Validate(mod_ty mod)
@@ -998,7 +1048,6 @@ _PyAST_Validate(mod_ty mod)
     int res = -1;
     struct validator state;
     PyThreadState *tstate;
-    int recursion_limit = Py_GetRecursionLimit();
     int starting_recursion_depth;
 
     /* Setup recursion depth check counters */
@@ -1007,12 +1056,10 @@ _PyAST_Validate(mod_ty mod)
         return 0;
     }
     /* Be careful here to prevent overflow. */
-    int recursion_depth = tstate->recursion_limit - tstate->recursion_remaining;
-    starting_recursion_depth = (recursion_depth< INT_MAX / COMPILER_STACK_FRAME_SCALE) ?
-        recursion_depth * COMPILER_STACK_FRAME_SCALE : recursion_depth;
+    int recursion_depth = C_RECURSION_LIMIT - tstate->c_recursion_remaining;
+    starting_recursion_depth = recursion_depth * COMPILER_STACK_FRAME_SCALE;
     state.recursion_depth = starting_recursion_depth;
-    state.recursion_limit = (recursion_limit < INT_MAX / COMPILER_STACK_FRAME_SCALE) ?
-        recursion_limit * COMPILER_STACK_FRAME_SCALE : recursion_limit;
+    state.recursion_limit = C_RECURSION_LIMIT * COMPILER_STACK_FRAME_SCALE;
 
     switch (mod->kind) {
     case Module_kind:

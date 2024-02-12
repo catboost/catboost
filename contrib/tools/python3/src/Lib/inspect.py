@@ -34,11 +34,16 @@ __author__ = ('Ka-Ping Yee <ping@lfw.org>',
               'Yury Selivanov <yselivanov@sprymix.com>')
 
 __all__ = [
+    "AGEN_CLOSED",
+    "AGEN_CREATED",
+    "AGEN_RUNNING",
+    "AGEN_SUSPENDED",
     "ArgInfo",
     "Arguments",
     "Attribute",
     "BlockFinder",
     "BoundArguments",
+    "BufferFlags",
     "CORO_CLOSED",
     "CORO_CREATED",
     "CORO_RUNNING",
@@ -77,6 +82,8 @@ __all__ = [
     "getabsfile",
     "getargs",
     "getargvalues",
+    "getasyncgenlocals",
+    "getasyncgenstate",
     "getattr_static",
     "getblock",
     "getcallargs",
@@ -125,6 +132,7 @@ __all__ = [
     "ismodule",
     "isroutine",
     "istraceback",
+    "markcoroutinefunction",
     "signature",
     "stack",
     "trace",
@@ -281,30 +289,15 @@ def get_annotations(obj, *, globals=None, locals=None, eval_str=False):
 
 # ----------------------------------------------------------- type-checking
 def ismodule(object):
-    """Return true if the object is a module.
-
-    Module objects provide these attributes:
-        __cached__      pathname to byte compiled file
-        __doc__         documentation string
-        __file__        filename (missing for built-in modules)"""
+    """Return true if the object is a module."""
     return isinstance(object, types.ModuleType)
 
 def isclass(object):
-    """Return true if the object is a class.
-
-    Class objects provide these attributes:
-        __doc__         documentation string
-        __module__      name of module in which this class was defined"""
+    """Return true if the object is a class."""
     return isinstance(object, type)
 
 def ismethod(object):
-    """Return true if the object is an instance method.
-
-    Instance method objects provide these attributes:
-        __doc__         documentation string
-        __name__        name with which this method was defined
-        __func__        function object containing implementation of method
-        __self__        instance to which this method is bound"""
+    """Return true if the object is an instance method."""
     return isinstance(object, types.MethodType)
 
 def ismethoddescriptor(object):
@@ -406,12 +399,31 @@ def isgeneratorfunction(obj):
     See help(isfunction) for a list of attributes."""
     return _has_code_flag(obj, CO_GENERATOR)
 
+# A marker for markcoroutinefunction and iscoroutinefunction.
+_is_coroutine_marker = object()
+
+def _has_coroutine_mark(f):
+    while ismethod(f):
+        f = f.__func__
+    f = functools._unwrap_partial(f)
+    return getattr(f, "_is_coroutine_marker", None) is _is_coroutine_marker
+
+def markcoroutinefunction(func):
+    """
+    Decorator to ensure callable is recognised as a coroutine function.
+    """
+    if hasattr(func, '__func__'):
+        func = func.__func__
+    func._is_coroutine_marker = _is_coroutine_marker
+    return func
+
 def iscoroutinefunction(obj):
     """Return true if the object is a coroutine function.
 
-    Coroutine functions are defined with "async def" syntax.
+    Coroutine functions are normally defined with "async def" syntax, but may
+    be marked via markcoroutinefunction.
     """
-    return _has_code_flag(obj, CO_COROUTINE)
+    return _has_code_flag(obj, CO_COROUTINE) or _has_coroutine_mark(obj)
 
 def isasyncgenfunction(obj):
     """Return true if the object is an asynchronous generator function.
@@ -552,7 +564,7 @@ def _getmembers(object, predicate, getter):
     processed = set()
     names = dir(object)
     if isclass(object):
-        mro = (object,) + getmro(object)
+        mro = getmro(object)
         # add any DynamicClassAttributes to the list of names if object is a class;
         # this may result in duplicate entries if, for example, a virtual
         # attribute with the same name as a DynamicClassAttribute exists
@@ -671,7 +683,7 @@ def classify_class_attrs(cls):
                 if name == '__dict__':
                     raise Exception("__dict__ is special, don't want the proxy")
                 get_obj = getattr(cls, name)
-            except Exception as exc:
+            except Exception:
                 pass
             else:
                 homecls = getattr(get_obj, "__objclass__", homecls)
@@ -946,6 +958,9 @@ def getsourcefile(object):
     elif any(filename.endswith(s) for s in
                  importlib.machinery.EXTENSION_SUFFIXES):
         return None
+    # return a filename found in the linecache even if it doesn't exist on disk
+    if filename in linecache.cache:
+        return filename
     if os.path.exists(filename):
         return filename
     # only return a non-existent filename if the module has a PEP 302 loader
@@ -953,9 +968,6 @@ def getsourcefile(object):
     if getattr(module, '__loader__', None) is not None:
         return filename
     elif getattr(getattr(module, "__spec__", None), "loader", None) is not None:
-        return filename
-    # or it is in the linecache
-    elif filename in linecache.cache:
         return filename
 
 def getabsfile(object, _filename=None):
@@ -1230,6 +1242,14 @@ def getblock(lines):
             blockfinder.tokeneater(*_token)
     except (EndOfBlock, IndentationError):
         pass
+    except SyntaxError as e:
+        if "unmatched" not in e.msg:
+            raise e from None
+        _, *_token_info = _token
+        try:
+            blockfinder.tokeneater(tokenize.NEWLINE, *_token_info)
+        except (EndOfBlock, IndentationError):
+            pass
     return lines[:blockfinder.last]
 
 def getsourcelines(object):
@@ -1317,7 +1337,6 @@ def getargs(co):
     nkwargs = co.co_kwonlyargcount
     args = list(names[:nargs])
     kwonlyargs = list(names[nargs:nargs+nkwargs])
-    step = 0
 
     nargs += nkwargs
     varargs = None
@@ -1756,15 +1775,17 @@ def stack(context=1):
 
 def trace(context=1):
     """Return a list of records for the stack below the current exception."""
-    return getinnerframes(sys.exc_info()[2], context)
+    exc = sys.exception()
+    tb = None if exc is None else exc.__traceback__
+    return getinnerframes(tb, context)
 
 
 # ------------------------------------------------ static version of getattr
 
 _sentinel = object()
+_static_getmro = type.__dict__['__mro__'].__get__
+_get_dunder_dict_of_class = type.__dict__["__dict__"].__get__
 
-def _static_getmro(klass):
-    return type.__dict__['__mro__'].__get__(klass)
 
 def _check_instance(obj, attr):
     instance_dict = {}
@@ -1777,33 +1798,24 @@ def _check_instance(obj, attr):
 
 def _check_class(klass, attr):
     for entry in _static_getmro(klass):
-        if _shadowed_dict(type(entry)) is _sentinel:
-            try:
-                return entry.__dict__[attr]
-            except KeyError:
-                pass
+        if _shadowed_dict(type(entry)) is _sentinel and attr in entry.__dict__:
+            return entry.__dict__[attr]
     return _sentinel
 
-def _is_type(obj):
-    try:
-        _static_getmro(obj)
-    except TypeError:
-        return False
-    return True
-
-def _shadowed_dict(klass):
-    dict_attr = type.__dict__["__dict__"]
-    for entry in _static_getmro(klass):
-        try:
-            class_dict = dict_attr.__get__(entry)["__dict__"]
-        except KeyError:
-            pass
-        else:
+@functools.lru_cache()
+def _shadowed_dict_from_mro_tuple(mro):
+    for entry in mro:
+        dunder_dict = _get_dunder_dict_of_class(entry)
+        if '__dict__' in dunder_dict:
+            class_dict = dunder_dict['__dict__']
             if not (type(class_dict) is types.GetSetDescriptorType and
                     class_dict.__name__ == "__dict__" and
                     class_dict.__objclass__ is entry):
                 return class_dict
     return _sentinel
+
+def _shadowed_dict(klass):
+    return _shadowed_dict_from_mro_tuple(_static_getmro(klass))
 
 def getattr_static(obj, attr, default=_sentinel):
     """Retrieve attributes without triggering dynamic lookup via the
@@ -1817,8 +1829,10 @@ def getattr_static(obj, attr, default=_sentinel):
        documentation for details.
     """
     instance_result = _sentinel
-    if not _is_type(obj):
-        klass = type(obj)
+
+    objtype = type(obj)
+    if type not in _static_getmro(objtype):
+        klass = objtype
         dict_attr = _shadowed_dict(klass)
         if (dict_attr is _sentinel or
             type(dict_attr) is types.MemberDescriptorType):
@@ -1843,11 +1857,11 @@ def getattr_static(obj, attr, default=_sentinel):
     if obj is klass:
         # for types we check the metaclass too
         for entry in _static_getmro(type(klass)):
-            if _shadowed_dict(type(entry)) is _sentinel:
-                try:
-                    return entry.__dict__[attr]
-                except KeyError:
-                    pass
+            if (
+                _shadowed_dict(type(entry)) is _sentinel
+                and attr in entry.__dict__
+            ):
+                return entry.__dict__[attr]
     if default is not _sentinel:
         return default
     raise AttributeError(attr)
@@ -1929,6 +1943,50 @@ def getcoroutinelocals(coroutine):
     frame = getattr(coroutine, "cr_frame", None)
     if frame is not None:
         return frame.f_locals
+    else:
+        return {}
+
+
+# ----------------------------------- asynchronous generator introspection
+
+AGEN_CREATED = 'AGEN_CREATED'
+AGEN_RUNNING = 'AGEN_RUNNING'
+AGEN_SUSPENDED = 'AGEN_SUSPENDED'
+AGEN_CLOSED = 'AGEN_CLOSED'
+
+
+def getasyncgenstate(agen):
+    """Get current state of an asynchronous generator object.
+
+    Possible states are:
+      AGEN_CREATED: Waiting to start execution.
+      AGEN_RUNNING: Currently being executed by the interpreter.
+      AGEN_SUSPENDED: Currently suspended at a yield expression.
+      AGEN_CLOSED: Execution has completed.
+    """
+    if agen.ag_running:
+        return AGEN_RUNNING
+    if agen.ag_suspended:
+        return AGEN_SUSPENDED
+    if agen.ag_frame is None:
+        return AGEN_CLOSED
+    return AGEN_CREATED
+
+
+def getasyncgenlocals(agen):
+    """
+    Get the mapping of asynchronous generator local variables to their current
+    values.
+
+    A dict is returned, with the keys the local variable names and values the
+    bound values."""
+
+    if not isasyncgen(agen):
+        raise TypeError(f"{agen!r} is not a Python async generator")
+
+    frame = getattr(agen, "ag_frame", None)
+    if frame is not None:
+        return agen.ag_frame.f_locals
     else:
         return {}
 
@@ -2104,26 +2162,21 @@ def _signature_strip_non_python_syntax(signature):
     Private helper function. Takes a signature in Argument Clinic's
     extended signature format.
 
-    Returns a tuple of three things:
-      * that signature re-rendered in standard Python syntax,
+    Returns a tuple of two things:
+      * that signature re-rendered in standard Python syntax, and
       * the index of the "self" parameter (generally 0), or None if
-        the function does not have a "self" parameter, and
-      * the index of the last "positional only" parameter,
-        or None if the signature has no positional-only parameters.
+        the function does not have a "self" parameter.
     """
 
     if not signature:
-        return signature, None, None
+        return signature, None
 
     self_parameter = None
-    last_positional_only = None
 
     lines = [l.encode('ascii') for l in signature.split('\n') if l]
     generator = iter(lines).__next__
     token_stream = tokenize.tokenize(generator)
 
-    delayed_comma = False
-    skip_next_comma = False
     text = []
     add = text.append
 
@@ -2140,35 +2193,18 @@ def _signature_strip_non_python_syntax(signature):
 
         if type == OP:
             if string == ',':
-                if skip_next_comma:
-                    skip_next_comma = False
-                else:
-                    assert not delayed_comma
-                    delayed_comma = True
-                    current_parameter += 1
-                continue
+                current_parameter += 1
 
-            if string == '/':
-                assert not skip_next_comma
-                assert last_positional_only is None
-                skip_next_comma = True
-                last_positional_only = current_parameter - 1
-                continue
-
-        if (type == ERRORTOKEN) and (string == '$'):
+        if (type == OP) and (string == '$'):
             assert self_parameter is None
             self_parameter = current_parameter
             continue
 
-        if delayed_comma:
-            delayed_comma = False
-            if not ((type == OP) and (string == ')')):
-                add(', ')
         add(string)
         if (string == ','):
             add(' ')
-    clean_signature = ''.join(text)
-    return clean_signature, self_parameter, last_positional_only
+    clean_signature = ''.join(text).strip().replace("\n", "")
+    return clean_signature, self_parameter
 
 
 def _signature_fromstr(cls, obj, s, skip_bound_arg=True):
@@ -2177,8 +2213,7 @@ def _signature_fromstr(cls, obj, s, skip_bound_arg=True):
     """
     Parameter = cls._parameter_cls
 
-    clean_signature, self_parameter, last_positional_only = \
-        _signature_strip_non_python_syntax(s)
+    clean_signature, self_parameter = _signature_strip_non_python_syntax(s)
 
     program = "def foo" + clean_signature + ": pass"
 
@@ -2267,17 +2302,17 @@ def _signature_fromstr(cls, obj, s, skip_bound_arg=True):
         parameters.append(Parameter(name, kind, default=default, annotation=empty))
 
     # non-keyword-only parameters
-    args = reversed(f.args.args)
-    defaults = reversed(f.args.defaults)
-    iter = itertools.zip_longest(args, defaults, fillvalue=None)
-    if last_positional_only is not None:
-        kind = Parameter.POSITIONAL_ONLY
-    else:
-        kind = Parameter.POSITIONAL_OR_KEYWORD
-    for i, (name, default) in enumerate(reversed(list(iter))):
+    total_non_kw_args = len(f.args.posonlyargs) + len(f.args.args)
+    required_non_kw_args = total_non_kw_args - len(f.args.defaults)
+    defaults = itertools.chain(itertools.repeat(None, required_non_kw_args), f.args.defaults)
+
+    kind = Parameter.POSITIONAL_ONLY
+    for (name, default) in zip(f.args.posonlyargs, defaults):
         p(name, default)
-        if i == last_positional_only:
-            kind = Parameter.POSITIONAL_OR_KEYWORD
+
+    kind = Parameter.POSITIONAL_OR_KEYWORD
+    for (name, default) in zip(f.args.args, defaults):
+        p(name, default)
 
     # *args
     if f.args.vararg:
@@ -2476,10 +2511,18 @@ def _signature_from_callable(obj, *,
         pass
     else:
         if sig is not None:
+            # since __text_signature__ is not writable on classes, __signature__
+            # may contain text (or be a callable that returns text);
+            # if so, convert it
+            o_sig = sig
+            if not isinstance(sig, (Signature, str)) and callable(sig):
+                sig = sig()
+            if isinstance(sig, str):
+                sig = _signature_fromstr(sigcls, obj, sig)
             if not isinstance(sig, Signature):
                 raise TypeError(
                     'unexpected object {!r} in __signature__ '
-                    'attribute'.format(sig))
+                    'attribute'.format(o_sig))
             return sig
 
     try:
@@ -2796,7 +2839,7 @@ class Parameter:
         return '<{} "{}">'.format(self.__class__.__name__, self)
 
     def __hash__(self):
-        return hash((self.name, self.kind, self.annotation, self.default))
+        return hash((self._name, self._kind, self._annotation, self._default))
 
     def __eq__(self, other):
         if self is other:
@@ -3122,8 +3165,12 @@ class Signature:
                             parameters_ex = (param,)
                             break
                         else:
-                            msg = 'missing a required argument: {arg!r}'
-                            msg = msg.format(arg=param.name)
+                            if param.kind == _KEYWORD_ONLY:
+                                argtype = ' keyword-only'
+                            else:
+                                argtype = ''
+                            msg = 'missing a required{argtype} argument: {arg!r}'
+                            msg = msg.format(arg=param.name, argtype=argtype)
                             raise TypeError(msg) from None
             else:
                 # We have a positional argument to process
@@ -3279,6 +3326,28 @@ def signature(obj, *, follow_wrapped=True, globals=None, locals=None, eval_str=F
     """Get a signature object for the passed callable."""
     return Signature.from_callable(obj, follow_wrapped=follow_wrapped,
                                    globals=globals, locals=locals, eval_str=eval_str)
+
+
+class BufferFlags(enum.IntFlag):
+    SIMPLE = 0x0
+    WRITABLE = 0x1
+    FORMAT = 0x4
+    ND = 0x8
+    STRIDES = 0x10 | ND
+    C_CONTIGUOUS = 0x20 | STRIDES
+    F_CONTIGUOUS = 0x40 | STRIDES
+    ANY_CONTIGUOUS = 0x80 | STRIDES
+    INDIRECT = 0x100 | STRIDES
+    CONTIG = ND | WRITABLE
+    CONTIG_RO = ND
+    STRIDED = STRIDES | WRITABLE
+    STRIDED_RO = STRIDES
+    RECORDS = STRIDES | WRITABLE | FORMAT
+    RECORDS_RO = STRIDES | FORMAT
+    FULL = INDIRECT | WRITABLE | FORMAT
+    FULL_RO = INDIRECT | FORMAT
+    READ = 0x100
+    WRITE = 0x200
 
 
 def _main():

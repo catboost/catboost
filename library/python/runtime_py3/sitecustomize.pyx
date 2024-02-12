@@ -115,21 +115,18 @@ class ArcadiaResourceContainer(Traversable):
 
 class ArcadiaDistribution(Distribution):
     def __init__(self, prefix):
-        self.prefix = prefix
-
-    @property
-    def _path(self):
-        return pathlib.Path(self.prefix)
+        self._prefix = prefix
+        self._path = pathlib.Path(prefix)
 
     def read_text(self, filename):
-        data = __res.resfs_read(f"{self.prefix}{filename}")
-        if data:
+        data = __res.resfs_read(f"{self._prefix}{filename}")
+        if data is not None:
             return data.decode("utf-8")
 
     read_text.__doc__ = Distribution.read_text.__doc__
 
     def locate_file(self, path):
-        return f"{self.prefix}{path}"
+        return self._path.parent / path
 
 
 class ArcadiaMetadataFinder(DistributionFinder):

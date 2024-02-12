@@ -120,18 +120,6 @@ typedef struct {
     access_mode access;
 } mmap_object;
 
-typedef struct {
-    PyTypeObject *mmap_object_type;
-} mmap_state;
-
-static mmap_state *
-get_mmap_state(PyObject *module)
-{
-    mmap_state *state = PyModule_GetState(module);
-    assert(state);
-    return state;
-}
-
 static int
 mmap_object_traverse(mmap_object *m_obj, visitproc visit, void *arg)
 {
@@ -684,7 +672,7 @@ mmap_flush_method(mmap_object *self, PyObject *args)
     if (self->access == ACCESS_READ || self->access == ACCESS_COPY)
         Py_RETURN_NONE;
 
-#ifdef MS_WINDOWS
+#if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_APP) || defined(MS_WINDOWS_SYSTEM)
     if (!FlushViewOfFile(self->data+offset, size)) {
         PyErr_SetFromWindowsErr(GetLastError());
         return NULL;
@@ -784,8 +772,7 @@ mmap__enter__method(mmap_object *self, PyObject *args)
 {
     CHECK_VALID(NULL);
 
-    Py_INCREF(self);
-    return (PyObject *)self;
+    return Py_NewRef(self);
 }
 
 static PyObject *
@@ -1361,9 +1348,9 @@ new_mmap_object(PyTypeObject *type, PyObject *args, PyObject *kwdict)
         }
     }
 
-    m_obj->data = mmap(NULL, map_size,
-                       prot, flags,
-                       fd, offset);
+    Py_BEGIN_ALLOW_THREADS
+    m_obj->data = mmap(NULL, map_size, prot, flags, fd, offset);
+    Py_END_ALLOW_THREADS
 
     int saved_errno = errno;
     if (devzero != -1) {
@@ -1591,45 +1578,22 @@ new_mmap_object(PyTypeObject *type, PyObject *args, PyObject *kwdict)
 #endif /* MS_WINDOWS */
 
 static int
-mmap_traverse(PyObject *module, visitproc visit, void *arg)
-{
-    mmap_state *state = get_mmap_state(module);
-    Py_VISIT(state->mmap_object_type);
-    return 0;
-}
-
-static int
-mmap_clear(PyObject *module)
-{
-    mmap_state *state = get_mmap_state(module);
-    Py_CLEAR(state->mmap_object_type);
-    return 0;
-}
-
-static void
-mmap_free(void *module)
-{
-    mmap_clear((PyObject *)module);
-}
-
-static int
 mmap_exec(PyObject *module)
 {
-    mmap_state *state = get_mmap_state(module);
-
     Py_INCREF(PyExc_OSError);
     if (PyModule_AddObject(module, "error", PyExc_OSError) < 0) {
         Py_DECREF(PyExc_OSError);
         return -1;
     }
 
-    state->mmap_object_type = (PyTypeObject *)PyType_FromModuleAndSpec(module,
-                                                                       &mmap_object_spec,
-                                                                       NULL);
-    if (state->mmap_object_type == NULL) {
+    PyObject *mmap_object_type = PyType_FromModuleAndSpec(module,
+                                                  &mmap_object_spec, NULL);
+    if (mmap_object_type == NULL) {
         return -1;
     }
-    if (PyModule_AddType(module, state->mmap_object_type) < 0) {
+    int rc = PyModule_AddType(module, (PyTypeObject *)mmap_object_type);
+    Py_DECREF(mmap_object_type);
+    if (rc < 0) {
         return -1;
     }
 
@@ -1675,6 +1639,12 @@ mmap_exec(PyObject *module)
     // Mostly a no-op on Linux and NetBSD, but useful on OpenBSD
     // for stack usage (even on x86 arch)
     ADD_INT_MACRO(module, MAP_STACK);
+#endif
+#ifdef MAP_ALIGNED_SUPER
+    ADD_INT_MACRO(module, MAP_ALIGNED_SUPER);
+#endif
+#ifdef MAP_CONCEAL
+    ADD_INT_MACRO(module, MAP_CONCEAL);
 #endif
     if (PyModule_AddIntConstant(module, "PAGESIZE", (long)my_getpagesize()) < 0 ) {
         return -1;
@@ -1775,17 +1745,15 @@ mmap_exec(PyObject *module)
 
 static PyModuleDef_Slot mmap_slots[] = {
     {Py_mod_exec, mmap_exec},
+    {Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
     {0, NULL}
 };
 
 static struct PyModuleDef mmapmodule = {
-    PyModuleDef_HEAD_INIT,
+    .m_base = PyModuleDef_HEAD_INIT,
     .m_name = "mmap",
-    .m_size = sizeof(mmap_state),
+    .m_size = 0,
     .m_slots = mmap_slots,
-    .m_traverse = mmap_traverse,
-    .m_clear = mmap_clear,
-    .m_free = mmap_free,
 };
 
 PyMODINIT_FUNC

@@ -7,7 +7,7 @@ import functools
 
 from time import monotonic as _time
 from _weakrefset import WeakSet
-from itertools import islice as _islice, count as _count
+from itertools import count as _count
 try:
     from _collections import deque as _deque
 except ImportError:
@@ -28,13 +28,29 @@ __all__ = ['get_ident', 'active_count', 'Condition', 'current_thread',
            'Event', 'Lock', 'RLock', 'Semaphore', 'BoundedSemaphore', 'Thread',
            'Barrier', 'BrokenBarrierError', 'Timer', 'ThreadError',
            'setprofile', 'settrace', 'local', 'stack_size',
-           'excepthook', 'ExceptHookArgs', 'gettrace', 'getprofile']
+           'excepthook', 'ExceptHookArgs', 'gettrace', 'getprofile',
+           'setprofile_all_threads','settrace_all_threads']
 
 # Rename some stuff so "from threading import *" is safe
 _start_new_thread = _thread.start_new_thread
+_daemon_threads_allowed = _thread.daemon_threads_allowed
 _allocate_lock = _thread.allocate_lock
 _set_sentinel = _thread._set_sentinel
 get_ident = _thread.get_ident
+try:
+    _is_main_interpreter = _thread._is_main_interpreter
+except AttributeError:
+    # See https://github.com/python/cpython/issues/112826.
+    # We can pretend a subinterpreter is the main interpreter for the
+    # sake of _shutdown(), since that only means we do not wait for the
+    # subinterpreter's threads to finish.  Instead, they will be stopped
+    # later by the mechanism we use for daemon threads.  The likelihood
+    # of this case is small because rarely will the _thread module be
+    # replaced by a module without _is_main_interpreter().
+    # Furthermore, this is all irrelevant in applications
+    # that do not use subinterpreters.
+    def _is_main_interpreter():
+        return True
 try:
     get_native_id = _thread.get_native_id
     _HAVE_THREAD_NATIVE_ID = True
@@ -60,10 +76,19 @@ def setprofile(func):
 
     The func will be passed to sys.setprofile() for each thread, before its
     run() method is called.
-
     """
     global _profile_hook
     _profile_hook = func
+
+def setprofile_all_threads(func):
+    """Set a profile function for all threads started from the threading module
+    and all Python threads that are currently executing.
+
+    The func will be passed to sys.setprofile() for each thread, before its
+    run() method is called.
+    """
+    setprofile(func)
+    _sys._setprofileallthreads(func)
 
 def getprofile():
     """Get the profiler function as set by threading.setprofile()."""
@@ -74,10 +99,19 @@ def settrace(func):
 
     The func will be passed to sys.settrace() for each thread, before its run()
     method is called.
-
     """
     global _trace_hook
     _trace_hook = func
+
+def settrace_all_threads(func):
+    """Set a trace function for all threads started from the threading module
+    and all Python threads that are currently executing.
+
+    The func will be passed to sys.settrace() for each thread, before its run()
+    method is called.
+    """
+    settrace(func)
+    _sys._settraceallthreads(func)
 
 def gettrace():
     """Get the trace function as set by threading.settrace()."""
@@ -250,18 +284,12 @@ class Condition:
         # If the lock defines _release_save() and/or _acquire_restore(),
         # these override the default implementations (which just call
         # release() and acquire() on the lock).  Ditto for _is_owned().
-        try:
+        if hasattr(lock, '_release_save'):
             self._release_save = lock._release_save
-        except AttributeError:
-            pass
-        try:
+        if hasattr(lock, '_acquire_restore'):
             self._acquire_restore = lock._acquire_restore
-        except AttributeError:
-            pass
-        try:
+        if hasattr(lock, '_is_owned'):
             self._is_owned = lock._is_owned
-        except AttributeError:
-            pass
         self._waiters = _deque()
 
     def _at_fork_reinit(self):
@@ -495,8 +523,7 @@ class Semaphore:
             raise ValueError('n must be one or more')
         with self._cond:
             self._value += n
-            for i in range(n):
-                self._cond.notify()
+            self._cond.notify(n)
 
     def __exit__(self, t, v, tb):
         self.release()
@@ -520,7 +547,7 @@ class BoundedSemaphore(Semaphore):
     """
 
     def __init__(self, value=1):
-        Semaphore.__init__(self, value)
+        super().__init__(value)
         self._initial_value = value
 
     def __repr__(self):
@@ -544,8 +571,7 @@ class BoundedSemaphore(Semaphore):
             if self._value + n > self._initial_value:
                 raise ValueError("Semaphore released too many times")
             self._value += n
-            for i in range(n):
-                self._cond.notify()
+            self._cond.notify(n)
 
 
 class Event:
@@ -895,6 +921,8 @@ class Thread:
         self._args = args
         self._kwargs = kwargs
         if daemon is not None:
+            if daemon and not _daemon_threads_allowed():
+                raise RuntimeError('daemon threads are disabled in this (sub)interpreter')
             self._daemonic = daemon
         else:
             self._daemonic = current_thread().daemon
@@ -1222,6 +1250,8 @@ class Thread:
     def daemon(self, daemonic):
         if not self._initialized:
             raise RuntimeError("Thread.__init__() not called")
+        if daemonic and not _daemon_threads_allowed():
+            raise RuntimeError('daemon threads are disabled in this interpreter')
         if self._started.is_set():
             raise RuntimeError("cannot set daemon status of active thread")
         self._daemonic = daemonic
@@ -1428,8 +1458,8 @@ class _MainThread(Thread):
 class _DummyThread(Thread):
 
     def __init__(self):
-        Thread.__init__(self, name=_newname("Dummy-%d"), daemon=True)
-
+        Thread.__init__(self, name=_newname("Dummy-%d"),
+                        daemon=_daemon_threads_allowed())
         self._started.set()
         self._set_ident()
         if _HAVE_THREAD_NATIVE_ID:
@@ -1480,6 +1510,8 @@ def active_count():
     enumerate().
 
     """
+    # NOTE: if the logic in here ever changes, update Modules/posixmodule.c
+    # warn_about_fork_with_threads() to match.
     with _active_limbo_lock:
         return len(_active) + len(_limbo)
 
@@ -1547,7 +1579,7 @@ def _shutdown():
     # the main thread's tstate_lock - that won't happen until the interpreter
     # is nearly dead.  So we release it here.  Note that just calling _stop()
     # isn't enough:  other threads may already be waiting on _tstate_lock.
-    if _main_thread._is_stopped:
+    if _main_thread._is_stopped and _is_main_interpreter():
         # _shutdown() was already called
         return
 
@@ -1600,6 +1632,7 @@ def main_thread():
     In normal conditions, the main thread is the thread from which the
     Python interpreter was started.
     """
+    # XXX Figure this out for subinterpreters.  (See gh-75698.)
     return _main_thread
 
 # get thread-local implementation, either from the thread

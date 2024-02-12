@@ -34,7 +34,8 @@
 #endif
 
 #if defined(_MSC_VER)
-#define NTDDI_VERSION 0x06010000
+#define NTDDI_VERSION 0x06020000
+#define _WIN32_WINNT 0x0602
 #define Py_NO_ENABLE_SHARED
 #include "../PC/pyconfig.h"
 #endif

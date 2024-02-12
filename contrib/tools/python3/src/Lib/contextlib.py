@@ -155,7 +155,7 @@ class _GeneratorContextManager(
                 # tell if we get the same exception back
                 value = typ()
             try:
-                self.gen.throw(typ, value, traceback)
+                self.gen.throw(value)
             except StopIteration as exc:
                 # Suppress StopIteration *unless* it's the same exception that
                 # was passed to throw().  This prevents a StopIteration
@@ -228,7 +228,7 @@ class _AsyncGeneratorContextManager(
                 # tell if we get the same exception back
                 value = typ()
             try:
-                await self.gen.athrow(typ, value, traceback)
+                await self.gen.athrow(value)
             except StopAsyncIteration as exc:
                 # Suppress StopIteration *unless* it's the same exception that
                 # was passed to throw().  This prevents a StopIteration
@@ -453,7 +453,16 @@ class suppress(AbstractContextManager):
         # exactly reproduce the limitations of the CPython interpreter.
         #
         # See http://bugs.python.org/issue12029 for more details
-        return exctype is not None and issubclass(exctype, self._exceptions)
+        if exctype is None:
+            return
+        if issubclass(exctype, self._exceptions):
+            return True
+        if issubclass(exctype, BaseExceptionGroup):
+            match, rest = excinst.split(self._exceptions)
+            if rest is None:
+                return True
+            raise rest
+        return False
 
 
 class _BaseExitStack:

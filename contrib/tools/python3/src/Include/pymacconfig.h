@@ -10,7 +10,9 @@
 
 #if defined(__APPLE__)
 
+# undef ALIGNOF_MAX_ALIGN_T
 # undef SIZEOF_LONG
+# undef SIZEOF_LONG_DOUBLE
 # undef SIZEOF_PTHREAD_T
 # undef SIZEOF_SIZE_T
 # undef SIZEOF_TIME_T
@@ -23,6 +25,7 @@
 # undef DOUBLE_IS_BIG_ENDIAN_IEEE754
 # undef DOUBLE_IS_LITTLE_ENDIAN_IEEE754
 # undef HAVE_GCC_ASM_FOR_X87
+# undef HAVE_GCC_ASM_FOR_X64
 
 #    undef VA_LIST_IS_ARRAY
 #    if defined(__LP64__) && defined(__x86_64__)
@@ -80,21 +83,15 @@
 #define DOUBLE_IS_LITTLE_ENDIAN_IEEE754
 #endif /* __BIG_ENDIAN */
 
-#ifdef __i386__
+#if defined(__i386__) || defined(__x86_64__)
 # define HAVE_GCC_ASM_FOR_X87
+# define ALIGNOF_MAX_ALIGN_T 16
+# define HAVE_GCC_ASM_FOR_X64 1
+# define SIZEOF_LONG_DOUBLE 16
+#else
+# define ALIGNOF_MAX_ALIGN_T 8
+# define SIZEOF_LONG_DOUBLE 8
 #endif
-
-    /*
-     * The definition in pyconfig.h is only valid on the OS release
-     * where configure ran on and not necessarily for all systems where
-     * the executable can be used on.
-     *
-     * Specifically: OSX 10.4 has limited supported for '%zd', while
-     * 10.5 has full support for '%zd'. A binary built on 10.5 won't
-     * work properly on 10.4 unless we suppress the definition
-     * of PY_FORMAT_SIZE_T
-     */
-#undef  PY_FORMAT_SIZE_T
 
 
 #endif /* defined(_APPLE__) */

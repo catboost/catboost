@@ -171,7 +171,6 @@ static char *GetPythonImport (HINSTANCE hModule)
    Return whether the DLL was found.
 */
 extern HMODULE PyWin_DLLhModule;
-#endif
 static int
 _Py_CheckPython3(void)
 {
@@ -184,7 +183,6 @@ _Py_CheckPython3(void)
     }
     python3_checked = 1;
 
-#ifdef Py_ENABLE_SHARED
     /* If there is a python3.dll next to the python3y.dll,
        use that DLL */
     if (PyWin_DLLhModule && GetModuleFileNameW(PyWin_DLLhModule, py3path, MAXPATHLEN)) {
@@ -197,7 +195,6 @@ _Py_CheckPython3(void)
             }
         }
     }
-#endif
 
     /* If we can locate python3.dll in our application dir,
        use that DLL */
@@ -220,6 +217,7 @@ _Py_CheckPython3(void)
     return hPython3 != NULL;
     #undef MAXPATHLEN
 }
+#endif /* Py_ENABLE_SHARED */
 
 dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
                                               const char *shortname,
@@ -228,13 +226,11 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
     dl_funcptr p;
     char funcname[258], *import_python;
 
+#ifdef Py_ENABLE_SHARED
     _Py_CheckPython3();
+#endif /* Py_ENABLE_SHARED */
 
-#if USE_UNICODE_WCHAR_CACHE
-    const wchar_t *wpathname = _PyUnicode_AsUnicode(pathname);
-#else /* USE_UNICODE_WCHAR_CACHE */
     wchar_t *wpathname = PyUnicode_AsWideCharString(pathname, NULL);
-#endif /* USE_UNICODE_WCHAR_CACHE */
     if (wpathname == NULL)
         return NULL;
 
@@ -242,10 +238,12 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
 
     {
         HINSTANCE hDLL = NULL;
+#ifdef MS_WINDOWS_DESKTOP
         unsigned int old_mode;
 
         /* Don't display a message box when Python can't load a DLL */
         old_mode = SetErrorMode(SEM_FAILCRITICALERRORS);
+#endif
 
         /* bpo-36085: We use LoadLibraryEx with restricted search paths
            to avoid DLL preloading attacks and enable use of the
@@ -256,12 +254,12 @@ dl_funcptr _PyImport_FindSharedFuncptrWindows(const char *prefix,
                               LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
                               LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR);
         Py_END_ALLOW_THREADS
-#if !USE_UNICODE_WCHAR_CACHE
         PyMem_Free(wpathname);
-#endif /* USE_UNICODE_WCHAR_CACHE */
 
+#ifdef MS_WINDOWS_DESKTOP
         /* restore old error mode settings */
         SetErrorMode(old_mode);
+#endif
 
         if (hDLL==NULL){
             PyObject *message;

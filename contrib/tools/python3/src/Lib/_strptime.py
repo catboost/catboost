@@ -290,22 +290,6 @@ def _calc_julian_from_U_or_W(year, week_of_year, day_of_week, week_starts_Mon):
         return 1 + days_to_week + day_of_week
 
 
-def _calc_julian_from_V(iso_year, iso_week, iso_weekday):
-    """Calculate the Julian day based on the ISO 8601 year, week, and weekday.
-    ISO weeks start on Mondays, with week 01 being the week containing 4 Jan.
-    ISO week days range from 1 (Monday) to 7 (Sunday).
-    """
-    correction = datetime_date(iso_year, 1, 4).isoweekday() + 3
-    ordinal = (iso_week * 7) + iso_weekday - correction
-    # ordinal may be negative or 0 now, which means the date is in the previous
-    # calendar year
-    if ordinal < 1:
-        ordinal += datetime_date(iso_year, 1, 1).toordinal()
-        iso_year -= 1
-        ordinal -= datetime_date(iso_year, 1, 1).toordinal()
-    return iso_year, ordinal
-
-
 def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
     """Return a 2-tuple consisting of a time struct and an int containing
     the number of microseconds based on the input string and the
@@ -481,7 +465,8 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
                     else:
                         tz = value
                         break
-    # Deal with the cases where ambiguities arize
+
+    # Deal with the cases where ambiguities arise
     # don't assume default values for ISO week/year
     if iso_year is not None:
         if julian is not None:
@@ -510,7 +495,6 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
         else:
             year = 1900
 
-
     # If we know the week of the year and what day of that week, we can figure
     # out the Julian day of the year.
     if julian is None and weekday is not None:
@@ -519,7 +503,10 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
             julian = _calc_julian_from_U_or_W(year, week_of_year, weekday,
                                                 week_starts_Mon)
         elif iso_year is not None and iso_week is not None:
-            year, julian = _calc_julian_from_V(iso_year, iso_week, weekday + 1)
+            datetime_result = datetime_date.fromisocalendar(iso_year, iso_week, weekday + 1)
+            year = datetime_result.year
+            month = datetime_result.month
+            day = datetime_result.day
         if julian is not None and julian <= 0:
             year -= 1
             yday = 366 if calendar.isleap(year) else 365

@@ -81,6 +81,7 @@ lock_dealloc(lockobject *self)
 static PyLockStatus
 acquire_timed(PyThread_type_lock lock, _PyTime_t timeout)
 {
+    PyThreadState *tstate = _PyThreadState_GET();
     _PyTime_t endtime = 0;
     if (timeout > 0) {
         endtime = _PyDeadline_Init(timeout);
@@ -103,7 +104,7 @@ acquire_timed(PyThread_type_lock lock, _PyTime_t timeout)
             /* Run signal handlers if we were interrupted.  Propagate
              * exceptions from signal handlers, such as KeyboardInterrupt, by
              * passing up PY_LOCK_INTR.  */
-            if (Py_MakePendingCalls() < 0) {
+            if (_PyEval_MakePendingCalls(tstate) < 0) {
                 return PY_LOCK_INTR;
             }
 
@@ -135,7 +136,7 @@ lock_acquire_parse_args(PyObject *args, PyObject *kwds,
 
     *timeout = unset_timeout ;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iO:acquire", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|pO:acquire", kwlist,
                                      &blocking, &timeout_obj))
         return -1;
 
@@ -853,11 +854,6 @@ local_traverse(localobject *self, visitproc visit, void *arg)
     return 0;
 }
 
-#define HEAD_LOCK(runtime) \
-    PyThread_acquire_lock((runtime)->interpreters.mutex, WAIT_LOCK)
-#define HEAD_UNLOCK(runtime) \
-    PyThread_release_lock((runtime)->interpreters.mutex)
-
 static int
 local_clear(localobject *self)
 {
@@ -965,7 +961,7 @@ local_setattro(localobject *self, PyObject *name, PyObject *v)
     }
     if (r == 1) {
         PyErr_Format(PyExc_AttributeError,
-                     "'%.50s' object attribute '%U' is read-only",
+                     "'%.100s' object attribute '%U' is read-only",
                      Py_TYPE(self)->tp_name, name);
         return -1;
     }
@@ -1111,13 +1107,7 @@ thread_run(void *boot_raw)
         goto exit;
     }
 
-    tstate->thread_id = PyThread_get_thread_ident();
-#ifdef PY_HAVE_THREAD_NATIVE_ID
-    tstate->native_thread_id = PyThread_get_thread_native_id();
-#else
-    tstate->native_thread_id = 0;
-#endif
-    _PyThreadState_SetCurrent(tstate);
+    _PyThreadState_Bind(tstate);
     PyEval_AcquireThread(tstate);
     tstate->interp->threads.count++;
 
@@ -1148,6 +1138,24 @@ exit:
 }
 
 static PyObject *
+thread_daemon_threads_allowed(PyObject *module, PyObject *Py_UNUSED(ignored))
+{
+    PyInterpreterState *interp = _PyInterpreterState_Get();
+    if (interp->feature_flags & Py_RTFLAGS_DAEMON_THREADS) {
+        Py_RETURN_TRUE;
+    }
+    else {
+        Py_RETURN_FALSE;
+    }
+}
+
+PyDoc_STRVAR(daemon_threads_allowed_doc,
+"daemon_threads_allowed()\n\
+\n\
+Return True if daemon threads are allowed in the current interpreter,\n\
+and False otherwise.\n");
+
+static PyObject *
 thread_PyThread_start_new_thread(PyObject *self, PyObject *fargs)
 {
     PyObject *func, *args, *kwargs = NULL;
@@ -1171,10 +1179,20 @@ thread_PyThread_start_new_thread(PyObject *self, PyObject *fargs)
         return NULL;
     }
 
+    if (PySys_Audit("_thread.start_new_thread", "OOO",
+                    func, args, kwargs ? kwargs : Py_None) < 0) {
+        return NULL;
+    }
+
     PyInterpreterState *interp = _PyInterpreterState_GET();
-    if (interp->config._isolated_interpreter) {
+    if (!_PyInterpreterState_HasFeature(interp, Py_RTFLAGS_THREADS)) {
         PyErr_SetString(PyExc_RuntimeError,
                         "thread is not supported for isolated subinterpreters");
+        return NULL;
+    }
+    if (interp->finalizing) {
+        PyErr_SetString(PyExc_RuntimeError,
+                        "can't create new thread at interpreter shutdown");
         return NULL;
     }
 
@@ -1185,10 +1203,13 @@ thread_PyThread_start_new_thread(PyObject *self, PyObject *fargs)
     if (boot == NULL) {
         return PyErr_NoMemory();
     }
-    boot->tstate = _PyThreadState_Prealloc(interp);
+    boot->tstate = _PyThreadState_New(interp);
     if (boot->tstate == NULL) {
         PyMem_RawFree(boot);
-        return PyErr_NoMemory();
+        if (!PyErr_Occurred()) {
+            return PyErr_NoMemory();
+        }
+        return NULL;
     }
     boot->func = Py_NewRef(func);
     boot->args = Py_NewRef(args);
@@ -1583,11 +1604,25 @@ PyDoc_STRVAR(excepthook_doc,
 \n\
 Handle uncaught Thread.run() exception.");
 
+static PyObject *
+thread__is_main_interpreter(PyObject *module, PyObject *Py_UNUSED(ignored))
+{
+    PyInterpreterState *interp = _PyInterpreterState_GET();
+    return PyBool_FromLong(_Py_IsMainInterpreter(interp));
+}
+
+PyDoc_STRVAR(thread__is_main_interpreter_doc,
+"_is_main_interpreter()\n\
+\n\
+Return True if the current interpreter is the main Python interpreter.");
+
 static PyMethodDef thread_methods[] = {
     {"start_new_thread",        (PyCFunction)thread_PyThread_start_new_thread,
      METH_VARARGS, start_new_doc},
     {"start_new",               (PyCFunction)thread_PyThread_start_new_thread,
      METH_VARARGS, start_new_doc},
+    {"daemon_threads_allowed",  (PyCFunction)thread_daemon_threads_allowed,
+     METH_NOARGS, daemon_threads_allowed_doc},
     {"allocate_lock",           thread_PyThread_allocate_lock,
      METH_NOARGS, allocate_doc},
     {"allocate",                thread_PyThread_allocate_lock,
@@ -1610,8 +1645,10 @@ static PyMethodDef thread_methods[] = {
      METH_VARARGS, stack_size_doc},
     {"_set_sentinel",           thread__set_sentinel,
      METH_NOARGS, _set_sentinel_doc},
-    {"_excepthook",              thread_excepthook,
+    {"_excepthook",             thread_excepthook,
      METH_O, excepthook_doc},
+    {"_is_main_interpreter",    thread__is_main_interpreter,
+     METH_NOARGS, thread__is_main_interpreter_doc},
     {NULL,                      NULL}           /* sentinel */
 };
 
@@ -1728,6 +1765,7 @@ The 'threading' module provides a more convenient interface.");
 
 static PyModuleDef_Slot thread_module_slots[] = {
     {Py_mod_exec, thread_module_exec},
+    {Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
     {0, NULL}
 };
 

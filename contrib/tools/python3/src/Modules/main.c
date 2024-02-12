@@ -297,10 +297,10 @@ pymain_run_module(const wchar_t *modname, int set_argv0)
         Py_DECREF(module);
         return pymain_exit_err_print();
     }
-    _Py_UnhandledKeyboardInterrupt = 0;
+    _PyRuntime.signals.unhandled_keyboard_interrupt = 0;
     result = PyObject_Call(runmodule, runargs, NULL);
     if (!result && PyErr_Occurred() == PyExc_KeyboardInterrupt) {
-        _Py_UnhandledKeyboardInterrupt = 1;
+        _PyRuntime.signals.unhandled_keyboard_interrupt = 1;
     }
     Py_DECREF(runpy);
     Py_DECREF(runmodule);
@@ -480,12 +480,23 @@ error:
 }
 
 
+static void
+pymain_set_inspect(PyConfig *config, int inspect)
+{
+    config->inspect = inspect;
+_Py_COMP_DIAG_PUSH
+_Py_COMP_DIAG_IGNORE_DEPR_DECLS
+    Py_InspectFlag = inspect;
+_Py_COMP_DIAG_POP
+}
+
+
 static int
 pymain_run_stdin(PyConfig *config)
 {
     if (stdin_is_interactive(config)) {
-        config->inspect = 0;
-        Py_InspectFlag = 0; /* do exit on SystemExit */
+        // do exit on SystemExit
+        pymain_set_inspect(config, 0);
 
         int exitcode;
         if (pymain_run_startup(config, &exitcode)) {
@@ -518,16 +529,14 @@ pymain_repl(PyConfig *config, int *exitcode)
     /* Check this environment variable at the end, to give programs the
        opportunity to set it from Python. */
     if (!config->inspect && _Py_GetEnv(config->use_environment, "PYTHONINSPECT")) {
-        config->inspect = 1;
-        Py_InspectFlag = 1;
+        pymain_set_inspect(config, 1);
     }
 
     if (!(config->inspect && stdin_is_interactive(config) && config_run_code(config))) {
         return;
     }
 
-    config->inspect = 0;
-    Py_InspectFlag = 0;
+    pymain_set_inspect(config, 0);
     if (pymain_run_interactive_hook(exitcode)) {
         return;
     }
@@ -551,6 +560,8 @@ pymain_run_python(int *exitcode)
         goto error;
     }
 
+    assert(interp->runtime->sys_path_0 == NULL);
+
     if (config->run_filename != NULL) {
         /* If filename is a package (ex: directory or ZIP file) which contains
            __main__.py, main_importer_path is set to filename and will be
@@ -566,28 +577,45 @@ pymain_run_python(int *exitcode)
     // import readline and rlcompleter before script dir is added to sys.path
     pymain_import_readline(config);
 
+    PyObject *path0 = NULL;
     if (main_importer_path != NULL) {
-        if (pymain_sys_path_add_path0(interp, main_importer_path) < 0) {
-            goto error;
-        }
+        path0 = Py_NewRef(main_importer_path);
     }
     else if (!config->safe_path) {
-        PyObject *path0 = NULL;
         int res = _PyPathConfig_ComputeSysPath0(&config->argv, &path0);
         if (res < 0) {
             goto error;
         }
-
-        if (res > 0) {
-            if (pymain_sys_path_add_path0(interp, path0) < 0) {
-                Py_DECREF(path0);
-                goto error;
-            }
+        else if (res == 0) {
+            Py_CLEAR(path0);
+        }
+    }
+    if (path0 != NULL) {
+        wchar_t *wstr = PyUnicode_AsWideCharString(path0, NULL);
+        if (wstr == NULL) {
             Py_DECREF(path0);
+            goto error;
+        }
+        PyMemAllocatorEx old_alloc;
+        _PyMem_SetDefaultAllocator(PYMEM_DOMAIN_RAW, &old_alloc);
+        interp->runtime->sys_path_0 = _PyMem_RawWcsdup(wstr);
+        PyMem_SetAllocator(PYMEM_DOMAIN_RAW, &old_alloc);
+        PyMem_Free(wstr);
+        if (interp->runtime->sys_path_0 == NULL) {
+            Py_DECREF(path0);
+            goto error;
+        }
+        int res = pymain_sys_path_add_path0(interp, path0);
+        Py_DECREF(path0);
+        if (res < 0) {
+            goto error;
         }
     }
 
     pymain_header(config);
+
+    _PyInterpreterState_SetRunningMain(interp);
+    assert(!PyErr_Occurred());
 
     if (config->run_command) {
         *exitcode = pymain_run_command(config->run_command);
@@ -612,6 +640,7 @@ error:
     *exitcode = pymain_exit_err_print();
 
 done:
+    _PyInterpreterState_SetNotRunningMain(interp);
     Py_XDECREF(main_importer_path);
 }
 
@@ -688,7 +717,7 @@ Py_RunMain(void)
 
     pymain_free();
 
-    if (_Py_UnhandledKeyboardInterrupt) {
+    if (_PyRuntime.signals.unhandled_keyboard_interrupt) {
         exitcode = exit_sigint();
     }
 
