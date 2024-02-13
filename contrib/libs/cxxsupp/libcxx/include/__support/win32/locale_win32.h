@@ -220,10 +220,18 @@ decltype(MB_CUR_MAX) MB_CUR_MAX_L( locale_t __l );
 _LIBCPP_FUNC_VIS float strtof_l(const char*, char**, locale_t);
 _LIBCPP_FUNC_VIS long double strtold_l(const char*, char**, locale_t);
 #endif
+inline _LIBCPP_HIDE_FROM_ABI int
+islower_l(int __c, _locale_t __loc)
+{
+ return _islower_l((int)__c, __loc);
+}
 
-#define isupper_l _isupper_l
-#define islower_l _islower_l
-#define isblank_l _isblank_l
+inline _LIBCPP_HIDE_FROM_ABI int
+isupper_l(int __c, _locale_t __loc)
+{
+ return _isupper_l((int)__c, __loc);
+}
+
 #define isdigit_l _isdigit_l
 #define isxdigit_l _isxdigit_l
 #define strcoll_l _strcoll_l
@@ -237,7 +245,6 @@ _LIBCPP_FUNC_VIS long double strtold_l(const char*, char**, locale_t);
 #define iswcntrl_l _iswcntrl_l
 #define iswupper_l _iswupper_l
 #define iswlower_l _iswlower_l
-#define iswblank_l _iswblank_l
 #define iswalpha_l _iswalpha_l
 #define iswdigit_l _iswdigit_l
 #define iswpunct_l _iswpunct_l
@@ -257,5 +264,15 @@ _LIBCPP_FUNC_VIS size_t strftime_l(char *ret, size_t n, const char *format,
 _LIBCPP_FUNC_VIS int snprintf_l(char *__ret, size_t __n, locale_t __loc, const char *__format, ...);
 _LIBCPP_FUNC_VIS int asprintf_l( char **__ret, locale_t __loc, const char *__format, ... );
 _LIBCPP_FUNC_VIS int vasprintf_l( char **__ret, locale_t __loc, const char *__format, va_list __ap );
+
+// not-so-pressing FIXME: use locale to determine blank characters
+inline int isblank_l( int __c, locale_t /*loc*/ )
+{
+    return ( __c == ' ' || __c == '\t' );
+}
+inline int iswblank_l( wint_t __c, locale_t /*loc*/ )
+{
+    return ( __c == L' ' || __c == L'\t' );
+}
 
 #endif // _LIBCPP___SUPPORT_WIN32_LOCALE_WIN32_H
