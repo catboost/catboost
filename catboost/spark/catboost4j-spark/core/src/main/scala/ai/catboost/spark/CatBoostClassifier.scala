@@ -248,9 +248,9 @@ object CatBoostClassificationModel extends MLReadable[CatBoostClassificationMode
         new CatBoostClassificationModel(uid, nativeModel, nativeModel.GetDimensionsCount.toInt)
       }
   }
-  
+
   def loadNativeModel(
-    fileName: String, 
+    fileName: String,
     format: EModelType = native_impl.EModelType.CatboostBinary
   ): CatBoostClassificationModel = {
     new CatBoostClassificationModel(native_impl.native_impl.ReadModel(fileName, format))
@@ -262,7 +262,7 @@ object CatBoostClassificationModel extends MLReadable[CatBoostClassificationMode
     ctrMergePolicy: ECtrTableMergePolicy = native_impl.ECtrTableMergePolicy.IntersectingCountersAverage
   ): CatBoostClassificationModel = {
     new CatBoostClassificationModel(CatBoostModel.sum(models.toArray[CatBoostModelTrait[CatBoostClassificationModel]], weights, ctrMergePolicy))
-  } 
+  }
 }
 
 
@@ -421,7 +421,7 @@ class CatBoostClassifier (override val uid: String)
     ).asInstanceOf[JObject]
     val serializedLabelConverter = classTargetPreprocessor.GetSerializedLabelConverter()
 
-    val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext) 
+    val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext)
         = addEstimatedCtrFeatures(
             quantizedTrainPool,
             quantizedEvalPools,
@@ -430,8 +430,8 @@ class CatBoostClassifier (override val uid: String)
             serializedLabelConverter
           )
     (
-      preprocessedTrainPool, 
-      preprocessedEvalPools, 
+      preprocessedTrainPool,
+      preprocessedEvalPools,
       new CatBoostTrainingContext(
         ctrsContext,
         catBoostJsonParams,

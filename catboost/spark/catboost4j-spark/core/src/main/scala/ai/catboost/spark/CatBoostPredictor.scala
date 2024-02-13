@@ -61,7 +61,7 @@ trait CatBoostPredictorTrait[
     )
 
     val oneHotMaxSize = native_impl.GetOneHotMaxSize(
-      catFeaturesMaxUniqValueCount, 
+      catFeaturesMaxUniqValueCount,
       quantizedTrainPool.isDefined(quantizedTrainPool.labelCol),
       compact(updatedCatBoostJsonParams)
     )
@@ -78,7 +78,7 @@ trait CatBoostPredictorTrait[
       (quantizedTrainPool, quantizedEvalPools, null)
     }
   }
-    
+
 
   /**
    *  override in descendants if necessary
@@ -90,11 +90,11 @@ trait CatBoostPredictorTrait[
     quantizedEvalPools: Array[Pool]
   ) : (Pool, Array[Pool], CatBoostTrainingContext) = {
     val catBoostJsonParams = ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this)
-    val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext) 
+    val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext)
         = addEstimatedCtrFeatures(quantizedTrainPool, quantizedEvalPools, catBoostJsonParams)
     (
-      preprocessedTrainPool, 
-      preprocessedEvalPools, 
+      preprocessedTrainPool,
+      preprocessedEvalPools,
       new CatBoostTrainingContext(
         ctrsContext,
         catBoostJsonParams,
@@ -172,7 +172,7 @@ trait CatBoostPredictorTrait[
 
     this.logInfo("fit. train.prepareDatasetForTraining: start")
     val preparedTrainDataset = DataHelpers.prepareDatasetForTraining(
-      preprocessedTrainPool, 
+      preprocessedTrainPool,
       datasetIdx=0.toByte,
       workerCount=partitionCount
     )
@@ -182,7 +182,7 @@ trait CatBoostPredictorTrait[
       case (evalPool, evalIdx) => {
         this.logInfo(s"fit. eval #${evalIdx}.prepareDatasetForTraining: start")
         val preparedEvalDataset = DataHelpers.prepareDatasetForTraining(
-          evalPool, 
+          evalPool,
           datasetIdx=(evalIdx + 1).toByte,
           workerCount=partitionCount
         )
@@ -290,9 +290,9 @@ trait CatBoostPredictorTrait[
           catBoostTrainingContext.ctrsContext,
           quantizedTrainPool,
           quantizedEvalPools
-        ) 
+        )
       } else {
-        master.nativeModelResult 
+        master.nativeModelResult
       }
     )
 
