@@ -15,7 +15,7 @@
 #include <cstring>
 
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
-#include <source_location>
+# include <source_location>
 #endif
 
 namespace boost
@@ -73,7 +73,11 @@ public:
 # pragma warning( disable: 4996 )
 #endif
 
+#if ( defined(_MSC_VER) && _MSC_VER < 1900 ) || ( defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR) )
 # define BOOST_ASSERT_SNPRINTF(buffer, format, arg) std::sprintf(buffer, format, arg)
+#else
+# define BOOST_ASSERT_SNPRINTF(buffer, format, arg) std::snprintf(buffer, sizeof(buffer)/sizeof(buffer[0]), format, arg)
+#endif
 
     std::string to_string() const
     {
