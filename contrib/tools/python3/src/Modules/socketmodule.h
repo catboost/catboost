@@ -112,15 +112,15 @@ typedef int socklen_t;
 #endif
 
 #ifdef HAVE_BLUETOOTH_BLUETOOTH_H
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/rfcomm.h>
-#include <bluetooth/l2cap.h>
-#include <bluetooth/sco.h>
-#include <bluetooth/hci.h>
+#error #include <bluetooth/bluetooth.h>
+#error #include <bluetooth/rfcomm.h>
+#error #include <bluetooth/l2cap.h>
+#error #include <bluetooth/sco.h>
+#error #include <bluetooth/hci.h>
 #endif
 
 #ifdef HAVE_BLUETOOTH_H
-#include <bluetooth.h>
+#error #include <bluetooth.h>
 #endif
 
 #ifdef HAVE_NET_IF_H
