@@ -606,7 +606,7 @@ class CatBoostRegressorTest {
 
     val trainPool = Pool.load(
       spark,
-      dataPathWithScheme = dataDir.resolve("train").toString,
+      dataPathWithScheme = dataDir.resolve("train.with_groups_sorted_by_group_id_hash").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
     val evalPool = Pool.load(
@@ -674,7 +674,7 @@ class CatBoostRegressorTest {
 
     val trainPool = Pool.load(
       spark,
-      dataPathWithScheme = dataDir.resolve("train").toString,
+      dataPathWithScheme = dataDir.resolve("train.with_groups_sorted_by_group_id_hash").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
     val evalPool = Pool.load(

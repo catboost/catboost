@@ -229,7 +229,7 @@ def with_eval_sets():
 
 def overfitting_detector():
     data_path = os.path.join(CATBOOST_TEST_DATA_DIR, "querywise")
-    learn_set_path = os.path.join(data_path, "train")
+    learn_set_path = os.path.join(data_path, "train.with_groups_sorted_by_group_id_hash")
     eval_set_path = os.path.join(data_path, "test")
     cd_path = os.path.join(data_path, "train.cd")
 

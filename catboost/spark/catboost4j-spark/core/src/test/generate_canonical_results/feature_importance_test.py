@@ -53,7 +53,7 @@ def prediction_values_change():
 
 def loss_function_change():
     dataset_dir = os.path.join(CATBOOST_TEST_DATA_DIR, 'querywise')
-    learn_set_path = os.path.join(dataset_dir, "train")
+    learn_set_path = os.path.join(dataset_dir, "train.with_groups_sorted_by_group_id_hash")
     cd_path = os.path.join(dataset_dir, "train.cd")
 
     model = utils.run_dist_train(
@@ -102,7 +102,7 @@ def loss_function_change():
 
 def interaction():
     dataset_dir = os.path.join(CATBOOST_TEST_DATA_DIR, 'querywise')
-    learn_set_path = os.path.join(dataset_dir, "train")
+    learn_set_path = os.path.join(dataset_dir, "train.with_groups_sorted_by_group_id_hash")
     cd_path = os.path.join(dataset_dir, "train.cd")
 
     model = utils.run_dist_train(
@@ -138,7 +138,7 @@ def shap_values():
     for problem_type in ['Regression', 'BinClass', 'MultiClass']:
         if problem_type == 'Regression':
             dataset_dir = os.path.join(CATBOOST_TEST_DATA_DIR, 'querywise')
-            learn_set_path = os.path.join(dataset_dir, "train")
+            learn_set_path = os.path.join(dataset_dir, "train.with_groups_sorted_by_group_id_hash")
             cd_path = os.path.join(dataset_dir, "train.cd")
             loss_function = 'QueryRMSE'
             additional_train_params = []
