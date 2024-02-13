@@ -340,7 +340,7 @@ def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_or_bool_dtype, n
 def make_embedding_type_cast_array_holder(
     size_t flat_feature_idx,
     np.ndarray[numpy_num_or_bool_dtype, ndim=1] first_element,
-    np.ndarray elements): #
+    np.ndarray elements):
 
     cdef np.ndarray[numpy_num_or_bool_dtype, ndim=1] element
     cdef TVector[TMaybeOwningConstArrayHolder[numpy_num_or_bool_dtype]] data
@@ -1263,7 +1263,6 @@ cdef np.ndarray _2d_vector_of_double_to_np_array(const TVector[TVector[double]]&
     cdef np.ndarray[np.float64_t, ndim=2] result = np.empty([vectors.size(), subvec_size], dtype=_npfloat64)
     cdef np.float64_t[:,::1] result_view = result
 
-    # result = np.empty([vectors.size(), subvec_size], dtype=_npfloat64)
     for i in xrange(vectors.size()):
         assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
         for j in xrange(subvec_size):
@@ -1315,7 +1314,6 @@ cdef np.ndarray _reorder_axes_for_python_4d_shap_values(TVector[TVector[TVector[
     cdef size_t approx_dimension = vectors[0][0].size() if featuresCount != 0 else 0
     assert approx_dimension > 1
     cdef size_t doc_size = vectors[0][0][0].size() if approx_dimension != 0 else 0
-    #result = np.empty([doc_size, approx_dimension, featuresCount, featuresCount], dtype=_npfloat64)
     cdef np.ndarray[np.float64_t, ndim=4] result = np.empty(
         [doc_size, approx_dimension, featuresCount, featuresCount],
         dtype=_npfloat64
