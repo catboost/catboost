@@ -130,9 +130,9 @@ class FilesCombiner(object):
             archiver_tool_path = 'libtool'
         elif opts.is_msvc_compatible_linker:
             arch_type = 'LIB'
-        elif re.match('^(|.*/)llvm\-ar(\-[\d])?', opts.parsed_args.cmake_ar):
+        elif re.match(r'^(|.*/)llvm\-ar(\-[\d])?', opts.parsed_args.cmake_ar):
             arch_type = 'LLVM_AR'
-        elif re.match('^(|.*/)(gcc\-)?ar(\-[\d])?', opts.parsed_args.cmake_ar):
+        elif re.match(r'^(|.*/)(gcc\-)?ar(\-[\d])?', opts.parsed_args.cmake_ar):
             arch_type = 'GNU_AR'
         else:
             raise Exception('Unsupported arch type for CMAKE_AR={}'.format(opts.parsed_args.cmake_ar))
