@@ -271,6 +271,7 @@ class Shrinker:
         *,
         allow_transition: bool,
         explain: bool,
+        in_target_phase: bool = False,
     ):
         """Create a shrinker for a particular engine, with a given starting
         point and predicate. When shrink() is called it will attempt to find an
@@ -309,6 +310,14 @@ class Shrinker:
         # testing and learning purposes.
         self.extra_dfas: Dict[str, ConcreteDFA] = {}
 
+        # Because the shrinker is also used to `pareto_optimise` in the target phase,
+        # we sometimes want to allow extending buffers instead of aborting at the end.
+        if in_target_phase:
+            from hypothesis.internal.conjecture.engine import BUFFER_SIZE
+
+            self.__extend = BUFFER_SIZE
+        else:
+            self.__extend = 0
         self.should_explain = explain
 
     @derived_value  # type: ignore
@@ -417,7 +426,7 @@ class Shrinker:
         with status >= INVALID that would result from running this buffer."""
 
         buffer = bytes(buffer)
-        result = self.engine.cached_test_function(buffer)
+        result = self.engine.cached_test_function(buffer, extend=self.__extend)
         self.incorporate_test_data(result)
         if self.calls - self.calls_at_last_shrink >= self.max_stall:
             raise StopShrinking
