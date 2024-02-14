@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <type_traits>
 
 #include <util/system/compiler.h>
 #include <util/system/yassert.h>
@@ -814,7 +815,13 @@ public:
 
     template <class T>
     friend TBasicString operator*(const TBasicString& s, T count) {
+        static_assert(std::is_integral<T>::value, "Integral type required.");
+
         TBasicString result;
+
+        if (count > 0) {
+            result.reserve(s.length() * count);
+        }
 
         for (T i = 0; i < count; ++i) {
             result += s;
@@ -825,7 +832,13 @@ public:
 
     template <class T>
     TBasicString& operator*=(T count) {
+        static_assert(std::is_integral<T>::value, "Integral type required.");
+
         TBasicString temp;
+
+        if (count > 0) {
+            temp.reserve(length() * count);
+        }
 
         for (T i = 0; i < count; ++i) {
             temp += *this;
