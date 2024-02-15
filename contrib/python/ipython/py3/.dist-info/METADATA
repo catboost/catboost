@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.20.0
+Version: 8.21.0
 Summary: IPython: Productive Interactive Computing
 Home-page: https://ipython.org
 Author: The IPython Development Team
@@ -46,9 +46,9 @@ Requires-Dist: sphinx-rtd-theme ; extra == 'all'
 Requires-Dist: docrepr ; extra == 'all'
 Requires-Dist: matplotlib ; extra == 'all'
 Requires-Dist: stack-data ; extra == 'all'
-Requires-Dist: pytest ; extra == 'all'
 Requires-Dist: typing-extensions ; extra == 'all'
 Requires-Dist: exceptiongroup ; extra == 'all'
+Requires-Dist: pytest <8 ; extra == 'all'
 Requires-Dist: pytest-asyncio <0.22 ; extra == 'all'
 Requires-Dist: testpath ; extra == 'all'
 Requires-Dist: pickleshare ; extra == 'all'
@@ -73,9 +73,9 @@ Requires-Dist: sphinx-rtd-theme ; extra == 'doc'
 Requires-Dist: docrepr ; extra == 'doc'
 Requires-Dist: matplotlib ; extra == 'doc'
 Requires-Dist: stack-data ; extra == 'doc'
-Requires-Dist: pytest ; extra == 'doc'
 Requires-Dist: typing-extensions ; extra == 'doc'
 Requires-Dist: exceptiongroup ; extra == 'doc'
+Requires-Dist: pytest <8 ; extra == 'doc'
 Requires-Dist: pytest-asyncio <0.22 ; extra == 'doc'
 Requires-Dist: testpath ; extra == 'doc'
 Requires-Dist: pickleshare ; extra == 'doc'
@@ -94,12 +94,12 @@ Provides-Extra: qtconsole
 Requires-Dist: qtconsole ; extra == 'qtconsole'
 Provides-Extra: terminal
 Provides-Extra: test
-Requires-Dist: pytest ; extra == 'test'
+Requires-Dist: pytest <8 ; extra == 'test'
 Requires-Dist: pytest-asyncio <0.22 ; extra == 'test'
 Requires-Dist: testpath ; extra == 'test'
 Requires-Dist: pickleshare ; extra == 'test'
 Provides-Extra: test_extra
-Requires-Dist: pytest ; extra == 'test_extra'
+Requires-Dist: pytest <8 ; extra == 'test_extra'
 Requires-Dist: pytest-asyncio <0.22 ; extra == 'test_extra'
 Requires-Dist: testpath ; extra == 'test_extra'
 Requires-Dist: pickleshare ; extra == 'test_extra'
