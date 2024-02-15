@@ -382,10 +382,10 @@ extern char        *ctermid_r(char *);
 #endif /* !_MSC_VER */
 
 #if defined(__VXWORKS__)
-#  include <vxCpuLib.h>
-#  include <rtpLib.h>
+#  error #include <vxCpuLib.h>
+#  error #include <rtpLib.h>
 #  include <wait.h>
-#  include <taskLib.h>
+#  error #include <taskLib.h>
 #  ifndef _P_WAIT
 #    define _P_WAIT          0
 #    define _P_NOWAIT        1
