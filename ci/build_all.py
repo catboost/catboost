@@ -324,7 +324,7 @@ def build_all_for_one_platform(
 
     # exclude python-dependent targets that will be built for concrete python
     # and Java compilation of SWIG-generated sources (performed in build_jvm_artifacts)
-    all_targets=[
+    all_targets_except_python_and_spark_final=[
         target for target in build_native.Targets.catboost.keys()
         if target not in ['_hnsw', '_catboost', 'catboost4j-spark-impl']
     ]
@@ -367,7 +367,7 @@ def build_all_for_one_platform(
         )
 
     # build all non python-version specific variants
-    call_build_native(targets=all_targets)
+    call_build_native(targets=all_targets_except_python_and_spark_final)
 
     if os.environ.get('CMAKE_BUILD_CACHE_DIR'):
         copy_built_artifacts_to_canonical_place(
