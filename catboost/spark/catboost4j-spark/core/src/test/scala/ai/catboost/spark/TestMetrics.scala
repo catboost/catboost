@@ -27,7 +27,7 @@ object TestMetrics {
         }
       }
 
-      val actualMAPtopK = new RankingMetrics[Double](forRankingMetrics).meanAveragePrecision
+      val actualMAPtopK = new RankingMetrics[Int](forRankingMetrics).meanAveragePrecision
 
       Assert.assertEquals(expectedMAPtopK, actualMAPtopK, 1e-5)
   }
