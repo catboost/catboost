@@ -349,8 +349,8 @@ class GitHubArtifactDatabase(ExampleDatabase):
         You must provide ``GITHUB_TOKEN`` as an environment variable. In CI, Github Actions provides
         this automatically, but it needs to be set manually for local usage. In a developer machine,
         this would usually be a `Personal Access Token <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`_.
-        If the repository is private, it's necessary for the token to have `repo` scope
-        in the case of a classic token, or `actions:read` in the case of a fine-grained token.
+        If the repository is private, it's necessary for the token to have ``repo`` scope
+        in the case of a classic token, or ``actions:read`` in the case of a fine-grained token.
 
 
     In most cases, this will be used
@@ -400,9 +400,9 @@ class GitHubArtifactDatabase(ExampleDatabase):
     does not support downloading artifacts from previous workflow runs.
 
     The database automatically implements a simple file-based cache with a default expiration period
-    of 1 day. You can adjust this through the `cache_timeout` property.
+    of 1 day. You can adjust this through the ``cache_timeout`` property.
 
-    For mono-repo support, you can provide a unique `artifact_name` (e.g. `hypofuzz-example-db-frontend`).
+    For mono-repo support, you can provide a unique ``artifact_name`` (e.g. ``hypofuzz-example-db-frontend``).
     """
 
     def __init__(

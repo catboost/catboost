@@ -1610,7 +1610,7 @@ def binary_operation(
 
     While :wikipedia:`binary operations <Binary_operation>` are not particularly
     common, they have such nice properties to test that it seems a shame not to
-    demonstrate them with a ghostwriter.  For an operator `f`, test that:
+    demonstrate them with a ghostwriter.  For an operator ``f``, test that:
 
     - if :wikipedia:`associative <Associative_property>`,
       ``f(a, f(b, c)) == f(f(a, b), c)``

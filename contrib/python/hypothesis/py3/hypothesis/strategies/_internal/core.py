@@ -2124,6 +2124,8 @@ class DataObject:
         self.count = 0
         self.conjecture_data = data
 
+    __signature__ = Signature()  # hide internals from Sphinx introspection
+
     def __repr__(self):
         return "data(...)"
 
@@ -2182,7 +2184,7 @@ def data() -> SearchStrategy[DataObject]:
     complete information.
 
     Examples from this strategy do not shrink (because there is only one),
-    but the result of calls to each draw() call shrink as they normally would.
+    but the result of calls to each ``data.draw()`` call shrink as they normally would.
     """
     return DataStrategy()
 
