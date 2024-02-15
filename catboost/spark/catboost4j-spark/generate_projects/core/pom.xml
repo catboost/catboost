@@ -241,15 +241,18 @@
             <version>${json4s_version_placeholder}</version>
         </dependency>
 
+        <!-- com.fasterxml.jackson modules are not used by CatBoost directly but we need to specify their
+          versions here to avoid conflicts in dependencies
+        -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        <version>2.13.4.2</version>
+        <version>${jackson_databind_version_placeholder}</version>
         </dependency>
             <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
-            <version>2.13.1</version>
+            <version>${jackson_module_scala_version_placeholder}</version>
         </dependency>
 
         <dependency>
