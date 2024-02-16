@@ -46,7 +46,7 @@ class Opts(object):
 
         self.preserved_options = []
 
-        # these variables can contain paths absolute or relative to CMAKE_BINARY_DIR
+        # these variables can contain paths absolute or relative to project_binary_dir
         self.global_libs_and_objects_input = []
         self.non_global_libs_input = []
         self.output = None
@@ -57,7 +57,7 @@ class Opts(object):
             (these use absolute paths).
             If it is a library that is added from some other path (like CUDA) return True
             """
-            return not (os.path.exists(path) or os.path.exists(os.path.join(self.parsed_args.cmake_binary_dir, path)))
+            return not (os.path.exists(path) or os.path.exists(os.path.join(self.parsed_args.project_binary_dir, path)))
 
         def process_input(args):
             i = 0
@@ -143,7 +143,7 @@ class FilesCombiner(object):
             archiver_tool_path,
             arch_type,
             'gnu',  # llvm_ar_format, used only if arch_type == 'LLVM_AR'
-            opts.parsed_args.cmake_binary_dir,
+            opts.parsed_args.project_binary_dir,
             'None',  # plugin. Unused for now
         ]
         # the remaining archiving cmd args are [output, .. input .. ]

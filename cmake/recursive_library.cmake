@@ -29,8 +29,8 @@ function(add_recursive_library Target)
       target_link_options(${Target} PRIVATE "/MANIFEST:NO")
   endif()
   string(CONCAT CXX_LINKER_LAUNCHER_CMD "${Python3_EXECUTABLE}"
-    ";${CMAKE_SOURCE_DIR}/build/scripts/create_recursive_library_for_cmake.py"
-    ";--cmake-binary-dir;${CMAKE_BINARY_DIR}"
+    ";${PROJECT_SOURCE_DIR}/build/scripts/create_recursive_library_for_cmake.py"
+    ";--cmake-binary-dir;${PROJECT_BINARY_DIR}"
     ";--cmake-ar;${CMAKE_AR}"
     ";--cmake-ranlib;${CMAKE_RANLIB}"
     ";--cmake-host-system-name;${CMAKE_HOST_SYSTEM_NAME}"
@@ -44,7 +44,7 @@ function(add_recursive_library Target)
 
   set_property(TARGET ${Target} PROPERTY CXX_LINKER_LAUNCHER ${CXX_LINKER_LAUNCHER_CMD})
   set_property(TARGET ${Target} PROPERTY LINK_DEPENDS
-    "${CMAKE_SOURCE_DIR}/build/scripts/create_recursive_library_for_cmake.py"
-    ";${CMAKE_SOURCE_DIR}/build/scripts/link_lib.py"
+    "${PROJECT_SOURCE_DIR}/build/scripts/create_recursive_library_for_cmake.py"
+    ";${PROJECT_SOURCE_DIR}/build/scripts/link_lib.py"
   )
 endfunction()

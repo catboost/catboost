@@ -16,8 +16,8 @@ set(CATBOOST_MAX_LINK_JOBS 5 CACHE STRING "Maximum parallel link jobs for Ninja 
 set_property(GLOBAL PROPERTY JOB_POOLS link_jobs=${CATBOOST_MAX_LINK_JOBS})
 set(CMAKE_JOB_POOL_LINK link_jobs)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/cmake)
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/cmake)
+include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
 enable_testing()
 
@@ -39,12 +39,12 @@ include(cmake/shared_libs.cmake)
 include(cmake/swig.cmake)
 
 if (CMAKE_CROSSCOMPILING)
-  include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+  include(${PROJECT_BINARY_DIR}/conan_paths.cmake)
 else()
   conan_cmake_autodetect(settings)
   conan_cmake_install(
-    PATH_OR_REFERENCE ${CMAKE_SOURCE_DIR}
-    INSTALL_FOLDER ${CMAKE_BINARY_DIR}
+    PATH_OR_REFERENCE ${PROJECT_SOURCE_DIR}
+    INSTALL_FOLDER ${PROJECT_BINARY_DIR}
     BUILD missing
     REMOTE conancenter
     SETTINGS ${settings}

@@ -30,7 +30,7 @@ function(target_cython_sources Tgt Scope)
     set(CppCythonOutput ${CMAKE_CURRENT_BINARY_DIR}/${OutputBase}.cpp)
     add_custom_command(
       OUTPUT ${CppCythonOutput}
-      COMMAND $<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_PYTHON_INTERPRETER>> ${CMAKE_SOURCE_DIR}/contrib/tools/cython/cython.py ${Input} -o ${CppCythonOutput}
+      COMMAND $<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_PYTHON_INTERPRETER>> ${PROJECT_SOURCE_DIR}/contrib/tools/cython/cython.py ${Input} -o ${CppCythonOutput}
         "$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_OPTIONS>>,$<SEMICOLON>>"
         "-I$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_INCLUDE_DIRS>>,$<SEMICOLON>-I>"
       COMMAND_EXPAND_LISTS
