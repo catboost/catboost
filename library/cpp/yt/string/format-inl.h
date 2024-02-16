@@ -19,6 +19,7 @@
 
 #include <cctype>
 #include <optional>
+#include <span>
 
 namespace NYT {
 
@@ -310,6 +311,16 @@ template <class T, class TAllocator>
 struct TValueFormatter<std::vector<T, TAllocator>>
 {
     static void Do(TStringBuilderBase* builder, const std::vector<T, TAllocator>& collection, TStringBuf /*format*/)
+    {
+        FormatRange(builder, collection, TDefaultFormatter());
+    }
+};
+
+// std::span
+template <class T, size_t Extent>
+struct TValueFormatter<std::span<T, Extent>>
+{
+    static void Do(TStringBuilderBase* builder, const std::span<T, Extent>& collection, TStringBuf /*format*/)
     {
         FormatRange(builder, collection, TDefaultFormatter());
     }

@@ -18,6 +18,7 @@ static_assert(TFormatTraits<void*>::HasCustomFormatValue);
 static_assert(TFormatTraits<const char*>::HasCustomFormatValue);
 static_assert(TFormatTraits<TStringBuf>::HasCustomFormatValue);
 static_assert(TFormatTraits<TString>::HasCustomFormatValue);
+static_assert(TFormatTraits<std::span<int>>::HasCustomFormatValue);
 static_assert(TFormatTraits<std::vector<int>>::HasCustomFormatValue);
 
 // N.B. TCompactVector<int, 1> is not buildable on Windows
