@@ -16,7 +16,7 @@ import tempfile
 class Opts(object):
     def __init__(self, args):
         argparser = argparse.ArgumentParser(allow_abbrev=False)
-        argparser.add_argument('--cmake-binary-dir', required=True)
+        argparser.add_argument('--project-binary-dir', required=True)
         argparser.add_argument('--cmake-ar', required=True)
         argparser.add_argument('--cmake-ranlib', required=True)
         argparser.add_argument('--cmake-host-system-name', required=True)

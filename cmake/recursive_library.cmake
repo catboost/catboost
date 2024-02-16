@@ -30,7 +30,7 @@ function(add_recursive_library Target)
   endif()
   string(CONCAT CXX_LINKER_LAUNCHER_CMD "${Python3_EXECUTABLE}"
     ";${PROJECT_SOURCE_DIR}/build/scripts/create_recursive_library_for_cmake.py"
-    ";--cmake-binary-dir;${PROJECT_BINARY_DIR}"
+    ";--project-binary-dir;${PROJECT_BINARY_DIR}"
     ";--cmake-ar;${CMAKE_AR}"
     ";--cmake-ranlib;${CMAKE_RANLIB}"
     ";--cmake-host-system-name;${CMAKE_HOST_SYSTEM_NAME}"
