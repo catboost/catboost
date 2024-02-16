@@ -32,7 +32,7 @@
 #endif
 
 #if defined(__VMS)
-#    include <unixio.h>
+#    error #include <unixio.h>
 #endif /* defined(__VMS) */
 
 #ifdef __cplusplus
