@@ -10,7 +10,7 @@ function(add_recursive_library Target)
   find_package(Python3 REQUIRED)
 
   # this is not really an executable but we will use it to make CMake collect all dependencies to pass to the custom linking command (because there's no proper way to do it otherwise)
-  add_executable(${Target} EXCLUDE_FROM_ALL)
+  add_executable(${Target})
   if (NOT (DEFINED CMAKE_POSITION_INDEPENDENT_CODE))
     # default should be the same as for usual static libraries - https://cmake.org/cmake/help/latest/prop_tgt/POSITION_INDEPENDENT_CODE.html
     set_property(TARGET ${Target} PROPERTY POSITION_INDEPENDENT_CODE Off)
