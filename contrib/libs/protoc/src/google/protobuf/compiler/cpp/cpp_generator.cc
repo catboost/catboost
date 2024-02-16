@@ -214,6 +214,25 @@ bool CppGenerator::Generate(const FileDescriptor* file,
     }
   }
 
+  if (!file_options.transitive_pb_h) {
+    std::unique_ptr<io::ZeroCopyOutputStream> output(
+        generator_context->Open(basename + ".deps.pb.h"));
+    GeneratedCodeInfo annotations;
+    io::AnnotationProtoCollector<GeneratedCodeInfo> annotation_collector(
+        &annotations);
+    TProtoStringType info_path = basename + ".deps.pb.h.meta";
+    io::Printer printer(
+        output.get(), '$',
+        file_options.annotate_headers ? &annotation_collector : NULL);
+    file_generator.GeneratePBDeps(
+        &printer, file_options.annotate_headers ? info_path : "");
+    if (file_options.annotate_headers) {
+      std::unique_ptr<io::ZeroCopyOutputStream> info_output(
+          generator_context->Open(info_path));
+      annotations.SerializeToZeroCopyStream(info_output.get());
+    }
+  }
+
   // Generate cc file(s).
   if (UsingImplicitWeakFields(file, file_options)) {
     {
