@@ -29,9 +29,9 @@
 #	error #include <dpmi.h>
 
 #elif defined(__VMS)
-#	include <lib$routines.h>
-#	include <syidef.h>
-#	include <ssdef.h>
+#	error #include <lib$routines.h>
+#	error #include <syidef.h>
+#	error #include <ssdef.h>
 
 #elif defined(AMIGA) || defined(__AROS__)
 #	define __USE_INLINE__
