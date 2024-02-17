@@ -26,9 +26,9 @@
 #elif defined(OPENSSL_SYS_WIN32)
 #elif defined(OPENSSL_SYS_VMS)
 # include <opcdef.h>
-# include <descrip.h>
-# include <lib$routines.h>
-# include <starlet.h>
+# error #include <descrip.h>
+# error #include <lib$routines.h>
+# error #include <starlet.h>
 /* Some compiler options may mask the declaration of "_malloc32". */
 # if __INITIAL_POINTER_SIZE && defined _ANSI_C_SOURCE
 #  if __INITIAL_POINTER_SIZE == 64
