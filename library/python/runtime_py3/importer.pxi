@@ -17,7 +17,7 @@ res_ya_ide_venv = b'YA_IDE_VENV'
 executable = sys.executable or 'Y_PYTHON'
 sys.modules['run_import_hook'] = __resource
 
-# This is the prefix in contrib/tools/python3/src/Lib/ya.make.
+# This is the prefix in contrib/tools/python3/Lib/ya.make.
 py_prefix = b'py/'
 py_prefix_len = len(py_prefix)
 
