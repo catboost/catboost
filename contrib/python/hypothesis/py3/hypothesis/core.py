@@ -91,6 +91,7 @@ from hypothesis.internal.healthcheck import fail_health_check
 from hypothesis.internal.observability import (
     OBSERVABILITY_COLLECT_COVERAGE,
     TESTCASE_CALLBACKS,
+    _system_metadata,
     deliver_json_blob,
     make_testcase,
 )
@@ -1066,7 +1067,6 @@ class StateForActualGivenExecution:
                     string_repr=self._string_repr,
                     arguments={**self._jsonable_arguments, **data._observability_args},
                     timing=self._timing_features,
-                    metadata={},
                     coverage=tractable_coverage_report(trace) or None,
                 )
                 deliver_json_blob(tc)
@@ -1195,7 +1195,11 @@ class StateForActualGivenExecution:
                     },
                     "timing": self._timing_features,
                     "coverage": None,  # Not recorded when we're replaying the MFE
-                    "metadata": {"traceback": tb},
+                    "metadata": {
+                        "traceback": tb,
+                        "predicates": ran_example._observability_predicates,
+                        **_system_metadata(),
+                    },
                 }
                 deliver_json_blob(tc)
                 # Whether or not replay actually raised the exception again, we want

@@ -13,8 +13,10 @@
 import json
 import os
 import sys
+import time
 import warnings
 from datetime import date, timedelta
+from functools import lru_cache
 from typing import Callable, Dict, List, Optional
 
 from hypothesis.configuration import storage_directory
@@ -38,7 +40,6 @@ def make_testcase(
     string_repr: str = "<unknown>",
     arguments: Optional[dict] = None,
     timing: Dict[str, float],
-    metadata: Optional[dict] = None,
     coverage: Optional[Dict[str, List[int]]] = None,
 ) -> dict:
     if data.interesting_origin:
@@ -68,8 +69,9 @@ def make_testcase(
         },
         "timing": timing,
         "metadata": {
-            **(metadata or {}),
             "traceback": getattr(data.extra_information, "_expected_traceback", None),
+            "predicates": data._observability_predicates,
+            **_system_metadata(),
         },
         "coverage": coverage,
     }
@@ -85,6 +87,18 @@ def _deliver_to_file(value):  # pragma: no cover
     _WROTE_TO.add(fname)
     with fname.open(mode="a") as f:
         f.write(json.dumps(value) + "\n")
+
+
+_imported_at = time.time()
+
+
+@lru_cache
+def _system_metadata():
+    return {
+        "sys.argv": sys.argv,
+        "os.getpid()": os.getpid(),
+        "imported_at": _imported_at,
+    }
 
 
 OBSERVABILITY_COLLECT_COVERAGE = (

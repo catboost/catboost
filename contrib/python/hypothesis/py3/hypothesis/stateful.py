@@ -116,6 +116,7 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None, _min_step
         machine = factory()
         check_type(RuleBasedStateMachine, machine, "state_machine_factory()")
         cd.hypothesis_runner = machine
+        machine._observability_predicates = cd._observability_predicates  # alias
 
         print_steps = (
             current_build_context().is_final or current_verbosity() >= Verbosity.debug
@@ -941,8 +942,14 @@ class RuleStrategy(SearchStrategy):
         return (rule, data.draw(rule.arguments_strategy))
 
     def is_valid(self, rule):
-        if not all(precond(self.machine) for precond in rule.preconditions):
-            return False
+        predicates = self.machine._observability_predicates
+        desc = f"{self.machine.__class__.__qualname__}, rule {rule.function.__name__},"
+        for pred in rule.preconditions:
+            meets_precond = pred(self.machine)
+            where = f"{desc} precondition {get_pretty_function_description(pred)}"
+            predicates[where]["satisfied" if meets_precond else "unsatisfied"] += 1
+            if not meets_precond:
+                return False
 
         for b in rule.bundles:
             bundle = self.machine.bundle(b.name)

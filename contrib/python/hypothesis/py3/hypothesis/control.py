@@ -11,7 +11,7 @@
 import inspect
 import math
 from collections import defaultdict
-from typing import NoReturn, Union
+from typing import Any, NoReturn, Union
 from weakref import WeakKeyDictionary
 
 from hypothesis import Verbosity, settings
@@ -19,6 +19,7 @@ from hypothesis._settings import note_deprecation
 from hypothesis.errors import InvalidArgument, UnsatisfiedAssumption
 from hypothesis.internal.compat import BaseExceptionGroup
 from hypothesis.internal.conjecture.data import ConjectureData
+from hypothesis.internal.observability import TESTCASE_CALLBACKS
 from hypothesis.internal.reflection import get_pretty_function_description
 from hypothesis.internal.validation import check_type
 from hypothesis.reporting import report, verbose_report
@@ -26,8 +27,9 @@ from hypothesis.utils.dynamicvariables import DynamicVariable
 from hypothesis.vendor.pretty import IDKey, pretty
 
 
-def _calling_function_name(frame):
-    return frame.f_back.f_code.co_name
+def _calling_function_location(what: str, frame: Any) -> str:
+    where = frame.f_back
+    return f"{what}() in {where.f_code.co_name} (line {where.f_lineno})"
 
 
 def reject() -> NoReturn:
@@ -37,8 +39,11 @@ def reject() -> NoReturn:
             since="2023-09-25",
             has_codemod=False,
         )
-    f = _calling_function_name(inspect.currentframe())
-    raise UnsatisfiedAssumption(f"reject() in {f}")
+    where = _calling_function_location("reject", inspect.currentframe())
+    if currently_in_test_context():
+        count = current_build_context().data._observability_predicates[where]
+        count["unsatisfied"] += 1
+    raise UnsatisfiedAssumption(where)
 
 
 def assume(condition: object) -> bool:
@@ -54,9 +59,13 @@ def assume(condition: object) -> bool:
             since="2023-09-25",
             has_codemod=False,
         )
-    if not condition:
-        f = _calling_function_name(inspect.currentframe())
-        raise UnsatisfiedAssumption(f"failed to satisfy assume() in {f}")
+    if TESTCASE_CALLBACKS or not condition:
+        where = _calling_function_location("assume", inspect.currentframe())
+        if TESTCASE_CALLBACKS and currently_in_test_context():
+            predicates = current_build_context().data._observability_predicates
+            predicates[where]["satisfied" if condition else "unsatisfied"] += 1
+        if not condition:
+            raise UnsatisfiedAssumption(f"failed to satisfy {where}")
     return True
 
 

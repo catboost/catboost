@@ -1450,6 +1450,9 @@ class ConjectureData:
         self.arg_slices: Set[Tuple[int, int]] = set()
         self.slice_comments: Dict[Tuple[int, int], str] = {}
         self._observability_args: Dict[str, Any] = {}
+        self._observability_predicates: defaultdict = defaultdict(
+            lambda: {"satisfied": 0, "unsatisfied": 0}
+        )
 
         self.extra_information = ExtraInformation()
 
