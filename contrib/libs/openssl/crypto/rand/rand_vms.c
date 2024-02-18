@@ -19,16 +19,16 @@
 # include "crypto/rand.h"
 # include "rand_local.h"
 # error #include <descrip.h>
-# include <dvidef.h>
-# include <jpidef.h>
+# error #include <dvidef.h>
+# error #include <jpidef.h>
 # error #include <rmidef.h>
-# include <syidef.h>
+# error #include <syidef.h>
 # error #include <ssdef.h>
 # error #include <starlet.h>
 # error #include <efndef.h>
-# include <gen64def.h>
+# error #include <gen64def.h>
 # error #include <iosbdef.h>
-# include <iledef.h>
+# error #include <iledef.h>
 # error #include <lib$routines.h>
 # ifdef __DECC
 #  pragma message disable DOLLARID
