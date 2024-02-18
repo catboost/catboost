@@ -17,11 +17,11 @@ target_compile_options(libs-cxxsupp-libcxx PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-cxxsupp-libcxx PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/include
 )
 target_include_directories(libs-cxxsupp-libcxx PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src
 )
 target_link_libraries(libs-cxxsupp-libcxx PUBLIC
   contrib-libs-linux-headers

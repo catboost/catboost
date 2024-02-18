@@ -13,7 +13,7 @@ target_compile_options(libs-brotli-common PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-brotli-common PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/include
 )
 target_link_libraries(libs-brotli-common PUBLIC
   contrib-libs-linux-headers

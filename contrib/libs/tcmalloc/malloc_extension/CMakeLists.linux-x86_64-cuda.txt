@@ -13,7 +13,7 @@ target_compile_options(libs-tcmalloc-malloc_extension PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-tcmalloc-malloc_extension PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tcmalloc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc
 )
 target_link_libraries(libs-tcmalloc-malloc_extension PUBLIC
   contrib-libs-linux-headers

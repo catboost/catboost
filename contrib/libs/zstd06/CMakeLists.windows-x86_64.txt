@@ -13,12 +13,12 @@ target_compile_options(contrib-libs-zstd06 PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-zstd06 PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/zstd06
-  ${CMAKE_SOURCE_DIR}/contrib/libs/zstd06/common
-  ${CMAKE_SOURCE_DIR}/contrib/libs/zstd06/compress
-  ${CMAKE_SOURCE_DIR}/contrib/libs/zstd06/decompress
-  ${CMAKE_SOURCE_DIR}/contrib/libs/zstd06/dictBuilder
-  ${CMAKE_SOURCE_DIR}/contrib/libs/zstd06/legacy
+  ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06
+  ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/common
+  ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/compress
+  ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/decompress
+  ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/dictBuilder
+  ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/legacy
 )
 target_link_libraries(contrib-libs-zstd06 PUBLIC
   contrib-libs-cxxsupp

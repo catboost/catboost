@@ -9,6 +9,6 @@
 
 add_library(contrib-libs-linux-headers INTERFACE)
 target_include_directories(contrib-libs-linux-headers INTERFACE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/linux-headers
-  ${CMAKE_SOURCE_DIR}/contrib/libs/linux-headers/_nf
+  ${PROJECT_SOURCE_DIR}/contrib/libs/linux-headers
+  ${PROJECT_SOURCE_DIR}/contrib/libs/linux-headers/_nf
 )

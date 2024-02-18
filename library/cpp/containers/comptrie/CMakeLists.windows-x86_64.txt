@@ -17,15 +17,15 @@ target_link_libraries(cpp-containers-comptrie PUBLIC
   util-draft
 )
 target_sources(cpp-containers-comptrie PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/array_with_size.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/chunked_helpers_trie.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_packer.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_trie.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/first_symbol_iterator.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/key_selector.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/leaf_skipper.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/set.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/array_with_size.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/chunked_helpers_trie.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_packer.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_trie.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/first_symbol_iterator.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/key_selector.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/leaf_skipper.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/set.h
   ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_builder.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_impl.cpp

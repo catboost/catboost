@@ -9,7 +9,7 @@
 
 add_shared_library(catboostr)
 target_include_directories(catboostr PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/r-lang
+  ${PROJECT_SOURCE_DIR}/contrib/libs/r-lang
 )
 target_link_libraries(catboostr PUBLIC
   contrib-libs-cxxsupp

@@ -15,7 +15,7 @@ target_compile_options(contrib-libs-protobuf PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-protobuf PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
 target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-linux-headers
@@ -25,17 +25,17 @@ target_link_libraries(contrib-libs-protobuf PUBLIC
   cpp-sanitizer-include
 )
 target_sources(contrib-libs-protobuf PRIVATE
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.pb.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any_lite.cc
@@ -174,7 +174,7 @@ target_compile_options(contrib-libs-protobuf.global PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-protobuf.global PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
 target_link_libraries(contrib-libs-protobuf.global PUBLIC
   contrib-libs-linux-headers

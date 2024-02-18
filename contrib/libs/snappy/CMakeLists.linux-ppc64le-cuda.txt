@@ -13,7 +13,7 @@ target_compile_options(contrib-libs-snappy PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-snappy PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/snappy/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/snappy/include
 )
 target_link_libraries(contrib-libs-snappy PUBLIC
   contrib-libs-linux-headers

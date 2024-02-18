@@ -12,9 +12,9 @@ target_compile_options(contrib-libs-libc_compat PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-libc_compat PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/include/readpassphrase
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/random
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/include/readpassphrase
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/random
 )
 target_link_libraries(contrib-libs-libc_compat PUBLIC
   contrib-libs-linux-headers

@@ -14,8 +14,8 @@ target_compile_options(contrib-libs-cblas PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-cblas PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libf2c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cblas/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libf2c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cblas/include
 )
 target_link_libraries(contrib-libs-cblas PUBLIC
   contrib-libs-linux-headers

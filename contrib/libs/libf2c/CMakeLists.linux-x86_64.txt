@@ -15,7 +15,7 @@ target_compile_options(contrib-libs-libf2c PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-libf2c PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libf2c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libf2c
 )
 target_link_libraries(contrib-libs-libf2c PUBLIC
   contrib-libs-linux-headers

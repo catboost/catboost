@@ -18,7 +18,7 @@ target_compile_options(contrib-libs-libunwind PRIVATE
   -funwind-tables
 )
 target_include_directories(contrib-libs-libunwind PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/include
 )
 target_link_libraries(contrib-libs-libunwind PUBLIC
   contrib-libs-linux-headers

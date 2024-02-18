@@ -13,7 +13,7 @@ target_compile_options(contrib-libs-zlib PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-zlib PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/zlib/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/zlib/include
 )
 target_link_libraries(contrib-libs-zlib PUBLIC
   contrib-libs-linux-headers

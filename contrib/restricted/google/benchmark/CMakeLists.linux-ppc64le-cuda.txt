@@ -20,10 +20,10 @@ target_compile_options(restricted-google-benchmark PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(restricted-google-benchmark PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/include
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/include
 )
 target_include_directories(restricted-google-benchmark PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src
 )
 target_link_libraries(restricted-google-benchmark PUBLIC
   contrib-libs-linux-headers

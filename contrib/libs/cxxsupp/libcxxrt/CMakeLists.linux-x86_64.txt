@@ -13,7 +13,7 @@ target_compile_options(libs-cxxsupp-libcxxrt PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-cxxsupp-libcxxrt PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt
 )
 target_link_libraries(libs-cxxsupp-libcxxrt PUBLIC
   contrib-libs-linux-headers

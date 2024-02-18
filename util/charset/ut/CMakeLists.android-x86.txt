@@ -9,7 +9,7 @@
 
 add_executable(util-charset-ut)
 target_include_directories(util-charset-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/charset
+  ${PROJECT_SOURCE_DIR}/util/charset
 )
 target_link_libraries(util-charset-ut PUBLIC
   contrib-libs-cxxsupp

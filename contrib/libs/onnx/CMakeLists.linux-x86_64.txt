@@ -17,7 +17,7 @@ target_compile_options(contrib-libs-onnx PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-onnx PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
+  ${PROJECT_SOURCE_DIR}/contrib/libs/onnx
 )
 target_link_libraries(contrib-libs-onnx PUBLIC
   contrib-libs-linux-headers
