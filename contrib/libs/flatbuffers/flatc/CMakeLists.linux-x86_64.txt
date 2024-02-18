@@ -13,8 +13,8 @@ target_compile_options(libs-flatbuffers-flatc PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-flatbuffers-flatc PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include
 )
 target_link_libraries(libs-flatbuffers-flatc PUBLIC
   contrib-libs-linux-headers

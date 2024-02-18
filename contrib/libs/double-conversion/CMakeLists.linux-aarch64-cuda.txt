@@ -12,7 +12,7 @@ target_compile_options(contrib-libs-double-conversion PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-double-conversion PUBLIC
-  ${PROJECT_SOURCE_DIR}/contrib/libs/double-conversion
+  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion
 )
 target_link_libraries(contrib-libs-double-conversion PUBLIC
   contrib-libs-linux-headers

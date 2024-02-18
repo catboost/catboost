@@ -9,7 +9,7 @@
 
 add_library(contrib-libs-ibdrv)
 target_include_directories(contrib-libs-ibdrv PUBLIC
-  ${PROJECT_SOURCE_DIR}/contrib/libs/ibdrv/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/ibdrv/include
 )
 target_link_libraries(contrib-libs-ibdrv PUBLIC
   contrib-libs-linux-headers

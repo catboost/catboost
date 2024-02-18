@@ -14,7 +14,7 @@ target_compile_options(contrib-libs-mimalloc PRIVATE
   -DMI_PADDING=0
 )
 target_include_directories(contrib-libs-mimalloc PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/mimalloc/include
 )
 target_link_libraries(contrib-libs-mimalloc PUBLIC
   contrib-libs-linux-headers

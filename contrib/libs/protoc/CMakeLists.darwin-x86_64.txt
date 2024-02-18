@@ -15,7 +15,7 @@ target_compile_options(contrib-libs-protoc PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-protoc PUBLIC
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src
 )
 target_link_libraries(contrib-libs-protoc PUBLIC
   contrib-libs-cxxsupp

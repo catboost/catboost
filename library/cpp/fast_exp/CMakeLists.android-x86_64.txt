@@ -14,7 +14,7 @@ target_link_libraries(library-cpp-fast_exp PUBLIC
   contrib-libs-fmath
 )
 target_sources(library-cpp-fast_exp PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.h
+  ${CMAKE_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.h
   ${CMAKE_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.cpp
 )
 target_sources_custom(library-cpp-fast_exp

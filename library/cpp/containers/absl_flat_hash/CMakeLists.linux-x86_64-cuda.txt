@@ -9,7 +9,7 @@
 
 add_library(cpp-containers-absl_flat_hash)
 target_include_directories(cpp-containers-absl_flat_hash PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
 target_link_libraries(cpp-containers-absl_flat_hash PUBLIC
   contrib-libs-linux-headers

@@ -21,9 +21,9 @@ target_link_libraries(idl-pool-flat PUBLIC
   contrib-libs-flatbuffers
 )
 target_sources(idl-pool-flat PRIVATE
-  ${PROJECT_BINARY_DIR}/catboost/idl/pool/flat/quantized_chunk_t.fbs.h
-  ${PROJECT_BINARY_DIR}/catboost/idl/pool/flat/quantized_chunk_t.iter.fbs.h
-  ${PROJECT_BINARY_DIR}/catboost/idl/pool/flat/quantized_chunk_t.bfbs
+  ${CMAKE_BINARY_DIR}/catboost/idl/pool/flat/quantized_chunk_t.fbs.h
+  ${CMAKE_BINARY_DIR}/catboost/idl/pool/flat/quantized_chunk_t.iter.fbs.h
+  ${CMAKE_BINARY_DIR}/catboost/idl/pool/flat/quantized_chunk_t.bfbs
   ${CMAKE_BINARY_DIR}/catboost/idl/pool/flat/quantized_chunk_t.fbs.cpp
 )
 target_fbs_source(idl-pool-flat

@@ -13,8 +13,8 @@ target_compile_options(libs-clapack-part2 PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-clapack-part2 PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/libf2c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cblas
+  ${CMAKE_SOURCE_DIR}/contrib/libs/libf2c
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cblas
 )
 target_link_libraries(libs-clapack-part2 PUBLIC
   contrib-libs-libf2c

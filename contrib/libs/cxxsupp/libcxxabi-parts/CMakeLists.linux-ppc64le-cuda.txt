@@ -16,9 +16,9 @@ target_compile_options(libs-cxxsupp-libcxxabi-parts PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-cxxsupp-libcxxabi-parts PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/include
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx
 )
 target_link_libraries(libs-cxxsupp-libcxxabi-parts PUBLIC
   contrib-libs-linux-headers

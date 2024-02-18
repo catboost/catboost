@@ -95,12 +95,12 @@ target_proto_messages(contrib-libs-tensorboard PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/types.proto
 )
 target_sources(contrib-libs-tensorboard PRIVATE
-  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/event.pb.h
-  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/resource_handle.pb.h
-  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/summary.pb.h
-  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/tensor.pb.h
-  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/tensor_shape.pb.h
-  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/types.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/tensorboard/event.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/tensorboard/resource_handle.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/tensorboard/summary.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/tensorboard/tensor.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/tensorboard/tensor_shape.pb.h
+  ${CMAKE_BINARY_DIR}/contrib/libs/tensorboard/types.pb.h
 )
 target_proto_addincls(contrib-libs-tensorboard
   ./

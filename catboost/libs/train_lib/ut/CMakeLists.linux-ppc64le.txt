@@ -9,7 +9,7 @@
 
 add_executable(catboost-libs-train_lib-ut)
 target_include_directories(catboost-libs-train_lib-ut PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib
+  ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib
 )
 target_link_libraries(catboost-libs-train_lib-ut PUBLIC
   contrib-libs-linux-headers

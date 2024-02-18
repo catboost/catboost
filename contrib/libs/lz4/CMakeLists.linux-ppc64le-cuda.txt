@@ -9,7 +9,7 @@
 
 add_library(contrib-libs-lz4)
 target_include_directories(contrib-libs-lz4 PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/xxhash
+  ${CMAKE_SOURCE_DIR}/contrib/libs/xxhash
 )
 target_link_libraries(contrib-libs-lz4 PUBLIC
   contrib-libs-linux-headers

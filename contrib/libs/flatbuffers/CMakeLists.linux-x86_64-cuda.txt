@@ -14,7 +14,7 @@ target_compile_options(contrib-libs-flatbuffers PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-flatbuffers PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include
 )
 target_link_libraries(contrib-libs-flatbuffers PUBLIC
   contrib-libs-linux-headers

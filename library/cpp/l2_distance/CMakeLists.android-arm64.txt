@@ -14,6 +14,6 @@ target_link_libraries(library-cpp-l2_distance PUBLIC
   library-cpp-sse
 )
 target_sources(library-cpp-l2_distance PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/l2_distance/l2_distance.h
+  ${CMAKE_SOURCE_DIR}/library/cpp/l2_distance/l2_distance.h
   ${CMAKE_SOURCE_DIR}/library/cpp/l2_distance/l2_distance.cpp
 )

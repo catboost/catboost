@@ -13,7 +13,7 @@ target_compile_options(contrib-libs-zlib PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-zlib PUBLIC
-  ${PROJECT_SOURCE_DIR}/contrib/libs/zlib/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/zlib/include
 )
 target_sources(contrib-libs-zlib PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/zlib/adler32.c

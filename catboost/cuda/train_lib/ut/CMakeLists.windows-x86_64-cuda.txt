@@ -9,7 +9,7 @@
 
 add_executable(catboost-cuda-train_lib-ut)
 target_include_directories(catboost-cuda-train_lib-ut PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib
+  ${CMAKE_SOURCE_DIR}/catboost/cuda/train_lib
 )
 target_link_libraries(catboost-cuda-train_lib-ut PUBLIC
   contrib-libs-cxxsupp

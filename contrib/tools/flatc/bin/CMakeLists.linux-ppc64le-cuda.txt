@@ -9,7 +9,7 @@
 
 add_executable(flatc)
 target_include_directories(flatc PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include
 )
 target_link_libraries(flatc PUBLIC
   contrib-libs-linux-headers

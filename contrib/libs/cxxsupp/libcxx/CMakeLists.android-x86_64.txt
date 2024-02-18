@@ -17,10 +17,10 @@ target_compile_options(libs-cxxsupp-libcxx PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-cxxsupp-libcxx PUBLIC
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
 )
 target_include_directories(libs-cxxsupp-libcxx PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src
 )
 target_link_options(libs-cxxsupp-libcxx INTERFACE
   -lc++abi

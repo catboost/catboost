@@ -9,7 +9,7 @@
 
 add_executable(catboost-private-libs-algo_helpers-ut)
 target_include_directories(catboost-private-libs-algo_helpers-ut PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers
 )
 target_link_libraries(catboost-private-libs-algo_helpers-ut PUBLIC
   contrib-libs-cxxsupp

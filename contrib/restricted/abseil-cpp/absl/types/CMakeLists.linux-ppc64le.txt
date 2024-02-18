@@ -12,7 +12,7 @@ target_compile_options(abseil-cpp-absl-types PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(abseil-cpp-absl-types PUBLIC
-  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
 target_link_libraries(abseil-cpp-absl-types PUBLIC
   contrib-libs-linux-headers

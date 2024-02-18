@@ -15,7 +15,7 @@ target_link_libraries(library-cpp-binsaver PUBLIC
   cpp-containers-2d_array
 )
 target_sources(library-cpp-binsaver PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/class_factory.h
+  ${CMAKE_SOURCE_DIR}/library/cpp/binsaver/class_factory.h
   ${CMAKE_SOURCE_DIR}/library/cpp/binsaver/bin_saver.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/binsaver/blob_io.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/binsaver/buffered_io.cpp

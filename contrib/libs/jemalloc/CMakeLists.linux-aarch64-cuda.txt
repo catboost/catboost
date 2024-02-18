@@ -14,8 +14,8 @@ target_compile_options(contrib-libs-jemalloc PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-jemalloc PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/include
-  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/jemalloc/include
+  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/include
 )
 target_link_libraries(contrib-libs-jemalloc PUBLIC
   contrib-libs-linux-headers

@@ -14,6 +14,6 @@ target_link_libraries(library-cpp-fast_log PUBLIC
   yutil
 )
 target_sources(library-cpp-fast_log PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/fast_log/fast_log.h
+  ${CMAKE_SOURCE_DIR}/library/cpp/fast_log/fast_log.h
   ${CMAKE_SOURCE_DIR}/library/cpp/fast_log/fast_log.cpp
 )

@@ -9,7 +9,7 @@
 
 add_executable(catboost-private-libs-quantization-ut)
 target_include_directories(catboost-private-libs-quantization-ut PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization
 )
 target_link_libraries(catboost-private-libs-quantization-ut PUBLIC
   contrib-libs-cxxsupp

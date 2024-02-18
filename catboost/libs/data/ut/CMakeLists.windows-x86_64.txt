@@ -10,7 +10,7 @@ add_subdirectory(lib)
 
 add_executable(catboost-libs-data-ut)
 target_include_directories(catboost-libs-data-ut PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/libs/data
+  ${CMAKE_SOURCE_DIR}/catboost/libs/data
 )
 target_link_libraries(catboost-libs-data-ut PUBLIC
   contrib-libs-cxxsupp
