@@ -1593,7 +1593,7 @@
 #define PY_COERCE_C_LOCALE 1
 
 /* Define to 1 if you have the perf trampoline. */
-/* #undef PY_HAVE_PERF_TRAMPOLINE */
+#define PY_HAVE_PERF_TRAMPOLINE 1
 
 /* Define to 1 to build the sqlite module with loadable extensions support. */
 #define PY_SQLITE_ENABLE_LOAD_EXTENSION 1
