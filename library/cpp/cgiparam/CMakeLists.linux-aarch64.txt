@@ -17,6 +17,6 @@ target_link_libraries(library-cpp-cgiparam PUBLIC
   cpp-string_utils-scan
 )
 target_sources(library-cpp-cgiparam PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/cgiparam/cgiparam.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/cgiparam/cgiparam.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/cgiparam/cgiparam.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/cgiparam/cgiparam.cpp
 )

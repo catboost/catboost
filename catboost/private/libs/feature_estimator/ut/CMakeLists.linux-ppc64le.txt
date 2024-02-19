@@ -28,7 +28,7 @@ target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE
   -ldl
 )
 target_sources(catboost-private-libs-feature_estimator-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/ut/feature_estimator_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/ut/feature_estimator_ut.cpp
 )
 set_property(
   TARGET

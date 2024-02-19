@@ -15,7 +15,7 @@ target_compile_options(contrib-libs-protobuf PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-protobuf PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
 target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-linux-headers
@@ -25,145 +25,145 @@ target_link_libraries(contrib-libs-protobuf PUBLIC
   cpp-sanitizer-include
 )
 target_sources(contrib-libs-protobuf PRIVATE
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/api.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arena.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arenastring.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor_database.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/dynamic_message.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/extension_set.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/extension_set_heavy.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_enum_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_bases.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_reflection.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_tctable_full.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_tctable_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/implicit_weak_message.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/inlined_string_field.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/coded_stream.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/gzip_stream.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/io_win32.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/printer.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/strtod.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/tokenizer.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream_impl.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream_impl_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/map.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/map_field.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/message.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/message_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/messagext.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/parse_context.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/reflection_ops.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/repeated_field.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/repeated_ptr_field.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/service.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/bytestream.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/common.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/int128.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/status.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/statusor.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/stringpiece.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/stringprintf.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/structurally_valid.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/strutil.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/substitute.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/time.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/text_format.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/type.pb.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/unknown_field_set.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/delimited_message_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/field_comparator.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/field_mask_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/datapiece.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/default_value_objectwriter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/error_listener.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/field_mask_utility.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_escaping.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_objectwriter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_stream_parser.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/object_writer.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/proto_writer.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/protostream_objectsource.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/protostream_objectwriter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/type_info.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/utility.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/json_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/message_differencer.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/time_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/type_resolver_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format_lite.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.pb.cc
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/api.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arena.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arenastring.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor_database.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/dynamic_message.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/extension_set.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/extension_set_heavy.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_enum_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_bases.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_reflection.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_tctable_full.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_tctable_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/implicit_weak_message.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/inlined_string_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/coded_stream.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/gzip_stream.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/io_win32.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/printer.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/strtod.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/tokenizer.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream_impl.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream_impl_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/map.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/map_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/message.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/message_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/messagext.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/parse_context.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/reflection_ops.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/repeated_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/repeated_ptr_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/service.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/bytestream.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/common.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/int128.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/status.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/statusor.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/stringpiece.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/stringprintf.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/structurally_valid.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/strutil.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/substitute.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/time.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/text_format.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/type.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/unknown_field_set.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/delimited_message_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/field_comparator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/field_mask_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/datapiece.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/default_value_objectwriter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/error_listener.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/field_mask_utility.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_escaping.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_objectwriter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_stream_parser.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/object_writer.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/proto_writer.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/protostream_objectsource.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/protostream_objectwriter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/type_info.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/utility.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/json_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/message_differencer.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/time_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/type_resolver_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.pb.cc
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
 )
 copy_file(
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
-  ${CMAKE_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
+  ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
 )
 
 add_global_library_for(contrib-libs-protobuf.global contrib-libs-protobuf)
@@ -174,7 +174,7 @@ target_compile_options(contrib-libs-protobuf.global PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-protobuf.global PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
 target_link_libraries(contrib-libs-protobuf.global PUBLIC
   contrib-libs-linux-headers
@@ -184,5 +184,5 @@ target_link_libraries(contrib-libs-protobuf.global PUBLIC
   cpp-sanitizer-include
 )
 target_sources(contrib-libs-protobuf.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_util.cc
 )

@@ -25,7 +25,7 @@ target_link_options(tensorboard_logger_example PRIVATE
   -ldl
 )
 target_sources(tensorboard_logger_example PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/loggers/tensorboard_logger_example/example.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/loggers/tensorboard_logger_example/example.cpp
 )
 target_allocator(tensorboard_logger_example
   system_allocator

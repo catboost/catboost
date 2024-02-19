@@ -14,5 +14,5 @@ target_link_libraries(library-cpp-object_factory PUBLIC
   yutil
 )
 target_sources(library-cpp-object_factory PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/object_factory/object_factory.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/object_factory/object_factory.cpp
 )

@@ -16,12 +16,12 @@ target_link_libraries(util-network-ut PUBLIC
   cpp-threading-future
 )
 target_sources(util-network-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/network/address_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/endpoint_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/ip_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/poller_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/sock_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/socket_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/address_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/endpoint_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/ip_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/poller_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/sock_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/socket_ut.cpp
 )
 set_property(
   TARGET

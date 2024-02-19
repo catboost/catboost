@@ -57,40 +57,40 @@ target_link_libraries(catboost-libs-model PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(catboost-libs-model PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/cpu/evaluator_impl.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/cpu/quantization.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ctr_data.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ctr_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ctr_provider.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ctr_value_table.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/eval_processing.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/evaluation_interface.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/features.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_build_helper.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_estimated_features.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/online_ctr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/scale_and_bias.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/static_ctr_provider.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/utils.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/evaluator_impl.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/quantization.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ctr_data.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ctr_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ctr_provider.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ctr_value_table.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/eval_processing.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/evaluation_interface.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/features.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_build_helper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_estimated_features.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/online_ctr.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/scale_and_bias.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/static_ctr_provider.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/utils.cpp
 )
 generate_enum_serilization(catboost-libs-model
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ctr_provider.h
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ctr_provider.h
   INCLUDE_HEADERS
   catboost/libs/model/ctr_provider.h
 )
 generate_enum_serilization(catboost-libs-model
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/enums.h
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/enums.h
   INCLUDE_HEADERS
   catboost/libs/model/enums.h
 )
 generate_enum_serilization(catboost-libs-model
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/features.h
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/features.h
   INCLUDE_HEADERS
   catboost/libs/model/features.h
 )
 generate_enum_serilization(catboost-libs-model
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/split.h
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/split.h
   INCLUDE_HEADERS
   catboost/libs/model/split.h
 )
@@ -118,6 +118,6 @@ target_link_libraries(catboost-libs-model.global PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(catboost-libs-model.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/cpu/formula_evaluator.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_import_interface.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/formula_evaluator.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_import_interface.cpp
 )

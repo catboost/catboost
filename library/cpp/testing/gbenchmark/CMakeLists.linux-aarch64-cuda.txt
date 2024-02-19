@@ -16,5 +16,5 @@ target_link_libraries(cpp-testing-gbenchmark PUBLIC
   cpp-testing-hook
 )
 target_sources(cpp-testing-gbenchmark PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/gbenchmark/main.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/gbenchmark/main.cpp
 )

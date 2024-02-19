@@ -14,6 +14,6 @@ target_link_libraries(cpp-string_utils-url PUBLIC
   yutil
 )
 target_sources(cpp-string_utils-url PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/string_utils/url/url.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/string_utils/url/url.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/string_utils/url/url.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/string_utils/url/url.cpp
 )

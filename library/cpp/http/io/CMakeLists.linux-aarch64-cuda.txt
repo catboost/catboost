@@ -18,8 +18,8 @@ target_link_libraries(cpp-http-io PUBLIC
   cpp-streams-lzma
 )
 target_sources(cpp-http-io PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/http/io/chunk.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/http/io/compression.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/http/io/headers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/http/io/stream.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/http/io/chunk.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/http/io/compression.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/http/io/headers.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/http/io/stream.cpp
 )

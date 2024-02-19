@@ -16,6 +16,6 @@ target_link_libraries(contrib-libs-fastlz PUBLIC
   contrib-libs-cxxsupp
 )
 target_sources(contrib-libs-fastlz PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/fastlz/rename.h
-  ${CMAKE_SOURCE_DIR}/contrib/libs/fastlz/fastlz.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/fastlz/rename.h
+  ${PROJECT_SOURCE_DIR}/contrib/libs/fastlz/fastlz.c
 )

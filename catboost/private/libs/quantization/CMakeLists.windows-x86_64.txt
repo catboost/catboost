@@ -18,6 +18,6 @@ target_link_libraries(private-libs-quantization PUBLIC
   private-libs-options
 )
 target_sources(private-libs-quantization PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization/grid_creator.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization/utils.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization/grid_creator.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization/utils.cpp
 )

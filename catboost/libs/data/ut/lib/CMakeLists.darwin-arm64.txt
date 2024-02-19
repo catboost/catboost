@@ -20,8 +20,8 @@ target_link_libraries(data-ut-lib PUBLIC
   private-libs-options
 )
 target_sources(data-ut-lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/lib/for_data_provider.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/lib/for_loader.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/lib/for_objects.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/lib/for_target.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/lib/for_data_provider.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/lib/for_loader.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/lib/for_objects.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/lib/for_target.cpp
 )

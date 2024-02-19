@@ -12,7 +12,7 @@ target_compile_options(abseil-cpp-absl-status PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(abseil-cpp-absl-status PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
 target_link_libraries(abseil-cpp-absl-status PUBLIC
   contrib-libs-linux-headers
@@ -27,7 +27,7 @@ target_link_libraries(abseil-cpp-absl-status PUBLIC
   abseil-cpp-absl-types
 )
 target_sources(abseil-cpp-absl-status PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/internal/status_internal.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status_payload_printer.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/internal/status_internal.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status_payload_printer.cc
 )

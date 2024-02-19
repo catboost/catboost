@@ -14,5 +14,5 @@ target_link_libraries(cpp-containers-compact_vector PUBLIC
   yutil
 )
 target_sources(cpp-containers-compact_vector PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/compact_vector/compact_vector.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/compact_vector/compact_vector.cpp
 )

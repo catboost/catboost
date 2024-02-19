@@ -16,6 +16,6 @@ target_link_libraries(cpp-threading-local_executor PUBLIC
   cpp-deprecated-atomic
 )
 target_sources(cpp-threading-local_executor PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/local_executor/local_executor.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/local_executor/tbb_local_executor.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/local_executor/local_executor.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/local_executor/tbb_local_executor.cpp
 )

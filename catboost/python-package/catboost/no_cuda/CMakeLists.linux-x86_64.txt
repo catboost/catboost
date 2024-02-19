@@ -16,7 +16,7 @@ target_compile_options(_catboost_no_cuda PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_cython_sources(_catboost_no_cuda PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
+  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
 )
 target_link_libraries(_catboost_no_cuda PUBLIC
   contrib-libs-linux-headers
@@ -67,18 +67,18 @@ target_link_options(_catboost_no_cuda PRIVATE
   -ldl
 )
 target_sources(_catboost_no_cuda PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/monoforest_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/monoforest_helpers.cpp
 )
 set_python_type_for_cython(_catboost_no_cuda
   PY3
 )
 target_cython_include_directories(_catboost_no_cuda
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/tools/cython/Cython/Includes
-  ${CMAKE_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
-  ${CMAKE_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
+  ${PROJECT_BINARY_DIR}
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/contrib/tools/cython/Cython/Includes
+  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
+  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
 )
 target_cython_options(_catboost_no_cuda
   -E
@@ -88,6 +88,6 @@ target_cython_options(_catboost_no_cuda
   --cplus
 )
 use_export_script(_catboost_no_cuda
-  ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/catboost3.exports
+  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/catboost3.exports
 )
 vcs_info(_catboost_no_cuda)

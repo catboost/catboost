@@ -26,14 +26,14 @@ target_link_options(util-random-ut PRIVATE
   -ldl
 )
 target_sources(util-random-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/random/common_ops_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/easy_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/entropy_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/fast_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/normal_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/mersenne_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/random_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/shuffle_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/common_ops_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/easy_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/entropy_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/fast_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/normal_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/mersenne_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/random_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/shuffle_ut.cpp
 )
 set_property(
   TARGET

@@ -14,6 +14,6 @@ target_link_libraries(cpp-blockcodecs-core PUBLIC
   yutil
 )
 target_sources(cpp-blockcodecs-core PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/core/codecs.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/core/stream.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/core/codecs.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/core/stream.cpp
 )

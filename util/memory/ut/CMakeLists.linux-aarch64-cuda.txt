@@ -25,11 +25,11 @@ target_link_options(util-memory-ut PRIVATE
   -ldl
 )
 target_sources(util-memory-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/memory/addstorage_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/blob_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/pool_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/smallobj_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/tempbuf_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/addstorage_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/blob_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/pool_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/smallobj_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/tempbuf_ut.cpp
 )
 set_property(
   TARGET

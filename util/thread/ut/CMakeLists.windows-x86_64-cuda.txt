@@ -16,11 +16,11 @@ target_link_libraries(util-thread-ut PUBLIC
   cpp-threading-future
 )
 target_sources(util-thread-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/thread/factory_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/thread/lfqueue_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/thread/lfstack_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/thread/pool_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/thread/singleton_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/factory_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/lfqueue_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/lfstack_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/pool_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/singleton_ut.cpp
 )
 set_property(
   TARGET

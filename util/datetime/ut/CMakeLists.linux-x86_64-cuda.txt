@@ -26,11 +26,11 @@ target_link_options(util-datetime-ut PRIVATE
   -ldl
 )
 target_sources(util-datetime-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/datetime/base_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/datetime/cputimer_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/datetime/parser_deprecated_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/datetime/parser_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/datetime/uptime_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/base_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/cputimer_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/parser_deprecated_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/parser_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/uptime_ut.cpp
 )
 set_property(
   TARGET

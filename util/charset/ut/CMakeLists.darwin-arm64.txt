@@ -9,7 +9,7 @@
 
 add_executable(util-charset-ut)
 target_include_directories(util-charset-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/charset
+  ${PROJECT_SOURCE_DIR}/util/charset
 )
 target_link_libraries(util-charset-ut PUBLIC
   contrib-libs-cxxsupp
@@ -23,8 +23,8 @@ target_link_options(util-charset-ut PRIVATE
   -fPIC
 )
 target_sources(util-charset-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/charset/utf8_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/charset/wide_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/charset/utf8_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/charset/wide_ut.cpp
 )
 set_property(
   TARGET

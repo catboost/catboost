@@ -25,5 +25,5 @@ target_link_libraries(blockcodecs-codecs-legacy_zstd06.global PUBLIC
   cpp-blockcodecs-core
 )
 target_sources(blockcodecs-codecs-legacy_zstd06.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp
 )

@@ -21,7 +21,7 @@ target_link_options(gmtime_r PRIVATE
   -fPIC
 )
 target_sources(gmtime_r PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/datetime/benchmark/gmtime_r/main.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/benchmark/gmtime_r/main.cpp
 )
 target_allocator(gmtime_r
   cpp-malloc-jemalloc

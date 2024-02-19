@@ -34,14 +34,14 @@ target_link_libraries(private-libs-quantized_pool PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(private-libs-quantized_pool PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool/detail.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool/pool.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool/print.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool/quantized.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool/serialization.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/detail.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/pool.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/print.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/quantized.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/serialization.cpp
 )
 generate_enum_serilization(private-libs-quantized_pool
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool/print.h
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/print.h
   INCLUDE_HEADERS
   catboost/private/libs/quantized_pool/print.h
 )
@@ -66,5 +66,5 @@ target_link_libraries(private-libs-quantized_pool.global PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(private-libs-quantized_pool.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool/loader.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/loader.cpp
 )

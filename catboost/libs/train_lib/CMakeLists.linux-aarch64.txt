@@ -38,11 +38,11 @@ target_link_libraries(catboost-libs-train_lib PUBLIC
   cpp-threading-local_executor
 )
 target_sources(catboost-libs-train_lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib/cross_validation.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib/dir_helper.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib/eval_feature.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib/options_helper.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib/trainer_env.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/cross_validation.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/dir_helper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/eval_feature.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/options_helper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/trainer_env.cpp
 )
 
 add_global_library_for(catboost-libs-train_lib.global catboost-libs-train_lib)
@@ -75,6 +75,6 @@ target_link_libraries(catboost-libs-train_lib.global PUBLIC
   cpp-threading-local_executor
 )
 target_sources(catboost-libs-train_lib.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib/train_model.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib/model_import_snapshot.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/train_model.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/model_import_snapshot.cpp
 )

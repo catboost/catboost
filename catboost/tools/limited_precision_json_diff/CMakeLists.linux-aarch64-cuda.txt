@@ -26,7 +26,7 @@ target_link_options(limited_precision_json_diff PRIVATE
   -ldl
 )
 target_sources(limited_precision_json_diff PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/tools/limited_precision_json_diff/limited_precision_json_diff.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/limited_precision_json_diff/limited_precision_json_diff.cpp
 )
 target_allocator(limited_precision_json_diff
   cpp-malloc-jemalloc

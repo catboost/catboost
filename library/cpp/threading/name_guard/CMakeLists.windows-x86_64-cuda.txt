@@ -13,5 +13,5 @@ target_link_libraries(cpp-threading-name_guard PUBLIC
   yutil
 )
 target_sources(cpp-threading-name_guard PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/name_guard/name_guard.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/name_guard/name_guard.cpp
 )

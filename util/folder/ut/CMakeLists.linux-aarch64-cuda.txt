@@ -26,12 +26,12 @@ target_link_options(util-folder-ut PRIVATE
   -ldl
 )
 target_sources(util-folder-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/folder/dirut_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/filelist_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/fts_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/iterator_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/path_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/pathsplit_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/dirut_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/filelist_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/fts_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/iterator_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/path_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/pathsplit_ut.cpp
 )
 set_property(
   TARGET

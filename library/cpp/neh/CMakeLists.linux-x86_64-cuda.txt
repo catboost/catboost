@@ -38,32 +38,32 @@ target_link_libraries(library-cpp-neh PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(library-cpp-neh PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/conn_cache.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/factory.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/https.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/http_common.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/http_headers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/http2.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/inproc.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/jobqueue.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/location.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/multi.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/multiclient.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/netliba.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/netliba_udp_http.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/neh.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/pipequeue.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/rpc.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/rq.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/smart_ptr.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/stat.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/tcp.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/tcp2.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/udp.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/utils.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/conn_cache.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/factory.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/https.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/http_common.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/http_headers.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/http2.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/inproc.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/jobqueue.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/location.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/multi.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/multiclient.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/netliba.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/netliba_udp_http.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/neh.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/pipequeue.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/rpc.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/rq.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/smart_ptr.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/stat.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/tcp.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/tcp2.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/udp.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/utils.cpp
 )
 generate_enum_serilization(library-cpp-neh
-  ${CMAKE_SOURCE_DIR}/library/cpp/neh/http_common.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/neh/http_common.h
   INCLUDE_HEADERS
   library/cpp/neh/http_common.h
 )

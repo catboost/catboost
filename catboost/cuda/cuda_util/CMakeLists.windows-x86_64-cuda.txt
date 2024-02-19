@@ -11,33 +11,33 @@ add_subdirectory(ut)
 
 add_library(catboost-cuda-cuda_util)
 target_cuda_sources(catboost-cuda-cuda_util PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/bootstrap.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/compression.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/dot_product.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/fill.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/filter.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/mvs.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/operators.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/partitions.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/random.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/reduce.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/reorder_one_bit.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/scan.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/segmented_scan.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/segmented_sort.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/bool_uchar.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/bool_ui32.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/float_uchar.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/float_ui16.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/float_ui32.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/float_uint2.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/ui32_uchar.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/ui32_ui16.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/ui32_ui32.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/ui64_uchar.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/ui64_ui32.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/transform.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/update_part_props.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/bootstrap.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/compression.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/dot_product.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/fill.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/filter.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/mvs.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/operators.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/partitions.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/random.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/reduce.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/reorder_one_bit.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/scan.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/segmented_scan.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/segmented_sort.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/bool_uchar.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/bool_ui32.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/float_uchar.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/float_ui16.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/float_ui32.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/float_uint2.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/ui32_uchar.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/ui32_ui16.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/ui32_ui32.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/ui64_uchar.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/sort/ui64_ui32.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/transform.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/update_part_props.cu
 )
 target_link_libraries(catboost-cuda-cuda_util PUBLIC
   contrib-libs-cxxsupp
@@ -82,20 +82,20 @@ target_link_libraries(catboost-cuda-cuda_util.global PUBLIC
   CUDA::toolkit
 )
 target_sources(catboost-cuda-cuda_util.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/bootstrap.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/compression_helpers_gpu.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/dot_product.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/fill.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/filter.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/gpu_random.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/partitions.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/partitions_reduce.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/reduce.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/reorder_bins.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/scan.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/segmented_scan.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/segmented_sort.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/sort.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/transform.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/bootstrap.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/compression_helpers_gpu.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/dot_product.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/fill.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/filter.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/gpu_random.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/partitions.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/partitions_reduce.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/reduce.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/reorder_bins.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/scan.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/segmented_scan.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/segmented_sort.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/sort.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/transform.cpp
 )

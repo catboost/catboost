@@ -21,10 +21,10 @@ target_link_libraries(library-cpp-grid_creator PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(library-cpp-grid_creator PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/grid_creator/binarization.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/grid_creator/binarization.cpp
 )
 generate_enum_serilization(library-cpp-grid_creator
-  ${CMAKE_SOURCE_DIR}/library/cpp/grid_creator/binarization.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/grid_creator/binarization.h
   INCLUDE_HEADERS
   library/cpp/grid_creator/binarization.h
 )

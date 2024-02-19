@@ -16,5 +16,5 @@ target_link_libraries(cpp-streams-brotli PUBLIC
   libs-brotli-dec
 )
 target_sources(cpp-streams-brotli PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/streams/brotli/brotli.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/streams/brotli/brotli.cpp
 )

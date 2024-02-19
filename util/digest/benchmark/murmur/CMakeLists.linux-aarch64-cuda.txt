@@ -25,7 +25,7 @@ target_link_options(murmur PRIVATE
   -ldl
 )
 target_sources(murmur PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/digest/benchmark/murmur/main.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/benchmark/murmur/main.cpp
 )
 add_test(
   NAME

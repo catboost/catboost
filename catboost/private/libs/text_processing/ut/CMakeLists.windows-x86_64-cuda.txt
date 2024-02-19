@@ -18,8 +18,8 @@ target_link_libraries(catboost-private-libs-text_processing-ut PUBLIC
   text_processing-ut-lib
 )
 target_sources(catboost-private-libs-text_processing-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/ut/dictionary_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/ut/text_dataset_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/ut/dictionary_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/ut/text_dataset_ut.cpp
 )
 set_property(
   TARGET

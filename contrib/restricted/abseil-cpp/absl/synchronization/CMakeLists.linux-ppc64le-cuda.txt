@@ -12,7 +12,7 @@ target_compile_options(abseil-cpp-absl-synchronization PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(abseil-cpp-absl-synchronization PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
 target_link_libraries(abseil-cpp-absl-synchronization PUBLIC
   contrib-libs-linux-headers
@@ -24,18 +24,18 @@ target_link_libraries(abseil-cpp-absl-synchronization PUBLIC
   abseil-cpp-absl-time
 )
 target_sources(abseil-cpp-absl-synchronization PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/barrier.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/blocking_counter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/create_thread_identity.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/futex_waiter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/graphcycles.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/kernel_timeout.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/per_thread_sem.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/pthread_waiter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/sem_waiter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/stdcpp_waiter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/waiter_base.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/win32_waiter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/mutex.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/notification.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/barrier.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/blocking_counter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/create_thread_identity.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/futex_waiter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/graphcycles.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/kernel_timeout.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/per_thread_sem.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/pthread_waiter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/sem_waiter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/stdcpp_waiter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/waiter_base.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/internal/win32_waiter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/mutex.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/synchronization/notification.cc
 )

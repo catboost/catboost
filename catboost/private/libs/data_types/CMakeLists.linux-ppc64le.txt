@@ -17,7 +17,7 @@ target_link_libraries(private-libs-data_types PUBLIC
   cpp-containers-dense_hash
 )
 target_sources(private-libs-data_types PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/data_types/pair.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/data_types/query.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/data_types/text.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/data_types/pair.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/data_types/query.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/data_types/text.cpp
 )

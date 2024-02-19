@@ -21,7 +21,7 @@ target_link_options(util-ut PRIVATE
   -fPIC
 )
 target_sources(util-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/ysaveload_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/ysaveload_ut.cpp
 )
 set_property(
   TARGET

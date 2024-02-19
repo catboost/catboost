@@ -14,5 +14,5 @@ target_link_libraries(library-cpp-sse PUBLIC
   yutil
 )
 target_sources(library-cpp-sse PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/sse/sse.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/sse/sse.cpp
 )

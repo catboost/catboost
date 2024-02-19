@@ -21,11 +21,11 @@ target_link_libraries(cpp-testing-unittest PUBLIC
   cpp-testing-hook
 )
 target_sources(cpp-testing-unittest PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/gtest.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/checks.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/junit.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/plugin.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/registar.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/tests_data.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/utmain.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/gtest.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/checks.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/junit.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/plugin.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/registar.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/tests_data.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/utmain.cpp
 )

@@ -30,13 +30,13 @@ target_link_options(cuda_lib PRIVATE
   -lcudart_static
 )
 target_sources(cuda_lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_memory_pool.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/performance_tests.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cuda_buffer.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cuda_manager.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_reduce.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_serialization.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_memory_pool.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/performance_tests.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cuda_buffer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cuda_manager.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_reduce.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_serialization.cpp
 )
 target_allocator(cuda_lib
   cpp-malloc-jemalloc

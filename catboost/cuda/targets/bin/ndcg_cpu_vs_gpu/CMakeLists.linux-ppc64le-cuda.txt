@@ -34,7 +34,7 @@ target_link_options(ndcg_cpu_vs_gpu PRIVATE
   -lcudart_static
 )
 target_sources(ndcg_cpu_vs_gpu PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/bin/ndcg_cpu_vs_gpu/main.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/bin/ndcg_cpu_vs_gpu/main.cpp
 )
 target_allocator(ndcg_cpu_vs_gpu
   system_allocator

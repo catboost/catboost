@@ -14,6 +14,6 @@ target_link_libraries(library-cpp-svnversion PUBLIC
   yutil
 )
 target_sources(library-cpp-svnversion PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/svnversion/svnversion.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/svnversion/svn_interface.c
+  ${PROJECT_SOURCE_DIR}/library/cpp/svnversion/svnversion.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/svnversion/svn_interface.c
 )

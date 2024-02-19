@@ -46,26 +46,26 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   contrib-libs-jdk
 )
 target_sources(catboost4j-spark-impl-cpp PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/calc_fstr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/ctrs.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/dataset_rows_reader.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/data_provider_builders.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/features_layout.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/groupid.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/jni_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/master.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/meta_info.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/model.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/model_application.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/options_helper.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/pairs.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/quantized_features_info.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/quantization.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/spark_quantized.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/string.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/target.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/vector_output.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/worker.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/calc_fstr.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/ctrs.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/dataset_rows_reader.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/data_provider_builders.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/features_layout.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/groupid.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/jni_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/master.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/meta_info.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/model.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/model_application.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/options_helper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/pairs.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/quantized_features_info.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/quantization.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/spark_quantized.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/string.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/target.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/vector_output.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/worker.cpp
 )
 add_jar(
   catboost4j-spark-impl

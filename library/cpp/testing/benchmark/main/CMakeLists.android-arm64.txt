@@ -21,5 +21,5 @@ target_link_libraries(testing-benchmark-main.global PUBLIC
   cpp-testing-benchmark
 )
 target_sources(testing-benchmark-main.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/benchmark/main/main.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/benchmark/main/main.cpp
 )

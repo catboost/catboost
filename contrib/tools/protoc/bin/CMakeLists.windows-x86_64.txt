@@ -18,7 +18,7 @@ target_link_libraries(protoc PUBLIC
   contrib-libs-protoc
 )
 target_sources(protoc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/main.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/main.cc
 )
 target_allocator(protoc
   system_allocator

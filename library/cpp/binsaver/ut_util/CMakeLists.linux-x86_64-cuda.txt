@@ -16,5 +16,5 @@ target_link_libraries(cpp-binsaver-ut_util PUBLIC
   cpp-testing-unittest
 )
 target_sources(cpp-binsaver-ut_util PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/binsaver/ut_util/ut_util.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/ut_util/ut_util.cpp
 )

@@ -30,14 +30,14 @@ target_link_libraries(libs-model-model_export PUBLIC
   library-cpp-resource
 )
 target_sources(libs-model-model_export PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/coreml_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/cpp_exporter.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/export_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/json_model_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/model_exporter.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/onnx_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/pmml_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/python_exporter.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/coreml_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/cpp_exporter.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/export_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/json_model_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/model_exporter.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/onnx_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/pmml_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/python_exporter.cpp
 )
 
 add_global_library_for(libs-model-model_export.global libs-model-model_export)
@@ -57,19 +57,19 @@ target_link_libraries(libs-model-model_export.global PUBLIC
   library-cpp-resource
 )
 target_sources(libs-model-model_export.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/model_import.cpp
-  ${CMAKE_BINARY_DIR}/catboost/libs/model/model_export/5748dd9eade087d63739008f8eb36dda.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/model_import.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/model_export/5748dd9eade087d63739008f8eb36dda.cpp
 )
 resources(libs-model-model_export.global
-  ${CMAKE_BINARY_DIR}/catboost/libs/model/model_export/5748dd9eade087d63739008f8eb36dda.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/model_export/5748dd9eade087d63739008f8eb36dda.cpp
   INPUTS
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/apply_catboost_model.py
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_structs.py
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_calcer.py
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/apply_catboost_model.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/apply_catboost_model_without_cat.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_structs.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_calcer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/resources/apply_catboost_model.py
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_structs.py
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_calcer.py
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/resources/apply_catboost_model.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/resources/apply_catboost_model_without_cat.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_structs.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_calcer.cpp
   KEYS
   catboost_model_export_python_model_applicator
   catboost_model_export_python_ctr_structs

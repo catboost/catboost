@@ -15,7 +15,7 @@ target_link_libraries(murmur PUBLIC
   cpp-testing-gbenchmark
 )
 target_sources(murmur PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/digest/benchmark/murmur/main.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/benchmark/murmur/main.cpp
 )
 add_test(
   NAME

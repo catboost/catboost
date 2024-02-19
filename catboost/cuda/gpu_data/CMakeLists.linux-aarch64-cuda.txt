@@ -17,9 +17,9 @@ get_built_tool_path(
 
 add_library(catboost-cuda-gpu_data)
 target_cuda_sources(catboost-cuda-gpu_data PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/split.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/query_helper.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/binarize.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/split.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/query_helper.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/binarize.cu
 )
 target_link_libraries(catboost-cuda-gpu_data PUBLIC
   contrib-libs-linux-headers
@@ -40,29 +40,29 @@ target_link_libraries(catboost-cuda-gpu_data PUBLIC
   CUDA::toolkit
 )
 target_sources(catboost-cuda-gpu_data PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/batch_binarized_ctr_calcer.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/cat_features_dataset.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/compressed_index.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/compressed_index_builder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/dataset_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/feature_parallel_dataset.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/doc_parallel_dataset_builder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/doc_parallel_dataset.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/feature_parallel_dataset_builder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/oblivious_tree_bin_builder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/pinned_memory_estimation.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/samples_grouping.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/samples_grouping_gpu.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/querywise_helper.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/bootstrap.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/non_zero_filter.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/ctr_helper.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/feature_layout.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/gpu_binarization_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/estimated_features_calcer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/batch_binarized_ctr_calcer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/cat_features_dataset.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/compressed_index.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/compressed_index_builder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/dataset_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/feature_parallel_dataset.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/doc_parallel_dataset_builder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/doc_parallel_dataset.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/feature_parallel_dataset_builder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/oblivious_tree_bin_builder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/pinned_memory_estimation.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/samples_grouping.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/samples_grouping_gpu.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/querywise_helper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/bootstrap.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/non_zero_filter.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ctr_helper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/feature_layout.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/gpu_binarization_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/estimated_features_calcer.cpp
 )
 generate_enum_serilization(catboost-cuda-gpu_data
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/grid_policy.h
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/grid_policy.h
   INCLUDE_HEADERS
   catboost/cuda/gpu_data/grid_policy.h
 )
@@ -111,6 +111,6 @@ target_link_libraries(catboost-cuda-gpu_data.global PUBLIC
   CUDA::toolkit
 )
 target_sources(catboost-cuda-gpu_data.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/kernels.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/splitter.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernels.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/splitter.cpp
 )

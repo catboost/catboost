@@ -15,7 +15,7 @@ target_link_libraries(library-cpp-linear_regression PUBLIC
   library-cpp-accurate_accumulate
 )
 target_sources(library-cpp-linear_regression PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/linear_regression/linear_regression.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/linear_regression/unimodal.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/linear_regression/welford.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/linear_regression/linear_regression.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/linear_regression/unimodal.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/linear_regression/welford.cpp
 )

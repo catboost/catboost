@@ -10,7 +10,7 @@ find_package(CUDAToolkit REQUIRED)
 
 add_library(models)
 target_cuda_sources(models PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/models/kernel/add_model_value.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/kernel/add_model_value.cu
 )
 target_link_libraries(models PUBLIC
   contrib-libs-cxxsupp
@@ -21,12 +21,12 @@ target_link_libraries(models PUBLIC
   CUDA::toolkit
 )
 target_sources(models PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/models/add_oblivious_tree_model_doc_parallel.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/models/oblivious_model.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/models/region_model.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/models/non_summetric_tree.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/models/model_converter.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/models/compact_model.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/add_oblivious_tree_model_doc_parallel.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/oblivious_model.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/region_model.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/non_summetric_tree.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/model_converter.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/compact_model.cpp
 )
 target_cuda_cflags(models)
 target_cuda_flags(models
@@ -63,7 +63,7 @@ target_link_libraries(models.global PUBLIC
   CUDA::toolkit
 )
 target_sources(models.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/models/add_bin_values.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/models/add_region_doc_parallel.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/models/add_non_symmetric_tree_doc_parallel.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/add_bin_values.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/add_region_doc_parallel.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/add_non_symmetric_tree_doc_parallel.cpp
 )

@@ -25,5 +25,5 @@ target_link_libraries(blockcodecs-codecs-lzma.global PUBLIC
   cpp-blockcodecs-core
 )
 target_sources(blockcodecs-codecs-lzma.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/codecs/lzma/lzma.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/lzma/lzma.cpp
 )

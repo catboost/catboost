@@ -13,5 +13,5 @@ target_link_libraries(cpp-string_utils-ztstrbuf PUBLIC
   yutil
 )
 target_sources(cpp-string_utils-ztstrbuf PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/string_utils/ztstrbuf/ztstrbuf.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/string_utils/ztstrbuf/ztstrbuf.cpp
 )

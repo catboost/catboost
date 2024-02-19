@@ -14,5 +14,5 @@ target_link_libraries(catboost-libs-cat_feature PUBLIC
   yutil
 )
 target_sources(catboost-libs-cat_feature PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/cat_feature/cat_feature.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/cat_feature/cat_feature.cpp
 )

@@ -14,5 +14,5 @@ target_link_libraries(cpp-malloc-mimalloc PUBLIC
   contrib-libs-mimalloc
 )
 target_sources(cpp-malloc-mimalloc PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/malloc/mimalloc/info.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/malloc/mimalloc/info.cpp
 )

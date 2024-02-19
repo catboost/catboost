@@ -17,7 +17,7 @@ target_link_libraries(catboost-libs-carry_model-ut PUBLIC
   model-ut-lib
 )
 target_sources(catboost-libs-carry_model-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/carry_model/ut/carry_model_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/carry_model/ut/carry_model_ut.cpp
 )
 set_property(
   TARGET

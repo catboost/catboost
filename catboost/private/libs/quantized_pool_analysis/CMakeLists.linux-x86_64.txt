@@ -18,5 +18,5 @@ target_link_libraries(private-libs-quantized_pool_analysis PUBLIC
   private-libs-target
 )
 target_sources(private-libs-quantized_pool_analysis PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.cpp
 )

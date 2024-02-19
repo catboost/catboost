@@ -9,7 +9,7 @@
 
 add_shared_library(catboostr)
 target_include_directories(catboostr PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/r-lang
+  ${PROJECT_SOURCE_DIR}/contrib/libs/r-lang
 )
 target_link_libraries(catboostr PUBLIC
   contrib-libs-linux-headers
@@ -47,10 +47,10 @@ target_link_options(catboostr PRIVATE
   -lcudart_static
 )
 target_sources(catboostr PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/R-package/src/catboostr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/R-package/src/init.c
+  ${PROJECT_SOURCE_DIR}/catboost/R-package/src/catboostr.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/R-package/src/init.c
 )
 use_export_script(catboostr
-  ${CMAKE_SOURCE_DIR}/catboost/R-package/src/catboostr.exports
+  ${PROJECT_SOURCE_DIR}/catboost/R-package/src/catboostr.exports
 )
 vcs_info(catboostr)

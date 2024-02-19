@@ -18,20 +18,20 @@ target_compile_options(contrib-libs-libunwind PRIVATE
   -funwind-tables
 )
 target_include_directories(contrib-libs-libunwind PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/include
 )
 target_link_libraries(contrib-libs-libunwind PUBLIC
   contrib-libs-linux-headers
   cpp-sanitizer-include
 )
 target_sources(contrib-libs-libunwind PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-EHABI.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-seh.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-sjlj.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-wasm.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindLevel1-gcc-ext.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindLevel1.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindRegistersRestore.S
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindRegistersSave.S
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/libunwind.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-EHABI.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-seh.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-sjlj.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-wasm.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindLevel1-gcc-ext.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindLevel1.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindRegistersRestore.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindRegistersSave.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/libunwind.cpp
 )

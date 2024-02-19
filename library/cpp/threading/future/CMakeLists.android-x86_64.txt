@@ -13,13 +13,13 @@ target_link_libraries(cpp-threading-future PUBLIC
   yutil
 )
 target_sources(cpp-threading-future PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/async_semaphore.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/async.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/core/future.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/core/fwd.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/fwd.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/wait/fwd.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/wait/wait.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/wait/wait_group.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/wait/wait_policy.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/future/async_semaphore.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/future/async.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/future/core/future.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/future/core/fwd.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/future/fwd.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/future/wait/fwd.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/future/wait/wait.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/future/wait/wait_group.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/future/wait/wait_policy.cpp
 )

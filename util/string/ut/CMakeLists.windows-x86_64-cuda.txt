@@ -15,20 +15,20 @@ target_link_libraries(util-string-ut PUBLIC
   cpp-testing-unittest_main
 )
 target_sources(util-string-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/string/builder_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/cast_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/escape_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/join_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/hex_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/printf_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/split_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/strip_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/strspn_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/subst_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/type_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/util_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/vector_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/ascii_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/builder_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/cast_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/escape_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/join_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/hex_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/printf_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/split_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/strip_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/strspn_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/subst_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/type_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/util_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/vector_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/ascii_ut.cpp
 )
 set_property(
   TARGET

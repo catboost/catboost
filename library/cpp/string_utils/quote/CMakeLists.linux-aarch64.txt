@@ -14,6 +14,6 @@ target_link_libraries(cpp-string_utils-quote PUBLIC
   yutil
 )
 target_sources(cpp-string_utils-quote PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/string_utils/quote/quote.h
-  ${CMAKE_SOURCE_DIR}/library/cpp/string_utils/quote/quote.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/string_utils/quote/quote.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/string_utils/quote/quote.cpp
 )

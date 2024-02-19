@@ -16,10 +16,10 @@ target_link_libraries(util-draft-ut PUBLIC
   util-draft
 )
 target_sources(util-draft-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/draft/date_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/draft/datetime_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/draft/holder_vector_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/draft/memory_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/draft/date_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/draft/datetime_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/draft/holder_vector_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/draft/memory_ut.cpp
 )
 set_property(
   TARGET

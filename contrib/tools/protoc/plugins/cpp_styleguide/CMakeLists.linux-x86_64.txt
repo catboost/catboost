@@ -29,7 +29,7 @@ target_link_options(cpp_styleguide PRIVATE
   -ldl
 )
 target_sources(cpp_styleguide PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.cpp
 )
 target_allocator(cpp_styleguide
   cpp-malloc-tcmalloc

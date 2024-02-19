@@ -20,33 +20,33 @@ target_compile_options(restricted-google-benchmark PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(restricted-google-benchmark PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/include
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/include
 )
 target_include_directories(restricted-google-benchmark PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src
 )
 target_link_libraries(restricted-google-benchmark PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
 target_sources(restricted-google-benchmark PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark_api_internal.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark_name.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark_register.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark_runner.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/check.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/colorprint.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/commandlineflags.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/complexity.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/console_reporter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/counter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/csv_reporter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/json_reporter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/perf_counters.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/reporter.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/statistics.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/string_util.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/sysinfo.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/google/benchmark/src/timers.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark_api_internal.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark_name.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark_register.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark_runner.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/check.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/colorprint.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/commandlineflags.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/complexity.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/console_reporter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/counter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/csv_reporter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/json_reporter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/perf_counters.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/reporter.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/statistics.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/string_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/sysinfo.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/timers.cc
 )

@@ -9,7 +9,7 @@
 
 add_library(libs-nvidia-cub INTERFACE)
 target_include_directories(libs-nvidia-cub INTERFACE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/nvidia/cub
+  ${PROJECT_SOURCE_DIR}/contrib/libs/nvidia/cub
 )
 target_link_libraries(libs-nvidia-cub INTERFACE
   contrib-libs-linux-headers

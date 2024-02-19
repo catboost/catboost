@@ -21,6 +21,6 @@ target_link_libraries(cpp-testing-benchmark PUBLIC
   cpp-threading-poor_man_openmp
 )
 target_sources(cpp-testing-benchmark PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/benchmark/bench.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/benchmark/dummy.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/benchmark/bench.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/benchmark/dummy.cpp
 )

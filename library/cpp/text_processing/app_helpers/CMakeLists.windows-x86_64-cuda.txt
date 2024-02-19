@@ -15,5 +15,5 @@ target_link_libraries(cpp-text_processing-app_helpers PUBLIC
   cpp-text_processing-tokenizer
 )
 target_sources(cpp-text_processing-app_helpers PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/app_helpers/app_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/app_helpers/app_helpers.cpp
 )

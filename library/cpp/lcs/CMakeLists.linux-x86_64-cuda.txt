@@ -15,5 +15,5 @@ target_link_libraries(library-cpp-lcs PUBLIC
   cpp-containers-paged_vector
 )
 target_sources(library-cpp-lcs PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/lcs/lcs_via_lis.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/lcs/lcs_via_lis.cpp
 )

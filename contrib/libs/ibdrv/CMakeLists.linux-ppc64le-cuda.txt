@@ -9,7 +9,7 @@
 
 add_library(contrib-libs-ibdrv)
 target_include_directories(contrib-libs-ibdrv PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/ibdrv/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/ibdrv/include
 )
 target_link_libraries(contrib-libs-ibdrv PUBLIC
   contrib-libs-linux-headers
@@ -17,6 +17,6 @@ target_link_libraries(contrib-libs-ibdrv PUBLIC
   yutil
 )
 target_sources(contrib-libs-ibdrv PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/ibdrv/impl.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/ibdrv/symbols.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/ibdrv/impl.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/ibdrv/symbols.cpp
 )

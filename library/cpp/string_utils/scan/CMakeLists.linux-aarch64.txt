@@ -14,5 +14,5 @@ target_link_libraries(cpp-string_utils-scan PUBLIC
   yutil
 )
 target_sources(cpp-string_utils-scan PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/string_utils/scan/scan.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/string_utils/scan/scan.cpp
 )

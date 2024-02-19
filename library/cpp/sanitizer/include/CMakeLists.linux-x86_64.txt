@@ -9,7 +9,7 @@
 
 add_library(cpp-sanitizer-include INTERFACE)
 target_include_directories(cpp-sanitizer-include INTERFACE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/clang16-rt/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/clang16-rt/include
 )
 target_link_libraries(cpp-sanitizer-include INTERFACE
   contrib-libs-linux-headers

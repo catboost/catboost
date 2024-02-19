@@ -25,9 +25,9 @@ target_link_libraries(catboost-libs-eval_result PUBLIC
   private-libs-quantized_pool
 )
 target_sources(catboost-libs-eval_result PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/eval_result/column_printer.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/eval_result/eval_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/eval_result/eval_result.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/eval_result/column_printer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/eval_result/eval_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/eval_result/eval_result.cpp
 )
 
 add_global_library_for(catboost-libs-eval_result.global catboost-libs-eval_result)
@@ -48,5 +48,5 @@ target_link_libraries(catboost-libs-eval_result.global PUBLIC
   private-libs-quantized_pool
 )
 target_sources(catboost-libs-eval_result.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/eval_result/pool_printer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/eval_result/pool_printer.cpp
 )

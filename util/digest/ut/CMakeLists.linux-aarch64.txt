@@ -25,11 +25,11 @@ target_link_options(util-digest-ut PRIVATE
   -ldl
 )
 target_sources(util-digest-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/digest/city_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/digest/fnv_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/digest/multi_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/digest/murmur_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/digest/sequence_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/city_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/fnv_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/multi_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/murmur_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/sequence_ut.cpp
 )
 set_property(
   TARGET

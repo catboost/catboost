@@ -21,10 +21,10 @@ target_link_libraries(private-libs-feature_estimator PUBLIC
   cpp-threading-local_executor
 )
 target_sources(private-libs-feature_estimator PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/base_embedding_feature_estimator.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/base_text_feature_estimator.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/classification_target.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/embedding_feature_estimators.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/feature_estimator.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/text_feature_estimators.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/base_embedding_feature_estimator.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/base_text_feature_estimator.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/classification_target.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/embedding_feature_estimators.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/feature_estimator.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/text_feature_estimators.cpp
 )

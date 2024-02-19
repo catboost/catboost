@@ -20,26 +20,26 @@ target_link_options(util-stream-ut PRIVATE
   -fPIC
 )
 target_sources(util-stream-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/stream/aligned_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/buffer_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/buffered_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/direct_io_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/file_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/format_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/format_std_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/hex_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/input_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/ios_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/labeled_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/length_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/mem_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/multi_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/printf_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/str_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/tokenizer_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/walk_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/zerocopy_output_ut.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/zlib_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/aligned_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/buffer_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/buffered_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/direct_io_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/file_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/format_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/format_std_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/hex_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/input_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/ios_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/labeled_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/length_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/mem_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/multi_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/printf_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/str_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/tokenizer_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/walk_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/zerocopy_output_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/zlib_ut.cpp
 )
 set_property(
   TARGET
