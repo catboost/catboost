@@ -627,16 +627,16 @@ class Shrinker:
             # This *can't* be a shrink because none of the components were.
             assert shrink_target is self.shrink_target
             if result.status == Status.VALID:
-                self.shrink_target.slice_comments[
-                    (0, 0)
-                ] = "The test sometimes passed when commented parts were varied together."
+                self.shrink_target.slice_comments[(0, 0)] = (
+                    "The test sometimes passed when commented parts were varied together."
+                )
                 break  # Test passed, this param can't vary freely.
             elif self.__predicate(result):  # pragma: no branch
                 n_same_failures_together += 1
                 if n_same_failures_together >= 100:
-                    self.shrink_target.slice_comments[
-                        (0, 0)
-                    ] = "The test always failed when commented parts were varied together."
+                    self.shrink_target.slice_comments[(0, 0)] = (
+                        "The test always failed when commented parts were varied together."
+                    )
                     break
 
     def greedy_shrink(self):

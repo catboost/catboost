@@ -142,9 +142,11 @@ class InterestingOrigin(NamedTuple):
             # to support introspection when debugging, so we can use that unconditionally.
             cls.from_exception(exception.__context__) if exception.__context__ else (),
             # We distinguish exception groups by the inner exceptions, as for __context__
-            tuple(map(cls.from_exception, exception.exceptions))
-            if isinstance(exception, BaseExceptionGroup)
-            else (),
+            (
+                tuple(map(cls.from_exception, exception.exceptions))
+                if isinstance(exception, BaseExceptionGroup)
+                else ()
+            ),
         )
 
 

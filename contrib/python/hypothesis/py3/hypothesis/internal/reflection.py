@@ -23,6 +23,7 @@ import warnings
 from functools import partial, wraps
 from io import StringIO
 from keyword import iskeyword
+from random import _inst as global_random_instance
 from tokenize import COMMENT, detect_encoding, generate_tokens, untokenize
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable
@@ -446,6 +447,8 @@ def get_pretty_function_description(f):
         # Some objects, like `builtins.abs` are of BuiltinMethodType but have
         # their module as __self__.  This might include c-extensions generally?
         if not (self is None or inspect.isclass(self) or inspect.ismodule(self)):
+            if self is global_random_instance:
+                return f"random.{name}"
             return f"{self!r}.{name}"
     elif isinstance(name, str) and getattr(dict, name, object()) is f:
         # special case for keys/values views in from_type() / ghostwriter output

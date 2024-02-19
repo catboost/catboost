@@ -1578,9 +1578,11 @@ class ConjectureData:
                 examples=self.examples,
                 blocks=self.blocks,
                 output=self.output,
-                extra_information=self.extra_information
-                if self.extra_information.has_information()
-                else None,
+                extra_information=(
+                    self.extra_information
+                    if self.extra_information.has_information()
+                    else None
+                ),
                 has_discards=self.has_discards,
                 target_observations=self.target_observations,
                 tags=frozenset(self.tags),

@@ -94,16 +94,20 @@ class AddExamplesCodemod(VisitorBasedCodemodCommand):
         # If we have black installed, remove trailing comma, _unless_ there's a comment
         node = node.with_changes(
             func=self.decorator_func,
-            args=[
-                a.with_changes(
-                    comma=a.comma
-                    if m.findall(a.comma, m.Comment())
-                    else cst.MaybeSentinel.DEFAULT
-                )
-                for a in node.args
-            ]
-            if black
-            else node.args,
+            args=(
+                [
+                    a.with_changes(
+                        comma=(
+                            a.comma
+                            if m.findall(a.comma, m.Comment())
+                            else cst.MaybeSentinel.DEFAULT
+                        )
+                    )
+                    for a in node.args
+                ]
+                if black
+                else node.args
+            ),
         )
         # Note: calling a method on a decorator requires PEP-614, i.e. Python 3.9+,
         # but plumbing two cases through doesn't seem worth the trouble :-/

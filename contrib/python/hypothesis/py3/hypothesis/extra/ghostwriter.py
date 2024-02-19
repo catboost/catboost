@@ -770,9 +770,11 @@ def _write_call(
     subtypes of `except_`, which will be handled in an outer try-except block.
     """
     args = ", ".join(
-        (v or p.name)
-        if p.kind is inspect.Parameter.POSITIONAL_ONLY
-        else f"{p.name}={v or p.name}"
+        (
+            (v or p.name)
+            if p.kind is inspect.Parameter.POSITIONAL_ONLY
+            else f"{p.name}={v or p.name}"
+        )
         for v, p in zip_longest(pass_variables, _get_params(func).values())
     )
     call = f"{_get_qualname(func, include_module=True)}({args})"

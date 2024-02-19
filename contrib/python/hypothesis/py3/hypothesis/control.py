@@ -10,7 +10,9 @@
 
 import inspect
 import math
+import random
 from collections import defaultdict
+from contextlib import contextmanager
 from typing import Any, NoReturn, Union
 from weakref import WeakKeyDictionary
 
@@ -91,6 +93,38 @@ def current_build_context() -> "BuildContext":
     return context
 
 
+class RandomSeeder:
+    def __init__(self, seed):
+        self.seed = seed
+
+    def __repr__(self):
+        return f"RandomSeeder({self.seed!r})"
+
+
+class _Checker:
+    def __init__(self) -> None:
+        self.saw_global_random = False
+
+    def __call__(self, x):
+        self.saw_global_random |= isinstance(x, RandomSeeder)
+        return x
+
+
+@contextmanager
+def deprecate_random_in_strategy(fmt, *args):
+    _global_rand_state = random.getstate()
+    yield (checker := _Checker())
+    if _global_rand_state != random.getstate() and not checker.saw_global_random:
+        # raise InvalidDefinition
+        note_deprecation(
+            "Do not use the `random` module inside strategies; instead "
+            "consider  `st.randoms()`, `st.sampled_from()`, etc.  " + fmt.format(*args),
+            since="2024-02-05",
+            has_codemod=False,
+            stacklevel=1,
+        )
+
+
 class BuildContext:
     def __init__(self, data, *, is_final=False, close_on_capture=True):
         assert isinstance(data, ConjectureData)
@@ -119,7 +153,8 @@ class BuildContext:
         kwargs = {}
         for k, s in kwarg_strategies.items():
             start_idx = self.data.index
-            obj = self.data.draw(s, observe_as=f"generate:{k}")
+            with deprecate_random_in_strategy("from {}={!r}", k, s) as check:
+                obj = check(self.data.draw(s, observe_as=f"generate:{k}"))
             end_idx = self.data.index
             kwargs[k] = obj
 

@@ -53,7 +53,13 @@ from uuid import UUID
 import attr
 
 from hypothesis._settings import note_deprecation
-from hypothesis.control import cleanup, current_build_context, note
+from hypothesis.control import (
+    RandomSeeder,
+    cleanup,
+    current_build_context,
+    deprecate_random_in_strategy,
+    note,
+)
 from hypothesis.errors import (
     HypothesisSideeffectWarning,
     HypothesisWarning,
@@ -998,14 +1004,6 @@ def randoms(
     )
 
 
-class RandomSeeder:
-    def __init__(self, seed):
-        self.seed = seed
-
-    def __repr__(self):
-        return f"RandomSeeder({self.seed!r})"
-
-
 class RandomModule(SearchStrategy):
     def do_draw(self, data):
         # It would be unsafe to do run this method more than once per test case,
@@ -1835,9 +1833,11 @@ def _composite(f):
         params = params[1:]
     newsig = sig.replace(
         parameters=params,
-        return_annotation=SearchStrategy
-        if sig.return_annotation is sig.empty
-        else SearchStrategy[sig.return_annotation],
+        return_annotation=(
+            SearchStrategy
+            if sig.return_annotation is sig.empty
+            else SearchStrategy[sig.return_annotation]
+        ),
     )
 
     @defines_strategy()
@@ -2134,7 +2134,8 @@ class DataObject:
         self.count += 1
         printer = RepresentationPrinter(context=current_build_context())
         desc = f"Draw {self.count}{'' if label is None else f' ({label})'}: "
-        result = self.conjecture_data.draw(strategy, observe_as=f"generate:{desc}")
+        with deprecate_random_in_strategy("{}from {!r}", desc, strategy):
+            result = self.conjecture_data.draw(strategy, observe_as=f"generate:{desc}")
         if TESTCASE_CALLBACKS:
             self.conjecture_data._observability_args[desc] = to_jsonable(result)
 

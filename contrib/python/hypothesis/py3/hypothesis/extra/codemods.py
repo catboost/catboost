@@ -218,9 +218,11 @@ class HypothesisFixPositionalKeywonlyArgs(VisitorBasedCodemodCommand):
             whitespace_after=cst.SimpleWhitespace(""),
         )
         newargs = [
-            arg
-            if arg.keyword or arg.star or p.kind is not Parameter.KEYWORD_ONLY
-            else arg.with_changes(keyword=cst.Name(p.name), equal=assign_nospace)
+            (
+                arg
+                if arg.keyword or arg.star or p.kind is not Parameter.KEYWORD_ONLY
+                else arg.with_changes(keyword=cst.Name(p.name), equal=assign_nospace)
+            )
             for p, arg in zip(params, updated_node.args)
         ]
         return updated_node.with_changes(args=newargs)

@@ -110,12 +110,10 @@ class IntList(Sequence[int]):
         return len(self.__underlying)
 
     @overload
-    def __getitem__(self, i: int) -> int:
-        ...  # pragma: no cover
+    def __getitem__(self, i: int) -> int: ...  # pragma: no cover
 
     @overload
-    def __getitem__(self, i: slice) -> "IntList":
-        ...  # pragma: no cover
+    def __getitem__(self, i: slice) -> "IntList": ...  # pragma: no cover
 
     def __getitem__(self, i: Union[int, slice]) -> "Union[int, IntList]":
         if isinstance(i, slice):
