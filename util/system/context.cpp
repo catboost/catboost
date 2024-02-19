@@ -134,6 +134,8 @@ namespace {
     #endif
 }
 
+    #if defined(USE_SANITIZER_CONTEXT)
+
 TContMachineContext::TSan::TSan() noexcept
     : TL(nullptr)
 {
@@ -148,11 +150,12 @@ TContMachineContext::TSan::TSan(const TContClosure& c) noexcept
 void TContMachineContext::TSan::DoRunNaked() {
     AfterSwitch();
     TL->DoRunNaked();
-    BeforeFinish();
 }
 
+    #endif
+
 TContMachineContext::TContMachineContext(const TContClosure& c)
-    #if defined(_asan_enabled_) || defined(_tsan_enabled_)
+    #if defined(USE_SANITIZER_CONTEXT)
     : San_(c)
     #endif
 {
@@ -162,7 +165,7 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
      * arg, and align data
      */
 
-    #if defined(_asan_enabled_)
+    #if defined(USE_SANITIZER_CONTEXT)
     auto trampoline = &San_;
     #else
     auto trampoline = c.TrampoLine;
@@ -196,12 +199,12 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
 
 void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
     if (Y_LIKELY(__mysetjmp(Buf_) == 0)) {
-    #if defined(_asan_enabled_) || defined(_tsan_enabled_)
+    #if defined(USE_SANITIZER_CONTEXT)
         next->San_.BeforeSwitch(&San_);
     #endif
         __mylongjmp(next->Buf_, 1);
     } else {
-    #if defined(_asan_enabled_)
+    #if defined(USE_SANITIZER_CONTEXT)
         San_.AfterSwitch();
     #endif
     }
