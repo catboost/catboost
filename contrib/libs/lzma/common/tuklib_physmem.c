@@ -23,7 +23,7 @@
 
 #elif defined(__OS2__)
 #	define INCL_DOSMISC
-#	include <os2.h>
+#	error #include <os2.h>
 
 #elif defined(__DJGPP__)
 #	error #include <dpmi.h>
