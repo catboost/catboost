@@ -243,7 +243,7 @@ http://cvsweb.netbsd.org/bsdweb.cgi/src/lib/libc/net/getaddrinfo.c.diff?r1=1.82&
 # define  INCL_DOS
 # define  INCL_DOSERRORS
 # define  INCL_NOPMAPI
-# include <os2.h>
+# error #include <os2.h>
 #endif
 
 #if defined(__sgi) && _COMPILER_VERSION>700 && !_SGIAPI
