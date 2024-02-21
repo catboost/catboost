@@ -128,7 +128,7 @@ if (HAVE_CUDA)
     " --allow-unsupported-compiler"
   )
 
-  set(NVCC_STD_VER 14)
+  set(NVCC_STD_VER 17)
   if(MSVC)
     set(NVCC_STD "/std:c++${NVCC_STD_VER}")
   else()
