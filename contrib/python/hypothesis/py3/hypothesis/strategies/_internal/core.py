@@ -117,7 +117,7 @@ from hypothesis.strategies._internal.collections import (
 from hypothesis.strategies._internal.deferred import DeferredStrategy
 from hypothesis.strategies._internal.functions import FunctionStrategy
 from hypothesis.strategies._internal.lazy import LazyStrategy, unwrap_strategies
-from hypothesis.strategies._internal.misc import just, none, nothing
+from hypothesis.strategies._internal.misc import BooleansStrategy, just, none, nothing
 from hypothesis.strategies._internal.numbers import (
     IntegersStrategy,
     Real,
@@ -158,14 +158,14 @@ else:
 
 
 @cacheable
-@defines_strategy()
+@defines_strategy(force_reusable_values=True)
 def booleans() -> SearchStrategy[bool]:
     """Returns a strategy which generates instances of :class:`python:bool`.
 
     Examples from this strategy will shrink towards ``False`` (i.e.
     shrinking will replace ``True`` with ``False`` where possible).
     """
-    return SampledFromStrategy([False, True], repr_="booleans()")
+    return BooleansStrategy()
 
 
 @overload
