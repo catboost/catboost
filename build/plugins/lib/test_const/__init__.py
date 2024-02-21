@@ -73,6 +73,7 @@ STYLE_TEST_TYPES = [
     "py2_flake8",
     "flake8",
     "black",
+    "ruff",
 ]
 
 REGULAR_TEST_TYPES = [
