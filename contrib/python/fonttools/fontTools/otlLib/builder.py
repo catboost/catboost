@@ -6,6 +6,7 @@ from fontTools.ttLib.tables import otTables as ot
 from fontTools.ttLib.tables.otBase import (
     ValueRecord,
     valueRecordFormatDict,
+    OTLOffsetOverflowError,
     OTTableWriter,
     CountReference,
 )
@@ -350,16 +351,14 @@ class ChainContextualBuilder(LookupBuilder):
         return [x for x in ruleset if len(x.rules) > 0]
 
     def getCompiledSize_(self, subtables):
-        size = 0
-        for st in subtables:
-            w = OTTableWriter()
-            w["LookupType"] = CountReference(
-                {"LookupType": st.LookupType}, "LookupType"
-            )
-            # We need to make a copy here because compiling
-            # modifies the subtable (finalizing formats etc.)
-            copy.deepcopy(st).compile(w, self.font)
-            size += len(w.getAllData())
+        if not subtables:
+            return 0
+        # We need to make a copy here because compiling
+        # modifies the subtable (finalizing formats etc.)
+        table = self.buildLookup_(copy.deepcopy(subtables))
+        w = OTTableWriter()
+        table.compile(w, self.font)
+        size = len(w.getAllData())
         return size
 
     def build(self):
@@ -410,22 +409,23 @@ class ChainContextualBuilder(LookupBuilder):
             if not ruleset.hasAnyGlyphClasses:
                 candidates[1] = [self.buildFormat1Subtable(ruleset, chaining)]
 
+            candidates_by_size = []
             for i in [1, 2, 3]:
                 if candidates[i]:
                     try:
-                        self.getCompiledSize_(candidates[i])
-                    except Exception as e:
+                        size = self.getCompiledSize_(candidates[i])
+                    except OTLOffsetOverflowError as e:
                         log.warning(
                             "Contextual format %i at %s overflowed (%s)"
                             % (i, str(self.location), e)
                         )
-                        candidates[i] = None
+                    else:
+                        candidates_by_size.append((size, candidates[i]))
 
-            candidates = [x for x in candidates if x is not None]
-            if not candidates:
+            if not candidates_by_size:
                 raise OpenTypeLibError("All candidates overflowed", self.location)
 
-            winner = min(candidates, key=self.getCompiledSize_)
+            _min_size, winner = min(candidates_by_size, key=lambda x: x[0])
             subtables.extend(winner)
 
         # If we are not chaining, lookup type will be automatically fixed by
@@ -774,7 +774,10 @@ class ChainContextSubstBuilder(ChainContextualBuilder):
                     if lookup is not None:
                         alts = lookup.getAlternateGlyphs()
                         for glyph, replacements in alts.items():
-                            result.setdefault(glyph, set()).update(replacements)
+                            alts_for_glyph = result.setdefault(glyph, [])
+                            alts_for_glyph.extend(
+                                g for g in replacements if g not in alts_for_glyph
+                            )
         return result
 
     def find_chainable_single_subst(self, mapping):
@@ -1238,7 +1241,7 @@ class SingleSubstBuilder(LookupBuilder):
         return self.buildLookup_(subtables)
 
     def getAlternateGlyphs(self):
-        return {glyph: set([repl]) for glyph, repl in self.mapping.items()}
+        return {glyph: [repl] for glyph, repl in self.mapping.items()}
 
     def add_subtable_break(self, location):
         self.mapping[(self.SUBTABLE_BREAK_, location)] = self.SUBTABLE_BREAK_
@@ -1567,19 +1570,6 @@ def buildAlternateSubstSubtable(mapping):
     return self
 
 
-def _getLigatureKey(components):
-    # Computes a key for ordering ligatures in a GSUB Type-4 lookup.
-
-    # When building the OpenType lookup, we need to make sure that
-    # the longest sequence of components is listed first, so we
-    # use the negative length as the primary key for sorting.
-    # To make buildLigatureSubstSubtable() deterministic, we use the
-    # component sequence as the secondary key.
-
-    # For example, this will sort (f,f,f) < (f,f,i) < (f,f) < (f,i) < (f,l).
-    return (-len(components), components)
-
-
 def buildLigatureSubstSubtable(mapping):
     """Builds a ligature substitution (GSUB4) subtable.
 
@@ -1613,7 +1603,7 @@ def buildLigatureSubstSubtable(mapping):
     # with fontTools >= 3.1:
     # self.ligatures = dict(mapping)
     self.ligatures = {}
-    for components in sorted(mapping.keys(), key=_getLigatureKey):
+    for components in sorted(mapping.keys(), key=self._getLigatureSortKey):
         ligature = ot.Ligature()
         ligature.Component = components[1:]
         ligature.CompCount = len(ligature.Component) + 1

@@ -44,7 +44,7 @@ Python 3 `venv <https://docs.python.org/3/library/venv.html>`__ module.
     # create new virtual environment called e.g. 'fonttools-venv', or anything you like
     python -m virtualenv fonttools-venv
 
-    # source the `activate` shell script to enter the environment (Un*x); to exit, just type `deactivate`
+    # source the `activate` shell script to enter the environment (Unix-like); to exit, just type `deactivate`
     . fonttools-venv/bin/activate
 
     # to activate the virtual environment in Windows `cmd.exe`, do

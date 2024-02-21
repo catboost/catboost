@@ -1123,6 +1123,35 @@ class LigatureSubst(FormatSwitchingBaseTable):
         self.ligatures = ligatures
         del self.Format  # Don't need this anymore
 
+    @staticmethod
+    def _getLigatureSortKey(components):
+        # Computes a key for ordering ligatures in a GSUB Type-4 lookup.
+
+        # When building the OpenType lookup, we need to make sure that
+        # the longest sequence of components is listed first, so we
+        # use the negative length as the key for sorting.
+        # Note, we no longer need to worry about deterministic order because the
+        # ligature mapping `dict` remembers the insertion order, and this in
+        # turn depends on the order in which the ligatures are written in the FEA.
+        # Since python sort algorithm is stable, the ligatures of equal length
+        # will keep the relative order in which they appear in the feature file.
+        # For example, given the following ligatures (all starting with 'f' and
+        # thus belonging to the same LigatureSet):
+        #
+        #   feature liga {
+        #     sub f i by f_i;
+        #     sub f f f by f_f_f;
+        #     sub f f by f_f;
+        #     sub f f i by f_f_i;
+        #   } liga;
+        #
+        # this should sort to: f_f_f, f_f_i, f_i, f_f
+        # This is also what fea-rs does, see:
+        # https://github.com/adobe-type-tools/afdko/issues/1727
+        # https://github.com/fonttools/fonttools/issues/3428
+        # https://github.com/googlefonts/fontc/pull/680
+        return -len(components)
+
     def preWrite(self, font):
         self.Format = 1
         ligatures = getattr(self, "ligatures", None)
@@ -1135,13 +1164,11 @@ class LigatureSubst(FormatSwitchingBaseTable):
 
             # ligatures is map from components-sequence to lig-glyph
             newLigatures = dict()
-            for comps, lig in sorted(
-                ligatures.items(), key=lambda item: (-len(item[0]), item[0])
-            ):
+            for comps in sorted(ligatures.keys(), key=self._getLigatureSortKey):
                 ligature = Ligature()
                 ligature.Component = comps[1:]
                 ligature.CompCount = len(comps)
-                ligature.LigGlyph = lig
+                ligature.LigGlyph = ligatures[comps]
                 newLigatures.setdefault(comps[0], []).append(ligature)
             ligatures = newLigatures
 

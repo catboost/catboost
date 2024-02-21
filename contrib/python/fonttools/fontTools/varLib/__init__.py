@@ -216,8 +216,6 @@ def _add_avar(font, axes, mappings, axisTags):
     if mappings:
         interesting = True
 
-        hiddenAxes = [axis for axis in axes.values() if axis.hidden]
-
         inputLocations = [
             {
                 axes[name].tag: models.normalizeValue(v, vals_triples[axes[name].tag])
@@ -752,10 +750,14 @@ def _add_BASE(font, masterModel, master_ttfs, axisTags):
 
 
 def _merge_OTL(font, model, master_fonts, axisTags):
+    otl_tags = ["GSUB", "GDEF", "GPOS"]
+    if not any(tag in font for tag in otl_tags):
+        return
+
     log.info("Merging OpenType Layout tables")
     merger = VariationMerger(model, axisTags, font)
 
-    merger.mergeTables(font, master_fonts, ["GSUB", "GDEF", "GPOS"])
+    merger.mergeTables(font, master_fonts, otl_tags)
     store = merger.store_builder.finish()
     if not store:
         return

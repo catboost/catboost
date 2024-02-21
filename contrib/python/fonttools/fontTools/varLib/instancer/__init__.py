@@ -614,7 +614,7 @@ def _instantiateGvarGlyph(
     if optimize:
         isComposite = glyf[glyphname].isComposite()
         for var in tupleVarStore:
-            var.optimize(coordinates, endPts, isComposite)
+            var.optimize(coordinates, endPts, isComposite=isComposite)
 
 
 def instantiateGvarGlyph(varfont, glyphname, axisLimits, optimize=True):

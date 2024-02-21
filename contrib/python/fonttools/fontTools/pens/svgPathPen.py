@@ -220,11 +220,17 @@ def main(args=None):
         "fonttools pens.svgPathPen", description="Generate SVG from text"
     )
     parser.add_argument("font", metavar="font.ttf", help="Font file.")
-    parser.add_argument("text", metavar="text", help="Text string.")
+    parser.add_argument("text", metavar="text", nargs="?", help="Text string.")
     parser.add_argument(
         "-y",
         metavar="<number>",
         help="Face index into a collection to open. Zero based.",
+    )
+    parser.add_argument(
+        "--glyphs",
+        metavar="whitespace-separated list of glyph names",
+        type=str,
+        help="Glyphs to show. Exclusive with text option",
     )
     parser.add_argument(
         "--variations",
@@ -241,6 +247,7 @@ def main(args=None):
 
     font = TTFont(options.font, fontNumber=fontNumber)
     text = options.text
+    glyphs = options.glyphs
 
     location = {}
     for tag_v in options.variations.split():
@@ -255,10 +262,17 @@ def main(args=None):
     glyphset = font.getGlyphSet(location=location)
     cmap = font["cmap"].getBestCmap()
 
+    if glyphs is not None and text is not None:
+        raise ValueError("Options --glyphs and --text are exclusive")
+
+    if glyphs is None:
+        glyphs = " ".join(cmap[ord(u)] for u in text)
+
+    glyphs = glyphs.split()
+
     s = ""
     width = 0
-    for u in text:
-        g = cmap[ord(u)]
+    for g in glyphs:
         glyph = glyphset[g]
 
         pen = SVGPathPen(glyphset)

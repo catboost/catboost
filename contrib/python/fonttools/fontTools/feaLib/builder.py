@@ -285,7 +285,11 @@ class Builder(object):
     def build_feature_aalt_(self):
         if not self.aalt_features_ and not self.aalt_alternates_:
             return
-        alternates = {g: set(a) for g, a in self.aalt_alternates_.items()}
+        # > alternate glyphs will be sorted in the order that the source features
+        # > are named in the aalt definition, not the order of the feature definitions
+        # > in the file. Alternates defined explicitly ... will precede all others.
+        # https://github.com/fonttools/fonttools/issues/836
+        alternates = {g: list(a) for g, a in self.aalt_alternates_.items()}
         for location, name in self.aalt_features_ + [(None, "aalt")]:
             feature = [
                 (script, lang, feature, lookups)
@@ -302,17 +306,14 @@ class Builder(object):
                         lookuplist = [lookuplist]
                     for lookup in lookuplist:
                         for glyph, alts in lookup.getAlternateGlyphs().items():
-                            alternates.setdefault(glyph, set()).update(alts)
+                            alts_for_glyph = alternates.setdefault(glyph, [])
+                            alts_for_glyph.extend(
+                                g for g in alts if g not in alts_for_glyph
+                            )
         single = {
-            glyph: list(repl)[0] for glyph, repl in alternates.items() if len(repl) == 1
+            glyph: repl[0] for glyph, repl in alternates.items() if len(repl) == 1
         }
-        # TODO: Figure out the glyph alternate ordering used by makeotf.
-        # https://github.com/fonttools/fonttools/issues/836
-        multi = {
-            glyph: sorted(repl, key=self.font.getGlyphID)
-            for glyph, repl in alternates.items()
-            if len(repl) > 1
-        }
+        multi = {glyph: repl for glyph, repl in alternates.items() if len(repl) > 1}
         if not single and not multi:
             return
         self.features_ = {
@@ -1249,8 +1250,9 @@ class Builder(object):
     def add_single_subst(self, location, prefix, suffix, mapping, forceChain):
         if self.cur_feature_name_ == "aalt":
             for from_glyph, to_glyph in mapping.items():
-                alts = self.aalt_alternates_.setdefault(from_glyph, set())
-                alts.add(to_glyph)
+                alts = self.aalt_alternates_.setdefault(from_glyph, [])
+                if to_glyph not in alts:
+                    alts.append(to_glyph)
             return
         if prefix or suffix or forceChain:
             self.add_single_subst_chained_(location, prefix, suffix, mapping)
@@ -1303,8 +1305,8 @@ class Builder(object):
     # GSUB 3
     def add_alternate_subst(self, location, prefix, glyph, suffix, replacement):
         if self.cur_feature_name_ == "aalt":
-            alts = self.aalt_alternates_.setdefault(glyph, set())
-            alts.update(replacement)
+            alts = self.aalt_alternates_.setdefault(glyph, [])
+            alts.extend(g for g in replacement if g not in alts)
             return
         if prefix or suffix:
             chain = self.get_lookup_(location, ChainContextSubstBuilder)
@@ -1338,7 +1340,7 @@ class Builder(object):
         # substitutions to be specified on target sequences that contain
         # glyph classes, the implementation software will enumerate
         # all specific glyph sequences if glyph classes are detected"
-        for g in sorted(itertools.product(*glyphs)):
+        for g in itertools.product(*glyphs):
             lookup.ligatures[g] = replacement
 
     # GSUB 5/6
