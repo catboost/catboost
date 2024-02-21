@@ -148,8 +148,8 @@ if (HAVE_CUDA)
 
   # use versions from contrib, standard libraries from CUDA distibution are incompatible with MSVC and libcxx
   set(CUDA_EXTRA_INCLUDE_DIRECTORIES
-    ${CMAKE_SOURCE_DIR}/contrib/libs/nvidia/thrust
-    ${CMAKE_SOURCE_DIR}/contrib/libs/nvidia/cub
+    ${PROJECT_SOURCE_DIR}/contrib/libs/nvidia/thrust
+    ${PROJECT_SOURCE_DIR}/contrib/libs/nvidia/cub
   )
 
   find_package(CUDAToolkit REQUIRED)
