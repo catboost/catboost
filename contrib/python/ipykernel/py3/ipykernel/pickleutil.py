@@ -179,7 +179,7 @@ class Reference(CannedObject):
         if g is None:
             g = {}
 
-        return eval(self.name, g)  # noqa: PGH001
+        return eval(self.name, g)
 
 
 class CannedCell(CannedObject):

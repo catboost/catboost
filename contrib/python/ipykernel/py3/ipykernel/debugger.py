@@ -473,7 +473,7 @@ class Debugger:
         message_response = await self._forward_message(message)
         # debugpy can set breakpoints on different lines than the ones requested,
         # so we want to record the breakpoints that were actually added
-        if "success" in message_response and message_response["success"]:
+        if message_response.get("success"):
             self.breakpoint_list[source] = [
                 {"line": breakpoint["line"]}
                 for breakpoint in message_response["body"]["breakpoints"]
@@ -661,7 +661,7 @@ class Debugger:
                 }
             )
             if reply["success"]:
-                repr_data, repr_metadata = eval(reply["body"]["result"], {}, {})  # noqa: PGH001
+                repr_data, repr_metadata = eval(reply["body"]["result"], {}, {})
 
         body = {
             "data": repr_data,

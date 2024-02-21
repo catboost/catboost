@@ -733,7 +733,7 @@ class Kernel(SingletonConfigurable):
         try:
             content = parent["content"]
             code = content["code"]
-            silent = content["silent"]
+            silent = content.get("silent", False)
             store_history = content.get("store_history", not silent)
             user_expressions = content.get("user_expressions", {})
             allow_stdin = content.get("allow_stdin", False)
@@ -1049,7 +1049,7 @@ class Kernel(SingletonConfigurable):
         # Avoid littering logs with stack traces
         # complaining about dead processes
         except BaseException:
-            return None
+            return 0
 
     async def usage_request(self, stream, ident, parent):
         """Handle a usage request."""
