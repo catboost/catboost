@@ -8,12 +8,13 @@
     #include <errno.h>
 #endif
 
+#include <util/folder/iterator.h>
+#include <util/folder/path.h>
 #include <util/generic/yexception.h>
 #include <util/memory/tempbuf.h>
 #include <util/stream/file.h>
-#include <util/folder/iterator.h>
 #include <util/system/fstat.h>
-#include <util/folder/path.h>
+#include <util/system/sysstat.h>
 
 bool NFs::Remove(const TString& path) {
 #if defined(_win_)
@@ -21,6 +22,24 @@ bool NFs::Remove(const TString& path) {
 #else
     return ::remove(path.data()) == 0;
 #endif
+}
+
+bool NFs::SetExecutable(const TString& path, bool exec) {
+#ifdef _unix_
+    TFileStat stat(path);
+    ui32 mode = stat.Mode;
+    if (exec) {
+        mode |= S_IXUSR | S_IXGRP | S_IXOTH;
+    } else {
+        mode &= ~(S_IXUSR | S_IXGRP | S_IXOTH);
+    }
+    if (stat.Mode != 0 && mode != stat.Mode) {
+        return !Chmod(path.c_str(), mode);
+    }
+#endif
+    Y_UNUSED(exec);
+    Y_UNUSED(path);
+    return true;
 }
 
 void NFs::RemoveRecursive(const TString& path) {
