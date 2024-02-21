@@ -20,7 +20,7 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__remove_cvref) && !defined(__CUDACC__)
+#if __has_builtin(__remove_cvref) && !defined(_LIBCPP_COMPILER_GCC) && !defined(__CUDACC__)
 template <class _Tp>
 using __remove_cvref_t _LIBCPP_NODEBUG = __remove_cvref(_Tp);
 #else
@@ -31,14 +31,14 @@ using __remove_cvref_t _LIBCPP_NODEBUG = __remove_cv_t<__libcpp_remove_reference
 template <class _Tp, class _Up>
 struct __is_same_uncvref : _IsSame<__remove_cvref_t<_Tp>, __remove_cvref_t<_Up> > {};
 
-// C++20, enabled for C++17 in Arcadia
-#if _LIBCPP_STD_VER > 14
+#if _LIBCPP_STD_VER >= 20
 template <class _Tp>
 struct remove_cvref {
-    using type _LIBCPP_NODEBUG = __remove_cvref_t<_Tp>;
+  using type _LIBCPP_NODEBUG = __remove_cvref_t<_Tp>;
 };
 
-template <class _Tp> using remove_cvref_t = __remove_cvref_t<_Tp>;
+template <class _Tp>
+using remove_cvref_t = __remove_cvref_t<_Tp>;
 #endif
 
 _LIBCPP_END_NAMESPACE_STD
