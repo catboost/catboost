@@ -46,7 +46,8 @@ TClassTargetPreprocessor::TClassTargetPreprocessor(
         specifiedLossFunction = lossDescription.LossFunction.Get();
     }
 
-    if (CatBoostOptionsPlainJson.Has("target_border") ||
+    if ((rawTargetType == ERawTargetType::Boolean) ||
+        CatBoostOptionsPlainJson.Has("target_border") ||
         (specifiedLossFunction &&
          IsBinaryClassOnlyMetric(*specifiedLossFunction) &&
          (CatBoostOptionsPlainJson.Has("class_names") || (rawTargetType == ERawTargetType::Integer))))

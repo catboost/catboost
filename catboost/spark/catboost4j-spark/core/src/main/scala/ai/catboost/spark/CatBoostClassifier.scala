@@ -405,6 +405,10 @@ class CatBoostClassifier (override val uid: String)
           )
           classTargetPreprocessor.ProcessDistinctStringTargetValues(distinctLabels)
         }
+        case ERawTargetType.Boolean => throw new CatBoostError(
+            "[Internal CatBoost error] classTargetPreprocessor.IsNeedToProcessDistinctTargetValues should be"
+            + " false for Boolean targets"
+        )
         case ERawTargetType.None => throw new CatBoostError(
             "CatBoostClassifier requires a label column in the training dataset"
         )
@@ -448,4 +452,3 @@ class CatBoostClassifier (override val uid: String)
 object CatBoostClassifier extends DefaultParamsReadable[CatBoostClassifier] {
   override def load(path: String): CatBoostClassifier = super.load(path)
 }
-
