@@ -253,6 +253,34 @@ public class CatBoostModel implements AutoCloseable {
     }
 
     /**
+     * Load CatBoost model serialized in an array.
+     *
+     * @param serializedModel   Byte array containing model.
+     * @return                  CatBoost model.
+     * @throws CatBoostError When failed to load model.
+     */
+    @NotNull
+    public static CatBoostModel loadModel(final @NotNull byte[] serializedModel) throws CatBoostError {
+        return loadModel(serializedModel, "bin");
+    }
+
+    /**
+     * Load CatBoost model serialized in an array.
+     *
+     * @param serializedModel   Byte array containing model.
+     * @param modelFormat       Model file format (bin or json)
+     * @return                  CatBoost model.
+     * @throws CatBoostError When failed to load model.
+     */
+    @NotNull
+    public static CatBoostModel loadModel(final @NotNull byte[] serializedModel, @NotNull String modelFormat) throws CatBoostError {
+        final long[] handles = new long[1];
+
+        implLibrary.catBoostLoadModelFromArray(serializedModel, handles, modelFormat);
+        return new CatBoostModel(handles[0]);
+    }
+
+    /**
      * Load CatBoost model from stream.
      *
      * @param in Input stream containing model.
@@ -276,7 +304,6 @@ public class CatBoostModel implements AutoCloseable {
      */
     @NotNull
     public static CatBoostModel loadModel(final InputStream in, @NotNull String modelFormat) throws CatBoostError, IOException {
-        final long[] handles = new long[1];
         final byte[] copyBuffer = new byte[4 * 1024];
 
         int bytesRead;
@@ -286,8 +313,7 @@ public class CatBoostModel implements AutoCloseable {
             out.write(copyBuffer, 0, bytesRead);
         }
 
-        implLibrary.catBoostLoadModelFromArray(out.toByteArray(), handles, modelFormat);
-        return new CatBoostModel(handles[0]);
+        return loadModel(out.toByteArray(), modelFormat);
     }
 
     /**
