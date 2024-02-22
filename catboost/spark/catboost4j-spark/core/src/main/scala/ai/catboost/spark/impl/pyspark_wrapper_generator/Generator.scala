@@ -39,7 +39,7 @@ from pyspark.ml.classification import JavaProbabilisticClassificationModel
 from pyspark.ml.regression import JavaRegressionModel
 """
         )
-      case "3.1" | "3.2" | "3.3" | "3.4" => out.println(s"""
+      case "3.1" | "3.2" | "3.3" | "3.4" | "3.5" => out.println(s"""
 from pyspark.ml.classification import _JavaProbabilisticClassificationModel
 from pyspark.ml.regression import _JavaRegressionModel
 """
@@ -1122,7 +1122,7 @@ __all__ = [
           new CatBoostRegressionModel(new native_impl.TFullModel()),
           sparkCompatVersion match {
             case "3.0" => "JavaRegressionModel"
-            case "3.1" | "3.2" | "3.3" | "3.4" => "_JavaRegressionModel"
+            case "3.1" | "3.2" | "3.3" | "3.4" | "3.5" => "_JavaRegressionModel"
             case _ => "JavaPredictionModel"
           },
           "Class to train CatBoostRegressionModel",
@@ -1135,7 +1135,7 @@ __all__ = [
           new CatBoostClassificationModel(new native_impl.TFullModel()),
           sparkCompatVersion match {
             case "3.0" => "JavaProbabilisticClassificationModel"
-            case "3.1" | "3.2" | "3.3" | "3.4" => "_JavaProbabilisticClassificationModel"
+            case "3.1" | "3.2" | "3.3" | "3.4" | "3.5" => "_JavaProbabilisticClassificationModel"
             case _ => "JavaClassificationModel"
           },
           "Class to train CatBoostClassificationModel",
