@@ -1,0 +1,22 @@
+set(CMAKE_C_COMPILER clang-16)
+set(CMAKE_CXX_COMPILER clang-16)
+
+set(CMAKE_C_STANDARD_LIBRARIES "-lc -lm")
+set(CMAKE_CXX_STANDARD_LIBRARIES "-lc -lm")
+
+set(CMAKE_CUDA_COMPILER nvcc)
+set(CMAKE_CUDA_HOST_COMPILER clang-12)
+
+set(CMAKE_CUDA_FLAGS_INIT "--allow-unsupported-compiler")
+
+if (NOT APPLE)
+  set(CMAKE_EXE_LINKER_FLAGS -fuse-ld=lld)
+  set(CMAKE_SHARED_LINKER_FLAGS -fuse-ld=lld)
+endif()
+
+set(ENV{CC} clang-16)
+set(ENV{CXX} clang-16)
+
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
