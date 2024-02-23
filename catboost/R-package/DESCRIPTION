@@ -1,6 +1,6 @@
 Package: catboost
 Title: Gradient Boosting on Decision Trees
-Version: 1.2.2
+Version: 1.2.3
 RoxygenNote: 7.1.2
 Imports: jsonlite
 License: Apache License (== 2.0)
