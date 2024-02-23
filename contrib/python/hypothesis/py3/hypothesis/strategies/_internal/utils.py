@@ -17,6 +17,7 @@ import attr
 
 from hypothesis.internal.cache import LRUReusedCache
 from hypothesis.internal.compat import dataclass_asdict
+from hypothesis.internal.conjecture.junkdrawer import clamp
 from hypothesis.internal.floats import float_to_int
 from hypothesis.internal.reflection import proxies
 from hypothesis.vendor.pretty import pretty
@@ -160,6 +161,9 @@ def to_jsonable(obj: object) -> object:
     """
     if isinstance(obj, (str, int, float, bool, type(None))):
         if isinstance(obj, int) and abs(obj) >= 2**63:
+            # Silently clamp very large ints to max_float, to avoid
+            # OverflowError when casting to float.
+            obj = clamp(-sys.float_info.max, obj, sys.float_info.max)
             return float(obj)
         return obj
     if isinstance(obj, (list, tuple, set, frozenset)):
