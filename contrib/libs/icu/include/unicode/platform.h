@@ -186,7 +186,7 @@
          * header file is included with stddef.h but on Solairs/GCC, the GCC version of stddef.h
          *  is included which does not include this header file.
          */
-#       include <sys/isa_defs.h>
+#       error #include <sys/isa_defs.h>
 #   endif
 #elif defined(_AIX) || defined(__TOS_AIX__)
 #   define U_PLATFORM U_PF_AIX
