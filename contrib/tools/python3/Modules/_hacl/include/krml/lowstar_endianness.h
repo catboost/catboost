@@ -35,7 +35,7 @@
 
 /* ... for Solaris */
 #elif defined(__sun__)
-#  include <sys/byteorder.h>
+#  error #include <sys/byteorder.h>
 #  define htole64(x) LE_64(x)
 #  define le64toh(x) LE_64(x)
 #  define htobe64(x) BE_64(x)
