@@ -45,8 +45,6 @@
 #ifndef Py_PYTIME_H
 #define Py_PYTIME_H
 
-struct timeval;
-
 /**************************************************************************
 Symbols and macros to supply platform-independent interfaces to time related
 functions and constants
