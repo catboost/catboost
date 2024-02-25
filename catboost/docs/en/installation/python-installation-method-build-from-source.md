@@ -30,6 +30,16 @@ For building with earlier versions see these pages:
 
 1. Other setup dependencies that can be formulated as python packages are listed in [`pyproject.toml`](https://github.com/catboost/catboost/blob/master/catboost/python-package/pyproject.toml)'s `build-system.requires` and in [`setup.py`](https://github.com/catboost/catboost/blob/master/catboost/python-package/setup.py) in standard `setup_requires` parameter and processed using standard Python tools.
 
+    {% note info %}
+
+      For some reason Python 3.12 fails to automatically resolve build/setup dependencies in a way that they are buildable so it is recommended to install the following packages using pip explicitly:
+        - setuptools
+        -  wheel
+        - jupyterlab (3.x, 4.x is not supported yet, see [the relevant issue](https://github.com/catboost/catboost/issues/2533))
+        - conan (1.62.0+, but 1.x series, 2.x is not supported yet, see [the relevant issue](https://github.com/catboost/catboost/issues/2582))
+
+    {% endnote %}
+
 1. For building CatBoost visualization widget bundled together with the python package (enabled by default) additional setup is required:
     1. [Node.js](https://nodejs.org/) installation with `npm` command accessible from the shell.
     1. [`rimraf` Node.js package](https://www.npmjs.com/package/rimraf) installed with `npm`'s `--global` option (this way `rimraf` command will be accessible from the shell).
