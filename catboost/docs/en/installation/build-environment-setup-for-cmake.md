@@ -94,15 +94,25 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   Make sure that the path to Conan cache does not contain spaces, this causes issues with some projects. Default cache location can be overridden [by specifying `CONAN_USER_HOME` environment variable](https://docs.conan.io/1/mastering/custom_cache.html)
 
-### [Ninja](https://ninja-build.org/)
+### Build system for CMake
 
-  Used as a build system for CMake.
+  {% list tabs %}
 
-  `ninja` command should be available from the command line.
+  - Ninja
 
-  {% include [cmake-visual-studio-generator](../_includes/work_src/reusage-installation/cmake-visual-studio-generator.md) %}
+      [Ninja](https://ninja-build.org/) is the preferred build system for CMake.
 
-  {% include [cmake-unix-makefiles-generator](../_includes/work_src/reusage-installation/cmake-unix-makefiles-generator.md) %}
+      `ninja` command should be available from the command line.
+
+  - Microsoft Visual Studio solutions
+
+      {% include [cmake-visual-studio-generator](../_includes/work_src/reusage-installation/cmake-visual-studio-generator.md) %}
+
+  - Unix Makefiles
+
+    {% include [cmake-unix-makefiles-generator](../_includes/work_src/reusage-installation/cmake-unix-makefiles-generator.md) %}
+
+  {% endlist %}
 
 ### JDK (only for components with JVM API)
 
