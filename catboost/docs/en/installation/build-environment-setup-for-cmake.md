@@ -128,7 +128,3 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
   Note that they are specific to [CPython Python implementation](https://en.wikipedia.org/wiki/CPython). {{ product }} does not currently support other Python implementations like PyPy, Jython or IronPython.
 
   One convenient way to install different Python versions with development artifacts in one step is to use [pyenv](https://github.com/pyenv/pyenv) (and its variant for Windows - [pyenv-win](https://github.com/pyenv-win/pyenv-win))
-
-### Node environment (only for Python package visualization widget)
-
-  You have to have `Node.js` installed. `Yarn` package manager is also required.
