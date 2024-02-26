@@ -6,7 +6,6 @@
 // windows.h must be included before pycore internal headers
 #ifdef MS_WIN32
 #  include <windows.h>
-#  include <Unknwn.h>
 #endif
 
 #include "pycore_bitutils.h"      // _Py_bswap32()

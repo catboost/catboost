@@ -65,7 +65,6 @@
 
 #ifdef MS_WIN32
 #include <windows.h>
-#include <Unknwn.h>
 #include <tchar.h>
 #else
 #include <dlfcn.h>
