@@ -248,7 +248,7 @@ def get_default_cross_build_toolchain(source_root_dir, opts):
 
     if build_system_name == 'darwin':
         if target_system_name != 'darwin':
-            raise RuntimeError('Cross-compilation to darwin from non-darwin is not supported')
+            raise RuntimeError('Cross-compilation from macOS to non-macOS is not supported')
         return os.path.join(
             default_toolchains_dir,
             f'cross-build.host.darwin.target.{target_system_arch}-darwin-default.clang.toolchain'
