@@ -45,7 +45,7 @@
 
 - CLI
 
-  1. Install [testpath](https://pypi.org/project/testpath/) and [pytest](https://pytest.org/) packages for the python interpreter you intend to use.
+  1. Install [testpath](https://pypi.org/project/testpath/), [pytest](https://pytest.org/), [pandas](https://pypi.org/project/pandas/) and [catboost](https://pypi.org/project/catboost/) (used for reading column description files using `catboost.utils.read_cd`) packages for the python interpreter you intend to use.
     Optionally install [pytest-xdist](https://pytest-xdist.readthedocs.io/en/stable/) to run tests in parallel (it will be faster).
   1. [Build](build-from-source#build-cmake) the CLI binary (target `catboost` for Ninja or another build tool) and a supplementary tool that is used to compare results generated as tests output with the canonical ones (target `limited_precision_dsv_diff` for Ninja or another build tool).
   1. Set the following environment variables:
