@@ -5,6 +5,7 @@ import os
 import glob
 
 from setuptools.command.easy_install import easy_install
+from setuptools import _normalization
 from setuptools import _path
 from setuptools import namespaces
 import setuptools
@@ -52,7 +53,9 @@ class develop(namespaces.DevelopInstaller, easy_install):
         # pick up setup-dir .egg files only: no .egg-info
         self.package_index.scan(glob.glob('*.egg'))
 
-        egg_link_fn = ei.egg_name + '.egg-link'
+        egg_link_fn = (
+            _normalization.filename_component_broken(ei.egg_name) + '.egg-link'
+        )
         self.egg_link = os.path.join(self.install_dir, egg_link_fn)
         self.egg_base = ei.egg_base
         if self.egg_path is None:
@@ -156,6 +159,8 @@ class develop(namespaces.DevelopInstaller, easy_install):
             with open(script_path) as strm:
                 script_text = strm.read()
             self.install_script(dist, script_name, script_text, script_path)
+
+        return None
 
     def install_wrapper_scripts(self, dist):
         dist = VersionlessRequirement(dist)

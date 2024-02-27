@@ -385,9 +385,8 @@ class FileList(_FileList):
         try:
             process_action = action_map[action]
         except KeyError:
-            raise DistutilsInternalError(
-                "this cannot happen: invalid action '{action!s}'".format(action=action),
-            )
+            msg = f"Invalid MANIFEST.in: unknown action {action!r} in {line!r}"
+            raise DistutilsInternalError(msg) from None
 
         # OK, now we know that the action is valid and we have the
         # right number of words on the line for that action -- so we
@@ -700,9 +699,9 @@ write_setup_requirements = _requirestxt.write_setup_requirements
 
 
 def write_toplevel_names(cmd, basename, filename):
-    pkgs = dict.fromkeys(
-        [k.split('.', 1)[0] for k in cmd.distribution.iter_distribution_names()]
-    )
+    pkgs = dict.fromkeys([
+        k.split('.', 1)[0] for k in cmd.distribution.iter_distribution_names()
+    ])
     cmd.write_file("top-level names", filename, '\n'.join(sorted(pkgs)) + '\n')
 
 

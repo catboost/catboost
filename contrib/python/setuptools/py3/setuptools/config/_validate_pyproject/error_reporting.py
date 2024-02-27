@@ -24,7 +24,7 @@ _SKIP_DETAILS = (
     "must not be there",
 )
 
-_NEED_DETAILS = {"anyOf", "oneOf", "anyOf", "contains", "propertyNames", "not", "items"}
+_NEED_DETAILS = {"anyOf", "oneOf", "allOf", "contains", "propertyNames", "not", "items"}
 
 _CAMEL_CASE_SPLITTER = re.compile(r"\W+|([A-Z][^A-Z\W]*)")
 _IDENTIFIER = re.compile(r"^[\w_]+$", re.I)

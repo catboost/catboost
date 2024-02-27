@@ -3,15 +3,8 @@ import sys
 import os
 
 
-is_pypy = '__pypy__' in sys.builtin_module_names
-
-
 def warn_distutils_present():
     if 'distutils' not in sys.modules:
-        return
-    if is_pypy and sys.version_info < (3, 7):
-        # PyPy for 3.6 unconditionally imports distutils, so bypass the warning
-        # https://foss.heptapod.net/pypy/pypy/-/blob/be829135bc0d758997b3566062999ee8b23872b4/lib-python/3/site.py#L250
         return
     import warnings
 
@@ -90,7 +83,7 @@ class DistutilsMetaFinder:
         # optimization: only consider top level modules and those
         # found in the CPython test suite.
         if path is not None and not fullname.startswith('test.'):
-            return
+            return None
 
         method_name = 'spec_for_{fullname}'.format(**locals())
         method = getattr(self, method_name, lambda: None)
@@ -98,7 +91,7 @@ class DistutilsMetaFinder:
 
     def spec_for_distutils(self):
         if self.is_cpython():
-            return
+            return None
 
         import importlib
         import importlib.abc
@@ -115,7 +108,7 @@ class DistutilsMetaFinder:
             #   setuptools from the path but only after the hook
             #   has been loaded. Ref #2980.
             # In either case, fall back to stdlib behavior.
-            return
+            return None
 
         class DistutilsLoader(importlib.abc.Loader):
             def create_module(self, spec):

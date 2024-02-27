@@ -66,21 +66,6 @@ def patch_all():
     # we can't patch distutils.cmd, alas
     distutils.core.Command = setuptools.Command
 
-    has_issue_12885 = sys.version_info <= (3, 5, 3)
-
-    if has_issue_12885:
-        # fix findall bug in distutils (https://bugs.python.org/issue12885)
-        distutils.filelist.findall = setuptools.findall
-
-    needs_warehouse = (3, 4) < sys.version_info < (3, 4, 6) or (
-        3,
-        5,
-    ) < sys.version_info <= (3, 5, 3)
-
-    if needs_warehouse:
-        warehouse = 'https://upload.pypi.org/legacy/'
-        distutils.config.PyPIRCCommand.DEFAULT_REPOSITORY = warehouse
-
     _patch_distribution_metadata()
 
     # Install Distribution throughout the distutils
@@ -130,7 +115,7 @@ def patch_func(replacement, target_mod, func_name):
 
 
 def get_unpatched_function(candidate):
-    return getattr(candidate, 'unpatched')
+    return candidate.unpatched
 
 
 def patch_for_msvc_specialized_compiler():
@@ -138,8 +123,7 @@ def patch_for_msvc_specialized_compiler():
     Patch functions in distutils to use standalone Microsoft Visual C++
     compilers.
     """
-    # import late to avoid circular imports on Python < 3.5
-    msvc = import_module('setuptools.msvc')
+    from . import msvc
 
     if platform.system() != 'Windows':
         # Compilers only available on Microsoft Windows

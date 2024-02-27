@@ -7,6 +7,7 @@ need to be processed before being applied.
 
 **PRIVATE MODULE**: API reserved for setuptools internal usage only.
 """
+
 import logging
 import os
 from collections.abc import Mapping
@@ -240,7 +241,7 @@ def _unify_entry_points(project_table: dict):
             if group  # now we can skip empty groups
         }
         # Sometimes this will set `project["entry-points"] = {}`, and that is
-        # intentional (for reseting configurations that are missing `dynamic`).
+        # intentional (for resetting configurations that are missing `dynamic`).
 
 
 def _copy_command_options(pyproject: dict, dist: "Distribution", filename: _Path):
@@ -408,7 +409,7 @@ _RESET_PREVIOUSLY_DEFINED: dict = {
     "scripts": {},
     "gui-scripts": {},
     "dependencies": [],
-    "optional-dependencies": [],
+    "optional-dependencies": {},
 }
 
 
@@ -423,7 +424,7 @@ class _MissingDynamic(SetuptoolsWarning):
     According to the spec (see the link below), however, setuptools CANNOT
     consider this value unless `{field}` is listed as `dynamic`.
 
-    https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+    https://packaging.python.org/en/latest/specifications/pyproject-toml/#declaring-project-metadata-the-project-table
 
     To prevent this problem, you can list `{field}` under `dynamic` or alternatively
     remove the `[project]` table from your file and rely entirely on other means of

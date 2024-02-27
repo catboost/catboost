@@ -113,8 +113,7 @@ def glob0(dirname, basename):
 def glob2(dirname, pattern):
     assert _isrecursive(pattern)
     yield pattern[:0]
-    for x in _rlistdir(dirname):
-        yield x
+    yield from _rlistdir(dirname)
 
 
 # Recursively yields relative pathnames inside a literal directory.
@@ -126,7 +125,7 @@ def _rlistdir(dirname):
             dirname = os.curdir
     try:
         names = os.listdir(dirname)
-    except os.error:
+    except OSError:
         return
     for x in names:
         yield x
@@ -160,7 +159,7 @@ def escape(pathname):
     # Metacharacters do not work in the drive part and shouldn't be escaped.
     drive, pathname = os.path.splitdrive(pathname)
     if isinstance(pathname, bytes):
-        pathname = magic_check_bytes.sub(br'[\1]', pathname)
+        pathname = magic_check_bytes.sub(rb'[\1]', pathname)
     else:
         pathname = magic_check.sub(r'[\1]', pathname)
     return drive + pathname

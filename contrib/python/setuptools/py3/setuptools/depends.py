@@ -159,6 +159,8 @@ def extract_constant(code, symbol, default=-1):
         else:
             const = default
 
+    return None
+
 
 def _update_globals():
     """

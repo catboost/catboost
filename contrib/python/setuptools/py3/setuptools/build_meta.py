@@ -121,16 +121,16 @@ def _file_with_extension(directory, extension):
         raise ValueError(
             'No distribution was found. Ensure that `setup.py` '
             'is not empty and that it calls `setup()`.'
-        )
+        ) from None
     return file
 
 
 def _open_setup_script(setup_script):
     if not os.path.exists(setup_script):
         # Supply a default setup.py
-        return io.StringIO(u"from setuptools import setup; setup()")
+        return io.StringIO("from setuptools import setup; setup()")
 
-    return getattr(tokenize, 'open', open)(setup_script)
+    return tokenize.open(setup_script)
 
 
 @contextlib.contextmanager
@@ -477,7 +477,7 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
         sys.argv[0] = setup_script
 
         try:
-            super(_BuildMetaLegacyBackend, self).run_setup(setup_script=setup_script)
+            super().run_setup(setup_script=setup_script)
         finally:
             # While PEP 517 frontends should be calling each hook in a fresh
             # subprocess according to the standard (and thus it should not be

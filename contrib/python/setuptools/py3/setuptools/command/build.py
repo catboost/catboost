@@ -1,16 +1,7 @@
-import sys
-from typing import TYPE_CHECKING, List, Dict
+from typing import Dict, List, Protocol
 from distutils.command.build import build as _build
 
 from ..warnings import SetuptoolsDeprecationWarning
-
-if sys.version_info >= (3, 8):
-    from typing import Protocol
-elif TYPE_CHECKING:
-    from typing_extensions import Protocol
-else:
-    from abc import ABC as Protocol
-
 
 _ORIGINAL_SUBCOMMANDS = {"build_py", "build_clib", "build_ext", "build_scripts"}
 

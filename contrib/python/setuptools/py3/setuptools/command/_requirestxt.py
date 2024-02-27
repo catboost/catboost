@@ -6,6 +6,7 @@ The ``requires.txt`` file has an specific format:
 
 See https://setuptools.pypa.io/en/latest/deprecated/python_eggs.html#requires-txt
 """
+
 import io
 from collections import defaultdict
 from itertools import filterfalse
