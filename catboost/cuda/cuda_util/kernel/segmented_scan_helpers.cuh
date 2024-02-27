@@ -3,6 +3,8 @@
 #include "index_wrapper.cuh"
 #include <contrib/libs/nvidia/cub/cub/device/device_scan.cuh>
 
+#include <type_traits>
+
 namespace NKernel
 {
 
@@ -96,7 +98,7 @@ namespace NKernel
                                                                                     const ui32* __restrict index,
                                                                                     const ui32* __restrict end
         )
-        : Ptr(const_cast<typename cub::RemoveQualifiers<TQualifiedValueType>::Type*>(ptr))
+        : Ptr(const_cast<typename std::remove_cv<TQualifiedValueType>::type*>(ptr))
         , Index(index)
         , End(end) {
         }
@@ -229,8 +231,8 @@ namespace NKernel
         template <class TQualifiedValueType>
         __host__ __device__ __forceinline__ TSegmentedScanOutputIterator(TQualifiedValueType* ptr,
                                                                          TQualifiedValueType* end)
-                : Ptr(const_cast<typename cub::RemoveQualifiers<TQualifiedValueType>::Type*>(ptr))
-                , End(const_cast<typename cub::RemoveQualifiers<TQualifiedValueType>::Type*>(end)) {
+                : Ptr(const_cast<typename std::remove_cv<TQualifiedValueType>::type*>(ptr))
+                , End(const_cast<typename std::remove_cv<TQualifiedValueType>::type*>(end)) {
         }
 
         /// Postfix increment
