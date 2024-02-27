@@ -86,7 +86,7 @@ class AddExamplesCodemod(VisitorBasedCodemodCommand):
 
         # Codemod the failing examples to Call nodes usable as decorators
         self.fn_examples = {
-            k: tuple(self.__call_node_to_example_dec(ex, via) for ex, via in nodes)
+            k: tuple(d for x in nodes if (d := self.__call_node_to_example_dec(*x)))
             for k, nodes in fn_examples.items()
         }
 
@@ -116,10 +116,13 @@ class AddExamplesCodemod(VisitorBasedCodemodCommand):
             args=[cst.Arg(cst.SimpleString(repr(via)))],
         )
         if black:  # pragma: no branch
-            pretty = black.format_str(
-                cst.Module([]).code_for_node(via),
-                mode=black.FileMode(line_length=self.line_length),
-            )
+            try:
+                pretty = black.format_str(
+                    cst.Module([]).code_for_node(via),
+                    mode=black.FileMode(line_length=self.line_length),
+                )
+            except ImportError:
+                return None  # See https://github.com/psf/black/pull/4224
             via = cst.parse_expression(pretty.strip())
         return cst.Decorator(via)
 
