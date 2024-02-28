@@ -16,7 +16,9 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
 ### [Python interpreter](https://www.python.org/)
 
-  Python 3.x interpreter with [`six` package](https://pypi.org/project/six/) installed is required. Python is used in some auxiliary scripts and [`conan` package manager](#conan) uses it.
+  Python 3.x interpreter. Python is used in some auxiliary scripts and [`conan` package manager](#conan) uses it.
+
+  For revisions before [98df6bf](https://github.com/catboost/catboost/commit/98df6bf8d4e6ab054b75b727f8d758c3399f4867) python had to have [`six` package](https://pypi.org/project/six/) installed.
 
 ### [CMake](https://cmake.org/)
 
