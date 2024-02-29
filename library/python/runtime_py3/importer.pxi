@@ -9,7 +9,6 @@ import __res as __resource
 
 _b = lambda x: x if isinstance(x, bytes) else utf_8_encode(x)[0]
 _s = lambda x: x if isinstance(x, str) else utf_8_decode(x)[0]
-env_entry_point = b'Y_PYTHON_ENTRY_POINT'
 env_source_root = b'Y_PYTHON_SOURCE_ROOT'
 cfg_source_root = b'arcadia-source-root'
 env_extended_source_search = b'Y_PYTHON_EXTENDED_SOURCE_SEARCH'
@@ -17,12 +16,28 @@ res_ya_ide_venv = b'YA_IDE_VENV'
 executable = sys.executable or 'Y_PYTHON'
 sys.modules['run_import_hook'] = __resource
 
+def _probe(environ_dict, key, default_value=None):
+    """ Probe bytes and str variants for environ.
+    This is because in python3:
+    * _os (nt) on windows returns str,
+    * _os (posix) on linux return bytes
+    For more information check:
+    * https://github.com/python/cpython/blob/main/Lib/importlib/_bootstrap_external.py#L34
+    * YA-1700
+    """
+    keys = [_b(key), _s(key)]
+    for key in keys:
+        if key in environ_dict:
+            return _b(environ_dict[key])
+
+    return _b(default_value) if isinstance(default_value, str) else default_value
+
 # This is the prefix in contrib/tools/python3/Lib/ya.make.
 py_prefix = b'py/'
 py_prefix_len = len(py_prefix)
 
 YA_IDE_VENV = __resource.find(res_ya_ide_venv)
-Y_PYTHON_EXTENDED_SOURCE_SEARCH = _os.environ.get(env_extended_source_search) or YA_IDE_VENV
+Y_PYTHON_EXTENDED_SOURCE_SEARCH = _probe(_os.environ, env_extended_source_search) or YA_IDE_VENV
 
 
 def _init_venv():
@@ -64,7 +79,7 @@ def _init_venv():
 
 
 def _get_source_root():
-    env_value = _os.environ.get(env_source_root)
+    env_value = _probe(_os.environ, env_source_root)
     if env_value or not YA_IDE_VENV:
         return env_value
 
