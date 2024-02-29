@@ -18,9 +18,12 @@
 #pragma clang system_header
 
 
+#include <cub/detail/detect_cuda_runtime.cuh>
 #include <cub/detail/exec_check_disable.cuh>
 #include <cub/util_arch.cuh>
 #include <cub/util_namespace.cuh>
+
+#include <nv/target>
 
 #include <cuda_runtime_api.h>
 
@@ -36,33 +39,31 @@ namespace detail
 CUB_EXEC_CHECK_DISABLE
 CUB_RUNTIME_FUNCTION inline cudaError_t device_synchronize()
 {
-  cudaError_t result = cudaErrorUnknown;
+  cudaError_t result = cudaErrorNotSupported;
 
-  if (CUB_IS_HOST_CODE)
-  {
-#if CUB_INCLUDE_HOST_CODE
-    result = cudaDeviceSynchronize();
-#endif
-  }
-  else
-  {
-    // Device code with the CUDA runtime.
-#if defined(CUB_INCLUDE_DEVICE_CODE) && defined(CUB_RUNTIME_ENABLED)
+  // Device-side sync is only available under CDPv1:
+#if defined(CUB_DETAIL_CDPv1)
 
-#if defined(__CUDACC__) &&                                                     \
-  ((__CUDACC_VER_MAJOR__ > 11) ||                                              \
-   ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 6)))
-    // CUDA >= 11.6
-    result = __cudaDeviceSynchronizeDeprecationAvoidance();
-#else // CUDA < 11.6
-    result = cudaDeviceSynchronize();
+#if ((__CUDACC_VER_MAJOR__ > 11) ||                                            \
+     ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 6)))
+  // CUDA >= 11.6
+#define CUB_TMP_DEVICE_SYNC_IMPL                                               \
+  result = __cudaDeviceSynchronizeDeprecationAvoidance();
+#else // CUDA < 11.6:
+#define CUB_TMP_DEVICE_SYNC_IMPL result = cudaDeviceSynchronize();
 #endif
 
-#else // Device code without the CUDA runtime.
-    // Device side CUDA API calls are not supported in this configuration.
-    result = cudaErrorInvalidConfiguration;
-#endif
-  }
+#else // CDPv2 or no CDP:
+
+#define CUB_TMP_DEVICE_SYNC_IMPL /* unavailable */
+
+#endif // CDP version
+
+  NV_IF_TARGET(NV_IS_HOST,
+               (result = cudaDeviceSynchronize();),
+               (CUB_TMP_DEVICE_SYNC_IMPL));
+
+#undef CUB_TMP_DEVICE_SYNC_IMPL
 
   return result;
 }

@@ -138,27 +138,9 @@ struct AgentRadixSortDownsweep
     using ValuesItr = CacheModifiedInputIterator<LOAD_MODIFIER, ValueT, OffsetT>;
 
     // Radix ranking type to use
-    using BlockRadixRankT = cub::detail::conditional_t<
-      RANK_ALGORITHM == RADIX_RANK_BASIC,
-      BlockRadixRank<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, false, SCAN_ALGORITHM>,
-      cub::detail::conditional_t<
-        RANK_ALGORITHM == RADIX_RANK_MEMOIZE,
-        BlockRadixRank<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, true, SCAN_ALGORITHM>,
-        cub::detail::conditional_t<
-          RANK_ALGORITHM == RADIX_RANK_MATCH,
-          BlockRadixRankMatch<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, SCAN_ALGORITHM>,
-          cub::detail::conditional_t<
-            RANK_ALGORITHM == RADIX_RANK_MATCH_EARLY_COUNTS_ANY,
-            BlockRadixRankMatchEarlyCounts<BLOCK_THREADS,
-                                           RADIX_BITS,
-                                           IS_DESCENDING,
-                                           SCAN_ALGORITHM,
-                                           WARP_MATCH_ANY>,
-            BlockRadixRankMatchEarlyCounts<BLOCK_THREADS,
-                                           RADIX_BITS,
-                                           IS_DESCENDING,
-                                           SCAN_ALGORITHM,
-                                           WARP_MATCH_ATOMIC_OR>>>>>;
+    using BlockRadixRankT = 
+      cub::detail::block_radix_rank_t<
+        RANK_ALGORITHM, BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, SCAN_ALGORITHM>;
 
     // Digit extractor type
     using DigitExtractorT = BFEDigitExtractor<KeyT>;

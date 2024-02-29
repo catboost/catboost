@@ -117,7 +117,7 @@ template <
     typename    OffsetT,                    ///< Signed integer type for sequence offsets
     bool        HAS_ALPHA,                  ///< Whether the input parameter \p alpha is 1
     bool        HAS_BETA,                   ///< Whether the input parameter \p beta is 0
-    int         PTX_ARCH = CUB_PTX_ARCH>    ///< PTX compute capability
+    int         LEGACY_PTX_ARCH = 0>        ///< PTX compute capability (unused)
 struct AgentSpmv
 {
     //---------------------------------------------------------------------

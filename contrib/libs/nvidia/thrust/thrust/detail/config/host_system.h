@@ -25,25 +25,8 @@
 #define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_CPP
 #endif // THRUST_HOST_SYSTEM
 
-// XXX make the use of THRUST_HOST_BACKEND an error in Thrust 1.7
-// XXX eliminate the following in Thrust 1.7
-
-#define THRUST_HOST_BACKEND_CPP THRUST_HOST_SYSTEM_CPP
-#define THRUST_HOST_BACKEND_OMP THRUST_HOST_SYSTEM_OMP
-#define THRUST_HOST_BACKEND_TBB THRUST_HOST_SYSTEM_TBB
-
 #ifdef THRUST_HOST_BACKEND
-#  if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
-#    pragma message("------------------------------------------------------------------------------")
-#    pragma message("| WARNING: THRUST_HOST_BACKEND is deprecated; use THRUST_HOST_SYSTEM instead |")
-#    pragma message("------------------------------------------------------------------------------")
-#  else
-#    warning ------------------------------------------------------------------------------
-#    warning | WARNING: THRUST_HOST_BACKEND is deprecated; use THRUST_HOST_SYSTEM instead |
-#    warning ------------------------------------------------------------------------------
-#  endif // THRUST_HOST_COMPILER
-#  undef THRUST_HOST_SYSTEM
-#  define THRUST_HOST_SYSTEM THRUST_HOST_BACKEND
+#  error THRUST_HOST_BACKEND is no longer supported; use THRUST_HOST_SYSTEM instead.
 #endif // THRUST_HOST_BACKEND
 
 #if THRUST_HOST_SYSTEM == THRUST_HOST_SYSTEM_CPP

@@ -54,7 +54,7 @@ CUB_NAMESPACE_BEGIN
  *
  * \tparam T                        The reduction input/output element type
  * \tparam LOGICAL_WARP_THREADS     <b>[optional]</b> The number of threads per "logical" warp (may be less than the number of hardware warp threads).  Default is the warp size of the targeted CUDA compute-capability (e.g., 32 threads for SM20).
- * \tparam PTX_ARCH                 <b>[optional]</b> \ptxversion
+ * \tparam LEGACY_PTX_ARCH          <b>[optional]</b> Unused.
  *
  * \par Overview
  * - A <a href="http://en.wikipedia.org/wiki/Reduce_(higher-order_function)"><em>reduction</em></a> (or <em>fold</em>)
@@ -134,7 +134,7 @@ CUB_NAMESPACE_BEGIN
 template <
     typename    T,
     int         LOGICAL_WARP_THREADS    = CUB_PTX_WARP_THREADS,
-    int         PTX_ARCH                = CUB_PTX_ARCH>
+    int         LEGACY_PTX_ARCH         = 0>
 class WarpReduce
 {
 private:
@@ -146,7 +146,7 @@ private:
     enum
     {
         /// Whether the logical warp size and the PTX warp size coincide
-        IS_ARCH_WARP = (LOGICAL_WARP_THREADS == CUB_WARP_THREADS(PTX_ARCH)),
+        IS_ARCH_WARP = (LOGICAL_WARP_THREADS == CUB_WARP_THREADS(0)),
 
         /// Whether the logical warp size is a power-of-two
         IS_POW_OF_TWO = PowerOfTwo<LOGICAL_WARP_THREADS>::VALUE,
@@ -154,14 +154,14 @@ private:
 
 public:
 
-    #ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
+#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
 
     /// Internal specialization.
     /// Use SHFL-based reduction if LOGICAL_WARP_THREADS is a power-of-two
     using InternalWarpReduce = cub::detail::conditional_t<
       IS_POW_OF_TWO,
-      WarpReduceShfl<T, LOGICAL_WARP_THREADS, PTX_ARCH>,
-      WarpReduceSmem<T, LOGICAL_WARP_THREADS, PTX_ARCH>>;
+      WarpReduceShfl<T, LOGICAL_WARP_THREADS>,
+      WarpReduceSmem<T, LOGICAL_WARP_THREADS>>;
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -603,6 +603,71 @@ public:
 
 
     //@}  end member group
+};
+
+template <typename T, int LEGACY_PTX_ARCH>
+class WarpReduce<T, 1, LEGACY_PTX_ARCH>
+{
+private:
+  using _TempStorage = cub::NullType;
+
+public:
+  struct TempStorage : Uninitialized<_TempStorage>
+  {};
+
+  __device__ __forceinline__ WarpReduce(TempStorage & /*temp_storage */)
+  {}
+
+  __device__ __forceinline__ T Sum(T input) { return input; }
+
+  __device__ __forceinline__ T Sum(T input, int /* valid_items */)
+  {
+    return input;
+  }
+
+  template <typename FlagT>
+  __device__ __forceinline__ T HeadSegmentedSum(T input, FlagT /* head_flag */)
+  {
+    return input;
+  }
+
+  template <typename FlagT>
+  __device__ __forceinline__ T TailSegmentedSum(T input, FlagT /* tail_flag */)
+  {
+    return input;
+  }
+
+  template <typename ReductionOp>
+  __device__ __forceinline__ T Reduce(T input, ReductionOp /* reduction_op */)
+  {
+    return input;
+  }
+
+  template <typename ReductionOp>
+  __device__ __forceinline__ T Reduce(T input,
+                                      ReductionOp /* reduction_op */,
+                                      int /* valid_items */)
+  {
+    return input;
+  }
+
+  template <typename ReductionOp, typename FlagT>
+  __device__ __forceinline__ T
+  HeadSegmentedReduce(T input,
+                      FlagT /* head_flag */,
+                      ReductionOp /* reduction_op */)
+  {
+    return input;
+  }
+
+  template <typename ReductionOp, typename FlagT>
+  __device__ __forceinline__ T
+  TailSegmentedReduce(T input,
+                      FlagT /* tail_flag */,
+                      ReductionOp /* reduction_op */)
+  {
+    return input;
+  }
 };
 
 /** @} */       // end group WarpModule

@@ -48,7 +48,7 @@ template <typename Category>
               eval_if<
                 is_convertible<Category, output_host_iterator_tag>::value,
                 detail::identity_<incrementable_traversal_tag>,
-                void
+                detail::identity_<void>
               >
             >
           >
@@ -76,7 +76,7 @@ template <typename Category>
               eval_if<
                 is_convertible<Category, output_device_iterator_tag>::value,
                 detail::identity_<incrementable_traversal_tag>,
-                void
+                detail::identity_<void>
               >
             >
           >
@@ -107,7 +107,7 @@ template<typename Category>
           device_system_category_to_traversal<Category>,
 
           // unknown category
-          void
+          detail::identity_<void>
         >
       >
 {};

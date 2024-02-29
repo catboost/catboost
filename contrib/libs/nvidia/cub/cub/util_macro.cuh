@@ -34,9 +34,9 @@
 #pragma clang system_header
 
 
-#include "util_namespace.cuh"
+#include <cuda/std/utility>
 
-#include <utility>
+#include "util_namespace.cuh"
 
 CUB_NAMESPACE_BEGIN
 
@@ -61,17 +61,17 @@ CUB_NAMESPACE_BEGIN
 template <typename T, typename U>
 constexpr __host__ __device__ auto min CUB_PREVENT_MACRO_SUBSTITUTION(T &&t,
                                                                       U &&u)
-  -> decltype(t < u ? std::forward<T>(t) : std::forward<U>(u))
+  -> decltype(t < u ? ::cuda::std::forward<T>(t) : ::cuda::std::forward<U>(u))
 {
-  return t < u ? std::forward<T>(t) : std::forward<U>(u);
+  return t < u ? ::cuda::std::forward<T>(t) : ::cuda::std::forward<U>(u);
 }
 
 template <typename T, typename U>
 constexpr __host__ __device__ auto max CUB_PREVENT_MACRO_SUBSTITUTION(T &&t,
                                                                       U &&u)
-  -> decltype(t < u ? std::forward<U>(u) : std::forward<T>(t))
+  -> decltype(t < u ? ::cuda::std::forward<U>(u) : ::cuda::std::forward<T>(t))
 {
-  return t < u ? std::forward<U>(u) : std::forward<T>(t);
+  return t < u ? ::cuda::std::forward<U>(u) : ::cuda::std::forward<T>(t);
 }
 
 #ifndef CUB_MAX

@@ -270,24 +270,11 @@ struct IterateThreadLoad<MAX, MAX>
 /**
  * Define powers-of-two ThreadLoad specializations for the various Cache load modifiers
  */
-#if CUB_PTX_ARCH >= 200
-    _CUB_LOAD_ALL(LOAD_CA, ca)
-    _CUB_LOAD_ALL(LOAD_CG, cg)
-    _CUB_LOAD_ALL(LOAD_CS, cs)
-    _CUB_LOAD_ALL(LOAD_CV, cv)
-#else
-    _CUB_LOAD_ALL(LOAD_CA, global)
-    // Use volatile to ensure coherent reads when this PTX is JIT'd to run on newer architectures with L1
-    _CUB_LOAD_ALL(LOAD_CG, volatile.global)
-    _CUB_LOAD_ALL(LOAD_CS, global)
-    _CUB_LOAD_ALL(LOAD_CV, volatile.global)
-#endif
-
-#if CUB_PTX_ARCH >= 350
-    _CUB_LOAD_ALL(LOAD_LDG, global.nc)
-#else
-    _CUB_LOAD_ALL(LOAD_LDG, global)
-#endif
+_CUB_LOAD_ALL(LOAD_CA, ca)
+_CUB_LOAD_ALL(LOAD_CG, cg)
+_CUB_LOAD_ALL(LOAD_CS, cs)
+_CUB_LOAD_ALL(LOAD_CV, cv)
+_CUB_LOAD_ALL(LOAD_LDG, global.nc)
 
 
 // Macro cleanup

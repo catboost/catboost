@@ -140,19 +140,19 @@ class system_error
 
     /*! Destructor does not throw.
      */
-    inline virtual ~system_error(void) throw () {};
+    inline virtual ~system_error(void) noexcept {};
     
     /*! Returns an object encoding the error.
      *  \return <tt>ec</tt> or <tt>error_code(ev, ecat)</tt>, from the
      *          constructor, as appropriate.
      */
-    inline const error_code &code(void) const throw();
+    inline const error_code &code(void) const noexcept;
 
     /*! Returns a human-readable string indicating the nature of the error.
      *  \return a string incorporating <tt>code().message()</tt> and the
      *          arguments supplied in the constructor.
      */
-    inline const char *what(void) const throw();
+    inline const char *what(void) const noexcept;
 
     /*! \cond
      */

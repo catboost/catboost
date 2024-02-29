@@ -17,14 +17,13 @@
 #pragma once
 
 #include <thrust/detail/config.h>
+#include <thrust/detail/type_deduction.h>
+
+#include <nv/target>
+
 #include <limits>
 
-#if THRUST_CPP_DIALECT >= 2011
-  #include <thrust/detail/type_deduction.h>
-#endif
-
 THRUST_NAMESPACE_BEGIN
-
 namespace detail
 {
 
@@ -33,25 +32,23 @@ __host__ __device__ __thrust_forceinline__
 Integer clz(Integer x)
 {
   Integer result;
-  if (THRUST_IS_DEVICE_CODE) {
-    #if THRUST_INCLUDE_DEVICE_CODE
-      result = ::__clz(x);
-    #endif
-  } else {
-    #if THRUST_INCLUDE_HOST_CODE
-      int num_bits = 8 * sizeof(Integer);
-      int num_bits_minus_one = num_bits - 1;
-      result = num_bits;
-      for (int i = num_bits_minus_one; i >= 0; --i)
+
+  NV_IF_TARGET(NV_IS_DEVICE, (
+    result = ::__clz(x);
+  ), (
+    int num_bits = 8 * sizeof(Integer);
+    int num_bits_minus_one = num_bits - 1;
+    result = num_bits;
+    for (int i = num_bits_minus_one; i >= 0; --i)
+    {
+      if ((Integer(1) << i) & x)
       {
-        if ((Integer(1) << i) & x)
-        {
-          result = num_bits_minus_one - i;
-          break;
-        }
+        result = num_bits_minus_one - i;
+        break;
       }
-    #endif
-  }
+    }
+  ));
+
   return result;
 }
 

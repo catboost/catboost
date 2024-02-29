@@ -26,28 +26,71 @@
  ******************************************************************************/
 #pragma once
 
+
+#ifdef THRUST_DEBUG_SYNC
+#define THRUST_DEBUG_SYNC_FLAG true
+#define CUB_DEBUG_SYNC
+#else
+#define THRUST_DEBUG_SYNC_FLAG false
+#endif
+
+
 #include <thrust/detail/config.h>
 
 // We don't directly include <cub/version.cuh> since it doesn't exist in
 // older releases. This header will always pull in version info:
 #include <cub/util_namespace.cuh>
+#include <cub/util_debug.cuh>
 
-#if defined(__CUDACC__) || defined(_NVHPC_CUDA)
-#  if !defined(__CUDA_ARCH__) || (__CUDA_ARCH__>= 350 && defined(__CUDACC_RDC__))
-#    define __THRUST_HAS_CUDART__ 1
-#    define THRUST_RUNTIME_FUNCTION __host__ __device__ __forceinline__
-#  else
-#    define __THRUST_HAS_CUDART__ 0
-#    define THRUST_RUNTIME_FUNCTION __host__ __forceinline__
-#  endif
-#else
-#  define __THRUST_HAS_CUDART__ 0
-#  define THRUST_RUNTIME_FUNCTION __host__ __forceinline__
+#include <cub/detail/detect_cuda_runtime.cuh>
+
+/**
+ * \def THRUST_RUNTIME_FUNCTION
+ *
+ * Execution space for functions that can use the CUDA runtime API (`__host__`
+ * when RDC is off, `__host__ __device__` when RDC is on).
+ */
+#define THRUST_RUNTIME_FUNCTION CUB_RUNTIME_FUNCTION
+
+/**
+ * \def THRUST_RDC_ENABLED
+ *
+ * Defined if RDC is enabled.
+ */
+#ifdef CUB_RDC_ENABLED
+#define THRUST_RDC_ENABLED
 #endif
 
+/**
+ * \def __THRUST_HAS_CUDART__
+ *
+ * Whether or not the active compiler pass is allowed to invoke device kernels
+ * or methods from the CUDA runtime API.
+ *
+ * This macro should not be used in Thrust, as it depends on `__CUDA_ARCH__`
+ * and is not compatible with `NV_IF_TARGET`. It is provided for legacy
+ * purposes only.
+ *
+ * Replace any usages with `THRUST_RDC_ENABLED` and `NV_IF_TARGET`.
+ */
+#ifdef CUB_RUNTIME_ENABLED
+#define __THRUST_HAS_CUDART__ 1
+#else
+#define __THRUST_HAS_CUDART__ 0
+#endif
+
+// These definitions were intended for internal use only and are now obsolete.
+// If you relied on them, consider porting your code to use the functionality
+// in libcu++'s <nv/target> header.
+//
+// For a temporary workaround, define THRUST_PROVIDE_LEGACY_ARCH_MACROS to make
+// them available again. These should be considered deprecated and will be
+// fully removed in a future version.
+#ifdef THRUST_PROVIDE_LEGACY_ARCH_MACROS
 #ifdef __CUDA_ARCH__
 #define THRUST_DEVICE_CODE
-#endif
+#endif // __CUDA_ARCH__
+#endif // THRUST_PROVIDE_LEGACY_ARCH_MACROS
 
 #ifdef THRUST_AGENT_ENTRY_NOINLINE
 #define THRUST_AGENT_ENTRY_INLINE_ATTR __noinline__
@@ -64,12 +107,6 @@
 #define THRUST_AGENT_ENTRY(ARGS) THRUST_FUNCTION static void entry(THRUST_STRIP_PARENS(THRUST_ARGS ARGS))
 #else
 #define THRUST_AGENT_ENTRY(...) THRUST_AGENT_ENTRY_INLINE_ATTR __device__ static void entry(__VA_ARGS__)
-#endif
-
-#ifdef THRUST_DEBUG_SYNC
-#define THRUST_DEBUG_SYNC_FLAG true
-#else
-#define THRUST_DEBUG_SYNC_FLAG false
 #endif
 
 #ifndef THRUST_IGNORE_CUB_VERSION_CHECK

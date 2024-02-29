@@ -94,6 +94,35 @@ struct BlockRadixRankEmptyCallback
 };
 
 
+namespace detail
+{
+
+template <int Bits, int PartialWarpThreads, int PartialWarpId>
+struct warp_in_block_matcher_t
+{
+  static __device__ unsigned int match_any(unsigned int label, unsigned int warp_id)
+  {
+    if (warp_id == static_cast<unsigned int>(PartialWarpId)) 
+    {
+      return MatchAny<Bits, PartialWarpThreads>(label);
+    }
+
+    return MatchAny<Bits>(label);
+  }
+};
+
+template <int Bits, int PartialWarpId>
+struct warp_in_block_matcher_t<Bits, 0, PartialWarpId>
+{
+  static __device__ unsigned int match_any(unsigned int label, unsigned int warp_id)
+  {
+    return MatchAny<Bits>(label);
+  }
+};
+
+} // namespace detail
+
+
 /**
  * \brief BlockRadixRank provides operations for ranking unsigned integer types within a CUDA thread block.
  * \ingroup BlockModule
@@ -106,7 +135,7 @@ struct BlockRadixRankEmptyCallback
  * \tparam SMEM_CONFIG          <b>[optional]</b> Shared memory bank mode (default: \p cudaSharedMemBankSizeFourByte)
  * \tparam BLOCK_DIM_Y          <b>[optional]</b> The thread block length in threads along the Y dimension (default: 1)
  * \tparam BLOCK_DIM_Z          <b>[optional]</b> The thread block length in threads along the Z dimension (default: 1)
- * \tparam PTX_ARCH             <b>[optional]</b> \ptxversion
+ * \tparam LEGACY_PTX_ARCH      <b>[optional]</b> Unused.
  *
  * \par Overview
  * Blah...
@@ -116,17 +145,34 @@ struct BlockRadixRankEmptyCallback
  * \par Performance Considerations
  * - \granularity
  *
- * \par Examples
  * \par
- * - <b>Example 1:</b> Simple radix rank of 32-bit integer keys
- *      \code
- *      #include <cub/cub.cuh>
+ * \code
+ * #include <cub/cub.cuh>
  *
- *      template <int BLOCK_THREADS>
- *      __global__ void ExampleKernel(...)
- *      {
+ * __global__ void ExampleKernel(...)
+ * {
+ *   constexpr int block_threads = 2;
+ *   constexpr int radix_bits = 5;
  *
- *      \endcode
+ *   // Specialize BlockRadixRank for a 1D block of 2 threads 
+ *   using block_radix_rank = cub::BlockRadixRank<block_threads, radix_bits>;
+ *   using storage_t = typename block_radix_rank::TempStorage;
+ *
+ *   // Allocate shared memory for BlockRadixSort
+ *   __shared__ storage_t temp_storage;
+ *
+ *   // Obtain a segment of consecutive items that are blocked across threads
+ *   int keys[2];
+ *   int ranks[2];
+ *   ...
+ *
+ *   cub::BFEDigitExtractor<int> extractor(0, radix_bits);
+ *   block_radix_rank(temp_storage).RankKeys(keys, ranks, extractor);
+ *
+ *   ...
+ * \endcode
+ * Suppose the set of input `keys` across the block of threads is `{ [16,10], [9,11] }`.  
+ * The corresponding output `ranks` in those threads will be `{ [3,1], [0,2] }`.
  *
  * \par Re-using dynamically allocating shared memory
  * The following example under the examples/block folder illustrates usage of
@@ -140,12 +186,12 @@ template <
     int                     BLOCK_DIM_X,
     int                     RADIX_BITS,
     bool                    IS_DESCENDING,
-    bool                    MEMOIZE_OUTER_SCAN      = (CUB_PTX_ARCH >= 350) ? true : false,
+    bool                    MEMOIZE_OUTER_SCAN      = true,
     BlockScanAlgorithm      INNER_SCAN_ALGORITHM    = BLOCK_SCAN_WARP_SCANS,
     cudaSharedMemConfig     SMEM_CONFIG             = cudaSharedMemBankSizeFourByte,
     int                     BLOCK_DIM_Y             = 1,
     int                     BLOCK_DIM_Z             = 1,
-    int                     PTX_ARCH                = CUB_PTX_ARCH>
+    int                     LEGACY_PTX_ARCH         = 0>
 class BlockRadixRank
 {
 private:
@@ -170,7 +216,7 @@ private:
 
         RADIX_DIGITS                = 1 << RADIX_BITS,
 
-        LOG_WARP_THREADS            = CUB_LOG_WARP_THREADS(PTX_ARCH),
+        LOG_WARP_THREADS            = CUB_LOG_WARP_THREADS(0),
         WARP_THREADS                = 1 << LOG_WARP_THREADS,
         WARPS                       = (BLOCK_THREADS + WARP_THREADS - 1) / WARP_THREADS,
 
@@ -205,8 +251,7 @@ private:
             BLOCK_DIM_X,
             INNER_SCAN_ALGORITHM,
             BLOCK_DIM_Y,
-            BLOCK_DIM_Z,
-            PTX_ARCH>
+            BLOCK_DIM_Z>
         BlockScan;
 
 
@@ -510,7 +555,7 @@ template <
     BlockScanAlgorithm      INNER_SCAN_ALGORITHM    = BLOCK_SCAN_WARP_SCANS,
     int                     BLOCK_DIM_Y             = 1,
     int                     BLOCK_DIM_Z             = 1,
-    int                     PTX_ARCH                = CUB_PTX_ARCH>
+    int                     LEGACY_PTX_ARCH         = 0>
 class BlockRadixRankMatch
 {
 private:
@@ -529,8 +574,9 @@ private:
 
         RADIX_DIGITS                = 1 << RADIX_BITS,
 
-        LOG_WARP_THREADS            = CUB_LOG_WARP_THREADS(PTX_ARCH),
+        LOG_WARP_THREADS            = CUB_LOG_WARP_THREADS(0),
         WARP_THREADS                = 1 << LOG_WARP_THREADS,
+        PARTIAL_WARP_THREADS        = BLOCK_THREADS % WARP_THREADS,
         WARPS                       = (BLOCK_THREADS + WARP_THREADS - 1) / WARP_THREADS,
 
         PADDED_WARPS            = ((WARPS & 0x1) == 0) ?
@@ -560,8 +606,7 @@ private:
             BLOCK_THREADS,
             INNER_SCAN_ALGORITHM,
             BLOCK_DIM_Y,
-            BLOCK_DIM_Z,
-            PTX_ARCH>
+            BLOCK_DIM_Z>
         BlockScanT;
 
 
@@ -702,7 +747,11 @@ public:
                 digit = RADIX_DIGITS - digit - 1;
 
             // Mask of peers who have same digit as me
-            uint32_t peer_mask = MatchAny<RADIX_BITS>(digit);
+            uint32_t peer_mask =
+              detail::warp_in_block_matcher_t<
+                RADIX_BITS, 
+                PARTIAL_WARP_THREADS, 
+                WARPS - 1>::match_any(digit, warp_id);
 
             // Pointer to smem digit counter for this key
             digit_counters[ITEM] = &temp_storage.aliasable.warp_digit_counters[digit][warp_id];
@@ -848,7 +897,9 @@ struct BlockRadixRankMatchEarlyCounts
         BINS_TRACKED_PER_THREAD = BINS_PER_THREAD,
         FULL_BINS = BINS_PER_THREAD * BLOCK_THREADS == RADIX_DIGITS,
         WARP_THREADS = CUB_PTX_WARP_THREADS,
+        PARTIAL_WARP_THREADS = BLOCK_THREADS % WARP_THREADS,
         BLOCK_WARPS = BLOCK_THREADS / WARP_THREADS,
+        PARTIAL_WARP_ID = BLOCK_WARPS - 1,
         WARP_MASK = ~0,
         NUM_MATCH_MASKS = MATCH_ALGORITHM == WARP_MATCH_ATOMIC_OR ? BLOCK_WARPS : 0,
         // Guard against declaring zero-sized array:
@@ -1026,7 +1077,7 @@ struct BlockRadixRankMatchEarlyCounts
                     // atomic is a bit faster
                     warp_offset = atomicAdd(&warp_offsets[bin], popc);
                 }
-                warp_offset = SHFL_IDX_SYNC(warp_offset, leader, bin_mask);
+                warp_offset = SHFL_IDX_SYNC(warp_offset, leader, WARP_MASK);
                 if (lane == leader) *p_match_mask = 0;
                 WARP_SYNC(WARP_MASK);
                 ranks[u] = warp_offset + popc - 1;
@@ -1044,7 +1095,10 @@ struct BlockRadixRankMatchEarlyCounts
             for (int u = 0; u < KEYS_PER_THREAD; ++u)
             {
                 int bin = Digit(keys[u]);
-                int bin_mask = MatchAny<RADIX_BITS>(bin);
+                int bin_mask = detail::warp_in_block_matcher_t<RADIX_BITS,
+                                                               PARTIAL_WARP_THREADS,
+                                                               BLOCK_WARPS - 1>::match_any(bin,
+                                                                                           warp);
                 int leader = (WARP_THREADS - 1) - __clz(bin_mask);
                 int warp_offset = 0;
                 int popc = __popc(bin_mask & LaneMaskLe());
@@ -1053,7 +1107,7 @@ struct BlockRadixRankMatchEarlyCounts
                     // atomic is a bit faster
                     warp_offset = atomicAdd(&warp_offsets[bin], popc);
                 }
-                warp_offset = SHFL_IDX_SYNC(warp_offset, leader, bin_mask);
+                warp_offset = SHFL_IDX_SYNC(warp_offset, leader, WARP_MASK);
                 ranks[u] = warp_offset + popc - 1;
             }
         }
@@ -1127,6 +1181,47 @@ struct BlockRadixRankMatchEarlyCounts
         RankKeys(keys, ranks, digit_extractor, exclusive_digit_prefix);
     }
 };
+
+
+namespace detail 
+{
+
+// `BlockRadixRank` doesn't conform to the typical pattern, not exposing the algorithm 
+// template parameter. Other algorithms don't provide the same template parameters, not allowing 
+// multi-dimensional thread block specializations. 
+// 
+// TODO(senior-zero) for 3.0:
+// - Put existing implementations into the detail namespace
+// - Support multi-dimensional thread blocks in the rest of implementations
+// - Repurpose BlockRadixRank as an entry name with the algorithm template parameter
+template <RadixRankAlgorithm RankAlgorithm,
+          int BlockDimX,
+          int RadixBits,
+          bool IsDescending,
+          BlockScanAlgorithm ScanAlgorithm>
+using block_radix_rank_t = cub::detail::conditional_t<
+  RankAlgorithm == RADIX_RANK_BASIC,
+  BlockRadixRank<BlockDimX, RadixBits, IsDescending, false, ScanAlgorithm>,
+  cub::detail::conditional_t<
+    RankAlgorithm == RADIX_RANK_MEMOIZE,
+    BlockRadixRank<BlockDimX, RadixBits, IsDescending, true, ScanAlgorithm>,
+    cub::detail::conditional_t<
+      RankAlgorithm == RADIX_RANK_MATCH,
+      BlockRadixRankMatch<BlockDimX, RadixBits, IsDescending, ScanAlgorithm>,
+      cub::detail::conditional_t<
+        RankAlgorithm == RADIX_RANK_MATCH_EARLY_COUNTS_ANY,
+        BlockRadixRankMatchEarlyCounts<BlockDimX,
+                                       RadixBits,
+                                       IsDescending,
+                                       ScanAlgorithm,
+                                       WARP_MATCH_ANY>,
+        BlockRadixRankMatchEarlyCounts<BlockDimX,
+                                       RadixBits,
+                                       IsDescending,
+                                       ScanAlgorithm,
+                                       WARP_MATCH_ATOMIC_OR>>>>>;
+
+} // namespace detail
 
 
 CUB_NAMESPACE_END

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2018 NVIDIA Corporation
+ *  Copyright 2008-2022 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@
 
 #include <thrust/detail/config.h>
 
-#if THRUST_CPP_DIALECT >= 2011
-#  include <type_traits>
-#endif
+#include <cuda/std/type_traits>
+
+#include <type_traits>
 
 THRUST_NAMESPACE_BEGIN
 
@@ -47,7 +47,6 @@ namespace detail
      // We don't want to switch to std::integral_constant, because we want access
      // to the C++14 operator(), but we'd like standard traits to interoperate
      // with our version when tag dispatching.
-     #if THRUST_CPP_DIALECT >= 2011
      integral_constant() = default;
 
      integral_constant(integral_constant const&) = default;
@@ -56,7 +55,6 @@ namespace detail
 
      constexpr __host__ __device__
      integral_constant(std::integral_constant<T, v>) noexcept {}
-     #endif
 
      constexpr __host__ __device__ operator value_type() const noexcept { return value; }
      constexpr __host__ __device__ value_type operator()() const noexcept { return value; }
@@ -138,36 +136,14 @@ template<typename T> struct is_pod
  {};
 
 
-template<typename T> struct has_trivial_constructor
-  : public integral_constant<
-      bool,
-      is_pod<T>::value
-#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC || \
-    THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_CLANG
-      || __has_trivial_constructor(T)
-#elif THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_GCC
-// only use the intrinsic for >= 4.3
-#if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 3)
-      || __has_trivial_constructor(T)
-#endif // GCC VERSION
-#endif // THRUST_HOST_COMPILER
-      >
+template <typename T> 
+struct has_trivial_constructor
+  : public integral_constant<bool, is_pod<T>::value || ::cuda::std::is_trivially_constructible<T>::value> 
 {};
 
-template<typename T> struct has_trivial_copy_constructor
-  : public integral_constant<
-      bool,
-      is_pod<T>::value
-#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC || \
-    THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_CLANG
-      || __has_trivial_copy(T)
-#elif THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_GCC
-// only use the intrinsic for >= 4.3
-#if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 3)
-      || __has_trivial_copy(T)
-#endif // GCC VERSION
-#endif // THRUST_HOST_COMPILER
-    >
+template<typename T> 
+struct has_trivial_copy_constructor
+  : public integral_constant<bool, is_pod<T>::value || ::cuda::std::is_trivially_copyable<T>::value>
 {};
 
 template<typename T> struct has_trivial_destructor : public is_pod<T> {};
@@ -568,15 +544,7 @@ template<typename T>
 
 struct largest_available_float
 {
-#if defined(__CUDA_ARCH__)
-#  if (__CUDA_ARCH__ < 130)
-  typedef float type;
-#  else
   typedef double type;
-#  endif
-#else
-  typedef double type;
-#endif
 };
 
 // T1 wins if they are both the same size
@@ -722,6 +690,20 @@ template<typename T>
   >
   {
   };
+
+template <typename Invokable, typename... Args>
+using invoke_result_t =
+#if THRUST_CPP_DIALECT < 2017
+  typename ::cuda::std::result_of<Invokable(Args...)>::type;
+#else // 2017+
+  ::cuda::std::invoke_result_t<Invokable, Args...>;
+#endif
+
+template <class F, class... Us> 
+struct invoke_result
+{
+  using type = invoke_result_t<F, Us...>;
+};
 
 } // end detail
 

@@ -113,8 +113,7 @@ struct AgentSegmentFixup
       TILE_ITEMS       = BLOCK_THREADS * ITEMS_PER_THREAD,
 
       // Whether or not do fixup using RLE + global atomics
-      USE_ATOMIC_FIXUP = (CUB_PTX_ARCH >= 350) &&
-                         (std::is_same<ValueT, float>::value ||
+      USE_ATOMIC_FIXUP = (std::is_same<ValueT, float>::value ||
                           std::is_same<ValueT, int>::value ||
                           std::is_same<ValueT, unsigned int>::value ||
                           std::is_same<ValueT, unsigned long long>::value),

@@ -26,25 +26,8 @@
 #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #endif // THRUST_DEVICE_SYSTEM
 
-// XXX make the use of THRUST_DEVICE_BACKEND an error in Thrust 1.7
-// XXX eliminate the following in Thrust 1.7
-
-#define THRUST_DEVICE_BACKEND_CUDA THRUST_DEVICE_SYSTEM_CUDA
-#define THRUST_DEVICE_BACKEND_OMP  THRUST_DEVICE_SYSTEM_OMP
-#define THRUST_DEVICE_BACKEND_TBB  THRUST_DEVICE_SYSTEM_TBB
-
 #ifdef THRUST_DEVICE_BACKEND
-#  if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
-#    pragma message("----------------------------------------------------------------------------------")
-#    pragma message("| WARNING: THRUST_DEVICE_BACKEND is deprecated; use THRUST_DEVICE_SYSTEM instead |")
-#    pragma message("----------------------------------------------------------------------------------")
-#  else
-#    warning ----------------------------------------------------------------------------------
-#    warning | WARNING: THRUST_DEVICE_BACKEND is deprecated; use THRUST_DEVICE_SYSTEM instead |
-#    warning ----------------------------------------------------------------------------------
-#  endif // THRUST_HOST_COMPILER
-#  undef THRUST_DEVICE_SYSTEM
-#  define THRUST_DEVICE_SYSTEM THRUST_DEVICE_BACKEND
+#  error THRUST_DEVICE_BACKEND is no longer supported; use THRUST_DEVICE_SYSTEM instead.
 #endif // THRUST_DEVICE_BACKEND
 
 #if THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA

@@ -143,8 +143,8 @@ enum WarpLoadAlgorithm
  *   targeted CUDA compute-capability (e.g., 32 threads for SM86). Must be a
  *   power of two.
  *
- * @tparam PTX_ARCH
- *   <b>[optional]</b> \ptxversion
+ * @tparam LEGACY_PTX_ARCH
+ *   Unused.
  *
  * @par Overview
  * - The WarpLoad class provides a single data movement abstraction that can be
@@ -208,11 +208,10 @@ template <typename          InputT,
           int               ITEMS_PER_THREAD,
           WarpLoadAlgorithm ALGORITHM            = WARP_LOAD_DIRECT,
           int               LOGICAL_WARP_THREADS = CUB_PTX_WARP_THREADS,
-          int               PTX_ARCH             = CUB_PTX_ARCH>
+          int               LEGACY_PTX_ARCH      = 0>
 class WarpLoad
 {
-  constexpr static bool IS_ARCH_WARP = LOGICAL_WARP_THREADS ==
-                                       CUB_WARP_THREADS(PTX_ARCH);
+  constexpr static bool IS_ARCH_WARP = LOGICAL_WARP_THREADS == CUB_WARP_THREADS(0);
 
   static_assert(PowerOfTwo<LOGICAL_WARP_THREADS>::VALUE,
                 "LOGICAL_WARP_THREADS must be a power of two");
@@ -399,7 +398,7 @@ private:
   struct LoadInternal<WARP_LOAD_TRANSPOSE, DUMMY>
   {
     using WarpExchangeT =
-      WarpExchange<InputT, ITEMS_PER_THREAD, LOGICAL_WARP_THREADS, PTX_ARCH>;
+      WarpExchange<InputT, ITEMS_PER_THREAD, LOGICAL_WARP_THREADS>;
 
     struct _TempStorage : WarpExchangeT::TempStorage
     {};
