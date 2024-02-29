@@ -176,6 +176,14 @@ def to_jsonable(obj: object) -> object:
             for k, v in obj.items()
         }
 
+    # Hey, might as well try calling a .to_json() method - it works for Pandas!
+    # We try this before the below general-purpose handlers to give folks a
+    # chance to control this behavior on their custom classes.
+    try:
+        return to_jsonable(obj.to_json())  # type: ignore
+    except Exception:
+        pass
+
     # Special handling for dataclasses, attrs, and pydantic classes
     if (
         (dcs := sys.modules.get("dataclasses"))
@@ -187,12 +195,6 @@ def to_jsonable(obj: object) -> object:
         return to_jsonable(attr.asdict(obj, recurse=False))  # type: ignore
     if (pyd := sys.modules.get("pydantic")) and isinstance(obj, pyd.BaseModel):
         return to_jsonable(obj.model_dump())
-
-    # Hey, might as well try calling a .to_json() method - it works for Pandas!
-    try:
-        return to_jsonable(obj.to_json())  # type: ignore
-    except Exception:
-        pass
 
     # If all else fails, we'll just pretty-print as a string.
     return pretty(obj)
