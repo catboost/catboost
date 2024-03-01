@@ -12,6 +12,10 @@
 #include <new>
 #include <cstdlib>
 
+#ifdef __EMSCRIPTEN__
+#include <__memory/aligned_alloc.h>
+#endif
+
 #if !defined(_THROW_BAD_ALLOC) || !defined(_LIBCXXABI_WEAK)
 #error The _THROW_BAD_ALLOC and _LIBCXXABI_WEAK libc++ macros must \
        already be defined by libc++.
