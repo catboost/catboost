@@ -5,7 +5,6 @@ __all__ = ["TransformPen", "TransformPointPen"]
 
 
 class TransformPen(FilterPen):
-
     """Pen that transforms all coordinates using a Affine transformation,
     and passes them to another pen.
     """

@@ -2880,7 +2880,6 @@ class PrivateDict(BaseDict):
 
 
 class IndexedStrings(object):
-
     """SID -> string mapping."""
 
     def __init__(self, file=None):

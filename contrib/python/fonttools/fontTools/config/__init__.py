@@ -6,6 +6,7 @@ etc. If this file gets too big, split it into smaller files per-module.
 An instance of the Config class can be attached to a TTFont object, so that
 the various modules can access their configuration options from it.
 """
+
 from textwrap import dedent
 
 from fontTools.misc.configTools import *

@@ -17,7 +17,6 @@ from fontTools.pens.recordingPen import (
 
 
 class _TTGlyphSet(Mapping):
-
     """Generic dict-like GlyphSet class that pulls metrics from hmtx and
     glyph shape from TrueType or CFF.
     """
@@ -125,7 +124,6 @@ class _TTGlyphSetCFF(_TTGlyphSet):
 
 
 class _TTGlyph(ABC):
-
     """Glyph object that supports the Pen protocol, meaning that it has
     .draw() and .drawPoints() methods that take a pen object as their only
     argument. Additionally there are 'width' and 'lsb' attributes, read from

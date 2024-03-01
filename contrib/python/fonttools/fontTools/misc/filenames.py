@@ -17,7 +17,6 @@ by Tal Leming and is copyright (c) 2005-2016, The RoboFab Developers:
 -	Just van Rossum
 """
 
-
 illegalCharacters = r"\" * + / : < > ? [ \ ] | \0".split(" ")
 illegalCharacters += [chr(i) for i in range(1, 32)]
 illegalCharacters += [chr(0x7F)]

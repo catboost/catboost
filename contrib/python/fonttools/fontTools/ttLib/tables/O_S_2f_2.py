@@ -113,7 +113,6 @@ OS2_format_5_addition = bigendian + OS2_format_5_addition
 
 
 class table_O_S_2f_2(DefaultTable.DefaultTable):
-
     """the OS/2 table"""
 
     dependencies = ["head"]

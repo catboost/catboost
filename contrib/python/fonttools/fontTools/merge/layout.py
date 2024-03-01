@@ -169,20 +169,16 @@ otTables.BaseTagList.mergeMap = {
     "BaselineTag": sumLists,
 }
 
-otTables.GDEF.mergeMap = (
-    otTables.GSUB.mergeMap
-) = (
-    otTables.GPOS.mergeMap
-) = otTables.BASE.mergeMap = otTables.JSTF.mergeMap = otTables.MATH.mergeMap = {
+otTables.GDEF.mergeMap = otTables.GSUB.mergeMap = otTables.GPOS.mergeMap = (
+    otTables.BASE.mergeMap
+) = otTables.JSTF.mergeMap = otTables.MATH.mergeMap = {
     "*": mergeObjects,
     "Version": max,
 }
 
-ttLib.getTableClass("GDEF").mergeMap = ttLib.getTableClass(
-    "GSUB"
-).mergeMap = ttLib.getTableClass("GPOS").mergeMap = ttLib.getTableClass(
-    "BASE"
-).mergeMap = ttLib.getTableClass(
+ttLib.getTableClass("GDEF").mergeMap = ttLib.getTableClass("GSUB").mergeMap = (
+    ttLib.getTableClass("GPOS").mergeMap
+) = ttLib.getTableClass("BASE").mergeMap = ttLib.getTableClass(
     "JSTF"
 ).mergeMap = ttLib.getTableClass(
     "MATH"

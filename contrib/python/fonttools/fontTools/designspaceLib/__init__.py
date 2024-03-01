@@ -1434,9 +1434,9 @@ class BaseDocWriter(object):
         ):
             axesElement = ET.Element("axes")
             if self.documentObject.elidedFallbackName is not None:
-                axesElement.attrib[
-                    "elidedfallbackname"
-                ] = self.documentObject.elidedFallbackName
+                axesElement.attrib["elidedfallbackname"] = (
+                    self.documentObject.elidedFallbackName
+                )
             self.root.append(axesElement)
         for axisObject in self.documentObject.axes:
             self._addAxis(axisObject)
@@ -1776,17 +1776,17 @@ class BaseDocWriter(object):
         if instanceObject.filename is not None:
             instanceElement.attrib["filename"] = instanceObject.filename
         if instanceObject.postScriptFontName is not None:
-            instanceElement.attrib[
-                "postscriptfontname"
-            ] = instanceObject.postScriptFontName
+            instanceElement.attrib["postscriptfontname"] = (
+                instanceObject.postScriptFontName
+            )
         if instanceObject.styleMapFamilyName is not None:
-            instanceElement.attrib[
-                "stylemapfamilyname"
-            ] = instanceObject.styleMapFamilyName
+            instanceElement.attrib["stylemapfamilyname"] = (
+                instanceObject.styleMapFamilyName
+            )
         if instanceObject.styleMapStyleName is not None:
-            instanceElement.attrib[
-                "stylemapstylename"
-            ] = instanceObject.styleMapStyleName
+            instanceElement.attrib["stylemapstylename"] = (
+                instanceObject.styleMapStyleName
+            )
         if self.effectiveFormatTuple < (5, 0):
             # Deprecated members as of version 5.0
             if instanceObject.glyphs:

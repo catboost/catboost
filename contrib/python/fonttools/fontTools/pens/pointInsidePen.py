@@ -10,7 +10,6 @@ __all__ = ["PointInsidePen"]
 
 
 class PointInsidePen(BasePen):
-
     """This pen implements "point inside" testing: to test whether
     a given point lies inside the shape (black) or outside (white).
     Instances of this class can be recycled, as long as the

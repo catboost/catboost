@@ -1,5 +1,6 @@
 """Pen calculating area, center of mass, variance and standard-deviation,
 covariance and correlation, and slant, of glyph shapes."""
+
 from math import sqrt, degrees, atan
 from fontTools.pens.basePen import BasePen, OpenContourError
 from fontTools.pens.momentsPen import MomentsPen
@@ -52,7 +53,6 @@ class StatisticsBase:
 
 
 class StatisticsPen(StatisticsBase, MomentsPen):
-
     """Pen calculating area, center of mass, variance and
     standard-deviation, covariance and correlation, and slant,
     of glyph shapes.
@@ -91,7 +91,6 @@ class StatisticsPen(StatisticsBase, MomentsPen):
 
 
 class StatisticsControlPen(StatisticsBase, BasePen):
-
     """Pen calculating area, center of mass, variance and
     standard-deviation, covariance and correlation, and slant,
     of glyph shapes, using the control polygon only.

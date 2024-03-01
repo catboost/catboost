@@ -15,7 +15,6 @@ log = logging.getLogger(__name__)
 
 
 class TTFont(object):
-
     """Represents a TrueType font.
 
     The object manages file input and output, and offers a convenient way of
@@ -843,7 +842,6 @@ class TTFont(object):
 
 
 class GlyphOrder(object):
-
     """A pseudo table. The glyph order isn't in the font as a separate
     table, but it's nice to present it as such in the TTX format.
     """

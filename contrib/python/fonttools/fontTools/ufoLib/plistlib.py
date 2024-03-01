@@ -2,6 +2,7 @@
 for the old ufoLib.plistlib module, which was moved to fontTools.misc.plistlib.
 Please use the latter instead.
 """
+
 from fontTools.misc.plistlib import dump, dumps, load, loads
 from fontTools.misc.textTools import tobytes
 

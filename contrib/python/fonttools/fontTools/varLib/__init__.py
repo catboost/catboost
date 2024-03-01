@@ -18,6 +18,7 @@ Then you can make a variable-font this way:
 
 API *will* change in near future.
 """
+
 from typing import List
 from fontTools.misc.vector import Vector
 from fontTools.misc.roundTools import noRound, otRound
@@ -569,9 +570,11 @@ def _get_advance_metrics(
     sparse_advance = 0xFFFF
     for glyph in glyphOrder:
         vhAdvances = [
-            metrics[glyph][0]
-            if glyph in metrics and metrics[glyph][0] != sparse_advance
-            else None
+            (
+                metrics[glyph][0]
+                if glyph in metrics and metrics[glyph][0] != sparse_advance
+                else None
+            )
             for metrics in advMetricses
         ]
         vhAdvanceDeltasAndSupports[glyph] = masterModel.getDeltasAndSupports(

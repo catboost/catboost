@@ -9,7 +9,6 @@ class _PassThruComponentsMixin(object):
 
 
 class FilterPen(_PassThruComponentsMixin, AbstractPen):
-
     """Base class for pens that apply some transformation to the coordinates
     they receive and pass them to another pen.
 

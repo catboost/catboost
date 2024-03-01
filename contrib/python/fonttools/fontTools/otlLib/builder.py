@@ -1,6 +1,7 @@
 from collections import namedtuple, OrderedDict
 import os
 from fontTools.misc.fixedTools import fixedToFloat
+from fontTools.misc.roundTools import otRound
 from fontTools import ttLib
 from fontTools.ttLib.tables import otTables as ot
 from fontTools.ttLib.tables.otBase import (
@@ -2906,3 +2907,294 @@ def _addName(ttFont, value, minNameID=0, windows=True, mac=True):
     return nameTable.addMultilingualName(
         names, ttFont=ttFont, windows=windows, mac=mac, minNameID=minNameID
     )
+
+
+def buildMathTable(
+    ttFont,
+    constants=None,
+    italicsCorrections=None,
+    topAccentAttachments=None,
+    extendedShapes=None,
+    mathKerns=None,
+    minConnectorOverlap=0,
+    vertGlyphVariants=None,
+    horizGlyphVariants=None,
+    vertGlyphAssembly=None,
+    horizGlyphAssembly=None,
+):
+    """
+    Add a 'MATH' table to 'ttFont'.
+
+    'constants' is a dictionary of math constants. The keys are the constant
+    names from the MATH table specification (with capital first letter), and the
+    values are the constant values as numbers.
+
+    'italicsCorrections' is a dictionary of italic corrections. The keys are the
+    glyph names, and the values are the italic corrections as numbers.
+
+    'topAccentAttachments' is a dictionary of top accent attachments. The keys
+    are the glyph names, and the values are the top accent horizontal positions
+    as numbers.
+
+    'extendedShapes' is a set of extended shape glyphs.
+
+    'mathKerns' is a dictionary of math kerns. The keys are the glyph names, and
+    the values are dictionaries. The keys of these dictionaries are the side
+    names ('TopRight', 'TopLeft', 'BottomRight', 'BottomLeft'), and the values
+    are tuples of two lists. The first list contains the correction heights as
+    numbers, and the second list contains the kern values as numbers.
+
+    'minConnectorOverlap' is the minimum connector overlap as a number.
+
+    'vertGlyphVariants' is a dictionary of vertical glyph variants. The keys are
+    the glyph names, and the values are tuples of glyph name and full advance height.
+
+    'horizGlyphVariants' is a dictionary of horizontal glyph variants. The keys
+    are the glyph names, and the values are tuples of glyph name and full
+    advance width.
+
+    'vertGlyphAssembly' is a dictionary of vertical glyph assemblies. The keys
+    are the glyph names, and the values are tuples of assembly parts and italics
+    correction. The assembly parts are tuples of glyph name, flags, start
+    connector length, end connector length, and full advance height.
+
+    'horizGlyphAssembly' is a dictionary of horizontal glyph assemblies. The
+    keys are the glyph names, and the values are tuples of assembly parts
+    and italics correction. The assembly parts are tuples of glyph name, flags,
+    start connector length, end connector length, and full advance width.
+
+    Where a number is expected, an integer or a float can be used. The floats
+    will be rounded.
+
+    Example::
+
+        constants = {
+            "ScriptPercentScaleDown": 70,
+            "ScriptScriptPercentScaleDown": 50,
+            "DelimitedSubFormulaMinHeight": 24,
+            "DisplayOperatorMinHeight": 60,
+            ...
+        }
+        italicsCorrections = {
+            "fitalic-math": 100,
+            "fbolditalic-math": 120,
+            ...
+        }
+        topAccentAttachments = {
+            "circumflexcomb": 500,
+            "acutecomb": 400,
+            "A": 300,
+            "B": 340,
+            ...
+        }
+        extendedShapes = {"parenleft", "parenright", ...}
+        mathKerns = {
+            "A": {
+                "TopRight": ([-50, -100], [10, 20, 30]),
+                "TopLeft": ([50, 100], [10, 20, 30]),
+                ...
+            },
+            ...
+        }
+        vertGlyphVariants = {
+            "parenleft": [("parenleft", 700), ("parenleft.size1", 1000), ...],
+            "parenright": [("parenright", 700), ("parenright.size1", 1000), ...],
+            ...
+        }
+        vertGlyphAssembly = {
+            "braceleft": [
+                (
+                    ("braceleft.bottom", 0, 0, 200, 500),
+                    ("braceleft.extender", 1, 200, 200, 200)),
+                    ("braceleft.middle", 0, 100, 100, 700),
+                    ("braceleft.extender", 1, 200, 200, 200),
+                    ("braceleft.top", 0, 200, 0, 500),
+                ),
+                100,
+            ],
+            ...
+        }
+    """
+    glyphMap = ttFont.getReverseGlyphMap()
+
+    ttFont["MATH"] = math = ttLib.newTable("MATH")
+    math.table = table = ot.MATH()
+    table.Version = 0x00010000
+    table.populateDefaults()
+
+    table.MathConstants = _buildMathConstants(constants)
+    table.MathGlyphInfo = _buildMathGlyphInfo(
+        glyphMap,
+        italicsCorrections,
+        topAccentAttachments,
+        extendedShapes,
+        mathKerns,
+    )
+    table.MathVariants = _buildMathVariants(
+        glyphMap,
+        minConnectorOverlap,
+        vertGlyphVariants,
+        horizGlyphVariants,
+        vertGlyphAssembly,
+        horizGlyphAssembly,
+    )
+
+
+def _buildMathConstants(constants):
+    if not constants:
+        return None
+
+    mathConstants = ot.MathConstants()
+    for conv in mathConstants.getConverters():
+        value = otRound(constants.get(conv.name, 0))
+        if conv.tableClass:
+            assert issubclass(conv.tableClass, ot.MathValueRecord)
+            value = _mathValueRecord(value)
+        setattr(mathConstants, conv.name, value)
+    return mathConstants
+
+
+def _buildMathGlyphInfo(
+    glyphMap,
+    italicsCorrections,
+    topAccentAttachments,
+    extendedShapes,
+    mathKerns,
+):
+    if not any([extendedShapes, italicsCorrections, topAccentAttachments, mathKerns]):
+        return None
+
+    info = ot.MathGlyphInfo()
+    info.populateDefaults()
+
+    if italicsCorrections:
+        coverage = buildCoverage(italicsCorrections.keys(), glyphMap)
+        info.MathItalicsCorrectionInfo = ot.MathItalicsCorrectionInfo()
+        info.MathItalicsCorrectionInfo.Coverage = coverage
+        info.MathItalicsCorrectionInfo.ItalicsCorrectionCount = len(coverage.glyphs)
+        info.MathItalicsCorrectionInfo.ItalicsCorrection = [
+            _mathValueRecord(italicsCorrections[n]) for n in coverage.glyphs
+        ]
+
+    if topAccentAttachments:
+        coverage = buildCoverage(topAccentAttachments.keys(), glyphMap)
+        info.MathTopAccentAttachment = ot.MathTopAccentAttachment()
+        info.MathTopAccentAttachment.TopAccentCoverage = coverage
+        info.MathTopAccentAttachment.TopAccentAttachmentCount = len(coverage.glyphs)
+        info.MathTopAccentAttachment.TopAccentAttachment = [
+            _mathValueRecord(topAccentAttachments[n]) for n in coverage.glyphs
+        ]
+
+    if extendedShapes:
+        info.ExtendedShapeCoverage = buildCoverage(extendedShapes, glyphMap)
+
+    if mathKerns:
+        coverage = buildCoverage(mathKerns.keys(), glyphMap)
+        info.MathKernInfo = ot.MathKernInfo()
+        info.MathKernInfo.MathKernCoverage = coverage
+        info.MathKernInfo.MathKernCount = len(coverage.glyphs)
+        info.MathKernInfo.MathKernInfoRecords = []
+        for glyph in coverage.glyphs:
+            record = ot.MathKernInfoRecord()
+            for side in {"TopRight", "TopLeft", "BottomRight", "BottomLeft"}:
+                if side in mathKerns[glyph]:
+                    correctionHeights, kernValues = mathKerns[glyph][side]
+                    assert len(correctionHeights) == len(kernValues) - 1
+                    kern = ot.MathKern()
+                    kern.HeightCount = len(correctionHeights)
+                    kern.CorrectionHeight = [
+                        _mathValueRecord(h) for h in correctionHeights
+                    ]
+                    kern.KernValue = [_mathValueRecord(v) for v in kernValues]
+                    setattr(record, f"{side}MathKern", kern)
+            info.MathKernInfo.MathKernInfoRecords.append(record)
+
+    return info
+
+
+def _buildMathVariants(
+    glyphMap,
+    minConnectorOverlap,
+    vertGlyphVariants,
+    horizGlyphVariants,
+    vertGlyphAssembly,
+    horizGlyphAssembly,
+):
+    if not any(
+        [vertGlyphVariants, horizGlyphVariants, vertGlyphAssembly, horizGlyphAssembly]
+    ):
+        return None
+
+    variants = ot.MathVariants()
+    variants.populateDefaults()
+
+    variants.MinConnectorOverlap = minConnectorOverlap
+
+    if vertGlyphVariants or vertGlyphAssembly:
+        variants.VertGlyphCoverage, variants.VertGlyphConstruction = (
+            _buildMathGlyphConstruction(
+                glyphMap,
+                vertGlyphVariants,
+                vertGlyphAssembly,
+            )
+        )
+
+    if horizGlyphVariants or horizGlyphAssembly:
+        variants.HorizGlyphCoverage, variants.HorizGlyphConstruction = (
+            _buildMathGlyphConstruction(
+                glyphMap,
+                horizGlyphVariants,
+                horizGlyphAssembly,
+            )
+        )
+
+    return variants
+
+
+def _buildMathGlyphConstruction(glyphMap, variants, assemblies):
+    glyphs = set()
+    if variants:
+        glyphs.update(variants.keys())
+    if assemblies:
+        glyphs.update(assemblies.keys())
+    coverage = buildCoverage(glyphs, glyphMap)
+    constructions = []
+
+    for glyphName in coverage.glyphs:
+        construction = ot.MathGlyphConstruction()
+        construction.populateDefaults()
+
+        if variants and glyphName in variants:
+            construction.VariantCount = len(variants[glyphName])
+            construction.MathGlyphVariantRecord = []
+            for variantName, advance in variants[glyphName]:
+                record = ot.MathGlyphVariantRecord()
+                record.VariantGlyph = variantName
+                record.AdvanceMeasurement = otRound(advance)
+                construction.MathGlyphVariantRecord.append(record)
+
+        if assemblies and glyphName in assemblies:
+            parts, ic = assemblies[glyphName]
+            construction.GlyphAssembly = ot.GlyphAssembly()
+            construction.GlyphAssembly.ItalicsCorrection = _mathValueRecord(ic)
+            construction.GlyphAssembly.PartCount = len(parts)
+            construction.GlyphAssembly.PartRecords = []
+            for part in parts:
+                part_name, flags, start, end, advance = part
+                record = ot.GlyphPartRecord()
+                record.glyph = part_name
+                record.PartFlags = int(flags)
+                record.StartConnectorLength = otRound(start)
+                record.EndConnectorLength = otRound(end)
+                record.FullAdvance = otRound(advance)
+                construction.GlyphAssembly.PartRecords.append(record)
+
+        constructions.append(construction)
+
+    return coverage, constructions
+
+
+def _mathValueRecord(value):
+    value_record = ot.MathValueRecord()
+    value_record.Value = otRound(value)
+    return value_record
