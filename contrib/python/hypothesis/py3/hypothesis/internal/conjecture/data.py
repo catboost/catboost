@@ -1589,7 +1589,9 @@ class ConjectureData:
 
         if forced is not None:
             assert allow_nan or not math.isnan(forced)
-            assert math.isnan(forced) or min_value <= forced <= max_value
+            assert math.isnan(forced) or (
+                sign_aware_lte(min_value, forced) and sign_aware_lte(forced, max_value)
+            )
 
         kwargs: FloatKWargs = {
             "min_value": min_value,

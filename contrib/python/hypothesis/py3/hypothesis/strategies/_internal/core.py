@@ -2104,6 +2104,10 @@ def runner(*, default: Any = not_set) -> SearchStrategy[Any]:
     The exact meaning depends on the entry point, but it will usually be the
     associated 'self' value for it.
 
+    If you are using this in a rule for stateful testing, this strategy
+    will return the instance of the :class:`~hypothesis.stateful.RuleBasedStateMachine`
+    that the rule is running for.
+
     If there is no current test runner and a default is provided, return
     that default. If no default is provided, raises InvalidArgument.
 
