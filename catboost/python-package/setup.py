@@ -1,3 +1,4 @@
+import setuptools
 import distutils
 import itertools
 import os
@@ -14,7 +15,6 @@ from distutils import log
 import setuptools.command.build  # for SubCommand
 from setuptools.command.build import build as _build
 
-import setuptools
 from setuptools import setup, find_packages, Extension
 
 from setuptools.command.build_ext import build_ext as _build_ext
@@ -97,7 +97,7 @@ def setup_hnsw_submodule(argv, extensions):
 def get_setup_requires(argv):
     setup_requires = ['wheel']
     if ('build_widget' in argv) or (not ('--no-widget' in argv)):
-        setup_requires += ['jupyterlab']
+        setup_requires += ['jupyterlab (>=3.0.6, == 3.*)']
     return setup_requires
 
 
@@ -155,6 +155,7 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         os.path.join('contrib', 'tools', 'cython'),
         os.path.join('contrib', 'tools', 'flatc'),
         os.path.join('contrib', 'tools', 'protoc'),
+        os.path.join('contrib', 'tools', 'swig'),
         'tools',
         'util',
     ]

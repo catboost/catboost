@@ -22,10 +22,10 @@ target_link_libraries(catboost-libs-logging PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(catboost-libs-logging PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/logging/logging.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/logging/logging.cpp
 )
 generate_enum_serilization(catboost-libs-logging
-  ${CMAKE_SOURCE_DIR}/catboost/libs/logging/logging_level.h
+  ${PROJECT_SOURCE_DIR}/catboost/libs/logging/logging_level.h
   INCLUDE_HEADERS
   catboost/libs/logging/logging_level.h
 )

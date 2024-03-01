@@ -12,6 +12,7 @@ NOTE: Many of the methods of ndarray have corresponding functions.
 from numpy.core.function_base import add_newdoc
 from numpy.core.overrides import array_function_like_doc
 
+
 ###############################################################################
 #
 # flatiter
@@ -798,18 +799,18 @@ add_newdoc('numpy.core.multiarray', 'array',
     ----------
     object : array_like
         An array, any object exposing the array interface, an object whose
-        __array__ method returns an array, or any (nested) sequence.
+        ``__array__`` method returns an array, or any (nested) sequence.
         If object is a scalar, a 0-dimensional array containing object is
         returned.
     dtype : data-type, optional
-        The desired data-type for the array.  If not given, then the type will
-        be determined as the minimum type required to hold the objects in the
-        sequence.
+        The desired data-type for the array. If not given, NumPy will try to use
+        a default ``dtype`` that can represent the values (by applying promotion
+        rules when necessary.)
     copy : bool, optional
         If true (default), then the object is copied.  Otherwise, a copy will
-        only be made if __array__ returns a copy, if obj is a nested sequence,
-        or if a copy is needed to satisfy any of the other requirements
-        (`dtype`, `order`, etc.).
+        only be made if ``__array__`` returns a copy, if obj is a nested
+        sequence, or if a copy is needed to satisfy any of the other
+        requirements (``dtype``, ``order``, etc.).
     order : {'K', 'A', 'C', 'F'}, optional
         Specify the memory layout of the array. If object is not an array, the
         newly created array will be in C order (row major) unless 'F' is
@@ -858,7 +859,7 @@ add_newdoc('numpy.core.multiarray', 'array',
 
     Notes
     -----
-    When order is 'A' and `object` is an array in neither 'C' nor 'F' order,
+    When order is 'A' and ``object`` is an array in neither 'C' nor 'F' order,
     and a copy is forced by a change in dtype, then the order of the result is
     not necessarily 'C' as expected. This is likely a bug.
 
@@ -2703,6 +2704,12 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('nbytes',
     Does not include memory consumed by non-element attributes of the
     array object.
 
+    See Also
+    --------
+    sys.getsizeof
+        Memory consumed by the object itself without parents in case view.
+        This does include memory consumed by non-element attributes.
+
     Examples
     --------
     >>> x = np.zeros((3,5,2), dtype=np.complex128)
@@ -2928,7 +2935,7 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('T',
 
 
 add_newdoc('numpy.core.multiarray', 'ndarray', ('__array__',
-    """ a.__array__([dtype], /) -> reference if type unchanged, copy otherwise.
+    """ a.__array__([dtype], /)
 
     Returns either a new reference to self if dtype is not given or a new array
     of provided data type if dtype is different from the current dtype of the
@@ -2991,10 +2998,6 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('__class_getitem__',
     >>> np.ndarray[Any, np.dtype[Any]]
     numpy.ndarray[typing.Any, numpy.dtype[typing.Any]]
 
-    Notes
-    -----
-    This method is only available for python 3.9 and later.
-
     See Also
     --------
     :pep:`585` : Type hinting generics in standard collections.
@@ -3005,7 +3008,7 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('__class_getitem__',
 
 
 add_newdoc('numpy.core.multiarray', 'ndarray', ('__deepcopy__',
-    """a.__deepcopy__(memo, /) -> Deep copy of array.
+    """a.__deepcopy__(memo, /)
 
     Used if :func:`copy.deepcopy` is called on an array.
 
@@ -6008,8 +6011,8 @@ add_newdoc('numpy.core.multiarray', 'dtype', ('byteorder',
     >>> # '=' is the byteorder
     >>> import sys
     >>> sys_is_le = sys.byteorder == 'little'
-    >>> native_code = sys_is_le and '<' or '>'
-    >>> swapped_code = sys_is_le and '>' or '<'
+    >>> native_code = '<' if sys_is_le else '>'
+    >>> swapped_code = '>' if sys_is_le else '<'
     >>> dt = np.dtype(native_code + 'i2')
     >>> dt.byteorder
     '='
@@ -6448,8 +6451,8 @@ add_newdoc('numpy.core.multiarray', 'dtype', ('newbyteorder',
     --------
     >>> import sys
     >>> sys_is_le = sys.byteorder == 'little'
-    >>> native_code = sys_is_le and '<' or '>'
-    >>> swapped_code = sys_is_le and '>' or '<'
+    >>> native_code = '<' if sys_is_le else '>'
+    >>> swapped_code = '>' if sys_is_le else '<'
     >>> native_dt = np.dtype(native_code+'i2')
     >>> swapped_dt = np.dtype(swapped_code+'i2')
     >>> native_dt.newbyteorder('S') == swapped_dt
@@ -6494,10 +6497,6 @@ add_newdoc('numpy.core.multiarray', 'dtype', ('__class_getitem__',
 
     >>> np.dtype[np.int64]
     numpy.dtype[numpy.int64]
-
-    Notes
-    -----
-    This method is only available for python 3.9 and later.
 
     See Also
     --------
@@ -7007,10 +7006,6 @@ add_newdoc('numpy.core.numerictypes', 'number', ('__class_getitem__',
 
     >>> np.signedinteger[Any]
     numpy.signedinteger[typing.Any]
-
-    Notes
-    -----
-    This method is only available for python 3.9 and later.
 
     See Also
     --------

@@ -16,19 +16,19 @@ target_link_libraries(contrib-libs-lzmasdk PUBLIC
   contrib-libs-cxxsupp
 )
 target_sources(contrib-libs-lzmasdk PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/7zStream.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/Aes.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/AesOpt.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/Alloc.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/Bra.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/Bra86.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/BraIA64.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/CpuArch.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/LzFind.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/Lzma2Dec.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/Lzma2Enc.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/LzmaDec.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/LzmaEnc.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/LzmaLib.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lzmasdk/Sha256.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/7zStream.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Aes.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/AesOpt.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Alloc.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Bra.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Bra86.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/BraIA64.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/CpuArch.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/LzFind.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Lzma2Dec.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Lzma2Enc.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/LzmaDec.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/LzmaEnc.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/LzmaLib.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Sha256.c
 )

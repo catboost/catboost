@@ -77,7 +77,12 @@ class TJUnitProcessor : public ITestSuiteProcessor {
     struct TOutputCapturer;
 
 public:
-    TJUnitProcessor(TString file, TString exec);
+    enum class EOutputFormat {
+        Xml,
+        Json,
+    };
+
+    TJUnitProcessor(TString file, TString exec, EOutputFormat outputFormat);
     ~TJUnitProcessor();
 
     void SetForkTestsParams(bool forkTests, bool isForked) override;
@@ -111,9 +116,12 @@ private:
     }
 
     void SerializeToFile();
+    void SerializeToXml();
+    void SerializeToJson();
     void MergeSubprocessReport();
 
     TString BuildFileName(size_t index, const TStringBuf extension) const;
+    TStringBuf GetFileExtension() const;
     void MakeReportFileName();
     void MakeTmpFileNameForForkedTests();
     static void TransferFromCapturer(THolder<TJUnitProcessor::TOutputCapturer>& capturer, TString& out, IOutputStream& outStream);
@@ -125,6 +133,7 @@ private:
 private:
     const TString FileName; // cmd line param
     const TString ExecName; // cmd line param
+    const EOutputFormat OutputFormat;
     TString ResultReportFileName;
     TMaybe<TTempFile> TmpReportFile;
     TMap<TString, TTestSuite> Suites;

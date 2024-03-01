@@ -83,6 +83,14 @@ namespace NCB {
         for (const auto& featureMetaInfo : pool.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
             featureIds.emplace(featureMetaInfo.Name);
         }
+        THashSet<TString> auxiliaryColumnNames;
+        if (pool.MetaInfo.ColumnsInfo.Defined()) {
+            for (const auto& columnMetaInfo : pool.MetaInfo.ColumnsInfo->Columns) {
+                if (columnMetaInfo.Type == EColumn::Auxiliary && columnMetaInfo.Id) {
+                    auxiliaryColumnNames.insert(columnMetaInfo.Id);
+                }
+            }
+        }
 
         bool hasPrediction = false;
 
@@ -163,6 +171,9 @@ namespace NCB {
                     "column number " << columnNumber << " is out of range"
                 );
             } else {
+                if (auxiliaryColumnNames.contains(name)) {  // can add by Id
+                    continue;
+                }
                 CB_ENSURE(featureIds.contains(name), "Pool doesn't has column with name `" << name << "`.");
                 CB_ENSURE(
                     notQuantizedPool,
@@ -326,6 +337,15 @@ namespace NCB {
                         poolColumnsPrinter,
                         columnNumber,
                         columnName,
+                        docIdOffset
+                    )
+                );
+                *needColumnsPrinterPtr = true;
+            } else if (poolColumnsPrinter->ValidAuxiliaryColumn(outputColumn)) {
+                columnPrinter.push_back(
+                    MakeHolder<TAuxiliaryColumnPrinter>(
+                        poolColumnsPrinter,
+                        outputColumn,
                         docIdOffset
                     )
                 );

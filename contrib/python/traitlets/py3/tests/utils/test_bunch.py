@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from traitlets.utils.bunch import Bunch
 
 

@@ -10,7 +10,7 @@ import re
 import logging
 
 from .errors import DistutilsOptionError
-from . import util, dir_util, file_util, archive_util, dep_util
+from . import util, dir_util, file_util, archive_util, _modified
 from ._log import log
 
 
@@ -428,7 +428,7 @@ class Command:
         # If 'outfile' must be regenerated (either because it doesn't
         # exist, is out-of-date, or the 'force' flag is true) then
         # perform the action that presumably regenerates it
-        if self.force or dep_util.newer_group(infiles, outfile):
+        if self.force or _modified.newer_group(infiles, outfile):
             self.execute(func, args, exec_msg, level)
         # Otherwise, print the "skip" message
         else:

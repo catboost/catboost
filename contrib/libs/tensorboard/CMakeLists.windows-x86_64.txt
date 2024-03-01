@@ -86,23 +86,31 @@ target_link_libraries(contrib-libs-tensorboard PUBLIC
   contrib-libs-protobuf
 )
 target_proto_messages(contrib-libs-tensorboard PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/event.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/resource_handle.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/summary.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/tensor.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/tensor_shape.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tensorboard/types.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tensorboard/event.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tensorboard/resource_handle.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tensorboard/summary.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tensorboard/tensor.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tensorboard/tensor_shape.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tensorboard/types.proto
+)
+target_sources(contrib-libs-tensorboard PRIVATE
+  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/event.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/resource_handle.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/summary.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/tensor.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/tensor_shape.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/types.pb.h
 )
 target_proto_addincls(contrib-libs-tensorboard
   ./
-  ${CMAKE_SOURCE_DIR}/
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
+  ${PROJECT_SOURCE_DIR}/
+  ${PROJECT_BINARY_DIR}
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
+  ${PROJECT_BINARY_DIR}
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
 target_proto_outs(contrib-libs-tensorboard
-  --cpp_out=${CMAKE_BINARY_DIR}/
-  --cpp_styleguide_out=${CMAKE_BINARY_DIR}/
+  --cpp_out=${PROJECT_BINARY_DIR}/
+  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
 )

@@ -13,6 +13,7 @@ target_link_libraries(catboost-libs-loggers PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  catboost-libs-helpers
   catboost-libs-logging
   private-libs-options
   catboost-libs-metrics
@@ -21,7 +22,7 @@ target_link_libraries(catboost-libs-loggers PUBLIC
   cpp-json-writer
 )
 target_sources(catboost-libs-loggers PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/loggers/tensorboard_logger.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/loggers/catboost_logger_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/loggers/logger.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/loggers/tensorboard_logger.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/loggers/catboost_logger_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/loggers/logger.cpp
 )

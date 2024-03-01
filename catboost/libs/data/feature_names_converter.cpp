@@ -28,19 +28,30 @@ static void ConvertNamesIntoIndices(const TIndicesMapper& mapper,
     featuresArrayJson->Swap(featuresIndicesArrayJson);
 }
 
+
+static void AddIndicesFromNames(
+    TConstArrayRef<TColumn> columns,
+    TMap<TString, ui32>* indicesFromNames,
+    ui32* featureIdx
+) {
+    for (const auto& column : columns) {
+        if (IsFactorColumn(column.Type)) {
+            if (!column.Id.empty()) {
+                (*indicesFromNames)[column.Id] = *featureIdx;
+            }
+            ++(*featureIdx);
+        } else if (column.Type == EColumn::Features) {
+            AddIndicesFromNames(column.SubColumns, indicesFromNames, featureIdx);
+        }
+    }
+}
+
 TMap<TString, ui32> MakeIndicesFromNamesByCdFile(const NCB::TPathWithScheme& cdFilePath) {
     TMap<TString, ui32> indicesFromNames;
     if (cdFilePath.Inited()) {
         const TVector<TColumn> columns = ReadCD(cdFilePath, TCdParserDefaults(EColumn::Num));
         ui32 featureIdx = 0;
-        for (const auto& column : columns) {
-            if (IsFactorColumn(column.Type)) {
-                if (!column.Id.empty()) {
-                    indicesFromNames[column.Id] = featureIdx;
-                }
-                featureIdx++;
-            }
-        }
+        AddIndicesFromNames(columns, &indicesFromNames, &featureIdx);
     }
     return indicesFromNames;
 }
@@ -50,16 +61,20 @@ TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams
     return MakeIndicesFromNamesByCdFile(poolLoadParams.ColumnarPoolFormatParams.CdFilePath);
 }
 
-TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo) {
+TMap<TString, ui32> MakeIndicesFromNames(const NCB::TFeaturesLayout& featuresLayout) {
     TMap<TString, ui32> indicesFromNames;
-    ui32 columnIdx = 0;
-    for (const auto& columnInfo : metaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
-        if (!columnInfo.Name.empty()) {
-            indicesFromNames[columnInfo.Name] = columnIdx;
+    ui32 featureIdx = 0;
+    for (const auto& featureInfo : featuresLayout.GetExternalFeaturesMetaInfo()) {
+        if (!featureInfo.Name.empty()) {
+            indicesFromNames[featureInfo.Name] = featureIdx;
         }
-        columnIdx++;
+        featureIdx++;
     }
     return indicesFromNames;
+}
+
+TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo) {
+    return MakeIndicesFromNames(*metaInfo.FeaturesLayout);
 }
 
 static THashMap<TString, TVector<ui32>> MakeIndicesFromTagsFromPoolMetaInfo(const NCB::TPathWithScheme& poolMetaInfoPath) {
@@ -75,8 +90,12 @@ THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCatboostOptions::TPo
     return MakeIndicesFromTagsFromPoolMetaInfo(poolLoadParams.PoolMetaInfoPath);
 }
 
+THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TFeaturesLayout& featuresLayout) {
+    return featuresLayout.GetTagToExternalIndices();
+}
+
 THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TDataMetaInfo& metaInfo) {
-    return metaInfo.FeaturesLayout->GetTagToExternalIndices();
+    return MakeIndicesFromTags(*metaInfo.FeaturesLayout);
 }
 
 void ConvertFeaturesFromStringToIndices(const NCB::TPathWithScheme& cdFilePath, const NCB::TPathWithScheme& poolMetaInfoPath, NJson::TJsonValue* featuresArrayJson) {
@@ -165,7 +184,7 @@ void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolL
                 }
             }
         }
-        NCatboostOptions::TJsonFieldHelper<TVector<TVector<int>>>::Write(
+        TJsonFieldHelper<TVector<TVector<int>>>::Write(
             featuresToEvaluate,
             &(*catBoostJsonOptions)["features_to_evaluate"]);
     }
@@ -210,4 +229,3 @@ void AddFeatureNamesDependentParams(const NJson::TJsonValue& featureNamesDepende
         }
     }
 }
-

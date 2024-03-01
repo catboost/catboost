@@ -4,6 +4,7 @@
 #include "projection.h"
 
 #include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/model/fwd.h>
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/online_ctr.h>
@@ -24,6 +25,7 @@
 
 
 struct TDatasetDataForFinalCtrs;
+struct TMetricsAndTimeLeftHistory;
 
 namespace NCatboostOptions {
     class TCatBoostOptions;
@@ -79,6 +81,8 @@ namespace NCB {
             TFeatureEstimatorsPtr featureEstimators
         );
 
+        TCoreModelToFullModelConverter& WithMetrics(const TMetricsAndTimeLeftHistory& metrics);
+
         void Do(
             bool requiresStaticCtrProvider,
             TFullModel* dstModel,
@@ -127,6 +131,7 @@ namespace NCB {
 
         TFullModel* CoreModel = nullptr;
         const NCB::TPerfectHashedToHashedCatValuesMap* PerfectHashedToHashedCatValuesMap = nullptr;
+        const TMetricsAndTimeLeftHistory* MetricsAndTimeHistory = nullptr;
         TFeatureEstimatorsPtr FeatureEstimators = nullptr;
 
         TGetBinarizedDataFunc GetBinarizedDataFunc;

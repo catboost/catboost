@@ -8,6 +8,7 @@ __author__ = "Pierre GF Gerard-Marchant"
 
 import sys
 import warnings
+import copy
 import operator
 import itertools
 import textwrap
@@ -215,6 +216,8 @@ class TestMaskedArray:
         assert_(np.may_share_memory(x.mask, y.mask))
         y = array([1, 2, 3], mask=x._mask, copy=True)
         assert_(not np.may_share_memory(x.mask, y.mask))
+        x = array([1, 2, 3], mask=None)
+        assert_equal(x._mask, [False, False, False])
 
     def test_masked_singleton_array_creation_warns(self):
         # The first works, but should not (ideally), there may be no way
@@ -1307,8 +1310,8 @@ class TestMaskedArrayArithmetic:
         m1 = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
         xm = masked_array(x, mask=m1)
         xm.set_fill_value(1e+20)
-        float_dtypes = [np.half, np.single, np.double,
-                        np.longdouble, np.cfloat, np.cdouble, np.clongdouble]
+        float_dtypes = [np.float16, np.float32, np.float64, np.longdouble,
+                        np.complex64, np.complex128, np.clongdouble]
         for float_dtype in float_dtypes:
             assert_equal(masked_array(x, mask=m1, dtype=float_dtype).max(),
                          float_dtype(a10))
@@ -1351,16 +1354,16 @@ class TestMaskedArrayArithmetic:
         assert_equal(np.sum(x, axis=0), sum(x, axis=0))
         assert_equal(np.sum(filled(xm, 0), axis=0), sum(xm, axis=0))
         assert_equal(np.sum(x, 0), sum(x, 0))
-        assert_equal(np.product(x, axis=0), product(x, axis=0))
-        assert_equal(np.product(x, 0), product(x, 0))
-        assert_equal(np.product(filled(xm, 1), axis=0), product(xm, axis=0))
+        assert_equal(np.prod(x, axis=0), product(x, axis=0))
+        assert_equal(np.prod(x, 0), product(x, 0))
+        assert_equal(np.prod(filled(xm, 1), axis=0), product(xm, axis=0))
         s = (3, 4)
         x.shape = y.shape = xm.shape = ym.shape = s
         if len(s) > 1:
             assert_equal(np.concatenate((x, y), 1), concatenate((xm, ym), 1))
             assert_equal(np.add.reduce(x, 1), add.reduce(x, 1))
             assert_equal(np.sum(x, 1), sum(x, 1))
-            assert_equal(np.product(x, 1), product(x, 1))
+            assert_equal(np.prod(x, 1), product(x, 1))
 
     def test_binops_d2D(self):
         # Test binary operations on 2D data
@@ -1611,6 +1614,23 @@ class TestMaskedArrayArithmetic:
         assert_equal(test.mask, [[False, False], [False, True]])
         assert_(test.fill_value == True)
 
+    def test_eq_ne_structured_with_non_masked(self):
+        a = array([(1, 1), (2, 2), (3, 4)],
+                  mask=[(0, 1), (0, 0), (1, 1)], dtype='i4,i4')
+        eq = a == a.data
+        ne = a.data != a
+        # Test the obvious.
+        assert_(np.all(eq))
+        assert_(not np.any(ne))
+        # Expect the mask set only for items with all fields masked.
+        expected_mask = a.mask == np.ones((), a.mask.dtype)
+        assert_array_equal(eq.mask, expected_mask)
+        assert_array_equal(ne.mask, expected_mask)
+        # The masked element will indicated not equal, because the
+        # masks did not match.
+        assert_equal(eq.data, [True, True, False])
+        assert_array_equal(eq.data, ~ne.data)
+
     def test_eq_ne_structured_extra(self):
         # ensure simple examples are symmetric and make sense.
         # from https://github.com/numpy/numpy/pull/8590#discussion_r101126465
@@ -1741,6 +1761,23 @@ class TestMaskedArrayArithmetic:
         assert_equal(test.data, [False, False])
         assert_equal(test.mask, [True, False])
         assert_(test.fill_value == True)
+
+    @pytest.mark.parametrize("op", [operator.eq, operator.lt])
+    def test_eq_broadcast_with_unmasked(self, op):
+        a = array([0, 1], mask=[0, 1])
+        b = np.arange(10).reshape(5, 2)
+        result = op(a, b)
+        assert_(result.mask.shape == b.shape)
+        assert_equal(result.mask, np.zeros(b.shape, bool) | a.mask)
+
+    @pytest.mark.parametrize("op", [operator.eq, operator.gt])
+    def test_comp_no_mask_not_broadcast(self, op):
+        # Regression test for failing doctest in MaskedArray.nonzero
+        # after gh-24556.
+        a = array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        result = op(a, 3)
+        assert_(not result.mask.shape)
+        assert_(result.mask is nomask)
 
     @pytest.mark.parametrize('dt1', num_dts, ids=num_ids)
     @pytest.mark.parametrize('dt2', num_dts, ids=num_ids)
@@ -3441,7 +3478,7 @@ class TestMaskedArrayMethods:
         raveled = x.ravel(order)
         assert (raveled.filled(0) == 0).all()
 
-        # NOTE: Can be wrong if arr order is neither C nor F and `order="K"` 
+        # NOTE: Can be wrong if arr order is neither C nor F and `order="K"`
         assert_array_equal(arr.ravel(order), x.ravel(order)._data)
 
     def test_reshape(self):
@@ -4127,6 +4164,46 @@ class TestMaskedArrayMathMethods:
                          mask=np.zeros((10000, 10000)))
         assert_equal(a.mean(), 65535.0)
 
+    def test_diff_with_prepend(self):
+        # GH 22465
+        x = np.array([1, 2, 2, 3, 4, 2, 1, 1])
+
+        a = np.ma.masked_equal(x[3:], value=2)
+        a_prep = np.ma.masked_equal(x[:3], value=2)
+        diff1 = np.ma.diff(a, prepend=a_prep, axis=0)
+
+        b = np.ma.masked_equal(x, value=2)
+        diff2 = np.ma.diff(b, axis=0)
+
+        assert_(np.ma.allequal(diff1, diff2))
+
+    def test_diff_with_append(self):
+        # GH 22465
+        x = np.array([1, 2, 2, 3, 4, 2, 1, 1])
+
+        a = np.ma.masked_equal(x[:3], value=2)
+        a_app = np.ma.masked_equal(x[3:], value=2)
+        diff1 = np.ma.diff(a, append=a_app, axis=0)
+
+        b = np.ma.masked_equal(x, value=2)
+        diff2 = np.ma.diff(b, axis=0)
+
+        assert_(np.ma.allequal(diff1, diff2))
+
+    def test_diff_with_dim_0(self):
+        with pytest.raises(
+            ValueError,
+            match="diff requires input that is at least one dimensional"
+            ):
+            np.ma.diff(np.array(1))
+
+    def test_diff_with_n_0(self):
+        a = np.ma.masked_equal([1, 2, 2, 3, 4, 2, 1, 1], value=2)
+        diff = np.ma.diff(a, n=0, axis=0)
+
+        assert_(np.ma.allequal(a, diff))
+
+
 class TestMaskedArrayMathMethodsComplex:
     # Test class for miscellaneous MaskedArrays methods.
     def setup_method(self):
@@ -4500,7 +4577,7 @@ class TestMaskedArrayFunctions:
         x = np.arange(4, dtype=np.int32)
         y = np.arange(4, dtype=np.float32) * 2.2
         test = where(x > 1.5, y, x).dtype
-        control = np.find_common_type([np.int32, np.float32], [])
+        control = np.result_type(np.int32, np.float32)
         assert_equal(test, control)
 
     def test_where_broadcast(self):
@@ -5564,3 +5641,47 @@ note
 original note"""
 
     assert_equal(np.ma.core.doc_note(method.__doc__, "note"), expected_doc)
+
+
+def test_gh_22556():
+    source = np.ma.array([0, [0, 1, 2]], dtype=object)
+    deepcopy = copy.deepcopy(source)
+    deepcopy[1].append('this should not appear in source')
+    assert len(source[1]) == 3
+
+
+def test_gh_21022():
+    # testing for absence of reported error
+    source = np.ma.masked_array(data=[-1, -1], mask=True, dtype=np.float64)
+    axis = np.array(0)
+    result = np.prod(source, axis=axis, keepdims=False)
+    result = np.ma.masked_array(result,
+                                mask=np.ones(result.shape, dtype=np.bool_))
+    array = np.ma.masked_array(data=-1, mask=True, dtype=np.float64)
+    copy.deepcopy(array)
+    copy.deepcopy(result)
+
+
+def test_deepcopy_2d_obj():
+    source = np.ma.array([[0, "dog"],
+                          [1, 1],
+                          [[1, 2], "cat"]],
+                        mask=[[0, 1],
+                              [0, 0],
+                              [0, 0]],
+                        dtype=object)
+    deepcopy = copy.deepcopy(source)
+    deepcopy[2, 0].extend(['this should not appear in source', 3])
+    assert len(source[2, 0]) == 2
+    assert len(deepcopy[2, 0]) == 4
+    assert_equal(deepcopy._mask, source._mask)
+    deepcopy._mask[0, 0] = 1
+    assert source._mask[0, 0] == 0
+
+
+def test_deepcopy_0d_obj():
+    source = np.ma.array(0, mask=[0], dtype=object)
+    deepcopy = copy.deepcopy(source)
+    deepcopy[...] = 17
+    assert_equal(source, 0)
+    assert_equal(deepcopy, 17)

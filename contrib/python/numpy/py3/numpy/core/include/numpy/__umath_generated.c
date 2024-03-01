@@ -9,7 +9,9 @@
 #include "loops.h"
 #include "matmul.h"
 #include "clip.h"
+#include "dtypemeta.h"
 #include "_umath_doc_generated.h"
+
 static PyUFuncGenericFunction _arg_functions[] = {CFLOAT__arg, CDOUBLE__arg, CLONGDOUBLE__arg};
 static void * _arg_data[] = {(void *)NULL, (void *)NULL, (void *)NULL};
 static char _arg_signatures[] = {NPY_CFLOAT, NPY_FLOAT, NPY_CDOUBLE, NPY_DOUBLE, NPY_CLONGDOUBLE, NPY_LONGDOUBLE};
@@ -19,7 +21,7 @@ static char _ones_like_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, N
 static PyUFuncGenericFunction absolute_functions[] = {BOOL_absolute, BYTE_absolute, UBYTE_absolute, SHORT_absolute, USHORT_absolute, INT_absolute, UINT_absolute, LONG_absolute, ULONG_absolute, LONGLONG_absolute, ULONGLONG_absolute, HALF_absolute, FLOAT_absolute, DOUBLE_absolute, LONGDOUBLE_absolute, TIMEDELTA_absolute, CFLOAT_absolute, CDOUBLE_absolute, CLONGDOUBLE_absolute, NULL};
 static void * absolute_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char absolute_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_CFLOAT, NPY_FLOAT, NPY_CDOUBLE, NPY_DOUBLE, NPY_CLONGDOUBLE, NPY_LONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction add_functions[] = {BOOL_add, BYTE_add, UBYTE_add, SHORT_add, USHORT_add, INT_add, UINT_add, LONG_add, ULONG_add, LONGLONG_add, ULONGLONG_add, HALF_add, FLOAT_add, DOUBLE_add, LONGDOUBLE_add, CFLOAT_add, CDOUBLE_add, CLONGDOUBLE_add, DATETIME_Mm_M_add, TIMEDELTA_mm_m_add, DATETIME_mM_M_add, NULL};
+static PyUFuncGenericFunction add_functions[] = {BOOL_logical_or, BYTE_add, UBYTE_add, SHORT_add, USHORT_add, INT_add, UINT_add, LONG_add, ULONG_add, LONGLONG_add, ULONGLONG_add, HALF_add, FLOAT_add, DOUBLE_add, LONGDOUBLE_add, CFLOAT_add, CDOUBLE_add, CLONGDOUBLE_add, DATETIME_Mm_M_add, TIMEDELTA_mm_m_add, DATETIME_mM_M_add, NULL};
 static void * add_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char add_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_DATETIME, NPY_TIMEDELTA, NPY_DATETIME, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DATETIME, NPY_DATETIME, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction arccos_functions[] = {HALF_arccos, FLOAT_arccos, DOUBLE_arccos, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
@@ -43,13 +45,13 @@ static char arctan2_signatures[] = {NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY
 static PyUFuncGenericFunction arctanh_functions[] = {HALF_arctanh, FLOAT_arctanh, DOUBLE_arctanh, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 static void * arctanh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arctanh"};
 static char arctanh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction bitwise_and_functions[] = {BOOL_bitwise_and, BYTE_bitwise_and, UBYTE_bitwise_and, SHORT_bitwise_and, USHORT_bitwise_and, INT_bitwise_and, UINT_bitwise_and, LONG_bitwise_and, ULONG_bitwise_and, LONGLONG_bitwise_and, ULONGLONG_bitwise_and, NULL};
+static PyUFuncGenericFunction bitwise_and_functions[] = {BOOL_logical_and, BYTE_bitwise_and, UBYTE_bitwise_and, SHORT_bitwise_and, USHORT_bitwise_and, INT_bitwise_and, UINT_bitwise_and, LONG_bitwise_and, ULONG_bitwise_and, LONGLONG_bitwise_and, ULONGLONG_bitwise_and, NULL};
 static void * bitwise_and_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char bitwise_and_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction bitwise_or_functions[] = {BOOL_bitwise_or, BYTE_bitwise_or, UBYTE_bitwise_or, SHORT_bitwise_or, USHORT_bitwise_or, INT_bitwise_or, UINT_bitwise_or, LONG_bitwise_or, ULONG_bitwise_or, LONGLONG_bitwise_or, ULONGLONG_bitwise_or, NULL};
+static PyUFuncGenericFunction bitwise_or_functions[] = {BOOL_logical_or, BYTE_bitwise_or, UBYTE_bitwise_or, SHORT_bitwise_or, USHORT_bitwise_or, INT_bitwise_or, UINT_bitwise_or, LONG_bitwise_or, ULONG_bitwise_or, LONGLONG_bitwise_or, ULONGLONG_bitwise_or, NULL};
 static void * bitwise_or_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char bitwise_or_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction bitwise_xor_functions[] = {BOOL_bitwise_xor, BYTE_bitwise_xor, UBYTE_bitwise_xor, SHORT_bitwise_xor, USHORT_bitwise_xor, INT_bitwise_xor, UINT_bitwise_xor, LONG_bitwise_xor, ULONG_bitwise_xor, LONGLONG_bitwise_xor, ULONGLONG_bitwise_xor, NULL};
+static PyUFuncGenericFunction bitwise_xor_functions[] = {BOOL_not_equal, BYTE_bitwise_xor, UBYTE_bitwise_xor, SHORT_bitwise_xor, USHORT_bitwise_xor, INT_bitwise_xor, UINT_bitwise_xor, LONG_bitwise_xor, ULONG_bitwise_xor, LONGLONG_bitwise_xor, ULONGLONG_bitwise_xor, NULL};
 static void * bitwise_xor_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char bitwise_xor_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction cbrt_functions[] = {HALF_cbrt, FLOAT_cbrt, DOUBLE_cbrt, NULL, NULL, NULL, NULL, NULL};
@@ -85,9 +87,9 @@ static char divide_signatures[] = {NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_
 static PyUFuncGenericFunction divmod_functions[] = {BYTE_divmod, UBYTE_divmod, SHORT_divmod, USHORT_divmod, INT_divmod, UINT_divmod, LONG_divmod, ULONG_divmod, LONGLONG_divmod, ULONGLONG_divmod, HALF_divmod, FLOAT_divmod, DOUBLE_divmod, LONGDOUBLE_divmod, TIMEDELTA_mm_qm_divmod};
 static void * divmod_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char divmod_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_LONGLONG, NPY_TIMEDELTA};
-static PyUFuncGenericFunction equal_functions[] = {BOOL_equal, BYTE_equal, UBYTE_equal, SHORT_equal, USHORT_equal, INT_equal, UINT_equal, LONG_equal, ULONG_equal, LONGLONG_equal, ULONGLONG_equal, HALF_equal, FLOAT_equal, DOUBLE_equal, LONGDOUBLE_equal, CFLOAT_equal, CDOUBLE_equal, CLONGDOUBLE_equal, OBJECT_equal, TIMEDELTA_equal, DATETIME_equal, OBJECT_OO_O_equal, OBJECT_equal};
-static void * equal_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
-static char equal_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
+static PyUFuncGenericFunction equal_functions[] = {BOOL_equal, BYTE_equal, UBYTE_equal, SHORT_equal, USHORT_equal, INT_equal, UINT_equal, LONG_equal, ULONG_equal, LONGLONG_equal, ULONGLONG_equal, LONGLONG_qQ_bool_equal, LONGLONG_Qq_bool_equal, HALF_equal, FLOAT_equal, DOUBLE_equal, LONGDOUBLE_equal, CFLOAT_equal, CDOUBLE_equal, CLONGDOUBLE_equal, DATETIME_equal, TIMEDELTA_equal, OBJECT_equal, OBJECT_OO_O_equal};
+static void * equal_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
+static char equal_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_LONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction exp_functions[] = {HALF_exp, FLOAT_exp, DOUBLE_exp, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 static void * exp_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"exp"};
 static char exp_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
@@ -109,10 +111,10 @@ static char floor_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_
 static PyUFuncGenericFunction floor_divide_functions[] = {BYTE_divide, UBYTE_divide, SHORT_divide, USHORT_divide, INT_divide, UINT_divide, LONG_divide, ULONG_divide, LONGLONG_divide, ULONGLONG_divide, HALF_floor_divide, FLOAT_floor_divide, DOUBLE_floor_divide, LONGDOUBLE_floor_divide, TIMEDELTA_mq_m_floor_divide, TIMEDELTA_md_m_floor_divide, TIMEDELTA_mm_q_floor_divide, NULL};
 static void * floor_divide_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char floor_divide_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_TIMEDELTA, NPY_LONGLONG, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_LONGLONG, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction fmax_functions[] = {BOOL_fmax, BYTE_fmax, UBYTE_fmax, SHORT_fmax, USHORT_fmax, INT_fmax, UINT_fmax, LONG_fmax, ULONG_fmax, LONGLONG_fmax, ULONGLONG_fmax, HALF_fmax, FLOAT_fmax, DOUBLE_fmax, LONGDOUBLE_fmax, CFLOAT_fmax, CDOUBLE_fmax, CLONGDOUBLE_fmax, TIMEDELTA_fmax, DATETIME_fmax, NULL};
+static PyUFuncGenericFunction fmax_functions[] = {BOOL_logical_or, BYTE_fmax, UBYTE_fmax, SHORT_fmax, USHORT_fmax, INT_fmax, UINT_fmax, LONG_fmax, ULONG_fmax, LONGLONG_fmax, ULONGLONG_fmax, HALF_fmax, FLOAT_fmax, DOUBLE_fmax, LONGDOUBLE_fmax, CFLOAT_fmax, CDOUBLE_fmax, CLONGDOUBLE_fmax, TIMEDELTA_fmax, DATETIME_fmax, NULL};
 static void * fmax_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char fmax_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DATETIME, NPY_DATETIME, NPY_DATETIME, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction fmin_functions[] = {BOOL_fmin, BYTE_fmin, UBYTE_fmin, SHORT_fmin, USHORT_fmin, INT_fmin, UINT_fmin, LONG_fmin, ULONG_fmin, LONGLONG_fmin, ULONGLONG_fmin, HALF_fmin, FLOAT_fmin, DOUBLE_fmin, LONGDOUBLE_fmin, CFLOAT_fmin, CDOUBLE_fmin, CLONGDOUBLE_fmin, TIMEDELTA_fmin, DATETIME_fmin, NULL};
+static PyUFuncGenericFunction fmin_functions[] = {BOOL_logical_and, BYTE_fmin, UBYTE_fmin, SHORT_fmin, USHORT_fmin, INT_fmin, UINT_fmin, LONG_fmin, ULONG_fmin, LONGLONG_fmin, ULONGLONG_fmin, HALF_fmin, FLOAT_fmin, DOUBLE_fmin, LONGDOUBLE_fmin, CFLOAT_fmin, CDOUBLE_fmin, CLONGDOUBLE_fmin, TIMEDELTA_fmin, DATETIME_fmin, NULL};
 static void * fmin_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char fmin_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DATETIME, NPY_DATETIME, NPY_DATETIME, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction fmod_functions[] = {BYTE_fmod, UBYTE_fmod, SHORT_fmod, USHORT_fmod, INT_fmod, UINT_fmod, LONG_fmod, ULONG_fmod, LONGLONG_fmod, ULONGLONG_fmod, NULL, NULL, NULL, NULL, NULL};
@@ -124,19 +126,19 @@ static char frexp_signatures[] = {NPY_HALF, NPY_HALF, NPY_INT, NPY_FLOAT, NPY_FL
 static PyUFuncGenericFunction gcd_functions[] = {BYTE_gcd, UBYTE_gcd, SHORT_gcd, USHORT_gcd, INT_gcd, UINT_gcd, LONG_gcd, ULONG_gcd, LONGLONG_gcd, ULONGLONG_gcd, NULL};
 static void * gcd_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char gcd_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction greater_functions[] = {BOOL_greater, BYTE_greater, UBYTE_greater, SHORT_greater, USHORT_greater, INT_greater, UINT_greater, LONG_greater, ULONG_greater, LONGLONG_greater, ULONGLONG_greater, HALF_greater, FLOAT_greater, DOUBLE_greater, LONGDOUBLE_greater, CFLOAT_greater, CDOUBLE_greater, CLONGDOUBLE_greater, OBJECT_greater, TIMEDELTA_greater, DATETIME_greater, OBJECT_OO_O_greater, OBJECT_greater};
-static void * greater_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
-static char greater_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
-static PyUFuncGenericFunction greater_equal_functions[] = {BOOL_greater_equal, BYTE_greater_equal, UBYTE_greater_equal, SHORT_greater_equal, USHORT_greater_equal, INT_greater_equal, UINT_greater_equal, LONG_greater_equal, ULONG_greater_equal, LONGLONG_greater_equal, ULONGLONG_greater_equal, HALF_greater_equal, FLOAT_greater_equal, DOUBLE_greater_equal, LONGDOUBLE_greater_equal, CFLOAT_greater_equal, CDOUBLE_greater_equal, CLONGDOUBLE_greater_equal, OBJECT_greater_equal, TIMEDELTA_greater_equal, DATETIME_greater_equal, OBJECT_OO_O_greater_equal, OBJECT_greater_equal};
-static void * greater_equal_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
-static char greater_equal_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
+static PyUFuncGenericFunction greater_functions[] = {BOOL_greater, BYTE_greater, UBYTE_greater, SHORT_greater, USHORT_greater, INT_greater, UINT_greater, LONG_greater, ULONG_greater, LONGLONG_greater, ULONGLONG_greater, LONGLONG_qQ_bool_greater, LONGLONG_Qq_bool_greater, HALF_greater, FLOAT_greater, DOUBLE_greater, LONGDOUBLE_greater, CFLOAT_greater, CDOUBLE_greater, CLONGDOUBLE_greater, DATETIME_greater, TIMEDELTA_greater, OBJECT_greater, OBJECT_OO_O_greater};
+static void * greater_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
+static char greater_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_LONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction greater_equal_functions[] = {BOOL_greater_equal, BYTE_greater_equal, UBYTE_greater_equal, SHORT_greater_equal, USHORT_greater_equal, INT_greater_equal, UINT_greater_equal, LONG_greater_equal, ULONG_greater_equal, LONGLONG_greater_equal, ULONGLONG_greater_equal, LONGLONG_qQ_bool_greater_equal, LONGLONG_Qq_bool_greater_equal, HALF_greater_equal, FLOAT_greater_equal, DOUBLE_greater_equal, LONGDOUBLE_greater_equal, CFLOAT_greater_equal, CDOUBLE_greater_equal, CLONGDOUBLE_greater_equal, DATETIME_greater_equal, TIMEDELTA_greater_equal, OBJECT_greater_equal, OBJECT_OO_O_greater_equal};
+static void * greater_equal_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
+static char greater_equal_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_LONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction heaviside_functions[] = {NULL, NULL, NULL, NULL};
 static void * heaviside_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char heaviside_signatures[] = {NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE};
 static PyUFuncGenericFunction hypot_functions[] = {NULL, NULL, NULL, NULL, NULL};
 static void * hypot_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"hypot"};
 static char hypot_signatures[] = {NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction invert_functions[] = {BOOL_invert, BYTE_invert, UBYTE_invert, SHORT_invert, USHORT_invert, INT_invert, UINT_invert, LONG_invert, ULONG_invert, LONGLONG_invert, ULONGLONG_invert, NULL};
+static PyUFuncGenericFunction invert_functions[] = {BOOL_logical_not, BYTE_invert, UBYTE_invert, SHORT_invert, USHORT_invert, INT_invert, UINT_invert, LONG_invert, ULONG_invert, LONGLONG_invert, ULONGLONG_invert, NULL};
 static void * invert_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char invert_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction isfinite_functions[] = {BOOL_isfinite, BYTE_isfinite, UBYTE_isfinite, SHORT_isfinite, USHORT_isfinite, INT_isfinite, UINT_isfinite, LONG_isfinite, ULONG_isfinite, LONGLONG_isfinite, ULONGLONG_isfinite, HALF_isfinite, FLOAT_isfinite, DOUBLE_isfinite, LONGDOUBLE_isfinite, CFLOAT_isfinite, CDOUBLE_isfinite, CLONGDOUBLE_isfinite, TIMEDELTA_isfinite, DATETIME_isfinite};
@@ -160,12 +162,12 @@ static char ldexp_signatures[] = {NPY_HALF, NPY_INT, NPY_HALF, NPY_FLOAT, NPY_IN
 static PyUFuncGenericFunction left_shift_functions[] = {BYTE_left_shift, UBYTE_left_shift, SHORT_left_shift, USHORT_left_shift, INT_left_shift, UINT_left_shift, LONG_left_shift, ULONG_left_shift, LONGLONG_left_shift, ULONGLONG_left_shift, NULL};
 static void * left_shift_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char left_shift_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction less_functions[] = {BOOL_less, BYTE_less, UBYTE_less, SHORT_less, USHORT_less, INT_less, UINT_less, LONG_less, ULONG_less, LONGLONG_less, ULONGLONG_less, HALF_less, FLOAT_less, DOUBLE_less, LONGDOUBLE_less, CFLOAT_less, CDOUBLE_less, CLONGDOUBLE_less, OBJECT_less, TIMEDELTA_less, DATETIME_less, OBJECT_OO_O_less, OBJECT_less};
-static void * less_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
-static char less_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
-static PyUFuncGenericFunction less_equal_functions[] = {BOOL_less_equal, BYTE_less_equal, UBYTE_less_equal, SHORT_less_equal, USHORT_less_equal, INT_less_equal, UINT_less_equal, LONG_less_equal, ULONG_less_equal, LONGLONG_less_equal, ULONGLONG_less_equal, HALF_less_equal, FLOAT_less_equal, DOUBLE_less_equal, LONGDOUBLE_less_equal, CFLOAT_less_equal, CDOUBLE_less_equal, CLONGDOUBLE_less_equal, OBJECT_less_equal, TIMEDELTA_less_equal, DATETIME_less_equal, OBJECT_OO_O_less_equal, OBJECT_less_equal};
-static void * less_equal_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
-static char less_equal_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
+static PyUFuncGenericFunction less_functions[] = {BOOL_less, BYTE_less, UBYTE_less, SHORT_less, USHORT_less, INT_less, UINT_less, LONG_less, ULONG_less, LONGLONG_less, ULONGLONG_less, LONGLONG_qQ_bool_less, LONGLONG_Qq_bool_less, HALF_less, FLOAT_less, DOUBLE_less, LONGDOUBLE_less, CFLOAT_less, CDOUBLE_less, CLONGDOUBLE_less, DATETIME_less, TIMEDELTA_less, OBJECT_less, OBJECT_OO_O_less};
+static void * less_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
+static char less_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_LONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction less_equal_functions[] = {BOOL_less_equal, BYTE_less_equal, UBYTE_less_equal, SHORT_less_equal, USHORT_less_equal, INT_less_equal, UINT_less_equal, LONG_less_equal, ULONG_less_equal, LONGLONG_less_equal, ULONGLONG_less_equal, LONGLONG_qQ_bool_less_equal, LONGLONG_Qq_bool_less_equal, HALF_less_equal, FLOAT_less_equal, DOUBLE_less_equal, LONGDOUBLE_less_equal, CFLOAT_less_equal, CDOUBLE_less_equal, CLONGDOUBLE_less_equal, DATETIME_less_equal, TIMEDELTA_less_equal, OBJECT_less_equal, OBJECT_OO_O_less_equal};
+static void * less_equal_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
+static char less_equal_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_LONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction log_functions[] = {HALF_log, FLOAT_log, DOUBLE_log, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 static void * log_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"log"};
 static char log_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
@@ -193,22 +195,22 @@ static char logical_not_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BOOL, 
 static PyUFuncGenericFunction logical_or_functions[] = {BOOL_logical_or, BYTE_logical_or, UBYTE_logical_or, SHORT_logical_or, USHORT_logical_or, INT_logical_or, UINT_logical_or, LONG_logical_or, ULONG_logical_or, LONGLONG_logical_or, ULONGLONG_logical_or, HALF_logical_or, FLOAT_logical_or, DOUBLE_logical_or, LONGDOUBLE_logical_or, CFLOAT_logical_or, CDOUBLE_logical_or, CLONGDOUBLE_logical_or, NULL};
 static void * logical_or_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char logical_or_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction logical_xor_functions[] = {BOOL_logical_xor, BYTE_logical_xor, UBYTE_logical_xor, SHORT_logical_xor, USHORT_logical_xor, INT_logical_xor, UINT_logical_xor, LONG_logical_xor, ULONG_logical_xor, LONGLONG_logical_xor, ULONGLONG_logical_xor, HALF_logical_xor, FLOAT_logical_xor, DOUBLE_logical_xor, LONGDOUBLE_logical_xor, CFLOAT_logical_xor, CDOUBLE_logical_xor, CLONGDOUBLE_logical_xor, NULL};
+static PyUFuncGenericFunction logical_xor_functions[] = {BOOL_not_equal, BYTE_logical_xor, UBYTE_logical_xor, SHORT_logical_xor, USHORT_logical_xor, INT_logical_xor, UINT_logical_xor, LONG_logical_xor, ULONG_logical_xor, LONGLONG_logical_xor, ULONGLONG_logical_xor, HALF_logical_xor, FLOAT_logical_xor, DOUBLE_logical_xor, LONGDOUBLE_logical_xor, CFLOAT_logical_xor, CDOUBLE_logical_xor, CLONGDOUBLE_logical_xor, NULL};
 static void * logical_xor_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"logical_xor"};
 static char logical_xor_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction matmul_functions[] = {BOOL_matmul, BYTE_matmul, UBYTE_matmul, SHORT_matmul, USHORT_matmul, INT_matmul, UINT_matmul, LONG_matmul, ULONG_matmul, LONGLONG_matmul, ULONGLONG_matmul, HALF_matmul, FLOAT_matmul, DOUBLE_matmul, LONGDOUBLE_matmul, CFLOAT_matmul, CDOUBLE_matmul, CLONGDOUBLE_matmul, OBJECT_matmul};
 static void * matmul_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char matmul_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction maximum_functions[] = {BOOL_maximum, BYTE_maximum, UBYTE_maximum, SHORT_maximum, USHORT_maximum, INT_maximum, UINT_maximum, LONG_maximum, ULONG_maximum, LONGLONG_maximum, ULONGLONG_maximum, HALF_maximum, FLOAT_maximum, DOUBLE_maximum, LONGDOUBLE_maximum, CFLOAT_maximum, CDOUBLE_maximum, CLONGDOUBLE_maximum, TIMEDELTA_maximum, DATETIME_maximum, NULL};
+static PyUFuncGenericFunction maximum_functions[] = {BOOL_logical_or, BYTE_maximum, UBYTE_maximum, SHORT_maximum, USHORT_maximum, INT_maximum, UINT_maximum, LONG_maximum, ULONG_maximum, LONGLONG_maximum, ULONGLONG_maximum, HALF_maximum, FLOAT_maximum, DOUBLE_maximum, LONGDOUBLE_maximum, CFLOAT_maximum, CDOUBLE_maximum, CLONGDOUBLE_maximum, TIMEDELTA_maximum, DATETIME_maximum, NULL};
 static void * maximum_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char maximum_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DATETIME, NPY_DATETIME, NPY_DATETIME, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction minimum_functions[] = {BOOL_minimum, BYTE_minimum, UBYTE_minimum, SHORT_minimum, USHORT_minimum, INT_minimum, UINT_minimum, LONG_minimum, ULONG_minimum, LONGLONG_minimum, ULONGLONG_minimum, HALF_minimum, FLOAT_minimum, DOUBLE_minimum, LONGDOUBLE_minimum, CFLOAT_minimum, CDOUBLE_minimum, CLONGDOUBLE_minimum, TIMEDELTA_minimum, DATETIME_minimum, NULL};
+static PyUFuncGenericFunction minimum_functions[] = {BOOL_logical_and, BYTE_minimum, UBYTE_minimum, SHORT_minimum, USHORT_minimum, INT_minimum, UINT_minimum, LONG_minimum, ULONG_minimum, LONGLONG_minimum, ULONGLONG_minimum, HALF_minimum, FLOAT_minimum, DOUBLE_minimum, LONGDOUBLE_minimum, CFLOAT_minimum, CDOUBLE_minimum, CLONGDOUBLE_minimum, TIMEDELTA_minimum, DATETIME_minimum, NULL};
 static void * minimum_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char minimum_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DATETIME, NPY_DATETIME, NPY_DATETIME, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction modf_functions[] = {HALF_modf, FLOAT_modf, DOUBLE_modf, LONGDOUBLE_modf};
 static void * modf_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char modf_signatures[] = {NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE};
-static PyUFuncGenericFunction multiply_functions[] = {BOOL_multiply, BYTE_multiply, UBYTE_multiply, SHORT_multiply, USHORT_multiply, INT_multiply, UINT_multiply, LONG_multiply, ULONG_multiply, LONGLONG_multiply, ULONGLONG_multiply, HALF_multiply, FLOAT_multiply, DOUBLE_multiply, LONGDOUBLE_multiply, CFLOAT_multiply, CDOUBLE_multiply, CLONGDOUBLE_multiply, TIMEDELTA_mq_m_multiply, TIMEDELTA_qm_m_multiply, TIMEDELTA_md_m_multiply, TIMEDELTA_dm_m_multiply, NULL};
+static PyUFuncGenericFunction multiply_functions[] = {BOOL_logical_and, BYTE_multiply, UBYTE_multiply, SHORT_multiply, USHORT_multiply, INT_multiply, UINT_multiply, LONG_multiply, ULONG_multiply, LONGLONG_multiply, ULONGLONG_multiply, HALF_multiply, FLOAT_multiply, DOUBLE_multiply, LONGDOUBLE_multiply, CFLOAT_multiply, CDOUBLE_multiply, CLONGDOUBLE_multiply, TIMEDELTA_mq_m_multiply, TIMEDELTA_qm_m_multiply, TIMEDELTA_md_m_multiply, TIMEDELTA_dm_m_multiply, NULL};
 static void * multiply_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char multiply_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_TIMEDELTA, NPY_LONGLONG, NPY_TIMEDELTA, NPY_LONGLONG, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DOUBLE, NPY_TIMEDELTA, NPY_DOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction negative_functions[] = {BYTE_negative, UBYTE_negative, SHORT_negative, USHORT_negative, INT_negative, UINT_negative, LONG_negative, ULONG_negative, LONGLONG_negative, ULONGLONG_negative, HALF_negative, FLOAT_negative, DOUBLE_negative, LONGDOUBLE_negative, TIMEDELTA_negative, NULL, NULL, NULL, NULL};
@@ -217,9 +219,9 @@ static char negative_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, N
 static PyUFuncGenericFunction nextafter_functions[] = {HALF_nextafter, FLOAT_nextafter, DOUBLE_nextafter, LONGDOUBLE_nextafter};
 static void * nextafter_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char nextafter_signatures[] = {NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE};
-static PyUFuncGenericFunction not_equal_functions[] = {BOOL_not_equal, BYTE_not_equal, UBYTE_not_equal, SHORT_not_equal, USHORT_not_equal, INT_not_equal, UINT_not_equal, LONG_not_equal, ULONG_not_equal, LONGLONG_not_equal, ULONGLONG_not_equal, HALF_not_equal, FLOAT_not_equal, DOUBLE_not_equal, LONGDOUBLE_not_equal, CFLOAT_not_equal, CDOUBLE_not_equal, CLONGDOUBLE_not_equal, OBJECT_not_equal, TIMEDELTA_not_equal, DATETIME_not_equal, OBJECT_OO_O_not_equal, OBJECT_not_equal};
-static void * not_equal_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
-static char not_equal_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
+static PyUFuncGenericFunction not_equal_functions[] = {BOOL_not_equal, BYTE_not_equal, UBYTE_not_equal, SHORT_not_equal, USHORT_not_equal, INT_not_equal, UINT_not_equal, LONG_not_equal, ULONG_not_equal, LONGLONG_not_equal, ULONGLONG_not_equal, LONGLONG_qQ_bool_not_equal, LONGLONG_Qq_bool_not_equal, HALF_not_equal, FLOAT_not_equal, DOUBLE_not_equal, LONGDOUBLE_not_equal, CFLOAT_not_equal, CDOUBLE_not_equal, CLONGDOUBLE_not_equal, DATETIME_not_equal, TIMEDELTA_not_equal, OBJECT_not_equal, OBJECT_OO_O_not_equal};
+static void * not_equal_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
+static char not_equal_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BOOL, NPY_UBYTE, NPY_UBYTE, NPY_BOOL, NPY_SHORT, NPY_SHORT, NPY_BOOL, NPY_USHORT, NPY_USHORT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_UINT, NPY_UINT, NPY_BOOL, NPY_LONG, NPY_LONG, NPY_BOOL, NPY_ULONG, NPY_ULONG, NPY_BOOL, NPY_LONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_LONGLONG, NPY_ULONGLONG, NPY_BOOL, NPY_ULONGLONG, NPY_LONGLONG, NPY_BOOL, NPY_HALF, NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_BOOL, NPY_CFLOAT, NPY_CFLOAT, NPY_BOOL, NPY_CDOUBLE, NPY_CDOUBLE, NPY_BOOL, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_BOOL, NPY_DATETIME, NPY_DATETIME, NPY_BOOL, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_BOOL, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction positive_functions[] = {BYTE_positive, UBYTE_positive, SHORT_positive, USHORT_positive, INT_positive, UINT_positive, LONG_positive, ULONG_positive, LONGLONG_positive, ULONGLONG_positive, HALF_positive, FLOAT_positive, DOUBLE_positive, LONGDOUBLE_positive, TIMEDELTA_positive, NULL, NULL, NULL, NULL};
 static void * positive_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char positive_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
@@ -277,6 +279,10 @@ static char tanh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_D
 static PyUFuncGenericFunction trunc_functions[] = {NULL, FLOAT_trunc, DOUBLE_trunc, NULL, NULL, NULL, NULL};
 static void * trunc_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char trunc_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+/* Returns a borrowed ref of the second value in the matching info tuple */
+PyObject *
+get_info_no_cast(PyUFuncObject *ufunc, PyArray_DTypeMeta *op_dtype,
+                 int ndtypes);
 
 static int
 InitOperators(PyObject *dictionary) {
@@ -284,80 +290,8 @@ InitOperators(PyObject *dictionary) {
 
     _ones_like_functions[20] = PyUFunc_O_O;
     _ones_like_data[20] = (void *) Py_get_one;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512F
-    if (NPY_CPU_HAVE(AVX512F)) {
-        absolute_functions[16] = CFLOAT_absolute_avx512f;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512F
-    if (NPY_CPU_HAVE(AVX512F)) {
-        absolute_functions[17] = CDOUBLE_absolute_avx512f;
-    }
-    #endif
-    
     absolute_functions[19] = PyUFunc_O_O;
     absolute_data[19] = (void *) PyNumber_Absolute;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        add_functions[1] = BYTE_add_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        add_functions[2] = UBYTE_add_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        add_functions[3] = SHORT_add_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        add_functions[4] = USHORT_add_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        add_functions[5] = INT_add_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        add_functions[6] = UINT_add_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        add_functions[7] = LONG_add_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        add_functions[8] = ULONG_add_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        add_functions[9] = LONGLONG_add_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        add_functions[10] = ULONGLONG_add_avx2;
-    }
-    #endif
-    
     add_functions[21] = PyUFunc_OO_O;
     add_data[21] = (void *) PyNumber_Add;
     arccos_functions[3] = PyUFunc_e_e_As_f_f;
@@ -455,190 +389,10 @@ InitOperators(PyObject *dictionary) {
     arctanh_functions[9] = PyUFunc_G_G;
     arctanh_data[9] = (void *) nc_atanhl;
     arctanh_functions[10] = PyUFunc_O_O_method;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_and_functions[1] = BYTE_bitwise_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_and_functions[2] = UBYTE_bitwise_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_and_functions[3] = SHORT_bitwise_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_and_functions[4] = USHORT_bitwise_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_and_functions[5] = INT_bitwise_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_and_functions[6] = UINT_bitwise_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_and_functions[7] = LONG_bitwise_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_and_functions[8] = ULONG_bitwise_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_and_functions[9] = LONGLONG_bitwise_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_and_functions[10] = ULONGLONG_bitwise_and_avx2;
-    }
-    #endif
-    
     bitwise_and_functions[11] = PyUFunc_OO_O;
     bitwise_and_data[11] = (void *) PyNumber_And;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_or_functions[1] = BYTE_bitwise_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_or_functions[2] = UBYTE_bitwise_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_or_functions[3] = SHORT_bitwise_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_or_functions[4] = USHORT_bitwise_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_or_functions[5] = INT_bitwise_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_or_functions[6] = UINT_bitwise_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_or_functions[7] = LONG_bitwise_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_or_functions[8] = ULONG_bitwise_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_or_functions[9] = LONGLONG_bitwise_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_or_functions[10] = ULONGLONG_bitwise_or_avx2;
-    }
-    #endif
-    
     bitwise_or_functions[11] = PyUFunc_OO_O;
     bitwise_or_data[11] = (void *) PyNumber_Or;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_xor_functions[1] = BYTE_bitwise_xor_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_xor_functions[2] = UBYTE_bitwise_xor_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_xor_functions[3] = SHORT_bitwise_xor_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_xor_functions[4] = USHORT_bitwise_xor_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_xor_functions[5] = INT_bitwise_xor_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_xor_functions[6] = UINT_bitwise_xor_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_xor_functions[7] = LONG_bitwise_xor_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_xor_functions[8] = ULONG_bitwise_xor_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_xor_functions[9] = LONGLONG_bitwise_xor_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        bitwise_xor_functions[10] = ULONGLONG_bitwise_xor_avx2;
-    }
-    #endif
-    
     bitwise_xor_functions[11] = PyUFunc_OO_O;
     bitwise_xor_data[11] = (void *) PyNumber_Xor;
     cbrt_functions[3] = PyUFunc_e_e_As_f_f;
@@ -662,78 +416,6 @@ InitOperators(PyObject *dictionary) {
     ceil_data[6] = (void *) npy_ObjectCeil;
     clip_functions[20] = PyUFunc_OOO_O;
     clip_data[20] = (void *) npy_ObjectClip;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        conjugate_functions[0] = BYTE_conjugate_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        conjugate_functions[1] = UBYTE_conjugate_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        conjugate_functions[2] = SHORT_conjugate_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        conjugate_functions[3] = USHORT_conjugate_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        conjugate_functions[4] = INT_conjugate_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        conjugate_functions[5] = UINT_conjugate_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        conjugate_functions[6] = LONG_conjugate_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        conjugate_functions[7] = ULONG_conjugate_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        conjugate_functions[8] = LONGLONG_conjugate_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        conjugate_functions[9] = ULONGLONG_conjugate_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512F
-    if (NPY_CPU_HAVE(AVX512F)) {
-        conjugate_functions[14] = CFLOAT_conjugate_avx512f;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512F
-    if (NPY_CPU_HAVE(AVX512F)) {
-        conjugate_functions[15] = CDOUBLE_conjugate_avx512f;
-    }
-    #endif
-    
     conjugate_functions[17] = PyUFunc_O_O_method;
     cos_functions[3] = PyUFunc_g_g;
     cos_data[3] = (void *) npy_cosl;
@@ -883,166 +565,10 @@ InitOperators(PyObject *dictionary) {
     hypot_functions[3] = PyUFunc_gg_g;
     hypot_data[3] = (void *) npy_hypotl;
     hypot_functions[4] = PyUFunc_OO_O_method;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        invert_functions[1] = BYTE_invert_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        invert_functions[2] = UBYTE_invert_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        invert_functions[3] = SHORT_invert_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        invert_functions[4] = USHORT_invert_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        invert_functions[5] = INT_invert_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        invert_functions[6] = UINT_invert_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        invert_functions[7] = LONG_invert_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        invert_functions[8] = ULONG_invert_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        invert_functions[9] = LONGLONG_invert_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        invert_functions[10] = ULONGLONG_invert_avx2;
-    }
-    #endif
-    
     invert_functions[11] = PyUFunc_O_O;
     invert_data[11] = (void *) PyNumber_Invert;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512_SKX
-    if (NPY_CPU_HAVE(AVX512_SKX)) {
-        isfinite_functions[12] = FLOAT_isfinite_avx512_skx;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512_SKX
-    if (NPY_CPU_HAVE(AVX512_SKX)) {
-        isfinite_functions[13] = DOUBLE_isfinite_avx512_skx;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512_SKX
-    if (NPY_CPU_HAVE(AVX512_SKX)) {
-        isinf_functions[12] = FLOAT_isinf_avx512_skx;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512_SKX
-    if (NPY_CPU_HAVE(AVX512_SKX)) {
-        isinf_functions[13] = DOUBLE_isinf_avx512_skx;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512_SKX
-    if (NPY_CPU_HAVE(AVX512_SKX)) {
-        isnan_functions[12] = FLOAT_isnan_avx512_skx;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512_SKX
-    if (NPY_CPU_HAVE(AVX512_SKX)) {
-        isnan_functions[13] = DOUBLE_isnan_avx512_skx;
-    }
-    #endif
-    
     lcm_functions[10] = PyUFunc_OO_O;
     lcm_data[10] = (void *) npy_ObjectLCM;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        left_shift_functions[0] = BYTE_left_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        left_shift_functions[1] = UBYTE_left_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        left_shift_functions[2] = SHORT_left_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        left_shift_functions[3] = USHORT_left_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        left_shift_functions[4] = INT_left_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        left_shift_functions[5] = UINT_left_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        left_shift_functions[6] = LONG_left_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        left_shift_functions[7] = ULONG_left_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        left_shift_functions[8] = LONGLONG_left_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        left_shift_functions[9] = ULONGLONG_left_shift_avx2;
-    }
-    #endif
-    
     left_shift_functions[10] = PyUFunc_OO_O;
     left_shift_data[10] = (void *) PyNumber_Lshift;
     log_functions[3] = PyUFunc_f_f;
@@ -1119,190 +645,10 @@ InitOperators(PyObject *dictionary) {
     logaddexp2_data[2] = (void *) npy_logaddexp2;
     logaddexp2_functions[3] = PyUFunc_gg_g;
     logaddexp2_data[3] = (void *) npy_logaddexp2l;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_and_functions[1] = BYTE_logical_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_and_functions[2] = UBYTE_logical_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_and_functions[3] = SHORT_logical_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_and_functions[4] = USHORT_logical_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_and_functions[5] = INT_logical_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_and_functions[6] = UINT_logical_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_and_functions[7] = LONG_logical_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_and_functions[8] = ULONG_logical_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_and_functions[9] = LONGLONG_logical_and_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_and_functions[10] = ULONGLONG_logical_and_avx2;
-    }
-    #endif
-    
     logical_and_functions[18] = PyUFunc_OO_O;
     logical_and_data[18] = (void *) npy_ObjectLogicalAnd;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_not_functions[1] = BYTE_logical_not_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_not_functions[2] = UBYTE_logical_not_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_not_functions[3] = SHORT_logical_not_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_not_functions[4] = USHORT_logical_not_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_not_functions[5] = INT_logical_not_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_not_functions[6] = UINT_logical_not_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_not_functions[7] = LONG_logical_not_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_not_functions[8] = ULONG_logical_not_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_not_functions[9] = LONGLONG_logical_not_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_not_functions[10] = ULONGLONG_logical_not_avx2;
-    }
-    #endif
-    
     logical_not_functions[18] = PyUFunc_O_O;
     logical_not_data[18] = (void *) npy_ObjectLogicalNot;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_or_functions[1] = BYTE_logical_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_or_functions[2] = UBYTE_logical_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_or_functions[3] = SHORT_logical_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_or_functions[4] = USHORT_logical_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_or_functions[5] = INT_logical_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_or_functions[6] = UINT_logical_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_or_functions[7] = LONG_logical_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_or_functions[8] = ULONG_logical_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_or_functions[9] = LONGLONG_logical_or_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        logical_or_functions[10] = ULONGLONG_logical_or_avx2;
-    }
-    #endif
-    
     logical_or_functions[18] = PyUFunc_OO_O;
     logical_or_data[18] = (void *) npy_ObjectLogicalOr;
     logical_xor_functions[18] = PyUFunc_OO_O_method;
@@ -1310,128 +656,8 @@ InitOperators(PyObject *dictionary) {
     maximum_data[20] = (void *) npy_ObjectMax;
     minimum_functions[20] = PyUFunc_OO_O;
     minimum_data[20] = (void *) npy_ObjectMin;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        multiply_functions[1] = BYTE_multiply_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        multiply_functions[2] = UBYTE_multiply_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        multiply_functions[3] = SHORT_multiply_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        multiply_functions[4] = USHORT_multiply_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        multiply_functions[5] = INT_multiply_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        multiply_functions[6] = UINT_multiply_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        multiply_functions[7] = LONG_multiply_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        multiply_functions[8] = ULONG_multiply_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        multiply_functions[9] = LONGLONG_multiply_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        multiply_functions[10] = ULONGLONG_multiply_avx2;
-    }
-    #endif
-    
     multiply_functions[22] = PyUFunc_OO_O;
     multiply_data[22] = (void *) PyNumber_Multiply;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        negative_functions[0] = BYTE_negative_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        negative_functions[1] = UBYTE_negative_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        negative_functions[2] = SHORT_negative_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        negative_functions[3] = USHORT_negative_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        negative_functions[4] = INT_negative_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        negative_functions[5] = UINT_negative_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        negative_functions[6] = LONG_negative_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        negative_functions[7] = ULONG_negative_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        negative_functions[8] = LONGLONG_negative_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        negative_functions[9] = ULONGLONG_negative_avx2;
-    }
-    #endif
-    
     negative_functions[15] = PyUFunc_F_F;
     negative_data[15] = (void *) nc_negf;
     negative_functions[16] = PyUFunc_D_D;
@@ -1484,130 +710,10 @@ InitOperators(PyObject *dictionary) {
     radians_functions[3] = PyUFunc_g_g;
     radians_data[3] = (void *) npy_radiansl;
     radians_functions[4] = PyUFunc_O_O_method;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        reciprocal_functions[0] = BYTE_reciprocal_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        reciprocal_functions[1] = UBYTE_reciprocal_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        reciprocal_functions[2] = SHORT_reciprocal_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        reciprocal_functions[3] = USHORT_reciprocal_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        reciprocal_functions[4] = INT_reciprocal_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        reciprocal_functions[5] = UINT_reciprocal_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        reciprocal_functions[6] = LONG_reciprocal_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        reciprocal_functions[7] = ULONG_reciprocal_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        reciprocal_functions[8] = LONGLONG_reciprocal_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        reciprocal_functions[9] = ULONGLONG_reciprocal_avx2;
-    }
-    #endif
-    
     reciprocal_functions[17] = PyUFunc_O_O;
     reciprocal_data[17] = (void *) Py_reciprocal;
     remainder_functions[15] = PyUFunc_OO_O;
     remainder_data[15] = (void *) PyNumber_Remainder;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        right_shift_functions[0] = BYTE_right_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        right_shift_functions[1] = UBYTE_right_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        right_shift_functions[2] = SHORT_right_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        right_shift_functions[3] = USHORT_right_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        right_shift_functions[4] = INT_right_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        right_shift_functions[5] = UINT_right_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        right_shift_functions[6] = LONG_right_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        right_shift_functions[7] = ULONG_right_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        right_shift_functions[8] = LONGLONG_right_shift_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        right_shift_functions[9] = ULONGLONG_right_shift_avx2;
-    }
-    #endif
-    
     right_shift_functions[10] = PyUFunc_OO_O;
     right_shift_data[10] = (void *) PyNumber_Rshift;
     rint_functions[0] = PyUFunc_e_e_As_f_f;
@@ -1625,18 +731,6 @@ InitOperators(PyObject *dictionary) {
     rint_functions[8] = PyUFunc_G_G;
     rint_data[8] = (void *) nc_rintl;
     rint_functions[9] = PyUFunc_O_O_method;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512_SKX
-    if (NPY_CPU_HAVE(AVX512_SKX)) {
-        signbit_functions[1] = FLOAT_signbit_avx512_skx;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512_SKX
-    if (NPY_CPU_HAVE(AVX512_SKX)) {
-        signbit_functions[2] = DOUBLE_signbit_avx512_skx;
-    }
-    #endif
-    
     sin_functions[3] = PyUFunc_g_g;
     sin_data[3] = (void *) npy_sinl;
     sin_functions[4] = PyUFunc_F_F;
@@ -1676,140 +770,8 @@ InitOperators(PyObject *dictionary) {
     sqrt_functions[8] = PyUFunc_G_G;
     sqrt_data[8] = (void *) nc_sqrtl;
     sqrt_functions[9] = PyUFunc_O_O_method;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        square_functions[0] = BYTE_square_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        square_functions[1] = UBYTE_square_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        square_functions[2] = SHORT_square_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        square_functions[3] = USHORT_square_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        square_functions[4] = INT_square_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        square_functions[5] = UINT_square_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        square_functions[6] = LONG_square_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        square_functions[7] = ULONG_square_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        square_functions[8] = LONGLONG_square_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        square_functions[9] = ULONGLONG_square_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512F
-    if (NPY_CPU_HAVE(AVX512F)) {
-        square_functions[14] = CFLOAT_square_avx512f;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512F
-    if (NPY_CPU_HAVE(AVX512F)) {
-        square_functions[15] = CDOUBLE_square_avx512f;
-    }
-    #endif
-    
     square_functions[17] = PyUFunc_O_O;
     square_data[17] = (void *) Py_square;
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        subtract_functions[0] = BYTE_subtract_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        subtract_functions[1] = UBYTE_subtract_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        subtract_functions[2] = SHORT_subtract_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        subtract_functions[3] = USHORT_subtract_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        subtract_functions[4] = INT_subtract_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        subtract_functions[5] = UINT_subtract_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        subtract_functions[6] = LONG_subtract_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        subtract_functions[7] = ULONG_subtract_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        subtract_functions[8] = LONGLONG_subtract_avx2;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
-    if (NPY_CPU_HAVE(AVX2)) {
-        subtract_functions[9] = ULONGLONG_subtract_avx2;
-    }
-    #endif
-    
     subtract_functions[20] = PyUFunc_OO_O;
     subtract_data[20] = (void *) PyNumber_Subtract;
     tan_functions[3] = PyUFunc_e_e_As_f_f;
@@ -1854,6 +816,474 @@ InitOperators(PyObject *dictionary) {
     trunc_data[6] = (void *) npy_ObjectTrunc;
     
     #ifndef NPY_DISABLE_OPTIMIZATION
+    #include "loops_logical.dispatch.h"
+    #endif
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[0] = BOOL_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[0] = BOOL_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[0] = BOOL_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[0] = BOOL_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(fmax_functions[0] = BOOL_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(fmin_functions[0] = BOOL_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[0] = BOOL_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[0] = BOOL_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[0] = BOOL_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[0] = BOOL_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(maximum_functions[0] = BOOL_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(minimum_functions[0] = BOOL_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[0] = BOOL_logical_and);
+    
+    
+    #ifndef NPY_DISABLE_OPTIMIZATION
+    #include "loops_autovec.dispatch.h"
+    #endif
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[1] = BYTE_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[2] = UBYTE_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[3] = SHORT_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[4] = USHORT_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[5] = INT_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[6] = UINT_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[7] = LONG_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[8] = ULONG_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[9] = LONGLONG_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[10] = ULONGLONG_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[11] = HALF_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[1] = BYTE_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[2] = UBYTE_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[3] = SHORT_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[4] = USHORT_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[5] = INT_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[6] = UINT_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[7] = LONG_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[8] = ULONG_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[9] = LONGLONG_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(add_functions[10] = ULONGLONG_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[1] = BYTE_bitwise_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[2] = UBYTE_bitwise_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[3] = SHORT_bitwise_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[4] = USHORT_bitwise_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[5] = INT_bitwise_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[6] = UINT_bitwise_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[7] = LONG_bitwise_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[8] = ULONG_bitwise_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[9] = LONGLONG_bitwise_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_and_functions[10] = ULONGLONG_bitwise_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[1] = BYTE_bitwise_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[2] = UBYTE_bitwise_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[3] = SHORT_bitwise_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[4] = USHORT_bitwise_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[5] = INT_bitwise_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[6] = UINT_bitwise_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[7] = LONG_bitwise_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[8] = ULONG_bitwise_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[9] = LONGLONG_bitwise_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_or_functions[10] = ULONGLONG_bitwise_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[1] = BYTE_bitwise_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[2] = UBYTE_bitwise_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[3] = SHORT_bitwise_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[4] = USHORT_bitwise_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[5] = INT_bitwise_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[6] = UINT_bitwise_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[7] = LONG_bitwise_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[8] = ULONG_bitwise_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[9] = LONGLONG_bitwise_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[10] = ULONGLONG_bitwise_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[0] = BYTE_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[1] = UBYTE_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[2] = SHORT_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[3] = USHORT_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[4] = INT_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[5] = UINT_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[6] = LONG_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[7] = ULONG_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[8] = LONGLONG_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[9] = ULONGLONG_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[1] = BYTE_invert);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[2] = UBYTE_invert);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[3] = SHORT_invert);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[4] = USHORT_invert);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[5] = INT_invert);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[6] = UINT_invert);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[7] = LONG_invert);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[8] = ULONG_invert);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[9] = LONGLONG_invert);
+    
+    NPY_CPU_DISPATCH_CALL_XB(invert_functions[10] = ULONGLONG_invert);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[0] = BOOL_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[1] = BYTE_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[2] = UBYTE_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[3] = SHORT_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[4] = USHORT_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[5] = INT_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[6] = UINT_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[7] = LONG_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[8] = ULONG_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[9] = LONGLONG_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[10] = ULONGLONG_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[0] = BOOL_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[1] = BYTE_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[2] = UBYTE_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[3] = SHORT_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[4] = USHORT_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[5] = INT_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[6] = UINT_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[7] = LONG_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[8] = ULONG_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[9] = LONGLONG_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[10] = ULONGLONG_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[18] = TIMEDELTA_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[19] = DATETIME_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[0] = BOOL_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[1] = BYTE_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[2] = UBYTE_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[3] = SHORT_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[4] = USHORT_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[5] = INT_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[6] = UINT_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[7] = LONG_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[8] = ULONG_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[9] = LONGLONG_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[10] = ULONGLONG_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(left_shift_functions[0] = BYTE_left_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(left_shift_functions[1] = UBYTE_left_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(left_shift_functions[2] = SHORT_left_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(left_shift_functions[3] = USHORT_left_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(left_shift_functions[4] = INT_left_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(left_shift_functions[5] = UINT_left_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(left_shift_functions[6] = LONG_left_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(left_shift_functions[7] = ULONG_left_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(left_shift_functions[8] = LONGLONG_left_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(left_shift_functions[9] = ULONGLONG_left_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[1] = BYTE_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[2] = UBYTE_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[3] = SHORT_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[4] = USHORT_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[5] = INT_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[6] = UINT_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[7] = LONG_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[8] = ULONG_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[9] = LONGLONG_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_and_functions[10] = ULONGLONG_logical_and);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[1] = BYTE_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[2] = UBYTE_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[3] = SHORT_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[4] = USHORT_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[5] = INT_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[6] = UINT_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[7] = LONG_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[8] = ULONG_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[9] = LONGLONG_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_not_functions[10] = ULONGLONG_logical_not);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[1] = BYTE_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[2] = UBYTE_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[3] = SHORT_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[4] = USHORT_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[5] = INT_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[6] = UINT_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[7] = LONG_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[8] = ULONG_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[9] = LONGLONG_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_or_functions[10] = ULONGLONG_logical_or);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[1] = BYTE_logical_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[2] = UBYTE_logical_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[3] = SHORT_logical_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[4] = USHORT_logical_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[5] = INT_logical_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[6] = UINT_logical_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[7] = LONG_logical_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[8] = ULONG_logical_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[9] = LONGLONG_logical_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[10] = ULONGLONG_logical_xor);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[1] = BYTE_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[2] = UBYTE_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[3] = SHORT_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[4] = USHORT_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[5] = INT_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[6] = UINT_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[7] = LONG_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[8] = ULONG_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[9] = LONGLONG_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(multiply_functions[10] = ULONGLONG_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[0] = BYTE_reciprocal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[1] = UBYTE_reciprocal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[2] = SHORT_reciprocal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[3] = USHORT_reciprocal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[4] = INT_reciprocal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[5] = UINT_reciprocal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[6] = LONG_reciprocal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[7] = ULONG_reciprocal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[8] = LONGLONG_reciprocal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[9] = ULONGLONG_reciprocal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(right_shift_functions[0] = BYTE_right_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(right_shift_functions[1] = UBYTE_right_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(right_shift_functions[2] = SHORT_right_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(right_shift_functions[3] = USHORT_right_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(right_shift_functions[4] = INT_right_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(right_shift_functions[5] = UINT_right_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(right_shift_functions[6] = LONG_right_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(right_shift_functions[7] = ULONG_right_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(right_shift_functions[8] = LONGLONG_right_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(right_shift_functions[9] = ULONGLONG_right_shift);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sign_functions[0] = BYTE_sign);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sign_functions[1] = UBYTE_sign);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sign_functions[2] = SHORT_sign);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sign_functions[3] = USHORT_sign);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sign_functions[4] = INT_sign);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sign_functions[5] = UINT_sign);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sign_functions[6] = LONG_sign);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sign_functions[7] = ULONG_sign);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sign_functions[8] = LONGLONG_sign);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sign_functions[9] = ULONGLONG_sign);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[0] = BYTE_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[1] = UBYTE_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[2] = SHORT_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[3] = USHORT_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[4] = INT_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[5] = UINT_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[6] = LONG_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[7] = ULONG_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[8] = LONGLONG_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[9] = ULONGLONG_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(subtract_functions[0] = BYTE_subtract);
+    
+    NPY_CPU_DISPATCH_CALL_XB(subtract_functions[1] = UBYTE_subtract);
+    
+    NPY_CPU_DISPATCH_CALL_XB(subtract_functions[2] = SHORT_subtract);
+    
+    NPY_CPU_DISPATCH_CALL_XB(subtract_functions[3] = USHORT_subtract);
+    
+    NPY_CPU_DISPATCH_CALL_XB(subtract_functions[4] = INT_subtract);
+    
+    NPY_CPU_DISPATCH_CALL_XB(subtract_functions[5] = UINT_subtract);
+    
+    NPY_CPU_DISPATCH_CALL_XB(subtract_functions[6] = LONG_subtract);
+    
+    NPY_CPU_DISPATCH_CALL_XB(subtract_functions[7] = ULONG_subtract);
+    
+    NPY_CPU_DISPATCH_CALL_XB(subtract_functions[8] = LONGLONG_subtract);
+    
+    NPY_CPU_DISPATCH_CALL_XB(subtract_functions[9] = ULONGLONG_subtract);
+    
+    
+    #ifndef NPY_DISABLE_OPTIMIZATION
     #include "loops_unary_fp.dispatch.h"
     #endif
     
@@ -1891,6 +1321,15 @@ InitOperators(PyObject *dictionary) {
     
     
     #ifndef NPY_DISABLE_OPTIMIZATION
+    #include "loops_unary_complex.dispatch.h"
+    #endif
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[16] = CFLOAT_absolute);
+    
+    NPY_CPU_DISPATCH_CALL_XB(absolute_functions[17] = CDOUBLE_absolute);
+    
+    
+    #ifndef NPY_DISABLE_OPTIMIZATION
     #include "loops_arithm_fp.dispatch.h"
     #endif
     
@@ -1901,6 +1340,10 @@ InitOperators(PyObject *dictionary) {
     NPY_CPU_DISPATCH_CALL_XB(add_functions[15] = CFLOAT_add);
     
     NPY_CPU_DISPATCH_CALL_XB(add_functions[16] = CDOUBLE_add);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[14] = CFLOAT_conjugate);
+    
+    NPY_CPU_DISPATCH_CALL_XB(conjugate_functions[15] = CDOUBLE_conjugate);
     
     NPY_CPU_DISPATCH_CALL_XB(divide_functions[1] = FLOAT_divide);
     
@@ -1913,6 +1356,10 @@ InitOperators(PyObject *dictionary) {
     NPY_CPU_DISPATCH_CALL_XB(multiply_functions[15] = CFLOAT_multiply);
     
     NPY_CPU_DISPATCH_CALL_XB(multiply_functions[16] = CDOUBLE_multiply);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[14] = CFLOAT_square);
+    
+    NPY_CPU_DISPATCH_CALL_XB(square_functions[15] = CDOUBLE_square);
     
     NPY_CPU_DISPATCH_CALL_XB(subtract_functions[11] = FLOAT_subtract);
     
@@ -1975,8 +1422,6 @@ InitOperators(PyObject *dictionary) {
     
     NPY_CPU_DISPATCH_CALL_XB(cos_functions[0] = HALF_cos);
     
-    NPY_CPU_DISPATCH_CALL_XB(cos_functions[2] = DOUBLE_cos);
-    
     NPY_CPU_DISPATCH_CALL_XB(cosh_functions[0] = HALF_cosh);
     
     NPY_CPU_DISPATCH_CALL_XB(cosh_functions[1] = FLOAT_cosh);
@@ -2023,8 +1468,6 @@ InitOperators(PyObject *dictionary) {
     
     NPY_CPU_DISPATCH_CALL_XB(sin_functions[0] = HALF_sin);
     
-    NPY_CPU_DISPATCH_CALL_XB(sin_functions[2] = DOUBLE_sin);
-    
     NPY_CPU_DISPATCH_CALL_XB(sinh_functions[0] = HALF_sinh);
     
     NPY_CPU_DISPATCH_CALL_XB(sinh_functions[1] = FLOAT_sinh);
@@ -2041,12 +1484,49 @@ InitOperators(PyObject *dictionary) {
     
     
     #ifndef NPY_DISABLE_OPTIMIZATION
+    #include "loops_comparison.dispatch.h"
+    #endif
+    
+    NPY_CPU_DISPATCH_CALL_XB(bitwise_xor_functions[0] = BOOL_not_equal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(equal_functions[14] = FLOAT_equal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(equal_functions[15] = DOUBLE_equal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(greater_functions[14] = FLOAT_greater);
+    
+    NPY_CPU_DISPATCH_CALL_XB(greater_functions[15] = DOUBLE_greater);
+    
+    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[14] = FLOAT_greater_equal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[15] = DOUBLE_greater_equal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(less_functions[14] = FLOAT_less);
+    
+    NPY_CPU_DISPATCH_CALL_XB(less_functions[15] = DOUBLE_less);
+    
+    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[14] = FLOAT_less_equal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[15] = DOUBLE_less_equal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(logical_xor_functions[0] = BOOL_not_equal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[14] = FLOAT_not_equal);
+    
+    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[15] = DOUBLE_not_equal);
+    
+    
+    #ifndef NPY_DISABLE_OPTIMIZATION
     #include "loops_trigonometric.dispatch.h"
     #endif
     
     NPY_CPU_DISPATCH_CALL_XB(cos_functions[1] = FLOAT_cos);
     
+    NPY_CPU_DISPATCH_CALL_XB(cos_functions[2] = DOUBLE_cos);
+    
     NPY_CPU_DISPATCH_CALL_XB(sin_functions[1] = FLOAT_sin);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sin_functions[2] = DOUBLE_sin);
     
     
     #ifndef NPY_DISABLE_OPTIMIZATION
@@ -2112,167 +1592,6 @@ InitOperators(PyObject *dictionary) {
     NPY_CPU_DISPATCH_CALL_XB(remainder_functions[8] = LONGLONG_remainder);
     
     NPY_CPU_DISPATCH_CALL_XB(remainder_functions[9] = ULONGLONG_remainder);
-    
-    
-    #ifndef NPY_DISABLE_OPTIMIZATION
-    #include "loops_comparison.dispatch.h"
-    #endif
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[0] = BOOL_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[1] = BYTE_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[2] = UBYTE_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[3] = SHORT_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[4] = USHORT_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[5] = INT_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[6] = UINT_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[7] = LONG_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[8] = ULONG_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[9] = LONGLONG_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[10] = ULONGLONG_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[12] = FLOAT_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(equal_functions[13] = DOUBLE_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[0] = BOOL_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[1] = BYTE_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[2] = UBYTE_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[3] = SHORT_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[4] = USHORT_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[5] = INT_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[6] = UINT_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[7] = LONG_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[8] = ULONG_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[9] = LONGLONG_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[10] = ULONGLONG_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[12] = FLOAT_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_functions[13] = DOUBLE_greater);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[0] = BOOL_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[1] = BYTE_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[2] = UBYTE_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[3] = SHORT_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[4] = USHORT_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[5] = INT_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[6] = UINT_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[7] = LONG_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[8] = ULONG_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[9] = LONGLONG_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[10] = ULONGLONG_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[12] = FLOAT_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(greater_equal_functions[13] = DOUBLE_greater_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[0] = BOOL_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[1] = BYTE_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[2] = UBYTE_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[3] = SHORT_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[4] = USHORT_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[5] = INT_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[6] = UINT_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[7] = LONG_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[8] = ULONG_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[9] = LONGLONG_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[10] = ULONGLONG_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[12] = FLOAT_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_functions[13] = DOUBLE_less);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[0] = BOOL_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[1] = BYTE_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[2] = UBYTE_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[3] = SHORT_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[4] = USHORT_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[5] = INT_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[6] = UINT_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[7] = LONG_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[8] = ULONG_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[9] = LONGLONG_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[10] = ULONGLONG_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[12] = FLOAT_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(less_equal_functions[13] = DOUBLE_less_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[0] = BOOL_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[1] = BYTE_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[2] = UBYTE_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[3] = SHORT_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[4] = USHORT_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[5] = INT_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[6] = UINT_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[7] = LONG_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[8] = ULONG_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[9] = LONGLONG_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[10] = ULONGLONG_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[12] = FLOAT_not_equal);
-    
-    NPY_CPU_DISPATCH_CALL_XB(not_equal_functions[13] = DOUBLE_not_equal);
     
     
     #ifndef NPY_DISABLE_OPTIMIZATION
@@ -2391,6 +1710,58 @@ InitOperators(PyObject *dictionary) {
     
     
     #ifndef NPY_DISABLE_OPTIMIZATION
+    #include "loops_unary_fp_le.dispatch.h"
+    #endif
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[12] = FLOAT_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isfinite_functions[13] = DOUBLE_isfinite);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[12] = FLOAT_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isinf_functions[13] = DOUBLE_isinf);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[12] = FLOAT_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(isnan_functions[13] = DOUBLE_isnan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(signbit_functions[1] = FLOAT_signbit);
+    
+    NPY_CPU_DISPATCH_CALL_XB(signbit_functions[2] = DOUBLE_signbit);
+    
+    
+    #ifndef NPY_DISABLE_OPTIMIZATION
+    #include "loops_unary.dispatch.h"
+    #endif
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[0] = BYTE_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[1] = UBYTE_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[2] = SHORT_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[3] = USHORT_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[4] = INT_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[5] = UINT_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[6] = LONG_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[7] = ULONG_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[8] = LONGLONG_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[9] = ULONGLONG_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[11] = FLOAT_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[12] = DOUBLE_negative);
+    
+    NPY_CPU_DISPATCH_CALL_XB(negative_functions[13] = LONGDOUBLE_negative);
+    
+    
+    #ifndef NPY_DISABLE_OPTIMIZATION
     #include "loops_hyperbolic.dispatch.h"
     #endif
     
@@ -2471,6 +1842,414 @@ InitOperators(PyObject *dictionary) {
     }
     
     ((PyUFuncObject *)f)->type_resolver = &PyUFunc_AdditionTypeResolver;
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_BYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_BYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_BYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         BYTE_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UBYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_UBYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_UBYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UBYTE_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_SHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_SHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_SHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         SHORT_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_USHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_USHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_USHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         USHORT_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_INT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_INT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_INT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         INT_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UINT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_UINT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_UINT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UINT_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_LONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_LONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONG_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_ULONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_ULONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONG_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_LONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_LONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGLONG_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_ULONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_ULONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONGLONG_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_HALF);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_HALF");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_HALF");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         HALF_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_FLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_FLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_FLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         FLOAT_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_DOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_DOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_DOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         DOUBLE_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_LONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_LONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGDOUBLE_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_CFLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_CFLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_CFLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         CFLOAT_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_CDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_CDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_CDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         CDOUBLE_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_CLONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "add with NPY_CLONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "add with NPY_CLONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         CLONGDOUBLE_add_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
     PyDict_SetItemString(dictionary, "add", f);
     Py_DECREF(f);
     identity = NULL;
@@ -2833,6 +2612,102 @@ InitOperators(PyObject *dictionary) {
     }
     
     ((PyUFuncObject *)f)->type_resolver = &PyUFunc_TrueDivisionTypeResolver;
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_HALF);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "divide with NPY_HALF");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "divide with NPY_HALF");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         HALF_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_FLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "divide with NPY_FLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "divide with NPY_FLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         FLOAT_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_DOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "divide with NPY_DOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "divide with NPY_DOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         DOUBLE_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "divide with NPY_LONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "divide with NPY_LONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGDOUBLE_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
     PyDict_SetItemString(dictionary, "divide", f);
     Py_DECREF(f);
     identity = NULL;
@@ -2859,7 +2734,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        equal_functions, equal_data, equal_signatures, 23,
+        equal_functions, equal_data, equal_signatures, 24,
         2, 1, PyUFunc_None, "equal",
         DOC_NUMPY_CORE_UMATH_EQUAL, 0, NULL, identity
     );
@@ -2998,6 +2873,342 @@ InitOperators(PyObject *dictionary) {
     }
     
     ((PyUFuncObject *)f)->type_resolver = &PyUFunc_DivisionTypeResolver;
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_HALF);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_HALF");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_HALF");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         HALF_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_FLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_FLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_FLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         FLOAT_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_DOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_DOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_DOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         DOUBLE_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_LONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_LONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGDOUBLE_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_BYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_BYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_BYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         BYTE_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UBYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_UBYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_UBYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UBYTE_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_SHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_SHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_SHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         SHORT_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_USHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_USHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_USHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         USHORT_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_INT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_INT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_INT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         INT_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UINT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_UINT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_UINT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UINT_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_LONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_LONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONG_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_ULONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_ULONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONG_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_LONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_LONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGLONG_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "floor_divide with NPY_ULONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "floor_divide with NPY_ULONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONGLONG_floor_divide_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
     PyDict_SetItemString(dictionary, "floor_divide", f);
     Py_DECREF(f);
     identity = (Py_INCREF(Py_None), Py_None);
@@ -3017,6 +3228,342 @@ InitOperators(PyObject *dictionary) {
     }
     
     ((PyUFuncObject *)f)->type_resolver = &PyUFunc_SimpleUniformOperationTypeResolver;
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_HALF);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_HALF");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_HALF");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         HALF_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_FLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_FLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_FLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         FLOAT_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_DOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_DOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_DOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         DOUBLE_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_LONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_LONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGDOUBLE_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_BYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_BYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_BYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         BYTE_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UBYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_UBYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_UBYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UBYTE_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_SHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_SHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_SHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         SHORT_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_USHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_USHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_USHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         USHORT_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_INT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_INT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_INT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         INT_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UINT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_UINT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_UINT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UINT_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_LONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_LONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONG_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_ULONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_ULONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONG_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_LONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_LONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGLONG_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmax with NPY_ULONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmax with NPY_ULONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONGLONG_fmax_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
     PyDict_SetItemString(dictionary, "fmax", f);
     Py_DECREF(f);
     identity = (Py_INCREF(Py_None), Py_None);
@@ -3036,6 +3583,342 @@ InitOperators(PyObject *dictionary) {
     }
     
     ((PyUFuncObject *)f)->type_resolver = &PyUFunc_SimpleUniformOperationTypeResolver;
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_HALF);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_HALF");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_HALF");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         HALF_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_FLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_FLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_FLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         FLOAT_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_DOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_DOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_DOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         DOUBLE_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_LONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_LONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGDOUBLE_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_BYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_BYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_BYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         BYTE_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UBYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_UBYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_UBYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UBYTE_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_SHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_SHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_SHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         SHORT_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_USHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_USHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_USHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         USHORT_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_INT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_INT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_INT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         INT_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UINT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_UINT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_UINT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UINT_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_LONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_LONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONG_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_ULONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_ULONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONG_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_LONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_LONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGLONG_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "fmin with NPY_ULONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "fmin with NPY_ULONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONGLONG_fmin_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
     PyDict_SetItemString(dictionary, "fmin", f);
     Py_DECREF(f);
     identity = NULL;
@@ -3098,7 +3981,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        greater_functions, greater_data, greater_signatures, 23,
+        greater_functions, greater_data, greater_signatures, 24,
         2, 1, PyUFunc_None, "greater",
         DOC_NUMPY_CORE_UMATH_GREATER, 0, NULL, identity
     );
@@ -3117,7 +4000,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        greater_equal_functions, greater_equal_data, greater_equal_signatures, 23,
+        greater_equal_functions, greater_equal_data, greater_equal_signatures, 24,
         2, 1, PyUFunc_None, "greater_equal",
         DOC_NUMPY_CORE_UMATH_GREATER_EQUAL, 0, NULL, identity
     );
@@ -3321,7 +4204,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        less_functions, less_data, less_signatures, 23,
+        less_functions, less_data, less_signatures, 24,
         2, 1, PyUFunc_None, "less",
         DOC_NUMPY_CORE_UMATH_LESS, 0, NULL, identity
     );
@@ -3340,7 +4223,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        less_equal_functions, less_equal_data, less_equal_signatures, 23,
+        less_equal_functions, less_equal_data, less_equal_signatures, 24,
         2, 1, PyUFunc_None, "less_equal",
         DOC_NUMPY_CORE_UMATH_LESS_EQUAL, 0, NULL, identity
     );
@@ -3573,6 +4456,342 @@ InitOperators(PyObject *dictionary) {
     }
     
     ((PyUFuncObject *)f)->type_resolver = &PyUFunc_SimpleUniformOperationTypeResolver;
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_HALF);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_HALF");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_HALF");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         HALF_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_FLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_FLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_FLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         FLOAT_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_DOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_DOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_DOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         DOUBLE_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_LONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_LONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGDOUBLE_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_BYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_BYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_BYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         BYTE_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UBYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_UBYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_UBYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UBYTE_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_SHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_SHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_SHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         SHORT_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_USHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_USHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_USHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         USHORT_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_INT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_INT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_INT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         INT_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UINT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_UINT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_UINT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UINT_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_LONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_LONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONG_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_ULONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_ULONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONG_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_LONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_LONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGLONG_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "maximum with NPY_ULONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "maximum with NPY_ULONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONGLONG_maximum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
     PyDict_SetItemString(dictionary, "maximum", f);
     Py_DECREF(f);
     identity = (Py_INCREF(Py_None), Py_None);
@@ -3592,6 +4811,342 @@ InitOperators(PyObject *dictionary) {
     }
     
     ((PyUFuncObject *)f)->type_resolver = &PyUFunc_SimpleUniformOperationTypeResolver;
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_HALF);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_HALF");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_HALF");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         HALF_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_FLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_FLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_FLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         FLOAT_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_DOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_DOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_DOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         DOUBLE_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_LONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_LONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGDOUBLE_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_BYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_BYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_BYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         BYTE_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UBYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_UBYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_UBYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UBYTE_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_SHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_SHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_SHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         SHORT_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_USHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_USHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_USHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         USHORT_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_INT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_INT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_INT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         INT_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UINT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_UINT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_UINT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UINT_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_LONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_LONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONG_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_ULONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_ULONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONG_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_LONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_LONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGLONG_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "minimum with NPY_ULONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "minimum with NPY_ULONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONGLONG_minimum_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
     PyDict_SetItemString(dictionary, "minimum", f);
     Py_DECREF(f);
     identity = NULL;
@@ -3629,6 +5184,414 @@ InitOperators(PyObject *dictionary) {
     }
     
     ((PyUFuncObject *)f)->type_resolver = &PyUFunc_MultiplicationTypeResolver;
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_BYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_BYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_BYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         BYTE_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UBYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_UBYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_UBYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UBYTE_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_SHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_SHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_SHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         SHORT_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_USHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_USHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_USHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         USHORT_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_INT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_INT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_INT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         INT_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UINT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_UINT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_UINT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UINT_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_LONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_LONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONG_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_ULONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_ULONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONG_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_LONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_LONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGLONG_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_ULONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_ULONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONGLONG_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_HALF);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_HALF");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_HALF");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         HALF_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_FLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_FLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_FLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         FLOAT_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_DOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_DOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_DOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         DOUBLE_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_LONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_LONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGDOUBLE_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_CFLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_CFLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_CFLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         CFLOAT_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_CDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_CDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_CDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         CDOUBLE_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_CLONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "multiply with NPY_CLONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "multiply with NPY_CLONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         CLONGDOUBLE_multiply_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
     PyDict_SetItemString(dictionary, "multiply", f);
     Py_DECREF(f);
     identity = NULL;
@@ -3673,7 +5636,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        not_equal_functions, not_equal_data, not_equal_signatures, 23,
+        not_equal_functions, not_equal_data, not_equal_signatures, 24,
         2, 1, PyUFunc_None, "not_equal",
         DOC_NUMPY_CORE_UMATH_NOT_EQUAL, 0, NULL, identity
     );
@@ -3977,6 +5940,414 @@ InitOperators(PyObject *dictionary) {
     }
     
     ((PyUFuncObject *)f)->type_resolver = &PyUFunc_SubtractionTypeResolver;
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_BYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_BYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_BYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         BYTE_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UBYTE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_UBYTE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_UBYTE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UBYTE_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_SHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_SHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_SHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         SHORT_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_USHORT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_USHORT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_USHORT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         USHORT_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_INT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_INT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_INT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         INT_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_UINT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_UINT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_UINT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         UINT_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_LONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_LONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONG_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_ULONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_ULONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONG_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_LONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_LONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGLONG_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_ULONGLONG);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_ULONGLONG");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_ULONGLONG");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         ULONGLONG_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_HALF);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_HALF");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_HALF");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         HALF_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_FLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_FLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_FLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         FLOAT_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_DOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_DOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_DOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         DOUBLE_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_LONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_LONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_LONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         LONGDOUBLE_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_CFLOAT);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_CFLOAT");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_CFLOAT");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         CFLOAT_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_CDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_CDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_CDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         CDOUBLE_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
+    
+    {
+        PyArray_DTypeMeta *dtype = PyArray_DTypeFromTypeNum(NPY_CLONGDOUBLE);
+        PyObject *info = get_info_no_cast((PyUFuncObject *)f,
+                                           dtype, 3);
+        if (info == NULL) {
+            return -1;
+        }
+        if (info == Py_None) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "cannot add indexed loop to ufunc "
+                "subtract with NPY_CLONGDOUBLE");
+            return -1;
+        }
+        if (!PyObject_TypeCheck(info, &PyArrayMethod_Type)) {
+            PyErr_SetString(PyExc_RuntimeError,
+                "Not a PyArrayMethodObject in ufunc "
+                "subtract with NPY_CLONGDOUBLE");
+        }
+        ((PyArrayMethodObject*)info)->contiguous_indexed_loop =
+                                                         CLONGDOUBLE_subtract_indexed;
+        /* info is borrowed, no need to decref*/
+    }
+    
     PyDict_SetItemString(dictionary, "subtract", f);
     Py_DECREF(f);
     identity = NULL;

@@ -186,7 +186,7 @@ lzip_decode(void *coder_ptr, const lzma_allocator *allocator,
 		// The five lowest bits are for the base-2 logarithm of
 		// the dictionary size and the highest three bits are
 		// the fractional part (0/16 to 7/16) that will be
-		// substracted to get the final value.
+		// subtracted to get the final value.
 		//
 		// For example, with 0xB5:
 		//     b2log = 21
@@ -262,7 +262,11 @@ lzip_decode(void *coder_ptr, const lzma_allocator *allocator,
 		coder->member_size += *in_pos - in_start;
 		coder->uncompressed_size += out_used;
 
-		if (!coder->ignore_check)
+		// Don't update the CRC32 if the integrity check will be
+		// ignored or if there was no new output. The latter is
+		// important in case out == NULL to avoid null pointer + 0
+		// which is undefined behavior.
+		if (!coder->ignore_check && out_used > 0)
 			coder->crc32 = lzma_crc32(out + out_start, out_used,
 					coder->crc32);
 

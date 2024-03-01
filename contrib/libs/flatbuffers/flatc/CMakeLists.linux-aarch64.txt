@@ -13,8 +13,8 @@ target_compile_options(libs-flatbuffers-flatc PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-flatbuffers-flatc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/include
 )
 target_link_libraries(libs-flatbuffers-flatc PUBLIC
   contrib-libs-linux-headers
@@ -22,40 +22,40 @@ target_link_libraries(libs-flatbuffers-flatc PUBLIC
   abseil-cpp-absl-base
 )
 target_sources(libs-flatbuffers-flatc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/cpp_generator.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/go_generator.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/java_generator.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/python_generator.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/swift_generator.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/ts_generator.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/annotated_binary_text_gen.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/bfbs_gen_lua.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/bfbs_gen_nim.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/binary_annotator.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/code_generators.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/file_binary_writer.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/file_name_saving_file_manager.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/file_writer.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/flatc.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_binary.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_cpp.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_cpp_yandex_maps_iter.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_csharp.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_dart.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_fbs.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_go.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_grpc.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_java.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_json_schema.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_kotlin.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_lobster.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_php.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_python.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_rust.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_swift.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_text.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_ts.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_parser.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/reflection.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/cpp_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/go_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/java_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/python_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/swift_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/ts_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/annotated_binary_text_gen.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/bfbs_gen_lua.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/bfbs_gen_nim.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/binary_annotator.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/code_generators.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/file_binary_writer.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/file_name_saving_file_manager.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/file_writer.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/flatc.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_binary.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_cpp.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_cpp_yandex_maps_iter.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_csharp.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_dart.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_fbs.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_go.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_grpc.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_java.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_json_schema.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_kotlin.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_lobster.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_php.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_python.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_rust.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_swift.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_text.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_ts.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_parser.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/reflection.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
 )

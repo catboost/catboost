@@ -14,6 +14,6 @@ target_link_libraries(cpp-hnsw-helpers PUBLIC
   yutil
 )
 target_sources(cpp-hnsw-helpers PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/hnsw/helpers/interrupt.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/hnsw/helpers/is_item_marked_deleted.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/hnsw/helpers/interrupt.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/hnsw/helpers/is_item_marked_deleted.cpp
 )

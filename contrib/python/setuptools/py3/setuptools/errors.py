@@ -29,6 +29,14 @@ UnknownFileError = _distutils_errors.UnknownFileError
 BaseError = _distutils_errors.DistutilsError
 
 
+class InvalidConfigError(OptionError):
+    """Error used for invalid configurations."""
+
+
+class RemovedConfigError(OptionError):
+    """Error used for configurations that were deprecated and removed."""
+
+
 class RemovedCommandError(BaseError, RuntimeError):
     """Error used for commands that have been removed in setuptools.
 

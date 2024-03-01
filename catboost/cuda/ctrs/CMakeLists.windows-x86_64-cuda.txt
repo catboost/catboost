@@ -11,7 +11,7 @@ add_subdirectory(ut)
 
 add_library(catboost-cuda-ctrs)
 target_cuda_sources(catboost-cuda-ctrs PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/ctrs/kernel/ctr_calcers.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/kernel/ctr_calcers.cu
 )
 target_link_libraries(catboost-cuda-ctrs PUBLIC
   contrib-libs-cxxsupp
@@ -24,10 +24,10 @@ target_link_libraries(catboost-cuda-ctrs PUBLIC
   contrib-libs-gamma_function_apache_math_port
 )
 target_sources(catboost-cuda-ctrs PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/ctrs/ctr_bins_builder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/ctrs/ctr_calcers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/ctrs/ctr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/ctrs/prior_estimator.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/ctr_bins_builder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/ctr_calcers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/ctr.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/prior_estimator.cpp
 )
 target_cuda_cflags(catboost-cuda-ctrs)
 target_cuda_flags(catboost-cuda-ctrs
@@ -66,5 +66,5 @@ target_link_libraries(catboost-cuda-ctrs.global PUBLIC
   contrib-libs-gamma_function_apache_math_port
 )
 target_sources(catboost-cuda-ctrs.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/ctrs/ctr_kernels.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/ctr_kernels.cpp
 )

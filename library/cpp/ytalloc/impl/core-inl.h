@@ -940,14 +940,14 @@ class TTimingManager
     : public TEventLogManagerBase<TTimingEvent, TTimingManager>
 {
 public:
-    TEnumIndexedVector<ETimingEventType, TTimingEventCounters> GetTimingEventCounters()
+    TEnumIndexedArray<ETimingEventType, TTimingEventCounters> GetTimingEventCounters()
     {
         auto guard = Guard(EventLock_);
         return EventCounters_;
     }
 
 private:
-    TEnumIndexedVector<ETimingEventType, TTimingEventCounters> EventCounters_;
+    TEnumIndexedArray<ETimingEventType, TTimingEventCounters> EventCounters_;
 
     Y_POD_STATIC_THREAD(bool) DisabledForCurrentThread_;
 
@@ -1523,13 +1523,13 @@ static_assert(
     "Wrong MaxMemoryTag");
 
 template <class TCounter>
-using TUntaggedTotalCounters = TEnumIndexedVector<EBasicCounter, TCounter>;
+using TUntaggedTotalCounters = TEnumIndexedArray<EBasicCounter, TCounter>;
 
 template <class TCounter>
 struct TTaggedTotalCounterSet
     : public TSystemAllocatable
 {
-    std::array<TEnumIndexedVector<EBasicCounter, TCounter>, TaggedCounterSetSize> Counters;
+    std::array<TEnumIndexedArray<EBasicCounter, TCounter>, TaggedCounterSetSize> Counters;
 };
 
 using TLocalTaggedBasicCounterSet = TTaggedTotalCounterSet<ssize_t>;
@@ -1577,20 +1577,20 @@ struct TTotalCounters
     }
 };
 
-using TLocalSystemCounters = TEnumIndexedVector<ESystemCounter, ssize_t>;
-using TGlobalSystemCounters = TEnumIndexedVector<ESystemCounter, std::atomic<ssize_t>>;
+using TLocalSystemCounters = TEnumIndexedArray<ESystemCounter, ssize_t>;
+using TGlobalSystemCounters = TEnumIndexedArray<ESystemCounter, std::atomic<ssize_t>>;
 
-using TLocalSmallCounters = TEnumIndexedVector<ESmallArenaCounter, ssize_t>;
-using TGlobalSmallCounters = TEnumIndexedVector<ESmallArenaCounter, std::atomic<ssize_t>>;
+using TLocalSmallCounters = TEnumIndexedArray<ESmallArenaCounter, ssize_t>;
+using TGlobalSmallCounters = TEnumIndexedArray<ESmallArenaCounter, std::atomic<ssize_t>>;
 
-using TLocalLargeCounters = TEnumIndexedVector<ELargeArenaCounter, ssize_t>;
-using TGlobalLargeCounters = TEnumIndexedVector<ELargeArenaCounter, std::atomic<ssize_t>>;
+using TLocalLargeCounters = TEnumIndexedArray<ELargeArenaCounter, ssize_t>;
+using TGlobalLargeCounters = TEnumIndexedArray<ELargeArenaCounter, std::atomic<ssize_t>>;
 
-using TLocalHugeCounters = TEnumIndexedVector<EHugeCounter, ssize_t>;
-using TGlobalHugeCounters = TEnumIndexedVector<EHugeCounter, std::atomic<ssize_t>>;
+using TLocalHugeCounters = TEnumIndexedArray<EHugeCounter, ssize_t>;
+using TGlobalHugeCounters = TEnumIndexedArray<EHugeCounter, std::atomic<ssize_t>>;
 
-using TLocalUndumpableCounters = TEnumIndexedVector<EUndumpableCounter, ssize_t>;
-using TGlobalUndumpableCounters = TEnumIndexedVector<EUndumpableCounter, std::atomic<ssize_t>>;
+using TLocalUndumpableCounters = TEnumIndexedArray<EUndumpableCounter, ssize_t>;
+using TGlobalUndumpableCounters = TEnumIndexedArray<EUndumpableCounter, std::atomic<ssize_t>>;
 
 Y_FORCE_INLINE ssize_t LoadCounter(ssize_t counter)
 {
@@ -1750,7 +1750,7 @@ struct TThreadState
         std::array<bool, SmallRankCount> CachedChunkFull{};
 #endif
     };
-    TEnumIndexedVector<EAllocationKind, TSmallBlobCache> SmallBlobCache;
+    TEnumIndexedArray<EAllocationKind, TSmallBlobCache> SmallBlobCache;
 };
 
 struct TThreadStateToRegistryNode
@@ -2227,7 +2227,7 @@ public:
     }
 
     // Computes memory usage for a list of tags by aggregating counters across threads.
-    void GetTaggedMemoryCounters(const TMemoryTag* tags, size_t count, TEnumIndexedVector<EBasicCounter, ssize_t>* counters)
+    void GetTaggedMemoryCounters(const TMemoryTag* tags, size_t count, TEnumIndexedArray<EBasicCounter, ssize_t>* counters)
     {
         TMemoryTagGuard guard(NullMemoryTag);
 
@@ -2260,7 +2260,7 @@ public:
     {
         TMemoryTagGuard guard(NullMemoryTag);
 
-        std::vector<TEnumIndexedVector<EBasicCounter, ssize_t>> counters;
+        std::vector<TEnumIndexedArray<EBasicCounter, ssize_t>> counters;
         counters.resize(count);
         GetTaggedMemoryCounters(tags, count, counters.data());
 
@@ -2269,9 +2269,9 @@ public:
         }
     }
 
-    TEnumIndexedVector<ETotalCounter, ssize_t> GetTotalAllocationCounters()
+    TEnumIndexedArray<ETotalCounter, ssize_t> GetTotalAllocationCounters()
     {
-        TEnumIndexedVector<ETotalCounter, ssize_t> result;
+        TEnumIndexedArray<ETotalCounter, ssize_t> result;
 
         auto accumulate = [&] (const auto& counters) {
             result[ETotalCounter::BytesAllocated] += LoadCounter(counters[EBasicCounter::BytesAllocated]);
@@ -2312,9 +2312,9 @@ public:
         return result;
     }
 
-    TEnumIndexedVector<ESmallCounter, ssize_t> GetSmallAllocationCounters()
+    TEnumIndexedArray<ESmallCounter, ssize_t> GetSmallAllocationCounters()
     {
-        TEnumIndexedVector<ESmallCounter, ssize_t> result;
+        TEnumIndexedArray<ESmallCounter, ssize_t> result;
 
         auto totalCounters = GetTotalAllocationCounters();
         result[ESmallCounter::BytesAllocated] = totalCounters[ETotalCounter::BytesAllocated];
@@ -2347,9 +2347,9 @@ public:
         return result;
     }
 
-    TEnumIndexedVector<ELargeCounter, ssize_t> GetLargeAllocationCounters()
+    TEnumIndexedArray<ELargeCounter, ssize_t> GetLargeAllocationCounters()
     {
-        TEnumIndexedVector<ELargeCounter, ssize_t> result;
+        TEnumIndexedArray<ELargeCounter, ssize_t> result;
         auto largeArenaCounters = GetLargeArenaAllocationCounters();
         for (size_t rank = 0; rank < LargeRankCount; ++rank) {
             result[ESmallCounter::BytesAllocated] += largeArenaCounters[rank][ELargeArenaCounter::BytesAllocated];
@@ -2826,7 +2826,7 @@ private:
     }
 };
 
-TExplicitlyConstructableSingleton<TEnumIndexedVector<EAllocationKind, std::array<TExplicitlyConstructableSingleton<TSmallArenaAllocator>, SmallRankCount>>> SmallArenaAllocators;
+TExplicitlyConstructableSingleton<TEnumIndexedArray<EAllocationKind, std::array<TExplicitlyConstructableSingleton<TSmallArenaAllocator>, SmallRankCount>>> SmallArenaAllocators;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -3023,7 +3023,7 @@ private:
     std::array<TShardedFreeList<TChunkGroup>, SmallRankCount> RankToChunkGroups_;
 };
 
-TExplicitlyConstructableSingleton<TEnumIndexedVector<EAllocationKind, TExplicitlyConstructableSingleton<TGlobalSmallChunkCache>>> GlobalSmallChunkCaches;
+TExplicitlyConstructableSingleton<TEnumIndexedArray<EAllocationKind, TExplicitlyConstructableSingleton<TGlobalSmallChunkCache>>> GlobalSmallChunkCaches;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -4750,49 +4750,49 @@ void SetEnableMadvisePopulate(bool value)
     ConfigurationManager->SetEnableMadvisePopulate(value);
 }
 
-TEnumIndexedVector<ETotalCounter, ssize_t> GetTotalAllocationCounters()
+TEnumIndexedArray<ETotalCounter, ssize_t> GetTotalAllocationCounters()
 {
     InitializeGlobals();
     return StatisticsManager->GetTotalAllocationCounters();
 }
 
-TEnumIndexedVector<ESystemCounter, ssize_t> GetSystemAllocationCounters()
+TEnumIndexedArray<ESystemCounter, ssize_t> GetSystemAllocationCounters()
 {
     InitializeGlobals();
     return StatisticsManager->GetSystemAllocationCounters();
 }
 
-TEnumIndexedVector<ESystemCounter, ssize_t> GetUndumpableAllocationCounters()
+TEnumIndexedArray<ESystemCounter, ssize_t> GetUndumpableAllocationCounters()
 {
     InitializeGlobals();
     return StatisticsManager->GetUndumpableAllocationCounters();
 }
 
-TEnumIndexedVector<ESmallCounter, ssize_t> GetSmallAllocationCounters()
+TEnumIndexedArray<ESmallCounter, ssize_t> GetSmallAllocationCounters()
 {
     InitializeGlobals();
     return StatisticsManager->GetSmallAllocationCounters();
 }
 
-TEnumIndexedVector<ESmallCounter, ssize_t> GetLargeAllocationCounters()
+TEnumIndexedArray<ESmallCounter, ssize_t> GetLargeAllocationCounters()
 {
     InitializeGlobals();
     return StatisticsManager->GetLargeAllocationCounters();
 }
 
-std::array<TEnumIndexedVector<ESmallArenaCounter, ssize_t>, SmallRankCount> GetSmallArenaAllocationCounters()
+std::array<TEnumIndexedArray<ESmallArenaCounter, ssize_t>, SmallRankCount> GetSmallArenaAllocationCounters()
 {
     InitializeGlobals();
     return StatisticsManager->GetSmallArenaAllocationCounters();
 }
 
-std::array<TEnumIndexedVector<ELargeArenaCounter, ssize_t>, LargeRankCount> GetLargeArenaAllocationCounters()
+std::array<TEnumIndexedArray<ELargeArenaCounter, ssize_t>, LargeRankCount> GetLargeArenaAllocationCounters()
 {
     InitializeGlobals();
     return StatisticsManager->GetLargeArenaAllocationCounters();
 }
 
-TEnumIndexedVector<EHugeCounter, ssize_t> GetHugeAllocationCounters()
+TEnumIndexedArray<EHugeCounter, ssize_t> GetHugeAllocationCounters()
 {
     InitializeGlobals();
     return StatisticsManager->GetHugeAllocationCounters();
@@ -4816,7 +4816,7 @@ std::vector<TProfiledAllocation> GetProfiledAllocationStatistics()
     }
     tags.push_back(AllocationProfilingUnknownMemoryTag);
 
-    std::vector<TEnumIndexedVector<EBasicCounter, ssize_t>> counters;
+    std::vector<TEnumIndexedArray<EBasicCounter, ssize_t>> counters;
     counters.resize(tags.size());
     StatisticsManager->GetTaggedMemoryCounters(tags.data(), tags.size(), counters.data());
 
@@ -4838,7 +4838,7 @@ std::vector<TProfiledAllocation> GetProfiledAllocationStatistics()
     return statistics;
 }
 
-TEnumIndexedVector<ETimingEventType, TTimingEventCounters> GetTimingEventCounters()
+TEnumIndexedArray<ETimingEventType, TTimingEventCounters> GetTimingEventCounters()
 {
     InitializeGlobals();
     return TimingManager->GetTimingEventCounters();

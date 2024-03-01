@@ -489,7 +489,7 @@ extern int glthread_once_singlethreaded (pth_once_t *once_control);
 /* Use the old Solaris threads library.  */
 
 # include <thread.h>
-# include <synch.h>
+# error #include <synch.h>
 
 # ifdef __cplusplus
 extern "C" {

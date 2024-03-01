@@ -31,9 +31,9 @@ target_link_options(gpu_data PRIVATE
   -lcudart_static
 )
 target_sources(gpu_data PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_bin_builder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_binarization.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_bin_builder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_binarization.cpp
 )
 target_allocator(gpu_data
   system_allocator

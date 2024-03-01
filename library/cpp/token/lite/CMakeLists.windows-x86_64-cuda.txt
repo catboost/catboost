@@ -27,17 +27,17 @@ target_link_libraries(cpp-token-lite PUBLIC
   library-cpp-langmask
 )
 target_sources(cpp-token-lite PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/token/accent.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/token/nlptypes.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/token/token_util.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/token/accent.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/token/nlptypes.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/token/token_util.cpp
 )
 generate_enum_serilization(cpp-token-lite
-  ${CMAKE_SOURCE_DIR}/library/cpp/token/nlptypes.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/token/nlptypes.h
   INCLUDE_HEADERS
   library/cpp/token/nlptypes.h
 )
 generate_enum_serilization(cpp-token-lite
-  ${CMAKE_SOURCE_DIR}/library/cpp/token/formtype.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/token/formtype.h
   INCLUDE_HEADERS
   library/cpp/token/formtype.h
 )

@@ -56,26 +56,26 @@ target_link_options(catboost PRIVATE
   -ldl
 )
 target_sources(catboost PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/app/main.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_calc.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_dataset_statistics.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_eval_metrics.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_eval_feature.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_fit.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_fstr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_metadata.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_model_based_eval.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_model_sum.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_normalize_model.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_ostr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_roc.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_run_worker.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_select_features.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/mode_dump_options.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/app/signal_handling.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/main.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_calc.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_dataset_statistics.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_eval_metrics.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_eval_feature.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_fit.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_fstr.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_metadata.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_model_based_eval.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_model_sum.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_normalize_model.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_ostr.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_roc.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_run_worker.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_select_features.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/mode_dump_options.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/app/signal_handling.cpp
 )
 generate_enum_serilization(catboost
-  ${CMAKE_SOURCE_DIR}/catboost/app/model_metainfo_helpers.h
+  ${PROJECT_SOURCE_DIR}/catboost/app/model_metainfo_helpers.h
   INCLUDE_HEADERS
   catboost/app/model_metainfo_helpers.h
 )

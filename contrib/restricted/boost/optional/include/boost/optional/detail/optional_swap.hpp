@@ -13,7 +13,7 @@
 #ifndef BOOST_OPTIONAL_DETAIL_OPTIONAL_SWAP_AJK_28JAN2015_HPP
 #define BOOST_OPTIONAL_DETAIL_OPTIONAL_SWAP_AJK_28JAN2015_HPP
 
-#include <boost/core/swap.hpp>
+#include <boost/core/invoke_swap.hpp>
 #include <boost/optional/optional_fwd.hpp>
 
 namespace boost {
@@ -39,8 +39,8 @@ struct swap_selector<true>
         else if ( !hasY )
             y.emplace();
 
-        // Boost.Utility.Swap will take care of ADL and workarounds for broken compilers
-        boost::swap(x.get(), y.get());
+        // Boost.Core.Swap will take care of ADL and workarounds for broken compilers
+        boost::core::invoke_swap(x.get(), y.get());
 
         if( !hasX )
             y = boost::none ;
@@ -64,13 +64,13 @@ struct swap_selector<false>
 {
     template <class T>
     static void optional_swap ( optional<T>& x, optional<T>& y ) 
-    //BOOST_NOEXCEPT_IF(::boost::is_nothrow_move_constructible<T>::value && BOOST_NOEXCEPT_EXPR(boost::swap(*x, *y)))
+    //BOOST_NOEXCEPT_IF(::boost::is_nothrow_move_constructible<T>::value && BOOST_NOEXCEPT_EXPR(boost::core::invoke_swap(*x, *y)))
     {
         if (x)
         {
             if (y)
             {
-                boost::swap(*x, *y);
+                boost::core::invoke_swap(*x, *y);
             }
             else
             {
@@ -105,7 +105,7 @@ struct optional_swap_should_use_default_constructor : has_nothrow_default_constr
 
 template <class T>
 inline void swap ( optional<T>& x, optional<T>& y )
-//BOOST_NOEXCEPT_IF(::boost::is_nothrow_move_constructible<T>::value && BOOST_NOEXCEPT_EXPR(boost::swap(*x, *y)))
+//BOOST_NOEXCEPT_IF(::boost::is_nothrow_move_constructible<T>::value && BOOST_NOEXCEPT_EXPR(boost::core::invoke_swap(*x, *y)))
 {
     optional_detail::swap_selector<optional_swap_should_use_default_constructor<T>::value>::optional_swap(x, y);
 }

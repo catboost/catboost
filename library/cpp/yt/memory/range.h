@@ -165,6 +165,16 @@ public:
         return Size();
     }
 
+    const T* Data() const
+    {
+        return Data_;
+    }
+
+    const T* data() const
+    {
+        return Data();
+    }
+
     const T& operator[](size_t index) const
     {
         YT_ASSERT(index < Size());

@@ -3,7 +3,7 @@
 |
 | Distributed under the terms of the Modified BSD License.
 |
-| The full license is in the file COPYING.txt, distributed with this software.
+| The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
 #include <map>
@@ -14,111 +14,113 @@
 #include "term.h"
 #include "variable.h"
 
-
 namespace kiwi
 {
 
-enum RelationalOperator { OP_LE, OP_GE, OP_EQ };
-
+enum RelationalOperator
+{
+    OP_LE,
+    OP_GE,
+    OP_EQ
+};
 
 class Constraint
 {
 
 public:
+    Constraint() = default;
 
-	Constraint() : m_data( 0 ) {}
+    Constraint(const Expression &expr,
+               RelationalOperator op,
+               double strength = strength::required) : m_data(new ConstraintData(expr, op, strength)) {}
 
-	Constraint( const Expression& expr,
-				RelationalOperator op,
-				double strength = strength::required ) :
-		m_data( new ConstraintData( expr, op, strength ) ) {}
+    Constraint(const Constraint &other, double strength) : m_data(new ConstraintData(other, strength)) {}
 
-	Constraint( const Constraint& other, double strength ) :
-		m_data( new ConstraintData( other, strength ) ) {}
+    Constraint(const Constraint &) = default;
 
-	~Constraint() {}
+    Constraint(Constraint &&) noexcept = default;
 
-	const Expression& expression() const
-	{
-		return m_data->m_expression;
-	}
+    ~Constraint() = default;
 
-	RelationalOperator op() const
-	{
-		return m_data->m_op;
-	}
+    const Expression &expression() const
+    {
+        return m_data->m_expression;
+    }
 
-	double strength() const
-	{
-		return m_data->m_strength;
-	}
+    RelationalOperator op() const
+    {
+        return m_data->m_op;
+    }
 
-	bool operator!() const
-	{
-		return !m_data;
-	}
+    double strength() const
+    {
+        return m_data->m_strength;
+    }
+
+    bool operator!() const
+    {
+        return !m_data;
+    }
+
+    Constraint& operator=(const Constraint &) = default;
+
+    Constraint& operator=(Constraint &&) noexcept = default;
 
 private:
+    static Expression reduce(const Expression &expr)
+    {
+        std::map<Variable, double> vars;
+        for (const auto & term : expr.terms())
+            vars[term.variable()] += term.coefficient();
 
-	static Expression reduce( const Expression& expr )
-	{
-		std::map<Variable, double> vars;
-		typedef std::vector<Term>::const_iterator iter_t;
-		iter_t end = expr.terms().end();
-		for( iter_t it = expr.terms().begin(); it != end; ++it )
-			vars[ it->variable() ] += it->coefficient();
-		std::vector<Term> terms( vars.begin(), vars.end() );
-		return Expression( terms, expr.constant() );
-	}
+        std::vector<Term> terms(vars.begin(), vars.end());
+        return Expression(std::move(terms), expr.constant());
+    }
 
-	class ConstraintData : public SharedData
-	{
+    class ConstraintData : public SharedData
+    {
 
-	public:
+    public:
+        ConstraintData(const Expression &expr,
+                       RelationalOperator op,
+                       double strength) : SharedData(),
+                                          m_expression(reduce(expr)),
+                                          m_strength(strength::clip(strength)),
+                                          m_op(op) {}
 
-		ConstraintData( const Expression& expr,
-					    RelationalOperator op,
-					    double strength ) :
-			SharedData(),
-			m_expression( reduce( expr ) ),
-			m_strength( strength::clip( strength ) ),
-			m_op( op ) {}
+        ConstraintData(const Constraint &other, double strength) : SharedData(),
+                                                                   m_expression(other.expression()),
+                                                                   m_strength(strength::clip(strength)),
+                                                                   m_op(other.op()) {}
 
-		ConstraintData( const Constraint& other, double strength ) :
-			SharedData(),
-			m_expression( other.expression() ),
-			m_strength( strength::clip( strength ) ),
-			m_op( other.op() ) {}
+        ~ConstraintData() = default;
 
-		~ConstraintData() {}
+        Expression m_expression;
+        double m_strength;
+        RelationalOperator m_op;
 
-		Expression m_expression;
-		double m_strength;
-		RelationalOperator m_op;
+    private:
+        ConstraintData(const ConstraintData &other);
 
-	private:
+        ConstraintData &operator=(const ConstraintData &other);
+    };
 
-		ConstraintData( const ConstraintData& other );
+    SharedDataPtr<ConstraintData> m_data;
 
-		ConstraintData& operator=( const ConstraintData& other );
-	};
+    friend bool operator<(const Constraint &lhs, const Constraint &rhs)
+    {
+        return lhs.m_data < rhs.m_data;
+    }
 
-	SharedDataPtr<ConstraintData> m_data;
+    friend bool operator==(const Constraint &lhs, const Constraint &rhs)
+    {
+        return lhs.m_data == rhs.m_data;
+    }
 
-        friend bool operator<( const Constraint& lhs, const Constraint& rhs )
-        {
-                return lhs.m_data < rhs.m_data;
-        }
-
-        friend bool operator==( const Constraint& lhs, const Constraint& rhs )
-        {
-                return lhs.m_data == rhs.m_data;
-        }
-
-        friend bool operator!=( const Constraint& lhs, const Constraint& rhs )
-        {
-                return lhs.m_data != rhs.m_data;
-        }
+    friend bool operator!=(const Constraint &lhs, const Constraint &rhs)
+    {
+        return lhs.m_data != rhs.m_data;
+    }
 };
 
 } // namespace kiwi

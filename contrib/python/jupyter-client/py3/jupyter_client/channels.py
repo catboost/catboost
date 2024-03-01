@@ -290,7 +290,7 @@ class AsyncZMQSocketChannel(ZMQSocketChannel):
             Unused here, for other implementations
         """
         if not isinstance(socket, zmq.asyncio.Socket):
-            msg = 'Socket must be asyncio'  # type:ignore[unreachable]
+            msg = "Socket must be asyncio"  # type:ignore[unreachable]
             raise ValueError(msg)
         super().__init__(socket, session)
 

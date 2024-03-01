@@ -200,4 +200,15 @@ char* WriteGuidToBuffer(char* ptr, TGuid value)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+TFormattableGuid::TFormattableGuid(TGuid guid)
+    : End_(WriteGuidToBuffer(Buffer_.data(), guid))
+{ }
+
+TStringBuf TFormattableGuid::ToStringBuf() const
+{
+    return {Buffer_.data(), End_};
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT

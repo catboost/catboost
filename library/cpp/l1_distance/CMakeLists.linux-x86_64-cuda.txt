@@ -14,3 +14,6 @@ target_link_libraries(library-cpp-l1_distance INTERFACE
   yutil
   library-cpp-sse
 )
+target_sources(library-cpp-l1_distance INTERFACE
+  ${PROJECT_SOURCE_DIR}/library/cpp/l1_distance/l1_distance.h
+)

@@ -48,7 +48,7 @@ public:
         : TWeakPtr(ptr.Get())
     {
         static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
+            std::derived_from<T, TRefCountedBase>,
             "Cast allowed only for types derived from TRefCountedBase");
     }
 
@@ -63,7 +63,7 @@ public:
         : TWeakPtr(other.Lock())
     {
         static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
+            std::derived_from<T, TRefCountedBase>,
             "Cast allowed only for types derived from TRefCountedBase");
     }
 
@@ -78,7 +78,7 @@ public:
     TWeakPtr(TWeakPtr<U>&& other) noexcept
     {
         static_assert(
-            std::is_base_of_v<TRefCountedBase, T>,
+            std::derived_from<T, TRefCountedBase>,
             "Cast allowed only for types derived from TRefCountedBase");
         TIntrusivePtr<U> strongOther = other.Lock();
         if (strongOther) {

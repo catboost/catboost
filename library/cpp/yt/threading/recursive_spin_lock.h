@@ -2,6 +2,7 @@
 
 #include "public.h"
 #include "spin_lock_base.h"
+#include "spin_lock_count.h"
 
 #include <library/cpp/yt/system/thread_id.h>
 
@@ -43,6 +44,8 @@ private:
     bool TryAndTryAcquire() noexcept;
     void AcquireSlow() noexcept;
 };
+
+REGISTER_TRACKED_SPIN_LOCK_CLASS(TRecursiveSpinLock)
 
 ////////////////////////////////////////////////////////////////////////////////
 

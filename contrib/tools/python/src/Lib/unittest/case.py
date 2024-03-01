@@ -1015,6 +1015,11 @@ class TestCase(object):
                                                text)
             raise self.failureException(msg)
 
+    # XXX Для более простой миграции существующих тестов на Python 3
+    assertRaisesRegex = assertRaisesRegexp
+    assertRegex = assertRegexpMatches
+
+
 
 class FunctionTestCase(TestCase):
     """A test case that wraps a test function.

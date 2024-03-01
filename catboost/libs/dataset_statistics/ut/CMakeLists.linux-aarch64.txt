@@ -26,8 +26,8 @@ target_link_options(catboost-libs-dataset_statistics-ut PRIVATE
   -ldl
 )
 target_sources(catboost-libs-dataset_statistics-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/ut/histograms_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/ut/statistics_serialization_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/dataset_statistics/ut/histograms_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/dataset_statistics/ut/statistics_serialization_ut.cpp
 )
 set_property(
   TARGET
@@ -61,6 +61,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-libs-dataset_statistics-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-libs-dataset_statistics-ut
   cpp-malloc-jemalloc

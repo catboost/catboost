@@ -5,6 +5,7 @@
 
 class TFile;
 class TFsPath;
+struct stat;
 
 struct TFileStat {
     ui32 Mode = 0; /* protection */
@@ -29,6 +30,7 @@ public:
     bool IsDir() const noexcept;
     bool IsSymlink() const noexcept;
 
+    explicit TFileStat(const struct stat& fs);
     explicit TFileStat(const TFile& f);
     explicit TFileStat(FHANDLE f);
     TFileStat(const TFsPath& fileName, bool nofollow = false);

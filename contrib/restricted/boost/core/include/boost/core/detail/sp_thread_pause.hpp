@@ -20,7 +20,7 @@
 #include <boost/config.hpp>
 
 #if defined(__has_builtin)
-# if __has_builtin(__builtin_ia32_pause) && !defined(_INTEL_COMPILER)
+# if __has_builtin(__builtin_ia32_pause) && !defined(__INTEL_COMPILER)
 #  define BOOST_CORE_HAS_BUILTIN_IA32_PAUSE
 # endif
 #endif

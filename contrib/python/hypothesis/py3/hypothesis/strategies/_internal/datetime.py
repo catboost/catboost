@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import Optional
 
 from hypothesis.errors import InvalidArgument
-from hypothesis.internal.conjecture import utils
 from hypothesis.internal.validation import check_type, check_valid_interval
 from hypothesis.strategies._internal.core import sampled_from
 from hypothesis.strategies._internal.misc import just, none
@@ -113,9 +112,9 @@ def draw_capped_multipart(
         if name == "day" and not cap_high:
             _, high = monthrange(**result)
         if name == "year":
-            val = utils.integer_range(data, low, high, 2000)
+            val = data.draw_integer(low, high, shrink_towards=2000)
         else:
-            val = utils.integer_range(data, low, high)
+            val = data.draw_integer(low, high)
         result[name] = val
         cap_low = cap_low and val == low
         cap_high = cap_high and val == high
@@ -125,7 +124,7 @@ def draw_capped_multipart(
         # the logic above, and be very sensitive to the specific timezone
         # (at the cost of efficient shrinking and mutation), so at least for
         # now we stick with the status quo and generate it independently.
-        result["fold"] = utils.integer_range(data, 0, 1)
+        result["fold"] = data.draw_integer(0, 1)
     return result
 
 
@@ -164,8 +163,10 @@ class DatetimeStrategy(SearchStrategy):
         try:
             return replace_tzinfo(dt.datetime(**result), timezone=tz)
         except (ValueError, OverflowError):
-            msg = "Failed to draw a datetime between %r and %r with timezone from %r."
-            data.mark_invalid(msg % (self.min_value, self.max_value, self.tz_strat))
+            data.mark_invalid(
+                f"Failed to draw a datetime between {self.min_value!r} and "
+                f"{self.max_value!r} with timezone from {self.tz_strat!r}."
+            )
 
 
 @defines_strategy(force_reusable_values=True)
@@ -312,7 +313,7 @@ class TimedeltaStrategy(SearchStrategy):
         for name in ("days", "seconds", "microseconds"):
             low = getattr(self.min_value if low_bound else dt.timedelta.min, name)
             high = getattr(self.max_value if high_bound else dt.timedelta.max, name)
-            val = utils.integer_range(data, low, high, 0)
+            val = data.draw_integer(low, high)
             result[name] = val
             low_bound = low_bound and val == low
             high_bound = high_bound and val == high

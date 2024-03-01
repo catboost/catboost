@@ -134,8 +134,8 @@ static int
 
 #if @is_aligned@
     /* sanity check */
-    assert(N == 0 || npy_is_aligned(dst, _UINT_ALIGN(@type@)));
-    assert(N == 0 || npy_is_aligned(src, _UINT_ALIGN(@type@)));
+    assert(N == 0 || npy_is_aligned(dst, NPY_ALIGNOF_UINT(@type@)));
+    assert(N == 0 || npy_is_aligned(src, NPY_ALIGNOF_UINT(@type@)));
 #endif
     /*printf("fn @prefix@_@oper@_size@elsize@\n");*/
     while (N > 0) {
@@ -220,8 +220,8 @@ static NPY_GCC_OPT_3 int
     }
 #if @is_aligned@ && @elsize@ != 16
     /* sanity check */
-    assert(N == 0 || npy_is_aligned(dst, _UINT_ALIGN(@type@)));
-    assert(N == 0 || npy_is_aligned(src, _UINT_ALIGN(@type@)));
+    assert(N == 0 || npy_is_aligned(dst, NPY_ALIGNOF_UINT(@type@)));
+    assert(N == 0 || npy_is_aligned(src, NPY_ALIGNOF_UINT(@type@)));
 #endif
 #if @elsize@ == 1 && @dst_contig@
     memset(dst, *src, N);
@@ -864,8 +864,8 @@ static NPY_GCC_OPT_3 int
 
 #if @aligned@
    /* sanity check */
-    assert(N == 0 || npy_is_aligned(src, _ALIGN(_TYPE1)));
-    assert(N == 0 || npy_is_aligned(dst, _ALIGN(_TYPE2)));
+    assert(N == 0 || npy_is_aligned(src, NPY_ALIGNOF(_TYPE1)));
+    assert(N == 0 || npy_is_aligned(dst, NPY_ALIGNOF(_TYPE2)));
 #endif
 
     /*printf("@prefix@_cast_@name1@_to_@name2@\n");*/
@@ -1440,6 +1440,8 @@ PyArray_TransferMaskedStridedToNDim(npy_intp ndim,
 /****************** MapIter (Advanced indexing) Get/Set ********************/
 /***************************************************************************/
 
+typedef struct {npy_uint64 a; npy_uint64 b;} copytype128;
+
 /**begin repeat
  * #name = set, get#
  * #isget = 0, 1#
@@ -1451,8 +1453,9 @@ PyArray_TransferMaskedStridedToNDim(npy_intp ndim,
  * can be trivially iterated (single stride, aligned, no casting necessary).
  */
 NPY_NO_EXPORT int
-mapiter_trivial_@name@(PyArrayObject *self, PyArrayObject *ind,
-                       PyArrayObject *result)
+mapiter_trivial_@name@(
+        PyArrayObject *self, PyArrayObject *ind, PyArrayObject *result,
+        int is_aligned, NPY_cast_info *cast_info)
 {
     char *base_ptr, *ind_ptr, *result_ptr;
     npy_intp self_stride, ind_stride, result_stride;
@@ -1460,10 +1463,12 @@ mapiter_trivial_@name@(PyArrayObject *self, PyArrayObject *ind,
 
     npy_intp itersize;
 
-    int is_aligned = IsUintAligned(self) && IsUintAligned(result);
+    /* copying between the same dtype, we can assume this is correct: */
     int needs_api = PyDataType_REFCHK(PyArray_DESCR(self));
+    npy_intp itemsize = PyArray_ITEMSIZE(self);
+    npy_intp strides[2] = {itemsize, itemsize};
+    npy_intp one = 1;
 
-    PyArray_CopySwapFunc *copyswap = PyArray_DESCR(self)->f->copyswap;
     NPY_BEGIN_THREADS_DEF;
 
     base_ptr = PyArray_BYTES(self);
@@ -1495,11 +1500,11 @@ mapiter_trivial_@name@(PyArrayObject *self, PyArrayObject *ind,
 #endif
 
     /* Optimization for aligned types that do not need the api */
-    switch ((is_aligned && !needs_api) ? PyArray_ITEMSIZE(self) : 0) {
+    switch ((is_aligned && !needs_api) ? itemsize : 0) {
 
 /**begin repeat1
- * #elsize = 1, 2, 4, 8, 0#
- * #copytype = npy_uint8, npy_uint16, npy_uint32, npy_uint64, 0#
+ * #elsize = 1, 2, 4, 8, 16, 0#
+ * #copytype = npy_uint8, npy_uint16, npy_uint32, npy_uint64, copytype128, 0#
  */
 
 #if @elsize@
@@ -1510,7 +1515,7 @@ mapiter_trivial_@name@(PyArrayObject *self, PyArrayObject *ind,
         while (itersize--) {
             char * self_ptr;
             npy_intp indval = *((npy_intp*)ind_ptr);
-            assert(npy_is_aligned(ind_ptr, _UINT_ALIGN(npy_intp)));
+            assert(npy_is_aligned(ind_ptr, NPY_ALIGNOF_UINT(npy_intp)));
 #if @isget@
             if (check_and_adjust_index(&indval, fancy_dim, 0, _save) < 0 ) {
                 return -1;
@@ -1524,20 +1529,32 @@ mapiter_trivial_@name@(PyArrayObject *self, PyArrayObject *ind,
 
 #if @isget@
 #if @elsize@
-            assert(npy_is_aligned(result_ptr, _UINT_ALIGN(@copytype@)));
-            assert(npy_is_aligned(self_ptr, _UINT_ALIGN(@copytype@)));
+            assert(npy_is_aligned(result_ptr, NPY_ALIGNOF_UINT(@copytype@)));
+            assert(npy_is_aligned(self_ptr, NPY_ALIGNOF_UINT(@copytype@)));
             *(@copytype@ *)result_ptr = *(@copytype@ *)self_ptr;
 #else
-            copyswap(result_ptr, self_ptr, 0, self);
+            char *args[2] = {self_ptr, result_ptr};
+            if (NPY_UNLIKELY(cast_info->func(&cast_info->context,
+                    args, &one, strides,
+                    cast_info->auxdata) < 0)) {
+                NPY_END_THREADS;
+                return -1;
+            }
 #endif
 
 #else /* !@isget@ */
 #if @elsize@
-            assert(npy_is_aligned(result_ptr, _UINT_ALIGN(@copytype@)));
-            assert(npy_is_aligned(self_ptr, _UINT_ALIGN(@copytype@)));
+            assert(npy_is_aligned(result_ptr, NPY_ALIGNOF_UINT(@copytype@)));
+            assert(npy_is_aligned(self_ptr, NPY_ALIGNOF_UINT(@copytype@)));
             *(@copytype@ *)self_ptr = *(@copytype@ *)result_ptr;
 #else
-            copyswap(self_ptr, result_ptr, 0, self);
+            char *args[2] = {result_ptr, self_ptr};
+            if (NPY_UNLIKELY(cast_info->func(&cast_info->context,
+                    args, &one, strides,
+                    cast_info->auxdata) < 0)) {
+                NPY_END_THREADS;
+                return -1;
+            }
 #endif
 #endif
 
@@ -1597,11 +1614,13 @@ mapiter_@name@(
     if (mit->subspace_iter == NULL) {
         /*
          * Item by item copy situation, the operand is buffered
-         * so use copyswap.  The iterator may not do any transfers, so may
+         * so use a cast to copy.  The iterator may not do any transfers, so may
          * not have set `needs_api` yet, set it if necessary:
          */
         needs_api |= PyDataType_REFCHK(PyArray_DESCR(array));
-        PyArray_CopySwapFunc *copyswap = PyArray_DESCR(array)->f->copyswap;
+        npy_intp itemsize = PyArray_ITEMSIZE(array);
+        npy_intp strides[2] = {itemsize, itemsize};
+        npy_intp one = 1;
 
         /* We have only one iterator handling everything */
         counter = NpyIter_GetInnerLoopSizePtr(mit->outer);
@@ -1624,11 +1643,11 @@ mapiter_@name@(
             }
 
             /* Optimization for aligned types that do not need the api */
-            switch ((is_aligned && !needs_api) ? PyArray_ITEMSIZE(array) : 0) {
+            switch ((is_aligned && !needs_api) ? itemsize : 0) {
 
 /**begin repeat2
- * #elsize = 1, 2, 4, 8, 0#
- * #copytype = npy_uint8, npy_uint16, npy_uint32, npy_uint64, 0#
+ * #elsize = 1, 2, 4, 8, 16, 0#
+ * #copytype = npy_uint8, npy_uint16, npy_uint32, npy_uint64, copytype128, 0#
  */
 
 #if @elsize@
@@ -1653,7 +1672,7 @@ mapiter_@name@(
                         for (i=0; i < @numiter@; i++) {
                             npy_intp indval = *((npy_intp*)outer_ptrs[i]);
                             assert(npy_is_aligned(outer_ptrs[i],
-                                                  _UINT_ALIGN(npy_intp)));
+                                                  NPY_ALIGNOF_UINT(npy_intp)));
 
 #if @isget@ && @one_iter@
                             if (check_and_adjust_index(&indval, fancy_dims[i],
@@ -1674,22 +1693,34 @@ mapiter_@name@(
 #if @isget@
 #if @elsize@
                         assert(npy_is_aligned(outer_ptrs[i],
-                                              _UINT_ALIGN(@copytype@)));
+                                              NPY_ALIGNOF_UINT(@copytype@)));
                         assert(npy_is_aligned(self_ptr,
-                                              _UINT_ALIGN(@copytype@)));
+                                              NPY_ALIGNOF_UINT(@copytype@)));
                         *(@copytype@ *)(outer_ptrs[i]) = *(@copytype@ *)self_ptr;
 #else
-                        copyswap(outer_ptrs[i], self_ptr, 0, array);
+                        char *args[2] = {self_ptr, outer_ptrs[i]};
+                        if (NPY_UNLIKELY(cast_info->func(&cast_info->context,
+                                               args, &one, strides,
+                                               cast_info->auxdata) < 0)) {
+                                           NPY_END_THREADS;
+                                           return -1;
+                                       }
 #endif
 #else /* !@isget@ */
 #if @elsize@
                         assert(npy_is_aligned(outer_ptrs[i],
-                               _UINT_ALIGN(@copytype@)));
+                               NPY_ALIGNOF_UINT(@copytype@)));
                         assert(npy_is_aligned(self_ptr,
-                               _UINT_ALIGN(@copytype@)));
+                               NPY_ALIGNOF_UINT(@copytype@)));
                         *(@copytype@ *)self_ptr = *(@copytype@ *)(outer_ptrs[i]);
 #else
-                        copyswap(self_ptr, outer_ptrs[i], 0, array);
+                        char *args[2] = {outer_ptrs[i], self_ptr};
+                        if (NPY_UNLIKELY(cast_info->func(&cast_info->context,
+                                               args, &one, strides,
+                                               cast_info->auxdata) < 0)) {
+                                           NPY_END_THREADS;
+                                           return -1;
+                                       }
 #endif
 #endif
                         /* advance extra operand */

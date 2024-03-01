@@ -42,6 +42,24 @@ def test_extract_tar():
         assert os.access(os.path.join(d, "executable.sh"), os.X_OK)
 
 
+def test_extract_tar_no_slash_dir():
+    # this tarball has entry `package` that is a directory
+    # but its name does not have trailing slash
+    out_color = yatest.common.output_path("out_color")
+    extract_tar(os.path.join(data_dir, "color-0.1.2.tgz"), out_color)
+    files = [
+        "package",
+        "package/LICENSE",
+        "package/README.md",
+        "package/lib",
+        "package/package.json",
+        "package/lib/index.d.ts",
+        "package/lib/index.js",
+    ]
+    for f in files:
+        assert os.path.exists(os.path.join(out_color, f))
+
+
 @pytest.mark.parametrize(
     'components,expected',
     [

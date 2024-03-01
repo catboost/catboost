@@ -82813,171 +82813,604 @@ bool_sum_of_products_outstride0_any(int nop, char **dataptr,
 
 
 
+#line 1044
+static void
+object_sum_of_products_any(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_one(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_two(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_three(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_contig_any(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_contig_one(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_contig_two(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_contig_three(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_outstride0_any(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_outstride0_one(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_outstride0_two(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+#line 1044
+static void
+object_sum_of_products_outstride0_three(int nop, char **dataptr,
+                                npy_intp const *strides, npy_intp count)
+{
+    while(count--){
+        PyObject *prod = *(PyObject **)dataptr[0];
+        if (!prod) {
+            prod = Py_None;  // convention is to treat nulls as None
+        }
+        Py_INCREF(prod);
+        for (int i = 1; i < nop; ++i){
+            PyObject *curr = *(PyObject **)dataptr[i];
+            if (!curr) {
+                curr = Py_None;  // convention is to treat nulls as None
+            }
+            Py_SETREF(prod, PyNumber_Multiply(prod, curr));
+            if (!prod) {
+                return;
+            }
+        }
+
+        PyObject *sum = PyNumber_Add(*(PyObject **)dataptr[nop], prod);
+        Py_DECREF(prod);
+        if (!sum) {
+            return;
+        }
+        
+        Py_XDECREF(*(PyObject **)dataptr[nop]);
+        *(PyObject **)dataptr[nop] = sum;
+        for (int i = 0; i <= nop; ++i) {
+            dataptr[i] += strides[i];
+        }
+    }
+}
+
+
 /* These tables need to match up with the type enum */
 static sum_of_products_fn
 _contig_outstride0_unary_specialization_table[NPY_NTYPES] = {
-#line 1054
+#line 1105
 #if 0
     &bool_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &byte_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &ubyte_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &short_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &ushort_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &int_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &uint_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &long_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &ulong_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &longlong_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &ulonglong_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &float_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &double_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &longdouble_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &cfloat_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &cdouble_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &clongdouble_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 0
     &object_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 0
     &string_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 0
     &unicode_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 0
     &void_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 0
     &datetime_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 0
     &timedelta_sum_of_products_contig_outstride0_one,
 #else
     NULL,
 #endif
 
-#line 1054
+#line 1105
 #if 1
     &half_sum_of_products_contig_outstride0_one,
 #else
@@ -82987,7 +83420,7 @@ _contig_outstride0_unary_specialization_table[NPY_NTYPES] = {
 }; /* End of _contig_outstride0_unary_specialization_table */
 
 static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
-#line 1085
+#line 1136
 #if 0
 {
     &bool_sum_of_products_stride0_contig_outstride0_two,
@@ -83000,7 +83433,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &byte_sum_of_products_stride0_contig_outstride0_two,
@@ -83013,7 +83446,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &ubyte_sum_of_products_stride0_contig_outstride0_two,
@@ -83026,7 +83459,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &short_sum_of_products_stride0_contig_outstride0_two,
@@ -83039,7 +83472,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &ushort_sum_of_products_stride0_contig_outstride0_two,
@@ -83052,7 +83485,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &int_sum_of_products_stride0_contig_outstride0_two,
@@ -83065,7 +83498,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &uint_sum_of_products_stride0_contig_outstride0_two,
@@ -83078,7 +83511,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &long_sum_of_products_stride0_contig_outstride0_two,
@@ -83091,7 +83524,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &ulong_sum_of_products_stride0_contig_outstride0_two,
@@ -83104,7 +83537,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &longlong_sum_of_products_stride0_contig_outstride0_two,
@@ -83117,7 +83550,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &ulonglong_sum_of_products_stride0_contig_outstride0_two,
@@ -83130,7 +83563,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &float_sum_of_products_stride0_contig_outstride0_two,
@@ -83143,7 +83576,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &double_sum_of_products_stride0_contig_outstride0_two,
@@ -83156,7 +83589,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &longdouble_sum_of_products_stride0_contig_outstride0_two,
@@ -83169,7 +83602,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 0
 {
     &cfloat_sum_of_products_stride0_contig_outstride0_two,
@@ -83182,7 +83615,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 0
 {
     &cdouble_sum_of_products_stride0_contig_outstride0_two,
@@ -83195,7 +83628,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 0
 {
     &clongdouble_sum_of_products_stride0_contig_outstride0_two,
@@ -83208,7 +83641,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 0
 {
     &object_sum_of_products_stride0_contig_outstride0_two,
@@ -83221,7 +83654,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 0
 {
     &string_sum_of_products_stride0_contig_outstride0_two,
@@ -83234,7 +83667,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 0
 {
     &unicode_sum_of_products_stride0_contig_outstride0_two,
@@ -83247,7 +83680,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 0
 {
     &void_sum_of_products_stride0_contig_outstride0_two,
@@ -83260,7 +83693,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 0
 {
     &datetime_sum_of_products_stride0_contig_outstride0_two,
@@ -83273,7 +83706,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 0
 {
     &timedelta_sum_of_products_stride0_contig_outstride0_two,
@@ -83286,7 +83719,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
     {NULL, NULL, NULL, NULL, NULL},
 #endif
 
-#line 1085
+#line 1136
 #if 1
 {
     &half_sum_of_products_stride0_contig_outstride0_two,
@@ -83302,7 +83735,7 @@ static sum_of_products_fn _binary_specialization_table[NPY_NTYPES][5] = {
 }; /* End of _binary_specialization_table */
 
 static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
-#line 1122
+#line 1173
 #if 1
 {
     &bool_sum_of_products_outstride0_any,
@@ -83314,7 +83747,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &byte_sum_of_products_outstride0_any,
@@ -83326,7 +83759,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &ubyte_sum_of_products_outstride0_any,
@@ -83338,7 +83771,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &short_sum_of_products_outstride0_any,
@@ -83350,7 +83783,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &ushort_sum_of_products_outstride0_any,
@@ -83362,7 +83795,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &int_sum_of_products_outstride0_any,
@@ -83374,7 +83807,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &uint_sum_of_products_outstride0_any,
@@ -83386,7 +83819,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &long_sum_of_products_outstride0_any,
@@ -83398,7 +83831,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &ulong_sum_of_products_outstride0_any,
@@ -83410,7 +83843,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &longlong_sum_of_products_outstride0_any,
@@ -83422,7 +83855,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &ulonglong_sum_of_products_outstride0_any,
@@ -83434,7 +83867,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &float_sum_of_products_outstride0_any,
@@ -83446,7 +83879,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &double_sum_of_products_outstride0_any,
@@ -83458,7 +83891,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &longdouble_sum_of_products_outstride0_any,
@@ -83470,7 +83903,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &cfloat_sum_of_products_outstride0_any,
@@ -83482,7 +83915,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &cdouble_sum_of_products_outstride0_any,
@@ -83494,7 +83927,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &clongdouble_sum_of_products_outstride0_any,
@@ -83506,8 +83939,8 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
-#if 0
+#line 1173
+#if 1
 {
     &object_sum_of_products_outstride0_any,
     &object_sum_of_products_outstride0_one,
@@ -83518,7 +83951,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 0
 {
     &string_sum_of_products_outstride0_any,
@@ -83530,7 +83963,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 0
 {
     &unicode_sum_of_products_outstride0_any,
@@ -83542,7 +83975,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 0
 {
     &void_sum_of_products_outstride0_any,
@@ -83554,7 +83987,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 0
 {
     &datetime_sum_of_products_outstride0_any,
@@ -83566,7 +83999,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 0
 {
     &timedelta_sum_of_products_outstride0_any,
@@ -83578,7 +84011,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1122
+#line 1173
 #if 1
 {
     &half_sum_of_products_outstride0_any,
@@ -83593,7 +84026,7 @@ static sum_of_products_fn _outstride0_specialized_table[NPY_NTYPES][4] = {
 }; /* End of _outstride0_specialized_table */
 
 static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
-#line 1158
+#line 1209
 #if 1
 {
     &bool_sum_of_products_contig_any,
@@ -83605,7 +84038,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &byte_sum_of_products_contig_any,
@@ -83617,7 +84050,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &ubyte_sum_of_products_contig_any,
@@ -83629,7 +84062,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &short_sum_of_products_contig_any,
@@ -83641,7 +84074,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &ushort_sum_of_products_contig_any,
@@ -83653,7 +84086,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &int_sum_of_products_contig_any,
@@ -83665,7 +84098,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &uint_sum_of_products_contig_any,
@@ -83677,7 +84110,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &long_sum_of_products_contig_any,
@@ -83689,7 +84122,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &ulong_sum_of_products_contig_any,
@@ -83701,7 +84134,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &longlong_sum_of_products_contig_any,
@@ -83713,7 +84146,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &ulonglong_sum_of_products_contig_any,
@@ -83725,7 +84158,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &float_sum_of_products_contig_any,
@@ -83737,7 +84170,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &double_sum_of_products_contig_any,
@@ -83749,7 +84182,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &longdouble_sum_of_products_contig_any,
@@ -83761,7 +84194,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &cfloat_sum_of_products_contig_any,
@@ -83773,7 +84206,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &cdouble_sum_of_products_contig_any,
@@ -83785,7 +84218,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &clongdouble_sum_of_products_contig_any,
@@ -83797,8 +84230,8 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
-#if 0
+#line 1209
+#if 1
 {
     &object_sum_of_products_contig_any,
     &object_sum_of_products_contig_one,
@@ -83809,7 +84242,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 0
 {
     &string_sum_of_products_contig_any,
@@ -83821,7 +84254,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 0
 {
     &unicode_sum_of_products_contig_any,
@@ -83833,7 +84266,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 0
 {
     &void_sum_of_products_contig_any,
@@ -83845,7 +84278,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 0
 {
     &datetime_sum_of_products_contig_any,
@@ -83857,7 +84290,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 0
 {
     &timedelta_sum_of_products_contig_any,
@@ -83869,7 +84302,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1158
+#line 1209
 #if 1
 {
     &half_sum_of_products_contig_any,
@@ -83884,7 +84317,7 @@ static sum_of_products_fn _allcontig_specialized_table[NPY_NTYPES][4] = {
 }; /* End of _allcontig_specialized_table */
 
 static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
-#line 1194
+#line 1245
 #if 1
 {
     &bool_sum_of_products_any,
@@ -83896,7 +84329,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &byte_sum_of_products_any,
@@ -83908,7 +84341,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &ubyte_sum_of_products_any,
@@ -83920,7 +84353,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &short_sum_of_products_any,
@@ -83932,7 +84365,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &ushort_sum_of_products_any,
@@ -83944,7 +84377,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &int_sum_of_products_any,
@@ -83956,7 +84389,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &uint_sum_of_products_any,
@@ -83968,7 +84401,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &long_sum_of_products_any,
@@ -83980,7 +84413,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &ulong_sum_of_products_any,
@@ -83992,7 +84425,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &longlong_sum_of_products_any,
@@ -84004,7 +84437,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &ulonglong_sum_of_products_any,
@@ -84016,7 +84449,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &float_sum_of_products_any,
@@ -84028,7 +84461,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &double_sum_of_products_any,
@@ -84040,7 +84473,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &longdouble_sum_of_products_any,
@@ -84052,7 +84485,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &cfloat_sum_of_products_any,
@@ -84064,7 +84497,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &cdouble_sum_of_products_any,
@@ -84076,7 +84509,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &clongdouble_sum_of_products_any,
@@ -84088,8 +84521,8 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
-#if 0
+#line 1245
+#if 1
 {
     &object_sum_of_products_any,
     &object_sum_of_products_one,
@@ -84100,7 +84533,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 0
 {
     &string_sum_of_products_any,
@@ -84112,7 +84545,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 0
 {
     &unicode_sum_of_products_any,
@@ -84124,7 +84557,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 0
 {
     &void_sum_of_products_any,
@@ -84136,7 +84569,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 0
 {
     &datetime_sum_of_products_any,
@@ -84148,7 +84581,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 0
 {
     &timedelta_sum_of_products_any,
@@ -84160,7 +84593,7 @@ static sum_of_products_fn _unspecialized_table[NPY_NTYPES][4] = {
     {NULL, NULL, NULL, NULL},
 #endif
 
-#line 1194
+#line 1245
 #if 1
 {
     &half_sum_of_products_any,

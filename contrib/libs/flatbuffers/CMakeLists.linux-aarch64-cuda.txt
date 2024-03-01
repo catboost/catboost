@@ -14,7 +14,7 @@ target_compile_options(contrib-libs-flatbuffers PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-flatbuffers PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/include
 )
 target_link_libraries(contrib-libs-flatbuffers PUBLIC
   contrib-libs-linux-headers
@@ -22,8 +22,8 @@ target_link_libraries(contrib-libs-flatbuffers PUBLIC
   abseil-cpp-absl-base
 )
 target_sources(contrib-libs-flatbuffers PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_text.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_parser.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/reflection.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_text.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_parser.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/reflection.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
 )

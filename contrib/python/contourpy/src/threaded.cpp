@@ -208,6 +208,10 @@ void ThreadedContourGenerator::export_lines(
             // return_lists[0][local.chunk] already contains points.
             // return_lists[1][local.chunk] already contains line offsets.
             break;
+        case LineType::ChunkCombinedNan:
+            assert(has_direct_points());
+            // return_lists[0][local.chunk] already contains points.
+            break;
     }
 }
 

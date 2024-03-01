@@ -88,12 +88,12 @@ inline TString ToString(const T& t) {
     return ::NPrivate::TToString<TR, std::is_arithmetic<TR>::value>::Cvt((const TR&)t);
 }
 
-inline const TString& ToString(const TString& s) noexcept {
+inline const TString& ToString(const TString& s Y_LIFETIME_BOUND) noexcept {
     return s;
 }
 
-inline const TString& ToString(TString& s) noexcept {
-    return s;
+inline TString&& ToString(TString&& s Y_LIFETIME_BOUND) noexcept {
+    return std::move(s);
 }
 
 inline TString ToString(const char* s) {
@@ -112,12 +112,12 @@ inline TUtf16String ToWtring(const T& t) {
     return TUtf16String::FromAscii(ToString(t));
 }
 
-inline const TUtf16String& ToWtring(const TUtf16String& w) {
+inline const TUtf16String& ToWtring(const TUtf16String& w Y_LIFETIME_BOUND) noexcept {
     return w;
 }
 
-inline const TUtf16String& ToWtring(TUtf16String& w) {
-    return w;
+inline TUtf16String&& ToWtring(TUtf16String&& w Y_LIFETIME_BOUND) noexcept {
+    return std::move(w);
 }
 
 struct TFromStringException: public TBadCastException {
@@ -415,9 +415,15 @@ public:
     template <std::enable_if_t<std::is_integral<T>::value, bool> = true>
     explicit constexpr TIntStringBuf(T t) {
         Size_ = Convert(t, Buf_, sizeof(Buf_));
-        // Init the rest of the array,
-        // otherwise constexpr copy and move constructors don't work due to uninitialized data access
-        std::fill(Buf_ + Size_, Buf_ + sizeof(Buf_), '\0');
+#if __cplusplus >= 202002L // is_constant_evaluated is not supported by CUDA yet
+        if (std::is_constant_evaluated()) {
+#endif
+            // Init the rest of the array,
+            // otherwise constexpr copy and move constructors don't work due to uninitialized data access
+            std::fill(Buf_ + Size_, Buf_ + sizeof(Buf_), '\0');
+#if __cplusplus >= 202002L
+        }
+#endif
     }
 
     constexpr operator TStringBuf() const noexcept {

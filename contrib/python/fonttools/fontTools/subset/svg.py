@@ -204,7 +204,6 @@ def subset_glyphs(self, s) -> bool:
 
     new_docs: List[SVGDocument] = []
     for doc in self.docList:
-
         glyphs = {
             glyph_order[i] for i in range(doc.startGlyphID, doc.endGlyphID + 1)
         }.intersection(s.glyphs)

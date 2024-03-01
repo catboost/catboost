@@ -6,6 +6,8 @@
 
 #include "ref_tracked.h"
 
+#include <library/cpp/yt/misc/port.h>
+
 #include <library/cpp/yt/malloc//malloc.h>
 
 namespace NYT {
@@ -121,7 +123,7 @@ Y_FORCE_INLINE T* NewEpilogue(void* ptr, As&& ... args)
     }
 }
 
-template <class T, bool = std::is_base_of_v<TRefCountedBase, T>>
+template <class T, bool = std::derived_from<T, TRefCountedBase>>
 struct TConstructHelper
 {
     static constexpr size_t RefCounterSpace = (sizeof(TRefCounter) + alignof(T) - 1) & ~(alignof(T) - 1);

@@ -79,7 +79,6 @@ class RepackerState(IntEnum):
 
 
 class BaseTTXConverter(DefaultTable):
-
     """Generic base class for TTX table converters. It functions as an
     adapter between the TTX (ttLib actually) table model and the model
     we use for OpenType tables, which is necessarily subtly different.
@@ -260,7 +259,6 @@ assert array.array("i").itemsize == 4, "Oops, file a bug against fonttools."
 
 
 class OTTableReader(object):
-
     """Helper class to retrieve data from an OpenType table."""
 
     __slots__ = ("data", "offset", "pos", "localState", "tableTag")
@@ -392,7 +390,6 @@ class OffsetToWriter(object):
 
 
 class OTTableWriter(object):
-
     """Helper class to gather and assemble data for OpenType tables."""
 
     def __init__(self, localState=None, tableTag=None):
@@ -882,7 +879,6 @@ def packUInt24(value):
 
 
 class BaseTable(object):
-
     """Generic base class for all OpenType (sub)tables."""
 
     def __getattr__(self, attr):
@@ -1210,7 +1206,6 @@ class BaseTable(object):
 
 
 class FormatSwitchingBaseTable(BaseTable):
-
     """Minor specialization of BaseTable, for tables that have multiple
     formats, eg. CoverageFormat1 vs. CoverageFormat2."""
 
@@ -1335,7 +1330,6 @@ valueRecordFormatDict = _buildDict()
 
 
 class ValueRecordFactory(object):
-
     """Given a format code, this object convert ValueRecords."""
 
     def __init__(self, valueFormat):

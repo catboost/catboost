@@ -75,6 +75,7 @@ namespace NCB {
                                                   TMaybe<float> targetBorder,
                                                   size_t targetDim,
                                                   TMaybe<ui32> classCount,
-                                                  const TVector<NJson::TJsonValue>& inputClassNames);
+                                                  const TVector<NJson::TJsonValue>& inputClassNames,
+                                                  bool allowConstLabel);
 
 }

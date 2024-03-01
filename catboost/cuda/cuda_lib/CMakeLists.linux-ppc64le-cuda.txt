@@ -11,8 +11,8 @@ add_subdirectory(ut)
 
 add_library(catboost-cuda-cuda_lib)
 target_cuda_sources(catboost-cuda-cuda_lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/kernel/kernel.cu
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/kernel/reduce.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/kernel/kernel.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/kernel/reduce.cu
 )
 target_link_libraries(catboost-cuda-cuda_lib PUBLIC
   contrib-libs-linux-headers
@@ -29,37 +29,37 @@ target_link_libraries(catboost-cuda-cuda_lib PUBLIC
   CUDA::toolkit
 )
 target_sources(catboost-cuda-cuda_lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cache.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_base.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_events_provider.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_kernel_buffer.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_manager.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_profiler.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/device_id.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/device_provider.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/devices_provider.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/devices_list.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/future/local_promise_future.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/future/mpi_promise_future.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/future/promise_factory.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/fwd.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/gpu_single_worker.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/hwloc_wrapper.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/inter_device_stream_section.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/mapping.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/memory_copy_performance.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/memory_pool/stack_like_memory_pool.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/mpi/mpi_manager.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/serialization/task_factory.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/single_device.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/stream_section_tasks_launcher.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/cpu_func.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/stream_section_task.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_queue/mpi_task_queue.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_queue/single_host_task_queue.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/worker_state.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cache.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_base.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_events_provider.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_kernel_buffer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_manager.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_profiler.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/device_id.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/device_provider.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/devices_provider.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/devices_list.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/future/local_promise_future.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/future/mpi_promise_future.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/future/promise_factory.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/fwd.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/gpu_single_worker.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/hwloc_wrapper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/inter_device_stream_section.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/mapping.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/memory_copy_performance.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/memory_pool/stack_like_memory_pool.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/mpi/mpi_manager.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/serialization/task_factory.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/single_device.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/stream_section_tasks_launcher.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/cpu_func.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/stream_section_task.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_queue/mpi_task_queue.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_queue/single_host_task_queue.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/worker_state.cpp
 )
 target_cuda_cflags(catboost-cuda-cuda_lib)
 target_cuda_flags(catboost-cuda-cuda_lib
@@ -102,13 +102,13 @@ target_link_libraries(catboost-cuda-cuda_lib.global PUBLIC
   CUDA::toolkit
 )
 target_sources(catboost-cuda-cuda_lib.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer_helpers/reduce_scatter.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/task.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/enable_peers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/host_tasks.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/kernel_task.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/memory_allocation.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/memory_copy_tasks.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/memory_state_func.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/request_stream_task.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer_helpers/reduce_scatter.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/task.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/enable_peers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/host_tasks.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/kernel_task.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/memory_allocation.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/memory_copy_tasks.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/memory_state_func.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/request_stream_task.cpp
 )

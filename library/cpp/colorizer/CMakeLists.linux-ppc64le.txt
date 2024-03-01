@@ -14,6 +14,6 @@ target_link_libraries(library-cpp-colorizer PUBLIC
   yutil
 )
 target_sources(library-cpp-colorizer PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/colorizer/colors.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/colorizer/output.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/colorizer/colors.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/colorizer/output.cpp
 )

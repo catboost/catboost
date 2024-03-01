@@ -18,9 +18,9 @@
 #include <unistd.h>
 
 #ifdef PSUTIL_SUNOS10
-    #include "arch/solaris/v10/ifaddrs.h"
+    #error #include "arch/solaris/v10/ifaddrs.h"
 #elif PSUTIL_AIX
-    #include "arch/aix/ifaddrs.h"
+    #error #include "arch/aix/ifaddrs.h"
 #else
     #include <ifaddrs.h>
 #endif

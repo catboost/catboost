@@ -69,7 +69,7 @@ def extract_tar(tar_file_path, output_dir, strip_components=None, fail_on_duplic
             if not p:
                 continue
             dest = os.path.join(output_dir, encode(p, ENCODING))
-            if e.pathname.endswith("/"):
+            if e.pathname.endswith("/") or e.isdir():
                 _make_dirs(dest)
                 continue
 

@@ -22,11 +22,11 @@ target_link_libraries(cpp-json-writer PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(cpp-json-writer PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/json/writer/json_value.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/json/writer/json.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/json/writer/json_value.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/json/writer/json.cpp
 )
 generate_enum_serilization(cpp-json-writer
-  ${CMAKE_SOURCE_DIR}/library/cpp/json/writer/json_value.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/json/writer/json_value.h
   INCLUDE_HEADERS
   library/cpp/json/writer/json_value.h
 )

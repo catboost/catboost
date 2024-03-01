@@ -17,7 +17,7 @@ target_link_libraries(archiver PUBLIC
   cpp-getopt-small
 )
 target_sources(archiver PRIVATE
-  ${CMAKE_SOURCE_DIR}/tools/archiver/main.cpp
+  ${PROJECT_SOURCE_DIR}/tools/archiver/main.cpp
 )
 target_allocator(archiver
   system_allocator

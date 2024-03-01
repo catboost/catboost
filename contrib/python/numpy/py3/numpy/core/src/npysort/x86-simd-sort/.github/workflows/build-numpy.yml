@@ -1,0 +1,67 @@
+name: NumPy
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+  - cron: '0 5 * * *'
+
+jobs:
+  NumPyMultiarrayTests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout x86-simd-sort
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        path: x86-simd-sort
+
+    - name: Specify branch name
+      working-directory: ${{ github.workspace }}/x86-simd-sort
+      run: git switch -c pr-branch
+
+    - name: Install build dependencies
+      run: |
+        sudo apt update
+        sudo apt -y install g++-12 gcc-12 git
+
+    - name: Checkout NumPy main
+      uses: actions/checkout@v3
+      with:
+        repository: numpy/numpy
+        submodules: recursive
+        fetch-depth: 0
+        ref: main
+        path: numpy
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install NumPy dependencies
+      working-directory: ${{ github.workspace }}/numpy
+      run: |
+        pip install -r build_requirements.txt
+        pip install -r test_requirements.txt
+
+    - name: Update x86-simd-sort
+      working-directory: ${{ github.workspace }}/numpy
+      run: |
+        cd numpy/core/src/npysort/x86-simd-sort
+        git remote add temp ${{ github.workspace }}/x86-simd-sort
+        git fetch temp
+        git checkout temp/pr-branch
+
+    - name: Build & run NumPy sort tests
+      working-directory: ${{ github.workspace }}/numpy
+      env:
+        CXX: g++-12
+        CC: gcc-12
+      run: |
+        python runtests.py -t numpy/core/tests/test_multiarray.py
+
+

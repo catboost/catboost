@@ -1149,6 +1149,15 @@ namespace xsimd
         {
             return !(arg == arg);
         }
+
+        /****************
+         * rotate_right *
+         ****************/
+        template <size_t N, class A>
+        inline batch<double, A> rotate_right(batch<double, A> const& a, requires_arch<neon64>) noexcept
+        {
+            return vextq_f64(a, a, N);
+        }
     }
 
     template <class batch_type, typename batch_type::value_type... Values>
@@ -1156,9 +1165,102 @@ namespace xsimd
 
     namespace kernel
     {
-        /***********
-         * swizzle *
-         ***********/
+        /*********************
+         * swizzle (dynamic) *
+         *********************/
+        template <class A>
+        inline batch<uint8_t, A> swizzle(batch<uint8_t, A> const& self, batch<uint8_t, A> idx,
+                                         requires_arch<neon64>) noexcept
+        {
+            return vqtbl1q_u8(self, idx);
+        }
+
+        template <class A>
+        inline batch<int8_t, A> swizzle(batch<int8_t, A> const& self, batch<uint8_t, A> idx,
+                                        requires_arch<neon64>) noexcept
+        {
+            return vqtbl1q_s8(self, idx);
+        }
+
+        template <class A>
+        inline batch<uint16_t, A> swizzle(batch<uint16_t, A> const& self,
+                                          batch<uint16_t, A> idx,
+                                          requires_arch<neon64>) noexcept
+        {
+            using batch_type = batch<uint8_t, A>;
+            using index_type = batch<uint8_t, A>;
+            return vreinterpretq_u16_u8(swizzle(batch_type(vreinterpretq_u8_u16(self)),
+                                                index_type(vreinterpretq_u8_u16(idx * 0x0202 + 0x0100)),
+                                                neon64 {}));
+        }
+
+        template <class A>
+        inline batch<int16_t, A> swizzle(batch<int16_t, A> const& self,
+                                         batch<uint16_t, A> idx,
+                                         requires_arch<neon64>) noexcept
+        {
+            return bitwise_cast<int16_t>(swizzle(bitwise_cast<uint16_t>(self), idx, neon64 {}));
+        }
+
+        template <class A>
+        inline batch<uint32_t, A> swizzle(batch<uint32_t, A> const& self,
+                                          batch<uint32_t, A> idx,
+                                          requires_arch<neon64>) noexcept
+        {
+            using batch_type = batch<uint8_t, A>;
+            using index_type = batch<uint8_t, A>;
+            return vreinterpretq_u32_u8(swizzle(batch_type(vreinterpretq_u8_u32(self)),
+                                                index_type(vreinterpretq_u8_u32(idx * 0x04040404 + 0x03020100)),
+                                                neon64 {}));
+        }
+
+        template <class A>
+        inline batch<int32_t, A> swizzle(batch<int32_t, A> const& self,
+                                         batch<uint32_t, A> idx,
+                                         requires_arch<neon64>) noexcept
+        {
+            return bitwise_cast<int32_t>(swizzle(bitwise_cast<uint32_t>(self), idx, neon64 {}));
+        }
+
+        template <class A>
+        inline batch<uint64_t, A> swizzle(batch<uint64_t, A> const& self,
+                                          batch<uint64_t, A> idx,
+                                          requires_arch<neon64>) noexcept
+        {
+            using batch_type = batch<uint8_t, A>;
+            using index_type = batch<uint8_t, A>;
+            return vreinterpretq_u64_u8(swizzle(batch_type(vreinterpretq_u8_u64(self)),
+                                                index_type(vreinterpretq_u8_u64(idx * 0x0808080808080808ull + 0x0706050403020100ull)),
+                                                neon64 {}));
+        }
+
+        template <class A>
+        inline batch<int64_t, A> swizzle(batch<int64_t, A> const& self,
+                                         batch<uint64_t, A> idx,
+                                         requires_arch<neon64>) noexcept
+        {
+            return bitwise_cast<int64_t>(swizzle(bitwise_cast<uint64_t>(self), idx, neon64 {}));
+        }
+
+        template <class A>
+        inline batch<float, A> swizzle(batch<float, A> const& self,
+                                       batch<uint32_t, A> idx,
+                                       requires_arch<neon64>) noexcept
+        {
+            return bitwise_cast<float>(swizzle(bitwise_cast<uint32_t>(self), idx, neon64 {}));
+        }
+
+        template <class A>
+        inline batch<double, A> swizzle(batch<double, A> const& self,
+                                        batch<uint64_t, A> idx,
+                                        requires_arch<neon64>) noexcept
+        {
+            return bitwise_cast<double>(swizzle(bitwise_cast<uint64_t>(self), idx, neon64 {}));
+        }
+
+        /********************
+         * swizzle (static) *
+         ********************/
 
         namespace detail
         {

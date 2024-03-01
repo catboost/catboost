@@ -23,22 +23,22 @@
 
 #elif defined(__OS2__)
 #	define INCL_DOSMISC
-#	include <os2.h>
+#	error #include <os2.h>
 
 #elif defined(__DJGPP__)
 #	error #include <dpmi.h>
 
 #elif defined(__VMS)
-#	include <lib$routines.h>
-#	include <syidef.h>
-#	include <ssdef.h>
+#	error #include <lib$routines.h>
+#	error #include <syidef.h>
+#	error #include <ssdef.h>
 
 #elif defined(AMIGA) || defined(__AROS__)
 #	define __USE_INLINE__
-#	include <proto/exec.h>
+#	error #include <proto/exec.h>
 
 #elif defined(__QNX__)
-#	include <sys/syspage.h>
+#	error #include <sys/syspage.h>
 #	include <string.h>
 
 #elif defined(TUKLIB_PHYSMEM_AIX)
@@ -73,6 +73,17 @@
 #endif
 
 
+// With GCC >= 8.1 with -Wextra and Clang >= 13 with -Wcast-function-type
+// will warn about the Windows-specific code.
+#if defined(__has_warning)
+#	if __has_warning("-Wcast-function-type")
+#		define CAN_DISABLE_WCAST_FUNCTION_TYPE 1
+#	endif
+#elif TUKLIB_GNUC_REQ(8,1)
+#	define CAN_DISABLE_WCAST_FUNCTION_TYPE 1
+#endif
+
+
 extern uint64_t
 tuklib_physmem(void)
 {
@@ -87,8 +98,15 @@ tuklib_physmem(void)
 		HMODULE kernel32 = GetModuleHandle(TEXT("kernel32.dll"));
 		if (kernel32 != NULL) {
 			typedef BOOL (WINAPI *gmse_type)(LPMEMORYSTATUSEX);
+#ifdef CAN_DISABLE_WCAST_FUNCTION_TYPE
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
 			gmse_type gmse = (gmse_type)GetProcAddress(
 					kernel32, "GlobalMemoryStatusEx");
+#ifdef CAN_DISABLE_WCAST_FUNCTION_TYPE
+#	pragma GCC diagnostic pop
+#endif
 			if (gmse != NULL) {
 				MEMORYSTATUSEX meminfo;
 				meminfo.dwLength = sizeof(meminfo);

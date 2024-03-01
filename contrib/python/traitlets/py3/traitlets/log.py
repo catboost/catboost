@@ -16,7 +16,7 @@ def get_logger() -> logging.Logger | logging.LoggerAdapter[Any]:
     If a global Application is instantiated, grab its logger.
     Otherwise, grab the root logger.
     """
-    global _logger
+    global _logger  # noqa: PLW0603
 
     if _logger is None:
         from .config import Application

@@ -184,7 +184,7 @@ TFold TFold::BuildDynamicFold(
             );
         }
         AllocateRank2(approxDimension, bt.TailFinish, bt.WeightedDerivatives);
-        AllocateRank2(approxDimension, bt.TailFinish, bt.SampleWeightedDerivatives);
+        ResizeRank2(approxDimension, bt.TailFinish, bt.SampleWeightedDerivatives);
         if (hasPairwiseWeights) {
             bt.PairwiseWeights.insert(
                 bt.PairwiseWeights.begin(),
@@ -275,7 +275,7 @@ TFold TFold::BuildPlainFold(
 
         InitApproxes(learnSampleCount, startingApprox, approxDimension, storeExpApproxes, &(bt.Approx));
         AllocateRank2(approxDimension, learnSampleCount, bt.WeightedDerivatives);
-        AllocateRank2(approxDimension, learnSampleCount, bt.SampleWeightedDerivatives);
+        ResizeRank2(approxDimension, learnSampleCount, bt.SampleWeightedDerivatives);
         if (hasPairwiseWeights) {
             bt.PairwiseWeights.resize(learnSampleCount);
             CalcPairwiseWeights(ff.LearnQueriesInfo, bt.TailQueryFinish, &bt.PairwiseWeights);

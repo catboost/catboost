@@ -22,7 +22,7 @@ target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE
   -fPIC
 )
 target_sources(catboost-private-libs-feature_estimator-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/feature_estimator/ut/feature_estimator_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/ut/feature_estimator_ut.cpp
 )
 set_property(
   TARGET
@@ -56,6 +56,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-private-libs-feature_estimator-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-private-libs-feature_estimator-ut
   system_allocator

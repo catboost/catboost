@@ -29,13 +29,13 @@ target_link_libraries(private-libs-documents_importance PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(private-libs-documents_importance PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/documents_importance/docs_importance_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/documents_importance/docs_importance.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/documents_importance/tree_statistics.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/documents_importance/ders_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/docs_importance_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/docs_importance.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/tree_statistics.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/ders_helpers.cpp
 )
 generate_enum_serilization(private-libs-documents_importance
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/documents_importance/enums.h
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/enums.h
   INCLUDE_HEADERS
   catboost/private/libs/documents_importance/enums.h
 )

@@ -30,33 +30,43 @@ target_link_libraries(libs-model-flatbuffers PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-flatbuffers
+  libs-helpers-flatbuffers
 )
 target_sources(libs-model-flatbuffers PRIVATE
-  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.cpp
-  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.cpp
-  ${CMAKE_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.iter.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.iter.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.iter.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.bfbs
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.bfbs
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.bfbs
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.cpp
 )
 target_fbs_source(libs-model-flatbuffers
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/flatbuffers/features.fbs
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/flatbuffers/features.fbs
   -I
-  ${CMAKE_BINARY_DIR}
+  ${PROJECT_BINARY_DIR}
   -I
-  ${CMAKE_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}
 )
 target_fbs_source(libs-model-flatbuffers
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs
   -I
-  ${CMAKE_BINARY_DIR}
+  ${PROJECT_BINARY_DIR}
   -I
-  ${CMAKE_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}
 )
 target_fbs_source(libs-model-flatbuffers
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/flatbuffers/model.fbs
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/flatbuffers/model.fbs
   -I
-  ${CMAKE_BINARY_DIR}
+  ${PROJECT_BINARY_DIR}
   -I
-  ${CMAKE_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}
 )

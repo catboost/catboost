@@ -99,6 +99,8 @@ See the [changelog](CHANGELOG.md) for details about specific releases.
 
 | CUB Release               | Included In                             |
 | ------------------------- | --------------------------------------- |
+| 2.0.1                     | CUDA Toolkit 12.0                       |
+| 2.0.0                     | TBD                                     |
 | 1.17.2                    | TBD                                     |
 | 1.17.1                    | TBD                                     |
 | 1.17.0                    | TBD                                     |

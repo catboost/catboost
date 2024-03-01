@@ -20,5 +20,5 @@ target_link_libraries(cpp-string_utils-base64 PUBLIC
   libs-base64-plain64
 )
 target_sources(cpp-string_utils-base64 PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/string_utils/base64/base64.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/string_utils/base64/base64.cpp
 )

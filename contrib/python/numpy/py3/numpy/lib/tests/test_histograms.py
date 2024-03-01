@@ -398,8 +398,9 @@ class TestHistogram:
         edges = histogram_bin_edges(arr, bins='auto', range=(0, 1))
         assert_array_equal(edges, e)
 
-    @requires_memory(free_bytes=1e10)
-    @pytest.mark.slow
+    # @requires_memory(free_bytes=1e10)
+    # @pytest.mark.slow
+    @pytest.mark.skip(reason="Bad memory reports lead to OOM in ci testing")
     def test_big_arrays(self):
         sample = np.zeros([100000000, 3])
         xbins = 400
@@ -407,6 +408,13 @@ class TestHistogram:
         zbins = np.arange(16000)
         hist = np.histogramdd(sample=sample, bins=(xbins, ybins, zbins))
         assert_equal(type(hist), type((1, 2)))
+
+    def test_gh_23110(self):
+        hist, e = np.histogram(np.array([-0.9e-308], dtype='>f8'),
+                               bins=2,
+                               range=(-1e-308, -2e-313))
+        expected_hist = np.array([1, 0])
+        assert_array_equal(hist, expected_hist)
 
 
 class TestHistogramOptimBinNums:

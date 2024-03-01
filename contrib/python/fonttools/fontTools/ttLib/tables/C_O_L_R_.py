@@ -7,7 +7,6 @@ from . import DefaultTable
 
 
 class table_C_O_L_R_(DefaultTable.DefaultTable):
-
     """This table is structured so that you can treat it like a dictionary keyed by glyph name.
 
     ``ttFont['COLR'][<glyphName>]`` will return the color layers for any glyph.
@@ -151,7 +150,7 @@ class LayerRecord(object):
         writer.newline()
 
     def fromXML(self, eltname, attrs, content, ttFont):
-        for (name, value) in attrs.items():
+        for name, value in attrs.items():
             if name == "name":
                 setattr(self, name, value)
             else:

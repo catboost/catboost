@@ -66,7 +66,7 @@ Supported prediction types:
 string
 
 
-**Default value** 
+**Default value**
 
 None (Exponent for Poisson and Tweedie, RawFormulaVal for all other loss functions)
 
@@ -79,11 +79,11 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 This parameter defines the index of the first tree to be used when applying the model or calculating the metrics (the inclusive left border of the range). Indices are zero-based.
 
-**Possible types** 
+**Possible types**
 
 int
 
-**Default value** 
+**Default value**
 
 0
 
@@ -96,7 +96,7 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 This parameter defines the index of the first tree to be used when applying the model or calculating the metrics (the inclusive left border of the range). Indices are zero-based.
 
-**Possible types** 
+**Possible types**
 
 int
 
@@ -108,11 +108,11 @@ int
 
 #### Description
 
-The number of threads to use during the training.
+The number of threads to calculate prediction.
 
 Optimizes the speed of execution. This parameter doesn't affect results.
 
-**Possible types** 
+**Possible types**
 
 int
 
@@ -126,11 +126,11 @@ int
 
 Output the measured evaluation metric to stderr.
 
-**Possible types** 
+**Possible types**
 
 bool
 
-**Default value** 
+**Default value**
 
 None
 

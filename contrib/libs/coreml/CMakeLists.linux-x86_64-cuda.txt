@@ -219,34 +219,53 @@ target_link_libraries(contrib-libs-coreml PUBLIC
   contrib-libs-protobuf
 )
 target_proto_messages(contrib-libs-coreml PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/ArrayFeatureExtractor.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/CategoricalMapping.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/DataStructures.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/DictVectorizer.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/FeatureTypes.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/FeatureVectorizer.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/GLMClassifier.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/GLMRegressor.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/Identity.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/Imputer.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/Model.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/NeuralNetwork.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/Normalizer.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/OneHotEncoder.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/SVM.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/Scaler.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/coreml/TreeEnsemble.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/ArrayFeatureExtractor.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/CategoricalMapping.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/DataStructures.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/DictVectorizer.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/FeatureTypes.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/FeatureVectorizer.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/GLMClassifier.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/GLMRegressor.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/Identity.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/Imputer.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/Model.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/NeuralNetwork.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/Normalizer.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/OneHotEncoder.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/SVM.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/Scaler.proto
+  ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/TreeEnsemble.proto
+)
+target_sources(contrib-libs-coreml PRIVATE
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/ArrayFeatureExtractor.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/CategoricalMapping.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/DataStructures.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/DictVectorizer.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/FeatureTypes.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/FeatureVectorizer.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/GLMClassifier.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/GLMRegressor.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/Identity.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/Imputer.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/Model.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/NeuralNetwork.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/Normalizer.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/OneHotEncoder.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/SVM.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/Scaler.pb.h
+  ${PROJECT_BINARY_DIR}/contrib/libs/coreml/TreeEnsemble.pb.h
 )
 target_proto_addincls(contrib-libs-coreml
   ./
-  ${CMAKE_SOURCE_DIR}/
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
+  ${PROJECT_SOURCE_DIR}/
+  ${PROJECT_BINARY_DIR}
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
+  ${PROJECT_BINARY_DIR}
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
 target_proto_outs(contrib-libs-coreml
-  --cpp_out=${CMAKE_BINARY_DIR}/
-  --cpp_styleguide_out=${CMAKE_BINARY_DIR}/
+  --cpp_out=${PROJECT_BINARY_DIR}/
+  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
 )

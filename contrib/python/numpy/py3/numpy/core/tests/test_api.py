@@ -102,6 +102,16 @@ def test_array_array():
     assert_raises(ValueError, np.array, [nested], dtype=np.float64)
 
     # Try with lists...
+    # float32
+    assert_equal(np.array([None] * 10, dtype=np.float32),
+                 np.full((10,), np.nan, dtype=np.float32))
+    assert_equal(np.array([[None]] * 10, dtype=np.float32),
+                 np.full((10, 1), np.nan, dtype=np.float32))
+    assert_equal(np.array([[None] * 10], dtype=np.float32),
+                 np.full((1, 10), np.nan, dtype=np.float32))
+    assert_equal(np.array([[None] * 10] * 10, dtype=np.float32),
+                 np.full((10, 10), np.nan, dtype=np.float32))
+    # float64
     assert_equal(np.array([None] * 10, dtype=np.float64),
                  np.full((10,), np.nan, dtype=np.float64))
     assert_equal(np.array([[None]] * 10, dtype=np.float64),
@@ -274,6 +284,9 @@ def test_array_astype():
     a = np.array(1000, dtype='i4')
     assert_raises(TypeError, a.astype, 'U1', casting='safe')
 
+    # gh-24023
+    assert_raises(TypeError, a.astype)
+
 @pytest.mark.parametrize("dt", ["S", "U"])
 def test_array_astype_to_string_discovery_empty(dt):
     # See also gh-19085
@@ -310,7 +323,7 @@ def test_array_astype_warning(t):
 
 @pytest.mark.parametrize(["dtype", "out_dtype"],
         [(np.bytes_, np.bool_),
-         (np.unicode_, np.bool_),
+         (np.str_, np.bool_),
          (np.dtype("S10,S9"), np.dtype("?,?"))])
 def test_string_to_boolean_cast(dtype, out_dtype):
     """
@@ -324,7 +337,7 @@ def test_string_to_boolean_cast(dtype, out_dtype):
 
 @pytest.mark.parametrize(["dtype", "out_dtype"],
         [(np.bytes_, np.bool_),
-         (np.unicode_, np.bool_),
+         (np.str_, np.bool_),
          (np.dtype("S10,S9"), np.dtype("?,?"))])
 def test_string_to_boolean_cast_errors(dtype, out_dtype):
     """

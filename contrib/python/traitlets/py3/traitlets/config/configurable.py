@@ -164,7 +164,7 @@ class Configurable(HasTraits):
         self,
         cfg: Config,
         section_names: list[str] | None = None,
-        traits: dict[str, TraitType] | None = None,
+        traits: dict[str, TraitType[t.Any, t.Any]] | None = None,
     ) -> None:
         """load traits from a Config object"""
 
@@ -324,7 +324,7 @@ class Configurable(HasTraits):
     @classmethod
     def class_print_help(cls, inst: HasTraits | None = None) -> None:
         """Get the help string for a single trait and print it."""
-        print(cls.class_get_help(inst))
+        print(cls.class_get_help(inst))  # noqa: T201
 
     @classmethod
     def _defining_class(
@@ -481,7 +481,7 @@ class LoggingConfigurable(Configurable):
                 UserWarning,
                 stacklevel=2,
             )
-        return proposal.value  # type:ignore[no-any-return]
+        return t.cast(LoggerType, proposal.value)
 
     @default("log")
     def _log_default(self) -> LoggerType:
@@ -502,14 +502,16 @@ class LoggingConfigurable(Configurable):
         """
         if not self.log:
             return None
-        logger = self.log if isinstance(self.log, logging.Logger) else self.log.logger
+        logger: logging.Logger = (
+            self.log if isinstance(self.log, logging.Logger) else self.log.logger
+        )
         if not getattr(logger, "handlers", None):
             # no handlers attribute or empty handlers list
             return None
-        return logger.handlers[0]  # type:ignore[no-any-return]
+        return logger.handlers[0]
 
 
-CT = t.TypeVar('CT', bound='SingletonConfigurable')
+CT = t.TypeVar("CT", bound="SingletonConfigurable")
 
 
 class SingletonConfigurable(LoggingConfigurable):

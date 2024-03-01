@@ -6,17 +6,11 @@
 #ifndef BOOST_MATH_CCMATH_ISNAN
 #define BOOST_MATH_CCMATH_ISNAN
 
-#include <cmath>
-#include <type_traits>
-#include <boost/math/tools/is_constant_evaluated.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <boost/math/ccmath/detail/config.hpp>
 
-#include <boost/math/tools/is_standalone.hpp>
-#ifndef BOOST_MATH_STANDALONE
-#include <boost/config.hpp>
-#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
-#error "The header <boost/math/norms.hpp> can only be used in C++17 and later."
-#endif
+#ifdef BOOST_MATH_NO_CCMATH
+#error "The header <boost/math/isnan.hpp> can only be used in C++17 and later."
 #endif
 
 namespace boost::math::ccmath {

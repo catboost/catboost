@@ -1,14 +1,22 @@
 from __future__ import annotations
 
-from ._dtypes import _floating_dtypes, _numeric_dtypes
+from ._dtypes import (
+    _floating_dtypes,
+    _numeric_dtypes,
+    float32,
+    float64,
+    complex64,
+    complex128
+)
 from ._manipulation_functions import reshape
+from ._elementwise_functions import conj
 from ._array_object import Array
 
 from ..core.numeric import normalize_axis_tuple
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from ._typing import Literal, Optional, Sequence, Tuple, Union
+    from ._typing import Literal, Optional, Sequence, Tuple, Union, Dtype
 
 from typing import NamedTuple
 
@@ -46,7 +54,10 @@ def cholesky(x: Array, /, *, upper: bool = False) -> Array:
         raise TypeError('Only floating-point dtypes are allowed in cholesky')
     L = np.linalg.cholesky(x._array)
     if upper:
-        return Array._new(L).mT
+        U = Array._new(L).mT
+        if U.dtype in [complex64, complex128]:
+            U = conj(U)
+        return U
     return Array._new(L)
 
 # Note: cross is the numpy top-level namespace, not np.linalg
@@ -311,8 +322,9 @@ def _solve(a, b):
     # This does nothing currently but is left in because it will be relevant
     # when complex dtype support is added to the spec in 2022.
     signature = 'DD->D' if isComplexType(t) else 'dd->d'
-    extobj = get_linalg_error_extobj(_raise_linalgerror_singular)
-    r = gufunc(a, b, signature=signature, extobj=extobj)
+    with np.errstate(call=_raise_linalgerror_singular, invalid='call',
+                     over='ignore', divide='ignore', under='ignore'):
+        r = gufunc(a, b, signature=signature)
 
     return wrap(r.astype(result_t, copy=False))
 
@@ -363,7 +375,7 @@ def tensordot(x1: Array, x2: Array, /, *, axes: Union[int, Tuple[Sequence[int], 
     return Array._new(np.tensordot(x1._array, x2._array, axes=axes))
 
 # Note: trace is the numpy top-level namespace, not np.linalg
-def trace(x: Array, /, *, offset: int = 0) -> Array:
+def trace(x: Array, /, *, offset: int = 0, dtype: Optional[Dtype] = None) -> Array:
     """
     Array API compatible wrapper for :py:func:`np.trace <numpy.trace>`.
 
@@ -371,9 +383,17 @@ def trace(x: Array, /, *, offset: int = 0) -> Array:
     """
     if x.dtype not in _numeric_dtypes:
         raise TypeError('Only numeric dtypes are allowed in trace')
+
+    # Note: trace() works the same as sum() and prod() (see
+    # _statistical_functions.py)
+    if dtype is None:
+        if x.dtype == float32:
+            dtype = float64
+        elif x.dtype == complex64:
+            dtype = complex128
     # Note: trace always operates on the last two axes, whereas np.trace
     # operates on the first two axes by default
-    return Array._new(np.asarray(np.trace(x._array, offset=offset, axis1=-2, axis2=-1)))
+    return Array._new(np.asarray(np.trace(x._array, offset=offset, axis1=-2, axis2=-1, dtype=dtype)))
 
 # Note: vecdot is not in NumPy
 def vecdot(x1: Array, x2: Array, /, *, axis: int = -1) -> Array:

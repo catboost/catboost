@@ -30,7 +30,7 @@ public:
     bool IsLocked() const noexcept;
 
 private:
-    TSpinLock SpinLock_;
+    ::TSpinLock SpinLock_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -28,7 +28,7 @@ MIGRATIONS_CONFIG_INDEX = 1
 def get_flake8_bin(params) -> str:
     if params.lint_name == "py2_flake8":
         flake8_root = params.global_resources[FLAKE8_PY2_RESOURCE]
-    elif params.lint_name == "py3_flake8":
+    elif params.lint_name == "flake8":
         flake8_root = params.global_resources[FLAKE8_PY3_RESOURCE]
     else:
         raise RuntimeError("Unexpected lint name: {}".format(params.lint_name))

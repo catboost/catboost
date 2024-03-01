@@ -1,17 +1,44 @@
 #include "symbols.h"
 
+#include <util/generic/yexception.h>
+#include <util/generic/vector.h>
 #include <util/generic/singleton.h>
 #include <util/generic/utility.h>
 #include <util/system/dynlib.h>
+#include <util/string/builder.h>
+#include <library/cpp/iterator/zip.h>
 
 #define LOADSYM(name, type) {name = (TId<type>::R*)L->SymOptional(#name);}
 
 const TInfinibandSymbols* IBSym() {
     struct TSymbols: TInfinibandSymbols {
         TSymbols() {
-            L.Reset(new TDynamicLibrary("/usr/lib/libibverbs.so"));
+            auto lib = std::make_unique<TDynamicLibrary>();
 
-            DOVERBS(LOADSYM)
+            TVector<TString> catchedExceptions;
+            TVector<TString> paths = {"/usr/lib/libibverbs.so", "libibverbs.so", "libibverbs.so.1"};
+
+            for (auto path : paths) {
+                try {
+                    lib->Open(path.c_str());
+                    L.Reset(lib.release());
+                    DOVERBS(LOADSYM)
+                    return;
+                } catch (std::exception& ex) {
+                    catchedExceptions.emplace_back(ex.what());
+                }
+            }
+
+            Y_ABORT_UNLESS(paths.size() == catchedExceptions.size());
+
+            TStringBuilder builder;
+
+            builder << "Cannot open any shared library. Reasons:\n";
+            for (const auto& [reason, path] : Zip(catchedExceptions, paths)) {
+                builder << "Path: " << path << " Reason: " << reason << "\n";
+            }
+
+            ythrow yexception() << builder;
         }
 
         THolder<TDynamicLibrary> L;

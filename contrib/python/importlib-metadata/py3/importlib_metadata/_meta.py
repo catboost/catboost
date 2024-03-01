@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import os
 from typing import Protocol
 from typing import Any, Dict, Iterator, List, Optional, TypeVar, Union, overload
 
@@ -44,20 +47,26 @@ class PackageMetadata(Protocol):
         """
 
 
-class SimplePath(Protocol[_T]):
+class SimplePath(Protocol):
     """
-    A minimal subset of pathlib.Path required by PathDistribution.
+    A minimal subset of pathlib.Path required by Distribution.
     """
 
-    def joinpath(self, other: Union[str, _T]) -> _T:
+    def joinpath(self, other: Union[str, os.PathLike[str]]) -> SimplePath:
         ...  # pragma: no cover
 
-    def __truediv__(self, other: Union[str, _T]) -> _T:
+    def __truediv__(self, other: Union[str, os.PathLike[str]]) -> SimplePath:
         ...  # pragma: no cover
 
     @property
-    def parent(self) -> _T:
+    def parent(self) -> SimplePath:
         ...  # pragma: no cover
 
-    def read_text(self) -> str:
+    def read_text(self, encoding=None) -> str:
+        ...  # pragma: no cover
+
+    def read_bytes(self) -> bytes:
+        ...  # pragma: no cover
+
+    def exists(self) -> bool:
         ...  # pragma: no cover

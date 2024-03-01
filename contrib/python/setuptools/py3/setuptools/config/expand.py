@@ -17,9 +17,9 @@ functions among several configuration file formats.
 
 **PRIVATE MODULE**: API reserved for setuptools internal usage only.
 """
+
 import ast
 import importlib
-import io
 import os
 import pathlib
 import sys
@@ -147,7 +147,7 @@ def _filter_existing_files(filepaths: Iterable[_Path]) -> Iterator[_Path]:
 
 
 def _read_file(filepath: Union[bytes, _Path]) -> str:
-    with io.open(filepath, encoding='utf-8') as f:
+    with open(filepath, encoding='utf-8') as f:
         return f.read()
 
 

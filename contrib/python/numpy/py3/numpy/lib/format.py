@@ -163,11 +163,10 @@ evolved with time and this document is more current.
 """
 import numpy
 import warnings
-from numpy.lib.utils import safe_eval
+from numpy.lib.utils import safe_eval, drop_metadata
 from numpy.compat import (
-    os_fspath, pickle
+    isfileobj, os_fspath, pickle
     )
-from numpy.compat.py3k import _isfileobj
 
 
 __all__ = []
@@ -240,15 +239,6 @@ def read_magic(fp):
     major, minor = magic_str[-2:]
     return major, minor
 
-def _has_metadata(dt):
-    if dt.metadata is not None:
-        return True
-    elif dt.names is not None:
-        return any(_has_metadata(dt[k]) for k in dt.names)
-    elif dt.subdtype is not None:
-        return _has_metadata(dt.base)
-    else:
-        return False
 
 def dtype_to_descr(dtype):
     """
@@ -273,9 +263,12 @@ def dtype_to_descr(dtype):
         replicate the input dtype.
 
     """
-    if _has_metadata(dtype):
-        warnings.warn("metadata on a dtype may be saved or ignored, but will "
-                      "raise if saved when read. Use another form of storage.",
+    # NOTE: that drop_metadata may not return the right dtype e.g. for user
+    #       dtypes.  In that case our code below would fail the same, though.
+    new_dtype = drop_metadata(dtype)
+    if new_dtype is not dtype:
+        warnings.warn("metadata on a dtype is not saved to an npy/npz. "
+                      "Use another format (such as pickle) to store it.",
                       UserWarning, stacklevel=2)
     if dtype.names is not None:
         # This is a record array. The .descr is fine.  XXX: parts of the
@@ -438,15 +431,15 @@ def _write_array_header(fp, d, version=None):
         header.append("'%s': %s, " % (key, repr(value)))
     header.append("}")
     header = "".join(header)
-    
+
     # Add some spare space so that the array header can be modified in-place
     # when changing the array size, e.g. when growing it by appending data at
-    # the end. 
+    # the end.
     shape = d['shape']
     header += " " * ((GROWTH_AXIS_MAX_DIGITS - len(repr(
         shape[-1 if d['fortran_order'] else 0]
     ))) if len(shape) > 0 else 0)
-    
+
     if version is None:
         header = _wrap_header_guess_version(header)
     else:
@@ -506,7 +499,7 @@ def read_array_header_1_0(fp, max_header_size=_MAX_HEADER_SIZE):
     max_header_size : int, optional
         Maximum allowed size of the header.  Large headers may not be safe
         to load securely and thus require explicitly passing a larger value.
-        See :py:meth:`ast.literal_eval()` for details.
+        See :py:func:`ast.literal_eval()` for details.
 
     Raises
     ------
@@ -533,7 +526,7 @@ def read_array_header_2_0(fp, max_header_size=_MAX_HEADER_SIZE):
     max_header_size : int, optional
         Maximum allowed size of the header.  Large headers may not be safe
         to load securely and thus require explicitly passing a larger value.
-        See :py:meth:`ast.literal_eval()` for details.
+        See :py:func:`ast.literal_eval()` for details.
 
     Returns
     -------
@@ -624,13 +617,27 @@ def _read_array_header(fp, version, max_header_size=_MAX_HEADER_SIZE):
     #   "descr" : dtype.descr
     # Versions (2, 0) and (1, 0) could have been created by a Python 2
     # implementation before header filtering was implemented.
-    if version <= (2, 0):
-        header = _filter_header(header)
+    #
+    # For performance reasons, we try without _filter_header first though
     try:
         d = safe_eval(header)
     except SyntaxError as e:
-        msg = "Cannot parse header: {!r}"
-        raise ValueError(msg.format(header)) from e
+        if version <= (2, 0):
+            header = _filter_header(header)
+            try:
+                d = safe_eval(header)
+            except SyntaxError as e2:
+                msg = "Cannot parse header: {!r}"
+                raise ValueError(msg.format(header)) from e2
+            else:
+                warnings.warn(
+                    "Reading `.npy` or `.npz` file required additional "
+                    "header parsing as it was created on Python 2. Save the "
+                    "file again to speed up loading and avoid this warning.",
+                    UserWarning, stacklevel=4)
+        else:
+            msg = "Cannot parse header: {!r}"
+            raise ValueError(msg.format(header)) from e
     if not isinstance(d, dict):
         msg = "Header is not a dictionary: {!r}"
         raise ValueError(msg.format(d))
@@ -711,7 +718,7 @@ def write_array(fp, array, version=None, allow_pickle=True, pickle_kwargs=None):
             pickle_kwargs = {}
         pickle.dump(array, fp, protocol=3, **pickle_kwargs)
     elif array.flags.f_contiguous and not array.flags.c_contiguous:
-        if _isfileobj(fp):
+        if isfileobj(fp):
             array.T.tofile(fp)
         else:
             for chunk in numpy.nditer(
@@ -719,7 +726,7 @@ def write_array(fp, array, version=None, allow_pickle=True, pickle_kwargs=None):
                     buffersize=buffersize, order='F'):
                 fp.write(chunk.tobytes('C'))
     else:
-        if _isfileobj(fp):
+        if isfileobj(fp):
             array.tofile(fp)
         else:
             for chunk in numpy.nditer(
@@ -751,7 +758,7 @@ def read_array(fp, allow_pickle=False, pickle_kwargs=None, *,
     max_header_size : int, optional
         Maximum allowed size of the header.  Large headers may not be safe
         to load securely and thus require explicitly passing a larger value.
-        See :py:meth:`ast.literal_eval()` for details.
+        See :py:func:`ast.literal_eval()` for details.
         This option is ignored when `allow_pickle` is passed.  In that case
         the file is by definition trusted and the limit is unnecessary.
 
@@ -797,7 +804,7 @@ def read_array(fp, allow_pickle=False, pickle_kwargs=None, *,
                                "You may need to pass the encoding= option "
                                "to numpy.load" % (err,)) from err
     else:
-        if _isfileobj(fp):
+        if isfileobj(fp):
             # We can use the fast fromfile() function.
             array = numpy.fromfile(fp, dtype=dtype, count=count)
         else:
@@ -870,7 +877,7 @@ def open_memmap(filename, mode='r+', dtype=None, shape=None,
     max_header_size : int, optional
         Maximum allowed size of the header.  Large headers may not be safe
         to load securely and thus require explicitly passing a larger value.
-        See :py:meth:`ast.literal_eval()` for details.
+        See :py:func:`ast.literal_eval()` for details.
 
     Returns
     -------
@@ -889,7 +896,7 @@ def open_memmap(filename, mode='r+', dtype=None, shape=None,
     numpy.memmap
 
     """
-    if _isfileobj(filename):
+    if isfileobj(filename):
         raise ValueError("Filename must be a string or a path-like object."
                          "  Memmap cannot use existing file handles.")
 

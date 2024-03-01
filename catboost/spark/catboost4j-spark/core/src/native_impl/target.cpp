@@ -4,6 +4,7 @@
 #include "vector_output.h"
 
 #include <catboost/private/libs/algo/data.h>
+#include <catboost/private/libs/labels/helpers.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/target/data_providers.h>
@@ -45,7 +46,8 @@ TClassTargetPreprocessor::TClassTargetPreprocessor(
         specifiedLossFunction = lossDescription.LossFunction.Get();
     }
 
-    if (CatBoostOptionsPlainJson.Has("target_border") ||
+    if ((rawTargetType == ERawTargetType::Boolean) ||
+        CatBoostOptionsPlainJson.Has("target_border") ||
         (specifiedLossFunction &&
          IsBinaryClassOnlyMetric(*specifiedLossFunction) &&
          (CatBoostOptionsPlainJson.Has("class_names") || (rawTargetType == ERawTargetType::Integer))))
@@ -192,7 +194,8 @@ void TClassTargetPreprocessor::ProcessDistinctTargetValuesImpl(
         GetMetricDescriptions(*CatBoostOptions),
         /*knownModelApproxDimension*/ Nothing(),
         /*knownIsClassification*/ true,
-        inputClassificationInfo
+        inputClassificationInfo,
+        dataProcessingOptions.AllowConstLabel.Get()
     );
 
     TMaybe<ui32> knownClassCount;
@@ -227,12 +230,24 @@ void TClassTargetPreprocessor::ProcessDistinctTargetValuesImpl(
         /*targetBorder*/ Nothing(), // don't process floats here
         !knownClassCount,
         updatedInputClassificationInfo.ClassLabels,
+        TargetCreationOptions.AllowConstLabel,
         &outputClassLabels,
         &NPar::LocalExecutor(),
         &ClassCount)[0];
 
     if (TargetCreationOptions.IsMultiClass) {
-        LabelConverter.InitializeMultiClass(*convertedTargetValues, ClassCount);
+        if ((ClassCount == 1) && TargetCreationOptions.AllowConstLabel) {
+            // Training won't work properly with single-dimensional approx for multiclass, so make a
+            // 'phantom' second dimension.
+            ClassCount = 2;
+            MaybeAddPhantomSecondClass(&outputClassLabels);
+        }
+
+        LabelConverter.InitializeMultiClass(
+            *convertedTargetValues,
+            ClassCount,
+            TargetCreationOptions.AllowConstLabel
+        );
     } else {
         ClassCount = 2;
         LabelConverter.InitializeBinClass();
@@ -272,6 +287,7 @@ TVector<float> TClassTargetPreprocessor::PreprocessTargetImpl(
             : Nothing(),
         /*classCountUnknown*/ false,
         dataProcessingOptions.ClassLabels.Get(),
+        dataProcessingOptions.AllowConstLabel.Get(),
         &outputClassLabels,
         &NPar::LocalExecutor(),
         &classCount)[0];
@@ -279,5 +295,3 @@ TVector<float> TClassTargetPreprocessor::PreprocessTargetImpl(
     PrepareTargetCompressed(LabelConverter, &*convertedTargetValues);
     return std::move(*convertedTargetValues);
 }
-
-

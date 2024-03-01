@@ -34,9 +34,9 @@ target_link_options(catboost-cuda-gpu_data-ut PRIVATE
   -lcudart_static
 )
 target_sources(catboost-cuda-gpu_data-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_bin_builder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_binarization.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_uniform_binarization.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_bin_builder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_binarization.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_uniform_binarization.cpp
 )
 set_property(
   TARGET
@@ -70,6 +70,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-cuda-gpu_data-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-cuda-gpu_data-ut
   cpp-malloc-tcmalloc

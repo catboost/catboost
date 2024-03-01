@@ -8,9 +8,6 @@
 
 
 add_library(cpp-float16-float16_avx_impl)
-target_compile_options(cpp-float16-float16_avx_impl PRIVATE
-  -mf16c
-)
 target_link_libraries(cpp-float16-float16_avx_impl PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -18,7 +15,8 @@ target_link_libraries(cpp-float16-float16_avx_impl PUBLIC
 target_sources_custom(cpp-float16-float16_avx_impl
   .avx
   SRCS
-  ${CMAKE_SOURCE_DIR}/library/cpp/float16/float16_avx_impl/float16_avx.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/float16/float16_avx_impl/float16_avx.cpp
   CUSTOM_FLAGS
-  -mavx
+  /arch:AVX
+  /DAVX_ENABLED=1
 )

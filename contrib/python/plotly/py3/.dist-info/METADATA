@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: plotly
-Version: 5.18.0
+Version: 5.19.0
 Summary: An open-source, interactive data visualization library for Python
 Home-page: https://plotly.com/python/
 Author: Chris P
@@ -10,15 +10,14 @@ Maintainer-email: nicolas@plot.ly
 License: MIT
 Project-URL: Github, https://github.com/plotly/plotly.py
 Classifier: Development Status :: 5 - Production/Stable
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Scientific/Engineering :: Visualization
 Classifier: License :: OSI Approved :: MIT License
-Requires-Python: >=3.6
+Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 License-File: LICENSE.txt
 Requires-Dist: tenacity >=6.2.0
@@ -59,7 +58,7 @@ Requires-Dist: packaging
 
 ## Quickstart
 
-`pip install plotly==5.18.0`
+`pip install plotly==5.19.0`
 
 Inside [Jupyter](https://jupyter.org/install) (installable with `pip install "jupyterlab>=3" "ipywidgets>=7.6"`):
 
@@ -104,13 +103,13 @@ Built on top of [plotly.js](https://github.com/plotly/plotly.js), `plotly.py` is
 plotly.py may be installed using pip...
 
 ```
-pip install plotly==5.18.0
+pip install plotly==5.19.0
 ```
 
 or conda.
 
 ```
-conda install -c plotly plotly=5.18.0
+conda install -c plotly plotly=5.19.0
 ```
 
 ### JupyterLab Support
@@ -132,7 +131,7 @@ The instructions above apply to JupyterLab 3.x. **For JupyterLab 2 or earlier**,
 
 ```
 # JupyterLab 2.x renderer support
-jupyter labextension install jupyterlab-plotly@5.18.0 @jupyter-widgets/jupyterlab-manager
+jupyter labextension install jupyterlab-plotly@5.19.0 @jupyter-widgets/jupyterlab-manager
 ```
 
 Please check out our [Troubleshooting guide](https://plotly.com/python/troubleshooting/) if you run into any problems with JupyterLab.
@@ -226,3 +225,4 @@ Code and documentation copyright 2019 Plotly, Inc.
 Code released under the [MIT license](https://github.com/plotly/plotly.py/blob/master/LICENSE.txt).
 
 Docs released under the [Creative Commons license](https://github.com/plotly/documentation/blob/source/LICENSE).
+

@@ -22,32 +22,32 @@ target_link_options(catboost-libs-metrics-ut PRIVATE
   -fPIC
 )
 target_sources(catboost-libs-metrics-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/auc_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/auc_mu_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/brier_score_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/balanced_accuracy_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/dcg_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/err_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/f_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/fair_loss_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/hamming_loss_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/hinge_loss_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/huber_loss_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/kappa_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/llp_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/median_absolute_error_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/mrr_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/msle_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/multiquantile_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/normalized_gini_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/precision_recall_at_k_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/quantile_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/smape_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/stochastic_filter_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/zero_one_loss_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/total_f1_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/tweedie_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/metrics/ut/pr_auc_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/auc_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/auc_mu_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/brier_score_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/balanced_accuracy_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/dcg_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/err_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/f_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/fair_loss_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/hamming_loss_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/hinge_loss_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/huber_loss_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/kappa_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/llp_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/median_absolute_error_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/mrr_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/msle_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/multiquantile_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/normalized_gini_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/precision_recall_at_k_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/quantile_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/smape_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/stochastic_filter_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/zero_one_loss_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/total_f1_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/tweedie_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/pr_auc_ut.cpp
 )
 set_property(
   TARGET
@@ -81,6 +81,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-libs-metrics-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-libs-metrics-ut
   system_allocator

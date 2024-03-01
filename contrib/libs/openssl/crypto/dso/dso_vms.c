@@ -13,12 +13,12 @@
 
 # pragma message disable DOLLARID
 # include <errno.h>
-# include <rms.h>
-# include <lib$routines.h>
-# include <libfisdef.h>
-# include <stsdef.h>
-# include <descrip.h>
-# include <starlet.h>
+# error #include <rms.h>
+# error #include <lib$routines.h>
+# error #include <libfisdef.h>
+# error #include <stsdef.h>
+# error #include <descrip.h>
+# error #include <starlet.h>
 # include "../vms_rms.h"
 
 /* Some compiler options may mask the declaration of "_malloc32". */

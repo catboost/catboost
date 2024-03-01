@@ -22,16 +22,16 @@ target_link_libraries(private-libs-algo_helpers PUBLIC
   private-libs-options
 )
 target_sources(private-libs-algo_helpers PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/approx_calcer_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/approx_updater_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/custom_objective_descriptor.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/ders_holder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/error_functions.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/hessian.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/langevin_utils.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/online_predictor.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/pairwise_leaves_calculation.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/scoring_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/survival_aft_utils.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/approx_calcer_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/approx_updater_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/custom_objective_descriptor.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/ders_holder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/error_functions.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/hessian.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/langevin_utils.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/online_predictor.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/pairwise_leaves_calculation.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/scoring_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/survival_aft_utils.cpp
 )

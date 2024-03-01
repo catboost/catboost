@@ -21,8 +21,6 @@
 
 _LIBCPP_BEGIN_NAMESPACE_FILESYSTEM
 
-_LIBCPP_AVAILABILITY_FILESYSTEM_PUSH
-
 enum class _LIBCPP_ENUM_VIS perm_options : unsigned char {
   replace = 1,
   add = 2,
@@ -31,44 +29,42 @@ enum class _LIBCPP_ENUM_VIS perm_options : unsigned char {
 };
 
 _LIBCPP_INLINE_VISIBILITY
-inline constexpr perm_options operator&(perm_options _LHS, perm_options _RHS) {
-  return static_cast<perm_options>(static_cast<unsigned>(_LHS) &
-                                   static_cast<unsigned>(_RHS));
+inline constexpr perm_options operator&(perm_options __lhs, perm_options __rhs) {
+  return static_cast<perm_options>(static_cast<unsigned>(__lhs) &
+                                   static_cast<unsigned>(__rhs));
 }
 
 _LIBCPP_INLINE_VISIBILITY
-inline constexpr perm_options operator|(perm_options _LHS, perm_options _RHS) {
-  return static_cast<perm_options>(static_cast<unsigned>(_LHS) |
-                                   static_cast<unsigned>(_RHS));
+inline constexpr perm_options operator|(perm_options __lhs, perm_options __rhs) {
+  return static_cast<perm_options>(static_cast<unsigned>(__lhs) |
+                                   static_cast<unsigned>(__rhs));
 }
 
 _LIBCPP_INLINE_VISIBILITY
-inline constexpr perm_options operator^(perm_options _LHS, perm_options _RHS) {
-  return static_cast<perm_options>(static_cast<unsigned>(_LHS) ^
-                                   static_cast<unsigned>(_RHS));
+inline constexpr perm_options operator^(perm_options __lhs, perm_options __rhs) {
+  return static_cast<perm_options>(static_cast<unsigned>(__lhs) ^
+                                   static_cast<unsigned>(__rhs));
 }
 
 _LIBCPP_INLINE_VISIBILITY
-inline constexpr perm_options operator~(perm_options _LHS) {
-  return static_cast<perm_options>(~static_cast<unsigned>(_LHS));
+inline constexpr perm_options operator~(perm_options __lhs) {
+  return static_cast<perm_options>(~static_cast<unsigned>(__lhs));
 }
 
 _LIBCPP_INLINE_VISIBILITY
-inline perm_options& operator&=(perm_options& _LHS, perm_options _RHS) {
-  return _LHS = _LHS & _RHS;
+inline perm_options& operator&=(perm_options& __lhs, perm_options __rhs) {
+  return __lhs = __lhs & __rhs;
 }
 
 _LIBCPP_INLINE_VISIBILITY
-inline perm_options& operator|=(perm_options& _LHS, perm_options _RHS) {
-  return _LHS = _LHS | _RHS;
+inline perm_options& operator|=(perm_options& __lhs, perm_options __rhs) {
+  return __lhs = __lhs | __rhs;
 }
 
 _LIBCPP_INLINE_VISIBILITY
-inline perm_options& operator^=(perm_options& _LHS, perm_options _RHS) {
-  return _LHS = _LHS ^ _RHS;
+inline perm_options& operator^=(perm_options& __lhs, perm_options __rhs) {
+  return __lhs = __lhs ^ __rhs;
 }
-
-_LIBCPP_AVAILABILITY_FILESYSTEM_POP
 
 _LIBCPP_END_NAMESPACE_FILESYSTEM
 

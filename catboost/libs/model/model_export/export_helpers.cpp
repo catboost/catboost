@@ -71,7 +71,7 @@ namespace NCatboostModelExportHelpers {
                 }, dim) + bracketEnd;
             }, treeLeafCount);
             outString << commaOuter;
-            currentTreeFirstLeafPtr += treeLeafCount;
+            currentTreeFirstLeafPtr += treeLeafCount * dim;
         }
         --indent;
         outString << '\n';

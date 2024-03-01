@@ -3,7 +3,7 @@
 
 .. image:: https://img.shields.io/pypi/pyversions/importlib_metadata.svg
 
-.. image:: https://github.com/python/importlib_metadata/workflows/tests/badge.svg
+.. image:: https://github.com/python/importlib_metadata/actions/workflows/main.yml/badge.svg
    :target: https://github.com/python/importlib_metadata/actions?query=workflow%3A%22tests%22
    :alt: tests
 
@@ -43,6 +43,8 @@ were contributed to different versions in the standard library:
 
    * - importlib_metadata
      - stdlib
+   * - 7.0
+     - 3.13
    * - 6.5
      - 3.12
    * - 4.13
@@ -90,10 +92,3 @@ Available as part of the Tidelift Subscription.
 This project and the maintainers of thousands of other packages are working with Tidelift to deliver one enterprise subscription that covers all of the open source you use.
 
 `Learn more <https://tidelift.com/subscription/pkg/pypi-importlib-metadata?utm_source=pypi-importlib-metadata&utm_medium=referral&utm_campaign=github>`_.
-
-Security Contact
-================
-
-To report a security vulnerability, please use the
-`Tidelift security contact <https://tidelift.com/security>`_.
-Tidelift will coordinate the fix and disclosure.

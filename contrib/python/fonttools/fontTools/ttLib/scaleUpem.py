@@ -3,7 +3,6 @@
 AAT and Graphite tables are not supported. CFF/CFF2 fonts
 are de-subroutinized."""
 
-
 from fontTools.ttLib.ttVisitor import TTVisitor
 import fontTools.ttLib as ttLib
 import fontTools.ttLib.tables.otBase as otBase
@@ -139,7 +138,6 @@ def visit(visitor, obj, attr, glyphs):
 
 @ScalerVisitor.register_attr(ttLib.getTableClass("gvar"), "variations")
 def visit(visitor, obj, attr, variations):
-
     # VarComposites are a pain to handle :-(
     glyfTable = visitor.font["glyf"]
 

@@ -98,7 +98,6 @@ npy_cdouble cbesh_wrap2(npy_double, npy_cdouble);
 npy_cdouble cbesh_wrap2_e(npy_double, npy_cdouble);
 npy_cdouble chyp1f1_wrap(npy_double, npy_double, npy_cdouble);
 npy_double hyp2f1(npy_double, npy_double, npy_double, npy_double);
-npy_cdouble chyp2f1_wrap(npy_double, npy_double, npy_double, npy_cdouble);
 npy_double i0(npy_double);
 npy_double i0e(npy_double);
 npy_double i1(npy_double);

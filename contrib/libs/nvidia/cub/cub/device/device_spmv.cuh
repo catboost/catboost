@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -39,8 +39,9 @@
 #include <iterator>
 #include <limits>
 
-#include "dispatch/dispatch_spmv_orig.cuh"
-#include "../config.cuh"
+#include <cub/config.cuh>
+#include <cub/device/dispatch/dispatch_spmv_orig.cuh>
+#include <cub/util_deprecated.cuh>
 
 CUB_NAMESPACE_BEGIN
 
@@ -136,8 +137,7 @@ struct DeviceSpmv
         int                 num_rows,                           ///< [in] number of rows of matrix <b>A</b>.
         int                 num_cols,                           ///< [in] number of columns of matrix <b>A</b>.
         int                 num_nonzeros,                       ///< [in] number of nonzero elements of matrix <b>A</b>.
-        cudaStream_t        stream                  = 0,        ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool                debug_synchronous       = false)    ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
+        cudaStream_t        stream = 0)                         ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
     {
         SpmvParams<ValueT, int> spmv_params;
         spmv_params.d_values             = d_values;
@@ -155,8 +155,37 @@ struct DeviceSpmv
             d_temp_storage,
             temp_storage_bytes,
             spmv_params,
-            stream,
-            debug_synchronous);
+            stream);
+    }
+
+    template <typename ValueT>
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+    CUB_RUNTIME_FUNCTION static cudaError_t CsrMV(void *d_temp_storage,
+                                                  size_t &temp_storage_bytes,
+                                                  const ValueT *d_values,
+                                                  const int *d_row_offsets,
+                                                  const int *d_column_indices,
+                                                  const ValueT *d_vector_x,
+                                                  ValueT *d_vector_y,
+                                                  int num_rows,
+                                                  int num_cols,
+                                                  int num_nonzeros,
+                                                  cudaStream_t stream,
+                                                  bool debug_synchronous)
+    {
+      CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+      return CsrMV<ValueT>(d_temp_storage,
+                           temp_storage_bytes,
+                           d_values,
+                           d_row_offsets,
+                           d_column_indices,
+                           d_vector_x,
+                           d_vector_y,
+                           num_rows,
+                           num_cols,
+                           num_nonzeros,
+                           stream);
     }
 
     //@}  end member group

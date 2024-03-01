@@ -16,15 +16,15 @@ target_link_libraries(catboost-libs-monoforest PUBLIC
   catboost-libs-model
 )
 target_sources(catboost-libs-monoforest PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/additive_model.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/grid.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/interpretation.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/leaf_path.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/model_import.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/monom.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/oblivious_tree.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/non_symmetric_tree.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/polynom.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/split.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/additive_model.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/grid.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/interpretation.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/leaf_path.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/model_import.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/monom.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/oblivious_tree.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/non_symmetric_tree.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/polynom.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/monoforest/split.cpp
 )

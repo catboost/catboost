@@ -1,6 +1,7 @@
 """For backward compatibility, expose main functions from
 ``setuptools.config.setupcfg``
 """
+
 from functools import wraps
 from typing import Callable, TypeVar, cast
 

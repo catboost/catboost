@@ -13,7 +13,7 @@ namespace {
 // Some compile-time sanity checks.
 DEFINE_ENUM(ESample, (One)(Two));
 static_assert(TFormatTraits<ESample>::HasCustomFormatValue);
-static_assert(TFormatTraits<TEnumIndexedVector<ESample, int>>::HasCustomFormatValue);
+static_assert(TFormatTraits<TEnumIndexedArray<ESample, int>>::HasCustomFormatValue);
 
 DEFINE_ENUM(EColor,
     (Red)
@@ -69,6 +69,15 @@ TEST(TParseEnumTest, ParseEnumWithCustomDomainName)
     EXPECT_EQ(ECustomDomainName::A, TryParseEnum<ECustomDomainName>("value_a"));
     EXPECT_EQ(ECustomDomainName::B, TryParseEnum<ECustomDomainName>("value_b"));
     EXPECT_EQ(std::nullopt, TryParseEnum<ECustomDomainName>("b"));
+}
+
+TEST(TParseEnumTest, ParseBitEnum)
+{
+    EXPECT_EQ(ELangs::None, TryParseEnum<ELangs>(""));
+    EXPECT_EQ(ELangs::Cpp, TryParseEnum<ELangs>("cpp"));
+    EXPECT_EQ(ELangs::Cpp | ELangs::Rust, TryParseEnum<ELangs>("cpp|rust"));
+    EXPECT_EQ(ELangs::Cpp | ELangs::Rust, TryParseEnum<ELangs>("cpp | rust"));
+    EXPECT_EQ(std::nullopt, TryParseEnum<ELangs>("unk | rust"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -46,6 +46,22 @@ namespace NCB {
         *outStream << GetCell(docId, FromExternalIdToColumnId[featureId]);
     }
 
+    void TDSVPoolColumnsPrinter::OutputAuxiliaryColumn(
+        IOutputStream* outStream,
+        ui64 docId,
+        ui32 auxiliaryColumnId,
+        const TString& /*columnName*/) {
+        *outStream << GetCell(docId, auxiliaryColumnId);
+    }
+
+    bool TDSVPoolColumnsPrinter::ValidAuxiliaryColumn(const TString& columnName) {
+        return AuxiliaryColumnNameToId.contains(columnName);
+    }
+
+    ui32 TDSVPoolColumnsPrinter::GetAuxiliaryColumnId(const TString& columnName) {
+        return AuxiliaryColumnNameToId[columnName];
+    }
+
     void TDSVPoolColumnsPrinter::UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) {
         if (columnsMetaInfo.Defined()) {
             for (ui32 columnId : xrange(columnsMetaInfo->Columns.size())) {
@@ -53,6 +69,9 @@ namespace NCB {
                 FromColumnTypeToColumnId[columnType] = columnId;
                 if (columnType == EColumn::SampleId) {
                     HasDocIdColumn = true;
+                }
+                if (columnType == EColumn::Auxiliary and columnsMetaInfo->Columns[columnId].Id) {
+                    AuxiliaryColumnNameToId[columnsMetaInfo->Columns[columnId].Id] = columnId;
                 }
                 if (IsFactorColumn(columnType)) {
                     FromExternalIdToColumnId.push_back(columnId);
@@ -147,6 +166,23 @@ namespace NCB {
         ui64 /*docId*/,
         ui32 /*columnId*/) {
         CB_ENSURE(false, "Not Implemented for Quantized Pools");
+    }
+
+    void TQuantizedPoolColumnsPrinter::OutputAuxiliaryColumn(
+        IOutputStream* /*outStream*/,
+        ui64 /*docId*/,
+        ui32 /*auxiliaryColumnId*/,
+        const TString& /*columnName*/) {
+        CB_ENSURE(false, "Not Implemented for Quantized Pools");
+    }
+
+    bool TQuantizedPoolColumnsPrinter::ValidAuxiliaryColumn(const TString& /*columnName*/) {
+        CB_ENSURE(false, "Not Implemented for Quantized Pools");
+    }
+
+    ui32 TQuantizedPoolColumnsPrinter::GetAuxiliaryColumnId(const TString& /*columnName*/) {
+        CB_ENSURE_INTERNAL(false, "Unreachable");
+        return 0;
     }
 
     std::type_index TQuantizedPoolColumnsPrinter::GetOutputFeatureType(ui32 /*featureId*/) {

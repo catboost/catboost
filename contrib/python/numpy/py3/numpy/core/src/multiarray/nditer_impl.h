@@ -23,6 +23,8 @@
 
 #include "lowlevel_strided_loops.h"
 #include "dtype_transfer.h"
+#include "dtype_traversal.h"
+
 
 /********** ITERATOR CONSTRUCTION TIMING **************/
 #define NPY_IT_CONSTRUCTION_TIMING 0
@@ -242,6 +244,7 @@ typedef npy_int16 npyiter_opitflags;
 struct NpyIter_TransferInfo_tag {
     NPY_cast_info read;
     NPY_cast_info write;
+    NPY_traverse_info clear;
     /* Probably unnecessary, but make sure what follows is intp aligned: */
     npy_intp _unused_ensure_alignment[];
 };
@@ -329,7 +332,7 @@ struct NpyIter_AxisData_tag {
  * @return The unpermuted axis. Without `op_axes` this is correct, with
  *         `op_axes` this indexes into `op_axes` (unpermuted iterator axis)
  */
-static NPY_INLINE int
+static inline int
 npyiter_undo_iter_axis_perm(
         int axis, int ndim, const npy_int8 *perm, npy_bool *axis_flipped)
 {

@@ -1,7 +1,7 @@
 """Misc dict tools."""
 
-
 __all__ = ["hashdict"]
+
 
 # https://stackoverflow.com/questions/1151658/python-hashable-dicts
 class hashdict(dict):

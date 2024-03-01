@@ -51,7 +51,7 @@ typedef void (*new_handler)();
  * The function to call when allocation fails.  By default, there is no
  * handler and a bad allocation exception is thrown if an allocation fails.
  */
-static new_handler new_handl;
+static atomic<new_handler> new_handl{nullptr};
 
 namespace std
 {
@@ -61,21 +61,20 @@ namespace std
 	__attribute__((weak))
 	new_handler set_new_handler(new_handler handler) noexcept
 	{
-		return ATOMIC_SWAP(&new_handl, handler);
+		return new_handl.exchange(handler);
 	}
+
 	__attribute__((weak))
 	new_handler get_new_handler(void) noexcept
 	{
-		return ATOMIC_LOAD(&new_handl);
+		return new_handl.load();
 	}
 }
 
 
 #if __cplusplus < 201103L
-#define NOEXCEPT noexcept
 #define BADALLOC throw(std::bad_alloc)
 #else
-#define NOEXCEPT noexcept
 #define BADALLOC
 #endif
 
@@ -137,14 +136,14 @@ void* operator new(size_t size) BADALLOC
 
 
 __attribute__((weak))
-void* operator new(size_t size, const std::nothrow_t &) NOEXCEPT
+void* operator new(size_t size, const std::nothrow_t &) _LIBCXXRT_NOEXCEPT
 {
 	return noexcept_new<(::operator new)>(size);
 }
 
 
 __attribute__((weak))
-void operator delete(void * ptr) NOEXCEPT
+void operator delete(void * ptr) _LIBCXXRT_NOEXCEPT
 {
 	free(ptr);
 }
@@ -158,14 +157,14 @@ void * operator new[](size_t size) BADALLOC
 
 
 __attribute__((weak))
-void * operator new[](size_t size, const std::nothrow_t &) NOEXCEPT
+void * operator new[](size_t size, const std::nothrow_t &) _LIBCXXRT_NOEXCEPT
 {
 	return noexcept_new<(::operator new[])>(size);
 }
 
 
 __attribute__((weak))
-void operator delete[](void * ptr) NOEXCEPT
+void operator delete[](void * ptr) _LIBCXXRT_NOEXCEPT
 {
 	::operator delete(ptr);
 }
@@ -175,14 +174,14 @@ void operator delete[](void * ptr) NOEXCEPT
 #if __cplusplus >= 201402L
 
 __attribute__((weak))
-void operator delete(void * ptr, size_t) NOEXCEPT
+void operator delete(void * ptr, size_t) _LIBCXXRT_NOEXCEPT
 {
 	::operator delete(ptr);
 }
 
 
 __attribute__((weak))
-void operator delete[](void * ptr, size_t) NOEXCEPT
+void operator delete[](void * ptr, size_t) _LIBCXXRT_NOEXCEPT
 {
 	::operator delete(ptr);
 }

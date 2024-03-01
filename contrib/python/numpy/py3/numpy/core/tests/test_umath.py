@@ -17,7 +17,8 @@ from numpy.testing import (
     assert_, assert_equal, assert_raises, assert_raises_regex,
     assert_array_equal, assert_almost_equal, assert_array_almost_equal,
     assert_array_max_ulp, assert_allclose, assert_no_warnings, suppress_warnings,
-    _gen_alignment_data, assert_array_almost_equal_nulp, IS_WASM
+    _gen_alignment_data, assert_array_almost_equal_nulp, IS_WASM, IS_MUSL,
+    IS_PYPY
     )
 from numpy.testing._private.utils import _glibc_older_than
 
@@ -369,6 +370,64 @@ class TestComparisons:
         with pytest.raises(TypeError, match="No loop matching"):
             np.equal(1, 1, sig=(None, None, "l"))
 
+    @pytest.mark.parametrize("dtypes", ["qQ", "Qq"])
+    @pytest.mark.parametrize('py_comp, np_comp', [
+        (operator.lt, np.less),
+        (operator.le, np.less_equal),
+        (operator.gt, np.greater),
+        (operator.ge, np.greater_equal),
+        (operator.eq, np.equal),
+        (operator.ne, np.not_equal)
+    ])
+    @pytest.mark.parametrize("vals", [(2**60, 2**60+1), (2**60+1, 2**60)])
+    def test_large_integer_direct_comparison(
+            self, dtypes, py_comp, np_comp, vals):
+        # Note that float(2**60) + 1 == float(2**60).
+        a1 = np.array([2**60], dtype=dtypes[0])
+        a2 = np.array([2**60 + 1], dtype=dtypes[1])
+        expected = py_comp(2**60, 2**60+1)
+
+        assert py_comp(a1, a2) == expected
+        assert np_comp(a1, a2) == expected
+        # Also check the scalars:
+        s1 = a1[0]
+        s2 = a2[0]
+        assert isinstance(s1, np.integer)
+        assert isinstance(s2, np.integer)
+        # The Python operator here is mainly interesting:
+        assert py_comp(s1, s2) == expected
+        assert np_comp(s1, s2) == expected
+
+    @pytest.mark.parametrize("dtype", np.typecodes['UnsignedInteger'])
+    @pytest.mark.parametrize('py_comp_func, np_comp_func', [
+        (operator.lt, np.less),
+        (operator.le, np.less_equal),
+        (operator.gt, np.greater),
+        (operator.ge, np.greater_equal),
+        (operator.eq, np.equal),
+        (operator.ne, np.not_equal)
+    ])
+    @pytest.mark.parametrize("flip", [True, False])
+    def test_unsigned_signed_direct_comparison(
+            self, dtype, py_comp_func, np_comp_func, flip):
+        if flip:
+            py_comp = lambda x, y: py_comp_func(y, x)
+            np_comp = lambda x, y: np_comp_func(y, x)
+        else:
+            py_comp = py_comp_func
+            np_comp = np_comp_func
+
+        arr = np.array([np.iinfo(dtype).max], dtype=dtype)
+        expected = py_comp(int(arr[0]), -1)
+
+        assert py_comp(arr, -1) == expected
+        assert np_comp(arr, -1) == expected
+        scalar = arr[0]
+        assert isinstance(scalar, np.integer)
+        # The Python operator here is mainly interesting:
+        assert py_comp(scalar, -1) == expected
+        assert np_comp(scalar, -1) == expected
+
 
 class TestAdd:
     def test_reduce_alignment(self):
@@ -424,7 +483,7 @@ class TestDivision:
     def test_division_int_boundary(self, dtype, ex_val):
         fo = np.iinfo(dtype)
         neg = -1 if fo.min < 0 else 1
-        # Large enough to test SIMD loops and remaind elements
+        # Large enough to test SIMD loops and remainder elements
         lsize = 512 + 7
         a, b, divisors = eval(ex_val)
         a_lst, b_lst = a.tolist(), b.tolist()
@@ -589,6 +648,8 @@ class TestDivision:
         assert_equal(np.signbit(x//1), 0)
         assert_equal(np.signbit((-x)//1), 1)
 
+    @pytest.mark.skipif(hasattr(np.__config__, "blas_ssl2_info"),
+            reason="gh-22982")
     @pytest.mark.skipif(IS_WASM, reason="fp errors don't work in wasm")
     @pytest.mark.parametrize('dtype', np.typecodes['Float'])
     def test_floor_division_errors(self, dtype):
@@ -731,6 +792,8 @@ class TestRemainder:
             # inf / 0 does not set any flags, only the modulo creates a NaN
             np.divmod(finf, fzero)
 
+    @pytest.mark.skipif(hasattr(np.__config__, "blas_ssl2_info"),
+            reason="gh-22982")
     @pytest.mark.skipif(IS_WASM, reason="fp errors don't work in wasm")
     @pytest.mark.xfail(sys.platform.startswith("darwin"),
            reason="MacOS seems to not give the correct 'invalid' warning for "
@@ -1085,6 +1148,33 @@ class TestPower:
                 assert_complex_equal(np.power(zero, -p), cnan)
             assert_complex_equal(np.power(zero, -1+0.2j), cnan)
 
+    @pytest.mark.skipif(IS_WASM, reason="fp errors don't work in wasm")
+    def test_zero_power_nonzero(self):
+        # Testing 0^{Non-zero} issue 18378
+        zero = np.array([0.0+0.0j])
+        cnan = np.array([complex(np.nan, np.nan)])
+
+        def assert_complex_equal(x, y):
+            assert_array_equal(x.real, y.real)
+            assert_array_equal(x.imag, y.imag)
+
+        #Complex powers with positive real part will not generate a warning
+        assert_complex_equal(np.power(zero, 1+4j), zero)
+        assert_complex_equal(np.power(zero, 2-3j), zero)
+        #Testing zero values when real part is greater than zero
+        assert_complex_equal(np.power(zero, 1+1j), zero)
+        assert_complex_equal(np.power(zero, 1+0j), zero)
+        assert_complex_equal(np.power(zero, 1-1j), zero)
+        #Complex powers will negative real part or 0 (provided imaginary
+        # part is not zero) will generate a NAN and hence a RUNTIME warning
+        with pytest.warns(expected_warning=RuntimeWarning) as r:
+            assert_complex_equal(np.power(zero, -1+1j), cnan)
+            assert_complex_equal(np.power(zero, -2-3j), cnan)
+            assert_complex_equal(np.power(zero, -7+0j), cnan)
+            assert_complex_equal(np.power(zero, 0+1j), cnan)
+            assert_complex_equal(np.power(zero, 0-1j), cnan)
+        assert len(r) == 5
+
     def test_fast_power(self):
         x = np.array([1, 2, 3], np.int16)
         res = x**2.0
@@ -1265,9 +1355,20 @@ class TestLog:
 
         # test log() of max for dtype does not raise
         for dt in ['f', 'd', 'g']:
-            with np.errstate(all='raise'):
-                x = np.finfo(dt).max
-                np.log(x)
+            try:
+                with np.errstate(all='raise'):
+                    x = np.finfo(dt).max
+                    np.log(x)
+            except FloatingPointError as exc:
+                if dt == 'g' and IS_MUSL:
+                    # FloatingPointError is known to occur on longdouble
+                    # for musllinux_x86_64 x is very large
+                    pytest.skip(
+                        "Overflow has occurred for"
+                        " np.log(np.finfo(np.longdouble).max)"
+                    )
+                else:
+                    raise exc
 
     def test_log_strides(self):
         np.random.seed(42)
@@ -1384,23 +1485,50 @@ class TestSpecialFloats:
             np.log(a)
 
     @pytest.mark.skipif(IS_WASM, reason="fp errors don't work in wasm")
-    def test_sincos_values(self):
+    @pytest.mark.parametrize('dtype', ['e', 'f', 'd', 'g'])
+    def test_sincos_values(self, dtype):
         with np.errstate(all='ignore'):
             x = [np.nan, np.nan, np.nan, np.nan]
             y = [np.nan, -np.nan, np.inf, -np.inf]
-            for dt in ['e', 'f', 'd', 'g']:
-                xf = np.array(x, dtype=dt)
-                yf = np.array(y, dtype=dt)
-                assert_equal(np.sin(yf), xf)
-                assert_equal(np.cos(yf), xf)
+            xf = np.array(x, dtype=dtype)
+            yf = np.array(y, dtype=dtype)
+            assert_equal(np.sin(yf), xf)
+            assert_equal(np.cos(yf), xf)
 
+    @pytest.mark.skipif(IS_WASM, reason="fp errors don't work in wasm")
+    @pytest.mark.xfail(
+        sys.platform.startswith("darwin"),
+        reason="underflow is triggered for scalar 'sin'"
+    )
+    def test_sincos_underflow(self):
+        with np.errstate(under='raise'):
+            underflow_trigger = np.array(
+                float.fromhex("0x1.f37f47a03f82ap-511"),
+                dtype=np.float64
+            )
+            np.sin(underflow_trigger)
+            np.cos(underflow_trigger)
 
+    @pytest.mark.skipif(IS_WASM, reason="fp errors don't work in wasm")
+    @pytest.mark.parametrize('callable', [np.sin, np.cos])
+    @pytest.mark.parametrize('dtype', ['e', 'f', 'd'])
+    @pytest.mark.parametrize('value', [np.inf, -np.inf])
+    def test_sincos_errors(self, callable, dtype, value):
         with np.errstate(invalid='raise'):
-            for callable in [np.sin, np.cos]:
-                for value in [np.inf, -np.inf]:
-                    for dt in ['e', 'f', 'd']:
-                        assert_raises(FloatingPointError, callable,
-                                np.array([value], dtype=dt))
+            assert_raises(FloatingPointError, callable,
+                np.array([value], dtype=dtype))
+
+    @pytest.mark.parametrize('callable', [np.sin, np.cos])
+    @pytest.mark.parametrize('dtype', ['f', 'd'])
+    @pytest.mark.parametrize('stride', [-1, 1, 2, 4, 5])
+    def test_sincos_overlaps(self, callable, dtype, stride):
+        N = 100
+        M = N // abs(stride)
+        rng = np.random.default_rng(42)
+        x = rng.standard_normal(N, dtype)
+        y = callable(x[::stride])
+        callable(x[::stride], out=x[:M])
+        assert_equal(x[:M], y)
 
     @pytest.mark.parametrize('dt', ['e', 'f', 'd', 'g'])
     def test_sqrt_values(self, dt):
@@ -1519,6 +1647,8 @@ class TestSpecialFloats:
                           np.array(1200.0, dtype='d'))
 
     @pytest.mark.skipif(IS_WASM, reason="fp errors don't work in wasm")
+    @pytest.mark.skipif('bsd' in sys.platform,
+            reason="fallback implementation may not raise, see gh-2487")
     def test_cosh(self):
         in_ = [np.nan, -np.nan, np.inf, -np.inf]
         out = [np.nan, np.nan, np.inf, np.inf]
@@ -1583,6 +1713,9 @@ class TestSpecialFloats:
                     assert_raises(FloatingPointError, np.arctanh,
                                   np.array(value, dtype=dt))
 
+        # Make sure glibc < 2.18 atanh is not used, issue 25087
+        assert np.signbit(np.arctanh(-1j).real)
+
     # See: https://github.com/numpy/numpy/issues/20448
     @pytest.mark.xfail(
         _glibc_older_than("2.17"),
@@ -1637,6 +1770,8 @@ class TestSpecialFloats:
         np.log, np.log2, np.log10, np.reciprocal, np.arccosh
     ]
 
+    @pytest.mark.skipif(sys.platform == "win32" and sys.maxsize < 2**31 + 1,
+                        reason='failures on 32-bit Python, see FIXME below')
     @pytest.mark.parametrize("ufunc", UFUNCS_UNARY_FP)
     @pytest.mark.parametrize("dtype", ('e', 'f', 'd'))
     @pytest.mark.parametrize("data, escape", (
@@ -1683,14 +1818,29 @@ class TestSpecialFloats:
         # FIXME: NAN raises FP invalid exception:
         #  - ceil/float16 on MSVC:32-bit
         #  - spacing/float16 on almost all platforms
+        # FIXME: skipped on MSVC:32-bit during switch to Meson, 10 cases fail
+        #        when SIMD support not present / disabled
         if ufunc in (np.spacing, np.ceil) and dtype == 'e':
             return
         array = np.array(data, dtype=dtype)
         with assert_no_warnings():
             ufunc(array)
 
+    @pytest.mark.parametrize("dtype", ('e', 'f', 'd'))
+    def test_divide_spurious_fpexception(self, dtype):
+        dt = np.dtype(dtype)
+        dt_info = np.finfo(dt)
+        subnorm = dt_info.smallest_subnormal
+        # Verify a bug fix caused due to filling the remaining lanes of the
+        # partially loaded dividend SIMD vector with ones, which leads to
+        # raising an overflow warning when the divisor is denormal.
+        # see https://github.com/numpy/numpy/issues/25097
+        with assert_no_warnings():
+            np.zeros(128 + 1, dtype=dt) / subnorm
+
 class TestFPClass:
-    @pytest.mark.parametrize("stride", [-4,-2,-1,1,2,4])
+    @pytest.mark.parametrize("stride", [-5, -4, -3, -2, -1, 1,
+                                2, 4, 5, 6, 7, 8, 9, 10])
     def test_fpclass(self, stride):
         arr_f64 = np.array([np.nan, -np.nan, np.inf, -np.inf, -1.0, 1.0, -0.0, 0.0, 2.2251e-308, -2.2251e-308], dtype='d')
         arr_f32 = np.array([np.nan, -np.nan, np.inf, -np.inf, -1.0, 1.0, -0.0, 0.0, 1.4013e-045, -1.4013e-045], dtype='f')
@@ -1707,6 +1857,52 @@ class TestFPClass:
         assert_equal(np.isfinite(arr_f32[::stride]), finite[::stride])
         assert_equal(np.isfinite(arr_f64[::stride]), finite[::stride])
 
+    @pytest.mark.parametrize("dtype", ['d', 'f'])
+    def test_fp_noncontiguous(self, dtype):
+        data = np.array([np.nan, -np.nan, np.inf, -np.inf, -1.0,
+                            1.0, -0.0, 0.0, 2.2251e-308,
+                            -2.2251e-308], dtype=dtype)
+        nan = np.array([True, True, False, False, False, False,
+                            False, False, False, False])
+        inf = np.array([False, False, True, True, False, False,
+                            False, False, False, False])
+        sign = np.array([False, True, False, True, True, False,
+                            True, False, False, True])
+        finite = np.array([False, False, False, False, True, True,
+                            True, True, True, True])
+        out = np.ndarray(data.shape, dtype='bool')
+        ncontig_in = data[1::3]
+        ncontig_out = out[1::3]
+        contig_in = np.array(ncontig_in)
+        assert_equal(ncontig_in.flags.c_contiguous, False)
+        assert_equal(ncontig_out.flags.c_contiguous, False)
+        assert_equal(contig_in.flags.c_contiguous, True)
+        # ncontig in, ncontig out
+        assert_equal(np.isnan(ncontig_in, out=ncontig_out), nan[1::3])
+        assert_equal(np.isinf(ncontig_in, out=ncontig_out), inf[1::3])
+        assert_equal(np.signbit(ncontig_in, out=ncontig_out), sign[1::3])
+        assert_equal(np.isfinite(ncontig_in, out=ncontig_out), finite[1::3])
+        # contig in, ncontig out
+        assert_equal(np.isnan(contig_in, out=ncontig_out), nan[1::3])
+        assert_equal(np.isinf(contig_in, out=ncontig_out), inf[1::3])
+        assert_equal(np.signbit(contig_in, out=ncontig_out), sign[1::3])
+        assert_equal(np.isfinite(contig_in, out=ncontig_out), finite[1::3])
+        # ncontig in, contig out
+        assert_equal(np.isnan(ncontig_in), nan[1::3])
+        assert_equal(np.isinf(ncontig_in), inf[1::3])
+        assert_equal(np.signbit(ncontig_in), sign[1::3])
+        assert_equal(np.isfinite(ncontig_in), finite[1::3])
+        # contig in, contig out, nd stride
+        data_split = np.array(np.array_split(data, 2))
+        nan_split = np.array(np.array_split(nan, 2))
+        inf_split = np.array(np.array_split(inf, 2))
+        sign_split = np.array(np.array_split(sign, 2))
+        finite_split = np.array(np.array_split(finite, 2))
+        assert_equal(np.isnan(data_split), nan_split)
+        assert_equal(np.isinf(data_split), inf_split)
+        assert_equal(np.signbit(data_split), sign_split)
+        assert_equal(np.isfinite(data_split), finite_split)
+
 class TestLDExp:
     @pytest.mark.parametrize("stride", [-4,-2,-1,1,2,4])
     @pytest.mark.parametrize("dtype", ['f', 'd'])
@@ -1720,6 +1916,7 @@ class TestLDExp:
 class TestFRExp:
     @pytest.mark.parametrize("stride", [-4,-2,-1,1,2,4])
     @pytest.mark.parametrize("dtype", ['f', 'd'])
+    @pytest.mark.xfail(IS_MUSL, reason="gh23048")
     @pytest.mark.skipif(not sys.platform.startswith('linux'),
                         reason="np.frexp gives different answers for NAN/INF on windows and linux")
     def test_frexp(self, dtype, stride):
@@ -2683,6 +2880,35 @@ class TestAbsoluteNegative:
         np.abs(d, out=d)
         np.abs(np.ones_like(d), out=d)
 
+    @pytest.mark.parametrize("dtype", ['d', 'f', 'int32', 'int64'])
+    @pytest.mark.parametrize("big", [True, False])
+    def test_noncontiguous(self, dtype, big):
+        data = np.array([-1.0, 1.0, -0.0, 0.0, 2.2251e-308, -2.5, 2.5, -6,
+                            6, -2.2251e-308, -8, 10], dtype=dtype)
+        expect = np.array([1.0, -1.0, 0.0, -0.0, -2.2251e-308, 2.5, -2.5, 6,
+                            -6, 2.2251e-308, 8, -10], dtype=dtype)
+        if big:
+            data = np.repeat(data, 10)
+            expect = np.repeat(expect, 10)
+        out = np.ndarray(data.shape, dtype=dtype)
+        ncontig_in = data[1::2]
+        ncontig_out = out[1::2]
+        contig_in = np.array(ncontig_in)
+        # contig in, contig out
+        assert_array_equal(np.negative(contig_in), expect[1::2])
+        # contig in, ncontig out
+        assert_array_equal(np.negative(contig_in, out=ncontig_out),
+                                expect[1::2])
+        # ncontig in, contig out
+        assert_array_equal(np.negative(ncontig_in), expect[1::2])
+        # ncontig in, ncontig out
+        assert_array_equal(np.negative(ncontig_in, out=ncontig_out),
+                                expect[1::2])
+        # contig in, contig out, nd stride
+        data_split = np.array(np.array_split(data, 2))
+        expect_split = np.array(np.array_split(expect, 2))
+        assert_equal(np.negative(data_split), expect_split)
+
 
 class TestPositive:
     def test_valid(self):
@@ -3378,6 +3604,79 @@ class TestSpecialMethods:
         assert_raises(ValueError, np.modf, a, out=('one', 'two', 'three'))
         assert_raises(ValueError, np.modf, a, out=('one',))
 
+    def test_ufunc_override_where(self):
+
+        class OverriddenArrayOld(np.ndarray):
+
+            def _unwrap(self, objs):
+                cls = type(self)
+                result = []
+                for obj in objs:
+                    if isinstance(obj, cls):
+                        obj = np.array(obj)
+                    elif type(obj) != np.ndarray:
+                        return NotImplemented
+                    result.append(obj)
+                return result
+
+            def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+
+                inputs = self._unwrap(inputs)
+                if inputs is NotImplemented:
+                    return NotImplemented
+
+                kwargs = kwargs.copy()
+                if "out" in kwargs:
+                    kwargs["out"] = self._unwrap(kwargs["out"])
+                    if kwargs["out"] is NotImplemented:
+                        return NotImplemented
+
+                r = super().__array_ufunc__(ufunc, method, *inputs, **kwargs)
+                if r is not NotImplemented:
+                    r = r.view(type(self))
+
+                return r
+
+        class OverriddenArrayNew(OverriddenArrayOld):
+            def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+
+                kwargs = kwargs.copy()
+                if "where" in kwargs:
+                    kwargs["where"] = self._unwrap((kwargs["where"], ))
+                    if kwargs["where"] is NotImplemented:
+                        return NotImplemented
+                    else:
+                        kwargs["where"] = kwargs["where"][0]
+
+                r = super().__array_ufunc__(ufunc, method, *inputs, **kwargs)
+                if r is not NotImplemented:
+                    r = r.view(type(self))
+
+                return r
+
+        ufunc = np.negative
+
+        array = np.array([1, 2, 3])
+        where = np.array([True, False, True])
+        expected = ufunc(array, where=where)
+
+        with pytest.raises(TypeError):
+            ufunc(array, where=where.view(OverriddenArrayOld))
+
+        result_1 = ufunc(
+            array,
+            where=where.view(OverriddenArrayNew)
+        )
+        assert isinstance(result_1, OverriddenArrayNew)
+        assert np.all(np.array(result_1) == expected, where=where)
+
+        result_2 = ufunc(
+            array.view(OverriddenArrayNew),
+            where=where.view(OverriddenArrayNew)
+        )
+        assert isinstance(result_2, OverriddenArrayNew)
+        assert np.all(np.array(result_2) == expected, where=where)
+
     def test_ufunc_override_exception(self):
 
         class A:
@@ -3639,6 +3938,19 @@ class TestSpecialMethods:
         assert_equal(a, check)
         assert_(a.info, {'inputs': [0, 2]})
 
+    def test_array_ufunc_direct_call(self):
+        # This is mainly a regression test for gh-24023 (shouldn't segfault)
+        a = np.array(1)
+        with pytest.raises(TypeError):
+            a.__array_ufunc__()
+
+        # No kwargs means kwargs may be NULL on the C-level
+        with pytest.raises(TypeError):
+            a.__array_ufunc__(1, 2)
+
+        # And the same with a valid call:
+        res = a.__array_ufunc__(np.add, "__call__", a, a)
+        assert_array_equal(res, a + a)
 
 class TestChoose:
     def test_mixed(self):
@@ -3799,6 +4111,7 @@ class TestComplexFunctions:
             assert_almost_equal(fz.real, fr, err_msg='real part %s' % f)
             assert_almost_equal(fz.imag, 0., err_msg='imag part %s' % f)
 
+    @pytest.mark.xfail(IS_MUSL, reason="gh23049")
     @pytest.mark.xfail(IS_WASM, reason="doesn't work")
     def test_precisions_consistent(self):
         z = 1 + 1j
@@ -3809,6 +4122,7 @@ class TestComplexFunctions:
             assert_almost_equal(fcf, fcd, decimal=6, err_msg='fch-fcd %s' % f)
             assert_almost_equal(fcl, fcd, decimal=15, err_msg='fch-fcl %s' % f)
 
+    @pytest.mark.xfail(IS_MUSL, reason="gh23049")
     @pytest.mark.xfail(IS_WASM, reason="doesn't work")
     def test_branch_cuts(self):
         # check branch cuts and continuity on them
@@ -3835,6 +4149,7 @@ class TestComplexFunctions:
         _check_branch_cut(np.arccosh, [0-2j, 2j, 2], [1,  1,  1j], 1, 1)
         _check_branch_cut(np.arctanh, [0-2j, 2j, 0], [1,  1,  1j], 1, 1)
 
+    @pytest.mark.xfail(IS_MUSL, reason="gh23049")
     @pytest.mark.xfail(IS_WASM, reason="doesn't work")
     def test_branch_cuts_complex64(self):
         # check branch cuts and continuity on them
@@ -3878,8 +4193,17 @@ class TestComplexFunctions:
             for p in points:
                 a = complex(func(np.complex_(p)))
                 b = cfunc(p)
-                assert_(abs(a - b) < atol, "%s %s: %s; cmath: %s" % (fname, p, a, b))
+                assert_(
+                    abs(a - b) < atol,
+                    "%s %s: %s; cmath: %s" % (fname, p, a, b)
+                )
 
+    @pytest.mark.xfail(
+        # manylinux2014 uses glibc2.17
+        _glibc_older_than("2.18"),
+        reason="Older glibc versions are imprecise (maybe passes with SIMD?)"
+    )
+    @pytest.mark.xfail(IS_MUSL, reason="gh23049")
     @pytest.mark.xfail(IS_WASM, reason="doesn't work")
     @pytest.mark.parametrize('dtype', [np.complex64, np.complex_, np.longcomplex])
     def test_loss_of_precision(self, dtype):
@@ -4152,7 +4476,7 @@ def _test_spacing(t):
     nan = t(np.nan)
     inf = t(np.inf)
     with np.errstate(invalid='ignore'):
-        assert_(np.spacing(one) == eps)
+        assert_equal(np.spacing(one), eps)
         assert_(np.isnan(np.spacing(nan)))
         assert_(np.isnan(np.spacing(inf)))
         assert_(np.isnan(np.spacing(-inf)))

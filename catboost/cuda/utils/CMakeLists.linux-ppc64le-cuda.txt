@@ -16,7 +16,7 @@ target_link_libraries(catboost-cuda-utils PUBLIC
   cpp-deprecated-atomic
 )
 target_sources(catboost-cuda-utils PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/utils/countdown_latch.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/utils/spin_wait.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/utils/helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/utils/countdown_latch.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/utils/spin_wait.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/utils/helpers.cpp
 )

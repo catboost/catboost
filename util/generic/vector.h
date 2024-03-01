@@ -8,6 +8,10 @@
 #include <vector>
 #include <initializer_list>
 
+#ifdef _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
+    #include <type_traits>
+#endif
+
 template <class T, class A>
 class TVector: public std::vector<T, TReboundAllocator<A, T>> {
 public:
@@ -110,9 +114,9 @@ public:
         return (yssize_t)TBase::size();
     }
 
-#ifdef _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
+#if defined(_YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED) && !defined(__CUDACC__)
     void yresize(size_type newSize) {
-        if (std::is_pod<T>::value) {
+        if (std::is_standard_layout_v<T> && std::is_trivial_v<T>) {
             TBase::resize_uninitialized(newSize);
         } else {
             TBase::resize(newSize);

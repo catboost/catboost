@@ -16,5 +16,5 @@ target_link_libraries(cpp-testing-unittest_main PUBLIC
   library-cpp-terminate_handler
 )
 target_sources(cpp-testing-unittest_main PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest_main/main.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest_main/main.cpp
 )

@@ -1,4 +1,5 @@
 """Pen multiplexing drawing to one or more pens."""
+
 from fontTools.pens.basePen import AbstractPen
 
 

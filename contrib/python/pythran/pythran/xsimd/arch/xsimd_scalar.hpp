@@ -24,6 +24,10 @@
 #error #include "xtl/xcomplex.hpp"
 #endif
 
+#ifdef __APPLE__
+#include <AvailabilityMacros.h>
+#endif
+
 namespace xsimd
 {
     template <class T, class A>
@@ -223,6 +227,20 @@ namespace xsimd
         return r;
     }
 
+    template <class T0, class T1>
+    inline typename std::enable_if<std::is_integral<T0>::value && std::is_integral<T1>::value, T0>::type
+    bitwise_lshift(T0 x, T1 shift) noexcept
+    {
+        return x << shift;
+    }
+
+    template <class T0, class T1>
+    inline typename std::enable_if<std::is_integral<T0>::value && std::is_integral<T1>::value, T0>::type
+    bitwise_rshift(T0 x, T1 shift) noexcept
+    {
+        return x >> shift;
+    }
+
     template <class T>
     inline typename std::enable_if<std::is_integral<T>::value, T>::type
     bitwise_not(T x) noexcept
@@ -348,7 +366,22 @@ namespace xsimd
         return 1. / x;
     }
 
-#ifdef XSIMD_ENABLE_NUMPY_COMPLEX
+    template <class T0, class T1>
+    inline typename std::enable_if<std::is_integral<T0>::value && std::is_integral<T1>::value, T0>::type
+    rotl(T0 x, T1 shift) noexcept
+    {
+        constexpr auto N = std::numeric_limits<T0>::digits;
+        return (x << shift) | (x >> (N - shift));
+    }
+
+    template <class T0, class T1>
+    inline typename std::enable_if<std::is_integral<T0>::value && std::is_integral<T1>::value, T0>::type
+    rotr(T0 x, T1 shift) noexcept
+    {
+        constexpr auto N = std::numeric_limits<T0>::digits;
+        return (x >> shift) | (x << (N - shift));
+    }
+
     template <class T>
     inline bool isnan(std::complex<T> var) noexcept
     {
@@ -360,7 +393,12 @@ namespace xsimd
     {
         return std::isinf(std::real(var)) || std::isinf(std::imag(var));
     }
-#endif
+
+    template <class T>
+    inline bool isfinite(std::complex<T> var) noexcept
+    {
+        return std::isfinite(std::real(var)) && std::isfinite(std::imag(var));
+    }
 
 #ifdef XSIMD_ENABLE_XTL_COMPLEX
     using xtl::abs;
@@ -468,7 +506,7 @@ namespace xsimd
         return !(x0 == x1);
     }
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) && (MAC_OS_X_VERSION_MIN_REQUIRED > 1080)
     inline float exp10(const float& x) noexcept
     {
         return __exp10f(x);
@@ -485,6 +523,15 @@ namespace xsimd
     inline double exp10(const double& x) noexcept
     {
         return ::exp10(x);
+    }
+#elif !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)
+    inline float exp10(const float& x) noexcept
+    {
+        return __builtin_exp10f(x);
+    }
+    inline double exp10(const double& x) noexcept
+    {
+        return __builtin_exp10(x);
     }
 #elif defined(_WIN32)
     template <class T, class = typename std::enable_if<std::is_scalar<T>::value>::type>
@@ -967,14 +1014,14 @@ namespace xsimd
 
     namespace detail
     {
-#define XSIMD_HASSINCOS_TRAIT(func)                                                                                              \
-    template <class S>                                                                                                           \
-    struct has##func                                                                                                             \
-    {                                                                                                                            \
-        template <class T>                                                                                                       \
-        static auto get(T* ptr) -> decltype(func(std::declval<T>(), std::declval<T*>(), std::declval<T*>()), std::true_type {}); \
-        static std::false_type get(...);                                                                                         \
-        static constexpr bool value = decltype(get((S*)nullptr))::value;                                                         \
+#define XSIMD_HASSINCOS_TRAIT(func)                                                                                                     \
+    template <class S>                                                                                                                  \
+    struct has##func                                                                                                                    \
+    {                                                                                                                                   \
+        template <class T>                                                                                                              \
+        static inline auto get(T* ptr) -> decltype(func(std::declval<T>(), std::declval<T*>(), std::declval<T*>()), std::true_type {}); \
+        static inline std::false_type get(...);                                                                                         \
+        static constexpr bool value = decltype(get((S*)nullptr))::value;                                                                \
     }
 
 #define XSIMD_HASSINCOS(func, T) has##func<T>::value
@@ -987,21 +1034,21 @@ namespace xsimd
         struct generic_sincosf
         {
             template <class T>
-            typename std::enable_if<XSIMD_HASSINCOS(sincosf, T), void>::type
+            inline typename std::enable_if<XSIMD_HASSINCOS(sincosf, T), void>::type
             operator()(float val, T& s, T& c)
             {
                 sincosf(val, &s, &c);
             }
 
             template <class T>
-            typename std::enable_if<!XSIMD_HASSINCOS(sincosf, T) && XSIMD_HASSINCOS(__sincosf, T), void>::type
+            inline typename std::enable_if<!XSIMD_HASSINCOS(sincosf, T) && XSIMD_HASSINCOS(__sincosf, T), void>::type
             operator()(float val, T& s, T& c)
             {
                 __sincosf(val, &s, &c);
             }
 
             template <class T>
-            typename std::enable_if<!XSIMD_HASSINCOS(sincosf, T) && !XSIMD_HASSINCOS(__sincosf, T), void>::type
+            inline typename std::enable_if<!XSIMD_HASSINCOS(sincosf, T) && !XSIMD_HASSINCOS(__sincosf, T), void>::type
             operator()(float val, T& s, T& c)
             {
                 s = std::sin(val);
@@ -1012,21 +1059,21 @@ namespace xsimd
         struct generic_sincos
         {
             template <class T>
-            typename std::enable_if<XSIMD_HASSINCOS(sincos, T), void>::type
+            inline typename std::enable_if<XSIMD_HASSINCOS(sincos, T), void>::type
             operator()(double val, T& s, T& c)
             {
                 sincos(val, &s, &c);
             }
 
             template <class T>
-            typename std::enable_if<!XSIMD_HASSINCOS(sincos, T) && XSIMD_HASSINCOS(__sincos, T), void>::type
+            inline typename std::enable_if<!XSIMD_HASSINCOS(sincos, T) && XSIMD_HASSINCOS(__sincos, T), void>::type
             operator()(double val, T& s, T& c)
             {
                 __sincos(val, &s, &c);
             }
 
             template <class T>
-            typename std::enable_if<!XSIMD_HASSINCOS(sincos, T) && !XSIMD_HASSINCOS(__sincos, T), void>::type
+            inline typename std::enable_if<!XSIMD_HASSINCOS(sincos, T) && !XSIMD_HASSINCOS(__sincos, T), void>::type
             operator()(double val, T& s, T& c)
             {
                 s = std::sin(val);

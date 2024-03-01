@@ -31,7 +31,9 @@
 
 #include <cub/config.cuh>
 #include <cub/detail/choose_offset.cuh>
+#include <cub/detail/type_traits.cuh>
 #include <cub/device/dispatch/dispatch_adjacent_difference.cuh>
+#include <cub/util_deprecated.cuh>
 #include <cub/util_namespace.cuh>
 
 #include <thrust/detail/integer_traits.h>
@@ -114,8 +116,7 @@ private:
                      OutputIteratorT d_output,
                      NumItemsT num_items,
                      DifferenceOpT difference_op,
-                     cudaStream_t stream,
-                     bool debug_synchronous)
+                     cudaStream_t stream)
   {
     using OffsetT = typename detail::ChooseOffsetT<NumItemsT>::Type;
 
@@ -132,8 +133,7 @@ private:
                                d_output,
                                static_cast<OffsetT>(num_items),
                                difference_op,
-                               stream,
-                               debug_synchronous);
+                               stream);
   }
 
 public:
@@ -237,11 +237,6 @@ public:
    * @param[in] stream
    *   <b>[optional]</b> CUDA stream to launch kernels within. Default is
    *   stream<sub>0</sub>
-   *
-   * @param[in] debug_synchronous
-   *   <b>[optional]</b> Whether or not to synchronize the stream after every
-   *   kernel launch to check for errors. Also causes launch configurations to
-   *   be printed to the console. Default is `false`
    */
   template <typename InputIteratorT,
             typename OutputIteratorT,
@@ -254,8 +249,7 @@ public:
                    OutputIteratorT d_output,
                    NumItemsT num_items,
                    DifferenceOpT difference_op = {},
-                   cudaStream_t stream         = 0,
-                   bool debug_synchronous      = false)
+                   cudaStream_t stream         = 0)
   {
     constexpr bool may_alias = false;
     constexpr bool read_left = true;
@@ -266,8 +260,33 @@ public:
                                                     d_output,
                                                     num_items,
                                                     difference_op,
-                                                    stream,
-                                                    debug_synchronous);
+                                                    stream);
+  }
+
+  template <typename InputIteratorT,
+            typename OutputIteratorT,
+            typename DifferenceOpT,
+            typename NumItemsT = std::uint32_t>
+  CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+  static CUB_RUNTIME_FUNCTION cudaError_t
+  SubtractLeftCopy(void *d_temp_storage,
+                   std::size_t &temp_storage_bytes,
+                   InputIteratorT d_input,
+                   OutputIteratorT d_output,
+                   NumItemsT num_items,
+                   DifferenceOpT difference_op,
+                   cudaStream_t stream,
+                   bool debug_synchronous)
+  {
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+    return SubtractLeftCopy(d_temp_storage,
+                            temp_storage_bytes,
+                            d_input,
+                            d_output,
+                            num_items,
+                            difference_op,
+                            stream);
   }
 
   /**
@@ -356,11 +375,6 @@ public:
    * @param[in] stream
    *   <b>[optional]</b> CUDA stream to launch kernels within. Default is
    *   stream<sub>0</sub>.
-   *
-   * @param[in] debug_synchronous
-   *   <b>[optional]</b> Whether or not to synchronize the stream after every
-   *   kernel launch to check for errors. Also causes launch configurations to
-   *   be printed to the console. Default is `false`.
    */
   template <typename RandomAccessIteratorT,
             typename DifferenceOpT = cub::Difference,
@@ -371,8 +385,7 @@ public:
                RandomAccessIteratorT d_input,
                NumItemsT num_items,
                DifferenceOpT difference_op = {},
-               cudaStream_t stream         = 0,
-               bool debug_synchronous      = false)
+               cudaStream_t stream         = 0)
   {
     constexpr bool may_alias = true;
     constexpr bool read_left = true;
@@ -383,8 +396,30 @@ public:
                                                     d_input,
                                                     num_items,
                                                     difference_op,
-                                                    stream,
-                                                    debug_synchronous);
+                                                    stream);
+  }
+
+  template <typename RandomAccessIteratorT,
+            typename DifferenceOpT,
+            typename NumItemsT = std::uint32_t>
+  CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+  static CUB_RUNTIME_FUNCTION cudaError_t
+  SubtractLeft(void *d_temp_storage,
+               std::size_t &temp_storage_bytes,
+               RandomAccessIteratorT d_input,
+               NumItemsT num_items,
+               DifferenceOpT difference_op,
+               cudaStream_t stream,
+               bool debug_synchronous)
+  {
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+    return SubtractLeft(d_temp_storage,
+                        temp_storage_bytes,
+                        d_input,
+                        num_items,
+                        difference_op,
+                        stream);
   }
 
   /**
@@ -486,11 +521,6 @@ public:
    * @param[in] stream
    *   <b>[optional]</b> CUDA stream to launch kernels within. Default is
    *   stream<sub>0</sub>.
-   *
-   * @param[in] debug_synchronous
-   *   <b>[optional]</b> Whether or not to synchronize the stream after every
-   *   kernel launch to check for errors. Also causes launch configurations to
-   *   be printed to the console. Default is `false`.
    */
   template <typename InputIteratorT,
             typename OutputIteratorT,
@@ -503,8 +533,7 @@ public:
                     OutputIteratorT d_output,
                     NumItemsT num_items,
                     DifferenceOpT difference_op = {},
-                    cudaStream_t stream         = 0,
-                    bool debug_synchronous      = false)
+                    cudaStream_t stream         = 0)
   {
     constexpr bool may_alias  = false;
     constexpr bool read_left = false;
@@ -515,8 +544,33 @@ public:
                                                     d_output,
                                                     num_items,
                                                     difference_op,
-                                                    stream,
-                                                    debug_synchronous);
+                                                    stream);
+  }
+
+  template <typename InputIteratorT,
+            typename OutputIteratorT,
+            typename DifferenceOpT,
+            typename NumItemsT = std::uint32_t>
+  CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+  static CUB_RUNTIME_FUNCTION cudaError_t
+  SubtractRightCopy(void *d_temp_storage,
+                    std::size_t &temp_storage_bytes,
+                    InputIteratorT d_input,
+                    OutputIteratorT d_output,
+                    NumItemsT num_items,
+                    DifferenceOpT difference_op,
+                    cudaStream_t stream,
+                    bool debug_synchronous)
+  {
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+    return SubtractRightCopy(d_temp_storage,
+                             temp_storage_bytes,
+                             d_input,
+                             d_output,
+                             num_items,
+                             difference_op,
+                             stream);
   }
 
   /**
@@ -595,11 +649,6 @@ public:
    * @param[in] stream
    *   <b>[optional]</b> CUDA stream to launch kernels within. Default is
    *   stream<sub>0</sub>.
-   *
-   * @param[in] debug_synchronous
-   *  <b>[optional]</b> Whether or not to synchronize the stream after every
-   *  kernel launch to check for errors. Also causes launch configurations to be
-   *  printed to the console. Default is `false`.
    */
   template <typename RandomAccessIteratorT,
             typename DifferenceOpT = cub::Difference,
@@ -610,8 +659,7 @@ public:
                 RandomAccessIteratorT d_input,
                 NumItemsT num_items,
                 DifferenceOpT difference_op = {},
-                cudaStream_t stream         = 0,
-                bool debug_synchronous      = false)
+                cudaStream_t stream         = 0)
   {
     constexpr bool may_alias = true;
     constexpr bool read_left = false;
@@ -622,8 +670,30 @@ public:
                                                     d_input,
                                                     num_items,
                                                     difference_op,
-                                                    stream,
-                                                    debug_synchronous);
+                                                    stream);
+  }
+
+  template <typename RandomAccessIteratorT,
+            typename DifferenceOpT,
+            typename NumItemsT>
+  CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+  static CUB_RUNTIME_FUNCTION cudaError_t
+  SubtractRight(void *d_temp_storage,
+                std::size_t &temp_storage_bytes,
+                RandomAccessIteratorT d_input,
+                NumItemsT num_items,
+                DifferenceOpT difference_op,
+                cudaStream_t stream,
+                bool debug_synchronous)
+  {
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+    return SubtractRight(d_temp_storage,
+                         temp_storage_bytes,
+                         d_input,
+                         num_items,
+                         difference_op,
+                         stream);
   }
 };
 

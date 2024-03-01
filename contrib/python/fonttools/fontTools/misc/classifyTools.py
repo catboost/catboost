@@ -3,13 +3,11 @@
 
 
 class Classifier(object):
-
     """
     Main Classifier object, used to classify things into similar sets.
     """
 
     def __init__(self, sort=True):
-
         self._things = set()  # set of all things known so far
         self._sets = []  # list of class sets produced so far
         self._mapping = {}  # map from things to their class set

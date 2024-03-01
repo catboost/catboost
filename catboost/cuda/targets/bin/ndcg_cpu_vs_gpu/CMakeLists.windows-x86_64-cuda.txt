@@ -21,7 +21,7 @@ target_link_libraries(ndcg_cpu_vs_gpu PUBLIC
   cpp-threading-local_executor
 )
 target_sources(ndcg_cpu_vs_gpu PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/bin/ndcg_cpu_vs_gpu/main.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/bin/ndcg_cpu_vs_gpu/main.cpp
 )
 target_allocator(ndcg_cpu_vs_gpu
   system_allocator

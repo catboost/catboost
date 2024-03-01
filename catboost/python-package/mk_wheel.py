@@ -124,6 +124,7 @@ def mine_platform_tag_string(tail_args):
 
 
 def gen_platform_tags():
+    import setuptools
     import distutils.util
 
     value = distutils.util.get_platform().replace("linux", "manylinux1")

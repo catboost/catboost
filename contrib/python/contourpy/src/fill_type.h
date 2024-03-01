@@ -9,10 +9,10 @@ namespace contourpy {
 // C++11 scoped enum, must be fully qualified to use.
 enum class FillType
 {
-    OuterCode= 201,
+    OuterCode = 201,
     OuterOffset = 202,
     ChunkCombinedCode = 203,
-    ChunkCombinedOffset= 204,
+    ChunkCombinedOffset = 204,
     ChunkCombinedCodeOffset = 205,
     ChunkCombinedOffsetOffset = 206,
 };

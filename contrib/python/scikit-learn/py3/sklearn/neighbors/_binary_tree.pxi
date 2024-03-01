@@ -1,14 +1,7 @@
-#!python
 
 
 # KD Tree and Ball Tree
 # =====================
-#
-#    Author: Jake Vanderplas <jakevdp@cs.washington.edu>, 2012-2013
-#    License: BSD
-#
-# This file is meant to be a literal include in a pyx file.
-# See ball_tree.pyx and kd_tree.pyx
 #
 # The routines here are the core algorithms of the KDTree and BallTree
 # structures.  If Cython supported polymorphism, we would be able to
@@ -143,6 +136,7 @@
 #     """Compute the maximum distance between two nodes"""
 
 cimport numpy as cnp
+from cython cimport floating
 from libc.math cimport fabs, sqrt, exp, cos, pow, log, lgamma
 from libc.math cimport fmin, fmax
 from libc.stdlib cimport calloc, malloc, free
@@ -154,15 +148,19 @@ import warnings
 from ..metrics._dist_metrics cimport (
     DistanceMetric,
     DistanceMetric64,
+    DistanceMetric32,
     euclidean_dist64,
+    euclidean_dist32,
     euclidean_rdist64,
+    euclidean_rdist32,
     euclidean_dist_to_rdist64,
+    euclidean_dist_to_rdist32,
 )
 
 from ._partition_nodes cimport partition_node_indices
 
 from ..utils import check_array
-from ..utils._typedefs cimport float64_t, intp_t
+from ..utils._typedefs cimport float32_t, float64_t, intp_t
 from ..utils._heap cimport heap_push
 from ..utils._sorting cimport simultaneous_sort as _simultaneous_sort
 
@@ -235,8 +233,8 @@ leaf_size : positive int, default=40
 metric : str or DistanceMetric64 object, default='minkowski'
     Metric to use for distance computation. Default is "minkowski", which
     results in the standard Euclidean distance when p = 2.
-    A list of valid metrics for {BinaryTree} is given by
-    :attr:`{BinaryTree}.valid_metrics`.
+    A list of valid metrics for {BinaryTree} is given by the attribute
+    `valid_metrics`.
     See the documentation of `scipy.spatial.distance
     <https://docs.scipy.org/doc/scipy/reference/spatial.distance.html>`_ and
     the metrics listed in :class:`~sklearn.metrics.pairwise.distance_metrics` for
@@ -500,8 +498,7 @@ def kernel_norm(h, d, kernel, return_log=False):
     else:
         return np.exp(result)
 
-
-cdef class NeighborsHeap:
+cdef class NeighborsHeap64:
     """A max-heap structure to keep track of distances/indices of neighbors
 
     This implements an efficient pre-allocated set of fixed-size heaps
@@ -571,14 +568,84 @@ cdef class NeighborsHeap:
             )
         return 0
 
-# ------------------------------------------------------------
+cdef class NeighborsHeap32:
+    """A max-heap structure to keep track of distances/indices of neighbors
+
+    This implements an efficient pre-allocated set of fixed-size heaps
+    for chasing neighbors, holding both an index and a distance.
+    When any row of the heap is full, adding an additional point will push
+    the furthest point off the heap.
+
+    Parameters
+    ----------
+    n_pts : int
+        the number of heaps to use
+    n_nbrs : int
+        the size of each heap.
+    """
+    cdef float32_t[:, ::1] distances
+    cdef intp_t[:, ::1] indices
+
+    def __cinit__(self):
+        # One-element arrays are used as placeholders to prevent
+        # any problem due to potential access to those attributes
+        # (e.g. assigning to NULL or a to value in another segment).
+        self.distances = np.zeros((1, 1), dtype=np.float32, order='C')
+        self.indices = np.zeros((1, 1), dtype=np.intp, order='C')
+
+    def __init__(self, n_pts, n_nbrs):
+        self.distances = np.full(
+            (n_pts, n_nbrs), np.inf, dtype=np.float32, order='C'
+        )
+        self.indices = np.zeros((n_pts, n_nbrs), dtype=np.intp, order='C')
+
+    def get_arrays(self, sort=True):
+        """Get the arrays of distances and indices within the heap.
+
+        If sort=True, then simultaneously sort the indices and distances,
+        so the closer points are listed first.
+        """
+        if sort:
+            self._sort()
+        return self.distances.base, self.indices.base
+
+    cdef inline float64_t largest(self, intp_t row) except -1 nogil:
+        """Return the largest distance in the given row"""
+        return self.distances[row, 0]
+
+    def push(self, intp_t row, float64_t val, intp_t i_val):
+        return self._push(row, val, i_val)
+
+    cdef int _push(self, intp_t row, float64_t val,
+                   intp_t i_val) except -1 nogil:
+        """push (val, i_val) into the given row"""
+        return heap_push(
+            values=&self.distances[row, 0],
+            indices=&self.indices[row, 0],
+            size=self.distances.shape[1],
+            val=val,
+            val_idx=i_val,
+        )
+
+    cdef int _sort(self) except -1:
+        """simultaneously sort the distances and indices"""
+        cdef intp_t row
+        for row in range(self.distances.shape[0]):
+            _simultaneous_sort(
+                dist=&self.distances[row, 0],
+                idx=&self.indices[row, 0],
+                size=self.distances.shape[1],
+            )
+        return 0
+
+#------------------------------------------------------------
 # find_node_split_dim:
 #  this computes the equivalent of
 #  j_max = np.argmax(np.max(data, 0) - np.min(data, 0))
-cdef intp_t find_node_split_dim(float64_t* data,
-                                intp_t* node_indices,
-                                intp_t n_features,
-                                intp_t n_points) except -1:
+cdef intp_t find_node_split_dim(const floating* data,
+                                 const intp_t* node_indices,
+                                 intp_t n_features,
+                                 intp_t n_points) except -1:
     """Find the dimension with the largest spread.
 
     Parameters
@@ -765,19 +832,22 @@ def newObj(obj):
 
 
 ######################################################################
-# define the reverse mapping of VALID_METRICS
+# define the reverse mapping of VALID_METRICS64
 from sklearn.metrics._dist_metrics import get_valid_metric_ids
-VALID_METRIC_IDS = get_valid_metric_ids(VALID_METRICS)
+VALID_METRIC_IDS64 = get_valid_metric_ids(VALID_METRICS64)
 
 
 ######################################################################
 # Binary Tree class
-cdef class BinaryTree:
+cdef class BinaryTree64:
 
     cdef readonly const float64_t[:, ::1] data
     cdef readonly const float64_t[::1] sample_weight
     cdef public float64_t sum_weight
 
+    # TODO: idx_array and node_bounds must not be const, but this change needs
+    # to happen in a way which preserves pickling
+    # See also: https://github.com/cython/cython/issues/5639
     cdef public const intp_t[::1] idx_array
     cdef public const NodeData_t[::1] node_data
     cdef public const float64_t[:, :, ::1] node_bounds
@@ -795,7 +865,7 @@ cdef class BinaryTree:
     cdef int n_splits
     cdef int n_calls
 
-    valid_metrics = VALID_METRIC_IDS
+    valid_metrics = VALID_METRIC_IDS64
 
     # Use cinit to initialize all arrays to empty: this will prevent memory
     # errors and seg-faults in rare cases where __init__ is not called
@@ -834,15 +904,15 @@ cdef class BinaryTree:
             raise ValueError("leaf_size must be greater than or equal to 1")
         self.leaf_size = leaf_size
 
-        self.dist_metric = DistanceMetric.get_metric(metric, **kwargs)
+        self.dist_metric = DistanceMetric.get_metric(metric, dtype=np.float64, **kwargs)
         self.euclidean = (self.dist_metric.__class__.__name__
                           == 'EuclideanDistance64')
 
         metric = self.dist_metric.__class__.__name__
-        if metric not in VALID_METRICS:
+        if metric not in VALID_METRICS64:
             raise ValueError('metric {metric} is not valid for '
                              '{BinaryTree}'.format(metric=metric,
-                                                   **DOC_DICT))
+                                                   **DOC_DICT64))
         self.dist_metric._validate_data(self.data)
 
         # determine number of levels in the tree, and from this
@@ -859,7 +929,7 @@ cdef class BinaryTree:
         self._update_sample_weight(n_samples, sample_weight)
 
         # Allocate tree-specific data
-        allocate_data(self, self.n_nodes, n_features)
+        allocate_data64(self, self.n_nodes, n_features)
         self._recursive_build(
             node_data=self.node_data.base,
             i_node=0,
@@ -982,8 +1052,8 @@ cdef class BinaryTree:
             self.node_bounds.base,
         )
 
-    cdef inline float64_t dist(self, float64_t* x1, float64_t* x2,
-                               intp_t size) except -1 nogil:
+    cdef inline float64_t dist(self, const float64_t* x1, const float64_t* x2,
+                             intp_t size) except -1 nogil:
         """Compute the distance between arrays x1 and x2"""
         self.n_calls += 1
         if self.euclidean:
@@ -991,8 +1061,8 @@ cdef class BinaryTree:
         else:
             return self.dist_metric.dist(x1, x2, size)
 
-    cdef inline float64_t rdist(self, float64_t* x1, float64_t* x2,
-                                intp_t size) except -1 nogil:
+    cdef inline float64_t rdist(self, const float64_t* x1, const float64_t* x2,
+                              intp_t size) except -1 nogil:
         """Compute the reduced distance between arrays x1 and x2.
 
         The reduced distance, defined for some metrics, is a quantity which
@@ -1023,10 +1093,10 @@ cdef class BinaryTree:
         cdef intp_t n_points = idx_end - idx_start
         cdef intp_t n_mid = n_points / 2
         cdef intp_t* idx_array = &self.idx_array[idx_start]
-        cdef float64_t* data = &self.data[0, 0]
+        cdef const float64_t* data = &self.data[0, 0]
 
         # initialize node data
-        init_node(self, node_data, i_node, idx_start, idx_end)
+        init_node64(self, node_data, i_node, idx_start, idx_end)
 
         if 2 * i_node + 1 >= self.n_nodes:
             node_data[i_node].is_leaf = True
@@ -1118,10 +1188,10 @@ cdef class BinaryTree:
         cdef const float64_t[:, ::1] Xarr = np_Xarr
         cdef float64_t reduced_dist_LB
         cdef intp_t i
-        cdef float64_t* pt
+        cdef const float64_t* pt
 
         # initialize heap for neighbors
-        cdef NeighborsHeap heap = NeighborsHeap(Xarr.shape[0], k)
+        cdef NeighborsHeap64 heap = NeighborsHeap64(Xarr.shape[0], k)
 
         # node heap for breadth-first queries
         cdef NodeHeap nodeheap
@@ -1141,7 +1211,7 @@ cdef class BinaryTree:
             if breadth_first:
                 self._query_dual_breadthfirst(other, heap, nodeheap)
             else:
-                reduced_dist_LB = min_rdist_dual(self, 0, other, 0)
+                reduced_dist_LB = min_rdist_dual64(self, 0, other, 0)
                 bounds = np.full(other.node_data.shape[0], np.inf)
                 self._query_dual_depthfirst(0, other, 0, bounds,
                                             heap, reduced_dist_LB)
@@ -1155,7 +1225,7 @@ cdef class BinaryTree:
             else:
                 with nogil:
                     for i in range(Xarr.shape[0]):
-                        reduced_dist_LB = min_rdist(self, 0, pt)
+                        reduced_dist_LB = min_rdist64(self, 0, pt)
                         self._query_single_depthfirst(0, pt, i, heap,
                                                       reduced_dist_LB)
                         pt += Xarr.shape[1]
@@ -1235,7 +1305,7 @@ cdef class BinaryTree:
         cdef intp_t n_features = self.data.shape[1]
         cdef float64_t[::1] dist_arr_i
         cdef intp_t[::1] idx_arr_i, counts
-        cdef float64_t* pt
+        cdef const float64_t* pt
         cdef intp_t** indices = NULL
         cdef float64_t** distances = NULL
 
@@ -1456,7 +1526,7 @@ cdef class BinaryTree:
         log_density_arr = np.zeros(Xarr.shape[0], dtype=np.float64)
         cdef float64_t[::1] log_density = log_density_arr
 
-        cdef float64_t* pt = &Xarr[0, 0]
+        cdef const float64_t* pt = &Xarr[0, 0]
 
         cdef NodeHeap nodeheap
         if breadth_first:
@@ -1481,7 +1551,7 @@ cdef class BinaryTree:
                 pt += n_features
         else:
             for i in range(Xarr.shape[0]):
-                min_max_dist(self, 0, pt, &dist_LB, &dist_UB)
+                min_max_dist64(self, 0, pt, &dist_LB, &dist_UB)
                 # compute max & min bounds on density within top node
                 log_min_bound = (log(self.sum_weight) +
                                  compute_log_kernel(dist_UB,
@@ -1561,7 +1631,7 @@ cdef class BinaryTree:
         count = np.zeros(r.shape[0], dtype=np.intp)
         cdef intp_t[::1] carr = count
 
-        cdef float64_t* pt = &Xarr[0, 0]
+        cdef const float64_t* pt = &Xarr[0, 0]
 
         if dualtree:
             other = self.__class__(Xarr, metric=self.dist_metric,
@@ -1576,17 +1646,21 @@ cdef class BinaryTree:
 
         return count
 
-    cdef int _query_single_depthfirst(self, intp_t i_node,
-                                      float64_t* pt, intp_t i_pt,
-                                      NeighborsHeap heap,
-                                      float64_t reduced_dist_LB) except -1 nogil:
+    cdef int _query_single_depthfirst(
+        self,
+        intp_t i_node,
+        const float64_t* pt,
+        intp_t i_pt,
+        NeighborsHeap64 heap,
+        float64_t reduced_dist_LB,
+    ) except -1 nogil:
         """Recursive Single-tree k-neighbors query, depth-first approach"""
         cdef NodeData_t node_info = self.node_data[i_node]
 
         cdef float64_t dist_pt, reduced_dist_LB_1, reduced_dist_LB_2
         cdef intp_t i, i1, i2
 
-        cdef float64_t* data = &self.data[0, 0]
+        cdef const float64_t* data = &self.data[0, 0]
 
         # ------------------------------------------------------------
         # Case 1: query point is outside node radius:
@@ -1611,8 +1685,8 @@ cdef class BinaryTree:
             self.n_splits += 1
             i1 = 2 * i_node + 1
             i2 = i1 + 1
-            reduced_dist_LB_1 = min_rdist(self, i1, pt)
-            reduced_dist_LB_2 = min_rdist(self, i2, pt)
+            reduced_dist_LB_1 = min_rdist64(self, i1, pt)
+            reduced_dist_LB_2 = min_rdist64(self, i2, pt)
 
             # recursively query subnodes
             if reduced_dist_LB_1 <= reduced_dist_LB_2:
@@ -1627,19 +1701,22 @@ cdef class BinaryTree:
                                               reduced_dist_LB_1)
         return 0
 
-    cdef int _query_single_breadthfirst(self, float64_t* pt,
-                                        intp_t i_pt,
-                                        NeighborsHeap heap,
-                                        NodeHeap nodeheap) except -1:
+    cdef int _query_single_breadthfirst(
+        self,
+        const float64_t* pt,
+        intp_t i_pt,
+        NeighborsHeap64 heap,
+        NodeHeap nodeheap,
+    ) except -1:
         """Non-recursive single-tree k-neighbors query, breadth-first search"""
         cdef intp_t i, i_node
         cdef float64_t dist_pt, reduced_dist_LB
-        cdef NodeData_t* node_data = &self.node_data[0]
-        cdef float64_t* data = &self.data[0, 0]
+        cdef const NodeData_t* node_data = &self.node_data[0]
+        cdef const float64_t* data = &self.data[0, 0]
 
         # Set up the node heap and push the head node onto it
         cdef NodeHeapData_t nodeheap_item
-        nodeheap_item.val = min_rdist(self, 0, pt)
+        nodeheap_item.val = min_rdist64(self, 0, pt)
         nodeheap_item.i1 = 0
         nodeheap.push(nodeheap_item)
 
@@ -1672,15 +1749,19 @@ cdef class BinaryTree:
                 self.n_splits += 1
                 for i in range(2 * i_node + 1, 2 * i_node + 3):
                     nodeheap_item.i1 = i
-                    nodeheap_item.val = min_rdist(self, i, pt)
+                    nodeheap_item.val = min_rdist64(self, i, pt)
                     nodeheap.push(nodeheap_item)
         return 0
 
-    cdef int _query_dual_depthfirst(self, intp_t i_node1,
-                                    BinaryTree other, intp_t i_node2,
-                                    float64_t[::1] bounds,
-                                    NeighborsHeap heap,
-                                    float64_t reduced_dist_LB) except -1:
+    cdef int _query_dual_depthfirst(
+        self,
+        intp_t i_node1,
+        BinaryTree64 other,
+        intp_t i_node2,
+        float64_t[::1] bounds,
+        NeighborsHeap64 heap,
+        float64_t reduced_dist_LB,
+    ) except -1:
         """Recursive dual-tree k-neighbors query, depth-first"""
         # note that the array `bounds` is maintained such that
         # bounds[i] is the largest distance among any of the
@@ -1688,8 +1769,8 @@ cdef class BinaryTree:
         cdef NodeData_t node_info1 = self.node_data[i_node1]
         cdef NodeData_t node_info2 = other.node_data[i_node2]
 
-        cdef float64_t* data1 = &self.data[0, 0]
-        cdef float64_t* data2 = &other.data[0, 0]
+        cdef const float64_t* data1 = &self.data[0, 0]
+        cdef const float64_t* data2 = &other.data[0, 0]
         cdef intp_t n_features = self.data.shape[1]
 
         cdef float64_t bound_max, dist_pt, reduced_dist_LB1, reduced_dist_LB2
@@ -1740,9 +1821,9 @@ cdef class BinaryTree:
         #          recursively query, starting with the nearest subnode
         elif node_info1.is_leaf or (not node_info2.is_leaf
                                     and node_info2.radius > node_info1.radius):
-            reduced_dist_LB1 = min_rdist_dual(self, i_node1,
+            reduced_dist_LB1 = min_rdist_dual64(self, i_node1,
                                               other, 2 * i_node2 + 1)
-            reduced_dist_LB2 = min_rdist_dual(self, i_node1,
+            reduced_dist_LB2 = min_rdist_dual64(self, i_node1,
                                               other, 2 * i_node2 + 2)
 
             if reduced_dist_LB1 < reduced_dist_LB2:
@@ -1760,9 +1841,9 @@ cdef class BinaryTree:
         # Case 3b: node 2 is a leaf or is smaller: split node 1 and
         #          recursively query, starting with the nearest subnode
         else:
-            reduced_dist_LB1 = min_rdist_dual(self, 2 * i_node1 + 1,
+            reduced_dist_LB1 = min_rdist_dual64(self, 2 * i_node1 + 1,
                                               other, i_node2)
-            reduced_dist_LB2 = min_rdist_dual(self, 2 * i_node1 + 2,
+            reduced_dist_LB2 = min_rdist_dual64(self, 2 * i_node1 + 2,
                                               other, i_node2)
 
             if reduced_dist_LB1 < reduced_dist_LB2:
@@ -1777,23 +1858,26 @@ cdef class BinaryTree:
                                             bounds, heap, reduced_dist_LB1)
         return 0
 
-    cdef int _query_dual_breadthfirst(self, BinaryTree other,
-                                      NeighborsHeap heap,
-                                      NodeHeap nodeheap) except -1:
+    cdef int _query_dual_breadthfirst(
+        self,
+        BinaryTree64 other,
+        NeighborsHeap64 heap,
+        NodeHeap nodeheap,
+    ) except -1:
         """Non-recursive dual-tree k-neighbors query, breadth-first"""
         cdef intp_t i, i1, i2, i_node1, i_node2, i_pt
         cdef float64_t dist_pt, reduced_dist_LB
         cdef float64_t[::1] bounds = np.full(other.node_data.shape[0], np.inf)
-        cdef NodeData_t* node_data1 = &self.node_data[0]
-        cdef NodeData_t* node_data2 = &other.node_data[0]
+        cdef const NodeData_t* node_data1 = &self.node_data[0]
+        cdef const NodeData_t* node_data2 = &other.node_data[0]
         cdef NodeData_t node_info1, node_info2
-        cdef float64_t* data1 = &self.data[0, 0]
-        cdef float64_t* data2 = &other.data[0, 0]
+        cdef const float64_t* data1 = &self.data[0, 0]
+        cdef const float64_t* data2 = &other.data[0, 0]
         cdef intp_t n_features = self.data.shape[1]
 
         # Set up the node heap and push the head nodes onto it
         cdef NodeHeapData_t nodeheap_item
-        nodeheap_item.val = min_rdist_dual(self, 0, other, 0)
+        nodeheap_item.val = min_rdist_dual64(self, 0, other, 0)
         nodeheap_item.i1 = 0
         nodeheap_item.i2 = 0
         nodeheap.push(nodeheap_item)
@@ -1845,7 +1929,7 @@ cdef class BinaryTree:
                 nodeheap_item.i1 = i_node1
                 for i2 in range(2 * i_node2 + 1, 2 * i_node2 + 3):
                     nodeheap_item.i2 = i2
-                    nodeheap_item.val = min_rdist_dual(self, i_node1,
+                    nodeheap_item.val = min_rdist_dual64(self, i_node1,
                                                        other, i2)
                     nodeheap.push(nodeheap_item)
 
@@ -1856,21 +1940,24 @@ cdef class BinaryTree:
                 nodeheap_item.i2 = i_node2
                 for i1 in range(2 * i_node1 + 1, 2 * i_node1 + 3):
                     nodeheap_item.i1 = i1
-                    nodeheap_item.val = min_rdist_dual(self, i1,
+                    nodeheap_item.val = min_rdist_dual64(self, i1,
                                                        other, i_node2)
                     nodeheap.push(nodeheap_item)
         return 0
 
-    cdef intp_t _query_radius_single(self,
-                                     intp_t i_node,
-                                     float64_t* pt, float64_t r,
-                                     intp_t* indices,
-                                     float64_t* distances,
-                                     intp_t count,
-                                     int count_only,
-                                     int return_distance) noexcept nogil:
+    cdef intp_t _query_radius_single(
+        self,
+        intp_t i_node,
+        const float64_t* pt,
+        float64_t r,
+        intp_t* indices,
+        float64_t* distances,
+        intp_t count,
+        int count_only,
+        int return_distance,
+    ) noexcept nogil:
         """recursive single-tree radius query, depth-first"""
-        cdef float64_t* data = &self.data[0, 0]
+        cdef const float64_t* data = &self.data[0, 0]
         cdef intp_t* idx_array = &self.idx_array[0]
         cdef intp_t n_features = self.data.shape[1]
         cdef NodeData_t node_info = self.node_data[i_node]
@@ -1879,7 +1966,7 @@ cdef class BinaryTree:
         cdef float64_t reduced_r
 
         cdef float64_t dist_pt, dist_LB = 0, dist_UB = 0
-        min_max_dist(self, i_node, pt, &dist_LB, &dist_UB)
+        min_max_dist64(self, i_node, pt, &dist_LB, &dist_UB)
 
         # ------------------------------------------------------------
         # Case 1: all node points are outside distance r.
@@ -1937,13 +2024,17 @@ cdef class BinaryTree:
 
         return count
 
-    cdef float64_t _kde_single_breadthfirst(self, float64_t* pt,
-                                            KernelType kernel, float64_t h,
-                                            float64_t log_knorm,
-                                            float64_t log_atol, float64_t log_rtol,
-                                            NodeHeap nodeheap,
-                                            float64_t* node_log_min_bounds,
-                                            float64_t* node_log_bound_spreads):
+    cdef float64_t _kde_single_breadthfirst(
+        self, const float64_t* pt,
+        KernelType kernel,
+        float64_t h,
+        float64_t log_knorm,
+        float64_t log_atol,
+        float64_t log_rtol,
+        NodeHeap nodeheap,
+        float64_t* node_log_min_bounds,
+        float64_t* node_log_bound_spreads,
+    ):
         """non-recursive single-tree kernel density estimation"""
         # For the given point, node_log_min_bounds and node_log_bound_spreads
         # will encode the current bounds on the density between the point
@@ -1957,13 +2048,13 @@ cdef class BinaryTree:
         cdef float64_t global_log_min_bound, global_log_bound_spread
         cdef float64_t global_log_max_bound
 
-        cdef float64_t* data = &self.data[0, 0]
+        cdef const float64_t* data = &self.data[0, 0]
         cdef bint with_sample_weight = self.sample_weight is not None
-        cdef float64_t* sample_weight
+        cdef const float64_t* sample_weight
         if with_sample_weight:
             sample_weight = &self.sample_weight[0]
         cdef intp_t* idx_array = &self.idx_array[0]
-        cdef NodeData_t* node_data = &self.node_data[0]
+        cdef const NodeData_t* node_data = &self.node_data[0]
         cdef float64_t N
         cdef float64_t log_weight
         if with_sample_weight:
@@ -1981,13 +2072,13 @@ cdef class BinaryTree:
 
         # push the top node to the heap
         cdef NodeHeapData_t nodeheap_item
-        nodeheap_item.val = min_dist(self, 0, pt)
+        nodeheap_item.val = min_dist64(self, 0, pt)
         nodeheap_item.i1 = 0
         nodeheap.push(nodeheap_item)
 
-        global_log_min_bound = log(N) + compute_log_kernel(max_dist(self,
-                                                                    0, pt),
-                                                           h, kernel)
+        global_log_min_bound = log(N) + compute_log_kernel(
+            max_dist64(self, 0, pt), h, kernel
+        )
         global_log_max_bound = log(N) + compute_log_kernel(nodeheap_item.val,
                                                            h, kernel)
         global_log_bound_spread = logsubexp(global_log_max_bound,
@@ -2056,8 +2147,8 @@ cdef class BinaryTree:
                     N1 = node_data[i1].idx_end - node_data[i1].idx_start
                     N2 = node_data[i2].idx_end - node_data[i2].idx_start
 
-                min_max_dist(self, i1, pt, &dist_LB_1, &dist_UB_1)
-                min_max_dist(self, i2, pt, &dist_LB_2, &dist_UB_2)
+                min_max_dist64(self, i1, pt, &dist_LB_1, &dist_UB_1)
+                min_max_dist64(self, i2, pt, &dist_LB_2, &dist_UB_2)
 
                 node_log_min_bounds[i1] = (log(N1) +
                                            compute_log_kernel(dist_UB_1,
@@ -2102,14 +2193,19 @@ cdef class BinaryTree:
                          global_log_bound_spread - log(2))
 
     cdef int _kde_single_depthfirst(
-                   self, intp_t i_node, float64_t* pt,
-                   KernelType kernel, float64_t h,
-                   float64_t log_knorm,
-                   float64_t log_atol, float64_t log_rtol,
-                   float64_t local_log_min_bound,
-                   float64_t local_log_bound_spread,
-                   float64_t* global_log_min_bound,
-                   float64_t* global_log_bound_spread) except -1:
+        self,
+        intp_t i_node,
+        const float64_t* pt,
+        KernelType kernel,
+        float64_t h,
+        float64_t log_knorm,
+        float64_t log_atol,
+        float64_t log_rtol,
+        float64_t local_log_min_bound,
+        float64_t local_log_bound_spread,
+        float64_t* global_log_min_bound,
+        float64_t* global_log_bound_spread,
+    ) except -1:
         """recursive single-tree kernel density estimate, depth-first"""
         # For the given point, local_min_bound and local_max_bound give the
         # minimum and maximum density for the current node, while
@@ -2119,10 +2215,10 @@ cdef class BinaryTree:
         cdef intp_t i, i1, i2, iw, start, end
         cdef float64_t N1, N2
 
-        cdef float64_t* data = &self.data[0, 0]
-        cdef NodeData_t* node_data = &self.node_data[0]
+        cdef const float64_t* data = &self.data[0, 0]
+        cdef const NodeData_t* node_data = &self.node_data[0]
         cdef bint with_sample_weight = self.sample_weight is not None
-        cdef float64_t* sample_weight
+        cdef const float64_t* sample_weight
         cdef float64_t log_weight
         if with_sample_weight:
             sample_weight = &self.sample_weight[0]
@@ -2194,7 +2290,7 @@ cdef class BinaryTree:
                 N1 = <float64_t>(self.node_data[i1].idx_end - self.node_data[i1].idx_start)
                 N2 = <float64_t>(self.node_data[i2].idx_end - self.node_data[i2].idx_start)
 
-            min_max_dist(self, i1, pt, &dist_LB, &dist_UB)
+            min_max_dist64(self, i1, pt, &dist_LB, &dist_UB)
             child1_log_min_bound = log(N1) + compute_log_kernel(dist_UB, h,
                                                                 kernel)
             child1_log_bound_spread = logsubexp(log(N1) +
@@ -2202,7 +2298,7 @@ cdef class BinaryTree:
                                                                    kernel),
                                                 child1_log_min_bound)
 
-            min_max_dist(self, i2, pt, &dist_LB, &dist_UB)
+            min_max_dist64(self, i2, pt, &dist_LB, &dist_UB)
             child2_log_min_bound = log(N2) + compute_log_kernel(dist_UB, h,
                                                                 kernel)
             child2_log_bound_spread = logsubexp(log(N2) +
@@ -2238,11 +2334,17 @@ cdef class BinaryTree:
                                         global_log_bound_spread)
         return 0
 
-    cdef int _two_point_single(self, intp_t i_node, float64_t* pt, float64_t* r,
-                               intp_t* count, intp_t i_min,
-                               intp_t i_max) except -1:
+    cdef int _two_point_single(
+        self,
+        intp_t i_node,
+        const float64_t* pt,
+        float64_t* r,
+        intp_t* count,
+        intp_t i_min,
+        intp_t i_max,
+    ) except -1:
         """recursive single-tree two-point correlation function query"""
-        cdef float64_t* data = &self.data[0, 0]
+        cdef const float64_t* data = &self.data[0, 0]
         cdef intp_t* idx_array = &self.idx_array[0]
         cdef intp_t n_features = self.data.shape[1]
         cdef NodeData_t node_info = self.node_data[i_node]
@@ -2251,7 +2353,7 @@ cdef class BinaryTree:
         cdef float64_t reduced_r
 
         cdef float64_t dist_pt, dist_LB = 0, dist_UB = 0
-        min_max_dist(self, i_node, pt, &dist_LB, &dist_UB)
+        min_max_dist64(self, i_node, pt, &dist_LB, &dist_UB)
 
         # ------------------------------------------------------------
         # Go through bounds and check for cuts
@@ -2287,13 +2389,19 @@ cdef class BinaryTree:
                                        count, i_min, i_max)
         return 0
 
-    cdef int _two_point_dual(self, intp_t i_node1,
-                             BinaryTree other, intp_t i_node2,
-                             float64_t* r, intp_t* count,
-                             intp_t i_min, intp_t i_max) except -1:
+    cdef int _two_point_dual(
+        self,
+        intp_t i_node1,
+        BinaryTree64 other,
+        intp_t i_node2,
+        float64_t* r,
+        intp_t* count,
+        intp_t i_min,
+        intp_t i_max,
+    ) except -1:
         """recursive dual-tree two-point correlation function query"""
-        cdef float64_t* data1 = &self.data[0, 0]
-        cdef float64_t* data2 = &other.data[0, 0]
+        cdef const float64_t* data1 = &self.data[0, 0]
+        cdef const float64_t* data2 = &other.data[0, 0]
         cdef intp_t* idx_array1 = &self.idx_array[0]
         cdef intp_t* idx_array2 = &other.idx_array[0]
         cdef NodeData_t node_info1 = self.node_data[i_node1]
@@ -2305,8 +2413,8 @@ cdef class BinaryTree:
         cdef float64_t reduced_r
 
         cdef float64_t dist_pt, dist_LB = 0, dist_UB = 0
-        dist_LB = min_dist_dual(self, i_node1, other, i_node2)
-        dist_UB = max_dist_dual(self, i_node1, other, i_node2)
+        dist_LB = min_dist_dual64(self, i_node1, other, i_node2)
+        dist_UB = max_dist_dual64(self, i_node1, other, i_node2)
 
         # ------------------------------------------------------------
         # Go through bounds and check for cuts
@@ -2359,20 +2467,1644 @@ cdef class BinaryTree:
                                              r, count, i_min, i_max)
         return 0
 
+######################################################################
+# define the reverse mapping of VALID_METRICS32
+from sklearn.metrics._dist_metrics import get_valid_metric_ids
+VALID_METRIC_IDS32 = get_valid_metric_ids(VALID_METRICS32)
+
+
+######################################################################
+# Binary Tree class
+cdef class BinaryTree32:
+
+    cdef readonly const float32_t[:, ::1] data
+    cdef readonly const float32_t[::1] sample_weight
+    cdef public float64_t sum_weight
+
+    # TODO: idx_array and node_bounds must not be const, but this change needs
+    # to happen in a way which preserves pickling
+    # See also: https://github.com/cython/cython/issues/5639
+    cdef public const intp_t[::1] idx_array
+    cdef public const NodeData_t[::1] node_data
+    cdef public const float32_t[:, :, ::1] node_bounds
+
+    cdef intp_t leaf_size
+    cdef intp_t n_levels
+    cdef intp_t n_nodes
+
+    cdef DistanceMetric32 dist_metric
+    cdef int euclidean
+
+    # variables to keep track of building & querying stats
+    cdef int n_trims
+    cdef int n_leaves
+    cdef int n_splits
+    cdef int n_calls
+
+    valid_metrics = VALID_METRIC_IDS32
+
+    # Use cinit to initialize all arrays to empty: this will prevent memory
+    # errors and seg-faults in rare cases where __init__ is not called
+    # A one-elements array is used as a placeholder to prevent
+    # any problem due to potential access to this attribute
+    # (e.g. assigning to NULL or a to value in another segment).
+    def __cinit__(self):
+        self.data = np.empty((1, 1), dtype=np.float32, order='C')
+        self.sample_weight = np.empty(1, dtype=np.float32, order='C')
+        self.idx_array = np.empty(1, dtype=np.intp, order='C')
+        self.node_data = np.empty(1, dtype=NodeData, order='C')
+        self.node_bounds = np.empty((1, 1, 1), dtype=np.float32)
+
+        self.leaf_size = 0
+        self.n_levels = 0
+        self.n_nodes = 0
+
+        self.euclidean = False
+
+        self.n_trims = 0
+        self.n_leaves = 0
+        self.n_splits = 0
+        self.n_calls = 0
+
+    def __init__(self, data,
+                 leaf_size=40, metric='minkowski', sample_weight=None, **kwargs):
+        # validate data
+        self.data = check_array(data, dtype=np.float32, order='C')
+        if self.data.size == 0:
+            raise ValueError("X is an empty array")
+
+        n_samples = self.data.shape[0]
+        n_features = self.data.shape[1]
+
+        if leaf_size < 1:
+            raise ValueError("leaf_size must be greater than or equal to 1")
+        self.leaf_size = leaf_size
+
+        self.dist_metric = DistanceMetric.get_metric(metric, dtype=np.float32, **kwargs)
+        self.euclidean = (self.dist_metric.__class__.__name__
+                          == 'EuclideanDistance32')
+
+        metric = self.dist_metric.__class__.__name__
+        if metric not in VALID_METRICS32:
+            raise ValueError('metric {metric} is not valid for '
+                             '{BinaryTree}'.format(metric=metric,
+                                                   **DOC_DICT32))
+        self.dist_metric._validate_data(self.data)
+
+        # determine number of levels in the tree, and from this
+        # the number of nodes in the tree.  This results in leaf nodes
+        # with numbers of points between leaf_size and 2 * leaf_size
+        self.n_levels = int(
+            np.log2(fmax(1, (n_samples - 1) / self.leaf_size)) + 1)
+        self.n_nodes = <int> (2 ** self.n_levels) - 1
+
+        # allocate arrays for storage
+        self.idx_array = np.arange(n_samples, dtype=np.intp)
+        self.node_data = np.zeros(self.n_nodes, dtype=NodeData)
+
+        self._update_sample_weight(n_samples, sample_weight)
+
+        # Allocate tree-specific data
+        allocate_data32(self, self.n_nodes, n_features)
+        self._recursive_build(
+            node_data=self.node_data.base,
+            i_node=0,
+            idx_start=0,
+            idx_end=n_samples
+        )
+
+    def _update_sample_weight(self, n_samples, sample_weight):
+        if sample_weight is not None:
+            self.sample_weight = np.asarray(
+                sample_weight, dtype=np.float32, order='C')
+            self.sum_weight = np.sum(self.sample_weight)
+        else:
+            self.sample_weight = None
+            self.sum_weight = <float64_t> n_samples
+
+    def __reduce__(self):
+        """
+        reduce method used for pickling
+        """
+        return (newObj, (type(self),), self.__getstate__())
+
+    def __getstate__(self):
+        """
+        get state for pickling
+        """
+        if self.sample_weight is not None:
+            # pass the numpy array
+            sample_weight = self.sample_weight.base
+        else:
+            # pass None to avoid confusion with the empty place holder
+            # of size 1 from __cinit__
+            sample_weight = None
+        return (self.data.base,
+                self.idx_array.base,
+                self.node_data.base,
+                self.node_bounds.base,
+                int(self.leaf_size),
+                int(self.n_levels),
+                int(self.n_nodes),
+                int(self.n_trims),
+                int(self.n_leaves),
+                int(self.n_splits),
+                int(self.n_calls),
+                self.dist_metric,
+                sample_weight)
+
+    def __setstate__(self, state):
+        """
+        set state for pickling
+        """
+        self.data = state[0]
+        self.idx_array = state[1]
+        self.node_data = state[2]
+        self.node_bounds = state[3]
+        self.leaf_size = state[4]
+        self.n_levels = state[5]
+        self.n_nodes = state[6]
+        self.n_trims = state[7]
+        self.n_leaves = state[8]
+        self.n_splits = state[9]
+        self.n_calls = state[10]
+        self.dist_metric = state[11]
+        sample_weight = state[12]
+
+        self.euclidean = (self.dist_metric.__class__.__name__
+                          == 'EuclideanDistance64')
+        n_samples = self.data.shape[0]
+        self._update_sample_weight(n_samples, sample_weight)
+
+    def get_tree_stats(self):
+        """
+        get_tree_stats()
+
+        Get tree status.
+
+        Returns
+        -------
+        tree_stats: tuple of int
+            (number of trims, number of leaves, number of splits)
+        """
+        return (self.n_trims, self.n_leaves, self.n_splits)
+
+    def reset_n_calls(self):
+        """
+        reset_n_calls()
+
+        Reset number of calls to 0.
+        """
+        self.n_calls = 0
+
+    def get_n_calls(self):
+        """
+        get_n_calls()
+
+        Get number of calls.
+
+        Returns
+        -------
+        n_calls: int
+            number of distance computation calls
+        """
+        return self.n_calls
+
+    def get_arrays(self):
+        """
+        get_arrays()
+
+        Get data and node arrays.
+
+        Returns
+        -------
+        arrays: tuple of array
+            Arrays for storing tree data, index, node data and node bounds.
+        """
+        return (
+            self.data.base,
+            self.idx_array.base,
+            self.node_data.base,
+            self.node_bounds.base,
+        )
+
+    cdef inline float64_t dist(self, const float32_t* x1, const float32_t* x2,
+                             intp_t size) except -1 nogil:
+        """Compute the distance between arrays x1 and x2"""
+        self.n_calls += 1
+        if self.euclidean:
+            return euclidean_dist32(x1, x2, size)
+        else:
+            return self.dist_metric.dist(x1, x2, size)
+
+    cdef inline float64_t rdist(self, const float32_t* x1, const float32_t* x2,
+                              intp_t size) except -1 nogil:
+        """Compute the reduced distance between arrays x1 and x2.
+
+        The reduced distance, defined for some metrics, is a quantity which
+        is more efficient to compute than the distance, but preserves the
+        relative rankings of the true distance.  For example, the reduced
+        distance for the Euclidean metric is the squared-euclidean distance.
+        """
+        self.n_calls += 1
+        if self.euclidean:
+            return euclidean_rdist32(x1, x2, size)
+        else:
+            return self.dist_metric.rdist(x1, x2, size)
+
+    cdef int _recursive_build(self, NodeData_t[::1] node_data, intp_t i_node, intp_t idx_start,
+                              intp_t idx_end) except -1:
+        """Recursively build the tree.
+
+        Parameters
+        ----------
+        i_node : int
+            the node for the current step
+        idx_start, idx_end : int
+            the bounding indices in the idx_array which define the points that
+            belong to this node.
+        """
+        cdef intp_t imax
+        cdef intp_t n_features = self.data.shape[1]
+        cdef intp_t n_points = idx_end - idx_start
+        cdef intp_t n_mid = n_points / 2
+        cdef intp_t* idx_array = &self.idx_array[idx_start]
+        cdef const float32_t* data = &self.data[0, 0]
+
+        # initialize node data
+        init_node32(self, node_data, i_node, idx_start, idx_end)
+
+        if 2 * i_node + 1 >= self.n_nodes:
+            node_data[i_node].is_leaf = True
+            if idx_end - idx_start > 2 * self.leaf_size:
+                # this shouldn't happen if our memory allocation is correct
+                # we'll proactively prevent memory errors, but raise a
+                # warning saying we're doing so.
+                import warnings
+                warnings.warn("Internal: memory layout is flawed: "
+                              "not enough nodes allocated")
+
+        elif idx_end - idx_start < 2:
+            # again, this shouldn't happen if our memory allocation
+            # is correct.  Raise a warning.
+            import warnings
+            warnings.warn("Internal: memory layout is flawed: "
+                          "too many nodes allocated")
+            node_data[i_node].is_leaf = True
+
+        else:
+            # split node and recursively construct child nodes.
+            node_data[i_node].is_leaf = False
+            i_max = find_node_split_dim(data, idx_array,
+                                        n_features, n_points)
+            partition_node_indices(data, idx_array, i_max, n_mid,
+                                   n_features, n_points)
+            self._recursive_build(node_data, 2 * i_node + 1,
+                                  idx_start, idx_start + n_mid)
+            self._recursive_build(node_data, 2 * i_node + 2,
+                                  idx_start + n_mid, idx_end)
+
+    def query(self, X, k=1, return_distance=True,
+              dualtree=False, breadth_first=False,
+              sort_results=True):
+        """
+        query(X, k=1, return_distance=True,
+              dualtree=False, breadth_first=False)
+
+        query the tree for the k nearest neighbors
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            An array of points to query
+        k : int, default=1
+            The number of nearest neighbors to return
+        return_distance : bool, default=True
+            if True, return a tuple (d, i) of distances and indices
+            if False, return array i
+        dualtree : bool, default=False
+            if True, use the dual tree formalism for the query: a tree is
+            built for the query points, and the pair of trees is used to
+            efficiently search this space.  This can lead to better
+            performance as the number of points grows large.
+        breadth_first : bool, default=False
+            if True, then query the nodes in a breadth-first manner.
+            Otherwise, query the nodes in a depth-first manner.
+        sort_results : bool, default=True
+            if True, then distances and indices of each point are sorted
+            on return, so that the first column contains the closest points.
+            Otherwise, neighbors are returned in an arbitrary order.
+
+        Returns
+        -------
+        i    : if return_distance == False
+        (d,i) : if return_distance == True
+
+        d : ndarray of shape X.shape[:-1] + (k,), dtype=double
+            Each entry gives the list of distances to the neighbors of the
+            corresponding point.
+
+        i : ndarray of shape X.shape[:-1] + (k,), dtype=int
+            Each entry gives the list of indices of neighbors of the
+            corresponding point.
+        """
+        # XXX: we should allow X to be a pre-built tree.
+        X = check_array(X, dtype=np.float32, order='C')
+
+        if X.shape[X.ndim - 1] != self.data.shape[1]:
+            raise ValueError("query data dimension must "
+                             "match training data dimension")
+
+        if self.data.shape[0] < k:
+            raise ValueError("k must be less than or equal "
+                             "to the number of training points")
+
+        # flatten X, and save original shape information
+        np_Xarr = X.reshape((-1, self.data.shape[1]))
+        cdef const float32_t[:, ::1] Xarr = np_Xarr
+        cdef float64_t reduced_dist_LB
+        cdef intp_t i
+        cdef const float32_t* pt
+
+        # initialize heap for neighbors
+        cdef NeighborsHeap32 heap = NeighborsHeap32(Xarr.shape[0], k)
+
+        # node heap for breadth-first queries
+        cdef NodeHeap nodeheap
+        if breadth_first:
+            nodeheap = NodeHeap(self.data.shape[0] // self.leaf_size)
+
+        # bounds is needed for the dual tree algorithm
+        cdef float64_t[::1] bounds
+
+        self.n_trims = 0
+        self.n_leaves = 0
+        self.n_splits = 0
+
+        if dualtree:
+            other = self.__class__(np_Xarr, metric=self.dist_metric,
+                                   leaf_size=self.leaf_size)
+            if breadth_first:
+                self._query_dual_breadthfirst(other, heap, nodeheap)
+            else:
+                reduced_dist_LB = min_rdist_dual32(self, 0, other, 0)
+                bounds = np.full(other.node_data.shape[0], np.inf)
+                self._query_dual_depthfirst(0, other, 0, bounds,
+                                            heap, reduced_dist_LB)
+
+        else:
+            pt = &Xarr[0, 0]
+            if breadth_first:
+                for i in range(Xarr.shape[0]):
+                    self._query_single_breadthfirst(pt, i, heap, nodeheap)
+                    pt += Xarr.shape[1]
+            else:
+                with nogil:
+                    for i in range(Xarr.shape[0]):
+                        reduced_dist_LB = min_rdist32(self, 0, pt)
+                        self._query_single_depthfirst(0, pt, i, heap,
+                                                      reduced_dist_LB)
+                        pt += Xarr.shape[1]
+
+        distances, indices = heap.get_arrays(sort=sort_results)
+        distances = self.dist_metric.rdist_to_dist(distances)
+
+        # deflatten results
+        if return_distance:
+            return (distances.reshape(X.shape[:X.ndim - 1] + (k,)),
+                    indices.reshape(X.shape[:X.ndim - 1] + (k,)))
+        else:
+            return indices.reshape(X.shape[:X.ndim - 1] + (k,))
+
+    def query_radius(self, X, r, int return_distance=False,
+                     int count_only=False, int sort_results=False):
+        """
+        query_radius(X, r, return_distance=False,
+        count_only=False, sort_results=False)
+
+        query the tree for neighbors within a radius r
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            An array of points to query
+        r : distance within which neighbors are returned
+            r can be a single value, or an array of values of shape
+            x.shape[:-1] if different radii are desired for each point.
+        return_distance : bool, default=False
+            if True,  return distances to neighbors of each point
+            if False, return only neighbors
+            Note that unlike the query() method, setting return_distance=True
+            here adds to the computation time.  Not all distances need to be
+            calculated explicitly for return_distance=False.  Results are
+            not sorted by default: see ``sort_results`` keyword.
+        count_only : bool, default=False
+            if True,  return only the count of points within distance r
+            if False, return the indices of all points within distance r
+            If return_distance==True, setting count_only=True will
+            result in an error.
+        sort_results : bool, default=False
+            if True, the distances and indices will be sorted before being
+            returned.  If False, the results will not be sorted.  If
+            return_distance == False, setting sort_results = True will
+            result in an error.
+
+        Returns
+        -------
+        count       : if count_only == True
+        ind         : if count_only == False and return_distance == False
+        (ind, dist) : if count_only == False and return_distance == True
+
+        count : ndarray of shape X.shape[:-1], dtype=int
+            Each entry gives the number of neighbors within a distance r of the
+            corresponding point.
+
+        ind : ndarray of shape X.shape[:-1], dtype=object
+            Each element is a numpy integer array listing the indices of
+            neighbors of the corresponding point.  Note that unlike
+            the results of a k-neighbors query, the returned neighbors
+            are not sorted by distance by default.
+
+        dist : ndarray of shape X.shape[:-1], dtype=object
+            Each element is a numpy double array listing the distances
+            corresponding to indices in i.
+        """
+        if count_only and return_distance:
+            raise ValueError("count_only and return_distance "
+                             "cannot both be true")
+
+        if sort_results and not return_distance:
+            raise ValueError("return_distance must be True "
+                             "if sort_results is True")
+
+        cdef intp_t i, count_i = 0
+        cdef intp_t n_features = self.data.shape[1]
+        cdef float32_t[::1] dist_arr_i
+        cdef intp_t[::1] idx_arr_i, counts
+        cdef const float32_t* pt
+        cdef intp_t** indices = NULL
+        cdef float32_t** distances = NULL
+
+        # validate X and prepare for query
+        X = check_array(X, dtype=np.float32, order='C')
+
+        if X.shape[X.ndim - 1] != self.data.shape[1]:
+            raise ValueError("query data dimension must "
+                             "match training data dimension")
+
+        cdef const float32_t[:, ::1] Xarr = X.reshape((-1, self.data.shape[1]))
+
+        # prepare r for query
+        r = np.asarray(r, dtype=np.float64, order='C')
+        r = np.atleast_1d(r)
+        if r.shape == (1,):
+            r = np.full(X.shape[:X.ndim - 1], r[0], dtype=np.float64)
+        else:
+            if r.shape != X.shape[:X.ndim - 1]:
+                raise ValueError("r must be broadcastable to X.shape")
+
+        rarr_np = r.reshape(-1)  # store explicitly to keep in scope
+        cdef float64_t[::1] rarr = rarr_np
+
+        if not count_only:
+            indices = <intp_t**>calloc(Xarr.shape[0], sizeof(intp_t*))
+            if indices == NULL:
+                raise MemoryError()
+            if return_distance:
+                distances = <float32_t**>calloc(Xarr.shape[0], sizeof(float32_t*))
+                if distances == NULL:
+                    free(indices)
+                    raise MemoryError()
+
+        np_idx_arr = np.zeros(self.data.shape[0], dtype=np.intp)
+        idx_arr_i = np_idx_arr
+
+        np_dist_arr = np.zeros(self.data.shape[0], dtype=np.float32)
+        dist_arr_i = np_dist_arr
+
+        counts_arr = np.zeros(Xarr.shape[0], dtype=np.intp)
+        counts = counts_arr
+
+        pt = &Xarr[0, 0]
+        memory_error = False
+        with nogil:
+            for i in range(Xarr.shape[0]):
+                counts[i] = self._query_radius_single(0, pt, rarr[i],
+                                                      &idx_arr_i[0],
+                                                      &dist_arr_i[0],
+                                                      0, count_only,
+                                                      return_distance)
+                pt += n_features
+
+                if count_only:
+                    continue
+
+                if sort_results:
+                    _simultaneous_sort(&dist_arr_i[0], &idx_arr_i[0],
+                                       counts[i])
+
+                # equivalent to: indices[i] = np_idx_arr[:counts[i]].copy()
+                indices[i] = <intp_t*>malloc(counts[i] * sizeof(intp_t))
+                if indices[i] == NULL:
+                    memory_error = True
+                    break
+                memcpy(indices[i], &idx_arr_i[0], counts[i] * sizeof(intp_t))
+
+                if return_distance:
+                    # equivalent to: distances[i] = np_dist_arr[:counts[i]].copy()
+                    distances[i] = <float32_t*>malloc(counts[i] * sizeof(float32_t))
+                    if distances[i] == NULL:
+                        memory_error = True
+                        break
+                    memcpy(distances[i], &dist_arr_i[0], counts[i] * sizeof(float32_t))
+
+        try:
+            if memory_error:
+                raise MemoryError()
+
+            if count_only:
+                # deflatten results
+                return counts_arr.reshape(X.shape[:X.ndim - 1])
+            elif return_distance:
+                indices_npy = np.zeros(Xarr.shape[0], dtype='object')
+                distances_npy = np.zeros(Xarr.shape[0], dtype='object')
+                for i in range(Xarr.shape[0]):
+                    # make a new numpy array that wraps the existing data
+                    # TODO: remove the explicit cast to cnp.intp_t* when cython min version >= 3.0
+                    indices_npy[i] = cnp.PyArray_SimpleNewFromData(1, <cnp.intp_t*>&counts[i], cnp.NPY_INTP, indices[i])
+                    # make sure the data will be freed when the numpy array is garbage collected
+                    PyArray_ENABLEFLAGS(indices_npy[i], cnp.NPY_ARRAY_OWNDATA)
+                    # make sure the data is not freed twice
+                    indices[i] = NULL
+
+                    # make a new numpy array that wraps the existing data
+                    # TODO: remove the explicit cast to cnp.intp_t* when cython min version >= 3.0
+                    distances_npy[i] = cnp.PyArray_SimpleNewFromData(1, <cnp.intp_t*>&counts[i], cnp.NPY_FLOAT, distances[i])
+                    # make sure the data will be freed when the numpy array is garbage collected
+                    PyArray_ENABLEFLAGS(distances_npy[i], cnp.NPY_ARRAY_OWNDATA)
+                    # make sure the data is not freed twice
+                    distances[i] = NULL
+
+                # deflatten results
+                return (indices_npy.reshape(X.shape[:X.ndim - 1]),
+                        distances_npy.reshape(X.shape[:X.ndim - 1]))
+            else:
+                indices_npy = np.zeros(Xarr.shape[0], dtype='object')
+                for i in range(Xarr.shape[0]):
+                    # make a new numpy array that wraps the existing data
+                    # TODO: remove the explicit cast to cnp.intp_t* when cython min version >= 3.0
+                    indices_npy[i] = cnp.PyArray_SimpleNewFromData(1, <cnp.intp_t*>&counts[i], cnp.NPY_INTP, indices[i])
+                    # make sure the data will be freed when the numpy array is garbage collected
+                    PyArray_ENABLEFLAGS(indices_npy[i], cnp.NPY_ARRAY_OWNDATA)
+                    # make sure the data is not freed twice
+                    indices[i] = NULL
+
+                # deflatten results
+                return indices_npy.reshape(X.shape[:X.ndim - 1])
+        except MemoryError:
+            # free any buffer that is not owned by a numpy array
+            for i in range(Xarr.shape[0]):
+                free(indices[i])
+                if return_distance:
+                    free(distances[i])
+            raise
+        finally:
+            free(indices)
+            free(distances)
+
+    def kernel_density(self, X, h, kernel='gaussian',
+                       atol=0, rtol=1E-8,
+                       breadth_first=True, return_log=False):
+        """
+        kernel_density(X, h, kernel='gaussian', atol=0, rtol=1E-8,
+                       breadth_first=True, return_log=False)
+
+        Compute the kernel density estimate at points X with the given kernel,
+        using the distance metric specified at tree creation.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            An array of points to query.  Last dimension should match dimension
+            of training data.
+        h : float
+            the bandwidth of the kernel
+        kernel : str, default="gaussian"
+            specify the kernel to use.  Options are
+            - 'gaussian'
+            - 'tophat'
+            - 'epanechnikov'
+            - 'exponential'
+            - 'linear'
+            - 'cosine'
+            Default is kernel = 'gaussian'
+        atol : float, default=0
+            Specify the desired absolute tolerance of the result.
+            If the true result is `K_true`, then the returned result `K_ret`
+            satisfies ``abs(K_true - K_ret) < atol + rtol * K_ret``
+            The default is zero (i.e. machine precision).
+        rtol : float, default=1e-8
+            Specify the desired relative tolerance of the result.
+            If the true result is `K_true`, then the returned result `K_ret`
+            satisfies ``abs(K_true - K_ret) < atol + rtol * K_ret``
+            The default is `1e-8` (i.e. machine precision).
+        breadth_first : bool, default=False
+            If True, use a breadth-first search.  If False (default) use a
+            depth-first search.  Breadth-first is generally faster for
+            compact kernels and/or high tolerances.
+        return_log : bool, default=False
+            Return the logarithm of the result.  This can be more accurate
+            than returning the result itself for narrow kernels.
+
+        Returns
+        -------
+        density : ndarray of shape X.shape[:-1]
+            The array of (log)-density evaluations
+        """
+        cdef float64_t h_c = h
+        cdef float64_t log_atol = log(atol)
+        cdef float64_t log_rtol = log(rtol)
+        cdef float64_t log_min_bound, log_max_bound, log_bound_spread
+        cdef float64_t dist_LB = 0, dist_UB = 0
+
+        cdef intp_t n_samples = self.data.shape[0]
+        cdef intp_t n_features = self.data.shape[1]
+        cdef intp_t i
+        cdef KernelType kernel_c
+
+        # validate kernel
+        if kernel == 'gaussian':
+            kernel_c = GAUSSIAN_KERNEL
+        elif kernel == 'tophat':
+            kernel_c = TOPHAT_KERNEL
+        elif kernel == 'epanechnikov':
+            kernel_c = EPANECHNIKOV_KERNEL
+        elif kernel == 'exponential':
+            kernel_c = EXPONENTIAL_KERNEL
+        elif kernel == 'linear':
+            kernel_c = LINEAR_KERNEL
+        elif kernel == 'cosine':
+            kernel_c = COSINE_KERNEL
+        else:
+            raise ValueError("kernel = '%s' not recognized" % kernel)
+
+        cdef float64_t log_knorm = _log_kernel_norm(h_c, n_features, kernel_c)
+
+        # validate X and prepare for query
+        X = check_array(X, dtype=np.float32, order='C')
+
+        if X.shape[X.ndim - 1] != n_features:
+            raise ValueError("query data dimension must "
+                             "match training data dimension")
+        Xarr_np = X.reshape((-1, n_features))
+        cdef float32_t[:, ::1] Xarr = Xarr_np
+
+        log_density_arr = np.zeros(Xarr.shape[0], dtype=np.float32)
+        cdef float32_t[::1] log_density = log_density_arr
+
+        cdef const float32_t* pt = &Xarr[0, 0]
+
+        cdef NodeHeap nodeheap
+        if breadth_first:
+            nodeheap = NodeHeap(self.data.shape[0] // self.leaf_size)
+        cdef float64_t[::1] node_log_min_bounds
+        cdef float64_t[::1] node_bound_widths
+        # TODO: implement dual tree approach.
+        #       this is difficult because of the need to cache values
+        #       computed between node pairs.
+        if breadth_first:
+            node_log_min_bounds_arr = np.full(self.n_nodes, -np.inf)
+            node_log_min_bounds = node_log_min_bounds_arr
+            node_bound_widths_arr = np.zeros(self.n_nodes)
+            node_bound_widths = node_bound_widths_arr
+            for i in range(Xarr.shape[0]):
+                log_density[i] = self._kde_single_breadthfirst(
+                                            pt, kernel_c, h_c,
+                                            log_knorm, log_atol, log_rtol,
+                                            nodeheap,
+                                            &node_log_min_bounds[0],
+                                            &node_bound_widths[0])
+                pt += n_features
+        else:
+            for i in range(Xarr.shape[0]):
+                min_max_dist32(self, 0, pt, &dist_LB, &dist_UB)
+                # compute max & min bounds on density within top node
+                log_min_bound = (log(self.sum_weight) +
+                                 compute_log_kernel(dist_UB,
+                                                    h_c, kernel_c))
+                log_max_bound = (log(self.sum_weight) +
+                                 compute_log_kernel(dist_LB,
+                                                    h_c, kernel_c))
+                log_bound_spread = logsubexp(log_max_bound, log_min_bound)
+                self._kde_single_depthfirst(0, pt, kernel_c, h_c,
+                                            log_knorm, log_atol, log_rtol,
+                                            log_min_bound,
+                                            log_bound_spread,
+                                            &log_min_bound,
+                                            &log_bound_spread)
+                log_density[i] = logaddexp(log_min_bound,
+                                           log_bound_spread - log(2))
+                pt += n_features
+
+        # normalize the results
+        for i in range(log_density.shape[0]):
+            log_density[i] += log_knorm
+
+        log_density_arr = log_density_arr.reshape(X.shape[:X.ndim - 1])
+
+        if return_log:
+            return log_density_arr
+        else:
+            return np.exp(log_density_arr)
+
+    def two_point_correlation(self, X, r, dualtree=False):
+        """
+        two_point_correlation(X, r, dualtree=False)
+
+        Compute the two-point correlation function
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            An array of points to query.  Last dimension should match dimension
+            of training data.
+        r : array-like
+            A one-dimensional array of distances
+        dualtree : bool, default=False
+            If True, use a dualtree algorithm.  Otherwise, use a single-tree
+            algorithm.  Dual tree algorithms can have better scaling for
+            large N.
+
+        Returns
+        -------
+        counts : ndarray
+            counts[i] contains the number of pairs of points with distance
+            less than or equal to r[i]
+        """
+        cdef intp_t n_features = self.data.shape[1]
+        cdef intp_t i
+
+        # validate X and prepare for query
+        X = check_array(X, dtype=np.float32, order='C')
+
+        if X.shape[X.ndim - 1] != self.data.shape[1]:
+            raise ValueError("query data dimension must "
+                             "match training data dimension")
+
+        np_Xarr = X.reshape((-1, self.data.shape[1]))
+        cdef float32_t[:, ::1] Xarr = np_Xarr
+
+        # prepare r for query
+        r = np.asarray(r, dtype=np.float64, order='C')
+        r = np.atleast_1d(r)
+        if r.ndim != 1:
+            raise ValueError("r must be a 1-dimensional array")
+        i_rsort = np.argsort(r)
+        rarr_np = r[i_rsort]  # needed to keep memory in scope
+        cdef float64_t[::1] rarr = rarr_np
+
+        # create array to hold counts
+        count = np.zeros(r.shape[0], dtype=np.intp)
+        cdef intp_t[::1] carr = count
+
+        cdef const float32_t* pt = &Xarr[0, 0]
+
+        if dualtree:
+            other = self.__class__(Xarr, metric=self.dist_metric,
+                                   leaf_size=self.leaf_size)
+            self._two_point_dual(0, other, 0, &rarr[0], &carr[0],
+                                 0, rarr.shape[0])
+        else:
+            for i in range(Xarr.shape[0]):
+                self._two_point_single(0, pt, &rarr[0], &carr[0],
+                                       0, rarr.shape[0])
+                pt += n_features
+
+        return count
+
+    cdef int _query_single_depthfirst(
+        self,
+        intp_t i_node,
+        const float32_t* pt,
+        intp_t i_pt,
+        NeighborsHeap32 heap,
+        float64_t reduced_dist_LB,
+    ) except -1 nogil:
+        """Recursive Single-tree k-neighbors query, depth-first approach"""
+        cdef NodeData_t node_info = self.node_data[i_node]
+
+        cdef float64_t dist_pt, reduced_dist_LB_1, reduced_dist_LB_2
+        cdef intp_t i, i1, i2
+
+        cdef const float32_t* data = &self.data[0, 0]
+
+        # ------------------------------------------------------------
+        # Case 1: query point is outside node radius:
+        #         trim it from the query
+        if reduced_dist_LB > heap.largest(i_pt):
+            self.n_trims += 1
+
+        # ------------------------------------------------------------
+        # Case 2: this is a leaf node.  Update set of nearby points
+        elif node_info.is_leaf:
+            self.n_leaves += 1
+            for i in range(node_info.idx_start, node_info.idx_end):
+                dist_pt = self.rdist(pt,
+                                     &self.data[self.idx_array[i], 0],
+                                     self.data.shape[1])
+                heap._push(i_pt, dist_pt, self.idx_array[i])
+
+        # ------------------------------------------------------------
+        # Case 3: Node is not a leaf.  Recursively query subnodes
+        #         starting with the closest
+        else:
+            self.n_splits += 1
+            i1 = 2 * i_node + 1
+            i2 = i1 + 1
+            reduced_dist_LB_1 = min_rdist32(self, i1, pt)
+            reduced_dist_LB_2 = min_rdist32(self, i2, pt)
+
+            # recursively query subnodes
+            if reduced_dist_LB_1 <= reduced_dist_LB_2:
+                self._query_single_depthfirst(i1, pt, i_pt, heap,
+                                              reduced_dist_LB_1)
+                self._query_single_depthfirst(i2, pt, i_pt, heap,
+                                              reduced_dist_LB_2)
+            else:
+                self._query_single_depthfirst(i2, pt, i_pt, heap,
+                                              reduced_dist_LB_2)
+                self._query_single_depthfirst(i1, pt, i_pt, heap,
+                                              reduced_dist_LB_1)
+        return 0
+
+    cdef int _query_single_breadthfirst(
+        self,
+        const float32_t* pt,
+        intp_t i_pt,
+        NeighborsHeap32 heap,
+        NodeHeap nodeheap,
+    ) except -1:
+        """Non-recursive single-tree k-neighbors query, breadth-first search"""
+        cdef intp_t i, i_node
+        cdef float64_t dist_pt, reduced_dist_LB
+        cdef const NodeData_t* node_data = &self.node_data[0]
+        cdef const float32_t* data = &self.data[0, 0]
+
+        # Set up the node heap and push the head node onto it
+        cdef NodeHeapData_t nodeheap_item
+        nodeheap_item.val = min_rdist32(self, 0, pt)
+        nodeheap_item.i1 = 0
+        nodeheap.push(nodeheap_item)
+
+        while nodeheap.n > 0:
+            nodeheap_item = nodeheap.pop()
+            reduced_dist_LB = nodeheap_item.val
+            i_node = nodeheap_item.i1
+            node_info = node_data[i_node]
+
+            # ------------------------------------------------------------
+            # Case 1: query point is outside node radius:
+            #         trim it from the query
+            if reduced_dist_LB > heap.largest(i_pt):
+                self.n_trims += 1
+
+            # ------------------------------------------------------------
+            # Case 2: this is a leaf node.  Update set of nearby points
+            elif node_data[i_node].is_leaf:
+                self.n_leaves += 1
+                for i in range(node_data[i_node].idx_start,
+                               node_data[i_node].idx_end):
+                    dist_pt = self.rdist(pt,
+                                         &self.data[self.idx_array[i], 0],
+                                         self.data.shape[1])
+                    heap._push(i_pt, dist_pt, self.idx_array[i])
+
+            # ------------------------------------------------------------
+            # Case 3: Node is not a leaf.  Add subnodes to the node heap
+            else:
+                self.n_splits += 1
+                for i in range(2 * i_node + 1, 2 * i_node + 3):
+                    nodeheap_item.i1 = i
+                    nodeheap_item.val = min_rdist32(self, i, pt)
+                    nodeheap.push(nodeheap_item)
+        return 0
+
+    cdef int _query_dual_depthfirst(
+        self,
+        intp_t i_node1,
+        BinaryTree32 other,
+        intp_t i_node2,
+        float64_t[::1] bounds,
+        NeighborsHeap32 heap,
+        float64_t reduced_dist_LB,
+    ) except -1:
+        """Recursive dual-tree k-neighbors query, depth-first"""
+        # note that the array `bounds` is maintained such that
+        # bounds[i] is the largest distance among any of the
+        # current neighbors in node i of the other tree.
+        cdef NodeData_t node_info1 = self.node_data[i_node1]
+        cdef NodeData_t node_info2 = other.node_data[i_node2]
+
+        cdef const float32_t* data1 = &self.data[0, 0]
+        cdef const float32_t* data2 = &other.data[0, 0]
+        cdef intp_t n_features = self.data.shape[1]
+
+        cdef float64_t bound_max, dist_pt, reduced_dist_LB1, reduced_dist_LB2
+        cdef intp_t i1, i2, i_pt, i_parent
+
+        # ------------------------------------------------------------
+        # Case 1: nodes are further apart than the current bound:
+        #         trim both from the query
+        if reduced_dist_LB > bounds[i_node2]:
+            pass
+
+        # ------------------------------------------------------------
+        # Case 2: both nodes are leaves:
+        #         do a brute-force search comparing all pairs
+        elif node_info1.is_leaf and node_info2.is_leaf:
+            bounds[i_node2] = 0
+
+            for i2 in range(node_info2.idx_start, node_info2.idx_end):
+                i_pt = other.idx_array[i2]
+
+                if heap.largest(i_pt) <= reduced_dist_LB:
+                    continue
+
+                for i1 in range(node_info1.idx_start, node_info1.idx_end):
+                    dist_pt = self.rdist(
+                        data1 + n_features * self.idx_array[i1],
+                        data2 + n_features * i_pt,
+                        n_features)
+                    heap._push(i_pt, dist_pt, self.idx_array[i1])
+
+                # keep track of node bound
+                bounds[i_node2] = fmax(bounds[i_node2],
+                                       heap.largest(i_pt))
+
+            # update bounds up the tree
+            while i_node2 > 0:
+                i_parent = (i_node2 - 1) // 2
+                bound_max = fmax(bounds[2 * i_parent + 1],
+                                 bounds[2 * i_parent + 2])
+                if bound_max < bounds[i_parent]:
+                    bounds[i_parent] = bound_max
+                    i_node2 = i_parent
+                else:
+                    break
+
+        # ------------------------------------------------------------
+        # Case 3a: node 1 is a leaf or is smaller: split node 2 and
+        #          recursively query, starting with the nearest subnode
+        elif node_info1.is_leaf or (not node_info2.is_leaf
+                                    and node_info2.radius > node_info1.radius):
+            reduced_dist_LB1 = min_rdist_dual32(self, i_node1,
+                                              other, 2 * i_node2 + 1)
+            reduced_dist_LB2 = min_rdist_dual32(self, i_node1,
+                                              other, 2 * i_node2 + 2)
+
+            if reduced_dist_LB1 < reduced_dist_LB2:
+                self._query_dual_depthfirst(i_node1, other, 2 * i_node2 + 1,
+                                            bounds, heap, reduced_dist_LB1)
+                self._query_dual_depthfirst(i_node1, other, 2 * i_node2 + 2,
+                                            bounds, heap, reduced_dist_LB2)
+            else:
+                self._query_dual_depthfirst(i_node1, other, 2 * i_node2 + 2,
+                                            bounds, heap, reduced_dist_LB2)
+                self._query_dual_depthfirst(i_node1, other, 2 * i_node2 + 1,
+                                            bounds, heap, reduced_dist_LB1)
+
+        # ------------------------------------------------------------
+        # Case 3b: node 2 is a leaf or is smaller: split node 1 and
+        #          recursively query, starting with the nearest subnode
+        else:
+            reduced_dist_LB1 = min_rdist_dual32(self, 2 * i_node1 + 1,
+                                              other, i_node2)
+            reduced_dist_LB2 = min_rdist_dual32(self, 2 * i_node1 + 2,
+                                              other, i_node2)
+
+            if reduced_dist_LB1 < reduced_dist_LB2:
+                self._query_dual_depthfirst(2 * i_node1 + 1, other, i_node2,
+                                            bounds, heap, reduced_dist_LB1)
+                self._query_dual_depthfirst(2 * i_node1 + 2, other, i_node2,
+                                            bounds, heap, reduced_dist_LB2)
+            else:
+                self._query_dual_depthfirst(2 * i_node1 + 2, other, i_node2,
+                                            bounds, heap, reduced_dist_LB2)
+                self._query_dual_depthfirst(2 * i_node1 + 1, other, i_node2,
+                                            bounds, heap, reduced_dist_LB1)
+        return 0
+
+    cdef int _query_dual_breadthfirst(
+        self,
+        BinaryTree32 other,
+        NeighborsHeap32 heap,
+        NodeHeap nodeheap,
+    ) except -1:
+        """Non-recursive dual-tree k-neighbors query, breadth-first"""
+        cdef intp_t i, i1, i2, i_node1, i_node2, i_pt
+        cdef float64_t dist_pt, reduced_dist_LB
+        cdef float64_t[::1] bounds = np.full(other.node_data.shape[0], np.inf)
+        cdef const NodeData_t* node_data1 = &self.node_data[0]
+        cdef const NodeData_t* node_data2 = &other.node_data[0]
+        cdef NodeData_t node_info1, node_info2
+        cdef const float32_t* data1 = &self.data[0, 0]
+        cdef const float32_t* data2 = &other.data[0, 0]
+        cdef intp_t n_features = self.data.shape[1]
+
+        # Set up the node heap and push the head nodes onto it
+        cdef NodeHeapData_t nodeheap_item
+        nodeheap_item.val = min_rdist_dual32(self, 0, other, 0)
+        nodeheap_item.i1 = 0
+        nodeheap_item.i2 = 0
+        nodeheap.push(nodeheap_item)
+
+        while nodeheap.n > 0:
+            nodeheap_item = nodeheap.pop()
+            reduced_dist_LB = nodeheap_item.val
+            i_node1 = nodeheap_item.i1
+            i_node2 = nodeheap_item.i2
+
+            node_info1 = node_data1[i_node1]
+            node_info2 = node_data2[i_node2]
+
+            # ------------------------------------------------------------
+            # Case 1: nodes are further apart than the current bound:
+            #         trim both from the query
+            if reduced_dist_LB > bounds[i_node2]:
+                pass
+
+            # ------------------------------------------------------------
+            # Case 2: both nodes are leaves:
+            #         do a brute-force search comparing all pairs
+            elif node_info1.is_leaf and node_info2.is_leaf:
+                bounds[i_node2] = -1
+
+                for i2 in range(node_info2.idx_start, node_info2.idx_end):
+                    i_pt = other.idx_array[i2]
+
+                    if heap.largest(i_pt) <= reduced_dist_LB:
+                        continue
+
+                    for i1 in range(node_info1.idx_start, node_info1.idx_end):
+                        dist_pt = self.rdist(
+                            data1 + n_features * self.idx_array[i1],
+                            data2 + n_features * i_pt,
+                            n_features)
+                        heap._push(i_pt, dist_pt, self.idx_array[i1])
+
+                    # keep track of node bound
+                    bounds[i_node2] = fmax(bounds[i_node2],
+                                           heap.largest(i_pt))
+
+            # ------------------------------------------------------------
+            # Case 3a: node 1 is a leaf or is smaller: split node 2 and
+            #          recursively query, starting with the nearest subnode
+            elif node_info1.is_leaf or (not node_info2.is_leaf
+                                        and (node_info2.radius
+                                             > node_info1.radius)):
+                nodeheap_item.i1 = i_node1
+                for i2 in range(2 * i_node2 + 1, 2 * i_node2 + 3):
+                    nodeheap_item.i2 = i2
+                    nodeheap_item.val = min_rdist_dual32(self, i_node1,
+                                                       other, i2)
+                    nodeheap.push(nodeheap_item)
+
+            # ------------------------------------------------------------
+            # Case 3b: node 2 is a leaf or is smaller: split node 1 and
+            #          recursively query, starting with the nearest subnode
+            else:
+                nodeheap_item.i2 = i_node2
+                for i1 in range(2 * i_node1 + 1, 2 * i_node1 + 3):
+                    nodeheap_item.i1 = i1
+                    nodeheap_item.val = min_rdist_dual32(self, i1,
+                                                       other, i_node2)
+                    nodeheap.push(nodeheap_item)
+        return 0
+
+    cdef intp_t _query_radius_single(
+        self,
+        intp_t i_node,
+        const float32_t* pt,
+        float64_t r,
+        intp_t* indices,
+        float32_t* distances,
+        intp_t count,
+        int count_only,
+        int return_distance,
+    ) noexcept nogil:
+        """recursive single-tree radius query, depth-first"""
+        cdef const float32_t* data = &self.data[0, 0]
+        cdef intp_t* idx_array = &self.idx_array[0]
+        cdef intp_t n_features = self.data.shape[1]
+        cdef NodeData_t node_info = self.node_data[i_node]
+
+        cdef intp_t i
+        cdef float64_t reduced_r
+
+        cdef float64_t dist_pt, dist_LB = 0, dist_UB = 0
+        min_max_dist32(self, i_node, pt, &dist_LB, &dist_UB)
+
+        # ------------------------------------------------------------
+        # Case 1: all node points are outside distance r.
+        #         prune this branch.
+        if dist_LB > r:
+            pass
+
+        # ------------------------------------------------------------
+        # Case 2: all node points are within distance r
+        #         add all points to neighbors
+        elif dist_UB <= r:
+            if count_only:
+                count += (node_info.idx_end - node_info.idx_start)
+            else:
+                for i in range(node_info.idx_start, node_info.idx_end):
+                    if (count < 0) or (count >= self.data.shape[0]):
+                        return -1
+                    indices[count] = idx_array[i]
+                    if return_distance:
+                        distances[count] = self.dist(pt, (data + n_features
+                                                          * idx_array[i]),
+                                                     n_features)
+                    count += 1
+
+        # ------------------------------------------------------------
+        # Case 3: this is a leaf node.  Go through all points to
+        #         determine if they fall within radius
+        elif node_info.is_leaf:
+            reduced_r = self.dist_metric._dist_to_rdist(r)
+
+            for i in range(node_info.idx_start, node_info.idx_end):
+                dist_pt = self.rdist(pt, (data + n_features * idx_array[i]),
+                                     n_features)
+                if dist_pt <= reduced_r:
+                    if (count < 0) or (count >= self.data.shape[0]):
+                        return -1
+                    if count_only:
+                        pass
+                    else:
+                        indices[count] = idx_array[i]
+                        if return_distance:
+                            distances[count] =\
+                                self.dist_metric._rdist_to_dist(dist_pt)
+                    count += 1
+
+        # ------------------------------------------------------------
+        # Case 4: Node is not a leaf.  Recursively query subnodes
+        else:
+            count = self._query_radius_single(2 * i_node + 1, pt, r,
+                                              indices, distances, count,
+                                              count_only, return_distance)
+            count = self._query_radius_single(2 * i_node + 2, pt, r,
+                                              indices, distances, count,
+                                              count_only, return_distance)
+
+        return count
+
+    cdef float64_t _kde_single_breadthfirst(
+        self, const float32_t* pt,
+        KernelType kernel,
+        float64_t h,
+        float64_t log_knorm,
+        float64_t log_atol,
+        float64_t log_rtol,
+        NodeHeap nodeheap,
+        float64_t* node_log_min_bounds,
+        float64_t* node_log_bound_spreads,
+    ):
+        """non-recursive single-tree kernel density estimation"""
+        # For the given point, node_log_min_bounds and node_log_bound_spreads
+        # will encode the current bounds on the density between the point
+        # and the associated node.
+        # The variables global_log_min_bound and global_log_bound_spread
+        # keep track of the global bounds on density.  The procedure here is
+        # to split nodes, updating these bounds, until the bounds are within
+        # atol & rtol.
+        cdef intp_t i, i1, i2, i_node
+        cdef float64_t N1, N2
+        cdef float64_t global_log_min_bound, global_log_bound_spread
+        cdef float64_t global_log_max_bound
+
+        cdef const float32_t* data = &self.data[0, 0]
+        cdef bint with_sample_weight = self.sample_weight is not None
+        cdef const float32_t* sample_weight
+        if with_sample_weight:
+            sample_weight = &self.sample_weight[0]
+        cdef intp_t* idx_array = &self.idx_array[0]
+        cdef const NodeData_t* node_data = &self.node_data[0]
+        cdef float64_t N
+        cdef float64_t log_weight
+        if with_sample_weight:
+            N = self.sum_weight
+        else:
+            N = <float64_t> self.data.shape[0]
+        cdef intp_t n_features = self.data.shape[1]
+
+        cdef NodeData_t node_info
+        cdef float64_t dist_pt, log_density
+        cdef float64_t dist_LB_1 = 0, dist_LB_2 = 0
+        cdef float64_t dist_UB_1 = 0, dist_UB_2 = 0
+
+        cdef float64_t dist_UB, dist_LB
+
+        # push the top node to the heap
+        cdef NodeHeapData_t nodeheap_item
+        nodeheap_item.val = min_dist32(self, 0, pt)
+        nodeheap_item.i1 = 0
+        nodeheap.push(nodeheap_item)
+
+        global_log_min_bound = log(N) + compute_log_kernel(
+            max_dist32(self, 0, pt), h, kernel
+        )
+        global_log_max_bound = log(N) + compute_log_kernel(nodeheap_item.val,
+                                                           h, kernel)
+        global_log_bound_spread = logsubexp(global_log_max_bound,
+                                            global_log_min_bound)
+
+        node_log_min_bounds[0] = global_log_min_bound
+        node_log_bound_spreads[0] = global_log_bound_spread
+
+        while nodeheap.n > 0:
+            nodeheap_item = nodeheap.pop()
+            i_node = nodeheap_item.i1
+
+            node_info = node_data[i_node]
+            if with_sample_weight:
+                N1 = _total_node_weight(node_data, sample_weight,
+                                        idx_array, i_node)
+            else:
+                N1 = node_info.idx_end - node_info.idx_start
+
+            # ------------------------------------------------------------
+            # Case 1: local bounds are equal to within per-point tolerance.
+            if (log_knorm + node_log_bound_spreads[i_node] - log(N1) + log(N)
+                <= logaddexp(log_atol, (log_rtol + log_knorm
+                                        + node_log_min_bounds[i_node]))):
+                pass
+
+            # ------------------------------------------------------------
+            # Case 2: global bounds are within rtol & atol.
+            elif (log_knorm + global_log_bound_spread
+                  <= logaddexp(log_atol,
+                               log_rtol + log_knorm + global_log_min_bound)):
+                break
+
+            # ------------------------------------------------------------
+            # Case 3: node is a leaf. Count contributions from all points
+            elif node_info.is_leaf:
+                global_log_min_bound =\
+                    logsubexp(global_log_min_bound,
+                              node_log_min_bounds[i_node])
+                global_log_bound_spread =\
+                    logsubexp(global_log_bound_spread,
+                              node_log_bound_spreads[i_node])
+                for i in range(node_info.idx_start, node_info.idx_end):
+                    dist_pt = self.dist(pt, data + n_features * idx_array[i],
+                                        n_features)
+                    log_density = compute_log_kernel(dist_pt, h, kernel)
+                    if with_sample_weight:
+                        log_weight = np.log(sample_weight[idx_array[i]])
+                    else:
+                        log_weight = 0.
+                    global_log_min_bound = logaddexp(global_log_min_bound,
+                                                     log_density + log_weight)
+
+            # ------------------------------------------------------------
+            # Case 4: split node and query subnodes
+            else:
+                i1 = 2 * i_node + 1
+                i2 = 2 * i_node + 2
+
+                if with_sample_weight:
+                    N1 = _total_node_weight(node_data, sample_weight,
+                                            idx_array, i1)
+                    N2 = _total_node_weight(node_data, sample_weight,
+                                            idx_array, i2)
+                else:
+                    N1 = node_data[i1].idx_end - node_data[i1].idx_start
+                    N2 = node_data[i2].idx_end - node_data[i2].idx_start
+
+                min_max_dist32(self, i1, pt, &dist_LB_1, &dist_UB_1)
+                min_max_dist32(self, i2, pt, &dist_LB_2, &dist_UB_2)
+
+                node_log_min_bounds[i1] = (log(N1) +
+                                           compute_log_kernel(dist_UB_1,
+                                                              h, kernel))
+                node_log_bound_spreads[i1] = (log(N1) +
+                                              compute_log_kernel(dist_LB_1,
+                                                                 h, kernel))
+
+                node_log_min_bounds[i2] = (log(N2) +
+                                           compute_log_kernel(dist_UB_2,
+                                                              h, kernel))
+                node_log_bound_spreads[i2] = (log(N2) +
+                                              compute_log_kernel(dist_LB_2,
+                                                                 h, kernel))
+
+                global_log_min_bound = logsubexp(global_log_min_bound,
+                                                 node_log_min_bounds[i_node])
+                global_log_min_bound = logaddexp(global_log_min_bound,
+                                                 node_log_min_bounds[i1])
+                global_log_min_bound = logaddexp(global_log_min_bound,
+                                                 node_log_min_bounds[i2])
+
+                global_log_bound_spread =\
+                    logsubexp(global_log_bound_spread,
+                              node_log_bound_spreads[i_node])
+                global_log_bound_spread = logaddexp(global_log_bound_spread,
+                                                    node_log_bound_spreads[i1])
+                global_log_bound_spread = logaddexp(global_log_bound_spread,
+                                                    node_log_bound_spreads[i2])
+
+                # TODO: rank by the spread rather than the distance?
+                nodeheap_item.val = dist_LB_1
+                nodeheap_item.i1 = i1
+                nodeheap.push(nodeheap_item)
+
+                nodeheap_item.val = dist_LB_2
+                nodeheap_item.i1 = i2
+                nodeheap.push(nodeheap_item)
+
+        nodeheap.clear()
+        return logaddexp(global_log_min_bound,
+                         global_log_bound_spread - log(2))
+
+    cdef int _kde_single_depthfirst(
+        self,
+        intp_t i_node,
+        const float32_t* pt,
+        KernelType kernel,
+        float64_t h,
+        float64_t log_knorm,
+        float64_t log_atol,
+        float64_t log_rtol,
+        float64_t local_log_min_bound,
+        float64_t local_log_bound_spread,
+        float64_t* global_log_min_bound,
+        float64_t* global_log_bound_spread,
+    ) except -1:
+        """recursive single-tree kernel density estimate, depth-first"""
+        # For the given point, local_min_bound and local_max_bound give the
+        # minimum and maximum density for the current node, while
+        # global_min_bound and global_max_bound give the minimum and maximum
+        # density over the entire tree.  We recurse down until global_min_bound
+        # and global_max_bound are within rtol and atol.
+        cdef intp_t i, i1, i2, iw, start, end
+        cdef float64_t N1, N2
+
+        cdef const float32_t* data = &self.data[0, 0]
+        cdef const NodeData_t* node_data = &self.node_data[0]
+        cdef bint with_sample_weight = self.sample_weight is not None
+        cdef const float32_t* sample_weight
+        cdef float64_t log_weight
+        if with_sample_weight:
+            sample_weight = &self.sample_weight[0]
+        cdef intp_t* idx_array = &self.idx_array[0]
+        cdef intp_t n_features = self.data.shape[1]
+
+        cdef NodeData_t node_info = self.node_data[i_node]
+        cdef float64_t dist_pt, log_dens_contribution
+
+        cdef float64_t child1_log_min_bound, child2_log_min_bound
+        cdef float64_t child1_log_bound_spread, child2_log_bound_spread
+        cdef float64_t dist_UB = 0, dist_LB = 0
+
+        if with_sample_weight:
+            N1 = _total_node_weight(node_data, sample_weight,
+                                    idx_array, i_node)
+            N2 = self.sum_weight
+        else:
+            N1 = <float64_t>(node_info.idx_end - node_info.idx_start)
+            N2 = <float64_t>self.data.shape[0]
+
+        # ------------------------------------------------------------
+        # Case 1: local bounds are equal to within errors.  Return
+        if (
+            log_knorm + local_log_bound_spread - log(N1) + log(N2)
+            <= logaddexp(log_atol, (log_rtol + log_knorm + local_log_min_bound))
+        ):
+            pass
+
+        # ------------------------------------------------------------
+        # Case 2: global bounds are within rtol & atol. Return
+        elif (
+            log_knorm + global_log_bound_spread[0]
+            <= logaddexp(log_atol, (log_rtol + log_knorm + global_log_min_bound[0]))
+        ):
+            pass
+
+        # ------------------------------------------------------------
+        # Case 3: node is a leaf. Count contributions from all points
+        elif node_info.is_leaf:
+            global_log_min_bound[0] = logsubexp(global_log_min_bound[0],
+                                                local_log_min_bound)
+            global_log_bound_spread[0] = logsubexp(global_log_bound_spread[0],
+                                                   local_log_bound_spread)
+            for i in range(node_info.idx_start, node_info.idx_end):
+                dist_pt = self.dist(pt, (data + n_features * idx_array[i]),
+                                    n_features)
+                log_dens_contribution = compute_log_kernel(dist_pt, h, kernel)
+                if with_sample_weight:
+                    log_weight = np.log(sample_weight[idx_array[i]])
+                else:
+                    log_weight = 0.
+                global_log_min_bound[0] = logaddexp(global_log_min_bound[0],
+                                                    (log_dens_contribution +
+                                                     log_weight))
+
+        # ------------------------------------------------------------
+        # Case 4: split node and query subnodes
+        else:
+            i1 = 2 * i_node + 1
+            i2 = 2 * i_node + 2
+
+            if with_sample_weight:
+                N1 = _total_node_weight(node_data, sample_weight,
+                                        idx_array, i1)
+                N2 = _total_node_weight(node_data, sample_weight,
+                                        idx_array, i2)
+            else:
+                N1 = <float64_t>(self.node_data[i1].idx_end - self.node_data[i1].idx_start)
+                N2 = <float64_t>(self.node_data[i2].idx_end - self.node_data[i2].idx_start)
+
+            min_max_dist32(self, i1, pt, &dist_LB, &dist_UB)
+            child1_log_min_bound = log(N1) + compute_log_kernel(dist_UB, h,
+                                                                kernel)
+            child1_log_bound_spread = logsubexp(log(N1) +
+                                                compute_log_kernel(dist_LB, h,
+                                                                   kernel),
+                                                child1_log_min_bound)
+
+            min_max_dist32(self, i2, pt, &dist_LB, &dist_UB)
+            child2_log_min_bound = log(N2) + compute_log_kernel(dist_UB, h,
+                                                                kernel)
+            child2_log_bound_spread = logsubexp(log(N2) +
+                                                compute_log_kernel(dist_LB, h,
+                                                                   kernel),
+                                                child2_log_min_bound)
+
+            global_log_min_bound[0] = logsubexp(global_log_min_bound[0],
+                                                local_log_min_bound)
+            global_log_min_bound[0] = logaddexp(global_log_min_bound[0],
+                                                child1_log_min_bound)
+            global_log_min_bound[0] = logaddexp(global_log_min_bound[0],
+                                                child2_log_min_bound)
+
+            global_log_bound_spread[0] = logsubexp(global_log_bound_spread[0],
+                                                   local_log_bound_spread)
+            global_log_bound_spread[0] = logaddexp(global_log_bound_spread[0],
+                                                   child1_log_bound_spread)
+            global_log_bound_spread[0] = logaddexp(global_log_bound_spread[0],
+                                                   child2_log_bound_spread)
+
+            self._kde_single_depthfirst(i1, pt, kernel, h, log_knorm,
+                                        log_atol, log_rtol,
+                                        child1_log_min_bound,
+                                        child1_log_bound_spread,
+                                        global_log_min_bound,
+                                        global_log_bound_spread)
+            self._kde_single_depthfirst(i2, pt, kernel, h, log_knorm,
+                                        log_atol, log_rtol,
+                                        child2_log_min_bound,
+                                        child2_log_bound_spread,
+                                        global_log_min_bound,
+                                        global_log_bound_spread)
+        return 0
+
+    cdef int _two_point_single(
+        self,
+        intp_t i_node,
+        const float32_t* pt,
+        float64_t* r,
+        intp_t* count,
+        intp_t i_min,
+        intp_t i_max,
+    ) except -1:
+        """recursive single-tree two-point correlation function query"""
+        cdef const float32_t* data = &self.data[0, 0]
+        cdef intp_t* idx_array = &self.idx_array[0]
+        cdef intp_t n_features = self.data.shape[1]
+        cdef NodeData_t node_info = self.node_data[i_node]
+
+        cdef intp_t i, j, Npts
+        cdef float64_t reduced_r
+
+        cdef float64_t dist_pt, dist_LB = 0, dist_UB = 0
+        min_max_dist32(self, i_node, pt, &dist_LB, &dist_UB)
+
+        # ------------------------------------------------------------
+        # Go through bounds and check for cuts
+        while i_min < i_max:
+            if dist_LB > r[i_min]:
+                i_min += 1
+            else:
+                break
+
+        while i_max > i_min:
+            Npts = (node_info.idx_end - node_info.idx_start)
+            if dist_UB <= r[i_max - 1]:
+                count[i_max - 1] += Npts
+                i_max -= 1
+            else:
+                break
+
+        if i_min < i_max:
+            # If node is a leaf, go through all points
+            if node_info.is_leaf:
+                for i in range(node_info.idx_start, node_info.idx_end):
+                    dist_pt = self.dist(pt, (data + n_features * idx_array[i]),
+                                        n_features)
+                    j = i_max - 1
+                    while (j >= i_min) and (dist_pt <= r[j]):
+                        count[j] += 1
+                        j -= 1
+
+            else:
+                self._two_point_single(2 * i_node + 1, pt, r,
+                                       count, i_min, i_max)
+                self._two_point_single(2 * i_node + 2, pt, r,
+                                       count, i_min, i_max)
+        return 0
+
+    cdef int _two_point_dual(
+        self,
+        intp_t i_node1,
+        BinaryTree32 other,
+        intp_t i_node2,
+        float64_t* r,
+        intp_t* count,
+        intp_t i_min,
+        intp_t i_max,
+    ) except -1:
+        """recursive dual-tree two-point correlation function query"""
+        cdef const float32_t* data1 = &self.data[0, 0]
+        cdef const float32_t* data2 = &other.data[0, 0]
+        cdef intp_t* idx_array1 = &self.idx_array[0]
+        cdef intp_t* idx_array2 = &other.idx_array[0]
+        cdef NodeData_t node_info1 = self.node_data[i_node1]
+        cdef NodeData_t node_info2 = other.node_data[i_node2]
+
+        cdef intp_t n_features = self.data.shape[1]
+
+        cdef intp_t i1, i2, j, Npts
+        cdef float64_t reduced_r
+
+        cdef float64_t dist_pt, dist_LB = 0, dist_UB = 0
+        dist_LB = min_dist_dual32(self, i_node1, other, i_node2)
+        dist_UB = max_dist_dual32(self, i_node1, other, i_node2)
+
+        # ------------------------------------------------------------
+        # Go through bounds and check for cuts
+        while i_min < i_max:
+            if dist_LB > r[i_min]:
+                i_min += 1
+            else:
+                break
+
+        while i_max > i_min:
+            Npts = ((node_info1.idx_end - node_info1.idx_start)
+                    * (node_info2.idx_end - node_info2.idx_start))
+            if dist_UB <= r[i_max - 1]:
+                count[i_max - 1] += Npts
+                i_max -= 1
+            else:
+                break
+
+        if i_min < i_max:
+            if node_info1.is_leaf and node_info2.is_leaf:
+                # If both nodes are leaves, go through all points
+                for i1 in range(node_info1.idx_start, node_info1.idx_end):
+                    for i2 in range(node_info2.idx_start, node_info2.idx_end):
+                        dist_pt = self.dist((data1 + n_features
+                                             * idx_array1[i1]),
+                                            (data2 + n_features
+                                             * idx_array2[i2]),
+                                            n_features)
+                        j = i_max - 1
+                        while (j >= i_min) and (dist_pt <= r[j]):
+                            count[j] += 1
+                            j -= 1
+
+            elif node_info1.is_leaf:
+                # If only one is a leaf, split the other
+                for i2 in range(2 * i_node2 + 1, 2 * i_node2 + 3):
+                    self._two_point_dual(i_node1, other, i2,
+                                         r, count, i_min, i_max)
+
+            elif node_info2.is_leaf:
+                for i1 in range(2 * i_node1 + 1, 2 * i_node1 + 3):
+                    self._two_point_dual(i1, other, i_node2,
+                                         r, count, i_min, i_max)
+
+            else:
+                # neither is a leaf: split & query both
+                for i1 in range(2 * i_node1 + 1, 2 * i_node1 + 3):
+                    for i2 in range(2 * i_node2 + 1, 2 * i_node2 + 3):
+                        self._two_point_dual(i1, other, i2,
+                                             r, count, i_min, i_max)
+        return 0
 
 ######################################################################
 # Python functions for benchmarking and testing C implementations
-
-def load_heap(float64_t[:, ::1] X, intp_t k):
-    """test fully loading the heap"""
-    assert k <= X.shape[1]
-    cdef NeighborsHeap heap = NeighborsHeap(X.shape[0], k)
-    cdef intp_t i, j
-    for i in range(X.shape[0]):
-        for j in range(X.shape[1]):
-            heap._push(i, X[i, j], j)
-    return heap.get_arrays()
-
 
 def simultaneous_sort(float64_t[:, ::1] distances, intp_t[:, ::1] indices):
     """In-place simultaneous sort the given row of the arrays
@@ -2412,10 +4144,12 @@ def nodeheap_sort(float64_t[::1] vals):
     return np.asarray(vals_sorted), np.asarray(indices)
 
 
-cdef inline float64_t _total_node_weight(NodeData_t* node_data,
-                                         float64_t* sample_weight,
-                                         intp_t* idx_array,
-                                         intp_t i_node):
+cdef inline float64_t _total_node_weight(
+    const NodeData_t* node_data,
+    const floating* sample_weight,
+    const intp_t* idx_array,
+    intp_t i_node,
+):
     cdef intp_t i
     cdef float64_t N = 0.0
     for i in range(node_data[i_node].idx_start, node_data[i_node].idx_end):

@@ -41,21 +41,39 @@
 #include <limits>
 #include <type_traits>
 
-#if (__CUDACC_VER_MAJOR__ >= 9 || CUDA_VERSION >= 9000) && !_NVHPC_CUDA
+#include <cuda.h>
+
+#if !_NVHPC_CUDA
     #include <cuda_fp16.h>
 #endif
-#if (__CUDACC_VER_MAJOR__ >= 11 || CUDA_VERSION >= 11000) && !_NVHPC_CUDA
+#if !_NVHPC_CUDA && !defined(CUB_DISABLE_BF16_SUPPORT)
     #include <cuda_bf16.h>
 #endif
 
+#include <cub/detail/uninitialized_copy.cuh>
 #include <cub/util_arch.cuh>
+#include <cub/util_compiler.cuh>
 #include <cub/util_deprecated.cuh>
 #include <cub/util_macro.cuh>
 #include <cub/util_namespace.cuh>
 
-
 CUB_NAMESPACE_BEGIN
 
+#ifndef CUB_IS_INT128_ENABLED
+#if defined(__CUDACC_RTC__)
+#if defined(__CUDACC_RTC_INT128__)
+#define CUB_IS_INT128_ENABLED 1
+#endif // !defined(__CUDACC_RTC_INT128__)
+#else  // !defined(__CUDACC_RTC__)
+#if CUDA_VERSION >= 11050
+#if (CUB_HOST_COMPILER == CUB_HOST_COMPILER_GCC) || \
+    (CUB_HOST_COMPILER == CUB_HOST_COMPILER_CLANG) || \
+    defined(__ICC) || defined(_NVHPC_CUDA)
+#define CUB_IS_INT128_ENABLED 1
+#endif // GCC || CLANG || ICC || NVHPC
+#endif // CTK >= 11.5
+#endif // !defined(__CUDACC_RTC__)
+#endif // !defined(CUB_IS_INT128_ENABLED)
 
 /**
  * \addtogroup UtilModule
@@ -313,7 +331,8 @@ struct InputValue
         if (m_is_future) {
             m_future_value = other.m_future_value;
         } else {
-            m_immediate_value = other.m_immediate_value;
+          detail::uninitialized_copy(&m_immediate_value,
+                                     other.m_immediate_value);
         }
     }
 
@@ -447,13 +466,8 @@ template <>
 struct UnitWord <float2>
 {
     typedef int         ShuffleWord;
-#if (CUB_PTX_ARCH > 0) && (CUB_PTX_ARCH <= 130)
-    typedef float       VolatileWord;
-    typedef uint2       DeviceWord;
-#else
     typedef unsigned long long   VolatileWord;
     typedef unsigned long long   DeviceWord;
-#endif
     typedef float2      TextureWord;
 };
 
@@ -462,13 +476,8 @@ template <>
 struct UnitWord <float4>
 {
     typedef int         ShuffleWord;
-#if (CUB_PTX_ARCH > 0) && (CUB_PTX_ARCH <= 130)
-    typedef float               VolatileWord;
-    typedef uint4               DeviceWord;
-#else
     typedef unsigned long long  VolatileWord;
     typedef ulonglong2          DeviceWord;
-#endif
     typedef float4              TextureWord;
 };
 
@@ -478,13 +487,8 @@ template <>
 struct UnitWord <char2>
 {
     typedef unsigned short      ShuffleWord;
-#if (CUB_PTX_ARCH > 0) && (CUB_PTX_ARCH <= 130)
-    typedef unsigned short      VolatileWord;
-    typedef short               DeviceWord;
-#else
     typedef unsigned short      VolatileWord;
     typedef unsigned short      DeviceWord;
-#endif
     typedef unsigned short      TextureWord;
 };
 
@@ -1106,7 +1110,7 @@ struct FpLimits<double>
     }
 };
 
-#if (__CUDACC_VER_MAJOR__ >= 9 || CUDA_VERSION >= 9000) && !_NVHPC_CUDA
+#if !_NVHPC_CUDA
 template <>
 struct FpLimits<__half>
 {
@@ -1122,7 +1126,7 @@ struct FpLimits<__half>
 };
 #endif
 
-#if (__CUDACC_VER_MAJOR__ >= 11 || CUDA_VERSION >= 11000) && !_NVHPC_CUDA
+#if !_NVHPC_CUDA && !defined(CUB_DISABLE_BF16_SUPPORT)
 template <>
 struct FpLimits<__nv_bfloat16>
 {
@@ -1200,12 +1204,86 @@ template <> struct NumericTraits<unsigned int> :        BaseTraits<UNSIGNED_INTE
 template <> struct NumericTraits<unsigned long> :       BaseTraits<UNSIGNED_INTEGER, true, false, unsigned long, unsigned long> {};
 template <> struct NumericTraits<unsigned long long> :  BaseTraits<UNSIGNED_INTEGER, true, false, unsigned long long, unsigned long long> {};
 
+
+#if CUB_IS_INT128_ENABLED 
+template <>
+struct NumericTraits<__uint128_t>
+{
+  using T = __uint128_t;
+  using UnsignedBits = __uint128_t;
+
+  static constexpr Category       CATEGORY    = UNSIGNED_INTEGER;
+  static constexpr UnsignedBits   LOWEST_KEY  = UnsignedBits(0);
+  static constexpr UnsignedBits   MAX_KEY     = UnsignedBits(-1);
+
+  static constexpr bool PRIMITIVE = false;
+  static constexpr bool NULL_TYPE = false;
+
+  static __host__ __device__ __forceinline__ UnsignedBits TwiddleIn(UnsignedBits key)
+  {
+    return key;
+  }
+
+  static __host__ __device__ __forceinline__ UnsignedBits TwiddleOut(UnsignedBits key)
+  {
+    return key;
+  }
+
+  static __host__ __device__ __forceinline__ T Max()
+  {
+    return MAX_KEY;
+  }
+
+  static __host__ __device__ __forceinline__ T Lowest()
+  {
+    return LOWEST_KEY;
+  }
+};
+
+template <>
+struct NumericTraits<__int128_t>
+{
+  using T = __int128_t;
+  using UnsignedBits = __uint128_t;
+
+  static constexpr Category       CATEGORY    = SIGNED_INTEGER;
+  static constexpr UnsignedBits   HIGH_BIT    = UnsignedBits(1) << ((sizeof(UnsignedBits) * 8) - 1);
+  static constexpr UnsignedBits   LOWEST_KEY  = HIGH_BIT;
+  static constexpr UnsignedBits   MAX_KEY     = UnsignedBits(-1) ^ HIGH_BIT;
+
+  static constexpr bool PRIMITIVE = false;
+  static constexpr bool NULL_TYPE = false;
+
+  static __host__ __device__ __forceinline__ UnsignedBits TwiddleIn(UnsignedBits key)
+  {
+    return key ^ HIGH_BIT;
+  };
+
+  static __host__ __device__ __forceinline__ UnsignedBits TwiddleOut(UnsignedBits key)
+  {
+    return key ^ HIGH_BIT;
+  };
+
+  static __host__ __device__ __forceinline__ T Max()
+  {
+    UnsignedBits retval = MAX_KEY;
+    return reinterpret_cast<T&>(retval);
+  }
+
+  static __host__ __device__ __forceinline__ T Lowest()
+  {
+    UnsignedBits retval = LOWEST_KEY;
+    return reinterpret_cast<T&>(retval);
+  }
+};
+#endif
+
 template <> struct NumericTraits<float> :               BaseTraits<FLOATING_POINT, true, false, unsigned int, float> {};
 template <> struct NumericTraits<double> :              BaseTraits<FLOATING_POINT, true, false, unsigned long long, double> {};
-#if (__CUDACC_VER_MAJOR__ >= 9 || CUDA_VERSION >= 9000) && !_NVHPC_CUDA
+#if !_NVHPC_CUDA
     template <> struct NumericTraits<__half> :          BaseTraits<FLOATING_POINT, true, false, unsigned short, __half> {};
 #endif
-#if (__CUDACC_VER_MAJOR__ >= 11 || CUDA_VERSION >= 11000) && !_NVHPC_CUDA
+#if !_NVHPC_CUDA && !defined(CUB_DISABLE_BF16_SUPPORT)
     template <> struct NumericTraits<__nv_bfloat16> :   BaseTraits<FLOATING_POINT, true, false, unsigned short, __nv_bfloat16> {};
 #endif
 

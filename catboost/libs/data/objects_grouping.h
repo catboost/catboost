@@ -32,7 +32,7 @@ namespace NCB {
         // needed because of default init in Cython and because of BinSaver
         TObjectsGrouping() = default;
 
-        explicit TObjectsGrouping(ui32 groupCount) // trivial, all objects are groups of size 1
+        explicit TObjectsGrouping(ui32 groupCount) noexcept // trivial, all objects are groups of size 1
             : GroupCount(groupCount)
         {}
 
@@ -45,7 +45,7 @@ namespace NCB {
             Groups = std::move(groups);
         }
 
-        bool operator==(const TObjectsGrouping& rhs) const {
+        bool operator==(const TObjectsGrouping& rhs) const noexcept {
             if (IsTrivial()) {
                 if (rhs.IsTrivial()) {
                     return GroupCount == rhs.GroupCount;
@@ -67,11 +67,11 @@ namespace NCB {
             return IsTrivial() ? GroupCount : Groups.back().End;
         }
 
-        ui32 GetGroupCount() const {
+        ui32 GetGroupCount() const noexcept {
             return GroupCount;
         }
 
-        bool IsTrivial() const {
+        bool IsTrivial() const noexcept {
             return Groups.empty();
         }
 

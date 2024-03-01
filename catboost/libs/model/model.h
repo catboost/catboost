@@ -330,39 +330,39 @@ public:
         return GetModelTreeData()->GetTreeSizes().size();
     }
 
-    size_t GetDimensionsCount() const {
+    size_t GetDimensionsCount() const noexcept {
         return ApproxDimension;
     }
 
-    const THolder<IModelTreeData>& GetModelTreeData() const {
+    const THolder<IModelTreeData>& GetModelTreeData() const noexcept {
         return ModelTreeData;
     }
 
-    TConstArrayRef<TCatFeature> GetCatFeatures() const {
+    TConstArrayRef<TCatFeature> GetCatFeatures() const noexcept {
         return TConstArrayRef<TCatFeature>(CatFeatures.begin(), CatFeatures.end());
     }
 
-    TConstArrayRef<TFloatFeature> GetFloatFeatures() const {
+    TConstArrayRef<TFloatFeature> GetFloatFeatures() const noexcept {
         return TConstArrayRef<TFloatFeature>(FloatFeatures.begin(), FloatFeatures.end());
     }
 
-    TConstArrayRef<TOneHotFeature> GetOneHotFeatures() const {
+    TConstArrayRef<TOneHotFeature> GetOneHotFeatures() const noexcept {
         return TConstArrayRef<TOneHotFeature>(OneHotFeatures.begin(), OneHotFeatures.end());
     }
 
-    TConstArrayRef<TCtrFeature> GetCtrFeatures() const {
+    TConstArrayRef<TCtrFeature> GetCtrFeatures() const noexcept {
         return TConstArrayRef<TCtrFeature>(CtrFeatures.begin(), CtrFeatures.end());
     }
 
-    TConstArrayRef<TTextFeature> GetTextFeatures() const {
+    TConstArrayRef<TTextFeature> GetTextFeatures() const noexcept {
         return TConstArrayRef<TTextFeature>(TextFeatures.begin(), TextFeatures.end());
     }
 
-    TConstArrayRef<TEmbeddingFeature> GetEmbeddingFeatures() const {
+    TConstArrayRef<TEmbeddingFeature> GetEmbeddingFeatures() const noexcept {
         return TConstArrayRef<TEmbeddingFeature>(EmbeddingFeatures.begin(), EmbeddingFeatures.end());
     }
 
-    TConstArrayRef<TEstimatedFeature> GetEstimatedFeatures() const {
+    TConstArrayRef<TEstimatedFeature> GetEstimatedFeatures() const noexcept {
         return TConstArrayRef<TEstimatedFeature>(EstimatedFeatures.begin(), EstimatedFeatures.end());
     }
 
@@ -622,14 +622,14 @@ private:
 
 class TCOWTreeWrapper {
 public:
-    const TModelTrees& operator*() const {
+    const TModelTrees& operator*() const noexcept {
         return *Trees;
     }
-    const TModelTrees* operator->() const {
+    const TModelTrees* operator->() const noexcept {
         return Trees.Get();
     }
 
-    const TModelTrees* Get() const {
+    const TModelTrees* Get() const noexcept {
         return Trees.Get();
     }
 
@@ -752,7 +752,7 @@ public:
     /**
      * @return Number of dimensions in model.
      */
-    size_t GetDimensionsCount() const {
+    size_t GetDimensionsCount() const noexcept {
         return ModelTrees->GetDimensionsCount();
     }
 
@@ -1383,6 +1383,14 @@ TFullModel DeserializeModel(TMemoryInput serializedModel);
 TFullModel DeserializeModel(const TString& serializedModel);
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);
+
+TVector<size_t> GetModelCatFeaturesIndices(const TFullModel& model);
+
+TVector<size_t> GetModelFloatFeaturesIndices(const TFullModel& model);
+
+TVector<size_t> GetModelTextFeaturesIndices(const TFullModel& model);
+
+TVector<size_t> GetModelEmbeddingFeaturesIndices(const TFullModel& model);
 
 void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullModel* model);
 

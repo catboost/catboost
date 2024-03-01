@@ -3,7 +3,7 @@
 |
 | Distributed under the terms of the Modified BSD License.
 |
-| The full license is in the file COPYING.txt, distributed with this software.
+| The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
 #include <utility>
@@ -18,14 +18,18 @@ class Term
 
 public:
 
-	Term( const Variable& variable, double coefficient = 1.0 ) :
-		m_variable( variable ), m_coefficient( coefficient ) {}
+	Term( Variable variable, double coefficient = 1.0 ) :
+		m_variable( std::move(variable) ), m_coefficient( coefficient ) {}
 
 	// to facilitate efficient map -> vector copies
 	Term( const std::pair<const Variable, double>& pair ) :
 		m_variable( pair.first ), m_coefficient( pair.second ) {}
 
-	~Term() {}
+	Term(const Term&) = default;
+
+	Term(Term&&) noexcept = default;
+
+	~Term() = default;
 
 	const Variable& variable() const
 	{
@@ -41,6 +45,10 @@ public:
 	{
 		return m_coefficient * m_variable.value();
 	}
+
+	Term& operator=(const Term&) = default;
+
+	Term& operator=(Term&&) noexcept = default;
 
 private:
 

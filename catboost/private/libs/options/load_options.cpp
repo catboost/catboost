@@ -74,6 +74,11 @@ void NCatboostOptions::TPoolLoadParams::ValidateLearn() const {
     }
 }
 
+bool NCatboostOptions::TPoolLoadParams::HavePairs() const {
+    return PairsFilePath.Inited() || TestPairsFilePath.Inited();
+}
+
+
 void NCatboostOptions::ValidatePoolParams(
     const NCB::TPathWithScheme& poolPath,
     const NCB::TDsvFormatOptions& dsvFormat

@@ -101,7 +101,6 @@ class table__k_e_r_n(DefaultTable.DefaultTable):
 
 
 class KernTable_format_0(object):
-
     # 'version' is kept for backward compatibility
     version = format = 0
 
@@ -148,9 +147,9 @@ class KernTable_format_0(object):
             except IndexError:
                 # Slower, but will not throw an IndexError on an invalid
                 # glyph id.
-                kernTable[
-                    (ttFont.getGlyphName(left), ttFont.getGlyphName(right))
-                ] = value
+                kernTable[(ttFont.getGlyphName(left), ttFont.getGlyphName(right))] = (
+                    value
+                )
         if len(data) > 6 * nPairs + 4:  # Ignore up to 4 bytes excess
             log.warning(
                 "excess data in 'kern' subtable: %d bytes", len(data) - 6 * nPairs

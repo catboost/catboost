@@ -30,9 +30,9 @@ target_link_options(catboost-private-libs-text_features-ut PRIVATE
   -ldl
 )
 target_sources(catboost-private-libs-text_features-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/ut/calcer_canonization_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/ut/feature_calcer_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/ut/text_processing_collection_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/ut/calcer_canonization_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/ut/feature_calcer_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/ut/text_processing_collection_ut.cpp
 )
 set_property(
   TARGET
@@ -66,6 +66,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-private-libs-text_features-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-private-libs-text_features-ut
   cpp-malloc-tcmalloc

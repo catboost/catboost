@@ -25,7 +25,6 @@ class TSockTest: public TTestBase {
     UNIT_TEST(TestNetworkResolutionErrorMessage);
     UNIT_TEST(TestBrokenPipe);
     UNIT_TEST(TestClose);
-    UNIT_TEST(TestReusePortAvailCheck);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -36,7 +35,6 @@ public:
     void TestNetworkResolutionErrorMessage();
     void TestBrokenPipe();
     void TestClose();
-    void TestReusePortAvailCheck();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TSockTest);
@@ -183,33 +181,6 @@ void TSockTest::TestClose() {
 #endif
 
     UNIT_ASSERT_EQUAL(static_cast<SOCKET>(receiver), INVALID_SOCKET);
-}
-
-void TSockTest::TestReusePortAvailCheck() {
-#if defined _linux_
-    utsname sysInfo;
-    Y_ABORT_UNLESS(!uname(&sysInfo), "Error while call uname: %s", LastSystemErrorText());
-    TStringBuf release(sysInfo.release);
-    release = release.substr(0, release.find_first_not_of(".0123456789"));
-    int v1 = FromString<int>(release.NextTok('.'));
-    int v2 = FromString<int>(release.NextTok('.'));
-    int v3 = FromString<int>(release.NextTok('.'));
-    int linuxVersionCode = KERNEL_VERSION(v1, v2, v3);
-    if (linuxVersionCode >= KERNEL_VERSION(3, 9, 1)) {
-        // new kernels support SO_REUSEPORT
-        UNIT_ASSERT(true == IsReusePortAvailable());
-        UNIT_ASSERT(true == IsReusePortAvailable());
-    } else {
-        // older kernels may or may not support SO_REUSEPORT
-        // just check that it doesn't crash or throw
-        (void)IsReusePortAvailable();
-        (void)IsReusePortAvailable();
-    }
-#else
-    // check that it doesn't crash or throw
-    (void)IsReusePortAvailable();
-    (void)IsReusePortAvailable();
-#endif
 }
 
 class TPollTest: public TTestBase {

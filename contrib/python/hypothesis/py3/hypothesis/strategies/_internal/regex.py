@@ -58,7 +58,13 @@ BYTES_LOOKUP = {
 }
 
 
-GROUP_CACHE_STRATEGY = st.shared(st.builds(dict), key="hypothesis.regex.group_cache")
+GROUP_CACHE_STRATEGY: st.SearchStrategy[dict] = st.shared(
+    st.builds(dict), key="hypothesis.regex.group_cache"
+)
+
+
+class IncompatibleWithAlphabet(InvalidArgument):
+    pass
 
 
 @st.composite
@@ -174,11 +180,8 @@ class CharactersBuilder:
         else:
             raise NotImplementedError(f"Unknown character category: {category}")
 
-    def add_char(self, char, *, check=True):
+    def add_char(self, c):
         """Add given char to the whitelist."""
-        c = self.code_to_char(char)
-        if check and chars_not_in_alphabet(self._alphabet, c):
-            raise InvalidArgument(f"Literal {c!r} is not in the specified alphabet")
         self._whitelist_chars.add(c)
         if (
             self._ignorecase
@@ -361,7 +364,7 @@ def _strategy(codes, context, is_unicode, *, alphabet):
                 if i + 1 < j:
                     chars = empty.join(to_char(charcode) for _, charcode in codes[i:j])
                     if invalid := chars_not_in_alphabet(alphabet, chars):
-                        raise InvalidArgument(
+                        raise IncompatibleWithAlphabet(
                             f"Literal {chars!r} contains characters {invalid!r} "
                             f"which are not in the specified alphabet"
                         )
@@ -387,7 +390,9 @@ def _strategy(codes, context, is_unicode, *, alphabet):
             # Regex 'a' (single char)
             c = to_char(value)
             if chars_not_in_alphabet(alphabet, c):
-                raise InvalidArgument(f"Literal {c!r} is not in the specified alphabet")
+                raise IncompatibleWithAlphabet(
+                    f"Literal {c!r} is not in the specified alphabet"
+                )
             if (
                 context.flags & re.IGNORECASE
                 and c != c.swapcase()
@@ -449,12 +454,28 @@ def _strategy(codes, context, is_unicode, *, alphabet):
                     pass
                 elif charset_code == sre.LITERAL:
                     # Regex '[a]' (single char)
-                    builder.add_char(charset_value)
+                    c = builder.code_to_char(charset_value)
+                    if chars_not_in_alphabet(builder._alphabet, c):
+                        raise IncompatibleWithAlphabet(
+                            f"Literal {c!r} is not in the specified alphabet"
+                        )
+                    builder.add_char(c)
                 elif charset_code == sre.RANGE:
                     # Regex '[a-z]' (char range)
                     low, high = charset_value
-                    for char_code in range(low, high + 1):
-                        builder.add_char(char_code, check=char_code in (low, high))
+                    chars = empty.join(map(builder.code_to_char, range(low, high + 1)))
+                    if len(chars) == len(
+                        invalid := set(chars_not_in_alphabet(alphabet, chars))
+                    ):
+                        raise IncompatibleWithAlphabet(
+                            f"Charset '[{chr(low)}-{chr(high)}]' contains characters {invalid!r} "
+                            f"which are not in the specified alphabet"
+                        )
+                    for c in chars:
+                        if isinstance(c, int):
+                            c = int_to_byte(c)
+                        if c not in invalid:
+                            builder.add_char(c)
                 elif charset_code == sre.CATEGORY:
                     # Regex '[\w]' (char category)
                     builder.add_category(charset_value)
@@ -513,7 +534,16 @@ def _strategy(codes, context, is_unicode, *, alphabet):
 
         elif code == sre.BRANCH:
             # Regex 'a|b|c' (branch)
-            return st.one_of([recurse(branch) for branch in value[1]])
+            branches = []
+            errors = []
+            for branch in value[1]:
+                try:
+                    branches.append(recurse(branch))
+                except IncompatibleWithAlphabet as e:
+                    errors.append(str(e))
+            if errors and not branches:
+                raise IncompatibleWithAlphabet("\n".join(errors))
+            return st.one_of(branches)
 
         elif code in [sre.MIN_REPEAT, sre.MAX_REPEAT, POSSESSIVE_REPEAT]:
             # Regexes 'a?', 'a*', 'a+' and their non-greedy variants

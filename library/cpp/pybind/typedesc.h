@@ -61,6 +61,10 @@ namespace NPyBind {
                 if (PyErr_Occurred())
                     return -1;
                 return 0;
+            } catch (const TPyNativeErrorException&) {
+                if (!PyErr_Occurred()) {
+                    PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+                }
             } catch (const std::exception& ex) {
                 PyErr_SetString(TExceptionsHolder::Instance().ToPyException(ex).Get(), ex.what());
             } catch (...) {
@@ -101,7 +105,8 @@ namespace NPyBind {
         }
 
     protected:
-        TPythonType(const char* pyTypeName, const char* typeDescr, PyTypeObject* parentType = nullptr)
+        TPythonType(const char* pyTypeName, const char* typeDescr, PyTypeObject* parentType = nullptr,
+                    TVector<PyTypeObject*> baseTypes = {})
             : Attributes(GetObjectAttr, SetObjectAttr)
         {
             PyType.tp_name = pyTypeName;
@@ -110,6 +115,15 @@ namespace NPyBind {
             if (parentType) {
                 Py_INCREF(parentType);
                 PyType.tp_base = parentType;
+            }
+            if (!baseTypes.empty()) {
+                Py_ssize_t baseCount = baseTypes.size();
+                PyObject* tuple = PyTuple_New(baseCount);
+                for (Py_ssize_t i = 0; i < baseCount; ++i) {
+                    Py_INCREF(baseTypes[i]);
+                    PyTuple_SET_ITEM(tuple, i, (PyObject *)baseTypes[i]);
+                }
+                PyType.tp_bases = tuple;
             }
             PyType_Ready(&PyType);
 
@@ -344,6 +358,10 @@ namespace NPyBind {
                     }
 
                     return hld->Call(obj.Get(), newArgs.Get(), kwargs);
+                } catch (const TPyNativeErrorException&) {
+                    if (!PyErr_Occurred()) {
+                        PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+                    }
                 } catch (const std::exception& ex) {
                     PyErr_SetString(::NPyBind::TExceptionsHolder::Instance().ToPyException(ex).Get(), ex.what());
                 } catch (...) {
@@ -431,6 +449,10 @@ namespace NPyBind {
                         ythrow yexception() << "Can't cast object to ClosureHolder";
 
                     return hld->Call(args, kwargs);
+                } catch (const TPyNativeErrorException&) {
+                    if (!PyErr_Occurred()) {
+                        PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+                    }
                 } catch (const std::exception& ex) {
                     PyErr_SetString(::NPyBind::TExceptionsHolder::Instance().ToPyException(ex).Get(), ex.what());
                 } catch (...) {
@@ -467,6 +489,10 @@ namespace NPyBind {
             if (res == nullptr && !PyErr_Occurred())
                 ythrow TPyErr(PyExc_AttributeError) << "PyBind can't get attribute '" << attr << "'";
             return res;
+        } catch (const TPyNativeErrorException&) {
+            if (!PyErr_Occurred()) {
+                PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+            }
         } catch (const std::exception& ex) {
             PyErr_SetString(TExceptionsHolder::Instance().ToPyException(ex).Get(), ex.what());
         } catch (...) {
@@ -483,6 +509,10 @@ namespace NPyBind {
             if (!res && !PyErr_Occurred())
                 ythrow yexception() << "PyBind can't set attribute '" << attr << "'";
             return res ? 0 : -1;
+        } catch (const TPyNativeErrorException&) {
+            if (!PyErr_Occurred()) {
+                PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+            }
         } catch (const std::exception& ex) {
             PyErr_SetString(TExceptionsHolder::Instance().ToPyException(ex).Get(), ex.what());
         } catch (...) {
@@ -496,6 +526,10 @@ namespace NPyBind {
         try {
             TObject* self = CastToObject(obj);
             return Instance().Attributes.GetMethodCallers().CallMethod(obj, self, nullptr, nullptr, "__str__");
+        } catch (const TPyNativeErrorException&) {
+            if (!PyErr_Occurred()) {
+                PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+            }
         } catch (const std::exception& ex) {
             PyErr_SetString(TExceptionsHolder::Instance().ToPyException(ex).Get(), ex.what());
         } catch (...) {
@@ -509,6 +543,10 @@ namespace NPyBind {
         try {
             TObject* self = CastToObject(obj);
             return Instance().Attributes.GetMethodCallers().CallMethod(obj, self, nullptr, nullptr, "__iter__");
+        } catch (const TPyNativeErrorException&) {
+            if (!PyErr_Occurred()) {
+                PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+            }
         } catch (const std::exception& ex) {
             PyErr_SetString(TExceptionsHolder::Instance().ToPyException(ex).Get(), ex.what());
         } catch (...) {
@@ -522,6 +560,10 @@ namespace NPyBind {
         try {
             TObject* self = CastToObject(obj);
             return Instance().Attributes.GetMethodCallers().CallMethod(obj, self, nullptr, nullptr, "next");
+        } catch (const TPyNativeErrorException&) {
+            if (!PyErr_Occurred()) {
+                PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+            }
         } catch (const std::exception& ex) {
             PyErr_SetString(TExceptionsHolder::Instance().ToPyException(ex).Get(), ex.what());
         } catch (...) {
@@ -535,6 +577,10 @@ namespace NPyBind {
         try {
             TObject* self = CastToObject(obj);
             return Instance().Attributes.GetMethodCallers().CallMethod(obj, self, nullptr, nullptr, "__repr__");
+        } catch (const TPyNativeErrorException&) {
+            if (!PyErr_Occurred()) {
+                PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+            }
         } catch (const std::exception& ex) {
             PyErr_SetString(TExceptionsHolder::Instance().ToPyException(ex).Get(), ex.what());
         } catch (...) {

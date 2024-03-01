@@ -164,32 +164,39 @@ void TTargetsStatistics::Init(const TDataMetaInfo& metaInfo, const TFeatureCusto
         case ERawTargetType::Float:
             FloatTargetStatistics.resize(TargetCount);
             break;
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
         case ERawTargetType::String:
-            StringTargetStatistics.resize(TargetCount);
+            DiscreteTargetStatistics.resize(TargetCount);
             for (ui32 i = 0; i < TargetCount; ++i) {
-                StringTargetStatistics[i].TargetType = TargetType;
+                DiscreteTargetStatistics[i].TargetType = TargetType;
             }
             break;
         default:
-            CB_ENSURE(false);
+            CB_ENSURE(TargetType == ERawTargetType::None, "Unexpected target type " << TargetType << ", expected 'None'");
+            CATBOOST_DEBUG_LOG << "No target was found for Target statistics\n";
+            break;
     }
     SetCustomBorders(customBorders, &FloatTargetStatistics);
 }
 
 void TTargetsStatistics::Update(ui32 flatTargetIdx, TStringBuf value) {
-    StringTargetStatistics[flatTargetIdx].Update(value);
+    DiscreteTargetStatistics[flatTargetIdx].Update(value);
 }
 
 bool TTargetsStatistics::operator==(const TTargetsStatistics& a) const {
     return (
-        std::tie(TargetType, TargetCount, FloatTargetStatistics, StringTargetStatistics) ==
-        std::tie(a.TargetType, a.TargetCount, a.FloatTargetStatistics, a.StringTargetStatistics)
+        std::tie(TargetType, TargetCount, FloatTargetStatistics, DiscreteTargetStatistics) ==
+        std::tie(a.TargetType, a.TargetCount, a.FloatTargetStatistics, a.DiscreteTargetStatistics)
     );
 }
 
 void TTargetsStatistics::Update(ui32 flatTargetIdx, float value) {
     FloatTargetStatistics[flatTargetIdx].Update(value);
+}
+
+void TTargetsStatistics::Update(ui32 flatTargetIdx, ui32 value) {
+    DiscreteTargetStatistics[flatTargetIdx].Update(value);
 }
 
 NJson::TJsonValue TTargetsStatistics::ToJson() const {
@@ -201,30 +208,33 @@ NJson::TJsonValue TTargetsStatistics::ToJson() const {
         case ERawTargetType::Float:
             result.InsertValue("TargetStatistics", AggregateStatistics(FloatTargetStatistics));
             break;
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
         case ERawTargetType::String:
-            result.InsertValue("TargetStatistics", AggregateStatistics(StringTargetStatistics));
+            result.InsertValue("TargetStatistics", AggregateStatistics(DiscreteTargetStatistics));
             break;
         default:
-            CB_ENSURE(false);
+            CB_ENSURE(TargetType == ERawTargetType::None, "Unexpected target type " << TargetType << ", expected 'None'");
+            CATBOOST_DEBUG_LOG << "No target was found, Target statistics is empty\n";
+            break;
     }
     return result;
 }
 
-void TStringTargetStatistic::Update(TStringBuf feature) {
+void TDiscreteTargetStatistic::Update(TStringBuf feature) {
     CB_ENSURE(TargetType == ERawTargetType::String, "bad target type");
     with_lock(Mutex) {
         StringTargets[feature]++;
     }
 }
 
-void TStringTargetStatistic::Update(ui32 feature) {
+void TDiscreteTargetStatistic::Update(ui32 feature) {
     with_lock(Mutex) {
         IntegerTargets[feature]++;
     }
 }
 
-void TStringTargetStatistic::Update(const TStringTargetStatistic& update) {
+void TDiscreteTargetStatistic::Update(const TDiscreteTargetStatistic& update) {
     with_lock(Mutex) {
         CB_ENSURE(TargetType == update.TargetType, "bad target type");
         for (auto const& x : update.IntegerTargets) {
@@ -254,15 +264,16 @@ void OutputSorted(const THashMap<T, ui64>& targets, NJson::TJsonValue* targetsDi
     }
 }
 
-NJson::TJsonValue TStringTargetStatistic::ToJson() const {
+NJson::TJsonValue TDiscreteTargetStatistic::ToJson() const {
     NJson::TJsonValue result;
     NJson::TJsonValue targetsDistribution;
-    targetsDistribution.SetType(EJsonValueType::JSON_ARRAY);
+    targetsDistribution.SetType(NJson::EJsonValueType::JSON_ARRAY);
     InsertEnumType("TargetType", TargetType, &result);
     switch (TargetType) {
         case ERawTargetType::String:
             OutputSorted(StringTargets, &targetsDistribution);
             break;
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
             OutputSorted(IntegerTargets, &targetsDistribution);
             break;
@@ -463,7 +474,7 @@ NJson::TJsonValue TDatasetStatistics::ToJson() const {
     if (TargetHistogram.Defined()) {
         result.InsertValue("TargetHistogram", AggregateStatistics(TargetHistogram.GetRef()));
     }
-    result.InsertValue("ObjectCount", TargetsStatistics.GetObjectCount());
+    result.InsertValue("ObjectCount", ObjectsCount);
 
     return result;
 }
@@ -472,4 +483,5 @@ void TDatasetStatistics::Update(const TDatasetStatistics& update) {
     FeatureStatistics.Update(update.FeatureStatistics);
     TargetsStatistics.Update(update.TargetsStatistics);
     SampleIdStatistics.Update(update.SampleIdStatistics);
+    ObjectsCount += update.ObjectsCount;
 }

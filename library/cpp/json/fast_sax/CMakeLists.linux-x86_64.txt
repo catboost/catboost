@@ -15,10 +15,10 @@ target_link_libraries(cpp-json-fast_sax PUBLIC
   cpp-json-common
 )
 target_sources(cpp-json-fast_sax PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/json/fast_sax/unescape.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/json/fast_sax/unescape.cpp
 )
 target_ragel_lexers(cpp-json-fast_sax
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/json/fast_sax/parser.rl6
+  ${PROJECT_SOURCE_DIR}/library/cpp/json/fast_sax/parser.rl6
   -CG2
 )

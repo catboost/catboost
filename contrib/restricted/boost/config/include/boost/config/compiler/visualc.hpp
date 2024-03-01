@@ -305,6 +305,10 @@
 #  define BOOST_CXX_VERSION 201402L
 #endif
 
+#if BOOST_CXX_VERSION >= 201703L
+#  define BOOST_ATTRIBUTE_UNUSED [[maybe_unused]]
+#endif
+
 #ifndef BOOST_COMPILER
 // TODO:
 // these things are mostly bogus. 1200 means version 12.0 of the compiler. The

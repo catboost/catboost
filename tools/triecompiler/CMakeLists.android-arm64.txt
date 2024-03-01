@@ -21,7 +21,7 @@ target_link_options(triecompiler PRIVATE
   -fPIC
 )
 target_sources(triecompiler PRIVATE
-  ${CMAKE_SOURCE_DIR}/tools/triecompiler/main.cpp
+  ${PROJECT_SOURCE_DIR}/tools/triecompiler/main.cpp
 )
 target_allocator(triecompiler
   cpp-malloc-jemalloc

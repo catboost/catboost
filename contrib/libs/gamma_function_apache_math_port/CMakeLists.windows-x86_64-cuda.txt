@@ -13,5 +13,5 @@ target_link_libraries(contrib-libs-gamma_function_apache_math_port PUBLIC
   yutil
 )
 target_sources(contrib-libs-gamma_function_apache_math_port PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/gamma_function_apache_math_port/gamma_function.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/gamma_function_apache_math_port/gamma_function.cpp
 )

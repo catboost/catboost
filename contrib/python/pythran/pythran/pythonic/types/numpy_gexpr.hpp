@@ -16,6 +16,15 @@
 
 PYTHONIC_NS_BEGIN
 
+namespace numpy
+{
+  namespace details
+  {
+    template <class T>
+    struct arange_index;
+  }
+} // namespace numpy
+
 namespace types
 {
   template <class S0, class S1>
@@ -36,11 +45,78 @@ namespace types
   {
     return s.lower <= i && i < s.upper;
   }
-  template <class E0, class E1>
-  bool may_overlap(E0 const &, E1 const &)
+
+  template <class T>
+  constexpr intptr_t baseid_helper(T const &, std::true_type)
   {
-    return true;
+    return 0;
   }
+
+  template <class T>
+  intptr_t baseid_helper(T const &e, std::false_type)
+  {
+    return e.baseid();
+  }
+
+  template <class T>
+  intptr_t baseid(T const &e)
+  {
+    return baseid_helper(
+        e, std::integral_constant<bool, types::is_dtype<T>::value>{});
+  }
+
+  template <class E0, class E1>
+  bool may_overlap(E0 const &e0, E1 const &e1)
+  {
+    return baseid(e0) == baseid(e1);
+  }
+
+  template <class E0, class T1>
+  bool may_overlap(E0 const &e0, types::list<T1> const &e1)
+  {
+    return false;
+  }
+
+  template <class E0, class T1>
+  bool may_overlap(E0 const &e0, types::broadcasted<T1> const &e1)
+  {
+    return may_overlap(e0, e1.ref);
+  }
+
+  template <class E0, class T1, size_t N, class S>
+  bool may_overlap(E0 const &e0, types::array_base<T1, N, S> const &e1)
+  {
+    return false;
+  }
+
+  template <class E0, class E1, class E2>
+  bool may_overlap(E0 const &e0, types::numpy_vexpr<E1, E2> const &e1)
+  {
+    return may_overlap(e0, e1.data_);
+  }
+
+  template <class E0, class Op, class... Args, size_t... Is>
+  bool may_overlap(E0 const &e0, types::numpy_expr<Op, Args...> const &e1,
+                   utils::index_sequence<Is...>)
+  {
+    bool overlaps[] = {may_overlap(e0, std::get<Is>(e1.args))...};
+    return std::any_of(std::begin(overlaps), std::end(overlaps),
+                       [](bool b) { return b; });
+  }
+
+  template <class E0, class Op, class... Args>
+  bool may_overlap(E0 const &e0, types::numpy_expr<Op, Args...> const &e1)
+  {
+    return may_overlap(e0, e1, utils::make_index_sequence<sizeof...(Args)>());
+  }
+
+  template <class E0, class T1>
+  bool may_overlap(E0 const &e0,
+                   pythonic::numpy::details::arange_index<T1> const &e1)
+  {
+    return false;
+  }
+
   template <class E0, class T0, class T1>
   bool may_overlap(E0 const &, broadcast<T0, T1> const &)
   {
@@ -52,21 +128,7 @@ namespace types
   {
     return false;
   }
-  template <class Arg, class Tuple, class... S, size_t... I>
-  bool may_overlap_helper(numpy_gexpr<Arg, S...> const &gexpr,
-                          Tuple const &args, utils::index_sequence<I...>)
-  {
-    bool overlaps[] = {may_overlap(gexpr, std::get<I>(args))...};
-    return std::any_of(std::begin(overlaps), std::end(overlaps),
-                       [](bool b) { return b; });
-  }
-  template <class Arg, class... E, class... S>
-  bool may_overlap(numpy_gexpr<Arg, S...> const &gexpr,
-                   numpy_expr<E...> const &expr)
-  {
-    return may_overlap_helper(gexpr, expr.args,
-                              utils::make_index_sequence<sizeof...(E) - 1>{});
-  }
+
   template <class T, class pS, class Tp, class pSp, class E0, class E1>
   bool may_gexpr_overlap(E0 const &gexpr, E1 const &expr)
   {

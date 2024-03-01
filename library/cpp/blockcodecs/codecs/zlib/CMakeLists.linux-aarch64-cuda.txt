@@ -25,5 +25,5 @@ target_link_libraries(blockcodecs-codecs-zlib.global PUBLIC
   cpp-blockcodecs-core
 )
 target_sources(blockcodecs-codecs-zlib.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/codecs/zlib/zlib.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/zlib/zlib.cpp
 )

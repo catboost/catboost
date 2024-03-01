@@ -101,7 +101,7 @@ False
 
 #### Description
 
-The number of threads to use during the training.
+The number of threads to calculate feature importance.
 
 Optimizes the speed of execution. This parameter doesn't affect results.
 

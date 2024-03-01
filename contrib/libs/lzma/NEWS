@@ -2,6 +2,273 @@
 XZ Utils Release Notes
 ======================
 
+5.4.6 (2024-01-26)
+
+    * Fixed a bug involving internal function pointers in liblzma not
+      being initialized to NULL. The bug can only be triggered if
+      lzma_filters_update() is called on a LZMA1 encoder, so it does
+      not affect xz or any application known to us that uses liblzma.
+
+    * xz:
+
+        - Fixed a regression introduced in 5.4.2 that caused encoding
+          in the raw format to unnecessarily fail if --suffix was not
+          used. For instance, the following command no longer reports
+          that --suffix must be used:
+
+              echo foo | xz --format=raw --lzma2 | wc -c
+
+        - Fixed an issue on MinGW-w64 builds that prevented reading
+          from or writing to non-terminal character devices like NUL.
+
+    * Added a new test.
+
+
+5.4.5 (2023-11-01)
+
+    * liblzma:
+
+        - Use __attribute__((__no_sanitize_address__)) to avoid address
+          sanitization with CRC64 CLMUL. It uses 16-byte-aligned reads
+          which can extend past the bounds of the input buffer and
+          inherently trigger address sanitization errors. This isn't
+          a bug.
+
+        - Fixed an assertion failure that could be triggered by a large
+          unpadded_size argument. It was verified that there was no
+          other bug than the assertion failure.
+
+        - Fixed a bug that prevented building with Windows Vista
+          threading when __attribute__((__constructor__)) is not
+          supported.
+
+    * xz now properly handles special files such as "con" or "nul" on
+      Windows. Before this fix, the following wrote "foo" to the
+      console and deleted the input file "con_xz":
+
+          echo foo | xz > con_xz
+          xz --suffix=_xz --decompress con_xz
+
+    * Build systems:
+
+        - Allow builds with Windows win95 threading and small mode when
+          __attribute__((__constructor__)) is supported.
+
+        - Added a new line to liblzma.pc for MSYS2 (Windows):
+
+              Cflags.private: -DLZMA_API_STATIC
+
+          When compiling code that will link against static liblzma,
+          the LZMA_API_STATIC macro needs to be defined on Windows.
+
+        - CMake specific changes:
+
+            * Fixed a bug that allowed CLOCK_MONOTONIC to be used even
+              if the check for it failed.
+
+            * Fixed a bug where configuring CMake multiple times
+              resulted in HAVE_CLOCK_GETTIME and HAVE_CLOCK_MONOTONIC
+              not being set.
+
+            * Fixed the build with MinGW-w64-based Clang/LLVM 17.
+              llvm-windres now has more accurate GNU windres emulation
+              so the GNU windres workaround from 5.4.1 is needed with
+              llvm-windres version 17 too.
+
+            * The import library on Windows is now properly named
+              "liblzma.dll.a" instead of "libliblzma.dll.a"
+
+            * Fixed a bug causing the Ninja Generator to fail on
+              UNIX-like systems. This bug was introduced in 5.4.0.
+
+            * Added a new option to disable CLMUL CRC64.
+
+            * A module-definition (.def) file is now created when
+              building liblzma.dll with MinGW-w64.
+
+            * The pkg-config liblzma.pc file is now installed on all
+              builds except when using MSVC on Windows.
+
+            * Added large file support by default for platforms that
+              need it to handle files larger than 2 GiB. This includes
+              MinGW-w64, even 64-bit builds.
+
+    * Small fixes and improvements to the tests.
+
+    * Updated translations: Chinese (simplified) and Esperanto.
+
+
+5.4.4 (2023-08-02)
+
+    * liblzma and xzdec can now build against WASI SDK when threading
+      support is disabled. xz and tests don't build yet.
+
+    * CMake:
+
+        - Fixed a bug preventing other projects from including liblzma
+          multiple times using find_package().
+
+        - Don't create broken symlinks in Cygwin and MSYS2 unless
+          supported by the environment. This prevented building for the
+          default MSYS2 environment. The problem was introduced in
+          xz 5.4.0.
+
+    * Documentation:
+
+        - Small improvements to man pages.
+
+        - Small improvements and typo fixes for liblzma API
+          documentation.
+
+    * Tests:
+
+        - Added a new section to INSTALL to describe basic test usage
+          and address recent questions about building the tests when
+          cross compiling.
+
+        - Small fixes and improvements to the tests.
+
+    * Translations:
+
+        - Fixed a mistake that caused one of the error messages to not
+          be translated. This only affected versions 5.4.2 and 5.4.3.
+
+        - Updated the Chinese (simplified), Croatian, Esperanto, German,
+          Korean, Polish, Romanian, Spanish, Swedish, Ukrainian, and
+          Vietnamese translations.
+
+        - Updated the German, Korean, Romanian, and Ukrainian man page
+          translations.
+
+
+5.4.3 (2023-05-04)
+
+    * All fixes from 5.2.12
+
+    * Features in the CMake build can now be disabled as CMake cache
+      variables, similar to the Autotools build.
+
+    * Minor update to the Croatian translation.
+
+
+5.4.2 (2023-03-18)
+
+    * All fixes from 5.2.11 that were not included in 5.4.1.
+
+    * If xz is built with support for the Capsicum sandbox but running
+      in an environment that doesn't support Capsicum, xz now runs
+      normally without sandboxing instead of exiting with an error.
+
+    * liblzma:
+
+        - Documentation was updated to improve the style, consistency,
+          and completeness of the liblzma API headers.
+
+        - The Doxygen-generated HTML documentation for the liblzma API
+          header files is now included in the source release and is
+          installed as part of "make install". All JavaScript is
+          removed to simplify license compliance and to reduce the
+          install size.
+
+        - Fixed a minor bug in lzma_str_from_filters() that produced
+          too many filters in the output string instead of reporting
+          an error if the input array had more than four filters. This
+          bug did not affect xz.
+
+    * Build systems:
+
+        - autogen.sh now invokes the doxygen tool via the new wrapper
+          script doxygen/update-doxygen, unless the command line option
+          --no-doxygen is used.
+
+        - Added microlzma_encoder.c and microlzma_decoder.c to the
+          VS project files for Windows and to the CMake build. These
+          should have been included in 5.3.2alpha.
+
+    * Tests:
+
+        - Added a test to the CMake build that was forgotten in the
+          previous release.
+
+        - Added and refactored a few tests.
+
+    * Translations:
+
+        - Updated the Brazilian Portuguese translation.
+
+        - Added Brazilian Portuguese man page translation.
+
+
+5.4.1 (2023-01-11)
+
+    * liblzma:
+
+        - Fixed the return value of lzma_microlzma_encoder() if the
+          LZMA options lc/lp/pb are invalid. Invalid lc/lp/pb options
+          made the function return LZMA_STREAM_END without encoding
+          anything instead of returning LZMA_OPTIONS_ERROR.
+
+        - Windows / Visual Studio: Workaround a possible compiler bug
+          when targeting 32-bit x86 and compiling the CLMUL version of
+          the CRC64 code. The CLMUL code isn't enabled by the Windows
+          project files but it is in the CMake-based builds.
+
+    * Build systems:
+
+        - Windows-specific CMake changes:
+
+            * Don't try to enable CLMUL CRC64 code if _mm_set_epi64x()
+              isn't available. This fixes CMake-based build with Visual
+              Studio 2013.
+
+            * Created a workaround for a build failure with windres
+              from GNU binutils. It is used only when the C compiler
+              is GCC (not Clang). The workaround is incompatible
+              with llvm-windres, resulting in "XZx20Utils" instead
+              of "XZ Utils" in the resource file, but without the
+              workaround llvm-windres works correctly. See the
+              comment in CMakeLists.txt for details.
+
+            * Included the resource files in the xz and xzdec build
+              rules. Building the command line tools is still
+              experimental but possible with MinGW-w64.
+
+        - Visual Studio: Added stream_decoder_mt.c to the project
+          files. Now the threaded decompressor lzma_stream_decoder_mt()
+          gets built. CMake-based build wasn't affected.
+
+        - Updated windows/INSTALL-MSVC.txt to mention that CMake-based
+          build is now the preferred method with Visual Studio. The
+          project files will probably be removed after 5.4.x releases.
+
+        - Changes to #defines in config.h:
+
+            * HAVE_DECL_CLOCK_MONOTONIC was replaced by
+              HAVE_CLOCK_MONOTONIC. The old macro was always defined
+              in configure-generated config.h to either 0 or 1. The
+              new macro is defined (to 1) only if the declaration of
+              CLOCK_MONOTONIC is available. This matches the way most
+              other config.h macros work and makes things simpler with
+              other build systems.
+
+            * HAVE_DECL_PROGRAM_INVOCATION_NAME was replaced by
+              HAVE_PROGRAM_INVOCATION_NAME for the same reason.
+
+    * Tests:
+
+        - Fixed test script compatibility with ancient /bin/sh
+          versions. Now the five test_compress_* tests should
+          no longer fail on Solaris 10.
+
+        - Added and refactored a few tests.
+
+    * Translations:
+
+        - Updated the Catalan and Esperanto translations.
+
+        - Added Korean and Ukrainian man page translations.
+
+
 5.4.0 (2022-12-13)
 
     This bumps the minor version of liblzma because new features were
@@ -830,7 +1097,7 @@ XZ Utils Release Notes
           of the deprecated egrep and fgrep commands.
 
         - Fixed parsing of the options -E, -F, -G, -P, and -X. The
-          problem occurred when multiple options were specied in
+          problem occurred when multiple options were specified in
           a single argument, for example,
 
               echo foo | xzgrep -Fe foo

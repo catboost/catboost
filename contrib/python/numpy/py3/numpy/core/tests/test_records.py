@@ -12,8 +12,6 @@ from numpy.testing import (
     )
 from numpy.compat import pickle
 
-import yatest.common
-
 
 class TestFromrecords:
     def test_fromrecords(self):
@@ -75,7 +73,8 @@ class TestFromrecords:
         assert_equal(r.a, np.array([1, 2, 3, 4]))
 
     def test_recarray_fromfile(self):
-        data_dir = path.join(yatest.common.source_path('contrib/python/numpy/py3/numpy/core/tests'), 'data')
+        import yatest.common as yc
+        data_dir = yc.source_path(path.join(path.dirname(__file__), 'data'))
         filename = path.join(data_dir, 'recarray_from_file.fits')
         fd = open(filename, 'rb')
         fd.seek(2880 * 2)

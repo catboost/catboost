@@ -19,6 +19,7 @@ import stat
 import tempfile
 import warnings
 from getpass import getpass
+from contextlib import contextmanager
 
 import zmq
 
@@ -31,7 +32,7 @@ from ipython_genutils.py3compat import (
 from traitlets import (
     Bool, Integer, Unicode, CaselessStrEnum, Instance, Type,
 )
-from jupyter_core.paths import jupyter_data_dir, jupyter_runtime_dir
+from jupyter_core.paths import jupyter_data_dir, jupyter_runtime_dir, secure_write
 
 
 def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
@@ -134,7 +135,10 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
     cfg['signature_scheme'] = signature_scheme
     cfg['kernel_name'] = kernel_name
 
-    with open(fname, 'w') as f:
+    # Only ever write this file as user read/writeable
+    # This would otherwise introduce a vulnerability as a file has secrets
+    # which would let others execute arbitrarily code as you
+    with secure_write(fname) as f:
         f.write(json.dumps(cfg, indent=2))
 
     if hasattr(stat, 'S_ISVTX'):
@@ -193,7 +197,7 @@ def find_connection_file(filename='kernel-*.json', path=None, profile=None):
         path = ['.', jupyter_runtime_dir()]
     if isinstance(path, string_types):
         path = [path]
-    
+
     try:
         # first, try explicit name
         return filefind(filename, path)
@@ -208,11 +212,11 @@ def find_connection_file(filename='kernel-*.json', path=None, profile=None):
     else:
         # accept any substring match
         pat = '*%s*' % filename
-    
+
     matches = []
     for p in path:
         matches.extend(glob.glob(os.path.join(p, pat)))
-    
+
     matches = [ os.path.abspath(m) for m in matches ]
     if not matches:
         raise IOError("Could not find %r in %r" % (filename, path))
@@ -289,11 +293,11 @@ port_names = [ "%s_port" % channel for channel in ('shell', 'stdin', 'iopub', 'h
 
 class ConnectionFileMixin(LoggingConfigurable):
     """Mixin for configurable classes that work with connection files"""
-    
+
     data_dir = Unicode()
     def _data_dir_default(self):
         return jupyter_data_dir()
-    
+
     # The addresses for the communication channels
     connection_file = Unicode('', config=True,
     help="""JSON file in which to store connection info [default: kernel-<pid>.json]
@@ -480,7 +484,7 @@ class ConnectionFileMixin(LoggingConfigurable):
 
     def load_connection_file(self, connection_file=None):
         """Load connection info from JSON dict in self.connection_file.
-        
+
         Parameters
         ----------
         connection_file: unicode, optional
@@ -496,10 +500,10 @@ class ConnectionFileMixin(LoggingConfigurable):
 
     def load_connection_info(self, info):
         """Load connection info from a dict containing connection info.
-        
+
         Typically this data comes from a connection file
         and is called by load_connection_file.
-        
+
         Parameters
         ----------
         info: dict

@@ -124,9 +124,11 @@ if (HAVE_CUDA)
     " --expt-extended-lambda"
     # Allow host code to invoke __device__ constexpr functions and vice versa
     " --expt-relaxed-constexpr"
+    # Allow to use newer compilers than CUDA Toolkit officially supports
+    " --allow-unsupported-compiler"
   )
 
-  set(NVCC_STD_VER 14)
+  set(NVCC_STD_VER 17)
   if(MSVC)
     set(NVCC_STD "/std:c++${NVCC_STD_VER}")
   else()
@@ -146,8 +148,8 @@ if (HAVE_CUDA)
 
   # use versions from contrib, standard libraries from CUDA distibution are incompatible with MSVC and libcxx
   set(CUDA_EXTRA_INCLUDE_DIRECTORIES
-    ${CMAKE_SOURCE_DIR}/contrib/libs/nvidia/thrust
-    ${CMAKE_SOURCE_DIR}/contrib/libs/nvidia/cub
+    ${PROJECT_SOURCE_DIR}/contrib/libs/nvidia/thrust
+    ${PROJECT_SOURCE_DIR}/contrib/libs/nvidia/cub
   )
 
   find_package(CUDAToolkit REQUIRED)

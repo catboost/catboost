@@ -173,6 +173,28 @@ size_t TYsonString::ComputeHash() const
     return THash<TStringBuf>()(TStringBuf(Begin_, Begin_ + Size_));
 }
 
+void TYsonString::Save(IOutputStream* s) const
+{
+    EYsonType type = Type_;
+    if (*this) {
+        ::SaveMany(s, type, ToSharedRef());
+    } else {
+        ::SaveMany(s, type, TString());
+    }
+}
+
+void TYsonString::Load(IInputStream* s)
+{
+    EYsonType type;
+    TString data;
+    ::LoadMany(s, type, data);
+    if (data) {
+        *this = TYsonString(data, type);
+    } else {
+        *this = TYsonString();
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 TString ToString(const TYsonString& yson)

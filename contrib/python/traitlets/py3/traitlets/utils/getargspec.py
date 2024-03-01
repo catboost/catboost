@@ -7,6 +7,8 @@
     :copyright: Copyright 2007-2015 by the Sphinx team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
+from __future__ import annotations
+
 import inspect
 from functools import partial
 from typing import Any

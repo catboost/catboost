@@ -35,11 +35,11 @@ target_link_options(catboost-cuda-methods-ut PRIVATE
   -lcudart_static
 )
 target_sources(catboost-cuda-methods-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_tree_searcher.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_pairwise_tree_searcher.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_multistat_histograms.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_exact_leaves_estimation.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_langevin.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_tree_searcher.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_pairwise_tree_searcher.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_multistat_histograms.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_exact_leaves_estimation.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_langevin.cpp
 )
 set_property(
   TARGET
@@ -73,6 +73,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-cuda-methods-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-cuda-methods-ut
   cpp-malloc-tcmalloc

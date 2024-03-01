@@ -25,5 +25,5 @@ target_link_libraries(blockcodecs-codecs-fastlz.global PUBLIC
   cpp-blockcodecs-core
 )
 target_sources(blockcodecs-codecs-fastlz.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/codecs/fastlz/fastlz.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/fastlz/fastlz.cpp
 )

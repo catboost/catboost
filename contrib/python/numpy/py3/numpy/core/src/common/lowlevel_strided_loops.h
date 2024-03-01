@@ -328,12 +328,14 @@ PyArray_TransferMaskedStridedToNDim(npy_intp ndim,
                 NPY_cast_info *cast_info);
 
 NPY_NO_EXPORT int
-mapiter_trivial_get(PyArrayObject *self, PyArrayObject *ind,
-                       PyArrayObject *result);
+mapiter_trivial_get(
+        PyArrayObject *self, PyArrayObject *ind, PyArrayObject *result,
+        int is_aligned, NPY_cast_info *cast_info);
 
 NPY_NO_EXPORT int
-mapiter_trivial_set(PyArrayObject *self, PyArrayObject *ind,
-                       PyArrayObject *result);
+mapiter_trivial_set(
+        PyArrayObject *self, PyArrayObject *ind, PyArrayObject *result,
+        int is_aligned, NPY_cast_info *cast_info);
 
 NPY_NO_EXPORT int
 mapiter_get(
@@ -425,7 +427,7 @@ PyArray_PrepareThreeRawArrayIter(int ndim, npy_intp const *shape,
  * blocking. See the 'npy_blocked_end' function documentation below for an
  * example of how this function is used.
  */
-static NPY_INLINE npy_intp
+static inline npy_intp
 npy_aligned_block_offset(const void * addr, const npy_uintp esize,
                          const npy_uintp alignment, const npy_uintp nvals)
 {
@@ -458,7 +460,7 @@ npy_aligned_block_offset(const void * addr, const npy_uintp esize,
  * for(; i < n; i++)
  *   <scalar-op>
  */
-static NPY_INLINE npy_intp
+static inline npy_intp
 npy_blocked_end(const npy_uintp peel, const npy_uintp esize,
                 const npy_uintp vsz, const npy_uintp nvals)
 {
@@ -472,7 +474,7 @@ npy_blocked_end(const npy_uintp peel, const npy_uintp esize,
 
 
 /* byte swapping functions */
-static NPY_INLINE npy_uint16
+static inline npy_uint16
 npy_bswap2(npy_uint16 x)
 {
     return ((x & 0xffu) << 8) | (x >> 8);
@@ -482,7 +484,7 @@ npy_bswap2(npy_uint16 x)
  * treat as int16 and byteswap unaligned memory,
  * some cpus don't support unaligned access
  */
-static NPY_INLINE void
+static inline void
 npy_bswap2_unaligned(char * x)
 {
     char a = x[0];
@@ -490,7 +492,7 @@ npy_bswap2_unaligned(char * x)
     x[1] = a;
 }
 
-static NPY_INLINE npy_uint32
+static inline npy_uint32
 npy_bswap4(npy_uint32 x)
 {
 #ifdef HAVE___BUILTIN_BSWAP32
@@ -501,7 +503,7 @@ npy_bswap4(npy_uint32 x)
 #endif
 }
 
-static NPY_INLINE void
+static inline void
 npy_bswap4_unaligned(char * x)
 {
     char a = x[0];
@@ -512,7 +514,7 @@ npy_bswap4_unaligned(char * x)
     x[2] = a;
 }
 
-static NPY_INLINE npy_uint64
+static inline npy_uint64
 npy_bswap8(npy_uint64 x)
 {
 #ifdef HAVE___BUILTIN_BSWAP64
@@ -529,7 +531,7 @@ npy_bswap8(npy_uint64 x)
 #endif
 }
 
-static NPY_INLINE void
+static inline void
 npy_bswap8_unaligned(char * x)
 {
     char a = x[0]; x[0] = x[7]; x[7] = a;
@@ -685,7 +687,7 @@ npy_bswap8_unaligned(char * x)
         size == 1 ? 0 : ((PyArray_NDIM(arr) == 1) ? \
                              PyArray_STRIDE(arr, 0) : PyArray_ITEMSIZE(arr)))
 
-static NPY_INLINE int
+static inline int
 PyArray_EQUIVALENTLY_ITERABLE_OVERLAP_OK(PyArrayObject *arr1, PyArrayObject *arr2,
                                          int arr1_read, int arr2_read)
 {

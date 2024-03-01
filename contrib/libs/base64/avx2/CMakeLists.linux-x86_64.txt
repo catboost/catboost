@@ -13,12 +13,12 @@ target_link_libraries(libs-base64-avx2 PUBLIC
   contrib-libs-cxxsupp
 )
 target_sources(libs-base64-avx2 PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/avx2/codec_avx2.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/avx2/lib.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/base64/avx2/codec_avx2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/base64/avx2/lib.c
 )
 set_property(
   SOURCE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/avx2/codec_avx2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/base64/avx2/codec_avx2.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS
@@ -27,7 +27,7 @@ set_property(
 )
 set_property(
   SOURCE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/avx2/lib.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/base64/avx2/lib.c
   APPEND
   PROPERTY
   COMPILE_OPTIONS

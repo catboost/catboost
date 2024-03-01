@@ -17,5 +17,5 @@ target_link_libraries(cpp-yt-malloc PUBLIC
   yutil
 )
 target_sources(cpp-yt-malloc PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/malloc/malloc.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/malloc/malloc.cpp
 )

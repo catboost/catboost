@@ -150,6 +150,11 @@ namespace NCB {
             !model.TextProcessingCollection || format == EModelType::CatboostBinary,
             "Can save model with text features only in cbm format"
         );
+        //TODO(akhropov): support embedding features
+        CB_ENSURE(
+            !model.EmbeddingProcessingCollection || format == EModelType::CatboostBinary,
+            "Can save model with embedding features only in cbm format"
+        );
         const auto modelFileName = NCatboostOptions::AddExtension(format, modelFile, addFileFormatExtension);
         switch (format) {
             case EModelType::CatboostBinary:

@@ -1,10 +1,20 @@
 import sys
-import imp
 import os
 from six import iteritems
 from enum import IntEnum
 from contextlib import contextmanager
 import json
+
+if sys.version_info >= (3,):
+    import importlib.util
+
+    def load_dynamic(name, path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+else:
+    from imp import load_dynamic
 
 
 def get_so_paths(dir_name):
@@ -19,7 +29,7 @@ def get_hnsw_bin_module():
     so_paths = get_so_paths('./')
     for so_path in so_paths:
         try:
-            loaded_hnsw = imp.load_dynamic('_hnsw', so_path)
+            loaded_hnsw = load_dynamic('_hnsw', so_path)
             sys.modules['hnsw._hnsw'] = loaded_hnsw
             return loaded_hnsw
         except ImportError:

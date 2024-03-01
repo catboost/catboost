@@ -1,6 +1,5 @@
 """fontTools.misc.textTools.py -- miscellaneous routines."""
 
-
 import ast
 import string
 

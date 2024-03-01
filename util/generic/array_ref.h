@@ -64,6 +64,9 @@ public:
         : T_(container.data())
         , S_(container.size())
     {
+        static_assert(
+            sizeof(decltype(*container.data())) == sizeof(T),
+            "Attempt to create TArrayRef from a container of elements with a different size");
     }
 
     template <size_t N>

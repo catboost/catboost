@@ -1571,7 +1571,7 @@ private:
         y = 2 * target - 1;
         der = at * y * pow((1 - pt), FocalGamma);
         der = der * (FocalGamma * pt * log(pt) + pt - 1);
-        return der;
+        return -der;
     }
 
     double CalcDer2(double approx, float target) const override {
@@ -1586,7 +1586,7 @@ private:
         v = FocalGamma * pt * log(pt) + pt - 1;
         dv = FocalGamma * log(pt) + FocalGamma + 1;
         der2 = (du * v + u * dv) * y * (pt * (1 - pt));
-        return der2;
+        return -der2;
     }
 
 };

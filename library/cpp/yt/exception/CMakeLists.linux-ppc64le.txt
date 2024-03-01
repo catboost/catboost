@@ -17,5 +17,5 @@ target_link_libraries(cpp-yt-exception PUBLIC
   yutil
 )
 target_sources(cpp-yt-exception PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/exception/exception.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/exception/exception.cpp
 )

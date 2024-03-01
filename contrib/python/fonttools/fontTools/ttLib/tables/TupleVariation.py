@@ -166,15 +166,15 @@ class TupleVariation(object):
         return b"".join(tupleData), auxData
 
     def compileCoord(self, axisTags):
-        result = bytearray()
+        result = []
         axes = self.axes
         for axis in axisTags:
             triple = axes.get(axis)
             if triple is None:
-                result.extend(b"\0\0")
+                result.append(b"\0\0")
             else:
-                result.extend(struct.pack(">h", fl2fi(triple[1], 14)))
-        return bytes(result)
+                result.append(struct.pack(">h", fl2fi(triple[1], 14)))
+        return b"".join(result)
 
     def compileIntermediateCoord(self, axisTags):
         needed = False
@@ -187,13 +187,13 @@ class TupleVariation(object):
                 break
         if not needed:
             return None
-        minCoords = bytearray()
-        maxCoords = bytearray()
+        minCoords = []
+        maxCoords = []
         for axis in axisTags:
             minValue, value, maxValue = self.axes.get(axis, (0.0, 0.0, 0.0))
-            minCoords.extend(struct.pack(">h", fl2fi(minValue, 14)))
-            maxCoords.extend(struct.pack(">h", fl2fi(maxValue, 14)))
-        return minCoords + maxCoords
+            minCoords.append(struct.pack(">h", fl2fi(minValue, 14)))
+            maxCoords.append(struct.pack(">h", fl2fi(maxValue, 14)))
+        return b"".join(minCoords + maxCoords)
 
     @staticmethod
     def decompileCoord_(axisTags, data, offset):
@@ -517,22 +517,22 @@ class TupleVariation(object):
             return  # no change
         coordWidth = self.getCoordWidth()
         self.coordinates = [
-            None
-            if d is None
-            else d * scalar
-            if coordWidth == 1
-            else (d[0] * scalar, d[1] * scalar)
+            (
+                None
+                if d is None
+                else d * scalar if coordWidth == 1 else (d[0] * scalar, d[1] * scalar)
+            )
             for d in self.coordinates
         ]
 
     def roundDeltas(self):
         coordWidth = self.getCoordWidth()
         self.coordinates = [
-            None
-            if d is None
-            else otRound(d)
-            if coordWidth == 1
-            else (otRound(d[0]), otRound(d[1]))
+            (
+                None
+                if d is None
+                else otRound(d) if coordWidth == 1 else (otRound(d[0]), otRound(d[1]))
+            )
             for d in self.coordinates
         ]
 
@@ -802,7 +802,7 @@ def inferRegion_(peak):
     intermediateEndTuple fields.
     """
     start, end = {}, {}
-    for (axis, value) in peak.items():
+    for axis, value in peak.items():
         start[axis] = min(value, 0.0)  # -0.3 --> -0.3; 0.7 --> 0.0
         end[axis] = max(value, 0.0)  # -0.3 -->  0.0; 0.7 --> 0.7
     return (start, end)

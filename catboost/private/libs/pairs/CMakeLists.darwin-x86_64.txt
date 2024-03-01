@@ -17,5 +17,5 @@ target_link_libraries(private-libs-pairs PUBLIC
   private-libs-options
 )
 target_sources(private-libs-pairs PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/pairs/util.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/pairs/util.cpp
 )

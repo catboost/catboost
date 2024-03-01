@@ -27,7 +27,7 @@ target_link_options(catboost-libs-calc_metrics-ut PRIVATE
   -ldl
 )
 target_sources(catboost-libs-calc_metrics-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/calc_metrics/ut/calc_metrics_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/calc_metrics/ut/calc_metrics_ut.cpp
 )
 set_property(
   TARGET
@@ -61,6 +61,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-libs-calc_metrics-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-libs-calc_metrics-ut
   system_allocator

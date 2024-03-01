@@ -56,7 +56,7 @@ def select_random_ports(n: int) -> list[int]:
 # -----------------------------------------------------------------------------
 # Check for passwordless login
 # -----------------------------------------------------------------------------
-_password_pat = re.compile((br"pass(word|phrase):"), re.IGNORECASE)
+_password_pat = re.compile((rb"pass(word|phrase):"), re.IGNORECASE)
 
 
 def try_passwordless_ssh(server: str, keyfile: str | None, paramiko: Any = None) -> Any:

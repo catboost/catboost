@@ -19,14 +19,17 @@ import re
 import sys
 import textwrap
 import types
-from functools import wraps
+import warnings
+from functools import partial, wraps
 from io import StringIO
 from keyword import iskeyword
+from random import _inst as global_random_instance
 from tokenize import COMMENT, detect_encoding, generate_tokens, untokenize
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable
 from unittest.mock import _patch as PatchType
 
+from hypothesis.errors import HypothesisWarning
 from hypothesis.internal.compat import PYPY, is_typed_named_tuple
 from hypothesis.utils.conventions import not_set
 from hypothesis.vendor.pretty import pretty
@@ -306,8 +309,12 @@ def extract_lambda_source(f):
     This is not a good function and I am sorry for it. Forgive me my
     sins, oh lord
     """
+    # You might be wondering how a lambda can have a return-type annotation?
+    # The answer is that we add this at runtime, in new_given_signature(),
+    # and we do support strange choices as applying @given() to a lambda.
     sig = inspect.signature(f)
-    assert sig.return_annotation is inspect.Parameter.empty
+    assert sig.return_annotation in (inspect.Parameter.empty, None), sig
+
     if sig.parameters:
         if_confused = f"lambda {str(sig)[1:-1]}: <unknown>"
     else:
@@ -428,6 +435,8 @@ def extract_lambda_source(f):
 
 
 def get_pretty_function_description(f):
+    if isinstance(f, partial):
+        return pretty(f)
     if not hasattr(f, "__name__"):
         return repr(f)
     name = f.__name__
@@ -438,6 +447,8 @@ def get_pretty_function_description(f):
         # Some objects, like `builtins.abs` are of BuiltinMethodType but have
         # their module as __self__.  This might include c-extensions generally?
         if not (self is None or inspect.isclass(self) or inspect.ismodule(self)):
+            if self is global_random_instance:
+                return f"random.{name}"
             return f"{self!r}.{name}"
     elif isinstance(name, str) and getattr(dict, name, object()) is f:
         # special case for keys/values views in from_type() / ghostwriter output
@@ -472,6 +483,15 @@ def repr_call(f, args, kwargs, *, reorder=True):
     rep = nicerepr(f)
     if rep.startswith("lambda") and ":" in rep:
         rep = f"({rep})"
+    repr_len = len(rep) + sum(len(b) for b in bits)  # approx
+    if repr_len > 30000:
+        warnings.warn(
+            "Generating overly large repr. This is an expensive operation, and with "
+            f"a length of {repr_len//1000} kB is is unlikely to be useful. Use -Wignore "
+            "to ignore the warning, or -Werror to get a traceback.",
+            HypothesisWarning,
+            stacklevel=2,
+        )
     return rep + "(" + ", ".join(bits) + ")"
 
 

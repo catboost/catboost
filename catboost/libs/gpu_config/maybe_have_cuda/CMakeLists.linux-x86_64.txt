@@ -16,5 +16,5 @@ target_link_libraries(libs-gpu_config-maybe_have_cuda PUBLIC
   libs-gpu_config-interface
 )
 target_sources(libs-gpu_config-maybe_have_cuda PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/gpu_config/maybe_have_cuda/get_gpu_device_count_no_cuda.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/gpu_config/maybe_have_cuda/get_gpu_device_count_no_cuda.cpp
 )

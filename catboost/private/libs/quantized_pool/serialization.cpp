@@ -1154,6 +1154,7 @@ namespace NCB {
         //target
         const ERawTargetType rawTargetType = dataProvider->RawTargetData.GetTargetType();
         switch (rawTargetType) {
+            case ERawTargetType::Boolean:
             case ERawTargetType::Integer:
             case ERawTargetType::Float:
                 {

@@ -1,7 +1,7 @@
 """ Test functions for linalg module using the matrix class."""
 import numpy as np
 
-from __tests__.linalg.tests.test_linalg import (
+from __tests__.numpy.linalg.tests.test_linalg import (
     LinalgCase, apply_tag, TestQR as _TestQR, LinalgTestCase,
     _TestNorm2D, _TestNormDoubleBase, _TestNormSingleBase, _TestNormInt64Base,
     SolveCases, InvCases, EigvalsCases, EigCases, SVDCases, CondCases,

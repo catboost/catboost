@@ -317,6 +317,17 @@ void FileGenerator::GeneratePBHeader(io::Printer* printer,
   GenerateBottomHeaderGuard(printer, true);
 }
 
+void FileGenerator::GeneratePBDeps(io::Printer* printer,
+                                   const TProtoStringType& info_path) {
+  Formatter format(printer, variables_);
+
+  GenerateTopHeaderGuard(printer, true, true);
+
+  GenerateDependencyIncludes(printer);
+
+  GenerateBottomHeaderGuard(printer, true, true);
+}
+
 void FileGenerator::DoIncludeFile(const TProtoStringType& google3_name,
                                   bool do_export, io::Printer* printer) {
   Formatter format(printer, variables_);
@@ -1142,7 +1153,7 @@ void FileGenerator::GenerateForwardDeclarations(io::Printer* printer) {
   format("PROTOBUF_NAMESPACE_CLOSE\n");
 }
 
-void FileGenerator::GenerateTopHeaderGuard(io::Printer* printer, bool pb_h) {
+void FileGenerator::GenerateTopHeaderGuard(io::Printer* printer, bool pb_h, bool deps) {
   Formatter format(printer, variables_);
   // Generate top of header.
   format(
@@ -1154,7 +1165,7 @@ void FileGenerator::GenerateTopHeaderGuard(io::Printer* printer, bool pb_h) {
       "\n"
       "#include <limits>\n"
       "#include <string>\n",
-      IncludeGuard(file_, pb_h, options_));
+      IncludeGuard(file_, pb_h, deps, options_));
   if (!options_.opensource_runtime && !enum_generators_.empty()) {
     // Add header to provide std::is_integral for safe Enum_Name() function.
     format("#include <type_traits>\n");
@@ -1162,10 +1173,10 @@ void FileGenerator::GenerateTopHeaderGuard(io::Printer* printer, bool pb_h) {
   format("\n");
 }
 
-void FileGenerator::GenerateBottomHeaderGuard(io::Printer* printer, bool pb_h) {
+void FileGenerator::GenerateBottomHeaderGuard(io::Printer* printer, bool pb_h, bool deps) {
   Formatter format(printer, variables_);
   format("#endif  // $GOOGLE_PROTOBUF$_INCLUDED_$1$\n",
-         IncludeGuard(file_, pb_h, options_));
+         IncludeGuard(file_, pb_h, deps, options_));
 }
 
 void FileGenerator::GenerateLibraryIncludes(io::Printer* printer) {

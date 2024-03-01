@@ -22,5 +22,5 @@ target_link_libraries(catboost-cuda-ut_helpers PUBLIC
   catboost-libs-train_lib
 )
 target_sources(catboost-cuda-ut_helpers PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/ut_helpers/test_utils.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/ut_helpers/test_utils.cpp
 )

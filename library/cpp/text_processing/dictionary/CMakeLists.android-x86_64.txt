@@ -25,24 +25,24 @@ target_link_libraries(cpp-text_processing-dictionary PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(cpp-text_processing-dictionary PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_builder.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_dictionary.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/dictionary.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/dictionary_builder.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/fbs_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/frequency_based_dictionary.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/frequency_based_dictionary_impl.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/mmap_frequency_based_dictionary.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/mmap_frequency_based_dictionary_impl.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/mmap_hash_table.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/multigram_dictionary_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/options.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/serialization_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/util.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_builder.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_dictionary.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/dictionary.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/dictionary_builder.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/fbs_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/frequency_based_dictionary.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/frequency_based_dictionary_impl.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/mmap_frequency_based_dictionary.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/mmap_frequency_based_dictionary_impl.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/mmap_hash_table.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/multigram_dictionary_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/options.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/serialization_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/util.cpp
 )
 generate_enum_serilization(cpp-text_processing-dictionary
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/types.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/types.h
   INCLUDE_HEADERS
   library/cpp/text_processing/dictionary/types.h
 )

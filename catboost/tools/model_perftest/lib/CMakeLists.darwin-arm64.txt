@@ -27,6 +27,6 @@ target_link_libraries(tools-model_perftest-lib.global PUBLIC
   cpp-threading-future
 )
 target_sources(tools-model_perftest-lib.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_perftest/lib/main.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_perftest/lib/perftest_modules.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/model_perftest/lib/main.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/model_perftest/lib/perftest_modules.cpp
 )

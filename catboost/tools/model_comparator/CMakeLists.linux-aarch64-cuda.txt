@@ -35,10 +35,10 @@ target_link_options(model_comparator PRIVATE
   -ldl
 )
 target_sources(model_comparator PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/decl.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/main.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/onnx.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/pmml.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/decl.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/main.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/onnx.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/pmml.cpp
 )
 target_allocator(model_comparator
   cpp-malloc-jemalloc

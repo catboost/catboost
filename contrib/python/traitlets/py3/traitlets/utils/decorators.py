@@ -1,4 +1,5 @@
 """Useful decorators for Traitlets users."""
+from __future__ import annotations
 
 import copy
 from inspect import Parameter, Signature, signature

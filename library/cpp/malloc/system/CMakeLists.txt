@@ -6,7 +6,9 @@
 # original buildsystem will not be accepted.
 
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND NOT HAVE_CUDA)
+  include(CMakeLists.linux-ppc64le.txt)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
   include(CMakeLists.linux-ppc64le-cuda.txt)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
   include(CMakeLists.darwin-x86_64.txt)
@@ -24,6 +26,4 @@ elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
   include(CMakeLists.android-x86.txt)
 elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
   include(CMakeLists.android-x86_64.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le.txt)
 endif()

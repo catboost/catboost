@@ -15,5 +15,5 @@ target_link_libraries(library-cpp-jni PUBLIC
   contrib-libs-jdk
 )
 target_sources(library-cpp-jni PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/jni/jni.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/jni/jni.cpp
 )

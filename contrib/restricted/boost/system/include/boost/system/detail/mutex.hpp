@@ -40,13 +40,20 @@ struct mutex
 // issues. However, shared_mutex is based on SRWLock and its
 // default constructor is constexpr, so we use that instead.
 
+#include <boost/winapi/config.hpp>
+
+// SRWLOCK is not available when targeting Windows XP
+#if BOOST_USE_WINAPI_VERSION >= BOOST_WINAPI_VERSION_WIN6
+
 #include <shared_mutex>
 
 #if BOOST_MSSTL_VERSION >= 142 || _HAS_SHARED_MUTEX
 # define BOOST_SYSTEM_HAS_MSSTL_SHARED_MUTEX
 #endif
 
-#endif
+#endif // BOOST_MSSTL_VERSION >= 142 || _HAS_SHARED_MUTEX
+
+#endif // BOOST_USE_WINAPI_VERSION >= BOOST_WINAPI_VERSION_WIN6
 
 #if defined(BOOST_SYSTEM_HAS_MSSTL_SHARED_MUTEX)
 

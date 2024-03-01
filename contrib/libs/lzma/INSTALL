@@ -22,13 +22,16 @@ XZ Utils Installation
     3. xzgrep and other scripts
        3.1. Dependencies
        3.2. PATH
-    4. Troubleshooting
-       4.1. "No C99 compiler was found."
-       4.2. "No POSIX conforming shell (sh) was found."
-       4.3. configure works but build fails at crc32_x86.S
-       4.4. Lots of warnings about symbol visibility
-       4.5. "make check" fails
-       4.6. liblzma.so (or similar) not found when running xz
+    4. Tests
+       4.1 Testing in parallel
+       4.2 Cross compiling
+    5. Troubleshooting
+       5.1. "No C99 compiler was found."
+       5.2. "No POSIX conforming shell (sh) was found."
+       5.3. configure works but build fails at crc32_x86.S
+       5.4. Lots of warnings about symbol visibility
+       5.5. "make check" fails
+       5.6. liblzma.so (or similar) not found when running xz
 
 
 0. Preface
@@ -100,7 +103,7 @@ XZ Utils Installation
     XZ Utils doesn't have code to detect the amount of physical RAM and
     number of CPU cores on MINIX 3.
 
-    See section 4.4 in this file about symbol visibility warnings (you
+    See section 5.4 in this file about symbol visibility warnings (you
     may want to pass gl_cv_cc_visibility=no to configure).
 
 
@@ -127,14 +130,14 @@ XZ Utils Installation
     missing from PATH (/usr/xpg4/bin or /usr/xpg6/bin). Nowadays
     /usr/xpg4/bin is added to the script PATH by default on Solaris
     (see --enable-path-for-scripts=PREFIX in section 2), but old xz
-    releases needed extra steps. See sections 4.5 and 3.2 for more
+    releases needed extra steps. See sections 5.5 and 3.2 for more
     information.
 
 
 1.2.6. Tru64
 
     If you try to use the native C compiler on Tru64 (passing CC=cc to
-    configure), you may need the workaround mention in section 4.1 in
+    configure), you may need the workaround mention in section 5.1 in
     this file (pass also ac_cv_prog_cc_c99= to configure).
 
 
@@ -455,8 +458,10 @@ XZ Utils Installation
                         win95   Use Windows 95 compatible threads. This
                                 is compatible with Windows XP and later
                                 too. This is the default for 32-bit x86
-                                Windows builds. The `win95' threading is
-                                incompatible with --enable-small.
+                                Windows builds. Unless the compiler
+                                supports __attribute__((__constructor__)),
+                                the `win95' threading is incompatible with
+                                --enable-small.
 
                         vista   Use Windows Vista compatible threads. The
                                 resulting binaries won't run on Windows XP
@@ -596,7 +601,7 @@ XZ Utils Installation
     a fallback xzdiff will use mkdir to securely create a temporary
     directory. Having mktemp available is still recommended since the
     mkdir fallback method isn't as robust as mktemp is. The original
-    mktemp can be found from <http://www.mktemp.org/>. On GNU, most will
+    mktemp can be found from <https://www.mktemp.org/>. On GNU, most will
     use the mktemp program from GNU coreutils instead of the original
     implementation. Both mktemp versions are fine.
 
@@ -624,10 +629,54 @@ XZ Utils Installation
                 src/scripts/xz*.in
 
 
-4. Troubleshooting
+4. Tests
+--------
+
+    The test framework can be built and run by executing "make check" in
+    the build directory. The tests are a mix of executables and POSIX
+    shell scripts (sh). All tests should pass if the default configuration
+    is used. Disabling features through the configure options may cause
+    some tests to be skipped. If any tests do not pass, see section 5.5.
+
+
+4.1. Testing in parallel
+
+    The tests can be run in parallel using the "-j" make option on systems
+    that support it. For instance, "make -j4 check" will run up to four
+    tests simultaneously.
+
+
+4.2. Cross compiling
+
+    The tests can be built without running them:
+
+        make check TESTS=
+
+    The TESTS variable is the list of tests you wish to run. Leaving it
+    empty will compile the tests without running any.
+
+    If the tests are copied to a target machine to execute, the test data
+    files in the directory tests/files must also be copied. The tests
+    search for the data files using the environment variable $srcdir,
+    expecting to find the data files under $srcdir/files/. If $srcdir
+    isn't set then it defaults to the current directory.
+
+    The shell script tests can be copied from the source directory to the
+    target machine to execute. In addition to the test files, these tests
+    will expect the following relative file paths to execute properly:
+
+        ./create_compress_files
+        ../config.h
+        ../src/xz/xz
+        ../src/xzdec/xzdec
+        ../src/scripts/xzdiff
+        ../src/scripts/xzgrep
+
+
+5. Troubleshooting
 ------------------
 
-4.1. "No C99 compiler was found."
+5.1. "No C99 compiler was found."
 
     You need a C99 compiler to build XZ Utils. If the configure script
     cannot find a C99 compiler and you think you have such a compiler
@@ -642,7 +691,7 @@ XZ Utils Installation
     support enough C99.
 
 
-4.2. "No POSIX conforming shell (sh) was found."
+5.2. "No POSIX conforming shell (sh) was found."
 
     xzgrep and other scripts need a shell that (roughly) conforms
     to POSIX. The configure script tries to find such a shell. If
@@ -652,7 +701,7 @@ XZ Utils Installation
     this error by passing --disable-scripts to configure.
 
 
-4.3. configure works but build fails at crc32_x86.S
+5.3. configure works but build fails at crc32_x86.S
 
     The easy fix is to pass --disable-assembler to the configure script.
 
@@ -669,7 +718,7 @@ XZ Utils Installation
     (see INSTALL.generic).
 
 
-4.4. Lots of warnings about symbol visibility
+5.4. Lots of warnings about symbol visibility
 
     On some systems where symbol visibility isn't supported, GCC may
     still accept the visibility options and attributes, which will make
@@ -681,7 +730,7 @@ XZ Utils Installation
     using --enable-werror.
 
 
-4.5. "make check" fails
+5.5. "make check" fails
 
     If the other tests pass but test_scripts.sh fails, then the problem
     is in the scripts in src/scripts. Comparing the contents of
@@ -707,7 +756,7 @@ XZ Utils Installation
     information.
 
 
-4.6. liblzma.so (or similar) not found when running xz
+5.6. liblzma.so (or similar) not found when running xz
 
     If you installed the package with "make install" and get an error
     about liblzma.so (or a similarly named file) being missing, try

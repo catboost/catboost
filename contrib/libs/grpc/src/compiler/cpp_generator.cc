@@ -114,6 +114,9 @@ TString GetHeaderPrologue(grpc_generator::File* file,
     printer->Print(vars, "#pragma GCC system_header\n");
     printer->Print(vars, "#endif\n");
     printer->Print(vars, "\n");
+    printer->Print(vars, "#if __has_include(\"$filename_base$.deps$message_header_ext$\")\n");
+    printer->Print(vars, "#include \"$filename_base$.deps$message_header_ext$\"\n");
+    printer->Print(vars, "#endif\n");
     printer->Print(vars, "#include \"$filename_base$$message_header_ext$\"\n");
     printer->Print(vars, file->additional_headers().c_str());
     printer->Print(vars, "\n");

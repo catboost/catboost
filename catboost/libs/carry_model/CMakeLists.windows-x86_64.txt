@@ -15,5 +15,5 @@ target_link_libraries(catboost-libs-carry_model PUBLIC
   catboost-libs-model
 )
 target_sources(catboost-libs-carry_model PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/carry_model/carry.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/carry_model/carry.cpp
 )

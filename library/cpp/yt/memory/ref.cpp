@@ -4,6 +4,8 @@
 
 #include <library/cpp/yt/malloc/malloc.h>
 
+#include <library/cpp/yt/misc/port.h>
+
 #include <util/system/info.h>
 #include <util/system/align.h>
 

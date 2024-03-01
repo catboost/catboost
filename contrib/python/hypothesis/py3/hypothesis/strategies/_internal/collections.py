@@ -15,6 +15,7 @@ from hypothesis.errors import InvalidArgument
 from hypothesis.internal.conjecture import utils as cu
 from hypothesis.internal.conjecture.junkdrawer import LazySequenceCopy
 from hypothesis.internal.conjecture.utils import combine_labels
+from hypothesis.internal.filtering import get_integer_predicate_bounds
 from hypothesis.internal.reflection import is_identity_function
 from hypothesis.strategies._internal.strategies import (
     T3,
@@ -199,7 +200,22 @@ class ListStrategy(SearchStrategy):
             new = copy.copy(self)
             new.min_size = 1
             return new
-        return super().filter(condition)
+
+        kwargs, pred = get_integer_predicate_bounds(condition)
+        if kwargs.get("len") and ("min_value" in kwargs or "max_value" in kwargs):
+            new = copy.copy(self)
+            new.min_size = max(self.min_size, kwargs.get("min_value", self.min_size))
+            new.max_size = min(self.max_size, kwargs.get("max_value", self.max_size))
+            # Recompute average size; this is cheaper than making it into a property.
+            new.average_size = min(
+                max(new.min_size * 2, new.min_size + 5),
+                0.5 * (new.min_size + new.max_size),
+            )
+            if pred is None:
+                return new
+            return SearchStrategy.filter(new, condition)
+
+        return SearchStrategy.filter(self, condition)
 
 
 class UniqueListStrategy(ListStrategy):
@@ -260,7 +276,7 @@ class UniqueSampledListStrategy(UniqueListStrategy):
 
         while remaining and should_draw.more():
             i = len(remaining) - 1
-            j = cu.integer_range(data, 0, i)
+            j = data.draw_integer(0, i)
             if j != i:
                 remaining[i], remaining[j] = remaining[j], remaining[i]
             value = self.element_strategy._transform(remaining.pop())
@@ -330,7 +346,7 @@ class FixedAndOptionalKeysDictStrategy(SearchStrategy):
             data, min_size=0, max_size=len(remaining), average_size=len(remaining) / 2
         )
         while should_draw.more():
-            j = cu.integer_range(data, 0, len(remaining) - 1)
+            j = data.draw_integer(0, len(remaining) - 1)
             remaining[-1], remaining[j] = remaining[j], remaining[-1]
             key = remaining.pop()
             result[key] = data.draw(self.optional[key])

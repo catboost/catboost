@@ -169,7 +169,7 @@ def _remove_nan_1d(arr1d, overwrite_input=False):
     s = np.nonzero(c)[0]
     if s.size == arr1d.size:
         warnings.warn("All-NaN slice encountered", RuntimeWarning,
-                      stacklevel=5)
+                      stacklevel=6)
         return arr1d[:0], True
     elif s.size == 0:
         return arr1d, overwrite_input
@@ -343,7 +343,7 @@ def nanmin(a, axis=None, out=None, keepdims=np._NoValue, initial=np._NoValue,
         res = np.fmin.reduce(a, axis=axis, out=out, **kwargs)
         if np.isnan(res).any():
             warnings.warn("All-NaN slice encountered", RuntimeWarning,
-                          stacklevel=3)
+                          stacklevel=2)
     else:
         # Slow, but safe for subclasses of ndarray
         a, mask = _replace_nan(a, +np.inf)
@@ -357,7 +357,7 @@ def nanmin(a, axis=None, out=None, keepdims=np._NoValue, initial=np._NoValue,
         if np.any(mask):
             res = _copyto(res, np.nan, mask)
             warnings.warn("All-NaN axis encountered", RuntimeWarning,
-                          stacklevel=3)
+                          stacklevel=2)
     return res
 
 
@@ -476,7 +476,7 @@ def nanmax(a, axis=None, out=None, keepdims=np._NoValue, initial=np._NoValue,
         res = np.fmax.reduce(a, axis=axis, out=out, **kwargs)
         if np.isnan(res).any():
             warnings.warn("All-NaN slice encountered", RuntimeWarning,
-                          stacklevel=3)
+                          stacklevel=2)
     else:
         # Slow, but safe for subclasses of ndarray
         a, mask = _replace_nan(a, -np.inf)
@@ -490,7 +490,7 @@ def nanmax(a, axis=None, out=None, keepdims=np._NoValue, initial=np._NoValue,
         if np.any(mask):
             res = _copyto(res, np.nan, mask)
             warnings.warn("All-NaN axis encountered", RuntimeWarning,
-                          stacklevel=3)
+                          stacklevel=2)
     return res
 
 
@@ -1049,7 +1049,7 @@ def nanmean(a, axis=None, dtype=None, out=None, keepdims=np._NoValue,
 
     isbad = (cnt == 0)
     if isbad.any():
-        warnings.warn("Mean of empty slice", RuntimeWarning, stacklevel=3)
+        warnings.warn("Mean of empty slice", RuntimeWarning, stacklevel=2)
         # NaN is the only possible bad value, so no further
         # action is needed to handle bad results.
     return avg
@@ -1109,7 +1109,7 @@ def _nanmedian_small(a, axis=None, out=None, overwrite_input=False):
     m = np.ma.median(a, axis=axis, overwrite_input=overwrite_input)
     for i in range(np.count_nonzero(m.mask.ravel())):
         warnings.warn("All-NaN slice encountered", RuntimeWarning,
-                      stacklevel=4)
+                      stacklevel=5)
 
     fill_value = np.timedelta64("NaT") if m.dtype.kind == "m" else np.nan
     if out is not None:
@@ -1373,6 +1373,9 @@ def nanpercentile(
             method, interpolation, "nanpercentile")
 
     a = np.asanyarray(a)
+    if a.dtype.kind == "c":
+        raise TypeError("a must be an array of real numbers")
+
     q = np.true_divide(q, 100.0)
     # undo any decay that the ufunc performed (see gh-13105)
     q = np.asanyarray(q)
@@ -1412,8 +1415,8 @@ def nanquantile(
         Input array or object that can be converted to an array, containing
         nan values to be ignored
     q : array_like of float
-        Quantile or sequence of quantiles to compute, which must be between
-        0 and 1 inclusive.
+        Probability or sequence of probabilities for the quantiles to compute.
+        Values must be between 0 and 1 inclusive.
     axis : {int, tuple of int, None}, optional
         Axis or axes along which the quantiles are computed. The
         default is to compute the quantile(s) along a flattened
@@ -1473,8 +1476,8 @@ def nanquantile(
     Returns
     -------
     quantile : scalar or ndarray
-        If `q` is a single percentile and `axis=None`, then the result
-        is a scalar. If multiple quantiles are given, first axis of
+        If `q` is a single probability and `axis=None`, then the result
+        is a scalar. If multiple probability levels are given, first axis of
         the result corresponds to the quantiles. The other axes are
         the axes that remain after the reduction of `a`. If the input
         contains integers or floats smaller than ``float64``, the output
@@ -1527,11 +1530,15 @@ def nanquantile(
        The American Statistician, 50(4), pp. 361-365, 1996
 
     """
+
     if interpolation is not None:
         method = function_base._check_interpolation_as_method(
             method, interpolation, "nanquantile")
 
     a = np.asanyarray(a)
+    if a.dtype.kind == "c":
+        raise TypeError("a must be an array of real numbers")
+
     q = np.asanyarray(q)
     if not function_base._quantile_is_valid(q):
         raise ValueError("Quantiles must be in the range [0, 1]")
@@ -1756,7 +1763,7 @@ def nanvar(a, axis=None, dtype=None, out=None, ddof=0, keepdims=np._NoValue,
     isbad = (dof <= 0)
     if np.any(isbad):
         warnings.warn("Degrees of freedom <= 0 for slice.", RuntimeWarning,
-                      stacklevel=3)
+                      stacklevel=2)
         # NaN, inf, or negative numbers are all possible bad
         # values, so explicitly replace them with NaN.
         var = _copyto(var, np.nan, isbad)

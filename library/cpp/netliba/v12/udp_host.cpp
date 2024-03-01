@@ -1784,7 +1784,7 @@ namespace NNetliba_v12 {
 
     TString TUdpHost::GetPendingDataStatsDebug(const TRequesterPendingDataStats& pds) const {
         char buf[1000];
-        sprintf(buf, "\tPending data size: %" PRIu64 "\n\t\tin packets: %d, size %" PRIu64 "\n\t\tout packets: %d, size %" PRIu64 "\n",
+        snprintf(buf, sizeof(buf), "\tPending data size: %" PRIu64 "\n\t\tin packets: %d, size %" PRIu64 "\n\t\tout packets: %d, size %" PRIu64 "\n",
                 pds.InpDataSize + pds.OutDataSize,
                 pds.InpCount, pds.InpDataSize,
                 pds.OutCount, pds.OutDataSize);
@@ -1803,7 +1803,7 @@ namespace NNetliba_v12 {
             const TRequesterPendingDataStats& pds = *TotalPendingDataStats;
             TString res;
             char buf[1000];
-            sprintf(buf, "Receiving %d transfers, sending %d system prior, sending %d high prior, %d regular, %d low prior\n",
+            snprintf(buf, sizeof(buf), "Receiving %d transfers, sending %d system prior, sending %d high prior, %d regular, %d low prior\n",
                     pds.InpCount, (int)SendOrderSystem.size(), (int)SendOrderHigh.size(), (int)SendOrder.size(), (int)SendOrderLow.size());
             res += buf;
 
@@ -1813,7 +1813,7 @@ namespace NNetliba_v12 {
             for (TColoredRequesterPendingDataStats::const_iterator i = ColoredPendingDataStats.Begin(); i != ColoredPendingDataStats.End(); ++i) {
                 const TRequesterPendingDataStats& p = *(i->second);
                 if (p.InpCount || p.OutCount) {
-                    sprintf(buf, "Pending data stats for color \"%d\":\n", (int)i->first);
+                    snprintf(buf, sizeof(buf), "Pending data stats for color \"%d\":\n", (int)i->first);
                     res += buf;
                     res += GetPendingDataStatsDebug(p);
                 }

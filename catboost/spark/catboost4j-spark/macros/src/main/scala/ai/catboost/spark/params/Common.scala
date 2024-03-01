@@ -19,7 +19,7 @@ private[spark] object ParamGetterSetterMacro {
           val capitalizedId = TermName(id.decodedName.toString.capitalize)
           val getId = TermName("get" + capitalizedId)
           val setId = TermName("set" + capitalizedId)
-          
+
           val paramValueType = paramType match {
             case tq"Param[..$typeList]" => {
               if (typeList.size != 1) {
@@ -64,7 +64,7 @@ private[spark] object ParamGetterSetterMacro {
           }
 
           q"""
-            final val $id: $paramType = new $paramType2(this, $name, $doc); 
+            final val $id: $paramType = new $paramType2(this, $name, $doc);
             final def $getId: $paramValueType = $$($id);
             final def $setId(value: $paramValueType): this.type = set($id, value)
           """

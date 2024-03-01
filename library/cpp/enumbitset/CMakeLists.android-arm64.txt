@@ -13,5 +13,5 @@ target_link_libraries(library-cpp-enumbitset PUBLIC
   yutil
 )
 target_sources(library-cpp-enumbitset PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/enumbitset/enumbitset.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/enumbitset/enumbitset.cpp
 )

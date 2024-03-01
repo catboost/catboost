@@ -11,9 +11,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 OWNER(g:python-contrib)
 
-VERSION(0.29.36)
+VERSION(0.29.37)
 
-ORIGINAL_SOURCE(mirror://pypi/C/Cython/Cython-0.29.36.tar.gz)
+ORIGINAL_SOURCE(mirror://pypi/C/Cython/Cython-0.29.37.tar.gz)
 
 NO_LINT()
 

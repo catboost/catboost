@@ -1839,6 +1839,16 @@
             "uri": "file://test.test_dist_train_yetirank/test_1.eval"
         }
     ],
+    "test.test_embedding_ignored_features[Ordered]": [
+        {
+            "uri": "file://test.test_embedding_ignored_features_Ordered_/test.eval"
+        }
+    ],
+    "test.test_embedding_ignored_features[Plain]": [
+        {
+            "uri": "file://test.test_embedding_ignored_features_Plain_/test.eval"
+        }
+    ],
     "test.test_embeddings_processing_options[KNNparam+LDAparam]": [
         {
             "uri": "file://test.test_embeddings_processing_options_KNNparam+LDAparam_/learn.tsv"

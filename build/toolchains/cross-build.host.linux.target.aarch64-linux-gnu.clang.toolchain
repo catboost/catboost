@@ -16,8 +16,10 @@ set(CMAKE_CXX_STANDARD_LIBRARIES "-lc -lm")
 set(CMAKE_ASM_FLAGS "-target aarch64-linux-gnu -I/usr/aarch64-linux-gnu/include/")
 
 set(CMAKE_CUDA_COMPILER nvcc)
-set(CMAKE_CUDA_HOST_COMPILER clang)
+set(CMAKE_CUDA_HOST_COMPILER clang-12)
 set(CMAKE_CUDA_STANDARD_INCLUDE_DIRECTORIES /usr/aarch64-linux-gnu/include/)
+
+set(CMAKE_CUDA_FLAGS_INIT "--allow-unsupported-compiler")
 
 if (NOT APPLE)
   set(CMAKE_EXE_LINKER_FLAGS -fuse-ld=lld)

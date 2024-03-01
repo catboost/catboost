@@ -103,7 +103,6 @@ Compile options
              extension is available at https://pypi.python.org/pypi/zopfli
 """
 
-
 from fontTools.ttLib import TTFont, TTLibError
 from fontTools.misc.macCreatorType import getMacCreatorAndType
 from fontTools.unicode import setUnicodeData
@@ -124,7 +123,6 @@ opentypeheaderRE = re.compile("""sfntVersion=['"]OTTO["']""")
 
 
 class Options(object):
-
     listTables = False
     outputDir = None
     outputFile = None

@@ -503,14 +503,6 @@ bool NCB::TQuantizedPoolLoadersCache::HaveLoader(const TPathWithScheme& pathWith
     }
 }
 
-bool NCB::TQuantizedPoolLoadersCache::IsEmpty() {
-    auto& loadersCache = GetRef();
-    with_lock(loadersCache.Lock) {
-        CATBOOST_DEBUG_LOG << __PRETTY_FUNCTION__ << ": loaders cache size " << loadersCache.Cache.size() << Endl;
-        return loadersCache.Cache.empty();
-    }
-}
-
 void NCB::TQuantizedPoolLoadersCache::DropAllLoaders() {
     auto& loadersCache = GetRef();
     with_lock(loadersCache.Lock) {

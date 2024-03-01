@@ -20,7 +20,7 @@
 #include <openssl/buffer.h>
 
 #ifdef OPENSSL_SYS_VMS
-# include <unixio.h>
+# error #include <unixio.h>
 #endif
 #include <sys/types.h>
 #ifndef OPENSSL_NO_POSIX_IO

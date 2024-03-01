@@ -9,7 +9,7 @@
 
 add_executable(catboost-cuda-train_lib-ut)
 target_include_directories(catboost-cuda-train_lib-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/train_lib
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib
 )
 target_link_libraries(catboost-cuda-train_lib-ut PUBLIC
   contrib-libs-linux-headers
@@ -35,8 +35,8 @@ target_link_options(catboost-cuda-train_lib-ut PRIVATE
   -lcudart_static
 )
 target_sources(catboost-cuda-train_lib-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/train_lib/ut/dummy_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/train_lib/ut/train_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/ut/dummy_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/ut/train_ut.cpp
 )
 set_property(
   TARGET
@@ -70,6 +70,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-cuda-train_lib-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-cuda-train_lib-ut
   cpp-malloc-jemalloc

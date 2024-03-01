@@ -29,6 +29,7 @@ We define **native artifacts** as build system artifacts that contain native cod
 ## Targets {#targets}
 
 CMakeFiles for {{ product }} CMake projects contain different targets that correspond to native artifacts.
+
 Final targets that are important:
 
 |Target|Component|Output location|Description|
@@ -41,6 +42,14 @@ Final targets that are important:
 | `catboost4j-prediction` | `jvm-packages` | `$CMAKE_BINARY_DIR/catboost/jvm-packages/catboost4j-prediction/src/native_impl` | JVM applier JNI shared library |
 | `catboost4j-spark-impl` | `spark` | `$CMAKE_BINARY_DIR/catboost/spark/catboost4j-spark/core/src/native_impl` | Spark native JNI shared library part |
 | `catboostr` | `R-package` | `$CMAKE_BINARY_DIR/catboost/R-package/src` | R package shared library |
+
+Supplementary utilities targets (used for testing):
+
+|Target|Output location|Description|
+|------|---------------|-----------|
+|`limited_precision_dsv_diff` |  `$CMAKE_BINARY_DIR/catboost/tools/limited_precision_dsv_diff` | Utility to compare dsv files that may contain floating point numbers with limited precision |
+|`limited_precision_json_diff` |  `$CMAKE_BINARY_DIR/catboost/tools/limited_precision_json_diff` | Utility to compare JSON files that may contain floating point numbers with limited precision |
+|`model_comparator` |  `$CMAKE_BINARY_DIR/catboost/tools/model_comparator` | Utility to compare models saved as files |
 
 ## Build using `build_native.py` {#build-build-native}
 

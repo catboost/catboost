@@ -15,5 +15,5 @@ target_link_libraries(cpp-streams-bzip2 PUBLIC
   contrib-libs-libbz2
 )
 target_sources(cpp-streams-bzip2 PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/streams/bzip2/bzip2.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/streams/bzip2/bzip2.cpp
 )

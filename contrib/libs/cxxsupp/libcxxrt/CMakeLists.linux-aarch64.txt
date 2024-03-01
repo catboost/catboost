@@ -13,18 +13,18 @@ target_compile_options(libs-cxxsupp-libcxxrt PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-cxxsupp-libcxxrt PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt
 )
 target_link_libraries(libs-cxxsupp-libcxxrt PUBLIC
   contrib-libs-linux-headers
   contrib-libs-libunwind
 )
 target_sources(libs-cxxsupp-libcxxrt PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/auxhelper.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/dynamic_cast.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/exception.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/guard.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/memory.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/stdexcept.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/typeinfo.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/auxhelper.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/dynamic_cast.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/exception.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/guard.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/memory.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/stdexcept.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/typeinfo.cc
 )

@@ -464,6 +464,11 @@ private[spark] object DatasetLoadingContext {
            stringLabelData.add(row.getAs[String](fieldIdx))
         }
       }
+      case DataTypes.BooleanType => {
+        row => {
+           floatLabelData += (if (row.getAs[Boolean](fieldIdx)) 1.0f else 0.0f)
+        }
+      }
       case _ => throw new CatBoostError("Unsupported data type for Label")
     }
   }
@@ -532,7 +537,7 @@ private[spark] object DatasetLoadingContext {
       )
       postprocessingCallbacks += {
         () => dataMetaInfo.getTargetType match {
-          case ERawTargetType.Float | ERawTargetType.Integer =>
+          case ERawTargetType.Float | ERawTargetType.Integer | ERawTargetType.Boolean =>
             visitor.AddTarget(floatLabelData.result)
           case ERawTargetType.String => visitor.AddTarget(stringLabelData)
           case _ =>

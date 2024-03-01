@@ -17,5 +17,5 @@ target_link_libraries(cpp-yt-assert PUBLIC
   yutil
 )
 target_sources(cpp-yt-assert PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/assert/assert.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/assert/assert.cpp
 )

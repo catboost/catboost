@@ -123,17 +123,12 @@ namespace NPyBind {
 
         Checkers.push_back(new TPyErrExceptionsChecker);
 
-        // XXX: In Python 2.6, PyImport_AppendInittab() function takes non-const char*, this causes
-        // "ISO C++11 does not allow conversion from string literal to 'char *'" warning.
-        static char pybind[] = "pybind";
 #if PY_MAJOR_VERSION >= 3
-        PyImport_AppendInittab(pybind, DoInitPyBindModule);
-
         NPrivate::AddFinalizationCallBack([this]() {
             Clear();
         });
 #else
-        PyImport_AppendInittab(pybind, DoInitPyBindModule2);
+        PyImport_AppendInittab("pybind", DoInitPyBindModule2);
 #endif
     }
 

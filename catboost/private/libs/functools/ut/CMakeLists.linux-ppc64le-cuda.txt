@@ -9,7 +9,7 @@
 
 add_executable(catboost-private-libs-functools-ut)
 target_include_directories(catboost-private-libs-functools-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/functools
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/functools
 )
 target_link_libraries(catboost-private-libs-functools-ut PUBLIC
   contrib-libs-linux-headers
@@ -29,7 +29,7 @@ target_link_options(catboost-private-libs-functools-ut PRIVATE
   -ldl
 )
 target_sources(catboost-private-libs-functools-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/functools/ut/forward_as_const_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/functools/ut/forward_as_const_ut.cpp
 )
 set_property(
   TARGET
@@ -63,6 +63,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-private-libs-functools-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-private-libs-functools-ut
   system_allocator

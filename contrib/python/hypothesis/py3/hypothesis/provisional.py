@@ -146,9 +146,11 @@ def domains(
 _url_fragments_strategy = (
     st.lists(
         st.builds(
-            lambda char, encode: f"%{ord(char):02X}"
-            if (encode or char not in FRAGMENT_SAFE_CHARACTERS)
-            else char,
+            lambda char, encode: (
+                f"%{ord(char):02X}"
+                if (encode or char not in FRAGMENT_SAFE_CHARACTERS)
+                else char
+            ),
             st.characters(min_codepoint=0, max_codepoint=255),
             st.booleans(),
         ),

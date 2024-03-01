@@ -485,7 +485,7 @@ class ConfigDiscovery:
         """
         if self.dist.metadata.name or self.dist.name:
             # get_name() is not reliable (can return "UNKNOWN")
-            return None
+            return
 
         log.debug("No `name` configuration, performing automatic discovery")
 

@@ -116,6 +116,7 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None, _min_step
         machine = factory()
         check_type(RuleBasedStateMachine, machine, "state_machine_factory()")
         cd.hypothesis_runner = machine
+        machine._observability_predicates = cd._observability_predicates  # alias
 
         print_steps = (
             current_build_context().is_final or current_verbosity() >= Verbosity.debug
@@ -140,7 +141,7 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None, _min_step
                     must_stop = True
                 elif steps_run <= _min_steps:
                     must_stop = False
-                if cu.biased_coin(cd, 2**-16, forced=must_stop):
+                if cd.draw_boolean(p=2**-16, forced=must_stop):
                     break
                 steps_run += 1
 
@@ -220,9 +221,10 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None, _min_step
 class StateMachineMeta(type):
     def __setattr__(cls, name, value):
         if name == "settings" and isinstance(value, Settings):
+            descr = f"settings({value.show_changed()})"
             raise AttributeError(
-                f"Assigning {cls.__name__}.settings = {value} does nothing. Assign "
-                f"to {cls.__name__}.TestCase.settings, or use @{value} as a decorator "
+                f"Assigning {cls.__name__}.settings = {descr} does nothing. Assign "
+                f"to {cls.__name__}.TestCase.settings, or use @{descr} as a decorator "
                 f"on the {cls.__name__} class."
             )
         return super().__setattr__(name, value)
@@ -231,11 +233,12 @@ class StateMachineMeta(type):
 class RuleBasedStateMachine(metaclass=StateMachineMeta):
     """A RuleBasedStateMachine gives you a structured way to define state machines.
 
-    The idea is that a state machine carries a bunch of types of data
-    divided into Bundles, and has a set of rules which may read data
-    from bundles (or just from normal strategies) and push data onto
-    bundles. At any given point a random applicable rule will be
-    executed.
+    The idea is that a state machine carries the system under test and some supporting
+    data. This data can be stored in instance variables or
+    divided into Bundles. The state machine has a set of rules which may read data
+    from bundles (or just from normal strategies), push data onto
+    bundles, change the state of the machine, or verify properties.
+    At any given point a random applicable rule will be executed.
     """
 
     _rules_per_class: ClassVar[Dict[type, List[classmethod]]] = {}
@@ -254,6 +257,15 @@ class RuleBasedStateMachine(metaclass=StateMachineMeta):
         )
         self._initialize_rules_to_run = copy(self.initialize_rules())
         self._rules_strategy = RuleStrategy(self)
+
+        if isinstance(s := vars(type(self)).get("settings"), Settings):
+            tname = type(self).__name__
+            descr = f"settings({s.show_changed()})"
+            raise InvalidDefinition(
+                f"Assigning settings = {descr} as a class attribute does nothing. "
+                f"Assign to {tname}.TestCase.settings, or use @{descr} as a decorator "
+                f"on the {tname} class."
+            )
 
     def _pretty_print(self, value):
         if isinstance(value, VarReference):
@@ -392,7 +404,7 @@ class RuleBasedStateMachine(metaclass=StateMachineMeta):
             settings = Settings(deadline=None, suppress_health_check=list(HealthCheck))
 
             def runTest(self):
-                run_state_machine_as_test(cls)
+                run_state_machine_as_test(cls, settings=self.settings)
 
             runTest.is_hypothesis_test = True
 
@@ -440,14 +452,35 @@ class BundleReferenceStrategy(SearchStrategy):
         # Shrink towards the right rather than the left. This makes it easier
         # to delete data generated earlier, as when the error is towards the
         # end there can be a lot of hard to remove padding.
-        position = cu.integer_range(data, 0, len(bundle) - 1, center=len(bundle))
+        position = data.draw_integer(0, len(bundle) - 1, shrink_towards=len(bundle))
         if self.consume:
-            return bundle.pop(position)
+            return bundle.pop(position)  # pragma: no cover  # coverage is flaky here
         else:
             return bundle[position]
 
 
 class Bundle(SearchStrategy[Ex]):
+    """A collection of values for use in stateful testing.
+
+    Bundles are a kind of strategy where values can be added by rules,
+    and (like any strategy) used as inputs to future rules.
+
+    The ``name`` argument they are passed is the they are referred to
+    internally by the state machine; no two bundles may have
+    the same name. It is idiomatic to use the attribute
+    being assigned to as the name of the Bundle::
+
+        class MyStateMachine(RuleBasedStateMachine):
+            keys = Bundle("keys")
+
+    Bundles can contain the same value more than once; this becomes
+    relevant when using :func:`~hypothesis.stateful.consumes` to remove
+    values again.
+
+    If the ``consume`` argument is set to True, then all values that are
+    drawn from this bundle will be consumed (as above) when requested.
+    """
+
     def __init__(self, name: str, *, consume: bool = False) -> None:
         self.name = name
         self.__reference_strategy = BundleReferenceStrategy(name, consume=consume)
@@ -627,7 +660,7 @@ def rule(
     ``targets`` will define where the end result of this function should go. If
     both are empty then the end result will be discarded.
 
-    ``target`` must be a Bundle, or if the result should go to multiple
+    ``target`` must be a Bundle, or if the result should be replicated to multiple
     bundles you can pass a tuple of them as the ``targets`` argument.
     It is invalid to use both arguments for a single rule.  If the result
     should go to exactly one of several bundles, define a separate rule for
@@ -931,8 +964,14 @@ class RuleStrategy(SearchStrategy):
         return (rule, data.draw(rule.arguments_strategy))
 
     def is_valid(self, rule):
-        if not all(precond(self.machine) for precond in rule.preconditions):
-            return False
+        predicates = self.machine._observability_predicates
+        desc = f"{self.machine.__class__.__qualname__}, rule {rule.function.__name__},"
+        for pred in rule.preconditions:
+            meets_precond = pred(self.machine)
+            where = f"{desc} precondition {get_pretty_function_description(pred)}"
+            predicates[where]["satisfied" if meets_precond else "unsatisfied"] += 1
+            if not meets_precond:
+                return False
 
         for b in rule.bundles:
             bundle = self.machine.bundle(b.name)

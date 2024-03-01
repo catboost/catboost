@@ -1,11 +1,21 @@
 #include "v2.h"
 namespace NPyBind {
     namespace Detail {
-        template <>
-        PyTypeObject* GetParentType<void>(const TPyModuleDefinition&) {
-            return nullptr;
+
+        TVector<PyTypeObject*> GetParentTypes(const TVector<TParentData>& parentsData) {
+            TVector<PyTypeObject*> res;
+            Transform(
+                parentsData.begin(),
+                parentsData.end(),
+                back_inserter(res),
+                [](const TParentData& el) { return el.ParentType; }
+            );
+            return res;
         }
 
+        TString DefaultParentResolver(const TString&, const THashSet<TString>& parentModules) {
+            return *parentModules.begin();
+        }
 
         template <bool InitEnabled>
         void UpdateClassNamesInModule(TPyModuleDefinition& M, const TString& name, PyTypeObject* pythonType) {

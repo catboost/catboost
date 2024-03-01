@@ -39,11 +39,11 @@
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/is_arithmetic.hpp>
 
+#include <boost/lexical_cast/detail/buffer_view.hpp>
 #include <boost/lexical_cast/detail/is_character.hpp>
 #include <boost/lexical_cast/detail/converter_numeric.hpp>
 #include <boost/lexical_cast/detail/converter_lexical.hpp>
 
-#include <boost/range/iterator_range_core.hpp>
 #include <boost/container/container_fwd.hpp>
 
 namespace boost {
@@ -164,7 +164,7 @@ namespace boost {
         template <typename Target, typename Source>
         inline bool try_lexical_convert(const Source& arg, Target& result)
         {
-            typedef BOOST_DEDUCED_TYPENAME boost::detail::array_to_pointer_decay<Source>::type src;
+            typedef typename boost::detail::array_to_pointer_decay<Source>::type src;
 
             typedef boost::integral_constant<
                 bool,
@@ -186,7 +186,7 @@ namespace boost {
 
             // We do evaluate second `if_` lazily to avoid unnecessary instantiations
             // of `shall_we_copy_with_dynamic_check_t` and improve compilation times.
-            typedef BOOST_DEDUCED_TYPENAME boost::conditional<
+            typedef typename boost::conditional<
                 shall_we_copy_t::value,
                 boost::type_identity<boost::detail::copy_converter_impl<Target, src > >,
                 boost::conditional<
@@ -196,7 +196,7 @@ namespace boost {
                 >
             >::type caster_type_lazy;
 
-            typedef BOOST_DEDUCED_TYPENAME caster_type_lazy::type caster_type;
+            typedef typename caster_type_lazy::type caster_type;
 
             return caster_type::try_convert(arg, result);
         }
@@ -204,12 +204,13 @@ namespace boost {
         template <typename Target, typename CharacterT>
         inline bool try_lexical_convert(const CharacterT* chars, std::size_t count, Target& result)
         {
-            BOOST_STATIC_ASSERT_MSG(
+            static_assert(
                 boost::detail::is_character<CharacterT>::value,
                 "This overload of try_lexical_convert is meant to be used only with arrays of characters."
             );
             return ::boost::conversion::detail::try_lexical_convert(
-                ::boost::iterator_range<const CharacterT*>(chars, chars + count), result
+                ::boost::conversion::detail::make_buffer_view(chars, chars + count),
+                result
             );
         }
 

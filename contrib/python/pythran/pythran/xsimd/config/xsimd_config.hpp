@@ -12,9 +12,9 @@
 #ifndef XSIMD_CONFIG_HPP
 #define XSIMD_CONFIG_HPP
 
-#define XSIMD_VERSION_MAJOR 11
-#define XSIMD_VERSION_MINOR 0
-#define XSIMD_VERSION_PATCH 0
+#define XSIMD_VERSION_MAJOR 12
+#define XSIMD_VERSION_MINOR 1
+#define XSIMD_VERSION_PATCH 1
 
 /**
  * high level free functions
@@ -97,6 +97,17 @@
 #define XSIMD_WITH_AVX2 1
 #else
 #define XSIMD_WITH_AVX2 0
+#endif
+
+/**
+ * @ingroup xsimd_config_macro
+ *
+ * Set to 1 if AVXVNNI is available at compile-time, to 0 otherwise.
+ */
+#ifdef __AVXVNNI__
+#define XSIMD_WITH_AVXVNNI 1
+#else
+#define XSIMD_WITH_AVXVNNI 0
 #endif
 
 /**
@@ -244,6 +255,72 @@
 #define XSIMD_WITH_AVX512BW 0
 #endif
 
+/**
+ * @ingroup xsimd_config_macro
+ *
+ * Set to 1 if AVX512ER is available at compile-time, to 0 otherwise.
+ */
+#ifdef __AVX512ER__
+#define XSIMD_WITH_AVX512ER XSIMD_WITH_AVX512F
+#else
+#define XSIMD_WITH_AVX512ER 0
+#endif
+
+/**
+ * @ingroup xsimd_config_macro
+ *
+ * Set to 1 if AVX512PF is available at compile-time, to 0 otherwise.
+ */
+#ifdef __AVX512PF__
+#define XSIMD_WITH_AVX512PF XSIMD_WITH_AVX512F
+#else
+#define XSIMD_WITH_AVX512PF 0
+#endif
+
+/**
+ * @ingroup xsimd_config_macro
+ *
+ * Set to 1 if AVX512IFMA is available at compile-time, to 0 otherwise.
+ */
+#ifdef __AVX512IFMA__
+#define XSIMD_WITH_AVX512IFMA XSIMD_WITH_AVX512F
+#else
+#define XSIMD_WITH_AVX512IFMA 0
+#endif
+
+/**
+ * @ingroup xsimd_config_macro
+ *
+ * Set to 1 if AVX512VBMI is available at compile-time, to 0 otherwise.
+ */
+#ifdef __AVX512VBMI__
+#define XSIMD_WITH_AVX512VBMI XSIMD_WITH_AVX512F
+#else
+#define XSIMD_WITH_AVX512VBMI 0
+#endif
+
+/**
+ * @ingroup xsimd_config_macro
+ *
+ * Set to 1 if AVX512VNNI is available at compile-time, to 0 otherwise.
+ */
+#ifdef __AVX512VNNI__
+
+#if XSIMD_WITH_AVX512_VBMI
+#define XSIMD_WITH_AVX512VNNI_AVX512VBMI XSIMD_WITH_AVX512F
+#define XSIMD_WITH_AVX512VNNI_AVX512BW XSIMD_WITH_AVX512F
+#else
+#define XSIMD_WITH_AVX512VNNI_AVX512VBMI 0
+#define XSIMD_WITH_AVX512VNNI_AVX512BW XSIMD_WITH_AVX512F
+#endif
+
+#else
+
+#define XSIMD_WITH_AVX512VNNI_AVX512VBMI 0
+#define XSIMD_WITH_AVX512VNNI_AVX512BW 0
+
+#endif
+
 #ifdef __ARM_NEON
 
 /**
@@ -283,6 +360,30 @@
 #else
 #define XSIMD_WITH_SVE 0
 #define XSIMD_SVE_BITS 0
+#endif
+
+/**
+ * @ingroup xsimd_config_macro
+ *
+ * Set to 1 if RVV is available and bit width is pre-set at compile-time, to 0 otherwise.
+ */
+#if defined(__riscv_vector) && defined(__riscv_v_fixed_vlen) && __riscv_v_fixed_vlen > 0
+#define XSIMD_WITH_RVV 1
+#define XSIMD_RVV_BITS __riscv_v_fixed_vlen
+#else
+#define XSIMD_WITH_RVV 0
+#define XSIMD_RVV_BITS 0
+#endif
+
+/**
+ * @ingroup xsimd_config_macro
+ *
+ * Set to 1 if WebAssembly SIMD is available at compile-time, to 0 otherwise.
+ */
+#ifdef __EMSCRIPTEN__
+#define XSIMD_WITH_WASM 1
+#else
+#define XSIMD_WITH_WASM 0
 #endif
 
 // Workaround for MSVC compiler
@@ -343,7 +444,7 @@
 
 #endif
 
-#if !XSIMD_WITH_SSE2 && !XSIMD_WITH_SSE3 && !XSIMD_WITH_SSSE3 && !XSIMD_WITH_SSE4_1 && !XSIMD_WITH_SSE4_2 && !XSIMD_WITH_AVX && !XSIMD_WITH_AVX2 && !XSIMD_WITH_FMA3_SSE && !XSIMD_WITH_FMA4 && !XSIMD_WITH_FMA3_AVX && !XSIMD_WITH_FMA3_AVX2 && !XSIMD_WITH_AVX512F && !XSIMD_WITH_AVX512CD && !XSIMD_WITH_AVX512DQ && !XSIMD_WITH_AVX512BW && !XSIMD_WITH_NEON && !XSIMD_WITH_NEON64 && !XSIMD_WITH_SVE
+#if !XSIMD_WITH_SSE2 && !XSIMD_WITH_SSE3 && !XSIMD_WITH_SSSE3 && !XSIMD_WITH_SSE4_1 && !XSIMD_WITH_SSE4_2 && !XSIMD_WITH_AVX && !XSIMD_WITH_AVX2 && !XSIMD_WITH_AVXVNNI && !XSIMD_WITH_FMA3_SSE && !XSIMD_WITH_FMA4 && !XSIMD_WITH_FMA3_AVX && !XSIMD_WITH_FMA3_AVX2 && !XSIMD_WITH_AVX512F && !XSIMD_WITH_AVX512CD && !XSIMD_WITH_AVX512DQ && !XSIMD_WITH_AVX512BW && !XSIMD_WITH_AVX512ER && !XSIMD_WITH_AVX512PF && !XSIMD_WITH_AVX512IFMA && !XSIMD_WITH_AVX512VBMI && !XSIMD_WITH_NEON && !XSIMD_WITH_NEON64 && !XSIMD_WITH_SVE && !XSIMD_WITH_RVV && !XSIMD_WITH_WASM
 #define XSIMD_NO_SUPPORTED_ARCHITECTURE
 #endif
 

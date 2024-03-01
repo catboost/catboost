@@ -763,7 +763,7 @@ simd_argmax_u32(npyv_lanetype_u32 *ip, npy_intp len)
         npyv_b32 nnan_ab = npyv_and_b32(nnan_a, nnan_b);
         npyv_b32 nnan_cd = npyv_and_b32(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b32(npyv_and_b32(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b32(nnan_a);
             nnan_4[1] = npyv_tobits_b32(nnan_b);
@@ -788,7 +788,7 @@ simd_argmax_u32(npyv_lanetype_u32 *ip, npy_intp len)
     #if 0
         npyv_b32 nnan_a = npyv_notnan_u32(a);
         npy_uint64 nnan = npyv_tobits_b32(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -901,7 +901,7 @@ simd_argmin_u32(npyv_lanetype_u32 *ip, npy_intp len)
         npyv_b32 nnan_ab = npyv_and_b32(nnan_a, nnan_b);
         npyv_b32 nnan_cd = npyv_and_b32(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b32(npyv_and_b32(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b32(nnan_a);
             nnan_4[1] = npyv_tobits_b32(nnan_b);
@@ -926,7 +926,7 @@ simd_argmin_u32(npyv_lanetype_u32 *ip, npy_intp len)
     #if 0
         npyv_b32 nnan_a = npyv_notnan_u32(a);
         npy_uint64 nnan = npyv_tobits_b32(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -1043,7 +1043,7 @@ simd_argmax_s32(npyv_lanetype_s32 *ip, npy_intp len)
         npyv_b32 nnan_ab = npyv_and_b32(nnan_a, nnan_b);
         npyv_b32 nnan_cd = npyv_and_b32(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b32(npyv_and_b32(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b32(nnan_a);
             nnan_4[1] = npyv_tobits_b32(nnan_b);
@@ -1068,7 +1068,7 @@ simd_argmax_s32(npyv_lanetype_s32 *ip, npy_intp len)
     #if 0
         npyv_b32 nnan_a = npyv_notnan_s32(a);
         npy_uint64 nnan = npyv_tobits_b32(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -1181,7 +1181,7 @@ simd_argmin_s32(npyv_lanetype_s32 *ip, npy_intp len)
         npyv_b32 nnan_ab = npyv_and_b32(nnan_a, nnan_b);
         npyv_b32 nnan_cd = npyv_and_b32(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b32(npyv_and_b32(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b32(nnan_a);
             nnan_4[1] = npyv_tobits_b32(nnan_b);
@@ -1206,7 +1206,7 @@ simd_argmin_s32(npyv_lanetype_s32 *ip, npy_intp len)
     #if 0
         npyv_b32 nnan_a = npyv_notnan_s32(a);
         npy_uint64 nnan = npyv_tobits_b32(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -1323,7 +1323,7 @@ simd_argmax_u64(npyv_lanetype_u64 *ip, npy_intp len)
         npyv_b64 nnan_ab = npyv_and_b64(nnan_a, nnan_b);
         npyv_b64 nnan_cd = npyv_and_b64(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b64(npyv_and_b64(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b64(nnan_a);
             nnan_4[1] = npyv_tobits_b64(nnan_b);
@@ -1348,7 +1348,7 @@ simd_argmax_u64(npyv_lanetype_u64 *ip, npy_intp len)
     #if 0
         npyv_b64 nnan_a = npyv_notnan_u64(a);
         npy_uint64 nnan = npyv_tobits_b64(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -1461,7 +1461,7 @@ simd_argmin_u64(npyv_lanetype_u64 *ip, npy_intp len)
         npyv_b64 nnan_ab = npyv_and_b64(nnan_a, nnan_b);
         npyv_b64 nnan_cd = npyv_and_b64(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b64(npyv_and_b64(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b64(nnan_a);
             nnan_4[1] = npyv_tobits_b64(nnan_b);
@@ -1486,7 +1486,7 @@ simd_argmin_u64(npyv_lanetype_u64 *ip, npy_intp len)
     #if 0
         npyv_b64 nnan_a = npyv_notnan_u64(a);
         npy_uint64 nnan = npyv_tobits_b64(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -1603,7 +1603,7 @@ simd_argmax_s64(npyv_lanetype_s64 *ip, npy_intp len)
         npyv_b64 nnan_ab = npyv_and_b64(nnan_a, nnan_b);
         npyv_b64 nnan_cd = npyv_and_b64(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b64(npyv_and_b64(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b64(nnan_a);
             nnan_4[1] = npyv_tobits_b64(nnan_b);
@@ -1628,7 +1628,7 @@ simd_argmax_s64(npyv_lanetype_s64 *ip, npy_intp len)
     #if 0
         npyv_b64 nnan_a = npyv_notnan_s64(a);
         npy_uint64 nnan = npyv_tobits_b64(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -1741,7 +1741,7 @@ simd_argmin_s64(npyv_lanetype_s64 *ip, npy_intp len)
         npyv_b64 nnan_ab = npyv_and_b64(nnan_a, nnan_b);
         npyv_b64 nnan_cd = npyv_and_b64(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b64(npyv_and_b64(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b64(nnan_a);
             nnan_4[1] = npyv_tobits_b64(nnan_b);
@@ -1766,7 +1766,7 @@ simd_argmin_s64(npyv_lanetype_s64 *ip, npy_intp len)
     #if 0
         npyv_b64 nnan_a = npyv_notnan_s64(a);
         npy_uint64 nnan = npyv_tobits_b64(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -1883,7 +1883,7 @@ simd_argmax_f32(npyv_lanetype_f32 *ip, npy_intp len)
         npyv_b32 nnan_ab = npyv_and_b32(nnan_a, nnan_b);
         npyv_b32 nnan_cd = npyv_and_b32(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b32(npyv_and_b32(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b32(nnan_a);
             nnan_4[1] = npyv_tobits_b32(nnan_b);
@@ -1908,7 +1908,7 @@ simd_argmax_f32(npyv_lanetype_f32 *ip, npy_intp len)
     #if 1
         npyv_b32 nnan_a = npyv_notnan_f32(a);
         npy_uint64 nnan = npyv_tobits_b32(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -2021,7 +2021,7 @@ simd_argmin_f32(npyv_lanetype_f32 *ip, npy_intp len)
         npyv_b32 nnan_ab = npyv_and_b32(nnan_a, nnan_b);
         npyv_b32 nnan_cd = npyv_and_b32(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b32(npyv_and_b32(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b32(nnan_a);
             nnan_4[1] = npyv_tobits_b32(nnan_b);
@@ -2046,7 +2046,7 @@ simd_argmin_f32(npyv_lanetype_f32 *ip, npy_intp len)
     #if 1
         npyv_b32 nnan_a = npyv_notnan_f32(a);
         npy_uint64 nnan = npyv_tobits_b32(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -2163,7 +2163,7 @@ simd_argmax_f64(npyv_lanetype_f64 *ip, npy_intp len)
         npyv_b64 nnan_ab = npyv_and_b64(nnan_a, nnan_b);
         npyv_b64 nnan_cd = npyv_and_b64(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b64(npyv_and_b64(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b64(nnan_a);
             nnan_4[1] = npyv_tobits_b64(nnan_b);
@@ -2188,7 +2188,7 @@ simd_argmax_f64(npyv_lanetype_f64 *ip, npy_intp len)
     #if 1
         npyv_b64 nnan_a = npyv_notnan_f64(a);
         npy_uint64 nnan = npyv_tobits_b64(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;
@@ -2301,7 +2301,7 @@ simd_argmin_f64(npyv_lanetype_f64 *ip, npy_intp len)
         npyv_b64 nnan_ab = npyv_and_b64(nnan_a, nnan_b);
         npyv_b64 nnan_cd = npyv_and_b64(nnan_c, nnan_d);
         npy_uint64 nnan = npyv_tobits_b64(npyv_and_b64(nnan_ab, nnan_cd));
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             npy_uint64 nnan_4[4];
             nnan_4[0] = npyv_tobits_b64(nnan_a);
             nnan_4[1] = npyv_tobits_b64(nnan_b);
@@ -2326,7 +2326,7 @@ simd_argmin_f64(npyv_lanetype_f64 *ip, npy_intp len)
     #if 1
         npyv_b64 nnan_a = npyv_notnan_f64(a);
         npy_uint64 nnan = npyv_tobits_b64(nnan_a);
-        if (nnan != ((1LL << vstep) - 1)) {
+        if ((unsigned long long int)nnan != ((1ULL << vstep) - 1)) {
             for (int vi = 0; vi < vstep; ++vi) {
                 if (!((nnan >> vi) & 1)) {
                     return i + vi;

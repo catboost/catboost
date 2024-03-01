@@ -13,7 +13,7 @@ target_link_libraries(library-cpp-dns PUBLIC
   yutil
 )
 target_sources(library-cpp-dns PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/dns/cache.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/dns/thread.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/dns/magic.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/dns/cache.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/dns/thread.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/dns/magic.cpp
 )

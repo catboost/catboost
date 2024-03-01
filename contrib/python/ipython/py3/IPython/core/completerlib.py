@@ -164,7 +164,10 @@ def get_root_modules():
         # Don't try to scan for modules every time.
         return list(sys.builtin_module_names)
 
-    rootmodules_cache = ip.db.get('rootmodules_cache', {})
+    if getattr(ip.db, "_mock", False):
+        rootmodules_cache = {}
+    else:
+        rootmodules_cache = ip.db.get("rootmodules_cache", {})
     rootmodules = list(sys.builtin_module_names)
     start_time = time()
     store = False
@@ -238,6 +241,7 @@ def try_import(mod: str, only_modules=False) -> List[str]:
         completions.extend(m_all)
 
     if m_is_init:
+        file_ = m.__file__
         completions.extend(arcadia_module_list(mod))
     completions_set = {c for c in completions if isinstance(c, str)}
     completions_set.discard('__init__')

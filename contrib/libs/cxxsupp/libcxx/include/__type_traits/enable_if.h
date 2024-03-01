@@ -17,13 +17,25 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-template <bool, class _Tp = void> struct _LIBCPP_TEMPLATE_VIS enable_if {};
-template <class _Tp> struct _LIBCPP_TEMPLATE_VIS enable_if<true, _Tp> {typedef _Tp type;};
+template <bool, class _Tp = void>
+struct _LIBCPP_TEMPLATE_VIS enable_if {};
+template <class _Tp>
+struct _LIBCPP_TEMPLATE_VIS enable_if<true, _Tp> {
+  typedef _Tp type;
+};
 
-template <bool _Bp, class _Tp = void> using __enable_if_t _LIBCPP_NODEBUG = typename enable_if<_Bp, _Tp>::type;
+template <bool _Bp, class _Tp = void>
+using __enable_if_t _LIBCPP_NODEBUG = typename enable_if<_Bp, _Tp>::type;
 
-#if _LIBCPP_STD_VER > 11
-template <bool _Bp, class _Tp = void> using enable_if_t = typename enable_if<_Bp, _Tp>::type;
+#if _LIBCPP_STD_VER >= 14
+template <bool _Bp, class _Tp = void>
+using enable_if_t = typename enable_if<_Bp, _Tp>::type;
+#endif
+
+// CUDA headers use libc++ internals.
+#ifdef __CUDACC__
+template <bool _Cond, class _Ret = void>
+using __lazy_enable_if _LIBCPP_NODEBUG = __enable_if_t<_Cond, _Ret>;
 #endif
 
 _LIBCPP_END_NAMESPACE_STD

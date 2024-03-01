@@ -13,11 +13,12 @@ import zmq
 from traitlets.config.configurable import LoggingConfigurable
 from ipython_genutils.importstring import import_item
 from traitlets import (
-    Instance, Dict, List, Unicode, Any, DottedObjectName
+    Any, Bool, Dict, DottedObjectName, Instance, Unicode, default, observe
 )
 from ipython_genutils.py3compat import unicode_type
 
 from .kernelspec import NATIVE_KERNEL_NAME, KernelSpecManager
+
 
 class DuplicateKernelError(Exception):
     pass
@@ -47,23 +48,63 @@ class MultiKernelManager(LoggingConfigurable):
     )
 
     kernel_spec_manager = Instance(KernelSpecManager, allow_none=True)
-    
+
     kernel_manager_class = DottedObjectName(
         "jupyter_client.ioloop.IOLoopKernelManager", config=True,
         help="""The kernel manager class.  This is configurable to allow
         subclassing of the KernelManager for customized behavior.
         """
     )
+    @observe('kernel_manager_class')
     def _kernel_manager_class_changed(self, name, old, new):
-        self.kernel_manager_factory = import_item(new)
+        self.kernel_manager_factory = self._create_kernel_manager_factory()
 
     kernel_manager_factory = Any(help="this is kernel_manager_class after import")
+
+    @default('kernel_manager_factory')
     def _kernel_manager_factory_default(self):
-        return import_item(self.kernel_manager_class)
+        return self._create_kernel_manager_factory()
+
+    def _create_kernel_manager_factory(self):
+        kernel_manager_ctor = import_item(self.kernel_manager_class)
+
+        def create_kernel_manager(*args, **kwargs):
+            if self.shared_context:
+                if self.context.closed:
+                    # recreate context if closed
+                    self.context = self._context_default()
+                kwargs.setdefault("context", self.context)
+            km = kernel_manager_ctor(*args, **kwargs)
+            return km
+
+        return create_kernel_manager
+
+    shared_context = Bool(
+        True,
+        config=True,
+        help="Share a single zmq.Context to talk to all my kernels",
+    )
+
+    _created_context = Bool(False)
 
     context = Instance('zmq.Context')
+
+    @default("context")
     def _context_default(self):
-        return zmq.Context.instance()
+        self._created_context = True
+        return zmq.Context()
+
+    def __del__(self):
+        if self._created_context and self.context and not self.context.closed:
+            if self.log:
+                self.log.debug("Destroying zmq context for %s", self)
+            self.context.destroy()
+        try:
+            super_del = super().__del__
+        except AttributeError:
+            pass
+        else:
+            super_del()
 
     connection_dir = Unicode('')
 
@@ -271,6 +312,22 @@ class MultiKernelManager(LoggingConfigurable):
     @kernel_method
     def connect_shell(self, kernel_id, identity=None):
         """Return a zmq Socket connected to the shell channel.
+
+        Parameters
+        ==========
+        kernel_id : uuid
+            The id of the kernel
+        identity : bytes (optional)
+            The zmq identity of the socket
+
+        Returns
+        =======
+        stream : zmq Socket or ZMQStream
+        """
+
+    @kernel_method
+    def connect_control(self, kernel_id, identity=None):
+        """Return a zmq Socket connected to the control channel.
 
         Parameters
         ==========

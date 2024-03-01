@@ -494,6 +494,13 @@ namespace NCB {
         return *this;
     }
 
+    TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithMetrics(
+        const TMetricsAndTimeLeftHistory& metrics
+    ) {
+        MetricsAndTimeHistory = &metrics;
+        return *this;
+    }
+
     void TCoreModelToFullModelConverter::Do(
         bool requiresStaticCtrProvider,
         TFullModel* dstModel,
@@ -560,6 +567,15 @@ namespace NCB {
         if (IsClassificationObjective(lossFunction)) {
             dstModel->ModelInfo["class_params"] = ClassificationTargetHelper.Serialize();
         }
+
+        {
+            NJson::TJsonValue trainingJson(NJson::EJsonValueType::JSON_MAP);
+            if (MetricsAndTimeHistory) {
+                trainingJson["metrics"] = MetricsAndTimeHistory->SaveMetrics();
+            }
+            dstModel->ModelInfo["training"] = WriteTJsonValue(trainingJson);
+        }
+
 
         if (
             FinalFeatureCalcerComputationMode == EFinalFeatureCalcersComputationMode::Default &&

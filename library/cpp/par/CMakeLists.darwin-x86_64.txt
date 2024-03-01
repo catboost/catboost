@@ -31,23 +31,23 @@ target_link_libraries(library-cpp-par PUBLIC
   cpp-deprecated-atomic
 )
 target_sources(library-cpp-par PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/distr_tree.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/compression.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_context.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_exec.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_host.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_jobreq.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_master.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_mr.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_network.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_remote.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_util.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_log.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_wb.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/distr_tree.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/compression.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_context.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_exec.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_host.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_jobreq.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_master.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_mr.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_network.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_remote.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_util.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_log.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_wb.cpp
 )
 generate_enum_serilization(library-cpp-par
-  ${CMAKE_SOURCE_DIR}/library/cpp/par/par_host_stats.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/par/par_host_stats.h
   INCLUDE_HEADERS
   library/cpp/par/par_host_stats.h
 )

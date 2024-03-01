@@ -35,18 +35,20 @@
 #pragma clang system_header
 
 
-#include <stdio.h>
-#include <iterator>
-
-#include "dispatch_scan.cuh"
-#include "../../config.cuh"
-#include "../../agent/agent_rle.cuh"
-#include "../../thread/thread_operators.cuh"
-#include "../../grid/grid_queue.cuh"
-#include "../../util_device.cuh"
-#include "../../util_math.cuh"
+#include <cub/agent/agent_rle.cuh>
+#include <cub/config.cuh>
+#include <cub/device/dispatch/dispatch_scan.cuh>
+#include <cub/thread/thread_operators.cuh>
+#include <cub/grid/grid_queue.cuh>
+#include <cub/util_device.cuh>
+#include <cub/util_math.cuh>
 
 #include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
+
+#include <nv/target>
+
+#include <cstdio>
+#include <iterator>
 
 CUB_NAMESPACE_BEGIN
 
@@ -182,25 +184,19 @@ struct DeviceRleDispatch
     template <typename KernelConfig>
     CUB_RUNTIME_FUNCTION __forceinline__
     static void InitConfigs(
-        int             ptx_version,
+        int             /*ptx_version*/,
         KernelConfig&   device_rle_config)
     {
-        if (CUB_IS_DEVICE_CODE) {
-            #if CUB_INCLUDE_DEVICE_CODE
-                // We're on the device, so initialize the kernel dispatch configurations with the current PTX policy
-                device_rle_config.template Init<PtxRleSweepPolicy>();
-            #endif
-        }
-        else
-        {
-            #if CUB_INCLUDE_HOST_CODE
-                // We're on the host, so lookup and initialize the kernel dispatch configurations with the policies that match the device's PTX version
+      NV_IF_TARGET(NV_IS_DEVICE,
+      (
+          // We're on the device, so initialize the kernel dispatch configurations with the current PTX policy
+          device_rle_config.template Init<PtxRleSweepPolicy>();
+      ), (
+          // We're on the host, so lookup and initialize the kernel dispatch configurations with the policies that match the device's PTX version
 
-                // (There's only one policy right now)
-                (void)ptx_version;
-                device_rle_config.template Init<typename Policy350::RleSweepPolicy>();
-            #endif
-        }
+          // (There's only one policy right now)
+          device_rle_config.template Init<typename Policy350::RleSweepPolicy>();
+      ));
     }
 
 
@@ -261,20 +257,11 @@ struct DeviceRleDispatch
         EqualityOpT                 equality_op,                    ///< [in] Equality operator for input items
         OffsetT                     num_items,                      ///< [in] Total number of input items (i.e., length of \p d_in)
         cudaStream_t                stream,                         ///< [in] CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool                        debug_synchronous,              ///< [in] Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
         int                         /*ptx_version*/,                ///< [in] PTX version of dispatch kernels
         DeviceScanInitKernelPtr     device_scan_init_kernel,        ///< [in] Kernel function pointer to parameterization of cub::DeviceScanInitKernel
         DeviceRleSweepKernelPtr     device_rle_sweep_kernel,        ///< [in] Kernel function pointer to parameterization of cub::DeviceRleSweepKernel
         KernelConfig                device_rle_config)              ///< [in] Dispatch parameters that match the policy that \p device_rle_sweep_kernel was compiled for
     {
-
-#ifndef CUB_RUNTIME_ENABLED
-
-        // Kernel launch not supported from this device
-        return CubDebug(cudaErrorNotSupported);
-
-#else
-
         cudaError error = cudaSuccess;
         do
         {
@@ -305,7 +292,10 @@ struct DeviceRleDispatch
 
             // Log device_scan_init_kernel configuration
             int init_grid_size = CUB_MAX(1, cub::DivideAndRoundUp(num_tiles, INIT_KERNEL_THREADS));
-            if (debug_synchronous) _CubLog("Invoking device_scan_init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
+
+            #ifdef CUB_DETAIL_DEBUG_ENABLE_LOG
+            _CubLog("Invoking device_scan_init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
+            #endif
 
             // Invoke device_scan_init_kernel to initialize tile descriptors and queue descriptors
             THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
@@ -316,14 +306,23 @@ struct DeviceRleDispatch
                 d_num_runs_out);
 
             // Check for failure to launch
-            if (CubDebug(error = cudaPeekAtLastError())) break;
+            if (CubDebug(error = cudaPeekAtLastError()))
+            {
+                break;
+            }
 
             // Sync the stream if specified to flush runtime errors
-            if (debug_synchronous && (CubDebug(error = SyncStream(stream)))) break;
+            error = detail::DebugSyncStream(stream);
+            if (CubDebug(error))
+            {
+              break;
+            }
 
             // Return if empty problem
             if (num_items == 0)
+            {
                 break;
+            }
 
             // Get SM occupancy for device_rle_sweep_kernel
             int device_rle_kernel_sm_occupancy;
@@ -343,8 +342,10 @@ struct DeviceRleDispatch
             scan_grid_size.x = CUB_MIN(num_tiles, max_dim_x);
 
             // Log device_rle_sweep_kernel configuration
-            if (debug_synchronous) _CubLog("Invoking device_rle_sweep_kernel<<<{%d,%d,%d}, %d, 0, %lld>>>(), %d items per thread, %d SM occupancy\n",
+            #ifdef CUB_DETAIL_DEBUG_ENABLE_LOG
+            _CubLog("Invoking device_rle_sweep_kernel<<<{%d,%d,%d}, %d, 0, %lld>>>(), %d items per thread, %d SM occupancy\n",
                 scan_grid_size.x, scan_grid_size.y, scan_grid_size.z, device_rle_config.block_threads, (long long) stream, device_rle_config.items_per_thread, device_rle_kernel_sm_occupancy);
+            #endif
 
             // Invoke device_rle_sweep_kernel
             THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
@@ -360,19 +361,59 @@ struct DeviceRleDispatch
                 num_tiles);
 
             // Check for failure to launch
-            if (CubDebug(error = cudaPeekAtLastError())) break;
+            if (CubDebug(error = cudaPeekAtLastError()))
+            {
+                break;
+            }
 
             // Sync the stream if specified to flush runtime errors
-            if (debug_synchronous && (CubDebug(error = SyncStream(stream)))) break;
-
+            error = detail::DebugSyncStream(stream);
+            if (CubDebug(error))
+            {
+              break;
+            }
         }
         while (0);
 
         return error;
-
-#endif  // CUB_RUNTIME_ENABLED
     }
 
+
+    template <typename DeviceScanInitKernelPtr, typename DeviceRleSweepKernelPtr>
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+    CUB_RUNTIME_FUNCTION __forceinline__ static cudaError_t
+    Dispatch(void *d_temp_storage,
+             size_t &temp_storage_bytes,
+             InputIteratorT d_in,
+             OffsetsOutputIteratorT d_offsets_out,
+             LengthsOutputIteratorT d_lengths_out,
+             NumRunsOutputIteratorT d_num_runs_out,
+             EqualityOpT equality_op,
+             OffsetT num_items,
+             cudaStream_t stream,
+             bool debug_synchronous,
+             int ptx_version,
+             DeviceScanInitKernelPtr device_scan_init_kernel,
+             DeviceRleSweepKernelPtr device_rle_sweep_kernel,
+             KernelConfig device_rle_config)
+    {
+      CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+      return Dispatch<DeviceScanInitKernelPtr, DeviceRleSweepKernelPtr>(
+        d_temp_storage,
+        temp_storage_bytes,
+        d_in,
+        d_offsets_out,
+        d_lengths_out,
+        d_num_runs_out,
+        equality_op,
+        num_items,
+        stream,
+        ptx_version,
+        device_scan_init_kernel,
+        device_rle_sweep_kernel,
+        device_rle_config);
+    }
 
     /**
      * Internal dispatch routine
@@ -387,8 +428,7 @@ struct DeviceRleDispatch
         NumRunsOutputIteratorT      d_num_runs_out,                 ///< [out] Pointer to total number of runs (i.e., length of \p d_offsets_out)
         EqualityOpT                 equality_op,                    ///< [in] Equality operator for input items
         OffsetT                     num_items,                      ///< [in] Total number of input items (i.e., length of \p d_in)
-        cudaStream_t                stream,                         ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool                        debug_synchronous)              ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
+        cudaStream_t                stream)                         ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
     {
         cudaError error = cudaSuccess;
         do
@@ -412,7 +452,6 @@ struct DeviceRleDispatch
                 equality_op,
                 num_items,
                 stream,
-                debug_synchronous,
                 ptx_version,
                 DeviceCompactInitKernel<ScanTileStateT, NumRunsOutputIteratorT>,
                 DeviceRleSweepKernel<PtxRleSweepPolicy, InputIteratorT, OffsetsOutputIteratorT, LengthsOutputIteratorT, NumRunsOutputIteratorT, ScanTileStateT, EqualityOpT, OffsetT>,
@@ -421,6 +460,31 @@ struct DeviceRleDispatch
         while (0);
 
         return error;
+    }
+
+    CUB_RUNTIME_FUNCTION __forceinline__ static cudaError_t
+    Dispatch(void *d_temp_storage,
+             size_t &temp_storage_bytes,
+             InputIteratorT d_in,
+             OffsetsOutputIteratorT d_offsets_out,
+             LengthsOutputIteratorT d_lengths_out,
+             NumRunsOutputIteratorT d_num_runs_out,
+             EqualityOpT equality_op,
+             OffsetT num_items,
+             cudaStream_t stream,
+             bool debug_synchronous)
+    {
+      CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+      return Dispatch(d_temp_storage,
+                      temp_storage_bytes,
+                      d_in,
+                      d_offsets_out,
+                      d_lengths_out,
+                      d_num_runs_out,
+                      equality_op,
+                      num_items,
+                      stream);
     }
 };
 

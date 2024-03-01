@@ -9,7 +9,7 @@
 
 add_shared_library(catboostr)
 target_include_directories(catboostr PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/r-lang
+  ${PROJECT_SOURCE_DIR}/contrib/libs/r-lang
 )
 target_link_libraries(catboostr PUBLIC
   contrib-libs-cxxsupp
@@ -32,10 +32,10 @@ target_link_libraries(catboostr PUBLIC
   libs-model-cuda
 )
 target_link_options(catboostr PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/R-package/src/R.lib
+  ${PROJECT_SOURCE_DIR}/catboost/R-package/src/R.lib
 )
 target_sources(catboostr PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/R-package/src/catboostr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/R-package/src/init.c
+  ${PROJECT_SOURCE_DIR}/catboost/R-package/src/catboostr.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/R-package/src/init.c
 )
 vcs_info(catboostr)

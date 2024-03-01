@@ -16,5 +16,5 @@ target_link_libraries(contrib-libs-pugixml PUBLIC
   yutil
 )
 target_sources(contrib-libs-pugixml PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/pugixml/pugixml.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/pugixml/pugixml.cpp
 )

@@ -21,12 +21,38 @@ from hypothesis.strategies._internal.types import is_a_type, type_sorting_key
 from hypothesis.utils.conventions import infer
 
 
+def get_attribute_by_alias(fields, alias, *, target=None):
+    """
+    Get an attrs attribute by its alias, rather than its name (compare
+    getattr(fields, name)).
+
+    ``target`` is used only to provide a nicer error message, and can be safely
+    omitted.
+    """
+    # attrs supports defining an alias for a field, which is the name used when
+    # defining __init__. The init args are what we pull from when determining
+    # what parameters we need to supply to the class, so it's what we need to
+    # match against as well, rather than the class-level attribute name.
+    matched_fields = [f for f in fields if f.alias == alias]
+    if not matched_fields:
+        raise TypeError(
+            f"Unexpected keyword argument {alias} for attrs class"
+            f"{f' {target}' if target else ''}. Expected one of "
+            f"{[f.name for f in fields]}"
+        )
+    # alias is used as an arg in __init__, so it is guaranteed to be unique, if
+    # it exists.
+    assert len(matched_fields) == 1
+    return matched_fields[0]
+
+
 def from_attrs(target, args, kwargs, to_infer):
     """An internal version of builds(), specialised for Attrs classes."""
     fields = attr.fields(target)
     kwargs = {k: v for k, v in kwargs.items() if v is not infer}
     for name in to_infer:
-        kwargs[name] = from_attrs_attribute(getattr(fields, name), target)
+        attrib = get_attribute_by_alias(fields, name, target=target)
+        kwargs[name] = from_attrs_attribute(attrib, target)
     # We might make this strategy more efficient if we added a layer here that
     # retries drawing if validation fails, for improved composition.
     # The treatment of timezones in datetimes() provides a precedent.

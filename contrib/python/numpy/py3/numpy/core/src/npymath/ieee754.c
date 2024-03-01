@@ -25,20 +25,6 @@
 #define LDBL_TRUE_MIN __LDBL_DENORM_MIN__
 #endif
 
-#if !defined(HAVE_DECL_SIGNBIT)
-#include "_signbit.c"
-
-int _npy_signbit_f(float x)
-{
-    return _npy_signbit_d((double) x);
-}
-
-int _npy_signbit_ld(long double x)
-{
-    return _npy_signbit_d((double) x);
-}
-#endif
-
 /*
  * FIXME: There is a lot of redundancy between _next* and npy_nextafter*.
  * refactor this at some point
@@ -320,7 +306,7 @@ static npy_longdouble _nextl(npy_longdouble x, int p)
 }
 #endif
 
-#line 318
+#line 304
 npy_float npy_spacingf(npy_float x)
 {
     /* XXX: npy isnan/isinf may be optimized by bit twiddling */
@@ -331,7 +317,7 @@ npy_float npy_spacingf(npy_float x)
     return _nextf(x, 1) - x;
 }
 
-#line 318
+#line 304
 npy_double npy_spacing(npy_double x)
 {
     /* XXX: npy isnan/isinf may be optimized by bit twiddling */
@@ -342,7 +328,7 @@ npy_double npy_spacing(npy_double x)
     return _next(x, 1) - x;
 }
 
-#line 318
+#line 304
 npy_longdouble npy_spacingl(npy_longdouble x)
 {
     /* XXX: npy isnan/isinf may be optimized by bit twiddling */
@@ -353,25 +339,6 @@ npy_longdouble npy_spacingl(npy_longdouble x)
     return _nextl(x, 1) - x;
 }
 
-
-/*
- * Decorate all the math functions which are available on the current platform
- */
-
-float npy_nextafterf(float x, float y)
-{
-    return nextafterf(x, y);
-}
-
-double npy_nextafter(double x, double y)
-{
-    return nextafter(x, y);
-}
-
-npy_longdouble npy_nextafterl(npy_longdouble x, npy_longdouble y)
-{
-    return nextafterl(x, y);
-}
 
 int npy_clear_floatstatus() {
     char x=0;

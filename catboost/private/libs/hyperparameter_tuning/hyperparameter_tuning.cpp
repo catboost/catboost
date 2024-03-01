@@ -537,15 +537,15 @@ namespace {
         // Adding quantization params if needed
         if (gridParams.QuantizationParamsSet.GeneralInfo.IsBordersCountInGrid) {
             const TString& paramName = gridParams.QuantizationParamsSet.GeneralInfo.BordersCountParamName;
-            namedOptionsCollection->IntOptions[paramName] = gridParams.QuantizationParamsSet.BinsCount;
+            namedOptionsCollection->BestParams[paramName] = NJson::TJsonValue(gridParams.QuantizationParamsSet.BinsCount);
         }
         if (gridParams.QuantizationParamsSet.GeneralInfo.IsBorderTypeInGrid) {
             const TString& paramName = gridParams.QuantizationParamsSet.GeneralInfo.BorderTypeParamName;
-            namedOptionsCollection->StringOptions[paramName] = ToString(gridParams.QuantizationParamsSet.BorderType);
+            namedOptionsCollection->BestParams[paramName] = NJson::TJsonValue(ToString(gridParams.QuantizationParamsSet.BorderType));
         }
         if (gridParams.QuantizationParamsSet.GeneralInfo.IsNanModeInGrid) {
             const TString& paramName = gridParams.QuantizationParamsSet.GeneralInfo.NanModeParamName;
-            namedOptionsCollection->StringOptions[paramName] = ToString(gridParams.QuantizationParamsSet.NanMode);
+            namedOptionsCollection->BestParams[paramName] = NJson::TJsonValue(ToString(gridParams.QuantizationParamsSet.NanMode));
         }
     }
 
@@ -1146,46 +1146,12 @@ namespace NCB {
     void TBestOptionValuesWithCvResult::SetOptionsFromJson(
         const THashMap<TString, NJson::TJsonValue>& options,
         const TVector<TString>& optionsNames) {
-        BoolOptions.clear();
-        IntOptions.clear();
-        UIntOptions.clear();
-        DoubleOptions.clear();
-        StringOptions.clear();
-        ListOfDoublesOptions.clear();
+
+        BestParams = NJson::TJsonValue(NJson::JSON_MAP);
+        auto& bestParamsMap = BestParams.GetMapSafe();
+
         for (const auto& optionName : optionsNames) {
-            const auto& option = options.at(optionName);
-            NJson::EJsonValueType type = option.GetType();
-            switch(type) {
-                case NJson::EJsonValueType::JSON_BOOLEAN: {
-                    BoolOptions[optionName] = option.GetBoolean();
-                    break;
-                }
-                case NJson::EJsonValueType::JSON_INTEGER: {
-                    IntOptions[optionName] = option.GetInteger();
-                    break;
-                }
-                case NJson::EJsonValueType::JSON_UINTEGER: {
-                    UIntOptions[optionName] = option.GetUInteger();
-                    break;
-                }
-                case NJson::EJsonValueType::JSON_DOUBLE: {
-                    DoubleOptions[optionName] = option.GetDouble();
-                    break;
-                }
-                case NJson::EJsonValueType::JSON_STRING: {
-                    StringOptions[optionName] = option.GetString();
-                    break;
-                }
-                case NJson::EJsonValueType::JSON_ARRAY: {
-                    for (const auto& listElement : option.GetArray()) {
-                        ListOfDoublesOptions[optionName].push_back(listElement.GetDouble());
-                    }
-                    break;
-                }
-                default: {
-                    CB_ENSURE(false, "Error: option value should be bool, int, ui32, double, string or list of doubles");
-                }
-            }
+            bestParamsMap.emplace(optionName, options.at(optionName));
         }
     }
 

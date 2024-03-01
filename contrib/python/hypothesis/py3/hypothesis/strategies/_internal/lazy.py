@@ -12,6 +12,7 @@ from inspect import signature
 from typing import MutableMapping
 from weakref import WeakKeyDictionary
 
+from hypothesis.configuration import check_sideeffect_during_initialization
 from hypothesis.internal.reflection import (
     convert_keyword_arguments,
     convert_positional_arguments,
@@ -100,6 +101,8 @@ class LazyStrategy(SearchStrategy):
     @property
     def wrapped_strategy(self):
         if self.__wrapped_strategy is None:
+            check_sideeffect_during_initialization("lazy evaluation of {!r}", self)
+
             unwrapped_args = tuple(unwrap_strategies(s) for s in self.__args)
             unwrapped_kwargs = {
                 k: unwrap_strategies(v) for k, v in self.__kwargs.items()

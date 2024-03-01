@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <cstring>
 
-#if defined(__linux__) && (defined(__ARM_NEON) || defined(_M_ARM))
+#if defined(__linux__) && (defined(__ARM_NEON) || defined(_M_ARM) || defined(__riscv_vector))
 #include <asm/hwcap.h>
 #include <sys/auxv.h>
 #endif
@@ -45,19 +45,27 @@ namespace xsimd
             unsigned avx : 1;
             unsigned fma3_avx : 1;
             unsigned avx2 : 1;
+            unsigned avxvnni : 1;
             unsigned fma3_avx2 : 1;
             unsigned avx512f : 1;
             unsigned avx512cd : 1;
             unsigned avx512dq : 1;
             unsigned avx512bw : 1;
+            unsigned avx512er : 1;
+            unsigned avx512pf : 1;
+            unsigned avx512ifma : 1;
+            unsigned avx512vbmi : 1;
+            unsigned avx512vnni_bw : 1;
+            unsigned avx512vnni_vbmi : 1;
             unsigned neon : 1;
             unsigned neon64 : 1;
             unsigned sve : 1;
+            unsigned rvv : 1;
 
             // version number of the best arch available
             unsigned best;
 
-            supported_arch() noexcept
+            inline supported_arch() noexcept
             {
                 memset(this, 0, sizeof(supported_arch));
 
@@ -85,15 +93,27 @@ namespace xsimd
 #endif
                 best = sve::version() * sve;
 
+#elif defined(__riscv_vector) && defined(__riscv_v_fixed_vlen) && __riscv_v_fixed_vlen > 0
+
+#if defined(__linux__) && (!defined(__ANDROID_API__) || __ANDROID_API__ >= 18)
+#ifndef HWCAP_V
+#define HWCAP_V (1 << ('V' - 'A'))
+#endif
+                rvv = bool(getauxval(AT_HWCAP) & HWCAP_V);
+#else
+                rvv = 0;
+#endif
+
+                best = ::xsimd::rvv::version() * rvv;
 #elif defined(__x86_64__) || defined(__i386__) || defined(_M_AMD64) || defined(_M_IX86)
-                auto get_cpuid = [](int reg[4], int func_id) noexcept
+                auto get_cpuid = [](int reg[4], int level, int count = 0) noexcept
                 {
 
 #if defined(_MSC_VER)
-                    __cpuidex(reg, func_id, 0);
+                    __cpuidex(reg, level, count);
 
 #elif defined(__INTEL_COMPILER)
-                    __cpuid(reg, func_id);
+                    __cpuid(reg, level);
 
 #elif defined(__GNUC__) || defined(__clang__)
 
@@ -104,13 +124,13 @@ namespace xsimd
                             "xchg{l}\t{%%}ebx, %1\n\t"
                             : "=a"(reg[0]), "=r"(reg[1]), "=c"(reg[2]),
                               "=d"(reg[3])
-                            : "a"(func_id), "c"(0));
+                            : "0"(level), "2"(count));
 
 #else
                     __asm__("cpuid\n\t"
                             : "=a"(reg[0]), "=b"(reg[1]), "=c"(reg[2]),
                               "=d"(reg[3])
-                            : "a"(func_id), "c"(0));
+                            : "0"(level), "2"(count));
 #endif
 
 #else
@@ -163,6 +183,11 @@ namespace xsimd
                 avx2 = regs7[1] >> 5 & 1;
                 best = std::max(best, avx2::version() * avx2);
 
+                int regs7a[4];
+                get_cpuid(regs7a, 0x7, 0x1);
+                avxvnni = regs7a[0] >> 4 & 1;
+                best = std::max(best, avxvnni::version() * avxvnni * avx2);
+
                 fma3_avx2 = avx2 && fma3_sse;
                 best = std::max(best, fma3<xsimd::avx2>::version() * fma3_avx2);
 
@@ -178,6 +203,23 @@ namespace xsimd
                 avx512bw = regs7[1] >> 30 & 1;
                 best = std::max(best, avx512bw::version() * avx512bw * avx512dq * avx512cd * avx512f);
 
+                avx512er = regs7[1] >> 27 & 1;
+                best = std::max(best, avx512er::version() * avx512er * avx512cd * avx512f);
+
+                avx512pf = regs7[1] >> 26 & 1;
+                best = std::max(best, avx512pf::version() * avx512pf * avx512er * avx512cd * avx512f);
+
+                avx512ifma = regs7[1] >> 21 & 1;
+                best = std::max(best, avx512ifma::version() * avx512ifma * avx512bw * avx512dq * avx512cd * avx512f);
+
+                avx512vbmi = regs7[2] >> 1 & 1;
+                best = std::max(best, avx512vbmi::version() * avx512vbmi * avx512ifma * avx512bw * avx512dq * avx512cd * avx512f);
+
+                avx512vnni_bw = regs7[2] >> 11 & 1;
+                best = std::max(best, avx512vnni<xsimd::avx512bw>::version() * avx512vnni_bw * avx512bw * avx512dq * avx512cd * avx512f);
+
+                avx512vnni_vbmi = avx512vbmi && avx512vnni_bw;
+                best = std::max(best, avx512vnni<xsimd::avx512vbmi>::version() * avx512vnni_vbmi);
 #endif
             }
         };

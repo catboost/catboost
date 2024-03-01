@@ -100,20 +100,20 @@ cdef extern from "catboost/libs/model/model.h":
         THolder[IModelTreeData] Clone(ECloningPolicy policy) except +ProcessException
 
     cdef cppclass TModelTrees:
-        int GetDimensionCount() except +ProcessException
-        TConstArrayRef[TCatFeature] GetCatFeatures() except +ProcessException
-        TConstArrayRef[TTextFeature] GetTextFeatures() except +ProcessException
-        TConstArrayRef[TEmbeddingFeature] GetEmbeddingFeatures() except +ProcessException
-        TConstArrayRef[TFloatFeature] GetFloatFeatures() except +ProcessException
+        int GetDimensionCount()
+        TConstArrayRef[TCatFeature] GetCatFeatures()
+        TConstArrayRef[TTextFeature] GetTextFeatures()
+        TConstArrayRef[TEmbeddingFeature] GetEmbeddingFeatures()
+        TConstArrayRef[TFloatFeature] GetFloatFeatures()
         void DropUnusedFeatures() except +ProcessException
         TVector[ui32] GetTreeLeafCounts() except +ProcessException
-        const THolder[IModelTreeData]& GetModelTreeData() except +ProcessException
+        const THolder[IModelTreeData]& GetModelTreeData()
 
         void ConvertObliviousToAsymmetric() except +ProcessException
 
     cdef cppclass TCOWTreeWrapper:
-        const TModelTrees& operator*() except +ProcessException
-        const TModelTrees* Get() except +ProcessException
+        const TModelTrees& operator*()
+        const TModelTrees* Get()
         TModelTrees* GetMutable() except +ProcessException
 
     cdef cppclass TFullModel:
@@ -126,7 +126,7 @@ cdef extern from "catboost/libs/model/model.h":
         void Load(IInputStream* stream) except +ProcessException
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
-        size_t GetDimensionsCount() nogil except +ProcessException
+        size_t GetDimensionsCount() nogil
         void Truncate(size_t begin, size_t end) except +ProcessException
         bool_t IsOblivious() except +ProcessException
         TString GetLossFunctionName() except +ProcessException

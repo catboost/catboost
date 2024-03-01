@@ -31,7 +31,6 @@ import numpy as np
 from scipy.linalg import hilbert, svdvals, norm
 from scipy.sparse.linalg import aslinearoperator
 from scipy.linalg.interpolative import interp_decomp
-import itertools
 
 from numpy.testing import (assert_, assert_allclose, assert_equal,
                            assert_array_equal)
@@ -145,14 +144,14 @@ class TestInterpolativeDecomposition:
     def test_estimate_spectral_norm(self, A):
         s = svdvals(A)
         norm_2_est = pymatrixid.estimate_spectral_norm(A)
-        assert_(np.allclose(norm_2_est, s[0], 1e-6))
+        assert_allclose(norm_2_est, s[0], rtol=1e-6, atol=1e-8)
 
     def test_estimate_spectral_norm_diff(self, A):
         B = A.copy()
         B[:, 0] *= 1.2
         s = svdvals(A - B)
         norm_2_est = pymatrixid.estimate_spectral_norm_diff(A, B)
-        assert_(np.allclose(norm_2_est, s[0], 1e-6))
+        assert_allclose(norm_2_est, s[0], rtol=1e-6, atol=1e-8)
 
     def test_rank_estimates_array(self, A):
         B = np.array([[1, 1, 0], [0, 0, 1], [0, 0, 1]], dtype=A.dtype)
@@ -177,11 +176,12 @@ class TestInterpolativeDecomposition:
 
     def test_rand(self):
         pymatrixid.seed('default')
-        assert_(np.allclose(pymatrixid.rand(2), [0.8932059, 0.64500803], 1e-4))
+        assert_allclose(pymatrixid.rand(2), [0.8932059, 0.64500803],
+                        rtol=1e-4, atol=1e-8)
 
         pymatrixid.seed(1234)
         x1 = pymatrixid.rand(2)
-        assert_(np.allclose(x1, [0.7513823, 0.06861718], 1e-4))
+        assert_allclose(x1, [0.7513823, 0.06861718], rtol=1e-4, atol=1e-8)
 
         np.random.seed(1234)
         pymatrixid.seed()
@@ -196,7 +196,8 @@ class TestInterpolativeDecomposition:
 
     def test_badcall(self):
         A = hilbert(5).astype(np.float32)
-        assert_raises(ValueError, pymatrixid.interp_decomp, A, 1e-6, rand=False)
+        with assert_raises(ValueError):
+            pymatrixid.interp_decomp(A, 1e-6, rand=False)
 
     def test_rank_too_large(self):
         # svd(array, k) should not segfault
@@ -210,18 +211,18 @@ class TestInterpolativeDecomposition:
         # fixed precision
         A = np.random.rand(16, 8)
         k, idx, proj = pymatrixid.interp_decomp(A, eps)
-        assert_(k == A.shape[1])
+        assert_equal(k, A.shape[1])
 
         P = pymatrixid.reconstruct_interp_matrix(idx, proj)
         B = pymatrixid.reconstruct_skel_matrix(A, k, idx)
-        assert_allclose(A, B.dot(P))
+        assert_allclose(A, B @ P)
 
         # fixed rank
         idx, proj = pymatrixid.interp_decomp(A, k)
 
         P = pymatrixid.reconstruct_interp_matrix(idx, proj)
         B = pymatrixid.reconstruct_skel_matrix(A, k, idx)
-        assert_allclose(A, B.dot(P))
+        assert_allclose(A, B @ P)
 
     @pytest.mark.parametrize("dtype", [np.float_, np.complex_])
     @pytest.mark.parametrize("rand", [True, False])

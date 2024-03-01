@@ -10,7 +10,7 @@ def get_output_error_code(cmd: str | Sequence[str]) -> tuple[str, str, Any]:
     import os
     env = os.environ.copy()
     env["Y_PYTHON_ENTRY_POINT"] = ":main"
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, env=env)  # noqa
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, env=env)  # noqa: S603
     out, err = p.communicate()
     out_str = out.decode("utf8", "replace")
     err_str = err.decode("utf8", "replace")

@@ -666,6 +666,7 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 
 /* Define if you have waitpid.  */
 /* #undef HAVE_WAITPID */
+#define HAVE_SNPRINTF 1
 
 /* Define to 1 if you have the `wcscoll' function. */
 #ifndef MS_WINCE

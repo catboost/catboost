@@ -1,10 +1,8 @@
 Metadata-Version: 2.1
 Name: Jinja2
-Version: 3.1.2
+Version: 3.1.3
 Summary: A very fast and expressive template engine.
 Home-page: https://palletsprojects.com/p/jinja/
-Author: Armin Ronacher
-Author-email: armin.ronacher@active-4.com
 Maintainer: Pallets
 Maintainer-email: contact@palletsprojects.com
 License: BSD-3-Clause
@@ -13,9 +11,7 @@ Project-URL: Documentation, https://jinja.palletsprojects.com/
 Project-URL: Changes, https://jinja.palletsprojects.com/changes/
 Project-URL: Source Code, https://github.com/pallets/jinja/
 Project-URL: Issue Tracker, https://github.com/pallets/jinja/issues/
-Project-URL: Twitter, https://twitter.com/PalletsTeam
 Project-URL: Chat, https://discord.gg/pallets
-Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Environment :: Web Environment
 Classifier: Intended Audience :: Developers
@@ -27,9 +23,9 @@ Classifier: Topic :: Text Processing :: Markup :: HTML
 Requires-Python: >=3.7
 Description-Content-Type: text/x-rst
 License-File: LICENSE.rst
-Requires-Dist: MarkupSafe (>=2.0)
+Requires-Dist: MarkupSafe >=2.0
 Provides-Extra: i18n
-Requires-Dist: Babel (>=2.7) ; extra == 'i18n'
+Requires-Dist: Babel >=2.7 ; extra == 'i18n'
 
 Jinja
 =====
@@ -106,8 +102,4 @@ Links
 -   PyPI Releases: https://pypi.org/project/Jinja2/
 -   Source Code: https://github.com/pallets/jinja/
 -   Issue Tracker: https://github.com/pallets/jinja/issues/
--   Website: https://palletsprojects.com/p/jinja/
--   Twitter: https://twitter.com/PalletsTeam
 -   Chat: https://discord.gg/pallets
-
-

@@ -25,10 +25,10 @@ target_link_libraries(model_comparator PUBLIC
   cpp-string_utils-ztstrbuf
 )
 target_sources(model_comparator PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/decl.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/main.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/onnx.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/pmml.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/decl.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/main.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/onnx.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/pmml.cpp
 )
 target_allocator(model_comparator
   system_allocator

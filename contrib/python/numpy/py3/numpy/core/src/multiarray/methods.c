@@ -21,12 +21,14 @@
 #include "ctors.h"
 #include "calculation.h"
 #include "convert_datatype.h"
+#include "descriptor.h"
 #include "item_selection.h"
 #include "conversion_utils.h"
 #include "shape.h"
 #include "strfuncs.h"
 #include "array_assign.h"
 #include "npy_dlpack.h"
+#include "multiarraymodule.h"
 
 #include "methods.h"
 #include "alloc.h"
@@ -435,7 +437,7 @@ PyArray_GetField(PyArrayObject *self, PyArray_Descr *typed, int offset)
             PyArray_BYTES(self) + offset,
             PyArray_FLAGS(self) & ~NPY_ARRAY_F_CONTIGUOUS,
             (PyObject *)self, (PyObject *)self,
-            0, 1);
+            _NPY_ARRAY_ALLOW_EMPTY_STRING);
     return ret;
 }
 
@@ -851,29 +853,35 @@ static PyObject *
 array_astype(PyArrayObject *self,
         PyObject *const *args, Py_ssize_t len_args, PyObject *kwnames)
 {
-    PyArray_Descr *dtype = NULL;
     /*
      * TODO: UNSAFE default for compatibility, I think
      *       switching to SAME_KIND by default would be good.
      */
+    npy_dtype_info dt_info = {NULL, NULL};
     NPY_CASTING casting = NPY_UNSAFE_CASTING;
     NPY_ORDER order = NPY_KEEPORDER;
     _PyArray_CopyMode forcecopy = 1;
     int subok = 1;
+
     NPY_PREPARE_ARGPARSER;
     if (npy_parse_arguments("astype", args, len_args, kwnames,
-            "dtype", &PyArray_DescrConverter, &dtype,
+            "dtype", &PyArray_DTypeOrDescrConverterRequired, &dt_info,
             "|order", &PyArray_OrderConverter, &order,
             "|casting", &PyArray_CastingConverter, &casting,
             "|subok", &PyArray_PythonPyIntFromInt, &subok,
             "|copy", &PyArray_CopyConverter, &forcecopy,
             NULL, NULL, NULL) < 0) {
-        Py_XDECREF(dtype);
+        Py_XDECREF(dt_info.descr);
+        Py_XDECREF(dt_info.dtype);
         return NULL;
     }
 
     /* If it is not a concrete dtype instance find the best one for the array */
-    Py_SETREF(dtype, PyArray_AdaptDescriptorToArray(self, (PyObject *)dtype));
+    PyArray_Descr *dtype;
+
+    dtype = PyArray_AdaptDescriptorToArray(self, dt_info.dtype, dt_info.descr);
+    Py_XDECREF(dt_info.descr);
+    Py_DECREF(dt_info.dtype);
     if (dtype == NULL) {
         return NULL;
     }
@@ -916,29 +924,29 @@ array_astype(PyArrayObject *self,
 
     PyArrayObject *ret;
 
-    /* This steals the reference to dtype, so no DECREF of dtype */
+    /* This steals the reference to dtype */
+    Py_INCREF(dtype);
     ret = (PyArrayObject *)PyArray_NewLikeArray(
                                 self, order, dtype, subok);
     if (ret == NULL) {
-        return NULL;
-    }
-    /* NumPy 1.20, 2020-10-01 */
-    if ((PyArray_NDIM(self) != PyArray_NDIM(ret)) &&
-            DEPRECATE_FUTUREWARNING(
-                "casting an array to a subarray dtype "
-                "will not use broadcasting in the future, but cast each "
-                "element to the new dtype and then append the dtype's shape "
-                "to the new array. You can opt-in to the new behaviour, by "
-                "additional field to the cast: "
-                "`arr.astype(np.dtype([('f', dtype)]))['f']`.\n"
-                "This may lead to a different result or to current failures "
-                "succeeding.  "
-                "(FutureWarning since NumPy 1.20)") < 0) {
-        Py_DECREF(ret);
+        Py_DECREF(dtype);
         return NULL;
     }
 
-    if (PyArray_CopyInto(ret, self) < 0) {
+    /* Decrease the number of dimensions removing subarray ones again */
+    int out_ndim = PyArray_NDIM(ret);
+    PyArray_Descr *out_descr = PyArray_DESCR(ret);
+    if (out_ndim != PyArray_NDIM(self)) {
+        ((PyArrayObject_fields *)ret)->nd = PyArray_NDIM(self);
+        ((PyArrayObject_fields *)ret)->descr = dtype;
+    }
+    int success = PyArray_CopyInto(ret, self);
+
+    Py_DECREF(dtype);
+    ((PyArrayObject_fields *)ret)->nd = out_ndim;
+    ((PyArrayObject_fields *)ret)->descr = out_descr;
+
+    if (success < 0) {
         Py_DECREF(ret);
         return NULL;
     }
@@ -1095,7 +1103,7 @@ any_array_ufunc_overrides(PyObject *args, PyObject *kwds)
     int nin, nout;
     PyObject *out_kwd_obj;
     PyObject *fast;
-    PyObject **in_objs, **out_objs;
+    PyObject **in_objs, **out_objs, *where_obj;
 
     /* check inputs */
     nin = PyTuple_Size(args);
@@ -1114,6 +1122,9 @@ any_array_ufunc_overrides(PyObject *args, PyObject *kwds)
         }
     }
     Py_DECREF(fast);
+    if (kwds == NULL) {
+        return 0;
+    }
     /* check outputs, if any */
     nout = PyUFuncOverride_GetOutObjects(kwds, &out_kwd_obj, &out_objs);
     if (nout < 0) {
@@ -1126,6 +1137,17 @@ any_array_ufunc_overrides(PyObject *args, PyObject *kwds)
         }
     }
     Py_DECREF(out_kwd_obj);
+    /* check where if it exists */
+    where_obj = PyDict_GetItemWithError(kwds, npy_ma_str_where);
+    if (where_obj == NULL) {
+        if (PyErr_Occurred()) {
+            return -1;
+        }
+    } else {
+        if (PyUFunc_HasOverride(where_obj)){
+            return 1;
+        }
+    }
     return 0;
 }
 
@@ -2691,7 +2713,11 @@ array_setflags(PyArrayObject *self, PyObject *args, PyObject *kwds)
         return NULL;
 
     if (align_flag != Py_None) {
-        if (PyObject_Not(align_flag)) {
+        int isnot = PyObject_Not(align_flag);
+        if (isnot == -1) {
+            return NULL;
+        }
+        if (isnot) {
             PyArray_CLEARFLAGS(self, NPY_ARRAY_ALIGNED);
         }
         else if (IsAligned(self)) {
@@ -2706,7 +2732,11 @@ array_setflags(PyArrayObject *self, PyObject *args, PyObject *kwds)
     }
 
     if (uic != Py_None) {
-        if (PyObject_IsTrue(uic)) {
+        int istrue = PyObject_IsTrue(uic);
+        if (istrue == -1) {
+            return NULL;
+        }
+        if (istrue) {
             fa->flags = flagback;
             PyErr_SetString(PyExc_ValueError,
                             "cannot set WRITEBACKIFCOPY "
@@ -2721,7 +2751,11 @@ array_setflags(PyArrayObject *self, PyObject *args, PyObject *kwds)
     }
 
     if (write_flag != Py_None) {
-        if (PyObject_IsTrue(write_flag)) {
+        int istrue = PyObject_IsTrue(write_flag);
+        if (istrue == -1) {
+            return NULL;
+        }
+        else if (istrue == 1) {
             if (_IsWriteable(self)) {
                 /*
                  * _IsWritable (and PyArray_UpdateFlags) allows flipping this,
@@ -2785,9 +2819,7 @@ array_complex(PyArrayObject *self, PyObject *NPY_UNUSED(args))
     PyArray_Descr *dtype;
     PyObject *c;
 
-    if (PyArray_SIZE(self) != 1) {
-        PyErr_SetString(PyExc_TypeError,
-                "only length-1 arrays can be converted to Python scalars");
+    if (check_is_convertible_to_scalar(self) < 0) {
         return NULL;
     }
 
@@ -2832,25 +2864,15 @@ array_complex(PyArrayObject *self, PyObject *NPY_UNUSED(args))
 static PyObject *
 array_class_getitem(PyObject *cls, PyObject *args)
 {
-    PyObject *generic_alias;
+    const Py_ssize_t args_len = PyTuple_Check(args) ? PyTuple_Size(args) : 1;
 
-#ifdef Py_GENERICALIASOBJECT_H
-    Py_ssize_t args_len;
-
-    args_len = PyTuple_Check(args) ? PyTuple_Size(args) : 1;
     if ((args_len > 2) || (args_len == 0)) {
         return PyErr_Format(PyExc_TypeError,
                             "Too %s arguments for %s",
                             args_len > 2 ? "many" : "few",
                             ((PyTypeObject *)cls)->tp_name);
     }
-    generic_alias = Py_GenericAlias(cls, args);
-#else
-    PyErr_SetString(PyExc_TypeError,
-                    "Type subscription requires python >= 3.9");
-    generic_alias = NULL;
-#endif
-    return generic_alias;
+    return Py_GenericAlias(cls, args);
 }
 
 NPY_NO_EXPORT PyMethodDef array_methods[] = {

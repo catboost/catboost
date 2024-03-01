@@ -624,7 +624,7 @@ namespace NThreading {
     inline TFuture<TFutureType<TFutureCallResult<F, T>>> TFuture<T>::Apply(F&& func) const {
         auto promise = NewPromise<TFutureType<TFutureCallResult<F, T>>>();
         Subscribe([promise, func = std::forward<F>(func)](const TFuture<T>& future) mutable {
-            NImpl::SetValue(promise, [&]() { return func(future); });
+            NImpl::SetValue(promise, [&]() { return std::move(func)(future); });
         });
         return promise;
     }
@@ -723,22 +723,22 @@ namespace NThreading {
     inline TFuture<TFutureType<TFutureCallResult<F, void>>> TFuture<void>::Apply(F&& func) const {
         auto promise = NewPromise<TFutureType<TFutureCallResult<F, void>>>();
         Subscribe([promise, func = std::forward<F>(func)](const TFuture<void>& future) mutable {
-            NImpl::SetValue(promise, [&]() { return func(future); });
+            NImpl::SetValue(promise, [&]() { return std::move(func)(future); });
         });
         return promise;
     }
 
     template <typename R>
-    inline TFuture<R> TFuture<void>::Return(const R& value) const {
-        auto promise = NewPromise<R>();
-        Subscribe([=](const TFuture<void>& future) mutable {
+    inline TFuture<std::remove_cvref_t<R>> TFuture<void>::Return(R&& value) const {
+        auto promise = NewPromise<std::remove_cvref_t<R>>();
+        Subscribe([promise, value = std::forward<R>(value)](const TFuture<void>& future) mutable {
             try {
                 future.TryRethrow();
             } catch (...) {
                 promise.SetException(std::current_exception());
                 return;
             }
-            promise.SetValue(value);
+            promise.SetValue(std::move(value));
         });
         return promise;
     }

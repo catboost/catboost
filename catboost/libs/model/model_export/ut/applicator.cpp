@@ -89,10 +89,15 @@ static void ParseFeatures(
     }
 }
 
-extern double ApplyCatboostModel(const vector<float>& floatFeatures, const vector<string>& catFeatures);
+extern std::vector<double> ApplyCatboostModelMulti(const vector<float>& floatFeatures, const vector<string>& catFeatures);
 
 int main(int argc, char *argv[]) {
-    assert(argc == 4);  // main.exe test.tsv cd.tsv predictions.txt
+    assert((argc == 4) || (argc == 5));  // main.exe test.tsv cd.tsv predictions.txt [class_names]
+
+    vector<string> classNames;
+    if (argc == 5) {
+        classNames = Tokenize(argv[4], ',');
+    }
 
     vector<size_t> floatColumns, catColumns;
     set<size_t> otherColumns;
@@ -115,12 +120,28 @@ int main(int argc, char *argv[]) {
         }
         ParseFeatures(line, floatColumns, catColumns, &floatFeatures, &catFeatures);
 
-        double rawFormulaVal = ApplyCatboostModel(floatFeatures, catFeatures);
+        auto rawFormulaVals = ApplyCatboostModelMulti(floatFeatures, catFeatures);
 
         if (docId == 0) {
-            predictions << "SampleId" << DELIMITER << "RawFormulaVal" << endl;
+            predictions << "SampleId";
+            if (rawFormulaVals.size() == 1) {
+                predictions << DELIMITER << "RawFormulaVal";
+            } else {
+                assert(rawFormulaVals.size() == classNames.size());
+
+                // Multiclassification
+                for (size_t classIdx = 0; classIdx < rawFormulaVals.size(); ++classIdx) {
+                    predictions << DELIMITER << "RawFormulaVal:Class=" << classNames[classIdx];
+                }
+            }
+            predictions << endl;
         }
-        predictions << docId << DELIMITER << rawFormulaVal << endl;
+
+        predictions << docId;
+        for (size_t predIdx = 0; predIdx < rawFormulaVals.size(); ++predIdx) {
+            predictions << DELIMITER << rawFormulaVals[predIdx];
+        }
+        predictions << endl;
     }
 
     return 0;

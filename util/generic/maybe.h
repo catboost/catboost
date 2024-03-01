@@ -152,6 +152,29 @@ private:
                                       (!std::is_scalar<T>::value || !std::is_same<UDec, T>::value);
     };
 
+    template <typename>
+    struct TIsMaybe {
+        static constexpr bool value = false;
+    };
+
+    template <typename U, typename P>
+    struct TIsMaybe<TMaybe<U, P>> {
+        static constexpr bool value = true;
+    };
+
+    template <typename F, typename... Args>
+    static auto Call(F&& f, Args&&... args) -> decltype(std::forward<F>(f)(std::forward<Args>(args)...));
+
+    template <typename F, typename... Args>
+    using TCallResult = std::remove_reference_t<std::remove_cv_t<decltype(Call(std::declval<F>(), std::declval<Args>()...))>>;
+
+    template <typename U, typename F>
+    static constexpr F&& CheckReturnsMaybe(F&& f) {
+        using ReturnType = TCallResult<F, U>;
+        static_assert(TIsMaybe<ReturnType>::value, "Function must return TMaybe");
+        return f;
+    }
+
     using TBase = TMaybeBase<T>;
 
 public:
@@ -306,76 +329,188 @@ public:
         }
     }
 
-    const T* Get() const noexcept {
+    const T* Get() const noexcept Y_LIFETIME_BOUND {
         return Defined() ? Data() : nullptr;
     }
 
-    T* Get() noexcept {
+    T* Get() noexcept Y_LIFETIME_BOUND {
         return Defined() ? Data() : nullptr;
     }
 
-    constexpr const T& GetRef() const& {
+    constexpr const T& GetRef() const& Y_LIFETIME_BOUND {
         CheckDefined();
 
         return *Data();
     }
 
-    constexpr T& GetRef() & {
+    constexpr T& GetRef() & Y_LIFETIME_BOUND {
         CheckDefined();
 
         return *Data();
     }
 
-    constexpr const T&& GetRef() const&& {
+    constexpr const T&& GetRef() const&& Y_LIFETIME_BOUND {
         CheckDefined();
 
         return std::move(*Data());
     }
 
-    constexpr T&& GetRef() && {
+    constexpr T&& GetRef() && Y_LIFETIME_BOUND {
         CheckDefined();
 
         return std::move(*Data());
     }
 
-    constexpr const T& operator*() const& {
+    constexpr const T& operator*() const& Y_LIFETIME_BOUND {
         return GetRef();
     }
 
-    constexpr T& operator*() & {
+    constexpr T& operator*() & Y_LIFETIME_BOUND {
         return GetRef();
     }
 
-    constexpr const T&& operator*() const&& {
+    constexpr const T&& operator*() const&& Y_LIFETIME_BOUND {
         return std::move(GetRef());
     }
 
-    constexpr T&& operator*() && {
+    constexpr T&& operator*() && Y_LIFETIME_BOUND {
         return std::move(GetRef());
     }
 
-    constexpr const T* operator->() const {
+    constexpr const T* operator->() const Y_LIFETIME_BOUND {
         return &GetRef();
     }
 
-    constexpr T* operator->() {
+    constexpr T* operator->() Y_LIFETIME_BOUND {
         return &GetRef();
     }
 
-    constexpr const T& GetOrElse(const T& elseValue) const {
+    constexpr const T& GetOrElse(const T& elseValue Y_LIFETIME_BOUND) const Y_LIFETIME_BOUND {
         return Defined() ? *Data() : elseValue;
     }
 
-    constexpr T& GetOrElse(T& elseValue) {
+    constexpr T& GetOrElse(T& elseValue Y_LIFETIME_BOUND) Y_LIFETIME_BOUND {
         return Defined() ? *Data() : elseValue;
     }
 
-    constexpr const TMaybe& OrElse(const TMaybe& elseValue) const noexcept {
+    constexpr const TMaybe& OrElse(const TMaybe& elseValue Y_LIFETIME_BOUND) const noexcept Y_LIFETIME_BOUND {
         return Defined() ? *this : elseValue;
     }
 
-    constexpr TMaybe& OrElse(TMaybe& elseValue) {
+    constexpr TMaybe& OrElse(TMaybe& elseValue Y_LIFETIME_BOUND) Y_LIFETIME_BOUND {
         return Defined() ? *this : elseValue;
+    }
+
+    template <typename F>
+    constexpr auto AndThen(F&& func) & {
+        using ReturnType = TCallResult<F, T&>;
+
+        if (Defined()) {
+            return std::forward<F>(CheckReturnsMaybe<T&>(func))(*Data());
+        }
+
+        return ReturnType{};
+    }
+
+    template <typename F>
+    constexpr auto AndThen(F&& func) const& {
+        using ReturnType = TCallResult<F, const T&>;
+
+        if (Defined()) {
+            return std::forward<F>(CheckReturnsMaybe<const T&>(func))(*Data());
+        }
+
+        return ReturnType{};
+    }
+
+    template <typename F>
+    constexpr auto AndThen(F&& func) && {
+        using ReturnType = TCallResult<F, T&&>;
+
+        if (Defined()) {
+            return std::forward<F>(CheckReturnsMaybe<T&&>(func))(std::move(*Data()));
+        }
+
+        return ReturnType{};
+    }
+
+    template <typename F>
+    constexpr auto AndThen(F&& func) const&& {
+        using ReturnType = TCallResult<F, const T&&>;
+
+        if (Defined()) {
+            return std::forward<F>(CheckReturnsMaybe<const T&&>(func))(std::move(*Data()));
+        }
+
+        return ReturnType{};
+    }
+
+    template <typename F>
+    constexpr auto Transform(F&& func) & {
+        using ReturnType = TMaybe<TCallResult<F, T&>>;
+
+        if (Defined()) {
+            return ReturnType(std::forward<F>(func)(*Data()));
+        }
+
+        return ReturnType{};
+    }
+
+    template <typename F>
+    constexpr auto Transform(F&& func) const& {
+        using ReturnType = TMaybe<TCallResult<F, const T&>>;
+
+        if (Defined()) {
+            return ReturnType(std::forward<F>(func)(*Data()));
+        }
+
+        return ReturnType{};
+    }
+
+    template <typename F>
+    constexpr auto Transform(F&& func) && {
+        using ReturnType = TMaybe<TCallResult<F, T&&>>;
+
+        if (Defined()) {
+            return ReturnType(std::forward<F>(func)(std::move(*Data())));
+        }
+
+        return ReturnType{};
+    }
+
+    template <typename F>
+    constexpr auto Transform(F&& func) const&& {
+        using ReturnType = TMaybe<TCallResult<F, const T&&>>;
+
+        if (Defined()) {
+            return ReturnType(std::forward<F>(func)(std::move(*Data())));
+        }
+
+        return ReturnType{};
+    }
+
+    template <typename F>
+    constexpr TMaybe Or(F&& func) const& {
+        using ResultType = TCallResult<F>;
+        static_assert(std::is_same<ResultType, TMaybe>::value, "Function must return TMaybe with the same type");
+
+        if (Defined()) {
+            return *this;
+        }
+
+        return std::forward<F>(func)();
+    }
+
+    template <typename F>
+    constexpr TMaybe Or(F&& func) && {
+        using ResultType = TCallResult<F>;
+        static_assert(std::is_same<ResultType, TMaybe>::value, "Function must return TMaybe with the same type");
+
+        if (Defined()) {
+            return std::move(*this);
+        }
+
+        return std::forward<F>(func)();
     }
 
     template <typename U>
@@ -434,11 +569,11 @@ public:
     }
 
 private:
-    constexpr const T* Data() const noexcept {
+    constexpr const T* Data() const noexcept Y_LIFETIME_BOUND {
         return std::addressof(this->Data_);
     }
 
-    constexpr T* Data() noexcept {
+    constexpr T* Data() noexcept Y_LIFETIME_BOUND {
         return std::addressof(this->Data_);
     }
 

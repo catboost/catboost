@@ -6,7 +6,6 @@ import os
 import subprocess
 import sys
 import time
-import six as six_
 
 
 INDENT = " " * 4
@@ -21,27 +20,24 @@ def _get_vcs_dictionary(vcs_type, *arg):
 
 def _get_user_locale():
     try:
-        if six_.PY3:
-            return [locale.getencoding()]
-        else:
-            return [locale.getdefaultlocale()[1]]
+        return [locale.getencoding()]
     except Exception:
         return []
 
 
-class _GitVersion():
+class _GitVersion:
     @classmethod
     def parse(cls, commit_hash, author_info, summary_info, body_info, tag_info, branch_info, depth=None):
-        r""" Parses output of
-            git rev-parse HEAD
-            git log -1 --format='format:%an <%ae>'
-            git log -1 --format='format:%s'
-            git log -1 --grep='^git-svn-id: ' --format='format:%b' or
-            git log -1 --grep='^Revision: r?\d*' --format='format:%b
-            git describe --exact-match --tags HEAD
-            git describe --exact-match --all HEAD
-            and depth as computed by _get_git_depth
-            '"""
+        r"""Parses output of
+        git rev-parse HEAD
+        git log -1 --format='format:%an <%ae>'
+        git log -1 --format='format:%s'
+        git log -1 --grep='^git-svn-id: ' --format='format:%b' or
+        git log -1 --grep='^Revision: r?\d*' --format='format:%b
+        git describe --exact-match --tags HEAD
+        git describe --exact-match --all HEAD
+        and depth as computed by _get_git_depth
+        '"""
 
         info = {}
         info['hash'] = commit_hash
@@ -91,8 +87,8 @@ class _GitVersion():
         hash_args = ['rev-parse', 'HEAD']
         author_args = ['log', '-1', '--format=format:%an <%ae>']
         summary_args = ['log', '-1', '--format=format:%s']
-        svn_args = ['log', '-1', '--grep=^git-svn-id: ',  '--format=format:%b']
-        svn_args_alt = ['log', '-1', '--grep=^Revision: r\\?\\d*',  '--format=format:%b']
+        svn_args = ['log', '-1', '--grep=^git-svn-id: ', '--format=format:%b']
+        svn_args_alt = ['log', '-1', '--grep=^Revision: r\\?\\d*', '--format=format:%b']
         tag_args = ['describe', '--exact-match', '--tags', 'HEAD']
         branch_args = ['describe', '--exact-match', '--all', 'HEAD']
 
@@ -116,7 +112,7 @@ class _GitVersion():
         except Exception:
             branch_info = [''.encode('utf-8')]
 
-        depth = six_.text_type(_GitVersion._get_git_depth(env, arc_root)).encode('utf-8')
+        depth = str(_GitVersion._get_git_depth(env, arc_root)).encode('utf-8')
 
         # logger.debug('Git info commit:{}, author:{}, summary:{}, svn_id:{}'.format(commit, author, summary, svn_id))
         return [commit, author, summary, svn_id, tag_info[0], branch_info[0], depth]
@@ -163,6 +159,7 @@ class _SystemInfo:
     @classmethod
     def get_locale(cls):
         import codecs
+
         for i in cls.LOCALE_LIST:
             if not i:
                 continue
@@ -174,7 +171,7 @@ class _SystemInfo:
 
     @staticmethod
     def _to_text(s):
-        if isinstance(s, six_.binary_type):
+        if isinstance(s, bytes):
             return s.decode(_SystemInfo.get_locale(), errors='replace')
         return s
 
@@ -237,7 +234,8 @@ class _SystemInfo:
                 errcodes += ', win-error {}'.format(e.winerror)
                 try:
                     import ctypes
-                    msg = six_.text_type(ctypes.FormatError(e.winerror), _SystemInfo.get_locale()).encode('utf-8')
+
+                    msg = str(ctypes.FormatError(e.winerror), _SystemInfo.get_locale()).encode('utf-8')
                 except ImportError:
                     pass
             # logger.debug('System command call {} failed [{}]: {}\n'.format(command, errcodes, msg))
@@ -262,7 +260,8 @@ def _get_json(vcs_root):
 
 
 def _dump_json(
-    arc_root, info,
+    arc_root,
+    info,
     other_data=None,
     build_user=None,
     build_date=None,
@@ -287,14 +286,14 @@ def _dump_json(
     j['DIRTY'] = info.get('dirty', '')
 
     if 'url' in info or 'svn_url' in info:
-       j['SVN_REVISION'] = info.get('svn_commit_revision', info.get('revision', -1))
-       j['SVN_ARCROOT'] = info.get('url', info.get('svn_url', ''))
-       j['SVN_TIME'] = info.get('commit_date', info.get('svn_commit_date', ''))
+        j['SVN_REVISION'] = info.get('svn_commit_revision', info.get('revision', -1))
+        j['SVN_ARCROOT'] = info.get('url', info.get('svn_url', ''))
+        j['SVN_TIME'] = info.get('commit_date', info.get('svn_commit_date', ''))
 
     j['BUILD_DATE'] = build_date
     j['BUILD_TIMESTAMP'] = build_timestamp
 
-    return json.dumps(j,  sort_keys=True, indent=4, separators=(',', ': '))
+    return json.dumps(j, sort_keys=True, indent=4, separators=(',', ': '))
 
 
 def get_version_info(arc_root, custom_version=""):
@@ -318,4 +317,3 @@ def get_version_info(arc_root, custom_version=""):
 if __name__ == '__main__':
     with open(sys.argv[1], 'w') as f:
         f.write(get_version_info(sys.argv[2]))
-

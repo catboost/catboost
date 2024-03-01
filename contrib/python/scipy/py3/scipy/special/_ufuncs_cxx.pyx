@@ -10,6 +10,36 @@ cdef extern from "_ufuncs_cxx_defs.h":
     cdef double complex _func_faddeeva_dawsn_complex "faddeeva_dawsn_complex"(double complex) nogil
 cdef void *_export_faddeeva_dawsn_complex = <void*>_func_faddeeva_dawsn_complex
 cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double _func_fellint_RC "fellint_RC"(double, double) nogil
+cdef void *_export_fellint_RC = <void*>_func_fellint_RC
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double complex _func_cellint_RC "cellint_RC"(double complex, double complex) nogil
+cdef void *_export_cellint_RC = <void*>_func_cellint_RC
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double _func_fellint_RD "fellint_RD"(double, double, double) nogil
+cdef void *_export_fellint_RD = <void*>_func_fellint_RD
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double complex _func_cellint_RD "cellint_RD"(double complex, double complex, double complex) nogil
+cdef void *_export_cellint_RD = <void*>_func_cellint_RD
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double _func_fellint_RF "fellint_RF"(double, double, double) nogil
+cdef void *_export_fellint_RF = <void*>_func_fellint_RF
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double complex _func_cellint_RF "cellint_RF"(double complex, double complex, double complex) nogil
+cdef void *_export_cellint_RF = <void*>_func_cellint_RF
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double _func_fellint_RG "fellint_RG"(double, double, double) nogil
+cdef void *_export_fellint_RG = <void*>_func_fellint_RG
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double complex _func_cellint_RG "cellint_RG"(double complex, double complex, double complex) nogil
+cdef void *_export_cellint_RG = <void*>_func_cellint_RG
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double _func_fellint_RJ "fellint_RJ"(double, double, double, double) nogil
+cdef void *_export_fellint_RJ = <void*>_func_fellint_RJ
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double complex _func_cellint_RJ "cellint_RJ"(double complex, double complex, double complex, double complex) nogil
+cdef void *_export_cellint_RJ = <void*>_func_cellint_RJ
+cdef extern from "_ufuncs_cxx_defs.h":
     cdef double complex _func_faddeeva_erf "faddeeva_erf"(double complex) nogil
 cdef void *_export_faddeeva_erf = <void*>_func_faddeeva_erf
 cdef extern from "_ufuncs_cxx_defs.h":
@@ -36,6 +66,15 @@ cdef void *_export_expitf = <void*>_func_expitf
 cdef extern from "_ufuncs_cxx_defs.h":
     cdef long double _func_expitl "expitl"(long double) nogil
 cdef void *_export_expitl = <void*>_func_expitl
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double _func_log_expit "log_expit"(double) nogil
+cdef void *_export_log_expit = <void*>_func_log_expit
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef float _func_log_expitf "log_expitf"(float) nogil
+cdef void *_export_log_expitf = <void*>_func_log_expitf
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef long double _func_log_expitl "log_expitl"(long double) nogil
+cdef void *_export_log_expitl = <void*>_func_log_expitl
 cdef extern from "_ufuncs_cxx_defs.h":
     cdef double complex _func_faddeeva_log_ndtr "faddeeva_log_ndtr"(double complex) nogil
 cdef void *_export_faddeeva_log_ndtr = <void*>_func_faddeeva_log_ndtr

@@ -9,9 +9,9 @@
 #ifndef _LIBCPP___ALGORITHM_RANGES_SORT_H
 #define _LIBCPP___ALGORITHM_RANGES_SORT_H
 
+#include <__algorithm/iterator_operations.h>
 #include <__algorithm/make_projected.h>
 #include <__algorithm/sort.h>
-#include <__concepts/same_as.h>
 #include <__config>
 #include <__functional/identity.h>
 #include <__functional/invoke.h>
@@ -31,7 +31,7 @@
 #  pragma GCC system_header
 #endif
 
-#if _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_INCOMPLETE_RANGES)
+#if _LIBCPP_STD_VER >= 20
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
@@ -40,27 +40,27 @@ namespace __sort {
 
 struct __fn {
   template <class _Iter, class _Sent, class _Comp, class _Proj>
-  _LIBCPP_HIDE_FROM_ABI constexpr static
-  _Iter __sort_fn_impl(_Iter __first, _Sent __last, _Comp& __comp, _Proj& __proj) {
+  _LIBCPP_HIDE_FROM_ABI constexpr static _Iter
+  __sort_fn_impl(_Iter __first, _Sent __last, _Comp& __comp, _Proj& __proj) {
     auto __last_iter = ranges::next(__first, __last);
 
-    auto&& __projected_comp = __make_projected_comp(__comp, __proj);
-    std::__sort_impl(std::move(__first), __last_iter, __projected_comp);
+    auto&& __projected_comp = std::__make_projected(__comp, __proj);
+    std::__sort_impl<_RangeAlgPolicy>(std::move(__first), __last_iter, __projected_comp);
 
     return __last_iter;
   }
 
   template <random_access_iterator _Iter, sentinel_for<_Iter> _Sent, class _Comp = ranges::less, class _Proj = identity>
     requires sortable<_Iter, _Comp, _Proj>
-  _LIBCPP_HIDE_FROM_ABI constexpr
-  _Iter operator()(_Iter __first, _Sent __last, _Comp __comp = {}, _Proj __proj = {}) const {
+  _LIBCPP_HIDE_FROM_ABI constexpr _Iter
+  operator()(_Iter __first, _Sent __last, _Comp __comp = {}, _Proj __proj = {}) const {
     return __sort_fn_impl(std::move(__first), std::move(__last), __comp, __proj);
   }
 
   template <random_access_range _Range, class _Comp = ranges::less, class _Proj = identity>
     requires sortable<iterator_t<_Range>, _Comp, _Proj>
-  _LIBCPP_HIDE_FROM_ABI constexpr
-  borrowed_iterator_t<_Range> operator()(_Range&& __r, _Comp __comp = {}, _Proj __proj = {}) const {
+  _LIBCPP_HIDE_FROM_ABI constexpr borrowed_iterator_t<_Range>
+  operator()(_Range&& __r, _Comp __comp = {}, _Proj __proj = {}) const {
     return __sort_fn_impl(ranges::begin(__r), ranges::end(__r), __comp, __proj);
   }
 };
@@ -68,12 +68,12 @@ struct __fn {
 } // namespace __sort
 
 inline namespace __cpo {
-  inline constexpr auto sort = __sort::__fn{};
+inline constexpr auto sort = __sort::__fn{};
 } // namespace __cpo
 } // namespace ranges
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif // _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_INCOMPLETE_RANGES)
+#endif // _LIBCPP_STD_VER >= 20
 
 #endif // _LIBCPP___ALGORITHM_RANGES_SORT_H

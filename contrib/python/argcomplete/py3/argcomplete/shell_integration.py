@@ -32,6 +32,7 @@ __python_argcomplete_run_inner() {
 
 _python_argcomplete%(function_suffix)s() {
     local IFS=$'\013'
+    local script="%(argcomplete_script)s"
     if [[ -n "${ZSH_VERSION-}" ]]; then
         local completions
         completions=($(IFS="$IFS" \
@@ -40,8 +41,16 @@ _python_argcomplete%(function_suffix)s() {
             _ARGCOMPLETE=1 \
             _ARGCOMPLETE_SHELL="zsh" \
             _ARGCOMPLETE_SUPPRESS_SPACE=1 \
-            __python_argcomplete_run "${words[1]}") )
-        _describe "${words[1]}" completions -o nosort
+            __python_argcomplete_run ${script:-${words[1]}}))
+        local nosort=()
+        local nospace=()
+        if is-at-least 5.8; then
+            nosort=(-o nosort)
+        fi
+        if [[ "${completions-}" =~ ([^\\]): && "${match[1]}" =~ [=/:] ]]; then
+            nospace=(-S '')
+        fi
+        _describe "${words[1]}" completions "${nosort[@]}" "${nospace[@]}"
     else
         local SUPPRESS_SPACE=0
         if compopt +o nospace 2> /dev/null; then
@@ -55,7 +64,7 @@ _python_argcomplete%(function_suffix)s() {
             _ARGCOMPLETE=1 \
             _ARGCOMPLETE_SHELL="bash" \
             _ARGCOMPLETE_SUPPRESS_SPACE=$SUPPRESS_SPACE \
-            __python_argcomplete_run "%(argcomplete_script)s"))
+            __python_argcomplete_run ${script:-$1}))
         if [[ $? != 0 ]]; then
             unset COMPREPLY
         elif [[ $SUPPRESS_SPACE == 1 ]] && [[ "${COMPREPLY-}" =~ [=/:]$ ]]; then
@@ -66,6 +75,7 @@ _python_argcomplete%(function_suffix)s() {
 if [[ -z "${ZSH_VERSION-}" ]]; then
     complete %(complete_opts)s -F _python_argcomplete%(function_suffix)s %(executables)s
 else
+    autoload is-at-least
     compdef _python_argcomplete%(function_suffix)s %(executables)s
 fi
 """
@@ -144,7 +154,7 @@ def shellcode(executables, use_defaults=True, shell="bash", complete_arguments=N
         if script:
             function_suffix = "_" + script
         else:
-            script = "$1"
+            script = ""
             function_suffix = ""
         code = bashcode % dict(
             complete_opts=complete_options,

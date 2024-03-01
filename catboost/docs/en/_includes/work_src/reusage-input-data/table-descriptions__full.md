@@ -37,6 +37,8 @@ An array of numbers that represent an embedding feature. Numbers in the string a
 
 Any data.
 
+A tab-delimited Auxiliary column ID can be added for this type of column. The specified value can be used in the `--output-columns` command-line [applying](../../../concepts/cli-reference_calc-model.md) parameter.
+
 The value of this column is ignored (the behavior is the same as when this column is omitted in the file with the [dataset description](../../../concepts/input-data_values-file.md)).
 
 

@@ -15,12 +15,13 @@ target_link_libraries(library-cpp-fast_exp PUBLIC
   contrib-libs-fmath
 )
 target_sources(library-cpp-fast_exp PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.cpp
 )
 target_sources_custom(library-cpp-fast_exp
   .avx2
   SRCS
-  ${CMAKE_SOURCE_DIR}/library/cpp/fast_exp/fast_exp_avx2.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp_avx2.cpp
   CUSTOM_FLAGS
   -mavx2
   -mfma
@@ -30,7 +31,7 @@ target_sources_custom(library-cpp-fast_exp
 target_sources_custom(library-cpp-fast_exp
   .sse2
   SRCS
-  ${CMAKE_SOURCE_DIR}/library/cpp/fast_exp/fast_exp_sse2.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp_sse2.cpp
   CUSTOM_FLAGS
   -msse2
 )

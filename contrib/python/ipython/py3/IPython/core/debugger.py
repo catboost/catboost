@@ -454,7 +454,7 @@ class Pdb(OldPdb):
                 with self._hold_exceptions(_chained_exceptions):
                     OldPdb.interaction(self, frame, tb)
             else:
-                OldPdb.interaction(self, frame, traceback)
+                OldPdb.interaction(self, frame, tb_or_exc)
 
         except KeyboardInterrupt:
             self.stdout.write("\n" + self.shell.get_exception_only())
@@ -616,7 +616,7 @@ class Pdb(OldPdb):
         ret.append("%s(%s)%s\n" % (link, lineno, call))
 
         start = lineno - 1 - context//2
-        lines = linecache.getlines(filename)
+        lines = linecache.getlines(filename, frame.f_globals)
         start = min(start, len(lines) - context)
         start = max(start, 0)
         lines = lines[start : start + context]
@@ -674,7 +674,7 @@ class Pdb(OldPdb):
                 filename = self._exec_filename
 
             for lineno in range(first, last+1):
-                line = linecache.getline(filename, lineno)
+                line = linecache.getline(filename, lineno, self.curframe.f_globals)
                 if not line:
                     break
 
@@ -1111,10 +1111,13 @@ class InterruptiblePdb(Pdb):
                 raise
 
 
-def set_trace(frame=None):
+def set_trace(frame=None, header=None):
     """
     Start debugging from `frame`.
 
     If frame is not specified, debugging starts from caller's frame.
     """
-    Pdb().set_trace(frame or sys._getframe().f_back)
+    pdb = Pdb()
+    if header is not None:
+        pdb.message(header)
+    pdb.set_trace(frame or sys._getframe().f_back)

@@ -1,5 +1,5 @@
 #!python
-#cython: wraparound=False, nonecheck=False, boundscheck=False, cdivision=True, language_level=3
+#cython: wraparound=False, nonecheck=False, boundscheck=False, cdivision=True, language_level=3, binding=False
 import operator
 import warnings
 from collections.abc import Sequence
@@ -367,15 +367,16 @@ cdef class RandomState:
         else:
             if not isinstance(state, (tuple, list)):
                 raise TypeError('state must be a dict or a tuple.')
-            if state[0] != 'MT19937':
-                raise ValueError('set_state can only be used with legacy MT19937'
-                                 'state instances.')
-            st = {'bit_generator': state[0],
-                  'state': {'key': state[1], 'pos': state[2]}}
-            if len(state) > 3:
-                st['has_gauss'] = state[3]
-                st['gauss'] = state[4]
-                value = st
+            with cython.boundscheck(True):
+                if state[0] != 'MT19937':
+                    raise ValueError('set_state can only be used with legacy '
+                                     'MT19937 state instances.')
+                st = {'bit_generator': state[0],
+                      'state': {'key': state[1], 'pos': state[2]}}
+                if len(state) > 3:
+                    st['has_gauss'] = state[3]
+                    st['gauss'] = state[4]
+                    value = st
 
         self._aug_state.gauss = st.get('gauss', 0.0)
         self._aug_state.has_gauss = st.get('has_gauss', 0)
@@ -537,6 +538,22 @@ cdef class RandomState:
         out : ndarray or scalar
             Drawn samples from the parameterized exponential distribution.
 
+        Examples
+        --------
+        A real world example: Assume a company has 10000 customer support 
+        agents and the average time between customer calls is 4 minutes.
+
+        >>> n = 10000
+        >>> time_between_calls = np.random.default_rng().exponential(scale=4, size=n)
+
+        What is the probability that a customer will call in the next 
+        4 to 5 minutes? 
+        
+        >>> x = ((time_between_calls < 5).sum())/n 
+        >>> y = ((time_between_calls < 4).sum())/n
+        >>> x-y
+        0.08 # may vary
+
         See Also
         --------
         random.Generator.exponential: which should be used for new code.
@@ -670,7 +687,7 @@ cdef class RandomState:
         `high` is None (the default), then results are from [0, `low`).
 
         .. note::
-            New code should use the `~numpy.random.Generator.randint`
+            New code should use the `~numpy.random.Generator.integers`
             method of a `~numpy.random.Generator` instance instead;
             please see the :ref:`random-quick-start`.
 
@@ -3050,7 +3067,7 @@ cdef class RandomState:
         >>> b = []
         >>> for i in range(1000):
         ...    a = 10. + np.random.standard_normal(100)
-        ...    b.append(np.product(a))
+        ...    b.append(np.prod(a))
 
         >>> b = np.array(b) / np.min(b) # scale values to be positive
         >>> count, bins, ignored = plt.hist(b, 100, density=True, align='mid')
@@ -4237,7 +4254,7 @@ cdef class RandomState:
         x.shape = tuple(final_shape)
         return x
 
-    def multinomial(self, np.npy_intp n, object pvals, size=None):
+    def multinomial(self, long n, object pvals, size=None):
         """
         multinomial(n, pvals, size=None)
 

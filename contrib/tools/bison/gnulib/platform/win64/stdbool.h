@@ -62,7 +62,7 @@
 /* BeOS <sys/socket.h> already #defines false 0, true 1.  We use the same
    definitions below, but temporarily we have to #undef them.  */
 #if defined __BEOS__ && !defined __HAIKU__
-# include <OS.h> /* defines bool but not _Bool */
+# error #include <OS.h> /* defines bool but not _Bool */
 # undef false
 # undef true
 #endif

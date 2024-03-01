@@ -1,11 +1,10 @@
 Metadata-Version: 2.1
 Name: attrs
-Version: 23.1.0
+Version: 23.2.0
 Summary: Classes Without Boilerplate
 Project-URL: Documentation, https://www.attrs.org/
 Project-URL: Changelog, https://www.attrs.org/en/stable/changelog.html
-Project-URL: Bug Tracker, https://github.com/python-attrs/attrs/issues
-Project-URL: Source Code, https://github.com/python-attrs/attrs
+Project-URL: GitHub, https://github.com/python-attrs/attrs
 Project-URL: Funding, https://github.com/sponsors/hynek
 Project-URL: Tidelift, https://tidelift.com/subscription/pkg/pypi-attrs?utm_source=pypi-attrs&utm_medium=pypi
 Author-email: Hynek Schlawack <hs@ox.cx>
@@ -13,13 +12,13 @@ License-Expression: MIT
 License-File: LICENSE
 Keywords: attribute,boilerplate,class
 Classifier: Development Status :: 5 - Production/Stable
-Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Typing :: Typed
@@ -29,7 +28,7 @@ Provides-Extra: cov
 Requires-Dist: attrs[tests]; extra == 'cov'
 Requires-Dist: coverage[toml]>=5.3; extra == 'cov'
 Provides-Extra: dev
-Requires-Dist: attrs[docs,tests]; extra == 'dev'
+Requires-Dist: attrs[tests]; extra == 'dev'
 Requires-Dist: pre-commit; extra == 'dev'
 Provides-Extra: docs
 Requires-Dist: furo; extra == 'docs'
@@ -42,12 +41,14 @@ Requires-Dist: zope-interface; extra == 'docs'
 Provides-Extra: tests
 Requires-Dist: attrs[tests-no-zope]; extra == 'tests'
 Requires-Dist: zope-interface; extra == 'tests'
+Provides-Extra: tests-mypy
+Requires-Dist: mypy>=1.6; (platform_python_implementation == 'CPython' and python_version >= '3.8') and extra == 'tests-mypy'
+Requires-Dist: pytest-mypy-plugins; (platform_python_implementation == 'CPython' and python_version >= '3.8') and extra == 'tests-mypy'
 Provides-Extra: tests-no-zope
-Requires-Dist: cloudpickle; platform_python_implementation == 'CPython' and extra == 'tests-no-zope'
+Requires-Dist: attrs[tests-mypy]; extra == 'tests-no-zope'
+Requires-Dist: cloudpickle; (platform_python_implementation == 'CPython') and extra == 'tests-no-zope'
 Requires-Dist: hypothesis; extra == 'tests-no-zope'
-Requires-Dist: mypy>=1.1.1; platform_python_implementation == 'CPython' and extra == 'tests-no-zope'
 Requires-Dist: pympler; extra == 'tests-no-zope'
-Requires-Dist: pytest-mypy-plugins; platform_python_implementation == 'CPython' and python_version < '3.11' and extra == 'tests-no-zope'
 Requires-Dist: pytest-xdist[psutil]; extra == 'tests-no-zope'
 Requires-Dist: pytest>=4.3.0; extra == 'tests-no-zope'
 Description-Content-Type: text/markdown
@@ -71,21 +72,9 @@ Its main goal is to help you to write **concise** and **correct** software witho
 Especially those generously supporting us at the *The Organization* tier and higher:
 
 <p align="center">
-   <a href="https://www.variomedia.de/">
-      <img src="https://raw.githubusercontent.com/python-attrs/attrs/main/.github/sponsors/Variomedia.svg" width="200" height="60"></img>
-   </a>
-
-   <a href="https://tidelift.com/subscription/pkg/pypi-attrs?utm_source=pypi-attrs&utm_medium=referral&utm_campaign=enterprise&utm_term=repo">
-      <img src="https://raw.githubusercontent.com/python-attrs/attrs/main/.github/sponsors/Tidelift.svg" width="200" height="60"></img>
-   </a>
-
-   <a href="https://sentry.io/">
-      <img src="https://raw.githubusercontent.com/python-attrs/attrs/main/.github/sponsors/Sentry.svg" width="200" height="60"></img>
-   </a>
-
-   <a href="https://filepreviews.io/">
-      <img src="https://raw.githubusercontent.com/python-attrs/attrs/main/.github/sponsors/FilePreviews.svg" width="200" height="60"></img>
-   </a>
+   <a href="https://www.variomedia.de/"><img src="https://www.attrs.org/en/23.2.0/_static/sponsors/Variomedia.svg" width="200" height="60" /></a>
+   <a href="https://tidelift.com/subscription/pkg/pypi-attrs?utm_source=pypi-attrs&utm_medium=referral&utm_campaign=enterprise&utm_term=repo"><img src="https://www.attrs.org/en/23.2.0/_static/sponsors/Tidelift.svg" width="200" height="60" /></a>
+   <a href="https://filepreviews.io/"><img src="https://www.attrs.org/en/23.2.0/_static/sponsors/FilePreviews.svg" width="200" height="60"/></a>
 </p>
 
 <p align="center">
@@ -161,7 +150,7 @@ Please check out [*On The Core API Names*](https://www.attrs.org/en/latest/names
 
 On the tin, *attrs* might remind you of `dataclasses` (and indeed, `dataclasses` [are a descendant](https://hynek.me/articles/import-attrs/) of *attrs*).
 In practice it does a lot more and is more flexible.
-For instance it allows you to define [special handling of NumPy arrays for equality checks](https://www.attrs.org/en/stable/comparison.html#customization), or allows more ways to [plug into the initialization process](https://www.attrs.org/en/stable/init.html#hooking-yourself-into-initialization).
+For instance it allows you to define [special handling of NumPy arrays for equality checks](https://www.attrs.org/en/stable/comparison.html#customization), allows more ways to [plug into the initialization process](https://www.attrs.org/en/stable/init.html#hooking-yourself-into-initialization), and allows for stepping through the generated methods using a debugger.
 
 For more details, please refer to our [comparison page](https://www.attrs.org/en/stable/why.html#data-classes).
 
@@ -174,9 +163,7 @@ For more details, please refer to our [comparison page](https://www.attrs.org/en
 - [**Source Code**](https://github.com/python-attrs/attrs)
 - [**Contributing**](https://github.com/python-attrs/attrs/blob/main/.github/CONTRIBUTING.md)
 - [**Third-party Extensions**](https://github.com/python-attrs/attrs/wiki/Extensions-to-attrs)
-- **License**: [MIT](https://www.attrs.org/en/latest/license.html)
 - **Get Help**: please use the `python-attrs` tag on [StackOverflow](https://stackoverflow.com/questions/tagged/python-attrs)
-- **Supported Python Versions**: 3.7 and later
 
 
 ### *attrs* for Enterprise
@@ -189,53 +176,25 @@ Save time, reduce risk, and improve code health, while paying the maintainers of
 
 ## Release Information
 
-### Backwards-incompatible Changes
-
-- Python 3.6 has been dropped and packaging switched to static package data using [Hatch](https://hatch.pypa.io/latest/).
-  [#993](https://github.com/python-attrs/attrs/issues/993)
-
-
-### Deprecations
-
-- The support for *zope-interface* via the `attrs.validators.provides` validator is now deprecated and will be removed in, or after, April 2024.
-
-  The presence of a C-based package in our developement dependencies has caused headaches and we're not under the impression it's used a lot.
-
-  Let us know if you're using it and we might publish it as a separate package.
-  [#1120](https://github.com/python-attrs/attrs/issues/1120)
-
-
 ### Changes
 
-- `attrs.filters.exclude()` and `attrs.filters.include()` now support the passing of attribute names as strings.
-  [#1068](https://github.com/python-attrs/attrs/issues/1068)
-- `attrs.has()` and `attrs.fields()` now handle generic classes correctly.
-  [#1079](https://github.com/python-attrs/attrs/issues/1079)
-- Fix frozen exception classes when raised within e.g. `contextlib.contextmanager`, which mutates their `__traceback__` attributes.
-  [#1081](https://github.com/python-attrs/attrs/issues/1081)
-- `@frozen` now works with type checkers that implement [PEP-681](https://peps.python.org/pep-0681/) (ex. [pyright](https://github.com/microsoft/pyright/)).
-  [#1084](https://github.com/python-attrs/attrs/issues/1084)
-- Restored ability to unpickle instances pickled before 22.2.0.
-  [#1085](https://github.com/python-attrs/attrs/issues/1085)
-- `attrs.asdict()`'s and `attrs.astuple()`'s type stubs now accept the `attrs.AttrsInstance` protocol.
-  [#1090](https://github.com/python-attrs/attrs/issues/1090)
-- Fix slots class cellvar updating closure in CPython 3.8+ even when `__code__` introspection is unavailable.
-  [#1092](https://github.com/python-attrs/attrs/issues/1092)
-- `attrs.resolve_types()` can now pass `include_extras` to `typing.get_type_hints()` on Python 3.9+, and does so by default.
-  [#1099](https://github.com/python-attrs/attrs/issues/1099)
-- Added instructions for pull request workflow to `CONTRIBUTING.md`.
-  [#1105](https://github.com/python-attrs/attrs/issues/1105)
-- Added *type* parameter to `attrs.field()` function for use with `attrs.make_class()`.
-
-  Please note that type checkers ignore type metadata passed into `make_class()`, but it can be useful if you're wrapping _attrs_.
-  [#1107](https://github.com/python-attrs/attrs/issues/1107)
-- It is now possible for `attrs.evolve()` (and `attr.evolve()`) to change fields named `inst` if the instance is passed as a positional argument.
-
-  Passing the instance using the `inst` keyword argument is now deprecated and will be removed in, or after, April 2024.
-  [#1117](https://github.com/python-attrs/attrs/issues/1117)
-- `attrs.validators.optional()` now also accepts a tuple of validators (in addition to lists of validators).
-  [#1122](https://github.com/python-attrs/attrs/issues/1122)
-
+- The type annotation for `attrs.resolve_types()` is now correct.
+  [#1141](https://github.com/python-attrs/attrs/issues/1141)
+- Type stubs now use `typing.dataclass_transform` to decorate dataclass-like decorators, instead of the non-standard `__dataclass_transform__` special form, which is only supported by Pyright.
+  [#1158](https://github.com/python-attrs/attrs/issues/1158)
+- Fixed serialization of namedtuple fields using `attrs.asdict/astuple()` with `retain_collection_types=True`.
+  [#1165](https://github.com/python-attrs/attrs/issues/1165)
+- `attrs.AttrsInstance` is now a `typing.Protocol` in both type hints and code.
+  This allows you to subclass it along with another `Protocol`.
+  [#1172](https://github.com/python-attrs/attrs/issues/1172)
+- If *attrs* detects that `__attrs_pre_init__` accepts more than just `self`, it will call it with the same arguments as `__init__` was called.
+  This allows you to, for example, pass arguments to `super().__init__()`.
+  [#1187](https://github.com/python-attrs/attrs/issues/1187)
+- Slotted classes now transform `functools.cached_property` decorated methods to support equivalent semantics.
+  [#1200](https://github.com/python-attrs/attrs/issues/1200)
+- Added *class_body* argument to `attrs.make_class()` to provide additional attributes for newly created classes.
+  It is, for example, now possible to attach methods.
+  [#1203](https://github.com/python-attrs/attrs/issues/1203)
 
 
 ---

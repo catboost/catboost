@@ -14,5 +14,5 @@ target_link_libraries(private-libs-validate_fb PUBLIC
   yutil
 )
 target_sources(private-libs-validate_fb PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/validate_fb/validate.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/validate_fb/validate.cpp
 )

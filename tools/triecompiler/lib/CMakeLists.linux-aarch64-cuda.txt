@@ -17,5 +17,5 @@ target_link_libraries(tools-triecompiler-lib PUBLIC
   cpp-getopt-small
 )
 target_sources(tools-triecompiler-lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/tools/triecompiler/lib/main.cpp
+  ${PROJECT_SOURCE_DIR}/tools/triecompiler/lib/main.cpp
 )

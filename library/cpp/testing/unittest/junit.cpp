@@ -1,7 +1,8 @@
 #include "junit.h"
 
-#include <libxml/parser.h>
-#include <libxml/xmlwriter.h>
+#include <library/cpp/json/json_reader.h>
+#include <library/cpp/json/writer/json.h>
+#include <library/cpp/json/writer/json_value.h>
 
 #include <util/charset/utf8.h>
 #include <util/generic/scope.h>
@@ -28,7 +29,7 @@ namespace NUnitTest {
 extern const TString Y_UNITTEST_OUTPUT_CMDLINE_OPTION = "Y_UNITTEST_OUTPUT";
 extern const TString Y_UNITTEST_TEST_FILTER_FILE_OPTION = "Y_UNITTEST_FILTER_FILE";
 
-static bool IsAllowedInXml(wchar32 c) {
+static bool IsAllowed(wchar32 c) {
     // https://en.wikipedia.org/wiki/Valid_characters_in_XML
     return c == 0x9
         || c == 0xA
@@ -38,7 +39,7 @@ static bool IsAllowedInXml(wchar32 c) {
         || c >= 0x10000 && c <= 0x10FFFF;
 }
 
-static TString SanitizeXmlString(TString s) {
+static TString SanitizeString(TString s) {
     TString escaped;
     bool fixedSomeChars = false;
     const unsigned char* i = reinterpret_cast<const unsigned char*>(s.data());
@@ -56,7 +57,7 @@ static TString SanitizeXmlString(TString s) {
         size_t runeLen;
         const RECODE_RESULT result = SafeReadUTF8Char(rune, runeLen, i, end);
         if (result == RECODE_OK) {
-            if (IsAllowedInXml(rune)) {
+            if (IsAllowed(rune)) {
                 if (fixedSomeChars) {
                     escaped.insert(escaped.end(), reinterpret_cast<const char*>(i), reinterpret_cast<const char*>(i + runeLen));
                 }
@@ -177,9 +178,10 @@ struct TJUnitProcessor::TOutputCapturer {
     TTempFile TmpFile;
 };
 
-TJUnitProcessor::TJUnitProcessor(TString file, TString exec)
+TJUnitProcessor::TJUnitProcessor(TString file, TString exec, EOutputFormat outputFormat)
     : FileName(file)
     , ExecName(exec)
+    , OutputFormat(outputFormat)
 {
 }
 
@@ -201,8 +203,8 @@ void TJUnitProcessor::OnError(const TError* descr) {
     if (!GetForkTests() || GetIsForked()) {
         auto* testCase = GetTestCase(descr->test);
         TFailure& failure = testCase->Failures.emplace_back();
-        failure.Message = SanitizeXmlString(descr->msg);
-        failure.BackTrace = SanitizeXmlString(descr->BackTrace);
+        failure.Message = SanitizeString(descr->msg);
+        failure.BackTrace = SanitizeString(descr->BackTrace);
     }
 }
 
@@ -212,7 +214,7 @@ void TJUnitProcessor::TransferFromCapturer(THolder<TJUnitProcessor::TOutputCaptu
         {
             TFileInput fileStream(capturer->GetTmpFileName());
             TransferData(&fileStream, &outStream);
-            out = SanitizeXmlString(capturer->GetCapturedString());
+            out = SanitizeString(capturer->GetCapturedString());
         }
         capturer = nullptr;
     }
@@ -244,6 +246,16 @@ TString TJUnitProcessor::BuildFileName(size_t index, const TStringBuf extension)
     return std::move(result);
 }
 
+TStringBuf TJUnitProcessor::GetFileExtension() const {
+    switch (OutputFormat) {
+    case EOutputFormat::Xml:
+        return ".xml"sv;
+    case EOutputFormat::Json:
+        return ".json"sv;
+    }
+    return TStringBuf();
+}
+
 void TJUnitProcessor::MakeReportFileName() {
     constexpr size_t MaxReps = 200;
 
@@ -264,7 +276,7 @@ void TJUnitProcessor::MakeReportFileName() {
             NFs::MakeDirectoryRecursive(FileName);
         }
         for (size_t i = 0; i < MaxReps; ++i) {
-            TString uniqReportFileName = BuildFileName(i, ".xml"sv);
+            TString uniqReportFileName = BuildFileName(i, GetFileExtension());
             try {
                 TFile newUniqReportFile(uniqReportFileName, EOpenModeFlag::CreateNew);
                 newUniqReportFile.Close();
@@ -296,7 +308,7 @@ void TJUnitProcessor::MakeTmpFileNameForForkedTests() {
     if (GetForkTests() && !GetIsForked()) {
         TmpReportFile.ConstructInPlace(MakeTempName());
         // Replace option for child processes
-        SetEnv(Y_UNITTEST_OUTPUT_CMDLINE_OPTION, TStringBuilder() << "xml:" << TmpReportFile->Name());
+        SetEnv(Y_UNITTEST_OUTPUT_CMDLINE_OPTION, TStringBuilder() << "json:" << TmpReportFile->Name());
     }
 }
 
@@ -363,114 +375,271 @@ void TJUnitProcessor::SignalHandler(int signal) {
     }
 }
 
-#define CHECK_CALL(expr) if (int resultCode = (expr); resultCode < 0) {    \
-    Cerr << "Faield to write to xml. Result code: " << resultCode << Endl; \
-    return;                                                                \
+void TJUnitProcessor::SerializeToFile() {
+    switch (OutputFormat) {
+    case EOutputFormat::Json:
+        SerializeToJson();
+        break;
+    case EOutputFormat::Xml:
+        [[fallthrough]];
+    default:
+        SerializeToXml();
+        break;
+    }
 }
 
-#define XML_STR(s) ((const xmlChar*)(s))
+void TJUnitProcessor::SerializeToJson() {
+    TFileOutput out(ResultReportFileName);
+    NJsonWriter::TBuf json(NJsonWriter::HEM_UNSAFE, &out);
+    json.SetIndentSpaces(1);
+    json.BeginObject();
+    {
+        json.WriteKey("tests"sv).WriteInt(GetTestsCount());
+        json.WriteKey("failures"sv).WriteInt(GetFailuresCount());
+        json.WriteKey("testsuites"sv).BeginList();
+        for (const auto& [suiteName, suite] : Suites) {
+            json.BeginObject();
+            json.WriteKey("name"sv).WriteString(suiteName);
+            json.WriteKey("id"sv).WriteString(suiteName);
+            json.WriteKey("tests"sv).WriteInt(suite.GetTestsCount());
+            json.WriteKey("failures"sv).WriteInt(suite.GetFailuresCount());
+            json.WriteKey("time"sv).WriteDouble(suite.GetDurationSeconds());
+            json.WriteKey("testcases"sv).BeginList();
+            for (const auto& [testName, test] : suite.Cases) {
+                json.BeginObject();
+                json.WriteKey("classname"sv).WriteString(suiteName);
+                json.WriteKey("name"sv).WriteString(testName);
+                json.WriteKey("id"sv).WriteString(testName);
+                json.WriteKey("time"sv).WriteDouble(test.DurationSecods);
+                json.WriteKey("failures"sv).BeginList();
+                for (const auto& failure : test.Failures) {
+                    json.BeginObject();
+                    json.WriteKey("message"sv).WriteString(failure.Message);
+                    json.WriteKey("type"sv).WriteString("ERROR"sv);
+                    if (failure.BackTrace) {
+                        json.WriteKey("backtrace"sv).WriteString(failure.BackTrace);
+                    }
+                    json.EndObject();
+                }
+                json.EndList();
 
-void TJUnitProcessor::SerializeToFile() {
-    auto file = xmlNewTextWriterFilename(ResultReportFileName.c_str(), 0);
-    if (!file) {
-        Cerr << "Failed to open xml file for writing: " << ResultReportFileName << Endl;
-        return;
+                if (!test.StdOut.empty()) {
+                    json.WriteKey("system-out"sv).WriteString(test.StdOut);
+                }
+                if (!test.StdErr.empty()) {
+                    json.WriteKey("system-err"sv).WriteString(test.StdErr);
+                }
+                json.EndObject();
+            }
+            json.EndList();
+            json.EndObject();
+        }
+        json.EndList();
     }
+    json.EndObject();
+}
 
-    Y_DEFER {
-        xmlFreeTextWriter(file);
+class TXmlWriter {
+public:
+    class TTag {
+        friend class TXmlWriter;
+
+        explicit TTag(TXmlWriter* parent, TStringBuf name, size_t indent)
+            : Parent(parent)
+            , Name(name)
+            , Indent(indent)
+        {
+            Start();
+        }
+
+    public:
+        TTag(TTag&& tag)
+            : Parent(tag.Parent)
+            , Name(tag.Name)
+        {
+            tag.Parent = nullptr;
+        }
+
+        ~TTag() {
+            if (Parent) {
+                End();
+            }
+        }
+
+        template <class T>
+        TTag& Attribute(TStringBuf name, const T& value) {
+            return Attribute(name, TStringBuf(ToString(value)));
+        }
+
+        TTag& Attribute(TStringBuf name, const TStringBuf& value) {
+            Y_ABORT_UNLESS(!HasChildren);
+            Parent->Out << ' ';
+            Parent->Escape(name);
+            Parent->Out << "=\"";
+            Parent->Escape(value);
+            Parent->Out << '\"';
+            return *this;
+        }
+
+        TTag Tag(TStringBuf name) {
+            if (!HasChildren) {
+                HasChildren = true;
+                Close();
+            }
+            return TTag(Parent, name, Indent + 1);
+        }
+
+        TTag& Text(TStringBuf text) {
+            if (!HasChildren) {
+                HasChildren = true;
+                Close();
+            }
+            Parent->Escape(text);
+            if (!text.empty() && text.back() == '\n') {
+                NewLineBeforeIndent = false;
+            }
+            return *this;
+        }
+
+    private:
+        void Start() {
+            Parent->Indent(Indent);
+            Parent->Out << '<';
+            Parent->Escape(Name);
+        }
+
+        void Close() {
+            Parent->Out << '>';
+        }
+
+        void End() {
+            if (HasChildren) {
+                Parent->Indent(Indent, NewLineBeforeIndent);
+                Parent->Out << "</";
+                Parent->Escape(Name);
+                Parent->Out << ">";
+            } else {
+                Parent->Out << "/>";
+            }
+        }
+
+    private:
+        TXmlWriter* Parent = nullptr;
+        TStringBuf Name;
+        size_t Indent = 0;
+        bool HasChildren = false;
+        bool NewLineBeforeIndent = true;
     };
 
-    CHECK_CALL(xmlTextWriterSetIndent(file, 1));
+public:
+    explicit TXmlWriter(const TString& fileName)
+        : Out(fileName)
+    {
+        StartFile();
+    }
 
-    CHECK_CALL(xmlTextWriterStartDocument(file, nullptr, "UTF-8", nullptr));
-    CHECK_CALL(xmlTextWriterStartElement(file, XML_STR("testsuites")));
-    CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("tests"), XML_STR(ToString(GetTestsCount()).c_str())));
-    CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("failures"), XML_STR(ToString(GetFailuresCount()).c_str())));
+    ~TXmlWriter() {
+        Out << '\n';
+    }
+
+    TTag Tag(TStringBuf name) {
+        return TTag(this, name, 0);
+    }
+
+private:
+    void StartFile() {
+        Out << R"(<?xml version="1.0" encoding="UTF-8"?>)"sv;
+    }
+
+    void Indent(size_t count, bool insertNewLine = true) {
+        if (insertNewLine) {
+            Out << '\n';
+        }
+
+        while (count--) {
+            Out << ' ';
+        }
+    }
+
+    void Escape(const TStringBuf str) {
+        const unsigned char* i = reinterpret_cast<const unsigned char*>(str.data());
+        const unsigned char* end = i + str.size();
+        while (i < end) {
+            wchar32 rune;
+            size_t runeLen;
+            const RECODE_RESULT result = SafeReadUTF8Char(rune, runeLen, i, end);
+            if (result == RECODE_OK) { // string is expected not to have unallowed characters now
+                switch (rune) {
+                    case '\'':
+                        Out.Write("&apos;");
+                        break;
+                    case '\"':
+                        Out.Write("&quot;");
+                        break;
+                    case '<':
+                        Out.Write("&lt;");
+                        break;
+                    case '>':
+                        Out.Write("&gt;");
+                        break;
+                    case '&':
+                        Out.Write("&amp;");
+                        break;
+                    default:
+                        Out.Write(i, runeLen);
+                        break;
+                }
+                i += runeLen;
+            }
+        }
+    }
+
+private:
+    TFileOutput Out;
+};
+
+void TJUnitProcessor::SerializeToXml() {
+    TXmlWriter report(ResultReportFileName);
+    TXmlWriter::TTag testSuites = report.Tag("testsuites"sv);
+    testSuites
+        .Attribute("tests"sv, GetTestsCount())
+        .Attribute("failures"sv, GetFailuresCount());
 
     for (const auto& [suiteName, suite] : Suites) {
-        CHECK_CALL(xmlTextWriterStartElement(file, XML_STR("testsuite")));
-        CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("name"), XML_STR(suiteName.c_str())));
-        CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("id"), XML_STR(suiteName.c_str())));
-        CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("tests"), XML_STR(ToString(suite.GetTestsCount()).c_str())));
-        CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("failures"), XML_STR(ToString(suite.GetFailuresCount()).c_str())));
-        CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("time"), XML_STR(ToString(suite.GetDurationSeconds()).c_str())));
+        auto testSuite = testSuites.Tag("testsuite"sv);
+        testSuite
+            .Attribute("name"sv, suiteName)
+            .Attribute("id"sv, suiteName)
+            .Attribute("tests"sv, suite.GetTestsCount())
+            .Attribute("failures"sv, suite.GetFailuresCount())
+            .Attribute("time"sv, suite.GetDurationSeconds());
 
         for (const auto& [testName, test] : suite.Cases) {
-            CHECK_CALL(xmlTextWriterStartElement(file, XML_STR("testcase")));
-            CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("classname"), XML_STR(suiteName.c_str())));
-            CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("name"), XML_STR(testName.c_str())));
-            CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("id"), XML_STR(testName.c_str())));
-            CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("time"), XML_STR(ToString(test.DurationSecods).c_str())));
+            auto testCase = testSuite.Tag("testcase"sv);
+            testCase
+                .Attribute("classname"sv, suiteName)
+                .Attribute("name"sv, testName)
+                .Attribute("id"sv, testName)
+                .Attribute("time"sv, test.DurationSecods);
 
             for (const auto& failure : test.Failures) {
-                CHECK_CALL(xmlTextWriterStartElement(file, XML_STR("failure")));
-                CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("message"), XML_STR(failure.Message.c_str())));
-                CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("type"), XML_STR("ERROR")));
-                if (failure.BackTrace) {
-                    CHECK_CALL(xmlTextWriterWriteString(file, XML_STR(failure.BackTrace.c_str())));
+                auto testFailure = testCase.Tag("failure"sv);
+                testFailure
+                    .Attribute("message"sv, failure.Message)
+                    .Attribute("type"sv, "ERROR"sv);
+                if (!failure.BackTrace.empty()) {
+                    testFailure.Text(failure.BackTrace);
                 }
-                CHECK_CALL(xmlTextWriterEndElement(file));
             }
 
             if (!test.StdOut.empty()) {
-                CHECK_CALL(xmlTextWriterWriteElement(file, XML_STR("system-out"), XML_STR(test.StdOut.c_str())));
+                testCase.Tag("system-out"sv).Text(test.StdOut);
             }
             if (!test.StdErr.empty()) {
-                CHECK_CALL(xmlTextWriterWriteElement(file, XML_STR("system-err"), XML_STR(test.StdErr.c_str())));
+                testCase.Tag("system-err"sv).Text(test.StdErr);
             }
-
-            CHECK_CALL(xmlTextWriterEndElement(file));
-        }
-
-        CHECK_CALL(xmlTextWriterEndElement(file));
-    }
-
-    CHECK_CALL(xmlTextWriterEndElement(file));
-    CHECK_CALL(xmlTextWriterEndDocument(file));
-}
-
-#define C_STR(s) ((const char*)(s))
-#define STRBUF(s) TStringBuf(C_STR(s))
-
-#define NODE_NAME(node) STRBUF((node)->name)
-#define SAFE_CONTENT(node) (node && node->children ? STRBUF(node->children->content) : TStringBuf())
-
-#define CHECK_NODE_NAME(node, expectedName) if (NODE_NAME(node) != (expectedName)) { \
-    ythrow yexception() << "Expected node name: \"" << (expectedName)                \
-        << "\", but got \"" << TStringBuf(C_STR((node)->name)) << "\"";              \
-}
-
-static TString GetAttrValue(xmlNodePtr node, TStringBuf name, bool required = true) {
-    for (xmlAttrPtr attr = node->properties; attr != nullptr; attr = attr->next) {
-        if (NODE_NAME(attr) == name) {
-            return TString(SAFE_CONTENT(attr));
         }
     }
-    if (required) {
-        ythrow yexception() << "Attribute \"" << name << "\" was not found";
-    }
-    return {};
-}
-
-static xmlNodePtr NextElement(xmlNodePtr node) {
-    if (!node) {
-        return nullptr;
-    }
-
-    do {
-        node = node->next;
-    } while (node && node->type != XML_ELEMENT_NODE);
-
-    return node;
-}
-
-static xmlNodePtr ChildElement(xmlNodePtr node) {
-    xmlNodePtr child = node->children;
-    if (child && child->type != XML_ELEMENT_NODE) {
-        return NextElement(child);
-    }
-    return child;
 }
 
 void TJUnitProcessor::MergeSubprocessReport() {
@@ -490,70 +659,113 @@ void TJUnitProcessor::MergeSubprocessReport() {
         file.Close();
     };
 
-    xmlDocPtr doc = xmlParseFile(TmpReportFile->Name().c_str());
-    if (!doc) {
-        Cerr << "Failed to parse xml output for subprocess" << Endl;
+    NJson::TJsonValue testsReportJson;
+    {
+        TFileInput in(TmpReportFile->Name());
+        if (!NJson::ReadJsonTree(&in, &testsReportJson)) {
+            Cerr << "Failed to read json report for subprocess" << Endl;
+            return;
+        }
+    }
+
+    if (!testsReportJson.IsMap()) {
+        Cerr << "Invalid subprocess report format: report is not a map" << Endl;
         return;
     }
 
-    Y_DEFER {
-        xmlFreeDoc(doc);
-    };
-
-    xmlNodePtr root = xmlDocGetRootElement(doc);
-    if (!root) {
-        Cerr << "Failed to parse xml output for subprocess: empty document" << Endl;
+    const NJson::TJsonValue* testSuitesJson = nullptr;
+    if (!testsReportJson.GetValuePointer("testsuites"sv, &testSuitesJson)) {
+        // no tests for some reason
+        Cerr << "No tests found in subprocess report" << Endl;
         return;
     }
 
-    CHECK_NODE_NAME(root, "testsuites");
-    for (xmlNodePtr suite = ChildElement(root); suite != nullptr; suite = NextElement(suite)) {
-        try {
-            CHECK_NODE_NAME(suite, "testsuite");
-            TString suiteName = GetAttrValue(suite, "id");
-            TTestSuite& suiteInfo = Suites[suiteName];
+    if (!testSuitesJson->IsArray()) {
+        Cerr << "Invalid subprocess report format: testsuites is not an array" << Endl;
+        return;
+    }
 
-            // Test cases
-            for (xmlNodePtr testCase = ChildElement(suite); testCase != nullptr; testCase = NextElement(testCase)) {
-                try {
-                    CHECK_NODE_NAME(testCase, "testcase");
-                    TString caseName = GetAttrValue(testCase, "id");
-                    TTestCase& testCaseInfo = suiteInfo.Cases[caseName];
+    for (const NJson::TJsonValue& suiteJson : testSuitesJson->GetArray()) {
+        if (!suiteJson.IsMap()) {
+            Cerr << "Invalid subprocess report format: suite is not a map" << Endl;
+            continue;
+        }
+        const NJson::TJsonValue* suiteIdJson = nullptr;
+        if (!suiteJson.GetValuePointer("id"sv, &suiteIdJson)) {
+            Cerr << "Invalid subprocess report format: suite does not have id" << Endl;
+            continue;
+        }
 
-                    if (TString duration = GetAttrValue(testCase, "time")) {
-                        TryFromString(duration, testCaseInfo.DurationSecods);
-                    }
+        const TString& suiteId = suiteIdJson->GetString();
+        if (suiteId.empty()) {
+            Cerr << "Invalid subprocess report format: suite has empty id" << Endl;
+            continue;
+        }
 
-                    // Failures/stderr/stdout
-                    for (xmlNodePtr testProp = ChildElement(testCase); testProp != nullptr; testProp = NextElement(testProp)) {
-                        try {
-                            if (NODE_NAME(testProp) == "failure") {
-                                TString message = GetAttrValue(testProp, "message");
-                                auto& failure = testCaseInfo.Failures.emplace_back();
-                                failure.Message = message;
-                                failure.BackTrace = TString(SAFE_CONTENT(testProp));
-                            } else if (NODE_NAME(testProp) == "system-out") {
-                                testCaseInfo.StdOut = TString(SAFE_CONTENT(testProp));
-                            } else if (NODE_NAME(testProp) == "system-err") {
-                                testCaseInfo.StdErr = TString(SAFE_CONTENT(testProp));
-                            } else {
-                                ythrow yexception() << "Unknown test case subprop: \"" << NODE_NAME(testProp) << "\"";
-                            }
-                        } catch (const std::exception& ex) {
-                            auto& failure = testCaseInfo.Failures.emplace_back();
-                            failure.Message = TStringBuilder() << "Failed to read part of test case info from unit test tool: " << ex.what();
-                            Cerr << "Failed to load test case " << caseName << " failure in suite " << suiteName << ": " << ex.what() << Endl;
-                            continue;
-                        }
-                    }
-                } catch (const std::exception& ex) {
-                    Cerr << "Failed to load test case info in suite " << suiteName << ": " << ex.what() << Endl;
-                    continue;
+        TTestSuite& suiteInfo = Suites[suiteId];
+        const NJson::TJsonValue* testCasesJson = nullptr;
+        if (!suiteJson.GetValuePointer("testcases"sv, &testCasesJson)) {
+            Cerr << "No test cases found in suite \"" << suiteId << "\"" << Endl;
+            continue;
+        }
+        if (!testCasesJson->IsArray()) {
+            Cerr << "Invalid subprocess report format: testcases value is not an array" << Endl;
+            continue;
+        }
+
+        for (const NJson::TJsonValue& testCaseJson : testCasesJson->GetArray()) {
+            const NJson::TJsonValue* testCaseIdJson = nullptr;
+            if (!testCaseJson.GetValuePointer("id"sv, &testCaseIdJson)) {
+                Cerr << "Invalid subprocess report format: test case does not have id" << Endl;
+                continue;
+            }
+
+            const TString& testCaseId = testCaseIdJson->GetString();
+            if (testCaseId.empty()) {
+                Cerr << "Invalid subprocess report format: test case has empty id" << Endl;
+                continue;
+            }
+
+            TTestCase& testCaseInfo = suiteInfo.Cases[testCaseId];
+
+            const NJson::TJsonValue* testCaseDurationJson = nullptr;
+            if (testCaseJson.GetValuePointer("time"sv, &testCaseDurationJson)) {
+                testCaseInfo.DurationSecods = testCaseDurationJson->GetDouble(); // Will handle also integers as double
+            }
+
+            const NJson::TJsonValue* stdOutJson = nullptr;
+            if (testCaseJson.GetValuePointer("system-out"sv, &stdOutJson)) {
+                testCaseInfo.StdOut = stdOutJson->GetString();
+            }
+
+            const NJson::TJsonValue* stdErrJson = nullptr;
+            if (testCaseJson.GetValuePointer("system-err"sv, &stdErrJson)) {
+                testCaseInfo.StdErr = stdErrJson->GetString();
+            }
+
+            const NJson::TJsonValue* failuresJson = nullptr;
+            if (!testCaseJson.GetValuePointer("failures"sv, &failuresJson)) {
+                continue;
+            }
+
+            if (!failuresJson->IsArray()) {
+                Cerr << "Invalid subprocess report format: failures is not an array" << Endl;
+                continue;
+            }
+
+            for (const NJson::TJsonValue& failureJson : failuresJson->GetArray()) {
+                TFailure& failureInfo = testCaseInfo.Failures.emplace_back();
+
+                const NJson::TJsonValue* messageJson = nullptr;
+                if (failureJson.GetValuePointer("message"sv, &messageJson)) {
+                    failureInfo.Message = messageJson->GetString();
+                }
+
+                const NJson::TJsonValue* backtraceJson = nullptr;
+                if (failureJson.GetValuePointer("backtrace"sv, &backtraceJson)) {
+                    failureInfo.BackTrace = backtraceJson->GetString();
                 }
             }
-        } catch (const std::exception& ex) {
-            Cerr << "Failed to load test suite info from xml: " << ex.what() << Endl;
-            continue;
         }
     }
 }

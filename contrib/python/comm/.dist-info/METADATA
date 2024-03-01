@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: comm
-Version: 0.1.4
+Version: 0.2.1
 Summary: Jupyter Python Comm implementation, for usage in ipykernel, xeus-python etc.
 Project-URL: Homepage, https://github.com/ipython/comm
 Author: Jupyter contributors
@@ -39,22 +39,10 @@ Classifier: Framework :: Jupyter
 Classifier: License :: OSI Approved :: BSD License
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.7
-Classifier: Programming Language :: Python :: 3.8
-Classifier: Programming Language :: Python :: 3.9
-Classifier: Programming Language :: Python :: 3.10
-Classifier: Programming Language :: Python :: 3.11
-Requires-Python: >=3.6
+Requires-Python: >=3.8
 Requires-Dist: traitlets>=4
-Provides-Extra: lint
-Requires-Dist: black>=22.6.0; extra == 'lint'
-Requires-Dist: mdformat-gfm>=0.3.5; extra == 'lint'
-Requires-Dist: mdformat>0.7; extra == 'lint'
-Requires-Dist: ruff>=0.0.156; extra == 'lint'
 Provides-Extra: test
 Requires-Dist: pytest; extra == 'test'
-Provides-Extra: typing
-Requires-Dist: mypy>=0.990; extra == 'typing'
 Description-Content-Type: text/markdown
 
 # Comm
@@ -73,7 +61,6 @@ import comm
 
 
 class MyCustomComm(comm.base_comm.BaseComm):
-
     def publish_msg(self, msg_type, data=None, metadata=None, buffers=None, **keys):
         # TODO implement the logic for sending comm messages through the iopub channel
         pass

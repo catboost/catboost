@@ -1,16 +1,20 @@
-/** CatBoost numeric features for multiple documents. */
+/** CatBoost numeric features for multiple samples. */
 export type CatBoostFloatFeatures = Array<number[]>;
 /**
- * CatBoost categorial features for multiple documents - either integer hashes
+ * CatBoost categorial features for multiple samples - either integer hashes
  * or string values.
  */
 export type CatBoostCategoryFeatures = Array<number[]>|Array<string[]>;
+/** CatBoost text features for multiple documents. */
+export type CatBoostTextFeatures = Array<string[]>;
+/** CatBoost embedding features for multiple documents. */
+export type CatBoostEmbeddingFeatures = Array<Array<number[]>>;
 
 /** CatBoost model instance. */
 export class Model {
 	constructor(path?: string);
 
-	/** Loads model from file. */
+	/** Loads a model from the file. */
 	loadModel(path: string): void;
 	/** Sets model prediction postprocessing type. Possible value are:
 	 * RawFormulaVal - raw sum of leaf values for each dimension,
@@ -21,17 +25,23 @@ export class Model {
 	 * */
 	setPredictionType(predictionType: string): void;
 	/**
-	 * Calculate prediction for multiple documents.
-	 * The same number of numeric and categorial features is expected.
+	 * Calculate the prediction for multiple samples.
+	 * All defined feature arguments must have the same length.
 	 */
 	predict(floatFeatures: CatBoostFloatFeatures,
-		catFeatures: CatBoostCategoryFeatures): number[];
+		catFeatures: CatBoostCategoryFeatures,
+		textFeatures?: CatBoostTextFeatures,
+		embeddingFeatures?: CatBoostEmbeddingFeatures): number[];
 	/** Enable evaluation on GPU device. */
 	enableGPUEvaluation(deviceId: number): void;
 	/** The number of numeric features. */
 	getFloatFeaturesCount(): number;
 	/** The number of categorial features. */
 	getCatFeaturesCount(): number;
+	/** The number of text features. */
+	getTextFeaturesCount(): number;
+	/** The number of embedding features. */
+	getEmbeddingFeaturesCount(): number;
 	/** The number of trees in the model. */
 	getTreeCount(): number;
 	/** The number of dimensions in the model. */

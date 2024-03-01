@@ -594,6 +594,7 @@ class Pool (
         case DataTypes.DoubleType | DataTypes.FloatType => ERawTargetType.Float
         case DataTypes.IntegerType | DataTypes.LongType => ERawTargetType.Integer
         case DataTypes.StringType => ERawTargetType.String
+        case DataTypes.BooleanType => ERawTargetType.Boolean
         case _ => throw new CatBoostError(s"unsupported target column type: $dataType")
       }
     } else {

@@ -12,13 +12,13 @@ target_compile_options(abseil-cpp-absl-profiling PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(abseil-cpp-absl-profiling PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
 target_link_libraries(abseil-cpp-absl-profiling PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
 target_sources(abseil-cpp-absl-profiling PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/profiling/internal/exponential_biased.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/profiling/internal/periodic_sampler.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/profiling/internal/exponential_biased.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/profiling/internal/periodic_sampler.cc
 )

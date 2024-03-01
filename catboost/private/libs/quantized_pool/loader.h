@@ -79,7 +79,6 @@ namespace NCB {
             TDatasetSubset loadSubset);
         static bool HaveLoader(const TPathWithScheme& pathWithScheme, TDatasetSubset loadSubset);
         static void DropAllLoaders();
-        static bool IsEmpty();
 
     private:
         THashMap<std::pair<TPathWithScheme, TDatasetSubset>, TAtomicSharedPtr<IQuantizedPoolLoader>> Cache;

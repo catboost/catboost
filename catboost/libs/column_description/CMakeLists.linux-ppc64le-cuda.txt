@@ -19,20 +19,22 @@ target_link_libraries(catboost-libs-column_description PUBLIC
   contrib-libs-cxxsupp
   yutil
   library-cpp-binsaver
+  library-cpp-json
   private-libs-data_util
   catboost-libs-helpers
   catboost-libs-logging
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(catboost-libs-column_description PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/column_description/cd_parser.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/column_description/column.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/column_description/feature_tag.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/column_description/column.h_serialized.h
+  ${PROJECT_SOURCE_DIR}/catboost/libs/column_description/cd_parser.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/column_description/column.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/column_description/feature_tag.cpp
 )
 generate_enum_serilization(catboost-libs-column_description
-  ${CMAKE_SOURCE_DIR}/catboost/libs/column_description/column.h
+  ${PROJECT_SOURCE_DIR}/catboost/libs/column_description/column.h
   GEN_HEADER
-  ${CMAKE_BINARY_DIR}/catboost/libs/column_description/column.h_serialized.h
+  ${PROJECT_BINARY_DIR}/catboost/libs/column_description/column.h_serialized.h
   INCLUDE_HEADERS
   catboost/libs/column_description/column.h
 )

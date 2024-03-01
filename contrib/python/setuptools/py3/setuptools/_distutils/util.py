@@ -14,7 +14,7 @@ import sysconfig
 import functools
 
 from .errors import DistutilsPlatformError, DistutilsByteCompileError
-from .dep_util import newer
+from ._modified import newer
 from .spawn import spawn
 from ._log import log
 

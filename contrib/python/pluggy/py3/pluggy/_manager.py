@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib.metadata
 import inspect
 import types
 import warnings
@@ -11,6 +10,7 @@ from typing import Final
 from typing import Iterable
 from typing import Mapping
 from typing import Sequence
+from typing import TYPE_CHECKING
 
 from . import _tracing
 from ._callers import _multicall
@@ -25,6 +25,10 @@ from ._hooks import HookRelay
 from ._hooks import HookspecOpts
 from ._hooks import normalize_hookimpl_opts
 from ._result import Result
+
+if TYPE_CHECKING:
+    # importtlib.metadata import is slow, defer it.
+    import importlib.metadata
 
 
 _BeforeTrace = Callable[[str, Sequence[HookImpl], Mapping[str, Any]], None]
@@ -231,6 +235,16 @@ class PluginManager:
         """Return whether the given plugin name is blocked."""
         return name in self._name2plugin and self._name2plugin[name] is None
 
+    def unblock(self, name: str) -> bool:
+        """Unblocks a name.
+
+        Returns whether the name was actually blocked.
+        """
+        if self._name2plugin.get(name, -1) is None:
+            del self._name2plugin[name]
+            return True
+        return False
+
     def add_hookspecs(self, module_or_class: _Namespace) -> None:
         """Add new hook specifications defined in the given ``module_or_class``.
 
@@ -384,6 +398,8 @@ class PluginManager:
         :return:
             The number of plugins loaded by this call.
         """
+        import importlib.metadata
+
         count = 0
         for dist in list(importlib.metadata.distributions()):
             for ep in dist.entry_points:

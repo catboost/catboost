@@ -13,6 +13,9 @@ target_link_libraries(library-cpp-archive PUBLIC
   yutil
 )
 target_sources(library-cpp-archive PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/archive/yarchive.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/archive/directory_models_archive_reader.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/archive/yarchive.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/archive/directory_models_archive_reader.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/archive/yarchive.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/archive/directory_models_archive_reader.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/archive/models_archive_reader.cpp
 )

@@ -33,7 +33,10 @@ def create_interrupt_event() -> Any:
     sa.bInheritHandle = 1
 
     return ctypes.windll.kernel32.CreateEventA(  # type:ignore[attr-defined]
-        sa_p, False, False, ""  # lpEventAttributes  # bManualReset  # bInitialState
+        sa_p,
+        False,
+        False,
+        "",  # lpEventAttributes  # bManualReset  # bInitialState
     )  # lpName
 
 

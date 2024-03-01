@@ -317,7 +317,7 @@ class ParetoOptimiser:
                     # If ``destination`` dominates ``source`` then ``source``
                     # must be dominated in the front - either ``destination`` is in
                     # the front, or it was not added to it because it was
-                    # dominated by something in it.,
+                    # dominated by something in it.
                     try:
                         self.front.front.remove(source)
                     except ValueError:

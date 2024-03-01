@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: types-protobuf
-Version: 3.20.4.1
+Version: 4.24.0.20240129
 Summary: Typing stubs for protobuf
 Home-page: https://github.com/python/typeshed
 License: Apache-2.0 license
@@ -11,17 +11,33 @@ Project-URL: Chat, https://gitter.im/python/typing
 Classifier: License :: OSI Approved :: Apache Software License
 Classifier: Programming Language :: Python :: 3
 Classifier: Typing :: Stubs Only
+Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 
 ## Typing stubs for protobuf
 
-This is a PEP 561 type stub package for the `protobuf` package.
-It can be used by type-checking tools like mypy, PyCharm, pytype etc. to check code
-that uses `protobuf`. The source for this package can be found at
-https://github.com/python/typeshed/tree/master/stubs/protobuf. All fixes for
+This is a [PEP 561](https://peps.python.org/pep-0561/)
+type stub package for the [`protobuf`](https://github.com/protocolbuffers/protobuf) package.
+It can be used by type-checking tools like
+[mypy](https://github.com/python/mypy/),
+[pyright](https://github.com/microsoft/pyright),
+[pytype](https://github.com/google/pytype/),
+PyCharm, etc. to check code that uses
+`protobuf`.
+
+This version of `types-protobuf` aims to provide accurate annotations
+for `protobuf==4.24.*`.
+The source for this package can be found at
+https://github.com/python/typeshed/tree/main/stubs/protobuf. All fixes for
 types and metadata should be contributed there.
 
-Generated with aid from mypy-protobuf v3.4.0
+Generated using [mypy-protobuf==3.5.0](https://github.com/nipunn1313/mypy-protobuf/tree/v3.5.0) on protobuf==4.21.8
 
-See https://github.com/python/typeshed/blob/master/README.md for more details.
-This package was generated from typeshed commit `f43ee406f155b563856551fb7215cb03fdef8e2d`.
+This stub package is marked as [partial](https://peps.python.org/pep-0561/#partial-stub-packages).
+If you find that annotations are missing, feel free to contribute and help complete them.
+
+
+See https://github.com/python/typeshed/blob/main/README.md for more details.
+This package was generated from typeshed commit `3dbb2573e68a288ac5ad1b4967a9c5ab994b81be` and was tested
+with mypy 1.8.0, pyright 1.1.342, and
+pytype 2023.12.18.

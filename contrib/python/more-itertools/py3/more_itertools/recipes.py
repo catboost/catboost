@@ -28,6 +28,7 @@ from itertools import (
     zip_longest,
 )
 from random import randrange, sample, choice
+from sys import hexversion
 
 __all__ = [
     'all_equal',
@@ -56,6 +57,7 @@ __all__ = [
     'powerset',
     'prepend',
     'quantify',
+    'reshape',
     'random_combination_with_replacement',
     'random_combination',
     'random_permutation',
@@ -69,6 +71,7 @@ __all__ = [
     'tabulate',
     'tail',
     'take',
+    'totient',
     'transpose',
     'triplewise',
     'unique_everseen',
@@ -492,7 +495,7 @@ def unique_everseen(iterable, key=None):
         >>> list(unique_everseen(iterable, key=tuple))  # Faster
         [[1, 2], [2, 3]]
 
-    Similary, you may want to convert unhashable ``set`` objects with
+    Similarly, you may want to convert unhashable ``set`` objects with
     ``key=frozenset``. For ``dict`` objects,
     ``key=lambda x: frozenset(x.items())`` can be used.
 
@@ -524,6 +527,9 @@ def unique_justseen(iterable, key=None):
     ['A', 'B', 'C', 'A', 'D']
 
     """
+    if key is None:
+        return map(operator.itemgetter(0), groupby(iterable))
+
     return map(next, map(operator.itemgetter(1), groupby(iterable, key)))
 
 
@@ -817,35 +823,34 @@ def polynomial_from_roots(roots):
     return list(reduce(convolve, factors, [1]))
 
 
-def iter_index(iterable, value, start=0):
+def iter_index(iterable, value, start=0, stop=None):
     """Yield the index of each place in *iterable* that *value* occurs,
-    beginning with index *start*.
+    beginning with index *start* and ending before index *stop*.
 
     See :func:`locate` for a more general means of finding the indexes
     associated with particular values.
 
     >>> list(iter_index('AABCADEAF', 'A'))
     [0, 1, 4, 7]
+    >>> list(iter_index('AABCADEAF', 'A', 1))  # start index is inclusive
+    [1, 4, 7]
+    >>> list(iter_index('AABCADEAF', 'A', 1, 7))  # stop index is not inclusive
+    [1, 4]
     """
-    try:
-        seq_index = iterable.index
-    except AttributeError:
+    seq_index = getattr(iterable, 'index', None)
+    if seq_index is None:
         # Slow path for general iterables
-        it = islice(iterable, start, None)
-        i = start - 1
-        try:
-            while True:
-                i = i + operator.indexOf(it, value) + 1
+        it = islice(iterable, start, stop)
+        for i, element in enumerate(it, start):
+            if element is value or element == value:
                 yield i
-        except ValueError:
-            pass
     else:
         # Fast path for sequences
+        stop = len(iterable) if stop is None else stop
         i = start - 1
         try:
             while True:
-                i = seq_index(value, i + 1)
-                yield i
+                yield (i := seq_index(value, i + 1, stop))
         except ValueError:
             pass
 
@@ -856,47 +861,52 @@ def sieve(n):
     >>> list(sieve(30))
     [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
     """
+    if n > 2:
+        yield 2
+    start = 3
     data = bytearray((0, 1)) * (n // 2)
-    data[:3] = 0, 0, 0
     limit = math.isqrt(n) + 1
-    for p in compress(range(limit), data):
+    for p in iter_index(data, 1, start, limit):
+        yield from iter_index(data, 1, start, p * p)
         data[p * p : n : p + p] = bytes(len(range(p * p, n, p + p)))
-    data[2] = 1
-    return iter_index(data, 1) if n > 2 else iter([])
+        start = p * p
+    yield from iter_index(data, 1, start)
 
 
-def _batched(iterable, n):
-    """Batch data into lists of length *n*. The last batch may be shorter.
+def _batched(iterable, n, *, strict=False):
+    """Batch data into tuples of length *n*. If the number of items in
+    *iterable* is not divisible by *n*:
+    * The last batch will be shorter if *strict* is ``False``.
+    * :exc:`ValueError` will be raised if *strict* is ``True``.
 
     >>> list(batched('ABCDEFG', 3))
     [('A', 'B', 'C'), ('D', 'E', 'F'), ('G',)]
 
-    On Python 3.12 and above, this is an alias for :func:`itertools.batched`.
+    On Python 3.13 and above, this is an alias for :func:`itertools.batched`.
     """
     if n < 1:
         raise ValueError('n must be at least one')
     it = iter(iterable)
-    while True:
-        batch = tuple(islice(it, n))
-        if not batch:
-            break
+    while batch := tuple(islice(it, n)):
+        if strict and len(batch) != n:
+            raise ValueError('batched(): incomplete batch')
         yield batch
 
 
-try:
+if hexversion >= 0x30D00A2:
     from itertools import batched as itertools_batched
-except ImportError:
-    batched = _batched
-else:
 
-    def batched(iterable, n):
-        return itertools_batched(iterable, n)
+    def batched(iterable, n, *, strict=False):
+        return itertools_batched(iterable, n, strict=strict)
+
+else:
+    batched = _batched
 
     batched.__doc__ = _batched.__doc__
 
 
 def transpose(it):
-    """Swap the rows and columns of the input.
+    """Swap the rows and columns of the input matrix.
 
     >>> list(transpose([(1, 2, 3), (11, 22, 33)]))
     [(1, 11), (2, 22), (3, 33)]
@@ -907,8 +917,20 @@ def transpose(it):
     return _zip_strict(*it)
 
 
+def reshape(matrix, cols):
+    """Reshape the 2-D input *matrix* to have a column count given by *cols*.
+
+    >>> matrix = [(0, 1), (2, 3), (4, 5)]
+    >>> cols = 3
+    >>> list(reshape(matrix, cols))
+    [(0, 1, 2), (3, 4, 5)]
+    """
+    return batched(chain.from_iterable(matrix), cols)
+
+
 def matmul(m1, m2):
     """Multiply two matrices.
+
     >>> list(matmul([(7, 5), (3, 5)], [(2, 5), (7, 9)]))
     [(49, 80), (41, 60)]
 
@@ -921,13 +943,12 @@ def matmul(m1, m2):
 
 def factor(n):
     """Yield the prime factors of n.
+
     >>> list(factor(360))
     [2, 2, 2, 3, 3, 5]
     """
     for prime in sieve(math.isqrt(n) + 1):
-        while True:
-            if n % prime:
-                break
+        while not n % prime:
             yield prime
             n //= prime
             if n == 1:
@@ -975,3 +996,17 @@ def polynomial_derivative(coefficients):
     n = len(coefficients)
     powers = reversed(range(1, n))
     return list(map(operator.mul, coefficients, powers))
+
+
+def totient(n):
+    """Return the count of natural numbers up to *n* that are coprime with *n*.
+
+    >>> totient(9)
+    6
+    >>> totient(12)
+    4
+    """
+    for p in unique_justseen(factor(n)):
+        n = n // p * (p - 1)
+
+    return n

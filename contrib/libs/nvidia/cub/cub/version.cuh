@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2011-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -45,7 +45,7 @@
  *         <tt>CUB_VERSION / 100 % 1000</tt> is the minor version.
  *         <tt>CUB_VERSION / 100000</tt> is the major version.
  */
-#define CUB_VERSION 101702
+#define CUB_VERSION 200100
 
 /*! \def CUB_MAJOR_VERSION
  *  \brief The preprocessor macro \p CUB_MAJOR_VERSION encodes the

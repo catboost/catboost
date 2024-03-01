@@ -23,8 +23,8 @@ target_link_options(catboost-private-libs-text_processing-ut PRIVATE
   -fPIC
 )
 target_sources(catboost-private-libs-text_processing-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/ut/dictionary_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/ut/text_dataset_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/ut/dictionary_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/ut/text_dataset_ut.cpp
 )
 set_property(
   TARGET
@@ -58,6 +58,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-private-libs-text_processing-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-private-libs-text_processing-ut
   system_allocator

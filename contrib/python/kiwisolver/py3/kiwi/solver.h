@@ -3,7 +3,7 @@
 |
 | Distributed under the terms of the Modified BSD License.
 |
-| The full license is in the file COPYING.txt, distributed with this software.
+| The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
 #include "constraint.h"
@@ -21,9 +21,9 @@ class Solver
 
 public:
 
-	Solver() {}
+	Solver() = default;
 
-	~Solver() {}
+	~Solver() = default;
 
 	/* Add a constraint to the solver.
 

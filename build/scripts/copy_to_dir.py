@@ -52,12 +52,16 @@ def main():
             dest_arch = tarfile.open(opts.dest_arch, 'w:gz', dereference=True)
         else:
             # TODO: move check to graph generation stage
-            raise Exception('Unsopported archive type for {}. Use one of: tar, tar.gz, tgz.'.format(os.path.basename(opts.dest_arch)))
+            raise Exception(
+                'Unsopported archive type for {}. Use one of: tar, tar.gz, tgz.'.format(
+                    os.path.basename(opts.dest_arch)
+                )
+            )
 
     for arg in opts.args:
         dst = arg
         if dst.startswith(opts.build_root):
-            dst = dst[len(opts.build_root) + 1:]
+            dst = dst[len(opts.build_root) + 1 :]
 
         if dest_arch and not arg.endswith('.pkg.fake'):
             dest_arch.add(arg, arcname=dst)

@@ -11,12 +11,15 @@
 
 #include <library/cpp/yt/small_containers/compact_vector.h>
 
+#include <library/cpp/yt/containers/enum_indexed_array.h>
+
 #include <library/cpp/yt/misc/enum.h>
 
 #include <util/system/platform.h>
 
 #include <cctype>
 #include <optional>
+#include <span>
 
 namespace NYT {
 
@@ -313,6 +316,16 @@ struct TValueFormatter<std::vector<T, TAllocator>>
     }
 };
 
+// std::span
+template <class T, size_t Extent>
+struct TValueFormatter<std::span<T, Extent>>
+{
+    static void Do(TStringBuilderBase* builder, const std::span<T, Extent>& collection, TStringBuf /*format*/)
+    {
+        FormatRange(builder, collection, TDefaultFormatter());
+    }
+};
+
 // TCompactVector
 template <class T, unsigned N>
 struct TValueFormatter<TCompactVector<T, N>>
@@ -393,11 +406,11 @@ struct TValueFormatter<THashMultiMap<K, V>>
     }
 };
 
-// TEnumIndexedVector
+// TEnumIndexedArray
 template <class E, class T>
-struct TValueFormatter<TEnumIndexedVector<E, T>>
+struct TValueFormatter<TEnumIndexedArray<E, T>>
 {
-    static void Do(TStringBuilderBase* builder, const TEnumIndexedVector<E, T>& collection, TStringBuf format)
+    static void Do(TStringBuilderBase* builder, const TEnumIndexedArray<E, T>& collection, TStringBuf format)
     {
         builder->AppendChar('{');
         bool firstItem = true;

@@ -18,5 +18,5 @@ target_link_libraries(cpp-yt-yson PUBLIC
   cpp-yt-yson_string
 )
 target_sources(cpp-yt-yson PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/yson/consumer.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/yson/consumer.cpp
 )

@@ -5,6 +5,7 @@ TSI0 is the index table containing the lengths and offsets for the glyph
 programs and 'extra' programs ('fpgm', 'prep', and 'cvt') that are contained
 in the TSI1 table.
 """
+
 from . import DefaultTable
 import struct
 
@@ -16,7 +17,6 @@ def fixlongs(glyphID, textLength, textOffset):
 
 
 class table_T_S_I__0(DefaultTable.DefaultTable):
-
     dependencies = ["TSI1"]
 
     def decompile(self, data, ttFont):

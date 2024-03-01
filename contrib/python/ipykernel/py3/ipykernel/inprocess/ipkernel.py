@@ -87,11 +87,9 @@ class InProcessKernel(IPythonKernel):
 
     def _abort_queues(self):
         """The in-process kernel doesn't abort requests."""
-        pass
 
     async def _flush_control_queue(self):
         """No need to flush control queues for in-process"""
-        pass
 
     def _input_request(self, prompt, ident, parent, password=False):
         # Flush output before making the request.
@@ -104,6 +102,7 @@ class InProcessKernel(IPythonKernel):
         assert self.session is not None
         msg = self.session.msg("input_request", content, parent)
         for frontend in self.frontends:
+            assert frontend is not None
             if frontend.session.session == parent["header"]["session"]:
                 frontend.stdin_channel.call_handlers(msg)
                 break
@@ -138,6 +137,7 @@ class InProcessKernel(IPythonKernel):
         assert self.session is not None
         ident, msg = self.session.recv(self.iopub_socket.io_thread.socket, copy=False)
         for frontend in self.frontends:
+            assert frontend is not None
             frontend.iopub_channel.call_handlers(msg)
 
     # ------ Trait initializers -----------------------------------------------

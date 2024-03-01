@@ -25,6 +25,7 @@
 
 #include "npy_pycompat.h"
 
+#include "arraytypes.h"
 #include "npy_config.h"
 #include "mapping.h"
 #include "ctors.h"
@@ -68,63 +69,63 @@ NPY_NO_EXPORT PyTypeObject PyTimeIntegerArrType_Type;
  * single inheritance)
  */
 
-#line 67
+#line 68
 NPY_NO_EXPORT PyTypeObject PyNumberArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.number",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 67
+#line 68
 NPY_NO_EXPORT PyTypeObject PyIntegerArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.integer",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 67
+#line 68
 NPY_NO_EXPORT PyTypeObject PySignedIntegerArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.signedinteger",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 67
+#line 68
 NPY_NO_EXPORT PyTypeObject PyUnsignedIntegerArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.unsignedinteger",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 67
+#line 68
 NPY_NO_EXPORT PyTypeObject PyInexactArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.inexact",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 67
+#line 68
 NPY_NO_EXPORT PyTypeObject PyFloatingArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.floating",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 67
+#line 68
 NPY_NO_EXPORT PyTypeObject PyComplexFloatingArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.complexfloating",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 67
+#line 68
 NPY_NO_EXPORT PyTypeObject PyFlexibleArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.flexible",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 67
+#line 68
 NPY_NO_EXPORT PyTypeObject PyCharacterArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.character",
@@ -232,7 +233,7 @@ gentype_add(PyObject *m1, PyObject* m2)
     return PyArray_Type.tp_as_number->nb_add(m1, m2);
 }
 
-#line 179
+#line 180
 static PyObject *
 gentype_subtract(PyObject *m1, PyObject *m2)
 {
@@ -241,7 +242,7 @@ gentype_subtract(PyObject *m1, PyObject *m2)
 }
 
 
-#line 179
+#line 180
 static PyObject *
 gentype_remainder(PyObject *m1, PyObject *m2)
 {
@@ -250,7 +251,7 @@ gentype_remainder(PyObject *m1, PyObject *m2)
 }
 
 
-#line 179
+#line 180
 static PyObject *
 gentype_divmod(PyObject *m1, PyObject *m2)
 {
@@ -259,7 +260,7 @@ gentype_divmod(PyObject *m1, PyObject *m2)
 }
 
 
-#line 179
+#line 180
 static PyObject *
 gentype_lshift(PyObject *m1, PyObject *m2)
 {
@@ -268,7 +269,7 @@ gentype_lshift(PyObject *m1, PyObject *m2)
 }
 
 
-#line 179
+#line 180
 static PyObject *
 gentype_rshift(PyObject *m1, PyObject *m2)
 {
@@ -277,7 +278,7 @@ gentype_rshift(PyObject *m1, PyObject *m2)
 }
 
 
-#line 179
+#line 180
 static PyObject *
 gentype_and(PyObject *m1, PyObject *m2)
 {
@@ -286,7 +287,7 @@ gentype_and(PyObject *m1, PyObject *m2)
 }
 
 
-#line 179
+#line 180
 static PyObject *
 gentype_xor(PyObject *m1, PyObject *m2)
 {
@@ -295,7 +296,7 @@ gentype_xor(PyObject *m1, PyObject *m2)
 }
 
 
-#line 179
+#line 180
 static PyObject *
 gentype_or(PyObject *m1, PyObject *m2)
 {
@@ -304,7 +305,7 @@ gentype_or(PyObject *m1, PyObject *m2)
 }
 
 
-#line 179
+#line 180
 static PyObject *
 gentype_floor_divide(PyObject *m1, PyObject *m2)
 {
@@ -313,7 +314,7 @@ gentype_floor_divide(PyObject *m1, PyObject *m2)
 }
 
 
-#line 179
+#line 180
 static PyObject *
 gentype_true_divide(PyObject *m1, PyObject *m2)
 {
@@ -357,7 +358,7 @@ gentype_multiply(PyObject *m1, PyObject *m2)
     return PyArray_Type.tp_as_number->nb_multiply(m1, m2);
 }
 
-#line 232
+#line 233
 static PyObject *
 npy_byte_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -368,7 +369,7 @@ npy_byte_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
     return result;
 }
 
-#line 232
+#line 233
 static PyObject *
 npy_ubyte_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -379,7 +380,7 @@ npy_ubyte_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
     return result;
 }
 
-#line 232
+#line 233
 static PyObject *
 npy_short_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -390,7 +391,7 @@ npy_short_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
     return result;
 }
 
-#line 232
+#line 233
 static PyObject *
 npy_ushort_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -401,7 +402,7 @@ npy_ushort_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
     return result;
 }
 
-#line 232
+#line 233
 static PyObject *
 npy_int_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -412,7 +413,7 @@ npy_int_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
     return result;
 }
 
-#line 232
+#line 233
 static PyObject *
 npy_uint_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -423,7 +424,7 @@ npy_uint_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
     return result;
 }
 
-#line 232
+#line 233
 static PyObject *
 npy_long_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -434,7 +435,7 @@ npy_long_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
     return result;
 }
 
-#line 232
+#line 233
 static PyObject *
 npy_ulong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -445,7 +446,7 @@ npy_ulong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
     return result;
 }
 
-#line 232
+#line 233
 static PyObject *
 npy_longlong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -456,7 +457,7 @@ npy_longlong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
     return result;
 }
 
-#line 232
+#line 233
 static PyObject *
 npy_ulonglong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -468,7 +469,7 @@ npy_ulonglong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
 }
 
 
-#line 247
+#line 248
 static PyObject *
 gentype_positive(PyObject *m1)
 {
@@ -483,7 +484,7 @@ gentype_positive(PyObject *m1)
     return ret;
 }
 
-#line 247
+#line 248
 static PyObject *
 gentype_negative(PyObject *m1)
 {
@@ -498,7 +499,7 @@ gentype_negative(PyObject *m1)
     return ret;
 }
 
-#line 247
+#line 248
 static PyObject *
 gentype_absolute(PyObject *m1)
 {
@@ -513,7 +514,7 @@ gentype_absolute(PyObject *m1)
     return ret;
 }
 
-#line 247
+#line 248
 static PyObject *
 gentype_invert(PyObject *m1)
 {
@@ -528,7 +529,7 @@ gentype_invert(PyObject *m1)
     return ret;
 }
 
-#line 247
+#line 248
 static PyObject *
 gentype_int(PyObject *m1)
 {
@@ -543,7 +544,7 @@ gentype_int(PyObject *m1)
     return ret;
 }
 
-#line 247
+#line 248
 static PyObject *
 gentype_float(PyObject *m1)
 {
@@ -578,7 +579,44 @@ static PyObject *
 genint_type_str(PyObject *self)
 {
     PyObject  *item, *item_str;
-    item = gentype_generic_method(self, NULL, NULL, "item");
+    PyArray_Descr *descr = PyArray_DescrFromTypeObject((PyObject *)Py_TYPE(self));
+    void *val = scalar_value(self, descr);
+    switch (descr->type_num) {
+        case NPY_BYTE:
+            item = PyLong_FromLong(*(npy_byte *)val);
+            break;
+        case NPY_UBYTE:
+            item = PyLong_FromUnsignedLong(*(npy_ubyte *)val);
+            break;
+        case NPY_SHORT:
+            item = PyLong_FromLong(*(npy_short *)val);
+            break;
+        case NPY_USHORT:
+            item = PyLong_FromUnsignedLong(*(npy_ushort *)val);
+            break;
+        case NPY_INT:
+            item = PyLong_FromLong(*(npy_int *)val);
+            break;
+        case NPY_UINT:
+            item = PyLong_FromUnsignedLong(*(npy_uint *)val);
+            break;
+        case NPY_LONG:
+            item = PyLong_FromLong(*(npy_long *)val);
+            break;
+        case NPY_ULONG:
+            item = PyLong_FromUnsignedLong(*(npy_ulong *)val);
+            break;
+        case NPY_LONGLONG:
+            item = PyLong_FromLongLong(*(npy_longlong *)val);
+            break;
+        case NPY_ULONGLONG:
+            item = PyLong_FromUnsignedLongLong(*(npy_ulonglong *)val);
+            break;
+        default:
+            item = gentype_generic_method(self, NULL, NULL, "item");
+            break;
+    }
+    Py_DECREF(descr);
     if (item == NULL) {
         return NULL;
     }
@@ -648,7 +686,7 @@ gentype_format(PyObject *self, PyObject *args)
 #define NPY_LONGDOUBLE_FMT NPY_DOUBLE_FMT
 #endif
 
-#line 358
+#line 396
 
 NPY_NO_EXPORT PyObject *
 format_half(npy_half val, npy_bool scientific,
@@ -669,7 +707,7 @@ format_half(npy_half val, npy_bool scientific,
 
 
 
-#line 358
+#line 396
 
 NPY_NO_EXPORT PyObject *
 format_float(npy_float val, npy_bool scientific,
@@ -690,7 +728,7 @@ format_float(npy_float val, npy_bool scientific,
 
 
 
-#line 358
+#line 396
 
 NPY_NO_EXPORT PyObject *
 format_double(npy_double val, npy_bool scientific,
@@ -711,7 +749,7 @@ format_double(npy_double val, npy_bool scientific,
 
 
 
-#line 358
+#line 396
 
 NPY_NO_EXPORT PyObject *
 format_longdouble(npy_longdouble val, npy_bool scientific,
@@ -738,7 +776,7 @@ format_longdouble(npy_longdouble val, npy_bool scientific,
  * then call the corresponding functions of PyBytes_Type to generate the string
  */
 
-#line 387
+#line 425
 static PyObject *
 stringtype_repr(PyObject *self)
 {
@@ -759,7 +797,7 @@ stringtype_repr(PyObject *self)
     return ret;
 }
 
-#line 387
+#line 425
 static PyObject *
 stringtype_str(PyObject *self)
 {
@@ -786,7 +824,7 @@ stringtype_str(PyObject *self)
  * then call the corresponding functions of PyUnicode_Type to generate the string
  */
 
-#line 416
+#line 454
 static PyObject *
 unicodetype_repr(PyObject *self)
 {
@@ -813,7 +851,7 @@ unicodetype_repr(PyObject *self)
     return ret;
 }
 
-#line 416
+#line 454
 static PyObject *
 unicodetype_str(PyObject *self)
 {
@@ -848,7 +886,7 @@ unicodetype_str(PyObject *self)
  *
  * Largely copied from _Py_strhex_impl in CPython implementation
  */
-static NPY_INLINE PyObject *
+static inline PyObject *
 _void_to_hex(const char* argbuf, const Py_ssize_t arglen,
              const char *schars, const char *bprefix, const char *echars)
 {
@@ -1139,9 +1177,9 @@ extern int npy_legacy_print_mode;
 #define LONGDOUBLEPREC_STR 12
 #endif
 
-#line 745
+#line 783
 
-#line 752
+#line 790
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 #define _FMT2 "%%+.%i" NPY_FLOAT_FMT
@@ -1225,7 +1263,7 @@ legacy_cfloat_formatstr(npy_cfloat val)
 #undef _FMT2
 
 
-#line 752
+#line 790
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_DOUBLE_FMT
@@ -1309,7 +1347,7 @@ legacy_cdouble_formatstr(npy_cdouble val)
 #undef _FMT2
 
 
-#line 752
+#line 790
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_LONGDOUBLE_FMT
@@ -1394,7 +1432,7 @@ legacy_clongdouble_formatstr(npy_clongdouble val)
 
 
 
-#line 842
+#line 880
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 
@@ -1428,7 +1466,7 @@ legacy_float_formatstr(npy_float val){
 #undef _FMT1
 
 
-#line 842
+#line 880
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 
@@ -1462,7 +1500,7 @@ legacy_double_formatstr(npy_double val){
 #undef _FMT1
 
 
-#line 842
+#line 880
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 
@@ -1498,9 +1536,9 @@ legacy_longdouble_formatstr(npy_longdouble val){
 
 
 
-#line 745
+#line 783
 
-#line 752
+#line 790
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 #define _FMT2 "%%+.%i" NPY_FLOAT_FMT
@@ -1584,7 +1622,7 @@ legacy_cfloat_formatrepr(npy_cfloat val)
 #undef _FMT2
 
 
-#line 752
+#line 790
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_DOUBLE_FMT
@@ -1668,7 +1706,7 @@ legacy_cdouble_formatrepr(npy_cdouble val)
 #undef _FMT2
 
 
-#line 752
+#line 790
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_LONGDOUBLE_FMT
@@ -1753,7 +1791,7 @@ legacy_clongdouble_formatrepr(npy_clongdouble val)
 
 
 
-#line 842
+#line 880
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 
@@ -1787,7 +1825,7 @@ legacy_float_formatrepr(npy_float val){
 #undef _FMT1
 
 
-#line 842
+#line 880
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 
@@ -1821,7 +1859,7 @@ legacy_double_formatrepr(npy_double val){
 #undef _FMT1
 
 
-#line 842
+#line 880
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 
@@ -1864,9 +1902,9 @@ legacy_longdouble_formatrepr(npy_longdouble val){
  */
 
 
-#line 887
+#line 925
 
-#line 893
+#line 931
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -1963,7 +2001,7 @@ cfloattype_str(PyObject *self)
 #undef PREC
 
 
-#line 893
+#line 931
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2060,7 +2098,7 @@ cdoubletype_str(PyObject *self)
 #undef PREC
 
 
-#line 893
+#line 931
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2180,9 +2218,9 @@ halftype_str(PyObject *self)
 
 
 
-#line 887
+#line 925
 
-#line 893
+#line 931
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2279,7 +2317,7 @@ cfloattype_repr(PyObject *self)
 #undef PREC
 
 
-#line 893
+#line 931
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2376,7 +2414,7 @@ cdoubletype_repr(PyObject *self)
 #undef PREC
 
 
-#line 893
+#line 931
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2497,7 +2535,7 @@ halftype_repr(PyObject *self)
 
 
 
-#line 1018
+#line 1056
 static PyObject *
 longdoubletype_float(PyObject *self)
 {
@@ -2513,7 +2551,7 @@ longdoubletype_long(PyObject *self)
 }
 
 
-#line 1018
+#line 1056
 static PyObject *
 clongdoubletype_float(PyObject *self)
 {
@@ -3002,77 +3040,77 @@ gentype_wraparray(PyObject *NPY_UNUSED(scalar), PyObject *args)
  * These gentype_* functions do not take keyword arguments.
  * The proper flag is METH_VARARGS.
  */
-#line 1512
+#line 1550
 static PyObject *
 gentype_tolist(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "tolist");
 }
 
-#line 1512
+#line 1550
 static PyObject *
 gentype_item(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "item");
 }
 
-#line 1512
+#line 1550
 static PyObject *
 gentype___deepcopy__(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "__deepcopy__");
 }
 
-#line 1512
+#line 1550
 static PyObject *
 gentype___copy__(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "__copy__");
 }
 
-#line 1512
+#line 1550
 static PyObject *
 gentype_swapaxes(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "swapaxes");
 }
 
-#line 1512
+#line 1550
 static PyObject *
 gentype_conj(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "conj");
 }
 
-#line 1512
+#line 1550
 static PyObject *
 gentype_conjugate(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "conjugate");
 }
 
-#line 1512
+#line 1550
 static PyObject *
 gentype_nonzero(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "nonzero");
 }
 
-#line 1512
+#line 1550
 static PyObject *
 gentype_fill(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "fill");
 }
 
-#line 1512
+#line 1550
 static PyObject *
 gentype_transpose(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "transpose");
 }
 
-#line 1512
+#line 1550
 static PyObject *
 gentype_newbyteorder(PyObject *self, PyObject *args)
 {
@@ -3132,266 +3170,266 @@ gentype_byteswap(PyObject *self, PyObject *args, PyObject *kwds)
  * These gentype_* functions take keyword arguments.
  * The proper flag is METH_VARARGS | METH_KEYWORDS.
  */
-#line 1579
+#line 1617
 static PyObject *
 gentype_take(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "take");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_getfield(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "getfield");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_put(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "put");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_repeat(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "repeat");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_tofile(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "tofile");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_mean(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "mean");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_trace(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "trace");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_diagonal(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "diagonal");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_clip(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "clip");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_std(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "std");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_var(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "var");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_sum(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "sum");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_cumsum(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "cumsum");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_prod(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "prod");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_cumprod(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "cumprod");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_compress(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "compress");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_sort(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "sort");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_argsort(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "argsort");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "round");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_argmax(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "argmax");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_argmin(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "argmin");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_max(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "max");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_min(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "min");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_ptp(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "ptp");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_any(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "any");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_all(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "all");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_astype(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "astype");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_resize(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "resize");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_reshape(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "reshape");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_choose(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "choose");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_tostring(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "tostring");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_tobytes(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "tobytes");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_copy(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "copy");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_searchsorted(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "searchsorted");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_view(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "view");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_flatten(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "flatten");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_ravel(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "ravel");
 }
 
-#line 1579
+#line 1617
 static PyObject *
 gentype_squeeze(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3400,7 +3438,7 @@ gentype_squeeze(PyObject *self, PyObject *args, PyObject *kwds)
 
 
 
-#line 1591
+#line 1629
 static PyObject *
 integertype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3447,7 +3485,7 @@ integertype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
     return obj;
 }
 
-#line 1591
+#line 1629
 static PyObject *
 floatingtype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3494,7 +3532,7 @@ floatingtype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
     return obj;
 }
 
-#line 1591
+#line 1629
 static PyObject *
 complexfloatingtype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3759,10 +3797,7 @@ gentype_setflags(PyObject *NPY_UNUSED(self), PyObject *NPY_UNUSED(args),
 static PyObject *
 numbertype_class_getitem_abc(PyObject *cls, PyObject *args)
 {
-    PyObject *generic_alias;
-
-#ifdef Py_GENERICALIASOBJECT_H
-    Py_ssize_t args_len;
+    const Py_ssize_t args_len = PyTuple_Check(args) ? PyTuple_Size(args) : 1;
     int args_len_expected;
 
     /* complexfloating should take 2 parameters, all others take 1 */
@@ -3774,20 +3809,13 @@ numbertype_class_getitem_abc(PyObject *cls, PyObject *args)
         args_len_expected = 1;
     }
 
-    args_len = PyTuple_Check(args) ? PyTuple_Size(args) : 1;
     if ((args_len > args_len_expected) || (args_len == 0)) {
         return PyErr_Format(PyExc_TypeError,
                             "Too %s arguments for %s",
                             args_len > args_len_expected ? "many" : "few",
                             ((PyTypeObject *)cls)->tp_name);
     }
-    generic_alias = Py_GenericAlias(cls, args);
-#else
-    PyErr_SetString(PyExc_TypeError,
-                    "Type subscription requires python >= 3.9");
-    generic_alias = NULL;
-#endif
-    return generic_alias;
+    return Py_GenericAlias(cls, args);
 }
 
 /*
@@ -3798,14 +3826,9 @@ numbertype_class_getitem_abc(PyObject *cls, PyObject *args)
 static PyObject *
 numbertype_class_getitem(PyObject *cls, PyObject *args)
 {
-#ifdef Py_GENERICALIASOBJECT_H
     PyErr_Format(PyExc_TypeError,
                  "There are no type variables left in %s",
                  ((PyTypeObject *)cls)->tp_name);
-#else
-    PyErr_SetString(PyExc_TypeError,
-                    "Type subscription requires python >= 3.9");
-#endif
     return NULL;
 }
 
@@ -3814,7 +3837,7 @@ numbertype_class_getitem(PyObject *cls, PyObject *args)
  * to Python complex
  */
 
-#line 1914
+#line 1937
 static PyObject *
 cfloat_complex(PyObject *self, PyObject *NPY_UNUSED(args),
                PyObject *NPY_UNUSED(kwds))
@@ -3823,7 +3846,7 @@ cfloat_complex(PyObject *self, PyObject *NPY_UNUSED(args),
                                  PyArrayScalar_VAL(self, CFloat).imag);
 }
 
-#line 1914
+#line 1937
 static PyObject *
 clongdouble_complex(PyObject *self, PyObject *NPY_UNUSED(args),
                PyObject *NPY_UNUSED(kwds))
@@ -3833,7 +3856,7 @@ clongdouble_complex(PyObject *self, PyObject *NPY_UNUSED(args),
 }
 
 
-#line 1932
+#line 1955
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
 half_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
@@ -3909,7 +3932,7 @@ error:
     return result_pair;
 }
 
-#line 1932
+#line 1955
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
 float_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
@@ -3985,7 +4008,7 @@ error:
     return result_pair;
 }
 
-#line 1932
+#line 1955
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
 double_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
@@ -4061,7 +4084,7 @@ error:
     return result_pair;
 }
 
-#line 1932
+#line 1955
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
 longdouble_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
@@ -4138,7 +4161,7 @@ error:
 }
 
 
-#line 2014
+#line 2037
 static PyObject *
 half_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -4161,7 +4184,7 @@ half_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
     return ret;
 }
 
-#line 2014
+#line 2037
 static PyObject *
 float_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -4184,7 +4207,7 @@ float_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
     return ret;
 }
 
-#line 2014
+#line 2037
 static PyObject *
 double_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -4207,7 +4230,7 @@ double_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
     return ret;
 }
 
-#line 2014
+#line 2037
 static PyObject *
 longdouble_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
 {
@@ -4483,31 +4506,31 @@ static PyGetSetDef inttype_getsets[] = {
 };
 
 static PyMethodDef numbertype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem_abc,
         METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}  /* sentinel */
 };
 
-#line 2299
+#line 2322
 static PyMethodDef cfloattype_methods[] = {
     {"__complex__",
         (PyCFunction)cfloat_complex,
         METH_VARARGS | METH_KEYWORDS, NULL},
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2299
+#line 2322
 static PyMethodDef clongdoubletype_methods[] = {
     {"__complex__",
         (PyCFunction)clongdouble_complex,
         METH_VARARGS | METH_KEYWORDS, NULL},
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4515,7 +4538,7 @@ static PyMethodDef clongdoubletype_methods[] = {
 };
 
 
-#line 2314
+#line 2337
 static PyMethodDef floatingtype_methods[] = {
     /* Hook for the round() builtin */
     {"__round__",
@@ -4524,7 +4547,7 @@ static PyMethodDef floatingtype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2314
+#line 2337
 static PyMethodDef complexfloatingtype_methods[] = {
     /* Hook for the round() builtin */
     {"__round__",
@@ -4545,7 +4568,7 @@ static PyMethodDef integertype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2337
+#line 2360
 static PyMethodDef halftype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)half_as_integer_ratio,
@@ -4553,14 +4576,14 @@ static PyMethodDef halftype_methods[] = {
     {"is_integer",
         (PyCFunction)half_is_integer,
         METH_NOARGS, NULL},
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2337
+#line 2360
 static PyMethodDef floattype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)float_as_integer_ratio,
@@ -4568,14 +4591,14 @@ static PyMethodDef floattype_methods[] = {
     {"is_integer",
         (PyCFunction)float_is_integer,
         METH_NOARGS, NULL},
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2337
+#line 2360
 static PyMethodDef doubletype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)double_as_integer_ratio,
@@ -4583,14 +4606,14 @@ static PyMethodDef doubletype_methods[] = {
     {"is_integer",
         (PyCFunction)double_is_integer,
         METH_NOARGS, NULL},
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2337
+#line 2360
 static PyMethodDef longdoubletype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)longdouble_as_integer_ratio,
@@ -4598,7 +4621,7 @@ static PyMethodDef longdoubletype_methods[] = {
     {"is_integer",
         (PyCFunction)longdouble_is_integer,
         METH_NOARGS, NULL},
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4606,18 +4629,18 @@ static PyMethodDef longdoubletype_methods[] = {
 };
 
 
-#line 2355
+#line 2378
 static PyMethodDef timedeltatype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2355
+#line 2378
 static PyMethodDef cdoubletype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4625,9 +4648,9 @@ static PyMethodDef cdoubletype_methods[] = {
 };
 
 
-#line 2368
+#line 2391
 static PyMethodDef bytetype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4637,9 +4660,9 @@ static PyMethodDef bytetype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2368
+#line 2391
 static PyMethodDef ubytetype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4649,9 +4672,9 @@ static PyMethodDef ubytetype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2368
+#line 2391
 static PyMethodDef shorttype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4661,9 +4684,9 @@ static PyMethodDef shorttype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2368
+#line 2391
 static PyMethodDef ushorttype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4673,9 +4696,9 @@ static PyMethodDef ushorttype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2368
+#line 2391
 static PyMethodDef inttype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4685,9 +4708,9 @@ static PyMethodDef inttype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2368
+#line 2391
 static PyMethodDef uinttype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4697,9 +4720,9 @@ static PyMethodDef uinttype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2368
+#line 2391
 static PyMethodDef longtype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4709,9 +4732,9 @@ static PyMethodDef longtype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2368
+#line 2391
 static PyMethodDef ulongtype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4721,9 +4744,9 @@ static PyMethodDef ulongtype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2368
+#line 2391
 static PyMethodDef longlongtype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4733,9 +4756,9 @@ static PyMethodDef longlongtype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2368
+#line 2391
 static PyMethodDef ulonglongtype_methods[] = {
-    /* for typing; requires python >= 3.9 */
+    /* for typing */
     {"__class_getitem__",
         (PyCFunction)numbertype_class_getitem,
         METH_CLASS | METH_O, NULL},
@@ -4991,7 +5014,7 @@ static PyBufferProcs gentype_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 bool_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5032,7 +5055,7 @@ static PyBufferProcs bool_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 byte_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5073,7 +5096,7 @@ static PyBufferProcs byte_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 short_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5114,7 +5137,7 @@ static PyBufferProcs short_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 int_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5155,7 +5178,7 @@ static PyBufferProcs int_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 long_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5196,7 +5219,7 @@ static PyBufferProcs long_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 longlong_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5237,7 +5260,7 @@ static PyBufferProcs longlong_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 ubyte_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5278,7 +5301,7 @@ static PyBufferProcs ubyte_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 ushort_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5319,7 +5342,7 @@ static PyBufferProcs ushort_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 uint_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5360,7 +5383,7 @@ static PyBufferProcs uint_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 ulong_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5401,7 +5424,7 @@ static PyBufferProcs ulong_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 ulonglong_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5442,7 +5465,7 @@ static PyBufferProcs ulonglong_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 half_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5483,7 +5506,7 @@ static PyBufferProcs half_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 float_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5524,7 +5547,7 @@ static PyBufferProcs float_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 double_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5565,7 +5588,7 @@ static PyBufferProcs double_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 longdouble_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5606,7 +5629,7 @@ static PyBufferProcs longdouble_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 cfloat_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5647,7 +5670,7 @@ static PyBufferProcs cfloat_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 cdouble_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5688,7 +5711,7 @@ static PyBufferProcs cdouble_arrtype_as_buffer = {
 };
 
 
-#line 2637
+#line 2660
 
 static int
 clongdouble_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5794,7 +5817,7 @@ static PyBufferProcs unicode_arrtype_as_buffer = {
 };
 
 
-#line 2746
+#line 2769
 
 static int
 datetime_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5836,7 +5859,7 @@ static PyBufferProcs datetime_arrtype_as_buffer = {
 };
 
 
-#line 2746
+#line 2769
 
 static int
 timedelta_getbuffer(PyObject *self, Py_buffer *view, int flags)
@@ -5951,7 +5974,7 @@ unicode_arrtype_dealloc(PyObject *v)
     PyUnicode_Type.tp_dealloc(v);
 }
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _BYTE_IS_BYTE
@@ -6068,7 +6091,7 @@ byte_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _BYTE_IS_BYTE
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _SHORT_IS_SHORT
@@ -6185,7 +6208,7 @@ short_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _SHORT_IS_SHORT
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _INT_IS_INT
@@ -6302,7 +6325,7 @@ int_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _INT_IS_INT
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _LONG_IS_LONG
@@ -6419,7 +6442,7 @@ long_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _LONG_IS_LONG
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _LONGLONG_IS_LONGLONG
@@ -6536,7 +6559,7 @@ longlong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _LONGLONG_IS_LONGLONG
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _UBYTE_IS_UBYTE
@@ -6653,7 +6676,7 @@ ubyte_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _UBYTE_IS_UBYTE
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _USHORT_IS_USHORT
@@ -6770,7 +6793,7 @@ ushort_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _USHORT_IS_USHORT
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _UINT_IS_UINT
@@ -6887,7 +6910,7 @@ uint_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _UINT_IS_UINT
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _ULONG_IS_ULONG
@@ -7004,7 +7027,7 @@ ulong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _ULONG_IS_ULONG
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _ULONGLONG_IS_ULONGLONG
@@ -7121,7 +7144,7 @@ ulonglong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _ULONGLONG_IS_ULONGLONG
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _HALF_IS_HALF
@@ -7238,7 +7261,7 @@ half_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _HALF_IS_HALF
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _FLOAT_IS_FLOAT
@@ -7355,7 +7378,7 @@ float_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _FLOAT_IS_FLOAT
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _DOUBLE_IS_DOUBLE
@@ -7472,7 +7495,7 @@ double_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _DOUBLE_IS_DOUBLE
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _LONGDOUBLE_IS_LONGDOUBLE
@@ -7589,7 +7612,7 @@ longdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _LONGDOUBLE_IS_LONGDOUBLE
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _CFLOAT_IS_CFLOAT
@@ -7706,7 +7729,7 @@ cfloat_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _CFLOAT_IS_CFLOAT
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _CDOUBLE_IS_CDOUBLE
@@ -7823,7 +7846,7 @@ cdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _CDOUBLE_IS_CDOUBLE
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _CLONGDOUBLE_IS_CLONGDOUBLE
@@ -7940,7 +7963,7 @@ clongdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _CLONGDOUBLE_IS_CLONGDOUBLE
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _STRING_IS_STRING
@@ -8057,7 +8080,7 @@ string_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _STRING_IS_STRING
 
 
-#line 2871
+#line 2894
 
 /* used as a pattern for testing token equality */
 #define _UNICODE_IS_UNICODE
@@ -8192,7 +8215,7 @@ object_arrtype_new(PyTypeObject *NPY_UNUSED(type), PyObject *args, PyObject *kwd
     return PyArray_Return(arr);
 }
 
-#line 3011
+#line 3034
 
 static PyObject *
 datetime_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -8251,7 +8274,7 @@ datetime_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject *)ret;
 }
 
-#line 3011
+#line 3034
 
 static PyObject *
 timedelta_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -8377,7 +8400,7 @@ bool_arrtype_nonzero(PyObject *a)
     return a == PyArrayScalar_True;
 }
 
-#line 3144
+#line 3167
 static PyNumberMethods byte_arrtype_as_number;
 static PyObject *
 byte_index(PyObject *self)
@@ -8385,7 +8408,7 @@ byte_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, Byte));
 }
 
-#line 3144
+#line 3167
 static PyNumberMethods short_arrtype_as_number;
 static PyObject *
 short_index(PyObject *self)
@@ -8393,7 +8416,7 @@ short_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, Short));
 }
 
-#line 3144
+#line 3167
 static PyNumberMethods int_arrtype_as_number;
 static PyObject *
 int_index(PyObject *self)
@@ -8401,7 +8424,7 @@ int_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, Int));
 }
 
-#line 3144
+#line 3167
 static PyNumberMethods long_arrtype_as_number;
 static PyObject *
 long_index(PyObject *self)
@@ -8409,7 +8432,7 @@ long_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, Long));
 }
 
-#line 3144
+#line 3167
 static PyNumberMethods ubyte_arrtype_as_number;
 static PyObject *
 ubyte_index(PyObject *self)
@@ -8417,7 +8440,7 @@ ubyte_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, UByte));
 }
 
-#line 3144
+#line 3167
 static PyNumberMethods ushort_arrtype_as_number;
 static PyObject *
 ushort_index(PyObject *self)
@@ -8425,7 +8448,7 @@ ushort_index(PyObject *self)
     return PyLong_FromLong(PyArrayScalar_VAL(self, UShort));
 }
 
-#line 3144
+#line 3167
 static PyNumberMethods longlong_arrtype_as_number;
 static PyObject *
 longlong_index(PyObject *self)
@@ -8433,7 +8456,7 @@ longlong_index(PyObject *self)
     return PyLong_FromLongLong(PyArrayScalar_VAL(self, LongLong));
 }
 
-#line 3144
+#line 3167
 static PyNumberMethods uint_arrtype_as_number;
 static PyObject *
 uint_index(PyObject *self)
@@ -8441,7 +8464,7 @@ uint_index(PyObject *self)
     return PyLong_FromUnsignedLong(PyArrayScalar_VAL(self, UInt));
 }
 
-#line 3144
+#line 3167
 static PyNumberMethods ulong_arrtype_as_number;
 static PyObject *
 ulong_index(PyObject *self)
@@ -8449,7 +8472,7 @@ ulong_index(PyObject *self)
     return PyLong_FromUnsignedLong(PyArrayScalar_VAL(self, ULong));
 }
 
-#line 3144
+#line 3167
 static PyNumberMethods ulonglong_arrtype_as_number;
 static PyObject *
 ulonglong_index(PyObject *self)
@@ -8458,25 +8481,25 @@ ulonglong_index(PyObject *self)
 }
 
 
-#line 3158
+#line 3181
 static PyNumberMethods half_arrtype_as_number;
 
-#line 3158
+#line 3181
 static PyNumberMethods float_arrtype_as_number;
 
-#line 3158
+#line 3181
 static PyNumberMethods double_arrtype_as_number;
 
-#line 3158
+#line 3181
 static PyNumberMethods longdouble_arrtype_as_number;
 
-#line 3158
+#line 3181
 static PyNumberMethods cfloat_arrtype_as_number;
 
-#line 3158
+#line 3181
 static PyNumberMethods cdouble_arrtype_as_number;
 
-#line 3158
+#line 3181
 static PyNumberMethods clongdouble_arrtype_as_number;
 
 
@@ -8590,21 +8613,21 @@ void_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 /****************  Define Hash functions ********************/
 
-#line 3275
+#line 3298
 static npy_hash_t
 bool_arrtype_hash(PyObject *obj)
 {
     return (npy_hash_t)(PyArrayScalar_VAL(obj, Bool));
 }
 
-#line 3275
+#line 3298
 static npy_hash_t
 ubyte_arrtype_hash(PyObject *obj)
 {
     return (npy_hash_t)(PyArrayScalar_VAL(obj, UByte));
 }
 
-#line 3275
+#line 3298
 static npy_hash_t
 ushort_arrtype_hash(PyObject *obj)
 {
@@ -8612,7 +8635,7 @@ ushort_arrtype_hash(PyObject *obj)
 }
 
 
-#line 3286
+#line 3309
 static npy_hash_t
 byte_arrtype_hash(PyObject *obj)
 {
@@ -8623,7 +8646,7 @@ byte_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 3286
+#line 3309
 static npy_hash_t
 short_arrtype_hash(PyObject *obj)
 {
@@ -8634,7 +8657,7 @@ short_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 3286
+#line 3309
 static npy_hash_t
 uint_arrtype_hash(PyObject *obj)
 {
@@ -8674,8 +8697,8 @@ long_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 3330
-static NPY_INLINE npy_hash_t
+#line 3353
+static inline npy_hash_t
 longlong_arrtype_hash(PyObject *obj)
 {
     PyObject * l = PyLong_FromLongLong(
@@ -8685,8 +8708,8 @@ longlong_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 3330
-static NPY_INLINE npy_hash_t
+#line 3353
+static inline npy_hash_t
 ulonglong_arrtype_hash(PyObject *obj)
 {
     PyObject * l = PyLong_FromUnsignedLongLong(
@@ -8698,7 +8721,7 @@ ulonglong_arrtype_hash(PyObject *obj)
 
 
 
-#line 3346
+#line 3369
 #if NPY_SIZEOF_HASH_T==NPY_SIZEOF_DATETIME
 static npy_hash_t
 datetime_arrtype_hash(PyObject *obj)
@@ -8735,7 +8758,7 @@ datetime_arrtype_hash(PyObject *obj)
 }
 #endif
 
-#line 3346
+#line 3369
 #if NPY_SIZEOF_HASH_T==NPY_SIZEOF_DATETIME
 static npy_hash_t
 timedelta_arrtype_hash(PyObject *obj)
@@ -8777,7 +8800,7 @@ timedelta_arrtype_hash(PyObject *obj)
 
 /* Wrong thing to do for longdouble, but....*/
 
-#line 3391
+#line 3414
 static npy_hash_t
 float_arrtype_hash(PyObject *obj)
 {
@@ -8807,7 +8830,7 @@ cfloat_arrtype_hash(PyObject *obj)
     return combined;
 }
 
-#line 3391
+#line 3414
 static npy_hash_t
 longdouble_arrtype_hash(PyObject *obj)
 {
@@ -9016,7 +9039,7 @@ object_arrtype_call(PyObjectScalarObject *obj, PyObject *args, PyObject *kwds)
 
 NPY_NO_EXPORT PyTypeObject PyObjectArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.object_",
+    .tp_name = "numpy." NPY_OBJECT_name,
     .tp_basicsize = sizeof(PyObjectScalarObject),
     .tp_dealloc = (destructor)object_arrtype_dealloc,
     .tp_as_sequence = &object_arrtype_as_sequence,
@@ -9052,561 +9075,218 @@ gen_arrtype_subscript(PyObject *self, PyObject *key)
 }
 
 
-#define NAME_bool "bool"
-#define NAME_void "void"
-#define NAME_string "bytes"
-#define NAME_unicode "str"
+#line 3674
 
-#line 3645
 NPY_NO_EXPORT PyTypeObject PyBoolArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy." NAME_bool "_",
+    .tp_name = "numpy." NPY_BOOL_name,
     .tp_basicsize = sizeof(PyBoolScalarObject),
 };
 
-#line 3645
-NPY_NO_EXPORT PyTypeObject PyStringArrType_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy." NAME_string "_",
-    .tp_basicsize = sizeof(PyStringScalarObject),
-};
 
-#line 3645
-NPY_NO_EXPORT PyTypeObject PyUnicodeArrType_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy." NAME_unicode "_",
-    .tp_basicsize = sizeof(PyUnicodeScalarObject),
-};
+#line 3674
 
-#line 3645
-NPY_NO_EXPORT PyTypeObject PyVoidArrType_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy." NAME_void "",
-    .tp_basicsize = sizeof(PyVoidScalarObject),
-};
-
-
-#undef NAME_bool
-#undef NAME_void
-#undef NAME_string
-#undef NAME_unicode
-
-#line 3664
-#if NPY_BITSOF_CHAR == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_CHAR == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_CHAR == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_CHAR == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_CHAR == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_CHAR == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_CHAR == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_CHAR == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyByteArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.int" _THIS_SIZE,
+    .tp_name = "numpy." NPY_BYTE_name,
     .tp_basicsize = sizeof(PyByteScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_SHORT == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_SHORT == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_SHORT == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_SHORT == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_SHORT == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_SHORT == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_SHORT == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_SHORT == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyShortArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.int" _THIS_SIZE,
+    .tp_name = "numpy." NPY_SHORT_name,
     .tp_basicsize = sizeof(PyShortScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_INT == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_INT == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_INT == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_INT == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_INT == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_INT == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_INT == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_INT == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyIntArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.int" _THIS_SIZE,
+    .tp_name = "numpy." NPY_INT_name,
     .tp_basicsize = sizeof(PyIntScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_LONG == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_LONG == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_LONG == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_LONG == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_LONG == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_LONG == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_LONG == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_LONG == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyLongArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.int" _THIS_SIZE,
+    .tp_name = "numpy." NPY_LONG_name,
     .tp_basicsize = sizeof(PyLongScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_LONGLONG == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_LONGLONG == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_LONGLONG == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_LONGLONG == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_LONGLONG == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_LONGLONG == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_LONGLONG == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_LONGLONG == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyLongLongArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.int" _THIS_SIZE,
+    .tp_name = "numpy." NPY_LONGLONG_name,
     .tp_basicsize = sizeof(PyLongLongScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_CHAR == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_CHAR == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_CHAR == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_CHAR == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_CHAR == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_CHAR == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_CHAR == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_CHAR == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyUByteArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.uint" _THIS_SIZE,
+    .tp_name = "numpy." NPY_UBYTE_name,
     .tp_basicsize = sizeof(PyUByteScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_SHORT == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_SHORT == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_SHORT == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_SHORT == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_SHORT == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_SHORT == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_SHORT == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_SHORT == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyUShortArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.uint" _THIS_SIZE,
+    .tp_name = "numpy." NPY_USHORT_name,
     .tp_basicsize = sizeof(PyUShortScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_INT == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_INT == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_INT == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_INT == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_INT == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_INT == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_INT == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_INT == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyUIntArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.uint" _THIS_SIZE,
+    .tp_name = "numpy." NPY_UINT_name,
     .tp_basicsize = sizeof(PyUIntScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_LONG == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_LONG == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_LONG == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_LONG == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_LONG == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_LONG == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_LONG == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_LONG == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyULongArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.uint" _THIS_SIZE,
+    .tp_name = "numpy." NPY_ULONG_name,
     .tp_basicsize = sizeof(PyULongScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_LONGLONG == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_LONGLONG == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_LONGLONG == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_LONGLONG == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_LONGLONG == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_LONGLONG == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_LONGLONG == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_LONGLONG == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyULongLongArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.uint" _THIS_SIZE,
+    .tp_name = "numpy." NPY_ULONGLONG_name,
     .tp_basicsize = sizeof(PyULongLongScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_HALF == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_HALF == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_HALF == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_HALF == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_HALF == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_HALF == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_HALF == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_HALF == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyHalfArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.float" _THIS_SIZE,
+    .tp_name = "numpy." NPY_HALF_name,
     .tp_basicsize = sizeof(PyHalfScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_FLOAT == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_FLOAT == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_FLOAT == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_FLOAT == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_FLOAT == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_FLOAT == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_FLOAT == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_FLOAT == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyFloatArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.float" _THIS_SIZE,
+    .tp_name = "numpy." NPY_FLOAT_name,
     .tp_basicsize = sizeof(PyFloatScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_DOUBLE == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_DOUBLE == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_DOUBLE == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_DOUBLE == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_DOUBLE == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_DOUBLE == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_DOUBLE == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_DOUBLE == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyDoubleArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.float" _THIS_SIZE,
+    .tp_name = "numpy." NPY_DOUBLE_name,
     .tp_basicsize = sizeof(PyDoubleScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_LONGDOUBLE == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_LONGDOUBLE == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_LONGDOUBLE == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_LONGDOUBLE == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_LONGDOUBLE == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_LONGDOUBLE == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_LONGDOUBLE == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_LONGDOUBLE == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyLongDoubleArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.float" _THIS_SIZE,
+    .tp_name = "numpy." NPY_LONGDOUBLE_name,
     .tp_basicsize = sizeof(PyLongDoubleScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_DATETIME == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_DATETIME == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_DATETIME == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_DATETIME == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_DATETIME == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_DATETIME == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_DATETIME == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_DATETIME == 256
-#define _THIS_SIZE "256"
-#endif
+NPY_NO_EXPORT PyTypeObject PyCFloatArrType_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "numpy." NPY_CFLOAT_name,
+    .tp_basicsize = sizeof(PyCFloatScalarObject),
+};
+
+
+#line 3674
+
+NPY_NO_EXPORT PyTypeObject PyCDoubleArrType_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "numpy." NPY_CDOUBLE_name,
+    .tp_basicsize = sizeof(PyCDoubleScalarObject),
+};
+
+
+#line 3674
+
+NPY_NO_EXPORT PyTypeObject PyCLongDoubleArrType_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "numpy." NPY_CLONGDOUBLE_name,
+    .tp_basicsize = sizeof(PyCLongDoubleScalarObject),
+};
+
+
+#line 3674
+
+NPY_NO_EXPORT PyTypeObject PyStringArrType_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "numpy." NPY_STRING_name,
+    .tp_basicsize = sizeof(PyStringScalarObject),
+};
+
+
+#line 3674
+
+NPY_NO_EXPORT PyTypeObject PyUnicodeArrType_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "numpy." NPY_UNICODE_name,
+    .tp_basicsize = sizeof(PyUnicodeScalarObject),
+};
+
+
+#line 3674
+
+NPY_NO_EXPORT PyTypeObject PyVoidArrType_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "numpy." NPY_VOID_name,
+    .tp_basicsize = sizeof(PyVoidScalarObject),
+};
+
+
+#line 3674
+
 NPY_NO_EXPORT PyTypeObject PyDatetimeArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.datetime" _THIS_SIZE,
+    .tp_name = "numpy." NPY_DATETIME_name,
     .tp_basicsize = sizeof(PyDatetimeScalarObject),
 };
 
 
-#undef _THIS_SIZE
+#line 3674
 
-#line 3664
-#if NPY_BITSOF_TIMEDELTA == 8
-#define _THIS_SIZE "8"
-#elif NPY_BITSOF_TIMEDELTA == 16
-#define _THIS_SIZE "16"
-#elif NPY_BITSOF_TIMEDELTA == 32
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_TIMEDELTA == 64
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_TIMEDELTA == 80
-#define _THIS_SIZE "80"
-#elif NPY_BITSOF_TIMEDELTA == 96
-#define _THIS_SIZE "96"
-#elif NPY_BITSOF_TIMEDELTA == 128
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_TIMEDELTA == 256
-#define _THIS_SIZE "256"
-#endif
 NPY_NO_EXPORT PyTypeObject PyTimedeltaArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "numpy.timedelta" _THIS_SIZE,
+    .tp_name = "numpy." NPY_TIMEDELTA_name,
     .tp_basicsize = sizeof(PyTimedeltaScalarObject),
 };
 
-
-#undef _THIS_SIZE
 
 
 
 static PyMappingMethods gentype_as_mapping = {
     .mp_subscript = (binaryfunc)gen_arrtype_subscript,
 };
-
-
-#line 3702
-#if NPY_BITSOF_FLOAT == 16
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_FLOAT == 32
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_FLOAT == 64
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_FLOAT == 80
-#define _THIS_SIZE "160"
-#elif NPY_BITSOF_FLOAT == 96
-#define _THIS_SIZE "192"
-#elif NPY_BITSOF_FLOAT == 128
-#define _THIS_SIZE "256"
-#elif NPY_BITSOF_FLOAT == 256
-#define _THIS_SIZE "512"
-#endif
-
-NPY_NO_EXPORT PyTypeObject PyCFloatArrType_Type = {
-    PyVarObject_HEAD_INIT(0, 0)
-    .tp_name = "numpy.complex" _THIS_SIZE,
-    .tp_basicsize = sizeof(PyCFloatScalarObject),
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-};
-#undef _THIS_SIZE
-
-
-#line 3702
-#if NPY_BITSOF_DOUBLE == 16
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_DOUBLE == 32
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_DOUBLE == 64
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_DOUBLE == 80
-#define _THIS_SIZE "160"
-#elif NPY_BITSOF_DOUBLE == 96
-#define _THIS_SIZE "192"
-#elif NPY_BITSOF_DOUBLE == 128
-#define _THIS_SIZE "256"
-#elif NPY_BITSOF_DOUBLE == 256
-#define _THIS_SIZE "512"
-#endif
-
-NPY_NO_EXPORT PyTypeObject PyCDoubleArrType_Type = {
-    PyVarObject_HEAD_INIT(0, 0)
-    .tp_name = "numpy.complex" _THIS_SIZE,
-    .tp_basicsize = sizeof(PyCDoubleScalarObject),
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-};
-#undef _THIS_SIZE
-
-
-#line 3702
-#if NPY_BITSOF_LONGDOUBLE == 16
-#define _THIS_SIZE "32"
-#elif NPY_BITSOF_LONGDOUBLE == 32
-#define _THIS_SIZE "64"
-#elif NPY_BITSOF_LONGDOUBLE == 64
-#define _THIS_SIZE "128"
-#elif NPY_BITSOF_LONGDOUBLE == 80
-#define _THIS_SIZE "160"
-#elif NPY_BITSOF_LONGDOUBLE == 96
-#define _THIS_SIZE "192"
-#elif NPY_BITSOF_LONGDOUBLE == 128
-#define _THIS_SIZE "256"
-#elif NPY_BITSOF_LONGDOUBLE == 256
-#define _THIS_SIZE "512"
-#endif
-
-NPY_NO_EXPORT PyTypeObject PyCLongDoubleArrType_Type = {
-    PyVarObject_HEAD_INIT(0, 0)
-    .tp_name = "numpy.complex" _THIS_SIZE,
-    .tp_basicsize = sizeof(PyCLongDoubleScalarObject),
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-};
-#undef _THIS_SIZE
-
 
 
 /*
@@ -9659,109 +9339,109 @@ initialize_casting_tables(void)
 
     /* Compile-time loop of scalar kinds */
 
-    #line 3794
+    #line 3755
 
     _npy_scalar_kinds_table[NPY_BOOL] = NPY_BOOL_SCALAR;
     _npy_next_larger_type_table[NPY_BOOL] = -1;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_BYTE] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_BYTE] = NPY_SHORT;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_UBYTE] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_UBYTE] = NPY_USHORT;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_SHORT] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_SHORT] = NPY_INT;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_USHORT] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_USHORT] = NPY_UINT;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_INT] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_INT] = NPY_LONG;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_UINT] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_UINT] = NPY_ULONG;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_LONG] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_LONG] = NPY_LONGLONG;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_ULONG] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_ULONG] = NPY_ULONGLONG;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_LONGLONG] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_LONGLONG] = -1;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_ULONGLONG] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_ULONGLONG] = -1;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_HALF] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_HALF] = NPY_FLOAT;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_FLOAT] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_FLOAT] = NPY_DOUBLE;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_DOUBLE] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_DOUBLE] = NPY_LONGDOUBLE;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_LONGDOUBLE] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_LONGDOUBLE] = -1;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_CFLOAT] = NPY_COMPLEX_SCALAR;
     _npy_next_larger_type_table[NPY_CFLOAT] = NPY_CDOUBLE;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_CDOUBLE] = NPY_COMPLEX_SCALAR;
     _npy_next_larger_type_table[NPY_CDOUBLE] = NPY_CLONGDOUBLE;
 
     
-#line 3794
+#line 3755
 
     _npy_scalar_kinds_table[NPY_CLONGDOUBLE] = NPY_COMPLEX_SCALAR;
     _npy_next_larger_type_table[NPY_CLONGDOUBLE] = -1;
@@ -9889,98 +9569,98 @@ initialize_numeric_types(void)
      * also fill array_type_as_number struct with reasonable defaults
      */
 
-    #line 3927
+    #line 3888
     byte_arrtype_as_number = gentype_as_number;
     PyByteArrType_Type.tp_as_number = &byte_arrtype_as_number;
     PyByteArrType_Type.tp_as_number->nb_index = (unaryfunc)byte_index;
 
     
-#line 3927
+#line 3888
     short_arrtype_as_number = gentype_as_number;
     PyShortArrType_Type.tp_as_number = &short_arrtype_as_number;
     PyShortArrType_Type.tp_as_number->nb_index = (unaryfunc)short_index;
 
     
-#line 3927
+#line 3888
     int_arrtype_as_number = gentype_as_number;
     PyIntArrType_Type.tp_as_number = &int_arrtype_as_number;
     PyIntArrType_Type.tp_as_number->nb_index = (unaryfunc)int_index;
 
     
-#line 3927
+#line 3888
     long_arrtype_as_number = gentype_as_number;
     PyLongArrType_Type.tp_as_number = &long_arrtype_as_number;
     PyLongArrType_Type.tp_as_number->nb_index = (unaryfunc)long_index;
 
     
-#line 3927
+#line 3888
     longlong_arrtype_as_number = gentype_as_number;
     PyLongLongArrType_Type.tp_as_number = &longlong_arrtype_as_number;
     PyLongLongArrType_Type.tp_as_number->nb_index = (unaryfunc)longlong_index;
 
     
-#line 3927
+#line 3888
     ubyte_arrtype_as_number = gentype_as_number;
     PyUByteArrType_Type.tp_as_number = &ubyte_arrtype_as_number;
     PyUByteArrType_Type.tp_as_number->nb_index = (unaryfunc)ubyte_index;
 
     
-#line 3927
+#line 3888
     ushort_arrtype_as_number = gentype_as_number;
     PyUShortArrType_Type.tp_as_number = &ushort_arrtype_as_number;
     PyUShortArrType_Type.tp_as_number->nb_index = (unaryfunc)ushort_index;
 
     
-#line 3927
+#line 3888
     uint_arrtype_as_number = gentype_as_number;
     PyUIntArrType_Type.tp_as_number = &uint_arrtype_as_number;
     PyUIntArrType_Type.tp_as_number->nb_index = (unaryfunc)uint_index;
 
     
-#line 3927
+#line 3888
     ulong_arrtype_as_number = gentype_as_number;
     PyULongArrType_Type.tp_as_number = &ulong_arrtype_as_number;
     PyULongArrType_Type.tp_as_number->nb_index = (unaryfunc)ulong_index;
 
     
-#line 3927
+#line 3888
     ulonglong_arrtype_as_number = gentype_as_number;
     PyULongLongArrType_Type.tp_as_number = &ulonglong_arrtype_as_number;
     PyULongLongArrType_Type.tp_as_number->nb_index = (unaryfunc)ulonglong_index;
 
     
 
-    #line 3939
+    #line 3900
     half_arrtype_as_number = gentype_as_number;
     PyHalfArrType_Type.tp_as_number = &half_arrtype_as_number;
 
     
-#line 3939
+#line 3900
     float_arrtype_as_number = gentype_as_number;
     PyFloatArrType_Type.tp_as_number = &float_arrtype_as_number;
 
     
-#line 3939
+#line 3900
     double_arrtype_as_number = gentype_as_number;
     PyDoubleArrType_Type.tp_as_number = &double_arrtype_as_number;
 
     
-#line 3939
+#line 3900
     longdouble_arrtype_as_number = gentype_as_number;
     PyLongDoubleArrType_Type.tp_as_number = &longdouble_arrtype_as_number;
 
     
-#line 3939
+#line 3900
     cfloat_arrtype_as_number = gentype_as_number;
     PyCFloatArrType_Type.tp_as_number = &cfloat_arrtype_as_number;
 
     
-#line 3939
+#line 3900
     cdouble_arrtype_as_number = gentype_as_number;
     PyCDoubleArrType_Type.tp_as_number = &cdouble_arrtype_as_number;
 
     
-#line 3939
+#line 3900
     clongdouble_arrtype_as_number = gentype_as_number;
     PyCLongDoubleArrType_Type.tp_as_number = &clongdouble_arrtype_as_number;
 
@@ -10008,53 +9688,53 @@ initialize_numeric_types(void)
 
     PyNumberArrType_Type.tp_methods = numbertype_methods;
 
-    #line 3970
+    #line 3931
 
     PyNumberArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3970
+#line 3931
 
     PyIntegerArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3970
+#line 3931
 
     PySignedIntegerArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3970
+#line 3931
 
     PyUnsignedIntegerArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3970
+#line 3931
 
     PyInexactArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3970
+#line 3931
 
     PyFloatingArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3970
+#line 3931
 
     PyComplexFloatingArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3970
+#line 3931
 
     PyFlexibleArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3970
+#line 3931
 
     PyCharacterArrType_Type.tp_flags = BASEFLAGS;
 
     
 
-    #line 3985
+    #line 3946
 
     PyBoolArrType_Type.tp_flags = BASEFLAGS;
     PyBoolArrType_Type.tp_new = bool_arrtype_new;
@@ -10067,7 +9747,7 @@ initialize_numeric_types(void)
 #undef _IS_Bool
 
     
-#line 3985
+#line 3946
 
     PyByteArrType_Type.tp_flags = BASEFLAGS;
     PyByteArrType_Type.tp_new = byte_arrtype_new;
@@ -10080,7 +9760,7 @@ initialize_numeric_types(void)
 #undef _IS_Byte
 
     
-#line 3985
+#line 3946
 
     PyShortArrType_Type.tp_flags = BASEFLAGS;
     PyShortArrType_Type.tp_new = short_arrtype_new;
@@ -10093,7 +9773,7 @@ initialize_numeric_types(void)
 #undef _IS_Short
 
     
-#line 3985
+#line 3946
 
     PyIntArrType_Type.tp_flags = BASEFLAGS;
     PyIntArrType_Type.tp_new = int_arrtype_new;
@@ -10106,7 +9786,7 @@ initialize_numeric_types(void)
 #undef _IS_Int
 
     
-#line 3985
+#line 3946
 
     PyLongArrType_Type.tp_flags = BASEFLAGS;
     PyLongArrType_Type.tp_new = long_arrtype_new;
@@ -10119,7 +9799,7 @@ initialize_numeric_types(void)
 #undef _IS_Long
 
     
-#line 3985
+#line 3946
 
     PyLongLongArrType_Type.tp_flags = BASEFLAGS;
     PyLongLongArrType_Type.tp_new = longlong_arrtype_new;
@@ -10132,7 +9812,7 @@ initialize_numeric_types(void)
 #undef _IS_LongLong
 
     
-#line 3985
+#line 3946
 
     PyUByteArrType_Type.tp_flags = BASEFLAGS;
     PyUByteArrType_Type.tp_new = ubyte_arrtype_new;
@@ -10145,7 +9825,7 @@ initialize_numeric_types(void)
 #undef _IS_UByte
 
     
-#line 3985
+#line 3946
 
     PyUShortArrType_Type.tp_flags = BASEFLAGS;
     PyUShortArrType_Type.tp_new = ushort_arrtype_new;
@@ -10158,7 +9838,7 @@ initialize_numeric_types(void)
 #undef _IS_UShort
 
     
-#line 3985
+#line 3946
 
     PyUIntArrType_Type.tp_flags = BASEFLAGS;
     PyUIntArrType_Type.tp_new = uint_arrtype_new;
@@ -10171,7 +9851,7 @@ initialize_numeric_types(void)
 #undef _IS_UInt
 
     
-#line 3985
+#line 3946
 
     PyULongArrType_Type.tp_flags = BASEFLAGS;
     PyULongArrType_Type.tp_new = ulong_arrtype_new;
@@ -10184,7 +9864,7 @@ initialize_numeric_types(void)
 #undef _IS_ULong
 
     
-#line 3985
+#line 3946
 
     PyULongLongArrType_Type.tp_flags = BASEFLAGS;
     PyULongLongArrType_Type.tp_new = ulonglong_arrtype_new;
@@ -10197,7 +9877,7 @@ initialize_numeric_types(void)
 #undef _IS_ULongLong
 
     
-#line 3985
+#line 3946
 
     PyHalfArrType_Type.tp_flags = BASEFLAGS;
     PyHalfArrType_Type.tp_new = half_arrtype_new;
@@ -10210,7 +9890,7 @@ initialize_numeric_types(void)
 #undef _IS_Half
 
     
-#line 3985
+#line 3946
 
     PyFloatArrType_Type.tp_flags = BASEFLAGS;
     PyFloatArrType_Type.tp_new = float_arrtype_new;
@@ -10223,7 +9903,7 @@ initialize_numeric_types(void)
 #undef _IS_Float
 
     
-#line 3985
+#line 3946
 
     PyDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyDoubleArrType_Type.tp_new = double_arrtype_new;
@@ -10236,7 +9916,7 @@ initialize_numeric_types(void)
 #undef _IS_Double
 
     
-#line 3985
+#line 3946
 
     PyLongDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyLongDoubleArrType_Type.tp_new = longdouble_arrtype_new;
@@ -10249,7 +9929,7 @@ initialize_numeric_types(void)
 #undef _IS_LongDouble
 
     
-#line 3985
+#line 3946
 
     PyCFloatArrType_Type.tp_flags = BASEFLAGS;
     PyCFloatArrType_Type.tp_new = cfloat_arrtype_new;
@@ -10262,7 +9942,7 @@ initialize_numeric_types(void)
 #undef _IS_CFloat
 
     
-#line 3985
+#line 3946
 
     PyCDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyCDoubleArrType_Type.tp_new = cdouble_arrtype_new;
@@ -10275,7 +9955,7 @@ initialize_numeric_types(void)
 #undef _IS_CDouble
 
     
-#line 3985
+#line 3946
 
     PyCLongDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyCLongDoubleArrType_Type.tp_new = clongdouble_arrtype_new;
@@ -10288,7 +9968,7 @@ initialize_numeric_types(void)
 #undef _IS_CLongDouble
 
     
-#line 3985
+#line 3946
 
     PyStringArrType_Type.tp_flags = BASEFLAGS;
     PyStringArrType_Type.tp_new = string_arrtype_new;
@@ -10301,7 +9981,7 @@ initialize_numeric_types(void)
 #undef _IS_String
 
     
-#line 3985
+#line 3946
 
     PyUnicodeArrType_Type.tp_flags = BASEFLAGS;
     PyUnicodeArrType_Type.tp_new = unicode_arrtype_new;
@@ -10314,7 +9994,7 @@ initialize_numeric_types(void)
 #undef _IS_Unicode
 
     
-#line 3985
+#line 3946
 
     PyVoidArrType_Type.tp_flags = BASEFLAGS;
     PyVoidArrType_Type.tp_new = void_arrtype_new;
@@ -10327,7 +10007,7 @@ initialize_numeric_types(void)
 #undef _IS_Void
 
     
-#line 3985
+#line 3946
 
     PyObjectArrType_Type.tp_flags = BASEFLAGS;
     PyObjectArrType_Type.tp_new = object_arrtype_new;
@@ -10340,7 +10020,7 @@ initialize_numeric_types(void)
 #undef _IS_Object
 
     
-#line 3985
+#line 3946
 
     PyDatetimeArrType_Type.tp_flags = BASEFLAGS;
     PyDatetimeArrType_Type.tp_new = datetime_arrtype_new;
@@ -10353,7 +10033,7 @@ initialize_numeric_types(void)
 #undef _IS_Datetime
 
     
-#line 3985
+#line 3946
 
     PyTimedeltaArrType_Type.tp_flags = BASEFLAGS;
     PyTimedeltaArrType_Type.tp_new = timedelta_arrtype_new;
@@ -10369,246 +10049,246 @@ initialize_numeric_types(void)
 
     PyUnicodeArrType_Type.tp_dealloc = unicode_arrtype_dealloc;
 
-    #line 4008
+    #line 3969
 
     PyBoolArrType_Type.tp_hash = bool_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyByteArrType_Type.tp_hash = byte_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyShortArrType_Type.tp_hash = short_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyUByteArrType_Type.tp_hash = ubyte_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyUShortArrType_Type.tp_hash = ushort_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyUIntArrType_Type.tp_hash = uint_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyULongArrType_Type.tp_hash = ulong_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyULongLongArrType_Type.tp_hash = ulonglong_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyHalfArrType_Type.tp_hash = half_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyFloatArrType_Type.tp_hash = float_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyLongDoubleArrType_Type.tp_hash = longdouble_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyCFloatArrType_Type.tp_hash = cfloat_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyCLongDoubleArrType_Type.tp_hash = clongdouble_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyVoidArrType_Type.tp_hash = void_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyObjectArrType_Type.tp_hash = object_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyDatetimeArrType_Type.tp_hash = datetime_arrtype_hash;
 
     
-#line 4008
+#line 3969
 
     PyTimedeltaArrType_Type.tp_hash = timedelta_arrtype_hash;
 
     
 
-    #line 4017
+    #line 3978
 
     PyCFloatArrType_Type.tp_methods = cfloattype_methods;
 
     
-#line 4017
+#line 3978
 
     PyCLongDoubleArrType_Type.tp_methods = clongdoubletype_methods;
 
     
-#line 4017
+#line 3978
 
     PyFloatingArrType_Type.tp_methods = floatingtype_methods;
 
     
-#line 4017
+#line 3978
 
     PyIntegerArrType_Type.tp_methods = integertype_methods;
 
     
-#line 4017
+#line 3978
 
     PyComplexFloatingArrType_Type.tp_methods = complexfloatingtype_methods;
 
     
 
-    #line 4028
+    #line 3989
 
     PyByteArrType_Type.tp_methods = bytetype_methods;
 
     
-#line 4028
+#line 3989
 
     PyShortArrType_Type.tp_methods = shorttype_methods;
 
     
-#line 4028
+#line 3989
 
     PyIntArrType_Type.tp_methods = inttype_methods;
 
     
-#line 4028
+#line 3989
 
     PyLongArrType_Type.tp_methods = longtype_methods;
 
     
-#line 4028
+#line 3989
 
     PyLongLongArrType_Type.tp_methods = longlongtype_methods;
 
     
-#line 4028
+#line 3989
 
     PyUByteArrType_Type.tp_methods = ubytetype_methods;
 
     
-#line 4028
+#line 3989
 
     PyUShortArrType_Type.tp_methods = ushorttype_methods;
 
     
-#line 4028
+#line 3989
 
     PyUIntArrType_Type.tp_methods = uinttype_methods;
 
     
-#line 4028
+#line 3989
 
     PyULongArrType_Type.tp_methods = ulongtype_methods;
 
     
-#line 4028
+#line 3989
 
     PyULongLongArrType_Type.tp_methods = ulonglongtype_methods;
 
     
 
-    #line 4037
+    #line 3998
 
     PyHalfArrType_Type.tp_methods = halftype_methods;
 
     
-#line 4037
+#line 3998
 
     PyFloatArrType_Type.tp_methods = floattype_methods;
 
     
-#line 4037
+#line 3998
 
     PyDoubleArrType_Type.tp_methods = doubletype_methods;
 
     
-#line 4037
+#line 3998
 
     PyLongDoubleArrType_Type.tp_methods = longdoubletype_methods;
 
     
 
-    #line 4048
+    #line 4009
 
     PyByteArrType_Type.tp_methods = bytetype_methods;
 
     
-#line 4048
+#line 4009
 
     PyShortArrType_Type.tp_methods = shorttype_methods;
 
     
-#line 4048
+#line 4009
 
     PyIntArrType_Type.tp_methods = inttype_methods;
 
     
-#line 4048
+#line 4009
 
     PyLongArrType_Type.tp_methods = longtype_methods;
 
     
-#line 4048
+#line 4009
 
     PyLongLongArrType_Type.tp_methods = longlongtype_methods;
 
     
-#line 4048
+#line 4009
 
     PyUByteArrType_Type.tp_methods = ubytetype_methods;
 
     
-#line 4048
+#line 4009
 
     PyUShortArrType_Type.tp_methods = ushorttype_methods;
 
     
-#line 4048
+#line 4009
 
     PyUIntArrType_Type.tp_methods = uinttype_methods;
 
     
-#line 4048
+#line 4009
 
     PyULongArrType_Type.tp_methods = ulongtype_methods;
 
     
-#line 4048
+#line 4009
 
     PyULongLongArrType_Type.tp_methods = ulonglongtype_methods;
 
     
-#line 4048
+#line 4009
 
     PyTimedeltaArrType_Type.tp_methods = timedeltatype_methods;
 
     
-#line 4048
+#line 4009
 
     PyCDoubleArrType_Type.tp_methods = cdoubletype_methods;
 
@@ -10623,7 +10303,7 @@ initialize_numeric_types(void)
     /* We won't be inheriting from Python Int type. */
     PyLongLongArrType_Type.tp_hash = longlong_arrtype_hash;
 
-    #line 4065
+    #line 4026
 
     PyHalfArrType_Type.tp_repr = halftype_repr;
 
@@ -10637,7 +10317,7 @@ initialize_numeric_types(void)
     PyTimedeltaArrType_Type.tp_repr = timedeltatype_repr;
 
     
-#line 4065
+#line 4026
 
     PyHalfArrType_Type.tp_str = halftype_str;
 
@@ -10653,77 +10333,77 @@ initialize_numeric_types(void)
     
 
 
-    #line 4084
+    #line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyBoolArrType_Type.tp_str = genint_type_str;
     PyBoolArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4084
+#line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyByteArrType_Type.tp_str = genint_type_str;
     PyByteArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4084
+#line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyUByteArrType_Type.tp_str = genint_type_str;
     PyUByteArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4084
+#line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyShortArrType_Type.tp_str = genint_type_str;
     PyShortArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4084
+#line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyUShortArrType_Type.tp_str = genint_type_str;
     PyUShortArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4084
+#line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyIntArrType_Type.tp_str = genint_type_str;
     PyIntArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4084
+#line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyUIntArrType_Type.tp_str = genint_type_str;
     PyUIntArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4084
+#line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyLongArrType_Type.tp_str = genint_type_str;
     PyLongArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4084
+#line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyULongArrType_Type.tp_str = genint_type_str;
     PyULongArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4084
+#line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyLongLongArrType_Type.tp_str = genint_type_str;
     PyLongLongArrType_Type.tp_repr = genint_type_str;
 
     
-#line 4084
+#line 4045
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyULongLongArrType_Type.tp_str = genint_type_str;
@@ -10733,7 +10413,7 @@ initialize_numeric_types(void)
 
 
 
-    #line 4097
+    #line 4058
 
     /*
      * These need to be coded specially because longdouble/clongdouble getitem
@@ -10747,7 +10427,7 @@ initialize_numeric_types(void)
     PyLongDoubleArrType_Type.tp_str = longdoubletype_str;
 
     
-#line 4097
+#line 4058
 
     /*
      * These need to be coded specially because longdouble/clongdouble getitem
@@ -10767,36 +10447,6 @@ initialize_numeric_types(void)
 
     PyArrayIter_Type.tp_iter = PyObject_SelfIter;
     PyArrayMapIter_Type.tp_iter = PyObject_SelfIter;
-
-    /*
-     * Give types different names when they are the same size (gh-9799).
-     * `np.intX` always refers to the first int of that size in the sequence
-     * `['LONG', 'LONGLONG', 'INT', 'SHORT', 'BYTE']`.
-     */
-#if (NPY_SIZEOF_BYTE == NPY_SIZEOF_SHORT)
-    PyByteArrType_Type.tp_name = "numpy.byte";
-    PyUByteArrType_Type.tp_name = "numpy.ubyte";
-#endif
-#if (NPY_SIZEOF_SHORT == NPY_SIZEOF_INT)
-    PyShortArrType_Type.tp_name = "numpy.short";
-    PyUShortArrType_Type.tp_name = "numpy.ushort";
-#endif
-#if (NPY_SIZEOF_INT == NPY_SIZEOF_LONG)
-    PyIntArrType_Type.tp_name = "numpy.intc";
-    PyUIntArrType_Type.tp_name = "numpy.uintc";
-#endif
-#if (NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONG)
-    PyLongLongArrType_Type.tp_name = "numpy.longlong";
-    PyULongLongArrType_Type.tp_name = "numpy.ulonglong";
-#endif
-
-    /*
-    Do the same for longdouble
-    */
-#if (NPY_SIZEOF_LONGDOUBLE == NPY_SIZEOF_DOUBLE)
-    PyLongDoubleArrType_Type.tp_name = "numpy.longdouble";
-    PyCLongDoubleArrType_Type.tp_name = "numpy.clongdouble";
-#endif
 }
 
 typedef struct {

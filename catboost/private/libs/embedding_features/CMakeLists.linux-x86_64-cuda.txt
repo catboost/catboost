@@ -33,27 +33,33 @@ target_link_libraries(private-libs-embedding_features PUBLIC
   cpp-online_hnsw-dense_vectors
 )
 target_sources(private-libs-embedding_features PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/embedding_calcers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/embedding_feature_calcer.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/embedding_processing_collection.cpp
-  ${CMAKE_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.cpp
-  ${CMAKE_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.iter.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.iter.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.bfbs
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.bfbs
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/embedding_calcers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/embedding_feature_calcer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/embedding_processing_collection.cpp
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.cpp
 )
 target_fbs_source(private-libs-embedding_features
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs
   -I
-  ${CMAKE_BINARY_DIR}
+  ${PROJECT_BINARY_DIR}
   -I
-  ${CMAKE_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}
 )
 target_fbs_source(private-libs-embedding_features
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs
   -I
-  ${CMAKE_BINARY_DIR}
+  ${PROJECT_BINARY_DIR}
   -I
-  ${CMAKE_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}
 )
 
 add_global_library_for(private-libs-embedding_features.global private-libs-embedding_features)
@@ -69,6 +75,6 @@ target_link_libraries(private-libs-embedding_features.global PUBLIC
   cpp-online_hnsw-dense_vectors
 )
 target_sources(private-libs-embedding_features.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/knn.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/embedding_features/lda.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/knn.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/lda.cpp
 )

@@ -202,6 +202,7 @@ private:
     bool _direct_line_offsets;        // Whether line offsets array is written direct to Python.
     bool _direct_outer_offsets;       // Whether outer offsets array is written direct to Python.
     bool _outer_offsets_into_points;  // Otherwise into line offsets.  Only used if _identify_holes.
+    bool _nan_separated;              // Whether adjacent lines' points are separated by nans.
     unsigned int _return_list_count;
 };
 

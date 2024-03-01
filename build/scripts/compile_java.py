@@ -78,11 +78,28 @@ def main():
             ts.write(' '.join(ktsrcs + srcs))
         kt_classes_dir = 'kt_cls'
         mkdir_p(kt_classes_dir)
-        sp.check_call([opts.java_bin, '-Didea.max.content.load.filesize=30720', '-jar', opts.kotlin_compiler, '-classpath', classpath, '-d', kt_classes_dir] + ktc_opts + ['@' + temp_kt_sources_file])
+        sp.check_call(
+            [
+                opts.java_bin,
+                '-Didea.max.content.load.filesize=30720',
+                '-jar',
+                opts.kotlin_compiler,
+                '-classpath',
+                classpath,
+                '-d',
+                kt_classes_dir,
+            ]
+            + ktc_opts
+            + ['@' + temp_kt_sources_file]
+        )
         classpath = os.pathsep.join([kt_classes_dir, classpath])
 
     if srcs:
-        sp.check_call([opts.javac_bin, '-nowarn', '-g', '-classpath', classpath, '-encoding', 'UTF-8', '-d', classes_dir] + javac_opts + ['@' + temp_sources_file])
+        sp.check_call(
+            [opts.javac_bin, '-nowarn', '-g', '-classpath', classpath, '-encoding', 'UTF-8', '-d', classes_dir]
+            + javac_opts
+            + ['@' + temp_sources_file]
+        )
 
     for s in jsrcs:
         if s.endswith('-sources.jar'):

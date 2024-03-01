@@ -65,7 +65,7 @@ cdef void _middle_term_sparse_dense_64(
     intp_t Y_end,
     bint c_ordered_middle_term,
     float64_t * dist_middle_terms,
-) nogil:
+) noexcept nogil:
     # This routine assumes that dist_middle_terms is a pointer to the first element
     # of a buffer filled with zeros of length at least equal to n_X × n_Y, conceptually
     # representing a 2-d C-ordered of F-ordered array.
@@ -569,7 +569,7 @@ cdef void _middle_term_sparse_dense_32(
     intp_t Y_end,
     bint c_ordered_middle_term,
     float64_t * dist_middle_terms,
-) nogil:
+) noexcept nogil:
     # This routine assumes that dist_middle_terms is a pointer to the first element
     # of a buffer filled with zeros of length at least equal to n_X × n_Y, conceptually
     # representing a 2-d C-ordered of F-ordered array.

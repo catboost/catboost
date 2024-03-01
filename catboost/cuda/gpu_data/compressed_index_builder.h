@@ -231,6 +231,7 @@ namespace NCatboostCuda {
 
             if (NCB::CastToLazyQuantizedFloatValuesHolder(quantizedFeatureColumn)) {
                 CATBOOST_DEBUG_LOG << "Loading featureId " << featureId << " on device side" << Endl;
+                NeedToDropLoaders = true;
                 WriteLazyBinsVector(
                     dataSetId,
                     featureId,
@@ -343,23 +344,36 @@ namespace NCatboostCuda {
                 auto& ds = *CompressedIndex.DataSets[dataSetId];
                 ds.PrintInfo();
             }
-            if (!NCB::TQuantizedPoolLoadersCache::IsEmpty()) {
-                NCudaLib::GetCudaManager().WaitComplete();
-                DropAllLoaders(CompressedIndex.DataSets[0]->GetSamplesMapping().NonEmptyDevices());
-            }
+
+            DropLoaders();
 
             BuildIsDone = true;
         };
 
+        ~TSharedCompressedIndexBuilder() {
+            DropLoaders();
+        }
     private:
         bool IsWritingStage = false;
         TInstant StartWrite = Now();
         bool BuildIsDone = false;
+        bool NeedToDropLoaders = false;
 
         TIndex& CompressedIndex;
         TVector<TSet<ui32>> SeenFeatures;
         TVector<TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing>> GatherIndex;
         NPar::ILocalExecutor* LocalExecutor;
+
+        void DropLoaders() {
+            if (NeedToDropLoaders) {
+                CATBOOST_DEBUG_LOG << __PRETTY_FUNCTION__ << ": waiting for cached loaders to go away..." << Endl;
+                NCudaLib::GetCudaManager().WaitComplete();
+                DropAllLoaders(CompressedIndex.DataSets[0]->GetSamplesMapping().NonEmptyDevices());
+                NCudaLib::GetCudaManager().WaitComplete();
+                NeedToDropLoaders = false;
+                CATBOOST_DEBUG_LOG << __PRETTY_FUNCTION__ << ": done" << Endl;
+            }
+        }
     };
 
     extern template class TSharedCompressedIndexBuilder<TFeatureParallelLayout>;

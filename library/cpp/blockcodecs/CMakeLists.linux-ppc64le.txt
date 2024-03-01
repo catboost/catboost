@@ -26,6 +26,6 @@ target_link_libraries(library-cpp-blockcodecs PUBLIC
   blockcodecs-codecs-zstd
 )
 target_sources(library-cpp-blockcodecs PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/codecs.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/stream.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/stream.cpp
 )

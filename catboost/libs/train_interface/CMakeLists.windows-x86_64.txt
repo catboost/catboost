@@ -39,10 +39,10 @@ target_link_libraries(catboost_train_interface PUBLIC
   library-cpp-logger
 )
 target_sources(catboost_train_interface PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_interface/catboost_api.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_interface/catboost_api.cpp
 )
 use_export_script(catboost_train_interface
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_interface/catboost.exports
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_interface/catboost.exports
 )
 vcs_info(catboost_train_interface)
 

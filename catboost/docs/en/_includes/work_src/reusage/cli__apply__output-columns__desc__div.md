@@ -1,7 +1,7 @@
 
 A comma-separated list of columns names to output when forming the [results of applying the model](../../../concepts/output-data_model-value-output.md) (including the ones obtained for the validation dataset when training).
 
-Prediction and feature values can be output for each object of the input dataset. Additionally, some [column types](../../../concepts/input-data_column-descfile.md) can be output if specified in the input data.
+Prediction and feature values can be output for each object of the input dataset. Auxiliary columns can be output, if name for column was specified in column description. Additionally, some [column types](../../../concepts/input-data_column-descfile.md) can be output if specified in the input data.
 
 {% cut "Supported prediction types" %}
 

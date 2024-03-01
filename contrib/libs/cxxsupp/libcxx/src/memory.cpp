@@ -29,8 +29,6 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-const allocator_arg_t allocator_arg = allocator_arg_t();
-
 bad_weak_ptr::~bad_weak_ptr() noexcept {}
 
 const char*
@@ -171,7 +169,7 @@ __shared_weak_count::__get_deleter(const type_info&) const noexcept
 #if !defined(_LIBCPP_HAS_NO_THREADS)
 
 static constexpr std::size_t __sp_mut_count = 32;
-static _LIBCPP_CONSTINIT __libcpp_mutex_t mut_back[__sp_mut_count] =
+static constinit __libcpp_mutex_t mut_back[__sp_mut_count] =
 {
     _LIBCPP_MUTEX_INITIALIZER, _LIBCPP_MUTEX_INITIALIZER, _LIBCPP_MUTEX_INITIALIZER, _LIBCPP_MUTEX_INITIALIZER,
     _LIBCPP_MUTEX_INITIALIZER, _LIBCPP_MUTEX_INITIALIZER, _LIBCPP_MUTEX_INITIALIZER, _LIBCPP_MUTEX_INITIALIZER,
@@ -184,27 +182,27 @@ static _LIBCPP_CONSTINIT __libcpp_mutex_t mut_back[__sp_mut_count] =
 };
 
 _LIBCPP_CONSTEXPR __sp_mut::__sp_mut(void* p) noexcept
-   : __lx(p)
+   : __lx_(p)
 {
 }
 
 void
 __sp_mut::lock() noexcept
 {
-    auto m = static_cast<__libcpp_mutex_t*>(__lx);
+    auto m = static_cast<__libcpp_mutex_t*>(__lx_);
     __libcpp_mutex_lock(m);
 }
 
 void
 __sp_mut::unlock() noexcept
 {
-    __libcpp_mutex_unlock(static_cast<__libcpp_mutex_t*>(__lx));
+    __libcpp_mutex_unlock(static_cast<__libcpp_mutex_t*>(__lx_));
 }
 
 __sp_mut&
 __get_sp_mut(const void* p)
 {
-    static _LIBCPP_CONSTINIT __sp_mut muts[__sp_mut_count] = {
+    static constinit __sp_mut muts[__sp_mut_count] = {
         &mut_back[ 0], &mut_back[ 1], &mut_back[ 2], &mut_back[ 3],
         &mut_back[ 4], &mut_back[ 5], &mut_back[ 6], &mut_back[ 7],
         &mut_back[ 8], &mut_back[ 9], &mut_back[10], &mut_back[11],
@@ -226,7 +224,7 @@ align(size_t alignment, size_t size, void*& ptr, size_t& space)
     if (size <= space)
     {
         char* p1 = static_cast<char*>(ptr);
-        char* p2 = reinterpret_cast<char*>(reinterpret_cast<size_t>(p1 + (alignment - 1)) & -alignment);
+        char* p2 = reinterpret_cast<char*>(reinterpret_cast<uintptr_t>(p1 + (alignment - 1)) & -alignment);
         size_t d = static_cast<size_t>(p2 - p1);
         if (d <= space - size)
         {

@@ -78,7 +78,7 @@ private[spark] class CatBoostMasterWrapper (
   val precomputedOnlineCtrMetaDataAsJsonString: String,
 
   var savedPoolsFuture : Future[(PoolFilesPaths, Array[PoolFilesPaths])] = null, // inited later
-  
+
   // will be set in trainCallback, called from the trainingDriver's run()
   var nativeModelResult : native_impl.TFullModel = null
 ) extends Logging {
@@ -101,7 +101,7 @@ private[spark] class CatBoostMasterWrapper (
 
     val jsonParamsFile = tmpDirPath.resolve("json_params")
     Files.write(jsonParamsFile, catBoostJsonParamsForMasterString.getBytes(StandardCharsets.UTF_8))
-    
+
     var precomputedOnlineCtrMetaDataFile: Path = null
     if (precomputedOnlineCtrMetaDataAsJsonString != null) {
       precomputedOnlineCtrMetaDataFile =  tmpDirPath.resolve("precomputed_online_ctr_metadata")
@@ -117,10 +117,10 @@ private[spark] class CatBoostMasterWrapper (
       "--params-file", jsonParamsFile.toString,
       "--file-with-hosts", hostsFilePath.toString,
       "--hosts-already-contain-loaded-data",
-      /* permutations on master are impossible when data is preloaded on hosts, shuffling is performed in Spark 
+      /* permutations on master are impossible when data is preloaded on hosts, shuffling is performed in Spark
        * on the preprocessing phase
        */
-      "--has-time", 
+      "--has-time",
       "--max-ctr-complexity", "1",
       "--final-ctr-computation-mode", "Skip", // final ctrs are computed in post-processing
       "--model-file", resultModelFilePath.toString
@@ -133,7 +133,7 @@ private[spark] class CatBoostMasterWrapper (
     if (precomputedOnlineCtrMetaDataAsJsonString != null) {
       args += ("--precomputed-data-meta", precomputedOnlineCtrMetaDataFile.toString)
     }
-    
+
     log.info("Wait until Dataset data parts are ready.")
 
     val (savedTrainPool, savedEvalPools) = Await.result(savedPoolsFuture, Duration.Inf)
@@ -205,7 +205,7 @@ private[spark] class CatBoostMasterWrapper (
       }
       throw new CatBoostError(s"CatBoost Master process failed: exited with code $returnValue")
     }
-    
+
     log.info("CatBoost Master process finished successfully.")
 
     log.info("Trained model: start loading")

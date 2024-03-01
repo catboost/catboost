@@ -339,23 +339,28 @@ class TestEmptyField:
 
 class TestCommonType:
     def test_scalar_loses1(self):
-        res = np.find_common_type(['f4', 'f4', 'i2'], ['f8'])
+        with pytest.warns(DeprecationWarning, match="np.find_common_type"):
+            res = np.find_common_type(['f4', 'f4', 'i2'], ['f8'])
         assert_(res == 'f4')
 
     def test_scalar_loses2(self):
-        res = np.find_common_type(['f4', 'f4'], ['i8'])
+        with pytest.warns(DeprecationWarning, match="np.find_common_type"):
+            res = np.find_common_type(['f4', 'f4'], ['i8'])
         assert_(res == 'f4')
 
     def test_scalar_wins(self):
-        res = np.find_common_type(['f4', 'f4', 'i2'], ['c8'])
+        with pytest.warns(DeprecationWarning, match="np.find_common_type"):
+            res = np.find_common_type(['f4', 'f4', 'i2'], ['c8'])
         assert_(res == 'c8')
 
     def test_scalar_wins2(self):
-        res = np.find_common_type(['u4', 'i4', 'i4'], ['f4'])
+        with pytest.warns(DeprecationWarning, match="np.find_common_type"):
+            res = np.find_common_type(['u4', 'i4', 'i4'], ['f4'])
         assert_(res == 'f8')
 
     def test_scalar_wins3(self):  # doesn't go up to 'f16' on purpose
-        res = np.find_common_type(['u8', 'i8', 'i8'], ['f8'])
+        with pytest.warns(DeprecationWarning, match="np.find_common_type"):
+            res = np.find_common_type(['u8', 'i8', 'i8'], ['f8'])
         assert_(res == 'f8')
 
 class TestMultipleFields:
@@ -473,7 +478,8 @@ class TestMaximumSctype:
     def test_complex(self, t):
         assert_equal(np.maximum_sctype(t), np.sctypes['complex'][-1])
 
-    @pytest.mark.parametrize('t', [np.bool_, np.object_, np.unicode_, np.bytes_, np.void])
+    @pytest.mark.parametrize('t', [np.bool_, np.object_, np.str_, np.bytes_,
+                                   np.void])
     def test_other(self, t):
         assert_equal(np.maximum_sctype(t), t)
 
@@ -485,7 +491,7 @@ class Test_sctype2char:
     def test_scalar_type(self):
         assert_equal(np.sctype2char(np.double), 'd')
         assert_equal(np.sctype2char(np.int_), 'l')
-        assert_equal(np.sctype2char(np.unicode_), 'U')
+        assert_equal(np.sctype2char(np.str_), 'U')
         assert_equal(np.sctype2char(np.bytes_), 'S')
 
     def test_other_type(self):

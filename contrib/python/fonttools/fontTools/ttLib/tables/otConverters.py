@@ -146,7 +146,6 @@ class _LazyList(UserList):
 
 
 class BaseConverter(object):
-
     """Base class for converter objects. Apart from the constructor, this
     is an abstract class."""
 

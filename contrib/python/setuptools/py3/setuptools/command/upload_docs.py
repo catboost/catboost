@@ -8,7 +8,6 @@ from base64 import standard_b64encode
 from distutils import log
 from distutils.errors import DistutilsOptionError
 import os
-import socket
 import zipfile
 import tempfile
 import shutil
@@ -201,7 +200,7 @@ class upload_docs(upload):
             conn.putheader('Authorization', auth)
             conn.endheaders()
             conn.send(body)
-        except socket.error as e:
+        except OSError as e:
             self.announce(str(e), log.ERROR)
             return
 

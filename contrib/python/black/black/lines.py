@@ -1,6 +1,5 @@
 import itertools
 import math
-import sys
 from dataclasses import dataclass, field
 from typing import (
     Callable,
@@ -32,6 +31,7 @@ from black.nodes import (
     is_type_comment,
     is_type_ignore_comment,
     is_with_or_async_with_stmt,
+    make_simple_prefix,
     replace_child,
     syms,
     whitespace,
@@ -103,7 +103,10 @@ class Line:
         Raises ValueError when any `leaf` is appended after a standalone comment
         or when a standalone comment is not the first leaf on the line.
         """
-        if self.bracket_tracker.depth == 0:
+        if (
+            self.bracket_tracker.depth == 0
+            or self.bracket_tracker.any_open_for_or_lambda()
+        ):
             if self.is_comment:
                 raise ValueError("cannot append to standalone comments")
 
@@ -207,6 +210,11 @@ class Line:
         return False
 
     @property
+    def is_chained_assignment(self) -> bool:
+        """Is the line a chained assignment"""
+        return [leaf.type for leaf in self.leaves].count(token.EQUAL) > 1
+
+    @property
     def opens_block(self) -> bool:
         """Does this line open a new level of indentation."""
         if len(self.leaves) == 0:
@@ -233,10 +241,10 @@ class Line:
             leaf.fmt_pass_converted_first_leaf
         )
 
-    def contains_standalone_comments(self, depth_limit: int = sys.maxsize) -> bool:
+    def contains_standalone_comments(self) -> bool:
         """If so, needs to be split before emitting."""
         for leaf in self.leaves:
-            if leaf.type == STANDALONE_COMMENT and leaf.bracket_depth <= depth_limit:
+            if leaf.type == STANDALONE_COMMENT:
                 return True
 
         return False
@@ -351,9 +359,9 @@ class Line:
 
         if closing.type == token.RSQB:
             if (
-                closing.parent
+                closing.parent is not None
                 and closing.parent.type == syms.trailer
-                and closing.opening_bracket
+                and closing.opening_bracket is not None
                 and is_one_sequence_between(
                     closing.opening_bracket,
                     closing,
@@ -363,22 +371,7 @@ class Line:
             ):
                 return False
 
-            if not ensure_removable:
-                return True
-
-            comma = self.leaves[-1]
-            if comma.parent is None:
-                return False
-            return (
-                comma.parent.type != syms.subscriptlist
-                or closing.opening_bracket is None
-                or not is_one_sequence_between(
-                    closing.opening_bracket,
-                    closing,
-                    self.leaves,
-                    brackets=(token.LSQB, token.RSQB),
-                )
-            )
+            return True
 
         if self.is_import:
             return True
@@ -533,12 +526,12 @@ class LinesBlock:
     before: int = 0
     content_lines: List[str] = field(default_factory=list)
     after: int = 0
+    form_feed: bool = False
 
     def all_lines(self) -> List[str]:
         empty_line = str(Line(mode=self.mode))
-        return (
-            [empty_line * self.before] + self.content_lines + [empty_line * self.after]
-        )
+        prefix = make_simple_prefix(self.before, self.form_feed, empty_line)
+        return [prefix] + self.content_lines + [empty_line * self.after]
 
 
 @dataclass
@@ -563,6 +556,12 @@ class EmptyLineTracker:
         This is for separating `def`, `async def` and `class` with extra empty
         lines (two on module-level).
         """
+        form_feed = (
+            Preview.allow_form_feeds in self.mode
+            and current_line.depth == 0
+            and bool(current_line.leaves)
+            and "\f\n" in current_line.leaves[0].prefix
+        )
         before, after = self._maybe_empty_lines(current_line)
         previous_after = self.previous_block.after if self.previous_block else 0
         before = (
@@ -578,6 +577,7 @@ class EmptyLineTracker:
             and self.previous_block.previous_block is None
             and len(self.previous_block.original_line.leaves) == 1
             and self.previous_block.original_line.is_triple_quoted_string
+            and not (current_line.is_class or current_line.is_def)
         ):
             before = 1
 
@@ -587,6 +587,7 @@ class EmptyLineTracker:
             original_line=current_line,
             before=before,
             after=after,
+            form_feed=form_feed,
         )
 
         # Maintain the semantic_leading_comment state.
@@ -688,18 +689,14 @@ class EmptyLineTracker:
                 return 0, 1
             return before, 1
 
+        # In preview mode, always allow blank lines, except right before a function
+        # docstring
         is_empty_first_line_ok = (
-            Preview.allow_empty_first_line_before_new_block_or_comment
-            in current_line.mode
+            Preview.allow_empty_first_line_in_block in current_line.mode
             and (
-                # If it's a standalone comment
-                current_line.leaves[0].type == STANDALONE_COMMENT
-                # If it opens a new block
-                or current_line.opens_block
-                # If it's a triple quote comment (but not at the start of a funcdef)
+                not is_docstring(current_line.leaves[0])
                 or (
-                    is_docstring(current_line.leaves[0])
-                    and self.previous_line
+                    self.previous_line
                     and self.previous_line.leaves[0]
                     and self.previous_line.leaves[0].parent
                     and not is_funcdef(self.previous_line.leaves[0].parent)
@@ -854,7 +851,7 @@ def is_line_short_enough(  # noqa: C901
     if not line_str:
         line_str = line_to_string(line)
 
-    width = str_width if mode.preview else len
+    width = str_width if Preview.respect_east_asian_width in mode else len
 
     if Preview.multiline_string_handling not in mode:
         return (
@@ -981,6 +978,23 @@ def can_omit_invisible_parens(
     are too long.
     """
     line = rhs.body
+
+    # We need optional parens in order to split standalone comments to their own lines
+    # if there are no nested parens around the standalone comments
+    closing_bracket: Optional[Leaf] = None
+    for leaf in reversed(line.leaves):
+        if closing_bracket and leaf is closing_bracket.opening_bracket:
+            closing_bracket = None
+        if leaf.type == STANDALONE_COMMENT and not closing_bracket:
+            return False
+        if (
+            not closing_bracket
+            and leaf.type in CLOSING_BRACKETS
+            and leaf.opening_bracket in line.leaves
+            and leaf.value
+        ):
+            closing_bracket = leaf
+
     bt = line.bracket_tracker
     if not bt.delimiters:
         # Without delimiters the optional parentheses are useless.

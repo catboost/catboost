@@ -233,10 +233,10 @@ struct AgentSelectIf
     :
         temp_storage(temp_storage.Alias()),
         d_in(d_in),
-        d_flags_in(d_flags_in),
         d_selected_out(d_selected_out),
-        select_op(select_op),
+        d_flags_in(d_flags_in),
         inequality_op(equality_op),
+        select_op(select_op),
         num_items(num_items)
     {}
 

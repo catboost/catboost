@@ -132,7 +132,7 @@ class test(Command):
             func()
 
     @contextlib.contextmanager
-    def project_on_sys_path(self, include_dists=[]):
+    def project_on_sys_path(self, include_dists=()):
         self.run_command('egg_info')
 
         # Build extensions in-place

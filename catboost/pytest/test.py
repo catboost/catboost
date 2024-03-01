@@ -361,6 +361,19 @@ def test_survival_aft_with_nondefault_distributions(boosting_type, distribution_
     ]
 
 
+def test_survival_aft_on_incompatible_target():
+    cmd_fit = (
+        '--loss-function', 'SurvivalAft',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '100',
+        '-T', '4',
+    )
+    with pytest.raises(yatest.common.ExecutionError):
+        execute_catboost_fit('CPU', cmd_fit)
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('n_trees', [100, 500])
 @pytest.mark.parametrize('target_count', [1, 2, 3])
@@ -2324,6 +2337,29 @@ def test_text_ignored_features(boosting_type):
         '-T', '4',
         '-m', output_model_path,
         '-I', '2-4:6',
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_embedding_ignored_features(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        '--loss-function', 'Logloss',
+        '-f', data_file('rotten_tomatoes_small_with_embeddings', 'train'),
+        '-t', data_file('rotten_tomatoes_small_with_embeddings', 'train'),  # there's no test file for now
+        '--column-description', data_file('rotten_tomatoes_small_with_embeddings', 'cd_binclass'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '-I', '1:10',
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
     )
@@ -5254,6 +5290,54 @@ def test_output_columns_format():
     yatest.common.execute(calc_cmd)
 
     return local_canonical_file(output_eval_path, formula_predict_path)
+
+
+def test_output_auxiliary_columns_format():
+    model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        '-f', data_file('scene', 'train'),
+        '--cd', data_file('scene', 'train_1.cd'),
+        '-t', data_file('scene', 'train'),
+        '-i', '10',
+        '-T', '4',
+        '-m', model_path,
+        '--output-columns', 'RawFormulaVal,#292,Att294,Label,Sunset,FallFoliage,Field,Mountain,Urban',
+        '--eval-file', output_eval_path
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('scene', 'test'),
+        '--column-description', data_file('scene', 'train_1.cd'),
+        '-m', model_path,
+        '--output-path', formula_predict_path,
+        '--output-columns', 'RawFormulaVal,#292,Att294,Label,Sunset,FallFoliage,Field,Mountain,Urban',
+    )
+    yatest.common.execute(calc_cmd)
+
+    def cmp_evals(eval_path, file_name):
+        with open(eval_path, 'r') as file:
+            file.readline()
+            eval_lines = file.readlines()
+
+        with open(data_file('scene', file_name), 'r') as file:
+            test_lines = file.readlines()
+
+        assert len(eval_lines) == len(test_lines)
+        for i in range(len(eval_lines)):
+            eval_line = eval_lines[i].split('\t')[1:]  # intentionally skip RawFormulaVal
+            test_line = test_lines[i].split('\t')[-8:]
+
+            for eval_column, test_column in zip(eval_line, test_line):
+                assert float(eval_column) == float(test_column), f'{eval_column} != {test_column}'
+    cmp_evals(formula_predict_path, 'test')
+    cmp_evals(output_eval_path, 'train')
 
 
 def test_eval_period():

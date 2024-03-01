@@ -14,7 +14,7 @@ target_link_libraries(library-cpp-packers PUBLIC
   yutil
 )
 target_sources(library-cpp-packers PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/packers/packers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/packers/proto_packer.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/packers/region_packer.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/packers/packers.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/packers/proto_packer.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/packers/region_packer.cpp
 )

@@ -3,6 +3,8 @@
 #include "ref.h"
 #include "ref_counted.h"
 
+#include <library/cpp/yt/misc/port.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -237,7 +237,7 @@ static void CalculateHistogram(
 }
 
 
-void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
+void NCB::CalculateDatasetStatisticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
     NPar::TLocalExecutor localExecutor;
 
     int threadCount = (calculateStatisticsParams.ThreadCount == -1) ?
@@ -249,11 +249,11 @@ void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& ca
     auto datasetLoader = GetDatasetLoader(calculateStatisticsParams, &localExecutor);
 
     if (calculateStatisticsParams.OnlyGroupStatistics) {
-        auto visitor = MakeHolder<TDatasetStatisticsOnlyGroupVisitor>(/*isLocal*/ true);
+        TDatasetStatisticsOnlyGroupVisitor visitor(/*isLocal*/ true);
 
-        datasetLoader->DoIfCompatible(dynamic_cast<IDatasetVisitor*>(visitor.Get()));
+        datasetLoader->DoIfCompatible(dynamic_cast<IDatasetVisitor*>(&visitor));
 
-        visitor->OutputResult(calculateStatisticsParams.OutputPath);
+        visitor.OutputResult(calculateStatisticsParams.OutputPath);
     } else {
         auto visitor = MakeHolder<TDatasetStatisticsFullVisitor>(
             NCB::TDataProviderBuilderOptions{},

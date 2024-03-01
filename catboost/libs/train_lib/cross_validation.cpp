@@ -24,6 +24,7 @@
 #include <catboost/private/libs/options/defaults_helper.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/target/util.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/mapfindptr.h>
@@ -319,6 +320,25 @@ void UpdatePermutationBlockSize(
     }
 }
 
+static void UpdateYetiRankEvalMetric(
+    NCB::TDataProviderPtr data,
+    NPar::ILocalExecutor* localExecutor,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+
+    TTargetStats targetStats;
+    if (data->MetaInfo.TargetStats.Defined()) {
+        targetStats = *(data->MetaInfo.TargetStats);
+    } else {
+        targetStats = ComputeTargetStatsForYetiRank(
+            data->RawTargetData,
+            catBoostOptions->LossFunctionDescription.Get().LossFunction,
+            localExecutor
+        );
+    }
+    UpdateYetiRankEvalMetric(targetStats, Nothing(), catBoostOptions);
+}
+
+
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
@@ -349,7 +369,11 @@ void CrossValidate(
                                               labelConverter,
                                               data->RawTargetData.GetTargetDimension());
 
-    UpdateYetiRankEvalMetric(data->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
+    if (IsYetiRankLossFunction(catBoostOptions.LossFunctionDescription.Get().LossFunction)) {
+        // Can't use standard UpdateYetiRankEvalMetric because for raw data TargetStats might not be available
+        UpdateYetiRankEvalMetric(data, localExecutor, &catBoostOptions);
+    }
+
     UpdateSampleRateOption(data->ObjectsData->GetObjectCount(), &catBoostOptions);
 
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
@@ -605,6 +629,7 @@ TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
     );
 
     switch (dataProvider.RawTargetData.GetTargetType()) {
+        case ERawTargetType::Boolean:
         case ERawTargetType::Integer:
         case ERawTargetType::Float: {
             TVector<float> rawTargetData;

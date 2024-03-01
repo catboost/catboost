@@ -119,7 +119,7 @@ enum BlockScanAlgorithm
  * \tparam ALGORITHM        <b>[optional]</b> cub::BlockScanAlgorithm enumerator specifying the underlying algorithm to use (default: cub::BLOCK_SCAN_RAKING)
  * \tparam BLOCK_DIM_Y      <b>[optional]</b> The thread block length in threads along the Y dimension (default: 1)
  * \tparam BLOCK_DIM_Z      <b>[optional]</b> The thread block length in threads along the Z dimension (default: 1)
- * \tparam PTX_ARCH         <b>[optional]</b> \ptxversion
+ * \tparam LEGACY_PTX_ARCH  <b>[optional]</b> Unused.
  *
  * \par Overview
  * - Given a list of input elements and a binary reduction operator, a [<em>prefix scan</em>](http://en.wikipedia.org/wiki/Prefix_sum)
@@ -193,7 +193,7 @@ template <
     BlockScanAlgorithm  ALGORITHM       = BLOCK_SCAN_RAKING,
     int                 BLOCK_DIM_Y     = 1,
     int                 BLOCK_DIM_Z     = 1,
-    int                 PTX_ARCH        = CUB_PTX_ARCH>
+    int                 LEGACY_PTX_ARCH = 0>
 class BlockScan
 {
 private:
@@ -216,12 +216,12 @@ private:
      * architectural warp size.
      */
     static const BlockScanAlgorithm SAFE_ALGORITHM =
-        ((ALGORITHM == BLOCK_SCAN_WARP_SCANS) && (BLOCK_THREADS % CUB_WARP_THREADS(PTX_ARCH) != 0)) ?
+        ((ALGORITHM == BLOCK_SCAN_WARP_SCANS) && (BLOCK_THREADS % CUB_WARP_THREADS(0) != 0)) ?
             BLOCK_SCAN_RAKING :
             ALGORITHM;
 
-    typedef BlockScanWarpScans<T, BLOCK_DIM_X, BLOCK_DIM_Y, BLOCK_DIM_Z, PTX_ARCH> WarpScans;
-    typedef BlockScanRaking<T, BLOCK_DIM_X, BLOCK_DIM_Y, BLOCK_DIM_Z, (SAFE_ALGORITHM == BLOCK_SCAN_RAKING_MEMOIZE), PTX_ARCH> Raking;
+    typedef BlockScanWarpScans<T, BLOCK_DIM_X, BLOCK_DIM_Y, BLOCK_DIM_Z> WarpScans;
+    typedef BlockScanRaking<T, BLOCK_DIM_X, BLOCK_DIM_Y, BLOCK_DIM_Z, (SAFE_ALGORITHM == BLOCK_SCAN_RAKING_MEMOIZE)> Raking;
 
     /// Define the delegate type for the desired algorithm
     using InternalBlockScan =

@@ -717,6 +717,8 @@ static void SaveModel(
             trainingDataForCpu.Learn->ObjectsData
         ).WithFeatureEstimators(
             trainingDataForCpu.FeatureEstimators
+        ).WithMetrics(
+            ctx.LearnProgress->MetricsAndTimeHistory
         );
 
         const TVector<TTargetClassifier>* targetClassifiers = &ctx.CtrsHelper.GetTargetClassifiers();
@@ -1001,6 +1003,14 @@ static void TrainModel(
 
     NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
     catBoostOptions.Load(updatedTrainOptionsJson);
+
+    const auto lossFunction = catBoostOptions.LossFunctionDescription->GetLossFunction();
+    if (poolLoadOptions && poolLoadOptions->HavePairs() && !IsPairLogit(lossFunction)) {
+        CATBOOST_WARNING_LOG
+            << "Input files specifying pairs are ignored because loss function " << ToString(lossFunction)
+            << " does not use pairs provided by the user (only PairLogit and PairLogitPairwise do)"
+            << Endl;
+    }
 
     if (!quantizedFeaturesInfo) {
         quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(

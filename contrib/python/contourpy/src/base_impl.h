@@ -3,6 +3,7 @@
 
 #include "base.h"
 #include "converter.h"
+#include "util.h"
 #include <iostream>
 
 namespace contourpy {
@@ -121,6 +122,7 @@ BaseContourGenerator<Derived>::BaseContourGenerator(
       _direct_line_offsets(false),
       _direct_outer_offsets(false),
       _outer_offsets_into_points(false),
+      _nan_separated(false),
       _return_list_count(0)
 {
     if (_x.ndim() != 2 || _y.ndim() != 2 || _z.ndim() != 2)
@@ -351,8 +353,8 @@ LineType BaseContourGenerator<Derived>::default_line_type()
 template <typename Derived>
 py::sequence BaseContourGenerator<Derived>::filled(double lower_level, double upper_level)
 {
-    if (lower_level > upper_level)
-        throw std::invalid_argument("upper and lower levels are the wrong way round");
+    if (lower_level >= upper_level)
+        throw std::invalid_argument("upper_level must be larger than lower_level");
 
     _filled = true;
     _lower_level = lower_level;
@@ -367,6 +369,7 @@ py::sequence BaseContourGenerator<Derived>::filled(double lower_level, double up
     _direct_outer_offsets = (_fill_type == FillType::ChunkCombinedCodeOffset ||
                              _fill_type == FillType::ChunkCombinedOffsetOffset);
     _outer_offsets_into_points = (_fill_type == FillType::ChunkCombinedCodeOffset);
+    _nan_separated = false;
     _return_list_count = (_fill_type == FillType::ChunkCombinedCodeOffset ||
                           _fill_type == FillType::ChunkCombinedOffsetOffset) ? 3 : 2;
 
@@ -1911,6 +1914,12 @@ void BaseContourGenerator<Derived>::line(const Location& start_location, ChunkLo
     Location location = start_location;
     count_t point_count = 0;
 
+    // Insert nan if required before start of new line.
+    if (_nan_separated and local.pass > 0 && local.line_count > 0) {
+        *local.points.current++ = Util::nan;
+        *local.points.current++ = Util::nan;
+    }
+
     // finished == true indicates closed line loop.
     bool finished = follow_interior(location, start_location, local, point_count);
 
@@ -1942,7 +1951,12 @@ py::sequence BaseContourGenerator<Derived>::lines(double level)
     _direct_line_offsets = (_line_type == LineType::ChunkCombinedOffset);
     _direct_outer_offsets = false;
     _outer_offsets_into_points = false;
-    _return_list_count = (_line_type == LineType::Separate) ? 1 : 2;
+    _return_list_count = (_line_type == LineType::Separate ||
+                          _line_type == LineType::ChunkCombinedNan) ? 1 : 2;
+    _nan_separated = (_line_type == LineType::ChunkCombinedNan);
+
+    if (_nan_separated)
+        Util::ensure_nan_loaded();
 
     return march_wrapper();
 }
@@ -2073,6 +2087,14 @@ void BaseContourGenerator<Derived>::march_chunk(
         if (j_final_start < local.jend)
             _cache[local.istart + (j_final_start+1)*_nx] |= MASK_NO_MORE_STARTS;
 
+        if (_nan_separated && local.line_count > 1) {
+            // If _nan_separated, each line after the first has an extra nan to separate it from the
+            // previous line's points. If we were returning line offsets to the caller then this
+            // would need to occur in line() where the line_count is incremented. But as we are not
+            // returning line offsets it is faster just to add the extra here all at once.
+            local.total_point_count += local.line_count - 1;
+        }
+
         if (local.pass == 0) {
             if (local.total_point_count == 0) {
                 local.points.clear();
@@ -2169,8 +2191,13 @@ py::sequence BaseContourGenerator<Derived>::march_wrapper()
 
     // Return to python objects.
     if (_return_list_count == 1) {
-        assert(!_filled && _line_type == LineType::Separate);
-        return return_lists[0];
+        assert(!_filled);
+        if (_line_type == LineType::Separate)
+            return return_lists[0];
+        else {
+            assert(_line_type == LineType::ChunkCombinedNan);
+            return py::make_tuple(return_lists[0]);
+        }
     }
     else if (_return_list_count == 2)
         return py::make_tuple(return_lists[0], return_lists[1]);
@@ -2384,6 +2411,7 @@ bool BaseContourGenerator<Derived>::supports_line_type(LineType line_type)
         case LineType::SeparateCode:
         case LineType::ChunkCombinedCode:
         case LineType::ChunkCombinedOffset:
+        case LineType::ChunkCombinedNan:
             return true;
         default:
             return false;

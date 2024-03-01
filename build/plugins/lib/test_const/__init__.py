@@ -70,7 +70,10 @@ STYLE_TEST_TYPES = [
     "govet",
     "java.style",
     "ktlint",
-    "custom_lint",
+    "py2_flake8",
+    "flake8",
+    "black",
+    "ruff",
 ]
 
 REGULAR_TEST_TYPES = [
@@ -132,11 +135,14 @@ COVERAGE_ENV_VARS = (
 PYTHON_COVERAGE_PREFIX_FILTER_ENV_NAME = 'PYTHON_COVERAGE_PREFIX_FILTER'
 PYTHON_COVERAGE_EXCLUDE_REGEXP_ENV_NAME = 'PYTHON_COVERAGE_EXCLUDE_REGEXP'
 
+# TODO get rid of this list - resolve nodes should be added automatically depending on the lang of the target module and their deps
 CLANG_COVERAGE_TEST_TYPES = (
     "boost_test",
     "coverage_extractor",
     "exectest",
+    "fuzz",
     "gtest",
+    "go_test",
     # java tests might use shared libraries
     "java",
     "py2test",
@@ -144,6 +150,7 @@ CLANG_COVERAGE_TEST_TYPES = (
     "pytest",
     "unittest",
 )
+
 COVERAGE_TABLE_CHUNKS = 20
 COVERAGE_TESTS_TIMEOUT_FACTOR = 1.5
 COVERAGE_YT_PROXY = "hahn.yt.yandex.net"
@@ -194,6 +201,7 @@ GO_TOOLS_RESOURCE = 'GO_TOOLS_RESOURCE_GLOBAL'
 JSTYLE_RUNNER_LIB = 'JSTYLE_LIB_RESOURCE_GLOBAL'
 NODEJS_RESOURCE = 'NODEJS_RESOURCE_GLOBAL'
 NYC_RESOURCE = 'NYC_RESOURCE_GLOBAL'
+RUFF_RESOURCE = 'RUFF_RESOURCE_GLOBAL'
 TEST_TOOL3_HOST = 'TEST_TOOL3_HOST_RESOURCE_GLOBAL'
 TEST_TOOL3_HOST_LOCAL = 'TEST_TOOL3_HOST_LOCAL'
 TEST_TOOL_HOST = 'TEST_TOOL_HOST_RESOURCE_GLOBAL'
@@ -394,6 +402,7 @@ class YaTestTags(Enum):
     YtRunner = "ya:yt"
     CopyData = "ya:copydata"
     CopyDataRO = "ya:copydataro"
+    NoPstreeTrim = "ya:no_pstree_trim"
 
 
 class ServiceTags(Enum):
@@ -447,7 +456,6 @@ class Status(object):
 
 
 class _Colors(object):
-
     _NAMES = [
         "blue",
         "cyan",
@@ -480,7 +488,6 @@ Colors = _Colors()
 
 
 class _Highlight(object):
-
     _MARKERS = {
         # special
         "RESET": "rst",

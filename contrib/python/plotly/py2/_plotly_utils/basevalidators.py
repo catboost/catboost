@@ -35,8 +35,8 @@ def to_scalar_or_list(v):
     # Python native scalar type ('float' in the example above).
     # We explicitly check if is has the 'item' method, which conventionally
     # converts these types to native scalars.
-    np = get_module("numpy")
-    pd = get_module("pandas")
+    np = get_module("numpy", should_load=False)
+    pd = get_module("pandas", should_load=False)
     if np and np.isscalar(v) and hasattr(v, "item"):
         return v.item()
     if isinstance(v, (list, tuple)):
@@ -74,7 +74,9 @@ def copy_to_readonly_numpy_array(v, kind=None, force_numeric=False):
         Numpy array with the 'WRITEABLE' flag set to False
     """
     np = get_module("numpy")
-    pd = get_module("pandas")
+
+    # Don't force pandas to be loaded, we only want to know if it's already loaded
+    pd = get_module("pandas", should_load=False)
     assert np is not None
 
     # ### Process kind ###
@@ -166,8 +168,8 @@ def is_homogeneous_array(v):
     """
     Return whether a value is considered to be a homogeneous array
     """
-    np = get_module("numpy")
-    pd = get_module("pandas")
+    np = get_module("numpy", should_load=False)
+    pd = get_module("pandas", should_load=False)
     if (
         np
         and isinstance(v, np.ndarray)
@@ -175,12 +177,14 @@ def is_homogeneous_array(v):
     ):
         return True
     if is_numpy_convertable(v):
-        v_numpy = np.array(v)
-        # v is essentially a scalar and so shouldn't count as an array
-        if v_numpy.shape == ():
-            return False
-        else:
-            return True
+        np = get_module("numpy", should_load=True)
+        if np:
+            v_numpy = np.array(v)
+            # v is essentially a scalar and so shouldn't count as an array
+            if v_numpy.shape == ():
+                return False
+            else:
+                return True
     return False
 
 
@@ -352,14 +356,14 @@ class BaseValidator(object):
 
 class DataArrayValidator(BaseValidator):
     """
-        "data_array": {
-            "description": "An {array} of data. The value MUST be an
-                            {array}, or we ignore it.",
-            "requiredOpts": [],
-            "otherOpts": [
-                "dflt"
-            ]
-        },
+    "data_array": {
+        "description": "An {array} of data. The value MUST be an
+                        {array}, or we ignore it.",
+        "requiredOpts": [],
+        "otherOpts": [
+            "dflt"
+        ]
+    },
     """
 
     def __init__(self, plotly_name, parent_name, **kwargs):
@@ -392,18 +396,18 @@ class DataArrayValidator(BaseValidator):
 
 class EnumeratedValidator(BaseValidator):
     """
-        "enumerated": {
-            "description": "Enumerated value type. The available values are
-                            listed in `values`.",
-            "requiredOpts": [
-                "values"
-            ],
-            "otherOpts": [
-                "dflt",
-                "coerceNumber",
-                "arrayOk"
-            ]
-        },
+    "enumerated": {
+        "description": "Enumerated value type. The available values are
+                        listed in `values`.",
+        "requiredOpts": [
+            "values"
+        ],
+        "otherOpts": [
+            "dflt",
+            "coerceNumber",
+            "arrayOk"
+        ]
+    },
     """
 
     def __init__(
@@ -475,7 +479,9 @@ class EnumeratedValidator(BaseValidator):
         #
         # To be cautious, we only perform this conversion for enumerated
         # values that match the anchor-style regex
-        match = re.match(r"\^(\w)\(\[2\-9\]\|\[1\-9\]\[0\-9\]\+\)\?\$", regex_str)
+        match = re.match(
+            r"\^(\w)\(\[2\-9\]\|\[1\-9\]\[0\-9\]\+\)\?\( domain\)\?\$", regex_str
+        )
 
         if match:
             anchor_char = match.group(1)
@@ -597,13 +603,13 @@ class EnumeratedValidator(BaseValidator):
 
 class BooleanValidator(BaseValidator):
     """
-        "boolean": {
-            "description": "A boolean (true/false) value.",
-            "requiredOpts": [],
-            "otherOpts": [
-                "dflt"
-            ]
-        },
+    "boolean": {
+        "description": "A boolean (true/false) value.",
+        "requiredOpts": [],
+        "otherOpts": [
+            "dflt"
+        ]
+    },
     """
 
     def __init__(self, plotly_name, parent_name, **kwargs):
@@ -660,19 +666,19 @@ class SrcValidator(BaseValidator):
 
 class NumberValidator(BaseValidator):
     """
-        "number": {
-            "description": "A number or a numeric value (e.g. a number
-                            inside a string). When applicable, values
-                            greater (less) than `max` (`min`) are coerced to
-                            the `dflt`.",
-            "requiredOpts": [],
-            "otherOpts": [
-                "dflt",
-                "min",
-                "max",
-                "arrayOk"
-            ]
-        },
+    "number": {
+        "description": "A number or a numeric value (e.g. a number
+                        inside a string). When applicable, values
+                        greater (less) than `max` (`min`) are coerced to
+                        the `dflt`.",
+        "requiredOpts": [],
+        "otherOpts": [
+            "dflt",
+            "min",
+            "max",
+            "arrayOk"
+        ]
+    },
     """
 
     def __init__(
@@ -790,18 +796,18 @@ class NumberValidator(BaseValidator):
 
 class IntegerValidator(BaseValidator):
     """
-        "integer": {
-            "description": "An integer or an integer inside a string. When
-                            applicable, values greater (less) than `max`
-                            (`min`) are coerced to the `dflt`.",
-            "requiredOpts": [],
-            "otherOpts": [
-                "dflt",
-                "min",
-                "max",
-                "arrayOk"
-            ]
-        },
+    "integer": {
+        "description": "An integer or an integer inside a string. When
+                        applicable, values greater (less) than `max`
+                        (`min`) are coerced to the `dflt`.",
+        "requiredOpts": [],
+        "otherOpts": [
+            "dflt",
+            "min",
+            "max",
+            "arrayOk"
+        ]
+    },
     """
 
     def __init__(
@@ -921,18 +927,18 @@ class IntegerValidator(BaseValidator):
 
 class StringValidator(BaseValidator):
     """
-        "string": {
-            "description": "A string value. Numbers are converted to strings
-                            except for attributes with `strict` set to true.",
-            "requiredOpts": [],
-            "otherOpts": [
-                "dflt",
-                "noBlank",
-                "strict",
-                "arrayOk",
-                "values"
-            ]
-        },
+    "string": {
+        "description": "A string value. Numbers are converted to strings
+                        except for attributes with `strict` set to true.",
+        "requiredOpts": [],
+        "otherOpts": [
+            "dflt",
+            "noBlank",
+            "strict",
+            "arrayOk",
+            "values"
+        ]
+    },
     """
 
     def __init__(
@@ -1090,21 +1096,21 @@ class StringValidator(BaseValidator):
 
 class ColorValidator(BaseValidator):
     """
-        "color": {
-            "description": "A string describing color. Supported formats:
-                            - hex (e.g. '#d3d3d3')
-                            - rgb (e.g. 'rgb(255, 0, 0)')
-                            - rgba (e.g. 'rgb(255, 0, 0, 0.5)')
-                            - hsl (e.g. 'hsl(0, 100%, 50%)')
-                            - hsv (e.g. 'hsv(0, 100%, 100%)')
-                            - named colors(full list:
-                              http://www.w3.org/TR/css3-color/#svg-color)",
-            "requiredOpts": [],
-            "otherOpts": [
-                "dflt",
-                "arrayOk"
-            ]
-        },
+    "color": {
+        "description": "A string describing color. Supported formats:
+                        - hex (e.g. '#d3d3d3')
+                        - rgb (e.g. 'rgb(255, 0, 0)')
+                        - rgba (e.g. 'rgb(255, 0, 0, 0.5)')
+                        - hsl (e.g. 'hsl(0, 100%, 50%)')
+                        - hsv (e.g. 'hsv(0, 100%, 100%)')
+                        - named colors(full list:
+                          http://www.w3.org/TR/css3-color/#svg-color)",
+        "requiredOpts": [],
+        "otherOpts": [
+            "dflt",
+            "arrayOk"
+        ]
+    },
     """
 
     re_hex = re.compile(r"#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})")
@@ -1441,14 +1447,14 @@ class ColorValidator(BaseValidator):
 
 class ColorlistValidator(BaseValidator):
     """
-        "colorlist": {
-          "description": "A list of colors. Must be an {array} containing
-                          valid colors.",
-          "requiredOpts": [],
-          "otherOpts": [
-            "dflt"
-          ]
-        }
+    "colorlist": {
+      "description": "A list of colors. Must be an {array} containing
+                      valid colors.",
+      "requiredOpts": [],
+      "otherOpts": [
+        "dflt"
+      ]
+    }
     """
 
     def __init__(self, plotly_name, parent_name, **kwargs):
@@ -1488,20 +1494,20 @@ class ColorlistValidator(BaseValidator):
 
 class ColorscaleValidator(BaseValidator):
     """
-        "colorscale": {
-            "description": "A Plotly colorscale either picked by a name:
-                            (any of Greys, YlGnBu, Greens, YlOrRd, Bluered,
-                            RdBu, Reds, Blues, Picnic, Rainbow, Portland,
-                            Jet, Hot, Blackbody, Earth, Electric, Viridis)
-                            customized as an {array} of 2-element {arrays}
-                            where the first element is the normalized color
-                            level value (starting at *0* and ending at *1*),
-                            and the second item is a valid color string.",
-            "requiredOpts": [],
-            "otherOpts": [
-                "dflt"
-            ]
-        },
+    "colorscale": {
+        "description": "A Plotly colorscale either picked by a name:
+                        (any of Greys, YlGnBu, Greens, YlOrRd, Bluered,
+                        RdBu, Reds, Blues, Picnic, Rainbow, Portland,
+                        Jet, Hot, Blackbody, Earth, Electric, Viridis)
+                        customized as an {array} of 2-element {arrays}
+                        where the first element is the normalized color
+                        level value (starting at *0* and ending at *1*),
+                        and the second item is a valid color string.",
+        "requiredOpts": [],
+        "otherOpts": [
+            "dflt"
+        ]
+    },
     """
 
     def __init__(self, plotly_name, parent_name, **kwargs):
@@ -1556,7 +1562,7 @@ class ColorscaleValidator(BaseValidator):
         Many predefined colorscale lists are included in the sequential, diverging,
         and cyclical modules in the plotly.colors package.
       - A list of 2-element lists where the first element is the
-        normalized color level value (starting at 0 and ending at 1), 
+        normalized color level value (starting at 0 and ending at 1),
         and the second item is a valid color string.
         (e.g. [[0, 'green'], [0.5, 'red'], [1.0, 'rgb(0, 0, 255)']])
       - One of the following named colorscales:
@@ -1640,13 +1646,13 @@ class ColorscaleValidator(BaseValidator):
 
 class AngleValidator(BaseValidator):
     """
-        "angle": {
-            "description": "A number (in degree) between -180 and 180.",
-            "requiredOpts": [],
-            "otherOpts": [
-                "dflt"
-            ]
-        },
+    "angle": {
+        "description": "A number (in degree) between -180 and 180.",
+        "requiredOpts": [],
+        "otherOpts": [
+            "dflt"
+        ]
+    },
     """
 
     def __init__(self, plotly_name, parent_name, **kwargs):
@@ -1681,18 +1687,18 @@ class AngleValidator(BaseValidator):
 
 class SubplotidValidator(BaseValidator):
     """
-        "subplotid": {
-            "description": "An id string of a subplot type (given by dflt),
-                            optionally followed by an integer >1. e.g. if
-                            dflt='geo', we can have 'geo', 'geo2', 'geo3',
-                            ...",
-            "requiredOpts": [
-                "dflt"
-            ],
-            "otherOpts": [
-                "regex"
-            ]
-        }
+    "subplotid": {
+        "description": "An id string of a subplot type (given by dflt),
+                        optionally followed by an integer >1. e.g. if
+                        dflt='geo', we can have 'geo', 'geo2', 'geo3',
+                        ...",
+        "requiredOpts": [
+            "dflt"
+        ],
+        "otherOpts": [
+            "regex"
+        ]
+    }
     """
 
     def __init__(self, plotly_name, parent_name, dflt=None, regex=None, **kwargs):
@@ -1752,21 +1758,21 @@ class SubplotidValidator(BaseValidator):
 
 class FlaglistValidator(BaseValidator):
     """
-        "flaglist": {
-            "description": "A string representing a combination of flags
-                            (order does not matter here). Combine any of the
-                            available `flags` with *+*.
-                            (e.g. ('lines+markers')). Values in `extras`
-                            cannot be combined.",
-            "requiredOpts": [
-                "flags"
-            ],
-            "otherOpts": [
-                "dflt",
-                "extras",
-                "arrayOk"
-            ]
-        },
+    "flaglist": {
+        "description": "A string representing a combination of flags
+                        (order does not matter here). Combine any of the
+                        available `flags` with *+*.
+                        (e.g. ('lines+markers')). Values in `extras`
+                        cannot be combined.",
+        "requiredOpts": [
+            "flags"
+        ],
+        "otherOpts": [
+            "dflt",
+            "extras",
+            "arrayOk"
+        ]
+    },
     """
 
     def __init__(
@@ -1873,15 +1879,15 @@ class FlaglistValidator(BaseValidator):
 
 class AnyValidator(BaseValidator):
     """
-        "any": {
-            "description": "Any type.",
-            "requiredOpts": [],
-            "otherOpts": [
-                "dflt",
-                "values",
-                "arrayOk"
-            ]
-        },
+    "any": {
+        "description": "Any type.",
+        "requiredOpts": [],
+        "otherOpts": [
+            "dflt",
+            "values",
+            "arrayOk"
+        ]
+    },
     """
 
     def __init__(self, plotly_name, parent_name, values=None, array_ok=False, **kwargs):
@@ -1913,17 +1919,17 @@ class AnyValidator(BaseValidator):
 
 class InfoArrayValidator(BaseValidator):
     """
-        "info_array": {
-            "description": "An {array} of plot information.",
-            "requiredOpts": [
-                "items"
-            ],
-            "otherOpts": [
-                "dflt",
-                "freeLength",
-                "dimensions"
-            ]
-        }
+    "info_array": {
+        "description": "An {array} of plot information.",
+        "requiredOpts": [
+            "items"
+        ],
+        "otherOpts": [
+            "dflt",
+            "freeLength",
+            "dimensions"
+        ]
+    }
     """
 
     def __init__(
@@ -2436,12 +2442,12 @@ class CompoundValidator(BaseValidator):
 
         return desc
 
-    def validate_coerce(self, v, skip_invalid=False):
+    def validate_coerce(self, v, skip_invalid=False, _validate=True):
         if v is None:
             v = self.data_class()
 
         elif isinstance(v, dict):
-            v = self.data_class(v, skip_invalid=skip_invalid)
+            v = self.data_class(v, skip_invalid=skip_invalid, _validate=_validate)
 
         elif isinstance(v, self.data_class):
             # Copy object
@@ -2453,6 +2459,10 @@ class CompoundValidator(BaseValidator):
                 self.raise_invalid_val(v)
 
         v._plotly_name = self.plotly_name
+        return v
+
+    def present(self, v):
+        # Return compound object as-is
         return v
 
 
@@ -2549,6 +2559,10 @@ class CompoundArrayValidator(BaseValidator):
 
         return v
 
+    def present(self, v):
+        # Return compound object as tuple
+        return tuple(v)
+
 
 class BaseDataValidator(BaseValidator):
     def __init__(
@@ -2559,7 +2573,7 @@ class BaseDataValidator(BaseValidator):
         )
 
         self.class_strs_map = class_strs_map
-        self._class_map = None
+        self._class_map = {}
         self.set_uid = set_uid
 
     def description(self):
@@ -2595,21 +2609,17 @@ class BaseDataValidator(BaseValidator):
 
         return desc
 
-    @property
-    def class_map(self):
-        if self._class_map is None:
-
-            # Initialize class map
-            self._class_map = {}
-
-            # Import trace classes
+    def get_trace_class(self, trace_name):
+        # Import trace classes
+        if trace_name not in self._class_map:
             trace_module = import_module("plotly.graph_objs")
-            for k, class_str in self.class_strs_map.items():
-                self._class_map[k] = getattr(trace_module, class_str)
+            trace_class_name = self.class_strs_map[trace_name]
+            self._class_map[trace_name] = getattr(trace_module, trace_class_name)
 
-        return self._class_map
+        return self._class_map[trace_name]
 
-    def validate_coerce(self, v, skip_invalid=False):
+    def validate_coerce(self, v, skip_invalid=False, _validate=True):
+        from plotly.basedatatypes import BaseTraceType
 
         # Import Histogram2dcontour, this is the deprecated name of the
         # Histogram2dContour trace.
@@ -2621,13 +2631,11 @@ class BaseDataValidator(BaseValidator):
             if not isinstance(v, (list, tuple)):
                 v = [v]
 
-            trace_classes = tuple(self.class_map.values())
-
             res = []
             invalid_els = []
             for v_el in v:
 
-                if isinstance(v_el, trace_classes):
+                if isinstance(v_el, BaseTraceType):
                     # Clone input traces
                     v_el = v_el.to_plotly_json()
 
@@ -2641,25 +2649,25 @@ class BaseDataValidator(BaseValidator):
                     else:
                         trace_type = "scatter"
 
-                    if trace_type not in self.class_map:
+                    if trace_type not in self.class_strs_map:
                         if skip_invalid:
                             # Treat as scatter trace
-                            trace = self.class_map["scatter"](
-                                skip_invalid=skip_invalid, **v_copy
+                            trace = self.get_trace_class("scatter")(
+                                skip_invalid=skip_invalid, _validate=_validate, **v_copy
                             )
                             res.append(trace)
                         else:
                             res.append(None)
                             invalid_els.append(v_el)
                     else:
-                        trace = self.class_map[trace_type](
-                            skip_invalid=skip_invalid, **v_copy
+                        trace = self.get_trace_class(trace_type)(
+                            skip_invalid=skip_invalid, _validate=_validate, **v_copy
                         )
                         res.append(trace)
                 else:
                     if skip_invalid:
                         # Add empty scatter trace
-                        trace = self.class_map["scatter"]()
+                        trace = self.get_trace_class("scatter")()
                         res.append(trace)
                     else:
                         res.append(None)
@@ -2701,7 +2709,7 @@ class BaseTemplateValidator(CompoundValidator):
 
       - A string containing multiple registered template names, joined on '+'
         characters (e.g. 'template1+template2'). In this case the resulting
-        template is computed by merging together the collection of registered 
+        template is computed by merging together the collection of registered
         templates"""
 
         return compound_description

@@ -18,6 +18,6 @@ target_link_libraries(catboost-libs-overfitting_detector PUBLIC
   library-cpp-statistics
 )
 target_sources(catboost-libs-overfitting_detector PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/overfitting_detector/error_tracker.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/overfitting_detector/overfitting_detector.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/overfitting_detector/error_tracker.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/overfitting_detector/overfitting_detector.cpp
 )

@@ -41,7 +41,7 @@ namespace NCB {
         SAVELOAD(Scheme, Path);
         Y_SAVELOAD_DEFINE(Scheme, Path);
 
-        bool Inited() const {
+        bool Inited() const noexcept {
             return !Path.empty();
         }
 

@@ -13,5 +13,5 @@ target_link_libraries(cpp-deprecated-mapped_file PUBLIC
   yutil
 )
 target_sources(cpp-deprecated-mapped_file PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/deprecated/mapped_file/mapped_file.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/deprecated/mapped_file/mapped_file.cpp
 )

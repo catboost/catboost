@@ -45,6 +45,7 @@ namespace NCB {
             /* targetBorder */ Nothing(),
             /* classCountUnknown */ true,
             /* inputClassLabels */ {},
+            /* allowConstLabel */ true,
             &outputClassLabels,
             localExecutor,
             /* classCount */ nullptr

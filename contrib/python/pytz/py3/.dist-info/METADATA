@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pytz
-Version: 2023.3.post1
+Version: 2024.1
 Summary: World timezone definitions, modern and historical
 Home-page: http://pythonhosted.org/pytz
 Author: Stuart Bishop
@@ -36,6 +36,7 @@ Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
+License-File: LICENSE.txt
 
 pytz - World Timezone Definitions for Python
 ============================================

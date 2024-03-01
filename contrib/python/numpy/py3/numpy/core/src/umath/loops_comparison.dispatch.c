@@ -7434,7 +7434,7 @@ static void simd_binary_scalar2_less_equal_b8(char **args, npy_intp len)
 #line 304
 #line 310
 #if !((1 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_b8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7473,7 +7473,7 @@ run_binary_simd_equal_b8(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 1) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_b8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7512,7 +7512,7 @@ run_binary_simd_not_equal_b8(char **args, npy_intp const *dimensions, npy_intp c
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_b8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7551,7 +7551,7 @@ run_binary_simd_less_b8(char **args, npy_intp const *dimensions, npy_intp const 
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_b8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7592,7 +7592,7 @@ run_binary_simd_less_equal_b8(char **args, npy_intp const *dimensions, npy_intp 
 #line 304
 #line 310
 #if !((1 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_u8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7631,7 +7631,7 @@ run_binary_simd_equal_u8(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 1) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_u8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7670,7 +7670,7 @@ run_binary_simd_not_equal_u8(char **args, npy_intp const *dimensions, npy_intp c
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_u8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7709,7 +7709,7 @@ run_binary_simd_less_u8(char **args, npy_intp const *dimensions, npy_intp const 
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_u8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7750,7 +7750,7 @@ run_binary_simd_less_equal_u8(char **args, npy_intp const *dimensions, npy_intp 
 #line 304
 #line 310
 #if !((1 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_s8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7789,7 +7789,7 @@ run_binary_simd_equal_s8(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 1) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_s8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7828,7 +7828,7 @@ run_binary_simd_not_equal_s8(char **args, npy_intp const *dimensions, npy_intp c
 
 #line 310
 #if !((0 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_s8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7867,7 +7867,7 @@ run_binary_simd_less_s8(char **args, npy_intp const *dimensions, npy_intp const 
 
 #line 310
 #if !((0 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_s8(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7908,7 +7908,7 @@ run_binary_simd_less_equal_s8(char **args, npy_intp const *dimensions, npy_intp 
 #line 304
 #line 310
 #if !((1 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_u16(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7947,7 +7947,7 @@ run_binary_simd_equal_u16(char **args, npy_intp const *dimensions, npy_intp cons
 
 #line 310
 #if !((0 || 1) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_u16(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -7986,7 +7986,7 @@ run_binary_simd_not_equal_u16(char **args, npy_intp const *dimensions, npy_intp 
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_u16(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8025,7 +8025,7 @@ run_binary_simd_less_u16(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_u16(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8066,7 +8066,7 @@ run_binary_simd_less_equal_u16(char **args, npy_intp const *dimensions, npy_intp
 #line 304
 #line 310
 #if !((1 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_s16(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8105,7 +8105,7 @@ run_binary_simd_equal_s16(char **args, npy_intp const *dimensions, npy_intp cons
 
 #line 310
 #if !((0 || 1) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_s16(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8144,7 +8144,7 @@ run_binary_simd_not_equal_s16(char **args, npy_intp const *dimensions, npy_intp 
 
 #line 310
 #if !((0 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_s16(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8183,7 +8183,7 @@ run_binary_simd_less_s16(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_s16(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8224,7 +8224,7 @@ run_binary_simd_less_equal_s16(char **args, npy_intp const *dimensions, npy_intp
 #line 304
 #line 310
 #if !((1 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_u32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8263,7 +8263,7 @@ run_binary_simd_equal_u32(char **args, npy_intp const *dimensions, npy_intp cons
 
 #line 310
 #if !((0 || 1) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_u32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8302,7 +8302,7 @@ run_binary_simd_not_equal_u32(char **args, npy_intp const *dimensions, npy_intp 
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_u32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8341,7 +8341,7 @@ run_binary_simd_less_u32(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_u32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8382,7 +8382,7 @@ run_binary_simd_less_equal_u32(char **args, npy_intp const *dimensions, npy_intp
 #line 304
 #line 310
 #if !((1 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_s32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8421,7 +8421,7 @@ run_binary_simd_equal_s32(char **args, npy_intp const *dimensions, npy_intp cons
 
 #line 310
 #if !((0 || 1) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_s32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8460,7 +8460,7 @@ run_binary_simd_not_equal_s32(char **args, npy_intp const *dimensions, npy_intp 
 
 #line 310
 #if !((0 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_s32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8499,7 +8499,7 @@ run_binary_simd_less_s32(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_s32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8540,7 +8540,7 @@ run_binary_simd_less_equal_s32(char **args, npy_intp const *dimensions, npy_intp
 #line 304
 #line 310
 #if !((1 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_u64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8579,7 +8579,7 @@ run_binary_simd_equal_u64(char **args, npy_intp const *dimensions, npy_intp cons
 
 #line 310
 #if !((0 || 1) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_u64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8618,7 +8618,7 @@ run_binary_simd_not_equal_u64(char **args, npy_intp const *dimensions, npy_intp 
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_u64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8657,7 +8657,7 @@ run_binary_simd_less_u64(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_u64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8698,7 +8698,7 @@ run_binary_simd_less_equal_u64(char **args, npy_intp const *dimensions, npy_intp
 #line 304
 #line 310
 #if !((1 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_s64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8737,7 +8737,7 @@ run_binary_simd_equal_s64(char **args, npy_intp const *dimensions, npy_intp cons
 
 #line 310
 #if !((0 || 1) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_s64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8776,7 +8776,7 @@ run_binary_simd_not_equal_s64(char **args, npy_intp const *dimensions, npy_intp 
 
 #line 310
 #if !((0 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_s64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8815,7 +8815,7 @@ run_binary_simd_less_s64(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 0) && 1)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_s64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD
@@ -8856,7 +8856,7 @@ run_binary_simd_less_equal_s64(char **args, npy_intp const *dimensions, npy_intp
 #line 304
 #line 310
 #if !((1 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_f32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD_F32
@@ -8895,7 +8895,7 @@ run_binary_simd_equal_f32(char **args, npy_intp const *dimensions, npy_intp cons
 
 #line 310
 #if !((0 || 1) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_f32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD_F32
@@ -8934,7 +8934,7 @@ run_binary_simd_not_equal_f32(char **args, npy_intp const *dimensions, npy_intp 
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_f32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD_F32
@@ -8973,7 +8973,7 @@ run_binary_simd_less_f32(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_f32(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD_F32
@@ -9014,7 +9014,7 @@ run_binary_simd_less_equal_f32(char **args, npy_intp const *dimensions, npy_intp
 #line 304
 #line 310
 #if !((1 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_equal_f64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD_F64
@@ -9053,7 +9053,7 @@ run_binary_simd_equal_f64(char **args, npy_intp const *dimensions, npy_intp cons
 
 #line 310
 #if !((0 || 1) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_not_equal_f64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD_F64
@@ -9092,7 +9092,7 @@ run_binary_simd_not_equal_f64(char **args, npy_intp const *dimensions, npy_intp 
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_f64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD_F64
@@ -9131,7 +9131,7 @@ run_binary_simd_less_f64(char **args, npy_intp const *dimensions, npy_intp const
 
 #line 310
 #if !((0 || 0) && 0)
-static NPY_INLINE void
+static inline void
 run_binary_simd_less_equal_f64(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
 #if NPY_SIMD_F64

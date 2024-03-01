@@ -148,7 +148,6 @@ class AbstractPen:
 
 
 class NullPen(AbstractPen):
-
     """A pen that does nothing."""
 
     def moveTo(self, pt):
@@ -187,7 +186,6 @@ class MissingComponentError(KeyError):
 
 
 class DecomposingPen(LoggingPen):
-
     """Implements a 'addComponent' method that decomposes components
     (i.e. draws them onto self as simple contours).
     It can also be used as a mixin class (e.g. see ContourRecordingPen).
@@ -229,7 +227,6 @@ class DecomposingPen(LoggingPen):
 
 
 class BasePen(DecomposingPen):
-
     """Base class for drawing pens. You must override _moveTo, _lineTo and
     _curveToOne. You may additionally override _closePath, _endPath,
     addComponent, addVarComponent, and/or _qCurveToOne. You should not

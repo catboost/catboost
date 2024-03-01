@@ -28,5 +28,5 @@ target_link_libraries(library-cpp-getopt.global PUBLIC
   library-cpp-build_info
 )
 target_sources(library-cpp-getopt.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/getopt/print.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/getopt/print.cpp
 )

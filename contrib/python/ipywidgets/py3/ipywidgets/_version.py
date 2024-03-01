@@ -1,7 +1,7 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-__version__ = '8.1.1'
+__version__ = '8.1.2'
 
 __protocol_version__ = '2.1.0'
 __control_protocol_version__ = '1.0.0'

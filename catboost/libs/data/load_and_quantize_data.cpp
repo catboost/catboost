@@ -652,6 +652,7 @@ namespace {
 
             const auto targetDimension = rawDataBlock->RawTargetData.GetTargetDimension();
             switch (rawDataBlock->RawTargetData.GetTargetType()) {
+                case ERawTargetType::Boolean:
                 case ERawTargetType::Integer:
                 case ERawTargetType::Float: {
                     TVector<TVector<float>> targetNumeric(targetDimension);

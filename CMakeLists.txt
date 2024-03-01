@@ -16,8 +16,8 @@ set(CATBOOST_MAX_LINK_JOBS 5 CACHE STRING "Maximum parallel link jobs for Ninja 
 set_property(GLOBAL PROPERTY JOB_POOLS link_jobs=${CATBOOST_MAX_LINK_JOBS})
 set(CMAKE_JOB_POOL_LINK link_jobs)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/cmake)
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/cmake)
+include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
 enable_testing()
 
@@ -25,26 +25,26 @@ enable_testing()
 # Can't set it in cuda.cmake because of CMake policy subdirectory stack rules
 cmake_policy(SET CMP0104 OLD)
 
+include(cmake/global_flags.cmake)
+include(cmake/global_vars.cmake)
 include(cmake/archive.cmake)
 include(cmake/common.cmake)
 include(cmake/conan.cmake)
 include(cmake/cuda.cmake)
 include(cmake/cython.cmake)
 include(cmake/fbs.cmake)
-include(cmake/global_flags.cmake)
 include(cmake/protobuf.cmake)
 include(cmake/recursive_library.cmake)
 include(cmake/shared_libs.cmake)
 include(cmake/swig.cmake)
-include(cmake/global_vars.cmake)
 
 if (CMAKE_CROSSCOMPILING)
-  include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+  include(${PROJECT_BINARY_DIR}/conan_paths.cmake)
 else()
   conan_cmake_autodetect(settings)
   conan_cmake_install(
-    PATH_OR_REFERENCE ${CMAKE_SOURCE_DIR}
-    INSTALL_FOLDER ${CMAKE_BINARY_DIR}
+    PATH_OR_REFERENCE ${PROJECT_SOURCE_DIR}
+    INSTALL_FOLDER ${PROJECT_BINARY_DIR}
     BUILD missing
     REMOTE conancenter
     SETTINGS ${settings}

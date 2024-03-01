@@ -20,7 +20,7 @@ import shlex
 import itertools
 
 from . import sysconfig
-from .dep_util import newer
+from ._modified import newer
 from .ccompiler import CCompiler, gen_preprocess_options, gen_lib_options
 from .errors import DistutilsExecError, CompileError, LibError, LinkError
 from ._log import log

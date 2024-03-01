@@ -7,7 +7,6 @@ __all__ = ["BoundsPen", "ControlBoundsPen"]
 
 
 class ControlBoundsPen(BasePen):
-
     """Pen to calculate the "control bounds" of a shape. This is the
     bounding box of all control points, so may be larger than the
     actual bounding box if there are curves that don't have points
@@ -67,7 +66,6 @@ class ControlBoundsPen(BasePen):
 
 
 class BoundsPen(ControlBoundsPen):
-
     """Pen to calculate the bounds of a shape. It calculates the
     correct bounds even when the shape contains curves that don't
     have points on their extremes. This is somewhat slower to compute

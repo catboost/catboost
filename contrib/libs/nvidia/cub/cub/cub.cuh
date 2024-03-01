@@ -1,7 +1,7 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
  * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the NVIDIA CORPORATION nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -39,33 +39,34 @@
 #include "config.cuh"
 
 // Block
-#include "block/block_histogram.cuh"
 #include "block/block_adjacent_difference.cuh"
 #include "block/block_discontinuity.cuh"
 #include "block/block_exchange.cuh"
+#include "block/block_histogram.cuh"
 #include "block/block_load.cuh"
+#include "block/block_merge_sort.cuh"
 #include "block/block_radix_rank.cuh"
 #include "block/block_radix_sort.cuh"
-#include "block/block_merge_sort.cuh"
 #include "block/block_reduce.cuh"
 #include "block/block_scan.cuh"
 #include "block/block_store.cuh"
 //#include "block/block_shift.cuh"
 
 // Device
-#include "device/device_merge_sort.cuh"
+#include "device/device_adjacent_difference.cuh"
 #include "device/device_histogram.cuh"
+#include "device/device_memcpy.cuh"
+#include "device/device_merge_sort.cuh"
 #include "device/device_partition.cuh"
 #include "device/device_radix_sort.cuh"
 #include "device/device_reduce.cuh"
 #include "device/device_run_length_encode.cuh"
 #include "device/device_scan.cuh"
-#include "device/device_segmented_sort.cuh"
 #include "device/device_segmented_radix_sort.cuh"
 #include "device/device_segmented_reduce.cuh"
+#include "device/device_segmented_sort.cuh"
 #include "device/device_select.cuh"
 #include "device/device_spmv.cuh"
-#include "device/device_adjacent_difference.cuh"
 
 // Grid
 //#include "grid/grid_barrier.cuh"

@@ -46,58 +46,58 @@ target_link_libraries(catboost-libs-helpers PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(catboost-libs-helpers PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/array_subset.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/borders_io.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/checksum.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/compression.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/connected_components.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/cpu_random.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/dbg_output.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/dense_hash.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/dense_hash_view.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/distribution_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/double_array_iterator.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/dynamic_iterator.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/element_range.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/equal.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/exception.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/guid.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/hash.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/int_cast.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/interrupt.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/json_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/map_merge.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/math_utils.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/matrix.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/maybe.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/maybe_owning_array_holder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/mem_usage.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/parallel_tasks.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/polymorphic_type_containers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/power_hash.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/progress_helper.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/permutation.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/quantile.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/query_info_helper.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/resource_constrained_executor.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/resource_holder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/restorable_rng.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/sample.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/serialization.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/set.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/short_vector_ops.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/sparse_array.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/vector_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/wx_test.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/xml_output.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/array_subset.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/borders_io.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/checksum.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/compression.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/connected_components.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/cpu_random.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/dbg_output.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/dense_hash.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/dense_hash_view.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/distribution_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/double_array_iterator.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/dynamic_iterator.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/element_range.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/equal.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/exception.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/guid.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/hash.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/int_cast.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/interrupt.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/json_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/map_merge.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/math_utils.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/matrix.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/maybe.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/maybe_owning_array_holder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/mem_usage.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/parallel_tasks.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/polymorphic_type_containers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/power_hash.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/progress_helper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/permutation.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/quantile.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/query_info_helper.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/resource_constrained_executor.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/resource_holder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/restorable_rng.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/sample.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/serialization.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/set.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/short_vector_ops.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/sparse_array.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/vector_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/wx_test.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/xml_output.cpp
 )
 generate_enum_serilization(catboost-libs-helpers
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/sparse_array.h
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/sparse_array.h
   INCLUDE_HEADERS
   catboost/libs/helpers/sparse_array.h
 )
 generate_enum_serilization(catboost-libs-helpers
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/distribution_helpers.h
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/distribution_helpers.h
   INCLUDE_HEADERS
   catboost/libs/helpers/distribution_helpers.h
 )

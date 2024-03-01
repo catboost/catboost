@@ -21,10 +21,11 @@ target_link_libraries(private-libs-ctr_description PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(private-libs-ctr_description PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/ctr_description/ctr_type.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/ctr_description/ctr_config.h
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/ctr_description/ctr_type.cpp
 )
 generate_enum_serilization(private-libs-ctr_description
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/ctr_description/ctr_type.h
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/ctr_description/ctr_type.h
   INCLUDE_HEADERS
   catboost/private/libs/ctr_description/ctr_type.h
 )

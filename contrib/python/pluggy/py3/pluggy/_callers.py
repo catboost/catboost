@@ -3,25 +3,50 @@ Call loop machinery
 """
 from __future__ import annotations
 
+import warnings
 from typing import cast
 from typing import Generator
 from typing import Mapping
+from typing import NoReturn
 from typing import Sequence
 from typing import Tuple
 from typing import Union
 
 from ._hooks import HookImpl
-from ._result import _raise_wrapfail
 from ._result import HookCallError
 from ._result import Result
+from ._warnings import PluggyTeardownRaisedWarning
 
 
 # Need to distinguish between old- and new-style hook wrappers.
-# Wrapping one a singleton tuple is the fastest type-safe way I found to do it.
+# Wrapping with a tuple is the fastest type-safe way I found to do it.
 Teardown = Union[
-    Tuple[Generator[None, Result[object], None]],
+    Tuple[Generator[None, Result[object], None], HookImpl],
     Generator[None, object, object],
 ]
+
+
+def _raise_wrapfail(
+    wrap_controller: (
+        Generator[None, Result[object], None] | Generator[None, object, object]
+    ),
+    msg: str,
+) -> NoReturn:
+    co = wrap_controller.gi_code
+    raise RuntimeError(
+        "wrap_controller at %r %s:%d %s"
+        % (co.co_name, co.co_filename, co.co_firstlineno, msg)
+    )
+
+
+def _warn_teardown_exception(
+    hook_name: str, hook_impl: HookImpl, e: BaseException
+) -> None:
+    msg = "A plugin raised an exception during an old-style hookwrapper teardown.\n"
+    msg += f"Plugin: {hook_impl.plugin_name}, Hook: {hook_name}\n"
+    msg += f"{type(e).__name__}: {e}\n"
+    msg += "For more information see https://pluggy.readthedocs.io/en/stable/api_reference.html#pluggy.PluggyTeardownRaisedWarning"  # noqa: E501
+    warnings.warn(PluggyTeardownRaisedWarning(msg), stacklevel=5)
 
 
 def _multicall(
@@ -60,7 +85,7 @@ def _multicall(
                         res = hook_impl.function(*args)
                         wrapper_gen = cast(Generator[None, Result[object], None], res)
                         next(wrapper_gen)  # first yield
-                        teardowns.append((wrapper_gen,))
+                        teardowns.append((wrapper_gen, hook_impl))
                     except StopIteration:
                         _raise_wrapfail(wrapper_gen, "did not yield")
                 elif hook_impl.wrapper:
@@ -128,9 +153,13 @@ def _multicall(
                 if isinstance(teardown, tuple):
                     try:
                         teardown[0].send(outcome)
-                        _raise_wrapfail(teardown[0], "has second yield")
                     except StopIteration:
                         pass
+                    except BaseException as e:
+                        _warn_teardown_exception(hook_name, teardown[1], e)
+                        raise
+                    else:
+                        _raise_wrapfail(teardown[0], "has second yield")
                 else:
                     try:
                         if outcome._exception is not None:

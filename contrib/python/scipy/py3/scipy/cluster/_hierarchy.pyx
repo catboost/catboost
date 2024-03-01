@@ -696,7 +696,7 @@ def linkage(double[:] dists, np.npy_int64 n, int method):
     Z_arr = np.empty((n - 1, 4))
     cdef double[:, :] Z = Z_arr
 
-    cdef int i, j, k, x, y, nx, ny, ni, id_x, id_y, id_i
+    cdef int i, j, k, x = 0, y = 0, nx, ny, ni, id_x, id_y, id_i
     cdef np.npy_int64 i_start
     cdef double current_min
     # inter-cluster dists
@@ -817,10 +817,10 @@ def fast_linkage(double[:] dists, int n, int method):
     cdef linkage_distance_update new_dist = linkage_methods[method]
 
     cdef int i, k
-    cdef int x, y, z
+    cdef int x = 0, y = 0, z
     cdef int nx, ny, nz
     cdef int id_x, id_y
-    cdef double dist
+    cdef double dist = 0
     cdef Pair pair
 
     for x in range(n - 1):
@@ -936,7 +936,7 @@ def nn_chain(double[:] dists, int n, int method):
     cdef int[:] cluster_chain = np.ndarray(n, dtype=np.intc)
     cdef int chain_length = 0
 
-    cdef int i, j, k, x, y, nx, ny, ni
+    cdef int i, j, k, x, y = 0, nx, ny, ni
     cdef double dist, current_min
 
     for k in range(n - 1):
@@ -1038,7 +1038,7 @@ def mst_single_linkage(double[:] dists, int n):
     cdef double[:] D = np.empty(n)
     D[:] = NPY_INFINITYF
 
-    cdef int i, k, x, y
+    cdef int i, k, x, y = 0
     cdef double dist, current_min
 
     x = 0

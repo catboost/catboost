@@ -19,20 +19,24 @@ import inspect
 import io
 import ipaddress
 import numbers
+import operator
 import os
 import random
 import re
 import sys
 import typing
 import uuid
+import warnings
+from functools import partial
 from pathlib import PurePath
 from types import FunctionType
-from typing import get_args, get_origin
+from typing import TYPE_CHECKING, Any, Iterator, Tuple, get_args, get_origin
 
 from hypothesis import strategies as st
-from hypothesis.errors import InvalidArgument, ResolutionFailed
+from hypothesis.errors import HypothesisWarning, InvalidArgument, ResolutionFailed
 from hypothesis.internal.compat import PYPY, BaseExceptionGroup, ExceptionGroup
 from hypothesis.internal.conjecture.utils import many as conjecture_utils_many
+from hypothesis.internal.filtering import max_len, min_len
 from hypothesis.strategies._internal.datetime import zoneinfo  # type: ignore
 from hypothesis.strategies._internal.ipaddress import (
     SPECIAL_IPv4_RANGES,
@@ -41,6 +45,9 @@ from hypothesis.strategies._internal.ipaddress import (
 )
 from hypothesis.strategies._internal.lazy import unwrap_strategies
 from hypothesis.strategies._internal.strategies import OneOfStrategy
+
+if TYPE_CHECKING:
+    import annotated_types as at
 
 GenericAlias: typing.Any
 UnionType: typing.Any
@@ -267,19 +274,64 @@ def is_annotated_type(thing):
     )
 
 
-def find_annotated_strategy(annotated_type):  # pragma: no cover
-    flattened_meta = []
+def get_constraints_filter_map():
+    if at := sys.modules.get("annotated_types"):
+        return {
+            # Due to the order of operator.gt/ge/lt/le arguments, order is inversed:
+            at.Gt: lambda constraint: partial(operator.lt, constraint.gt),
+            at.Ge: lambda constraint: partial(operator.le, constraint.ge),
+            at.Lt: lambda constraint: partial(operator.gt, constraint.lt),
+            at.Le: lambda constraint: partial(operator.ge, constraint.le),
+            at.MinLen: lambda constraint: partial(min_len, constraint.min_length),
+            at.MaxLen: lambda constraint: partial(max_len, constraint.max_length),
+            at.Predicate: lambda constraint: constraint.func,
+        }
+    return {}  # pragma: no cover
 
-    all_args = (
-        *getattr(annotated_type, "__args__", ()),
-        *getattr(annotated_type, "__metadata__", ()),
-    )
-    for arg in all_args:
-        if is_annotated_type(arg):
-            flattened_meta.append(find_annotated_strategy(arg))
+
+def _get_constraints(args: Tuple[Any, ...]) -> Iterator["at.BaseMetadata"]:
+    if at := sys.modules.get("annotated_types"):
+        for arg in args:
+            if isinstance(arg, at.BaseMetadata):
+                yield arg
+            elif getattr(arg, "__is_annotated_types_grouped_metadata__", False):
+                yield from arg
+            elif isinstance(arg, slice) and arg.step in (1, None):
+                yield from at.Len(arg.start or 0, arg.stop)
+
+
+def find_annotated_strategy(annotated_type):
+    metadata = getattr(annotated_type, "__metadata__", ())
+
+    if any(is_annotated_type(arg) for arg in metadata):
+        # We are in the case where one of the metadata argument
+        # is itself an annotated type. Although supported at runtime,
+        # This shouldn't be allowed: we prefer to raise here
+        raise ResolutionFailed(
+            f"Failed to resolve strategy for the following Annotated type: {annotated_type}."
+            "Arguments to the Annotated type cannot be Annotated."
+        )
+    for arg in reversed(metadata):
         if isinstance(arg, st.SearchStrategy):
-            flattened_meta.append(arg)
-    return flattened_meta[-1] if flattened_meta else None
+            return arg
+
+    filter_conditions = []
+    if "annotated_types" in sys.modules:
+        unsupported = []
+        for constraint in _get_constraints(metadata):
+            if convert := get_constraints_filter_map().get(type(constraint)):
+                filter_conditions.append(convert(constraint))
+            else:
+                unsupported.append(constraint)
+        if unsupported:
+            msg = f"Ignoring unsupported {', '.join(map(repr, unsupported))}"
+            warnings.warn(msg, HypothesisWarning, stacklevel=2)
+
+    base_strategy = st.from_type(annotated_type.__origin__)
+    for filter_condition in filter_conditions:
+        base_strategy = base_strategy.filter(filter_condition)
+
+    return base_strategy
 
 
 def has_type_arguments(type_):
@@ -324,27 +376,12 @@ def _try_import_forward_ref(thing, bound):  # pragma: no cover
 
 
 def from_typing_type(thing):
-    # We start with special-case support for Tuple, which isn't actually a generic
-    # type; then Final, Literal, and Annotated since they don't support `isinstance`.
+    # We start with Final, Literal, and Annotated since they don't support `isinstance`.
     #
     # We then explicitly error on non-Generic types, which don't carry enough
     # information to sensibly resolve to strategies at runtime.
     # Finally, we run a variation of the subclass lookup in `st.from_type`
     # among generic types in the lookup.
-    if get_origin(thing) == tuple or isinstance(
-        thing, getattr(typing, "TupleMeta", ())
-    ):
-        elem_types = getattr(thing, "__tuple_params__", None) or ()
-        elem_types += getattr(thing, "__args__", None) or ()
-        if (
-            getattr(thing, "__tuple_use_ellipsis__", False)
-            or len(elem_types) == 2
-            and elem_types[-1] is Ellipsis
-        ):
-            return st.lists(st.from_type(elem_types[0])).map(tuple)
-        elif len(elem_types) == 1 and elem_types[0] == ():
-            return st.tuples()  # Empty tuple; see issue #1583
-        return st.tuples(*map(st.from_type, elem_types))
     if get_origin(thing) == typing.Final:
         return st.one_of([st.from_type(t) for t in thing.__args__])
     if is_typing_literal(thing):
@@ -396,7 +433,11 @@ def from_typing_type(thing):
     if len(mapping) > 1:
         _Environ = getattr(os, "_Environ", None)
         mapping.pop(_Environ, None)
-    tuple_types = [t for t in mapping if isinstance(t, type) and issubclass(t, tuple)]
+    tuple_types = [
+        t
+        for t in mapping
+        if (isinstance(t, type) and issubclass(t, tuple)) or t is typing.Tuple
+    ]
     if len(mapping) > len(tuple_types):
         for tuple_type in tuple_types:
             mapping.pop(tuple_type)
@@ -584,17 +625,18 @@ _global_type_lookup: typing.Dict[
     BaseExceptionGroup: st.builds(
         BaseExceptionGroup,
         st.text(),
-        st.lists(st.from_type(BaseException), min_size=1),
+        st.lists(st.from_type(BaseException), min_size=1, max_size=5),
     ),
     ExceptionGroup: st.builds(
         ExceptionGroup,
         st.text(),
-        st.lists(st.from_type(Exception), min_size=1),
+        st.lists(st.from_type(Exception), min_size=1, max_size=5),
     ),
     enumerate: st.builds(enumerate, st.just(())),
     filter: st.builds(filter, st.just(lambda _: None), st.just(())),
     map: st.builds(map, st.just(lambda _: None), st.just(())),
     reversed: st.builds(reversed, st.just(())),
+    zip: st.builds(zip),  # avoids warnings on PyPy 7.3.14+
     property: st.builds(property, st.just(lambda _: None)),
     classmethod: st.builds(classmethod, st.just(lambda self: self)),
     staticmethod: st.builds(staticmethod, st.just(lambda self: self)),
@@ -672,7 +714,7 @@ _global_type_lookup.update(
             st.binary(),
             st.integers(0, 255),
             # As with Reversible, we tuplize this for compatibility with Hashable.
-            st.lists(st.integers(0, 255)).map(tuple),  # type: ignore
+            st.lists(st.integers(0, 255)).map(tuple),
         ),
         typing.BinaryIO: st.builds(io.BytesIO, st.binary()),
         typing.TextIO: st.builds(io.StringIO, st.text()),
@@ -758,6 +800,16 @@ def resolve_Type(thing):
 @register(typing.List, st.builds(list))
 def resolve_List(thing):
     return st.lists(st.from_type(thing.__args__[0]))
+
+
+@register(typing.Tuple, st.builds(tuple))
+def resolve_Tuple(thing):
+    elem_types = getattr(thing, "__args__", None) or ()
+    if len(elem_types) == 2 and elem_types[-1] is Ellipsis:
+        return st.lists(st.from_type(elem_types[0])).map(tuple)
+    elif len(elem_types) == 1 and elem_types[0] == ():
+        return st.tuples()  # Empty tuple; see issue #1583
+    return st.tuples(*map(st.from_type, elem_types))
 
 
 def _can_hash(val):

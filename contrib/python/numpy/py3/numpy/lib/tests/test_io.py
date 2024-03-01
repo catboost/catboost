@@ -232,15 +232,16 @@ class TestSavezLoad(RoundtripTest):
         assert_equal(a, l['file_a'])
         assert_equal(b, l['file_b'])
 
-    def test_named_arrays_with_like(self):
-        a = np.array([[1, 2], [3, 4]], float)
-        b = np.array([[1 + 2j, 2 + 7j], [3 - 6j, 4 + 12j]], complex)
-        c = BytesIO()
-        np.savez(c, file_a=a, like=b)
-        c.seek(0)
-        l = np.load(c)
-        assert_equal(a, l['file_a'])
-        assert_equal(b, l['like'])
+
+    def test_tuple_getitem_raises(self):
+        # gh-23748
+        a = np.array([1, 2, 3])
+        f = BytesIO()
+        np.savez(f, a=a)
+        f.seek(0)
+        l = np.load(f)
+        with pytest.raises(KeyError, match="(1, 2)"):
+            l[1, 2]
 
     def test_BagObj(self):
         a = np.array([[1, 2], [3, 4]], float)
@@ -330,6 +331,21 @@ class TestSavezLoad(RoundtripTest):
             fp = data.zip.fp
             data.close()
             assert_(fp.closed)
+
+    @pytest.mark.parametrize("count, expected_repr", [
+        (1, "NpzFile {fname!r} with keys: arr_0"),
+        (5, "NpzFile {fname!r} with keys: arr_0, arr_1, arr_2, arr_3, arr_4"),
+        # _MAX_REPR_ARRAY_COUNT is 5, so files with more than 5 keys are
+        # expected to end in '...'
+        (6, "NpzFile {fname!r} with keys: arr_0, arr_1, arr_2, arr_3, arr_4..."),
+    ])
+    def test_repr_lists_keys(self, count, expected_repr):
+        a = np.array([[1, 2], [3, 4]], float)
+        with temppath(suffix='.npz') as tmp:
+            np.savez(tmp, *[a]*count)
+            l = np.load(tmp)
+            assert repr(l) == expected_repr.format(fname=tmp)
+            l.close()
 
 
 class TestSaveTxt:
@@ -532,7 +548,7 @@ class TestSaveTxt:
 
     def test_unicode(self):
         utf8 = b'\xcf\x96'.decode('UTF-8')
-        a = np.array([utf8], dtype=np.unicode_)
+        a = np.array([utf8], dtype=np.str_)
         with tempdir() as tmpdir:
             # set encoding as on windows it may not be unicode even on py3
             np.savetxt(os.path.join(tmpdir, 'test.csv'), a, fmt=['%s'],
@@ -540,7 +556,7 @@ class TestSaveTxt:
 
     def test_unicode_roundtrip(self):
         utf8 = b'\xcf\x96'.decode('UTF-8')
-        a = np.array([utf8], dtype=np.unicode_)
+        a = np.array([utf8], dtype=np.str_)
         # our gz wrapper support encoding
         suffixes = ['', '.gz']
         if HAS_BZ2:
@@ -552,12 +568,12 @@ class TestSaveTxt:
                 np.savetxt(os.path.join(tmpdir, 'test.csv' + suffix), a,
                            fmt=['%s'], encoding='UTF-16-LE')
                 b = np.loadtxt(os.path.join(tmpdir, 'test.csv' + suffix),
-                               encoding='UTF-16-LE', dtype=np.unicode_)
+                               encoding='UTF-16-LE', dtype=np.str_)
                 assert_array_equal(a, b)
 
     def test_unicode_bytestream(self):
         utf8 = b'\xcf\x96'.decode('UTF-8')
-        a = np.array([utf8], dtype=np.unicode_)
+        a = np.array([utf8], dtype=np.str_)
         s = BytesIO()
         np.savetxt(s, a, fmt=['%s'], encoding='UTF-8')
         s.seek(0)
@@ -565,7 +581,7 @@ class TestSaveTxt:
 
     def test_unicode_stringstream(self):
         utf8 = b'\xcf\x96'.decode('UTF-8')
-        a = np.array([utf8], dtype=np.unicode_)
+        a = np.array([utf8], dtype=np.str_)
         s = StringIO()
         np.savetxt(s, a, fmt=['%s'], encoding='UTF-8')
         s.seek(0)
@@ -607,8 +623,8 @@ class TestSaveTxt:
         # in our process if needed, see gh-16889
         memoryerror_raised = Value(c_bool)
 
-        # Since Python 3.8, the default start method for multiprocessing has 
-        # been changed from 'fork' to 'spawn' on macOS, causing inconsistency 
+        # Since Python 3.8, the default start method for multiprocessing has
+        # been changed from 'fork' to 'spawn' on macOS, causing inconsistency
         # on memory sharing model, lead to failed test for check_large_zip
         ctx = get_context('fork')
         p = ctx.Process(target=check_large_zip, args=(memoryerror_raised,))
@@ -662,12 +678,12 @@ class LoadTxtBase:
         with temppath() as path:
             with open(path, "wb") as f:
                 f.write(nonascii.encode("UTF-16"))
-            x = self.loadfunc(path, encoding="UTF-16", dtype=np.unicode_)
+            x = self.loadfunc(path, encoding="UTF-16", dtype=np.str_)
             assert_array_equal(x, nonascii)
 
     def test_binary_decode(self):
         utf16 = b'\xff\xfeh\x04 \x00i\x04 \x00j\x04'
-        v = self.loadfunc(BytesIO(utf16), dtype=np.unicode_, encoding='UTF-16')
+        v = self.loadfunc(BytesIO(utf16), dtype=np.str_, encoding='UTF-16')
         assert_array_equal(v, np.array(utf16.decode('UTF-16').split()))
 
     def test_converters_decode(self):
@@ -675,7 +691,7 @@ class LoadTxtBase:
         c = TextIO()
         c.write(b'\xcf\x96')
         c.seek(0)
-        x = self.loadfunc(c, dtype=np.unicode_,
+        x = self.loadfunc(c, dtype=np.str_,
                           converters={0: lambda x: x.decode('UTF-8')})
         a = np.array([b'\xcf\x96'.decode('UTF-8')])
         assert_array_equal(x, a)
@@ -686,7 +702,7 @@ class LoadTxtBase:
         with temppath() as path:
             with io.open(path, 'wt', encoding='UTF-8') as f:
                 f.write(utf8)
-            x = self.loadfunc(path, dtype=np.unicode_,
+            x = self.loadfunc(path, dtype=np.str_,
                               converters={0: lambda x: x + 't'},
                               encoding='UTF-8')
             a = np.array([utf8 + 't'])
@@ -1171,7 +1187,7 @@ class TestLoadTxt(LoadTxtBase):
             with open(path, "wb") as f:
                 f.write(butf8)
             with open(path, "rb") as f:
-                x = np.loadtxt(f, encoding="UTF-8", dtype=np.unicode_)
+                x = np.loadtxt(f, encoding="UTF-8", dtype=np.str_)
             assert_array_equal(x, sutf8)
             # test broken latin1 conversion people now rely on
             with open(path, "rb") as f:
@@ -2229,7 +2245,7 @@ M   33  21.99
             ctl = np.array([
                      ["test1", "testNonethe" + utf8.decode("UTF-8"), "test3"],
                      ["test1", "testNonethe" + utf8.decode("UTF-8"), "test3"]],
-                     dtype=np.unicode_)
+                     dtype=np.str_)
             assert_array_equal(test, ctl)
 
             # test a mixed dtype
@@ -2272,7 +2288,7 @@ M   33  21.99
                      ["norm1", "norm2", "norm3"],
                      ["norm1", latin1, "norm3"],
                      ["test1", "testNonethe" + utf8, "test3"]],
-                     dtype=np.unicode_)
+                     dtype=np.str_)
             assert_array_equal(test, ctl)
 
     def test_recfromtxt(self):
@@ -2747,3 +2763,13 @@ def test_load_refcount():
     with assert_no_gc_cycles():
         x = np.loadtxt(TextIO("0 1 2 3"), dtype=dt)
         assert_equal(x, np.array([((0, 1), (2, 3))], dtype=dt))
+
+def test_load_multiple_arrays_until_eof():
+    f = BytesIO()
+    np.save(f, 1)
+    np.save(f, 2)
+    f.seek(0)
+    assert np.load(f) == 1
+    assert np.load(f) == 2
+    with pytest.raises(EOFError):
+        np.load(f)

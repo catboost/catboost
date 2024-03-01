@@ -13,7 +13,7 @@ def getCurrentMethodName():
 def getOrCreateSparkSession(appName):
     return (SparkSession.builder
         .master("local[2]")
-        .config("spark.jars.packages", "ai.catboost:catboost-spark_2.4_2.11:1.2.2")
+        .config("spark.jars.packages", "ai.catboost:catboost-spark_2.4_2.11:1.2.3")
         .appName(appName)
         .getOrCreate()
     )

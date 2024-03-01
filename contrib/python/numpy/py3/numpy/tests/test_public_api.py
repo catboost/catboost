@@ -34,7 +34,6 @@ def test_numpy_namespace():
     # None of these objects are publicly documented to be part of the main
     # NumPy namespace (some are useful though, others need to be cleaned up)
     undocumented = {
-        'Tester': 'numpy.testing._private.nosetester.NoseTester',
         '_add_newdoc_ufunc': '_multiarray_umath._add_newdoc_ufunc',
         'add_docstring': '_multiarray_umath.add_docstring',
         'add_newdoc': 'numpy.core.function_base.add_newdoc',
@@ -65,7 +64,7 @@ def test_numpy_namespace():
 
 @pytest.mark.skip
 @pytest.mark.skipif(IS_WASM, reason="can't start subprocess")
-@pytest.mark.parametrize('name', ['testing', 'Tester'])
+@pytest.mark.parametrize('name', ['testing'])
 def test_import_lazy_import(name):
     """Make sure we can actually use the modules we lazy load.
 
@@ -130,16 +129,12 @@ PUBLIC_MODULES = ['numpy.' + s for s in [
     "array_api",
     "array_api.linalg",
     "ctypeslib",
-    "distutils",
-    "distutils.cpuinfo",
-    "distutils.exec_command",
-    "distutils.misc_util",
-    "distutils.log",
-    "distutils.system_info",
     "doc",
     "doc.constants",
     "doc.ufuncs",
-    #"f2py",
+    "dtypes",
+    "exceptions",
+    "f2py",
     "fft",
     "lib",
     "lib.format",  # was this meant to be public?
@@ -161,10 +156,23 @@ PUBLIC_MODULES = ['numpy.' + s for s in [
     "polynomial.polynomial",
     "random",
     "testing",
+    "testing.overrides",
     "typing",
     "typing.mypy_plugin",
-    "version",
+    "version"  # Should be removed for NumPy 2.0
 ]]
+if sys.version_info < (3, 12):
+    PUBLIC_MODULES += [
+        'numpy.' + s for s in [
+            "distutils",
+            "distutils.cpuinfo",
+            "distutils.exec_command",
+            "distutils.misc_util",
+            "distutils.log",
+            "distutils.system_info",
+        ]
+    ]
+
 
 
 PUBLIC_ALIASED_MODULES = [
@@ -177,7 +185,7 @@ PUBLIC_ALIASED_MODULES = [
 PRIVATE_BUT_PRESENT_MODULES = ['numpy.' + s for s in [
     "compat",
     "compat.py3k",
-    #"conftest",
+    "conftest",
     "core",
     "core.arrayprint",
     "core.defchararray",
@@ -193,75 +201,19 @@ PRIVATE_BUT_PRESENT_MODULES = ['numpy.' + s for s in [
     "core.records",
     "core.shape_base",
     "core.umath",
-    "core.umath_tests",
-    "distutils.armccompiler",
-    "distutils.ccompiler",
-    'distutils.ccompiler_opt',
-    "distutils.command",
-    "distutils.command.autodist",
-    "distutils.command.bdist_rpm",
-    "distutils.command.build",
-    "distutils.command.build_clib",
-    "distutils.command.build_ext",
-    "distutils.command.build_py",
-    "distutils.command.build_scripts",
-    "distutils.command.build_src",
-    "distutils.command.config",
-    "distutils.command.config_compiler",
-    "distutils.command.develop",
-    "distutils.command.egg_info",
-    "distutils.command.install",
-    "distutils.command.install_clib",
-    "distutils.command.install_data",
-    "distutils.command.install_headers",
-    "distutils.command.sdist",
-    "distutils.conv_template",
-    "distutils.core",
-    "distutils.extension",
-    "distutils.fcompiler",
-    "distutils.fcompiler.absoft",
-    "distutils.fcompiler.arm",
-    "distutils.fcompiler.compaq",
-    "distutils.fcompiler.environment",
-    "distutils.fcompiler.g95",
-    "distutils.fcompiler.gnu",
-    "distutils.fcompiler.hpux",
-    "distutils.fcompiler.ibm",
-    "distutils.fcompiler.intel",
-    "distutils.fcompiler.lahey",
-    "distutils.fcompiler.mips",
-    "distutils.fcompiler.nag",
-    "distutils.fcompiler.none",
-    "distutils.fcompiler.pathf95",
-    "distutils.fcompiler.pg",
-    "distutils.fcompiler.nv",
-    "distutils.fcompiler.sun",
-    "distutils.fcompiler.vast",
-    "distutils.fcompiler.fujitsu",
-    "distutils.from_template",
-    "distutils.intelccompiler",
-    "distutils.lib2def",
-    "distutils.line_endings",
-    "distutils.mingw32ccompiler",
-    "distutils.msvccompiler",
-    "distutils.npy_pkg_config",
-    "distutils.numpy_distribution",
-    "distutils.pathccompiler",
-    "distutils.unixccompiler",
-    "dual",
-    #"f2py.auxfuncs",
-    #"f2py.capi_maps",
-    #"f2py.cb_rules",
-    #"f2py.cfuncs",
-    #"f2py.common_rules",
-    #"f2py.crackfortran",
-    #"f2py.diagnose",
-    #"f2py.f2py2e",
-    #"f2py.f90mod_rules",
-    #"f2py.func2subr",
-    #"f2py.rules",
-    #"f2py.symbolic",
-    #"f2py.use_rules",
+    "f2py.auxfuncs",
+    "f2py.capi_maps",
+    "f2py.cb_rules",
+    "f2py.cfuncs",
+    "f2py.common_rules",
+    "f2py.crackfortran",
+    "f2py.diagnose",
+    "f2py.f2py2e",
+    "f2py.f90mod_rules",
+    "f2py.func2subr",
+    "f2py.rules",
+    "f2py.symbolic",
+    "f2py.use_rules",
     "fft.helper",
     "lib.arraypad",
     "lib.arraysetops",
@@ -280,7 +232,6 @@ PRIVATE_BUT_PRESENT_MODULES = ['numpy.' + s for s in [
     "lib.utils",
     "linalg.lapack_lite",
     "linalg.linalg",
-    "ma.bench",
     "ma.core",
     "ma.testutils",
     "ma.timer_comparison",
@@ -290,8 +241,67 @@ PRIVATE_BUT_PRESENT_MODULES = ['numpy.' + s for s in [
     "random.mtrand",
     "random.bit_generator",
     "testing.print_coercion_tables",
-    "testing.utils",
 ]]
+if sys.version_info < (3, 12):
+    PRIVATE_BUT_PRESENT_MODULES += [
+        'numpy.' + s for s in [
+            "distutils.armccompiler",
+            "distutils.fujitsuccompiler",
+            "distutils.ccompiler",
+            'distutils.ccompiler_opt',
+            "distutils.command",
+            "distutils.command.autodist",
+            "distutils.command.bdist_rpm",
+            "distutils.command.build",
+            "distutils.command.build_clib",
+            "distutils.command.build_ext",
+            "distutils.command.build_py",
+            "distutils.command.build_scripts",
+            "distutils.command.build_src",
+            "distutils.command.config",
+            "distutils.command.config_compiler",
+            "distutils.command.develop",
+            "distutils.command.egg_info",
+            "distutils.command.install",
+            "distutils.command.install_clib",
+            "distutils.command.install_data",
+            "distutils.command.install_headers",
+            "distutils.command.sdist",
+            "distutils.conv_template",
+            "distutils.core",
+            "distutils.extension",
+            "distutils.fcompiler",
+            "distutils.fcompiler.absoft",
+            "distutils.fcompiler.arm",
+            "distutils.fcompiler.compaq",
+            "distutils.fcompiler.environment",
+            "distutils.fcompiler.g95",
+            "distutils.fcompiler.gnu",
+            "distutils.fcompiler.hpux",
+            "distutils.fcompiler.ibm",
+            "distutils.fcompiler.intel",
+            "distutils.fcompiler.lahey",
+            "distutils.fcompiler.mips",
+            "distutils.fcompiler.nag",
+            "distutils.fcompiler.none",
+            "distutils.fcompiler.pathf95",
+            "distutils.fcompiler.pg",
+            "distutils.fcompiler.nv",
+            "distutils.fcompiler.sun",
+            "distutils.fcompiler.vast",
+            "distutils.fcompiler.fujitsu",
+            "distutils.from_template",
+            "distutils.intelccompiler",
+            "distutils.lib2def",
+            "distutils.line_endings",
+            "distutils.mingw32ccompiler",
+            "distutils.msvccompiler",
+            "distutils.npy_pkg_config",
+            "distutils.numpy_distribution",
+            "distutils.pathccompiler",
+            "distutils.unixccompiler",
+        ]
+    ]
 
 
 def is_unexpected(name):
@@ -322,12 +332,19 @@ SKIP_LIST = [
     "numpy.core.code_generators.generate_ufunc_api",
     "numpy.core.code_generators.numpy_api",
     "numpy.core.code_generators.generate_umath_doc",
+    "numpy.core.code_generators.verify_c_api_version",
     "numpy.core.cversions",
     "numpy.core.generate_numpy_api",
-    "numpy.distutils.msvc9compiler",
+    "numpy.core.umath_tests",
 ]
+if sys.version_info < (3, 12):
+    SKIP_LIST += ["numpy.distutils.msvc9compiler"]
+else:
+    SKIP_LIST += ["numpy.distutils"]
 
 
+# suppressing warnings from deprecated modules
+@pytest.mark.filterwarnings("ignore:.*np.compat.*:DeprecationWarning")
 def test_all_modules_are_expected():
     """
     Test that we don't add anything that looks like a new public module by
@@ -352,9 +369,6 @@ def test_all_modules_are_expected():
 # below
 SKIP_LIST_2 = [
     'numpy.math',
-    'numpy.distutils.log.sys',
-    'numpy.distutils.log.logging',
-    'numpy.distutils.log.warnings',
     'numpy.doc.constants.re',
     'numpy.doc.constants.textwrap',
     'numpy.lib.emath',
@@ -362,6 +376,7 @@ SKIP_LIST_2 = [
     'numpy.matlib.char',
     'numpy.matlib.rec',
     'numpy.matlib.emath',
+    'numpy.matlib.exceptions',
     'numpy.matlib.math',
     'numpy.matlib.linalg',
     'numpy.matlib.fft',
@@ -369,6 +384,12 @@ SKIP_LIST_2 = [
     'numpy.matlib.ctypeslib',
     'numpy.matlib.ma',
 ]
+if sys.version_info < (3, 12):
+    SKIP_LIST_2 += [
+        'numpy.distutils.log.sys',
+        'numpy.distutils.log.logging',
+        'numpy.distutils.log.warnings',
+    ]
 
 
 def test_all_modules_are_expected_2():
@@ -472,7 +493,7 @@ def test_api_importable():
 
 
 @pytest.mark.xfail(
-    sysconfig.get_config_var("Py_DEBUG") is not None,
+    sysconfig.get_config_var("Py_DEBUG") not in (None, 0, "0"),
     reason=(
         "NumPy possibly built with `USE_DEBUG=True ./tools/travis-test.sh`, "
         "which does not expose the `array_api` entry point. "
@@ -484,6 +505,11 @@ def test_array_api_entry_point():
     Entry point for Array API implementation can be found with importlib and
     returns the numpy.array_api namespace.
     """
+    # For a development install that did not go through meson-python,
+    # the entrypoint will not have been installed. So ensure this test fails
+    # only if numpy is inside site-packages.
+    numpy_in_sitepackages = sysconfig.get_path('platlib') in np.__file__
+
     eps = importlib.metadata.entry_points()
     try:
         xp_eps = eps.select(group="array_api")
@@ -493,12 +519,19 @@ def test_array_api_entry_point():
         # Array API entry points so that running this test in <=3.9 will
         # still work - see https://github.com/numpy/numpy/pull/19800.
         xp_eps = eps.get("array_api", [])
-    assert len(xp_eps) > 0, "No entry points for 'array_api' found"
+    if len(xp_eps) == 0:
+        if numpy_in_sitepackages:
+            msg = "No entry points for 'array_api' found"
+            raise AssertionError(msg) from None
+        return
 
     try:
         ep = next(ep for ep in xp_eps if ep.name == "numpy")
     except StopIteration:
-        raise AssertionError("'numpy' not in array_api entry points") from None
+        if numpy_in_sitepackages:
+            msg = "'numpy' not in array_api entry points"
+            raise AssertionError(msg) from None
+        return
 
     xp = ep.load()
     msg = (
@@ -506,3 +539,17 @@ def test_array_api_entry_point():
         "does not point to our Array API implementation"
     )
     assert xp is numpy.array_api, msg
+
+
+@pytest.mark.parametrize("name", [
+        'ModuleDeprecationWarning', 'VisibleDeprecationWarning',
+        'ComplexWarning', 'TooHardError', 'AxisError'])
+def test_moved_exceptions(name):
+    # These were moved to the exceptions namespace, but currently still
+    # available
+    assert name in np.__all__
+    assert name not in np.__dir__()
+    # Fetching works, but __module__ is set correctly:
+    assert getattr(np, name).__module__ == "numpy.exceptions"
+    assert name in np.exceptions.__all__
+    getattr(np.exceptions, name)

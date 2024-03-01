@@ -28,19 +28,8 @@ Macros:
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-// errno is defined in several files so we can't use #ifndef errno here
-#ifdef errno
-// undefine errno to avoid substitution in errno.h include file name.
-#pragma push_macro("errno")
-#undef errno
-#include Y_UCRT_INCLUDE_NEXT(errno.h)
-#pragma pop_macro("errno")
-#else
-#include Y_UCRT_INCLUDE_NEXT(errno.h)
-#endif
-#else
-#include_next <errno.h>
+#if __has_include_next(<errno.h>)
+#  include_next <errno.h>
 #endif
 
 #ifdef __cplusplus

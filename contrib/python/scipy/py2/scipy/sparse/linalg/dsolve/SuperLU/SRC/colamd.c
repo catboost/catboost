@@ -637,7 +637,7 @@ at the top-level directory.
 #include <limits.h>
 
 #ifdef MATLAB_MEX_FILE
-#include "mex.h"
+#error #include "mex.h"
 #error #include "matrix.h"
 #else
 #include <stdio.h>

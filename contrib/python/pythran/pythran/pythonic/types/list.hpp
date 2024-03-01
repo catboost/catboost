@@ -580,6 +580,12 @@ namespace types
     erase(x);
     return res;
   }
+  template <class T>
+  void list<T>::clear()
+  {
+      _data->clear();	
+  }
+
   // TODO: have to raise a valueError
   template <class T>
   none_type list<T>::remove(T const &x)

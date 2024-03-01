@@ -65,7 +65,7 @@
  * This is especially important for nonzero and copyswap, which may run with
  * the GIL released.
  */
-static NPY_INLINE PyArrayObject_fields
+static inline PyArrayObject_fields
 get_dummy_stack_array(PyArrayObject *orig)
 {
     PyArrayObject_fields new_fields;
@@ -78,7 +78,7 @@ get_dummy_stack_array(PyArrayObject *orig)
 
 
 /* check for sequences, but ignore the types numpy considers scalars */
-static NPY_INLINE npy_bool
+static inline npy_bool
 PySequence_NoString_Check(PyObject *op) {
     return
         PySequence_Check(op) &&
@@ -333,7 +333,7 @@ BYTE_safe_pyint_setitem(PyObject *obj, npy_byte *result)
                     "Python integers to integer arrays.  The conversion "
                     "of %.100R to %S will fail in the future.\n"
                     "For the old behavior, usually:\n"
-                    "    np.array(value).astype(dtype)`\n"
+                    "    np.array(value).astype(dtype)\n"
                     "will give the desired result (the cast overflows).",
                     obj, descr) < 0) {
                 Py_DECREF(descr);
@@ -400,7 +400,7 @@ SHORT_safe_pyint_setitem(PyObject *obj, npy_short *result)
                     "Python integers to integer arrays.  The conversion "
                     "of %.100R to %S will fail in the future.\n"
                     "For the old behavior, usually:\n"
-                    "    np.array(value).astype(dtype)`\n"
+                    "    np.array(value).astype(dtype)\n"
                     "will give the desired result (the cast overflows).",
                     obj, descr) < 0) {
                 Py_DECREF(descr);
@@ -467,7 +467,7 @@ INT_safe_pyint_setitem(PyObject *obj, npy_int *result)
                     "Python integers to integer arrays.  The conversion "
                     "of %.100R to %S will fail in the future.\n"
                     "For the old behavior, usually:\n"
-                    "    np.array(value).astype(dtype)`\n"
+                    "    np.array(value).astype(dtype)\n"
                     "will give the desired result (the cast overflows).",
                     obj, descr) < 0) {
                 Py_DECREF(descr);
@@ -534,7 +534,7 @@ LONG_safe_pyint_setitem(PyObject *obj, npy_long *result)
                     "Python integers to integer arrays.  The conversion "
                     "of %.100R to %S will fail in the future.\n"
                     "For the old behavior, usually:\n"
-                    "    np.array(value).astype(dtype)`\n"
+                    "    np.array(value).astype(dtype)\n"
                     "will give the desired result (the cast overflows).",
                     obj, descr) < 0) {
                 Py_DECREF(descr);
@@ -601,7 +601,7 @@ LONGLONG_safe_pyint_setitem(PyObject *obj, npy_longlong *result)
                     "Python integers to integer arrays.  The conversion "
                     "of %.100R to %S will fail in the future.\n"
                     "For the old behavior, usually:\n"
-                    "    np.array(value).astype(dtype)`\n"
+                    "    np.array(value).astype(dtype)\n"
                     "will give the desired result (the cast overflows).",
                     obj, descr) < 0) {
                 Py_DECREF(descr);
@@ -668,7 +668,7 @@ UBYTE_safe_pyint_setitem(PyObject *obj, npy_ubyte *result)
                     "Python integers to integer arrays.  The conversion "
                     "of %.100R to %S will fail in the future.\n"
                     "For the old behavior, usually:\n"
-                    "    np.array(value).astype(dtype)`\n"
+                    "    np.array(value).astype(dtype)\n"
                     "will give the desired result (the cast overflows).",
                     obj, descr) < 0) {
                 Py_DECREF(descr);
@@ -735,7 +735,7 @@ USHORT_safe_pyint_setitem(PyObject *obj, npy_ushort *result)
                     "Python integers to integer arrays.  The conversion "
                     "of %.100R to %S will fail in the future.\n"
                     "For the old behavior, usually:\n"
-                    "    np.array(value).astype(dtype)`\n"
+                    "    np.array(value).astype(dtype)\n"
                     "will give the desired result (the cast overflows).",
                     obj, descr) < 0) {
                 Py_DECREF(descr);
@@ -802,7 +802,7 @@ UINT_safe_pyint_setitem(PyObject *obj, npy_uint *result)
                     "Python integers to integer arrays.  The conversion "
                     "of %.100R to %S will fail in the future.\n"
                     "For the old behavior, usually:\n"
-                    "    np.array(value).astype(dtype)`\n"
+                    "    np.array(value).astype(dtype)\n"
                     "will give the desired result (the cast overflows).",
                     obj, descr) < 0) {
                 Py_DECREF(descr);
@@ -869,7 +869,7 @@ ULONG_safe_pyint_setitem(PyObject *obj, npy_ulong *result)
                     "Python integers to integer arrays.  The conversion "
                     "of %.100R to %S will fail in the future.\n"
                     "For the old behavior, usually:\n"
-                    "    np.array(value).astype(dtype)`\n"
+                    "    np.array(value).astype(dtype)\n"
                     "will give the desired result (the cast overflows).",
                     obj, descr) < 0) {
                 Py_DECREF(descr);
@@ -936,7 +936,7 @@ ULONGLONG_safe_pyint_setitem(PyObject *obj, npy_ulonglong *result)
                     "Python integers to integer arrays.  The conversion "
                     "of %.100R to %S will fail in the future.\n"
                     "For the old behavior, usually:\n"
-                    "    np.array(value).astype(dtype)`\n"
+                    "    np.array(value).astype(dtype)\n"
                     "will give the desired result (the cast overflows).",
                     obj, descr) < 0) {
                 Py_DECREF(descr);
@@ -1018,7 +1018,7 @@ BOOL_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_bool)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_bool)));
         *((npy_bool *)ov)=temp;
     }
     else {
@@ -1087,7 +1087,7 @@ BYTE_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_byte)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_byte)));
         *((npy_byte *)ov)=temp;
     }
     else {
@@ -1156,7 +1156,7 @@ UBYTE_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_ubyte)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_ubyte)));
         *((npy_ubyte *)ov)=temp;
     }
     else {
@@ -1225,7 +1225,7 @@ SHORT_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_short)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_short)));
         *((npy_short *)ov)=temp;
     }
     else {
@@ -1294,7 +1294,7 @@ USHORT_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_ushort)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_ushort)));
         *((npy_ushort *)ov)=temp;
     }
     else {
@@ -1363,7 +1363,7 @@ INT_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_int)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_int)));
         *((npy_int *)ov)=temp;
     }
     else {
@@ -1432,7 +1432,7 @@ LONG_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_long)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_long)));
         *((npy_long *)ov)=temp;
     }
     else {
@@ -1501,7 +1501,7 @@ UINT_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_uint)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_uint)));
         *((npy_uint *)ov)=temp;
     }
     else {
@@ -1570,7 +1570,7 @@ ULONG_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_ulong)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_ulong)));
         *((npy_ulong *)ov)=temp;
     }
     else {
@@ -1639,7 +1639,7 @@ LONGLONG_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_longlong)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_longlong)));
         *((npy_longlong *)ov)=temp;
     }
     else {
@@ -1708,7 +1708,7 @@ ULONGLONG_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_ulonglong)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_ulonglong)));
         *((npy_ulonglong *)ov)=temp;
     }
     else {
@@ -1777,7 +1777,7 @@ HALF_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_half)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_half)));
         *((npy_half *)ov)=temp;
     }
     else {
@@ -1846,7 +1846,7 @@ FLOAT_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_float)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_float)));
         *((npy_float *)ov)=temp;
     }
     else {
@@ -1915,7 +1915,7 @@ DOUBLE_setitem(PyObject *op, void *ov, void *vap)
         return -1;
     }
     if (ap == NULL || PyArray_ISBEHAVED(ap)) {
-        assert(npy_is_aligned(ov, _ALIGN(npy_double)));
+        assert(npy_is_aligned(ov, NPY_ALIGNOF(npy_double)));
         *((npy_double *)ov)=temp;
     }
     else {
@@ -2221,7 +2221,7 @@ CLONGDOUBLE_setitem(PyObject *op, void *ov, void *vap)
 
 
 
-static NPY_INLINE npy_longdouble
+static inline npy_longdouble
 string_to_long_double(PyObject*op)
 {
     char *s;
@@ -2507,7 +2507,7 @@ STRING_setitem(PyObject *op, void *ov, void *vap)
 
 /* OBJECT */
 
-#define __ALIGNED(obj, sz) ((((size_t) obj) % (sz))==0)
+#define NPY__ALIGNED(obj, sz) ((((size_t) obj) % (sz))==0)
 
 static PyObject *
 OBJECT_getitem(void *ip, void *NPY_UNUSED(ap))
@@ -19003,7 +19003,7 @@ CDOUBLE_fromstr(char *str, void *ip, char **endptr,
  */
 
 
-static NPY_INLINE void
+static inline void
 _basic_copyn(void *dst, npy_intp dstride, void *src, npy_intp sstride,
              npy_intp n, int elsize) {
     if (src == NULL) {
@@ -19018,7 +19018,7 @@ _basic_copyn(void *dst, npy_intp dstride, void *src, npy_intp sstride,
     }
 }
 
-static NPY_INLINE void
+static inline void
 _basic_copy(void *dst, void *src, int elsize) {
     if (src == NULL) {
         return;
@@ -20531,10 +20531,10 @@ OBJECT_copyswapn(PyObject **dst, npy_intp dstride, PyObject **src,
 {
     npy_intp i;
     if (src != NULL) {
-        if (__ALIGNED(dst, sizeof(PyObject **))
-                && __ALIGNED(src, sizeof(PyObject **))
-                && __ALIGNED(dstride, sizeof(PyObject **))
-                && __ALIGNED(sstride, sizeof(PyObject **))) {
+        if (NPY__ALIGNED(dst, sizeof(PyObject **))
+                && NPY__ALIGNED(src, sizeof(PyObject **))
+                && NPY__ALIGNED(dstride, sizeof(PyObject **))
+                && NPY__ALIGNED(sstride, sizeof(PyObject **))) {
             dstride /= sizeof(PyObject **);
             sstride /= sizeof(PyObject **);
             for (i = 0; i < n; i++) {
@@ -20571,8 +20571,8 @@ OBJECT_copyswap(PyObject **dst, PyObject **src, int NPY_UNUSED(swap),
 {
 
     if (src != NULL) {
-        if (__ALIGNED(dst,sizeof(PyObject **)) &&
-                __ALIGNED(src,sizeof(PyObject **))) {
+        if (NPY__ALIGNED(dst,sizeof(PyObject **)) &&
+                NPY__ALIGNED(src,sizeof(PyObject **))) {
             Py_XINCREF(*src);
             Py_XDECREF(*dst);
             *dst = *src;
@@ -21408,7 +21408,7 @@ OBJECT_nonzero (PyObject **ip, PyArrayObject *ap)
     }
     else {
         PyObject *obj;
-        memcpy(&obj, ip, sizeof(obj));
+        memcpy(&obj, (void *)ip, sizeof(obj));
         if (obj == NULL) {
             return NPY_FALSE;
         }
@@ -21446,7 +21446,7 @@ VOID_nonzero (char *ip, PyArrayObject *ap)
             }
 
             dummy_fields.descr = new;
-            if ((new->alignment > 1) && !__ALIGNED(ip + offset,
+            if ((new->alignment > 1) && !NPY__ALIGNED(ip + offset,
                         new->alignment)) {
                 PyArray_CLEARFLAGS(dummy_arr, NPY_ARRAY_ALIGNED);
             }
@@ -21471,7 +21471,7 @@ VOID_nonzero (char *ip, PyArrayObject *ap)
     return nonz;
 }
 
-#undef __ALIGNED
+#undef NPY__ALIGNED
 
 
 /*
@@ -27405,7 +27405,7 @@ static PyArray_Descr VOID_Descr = {
     /* elsize */
     0,
     /* alignment */
-    _ALIGN(char),
+    NPY_ALIGNOF(char),
     /* subarray */
     NULL,
     /* fields */
@@ -27509,7 +27509,7 @@ static PyArray_Descr STRING_Descr = {
     /* elsize */
     0,
     /* alignment */
-    _ALIGN(char),
+    NPY_ALIGNOF(char),
     /* subarray */
     NULL,
     /* fields */
@@ -27613,7 +27613,7 @@ static PyArray_Descr UNICODE_Descr = {
     /* elsize */
     0,
     /* alignment */
-    _ALIGN(npy_ucs4),
+    NPY_ALIGNOF(npy_ucs4),
     /* subarray */
     NULL,
     /* fields */
@@ -27727,7 +27727,7 @@ NPY_NO_EXPORT PyArray_Descr BOOL_Descr = {
     /* elsize */
     sizeof(npy_bool),
     /* alignment */
-    _ALIGN(npy_bool),
+    NPY_ALIGNOF(npy_bool),
     /* subarray */
     NULL,
     /* fields */
@@ -27840,7 +27840,7 @@ NPY_NO_EXPORT PyArray_Descr BYTE_Descr = {
     /* elsize */
     sizeof(npy_byte),
     /* alignment */
-    _ALIGN(npy_byte),
+    NPY_ALIGNOF(npy_byte),
     /* subarray */
     NULL,
     /* fields */
@@ -27953,7 +27953,7 @@ NPY_NO_EXPORT PyArray_Descr UBYTE_Descr = {
     /* elsize */
     sizeof(npy_ubyte),
     /* alignment */
-    _ALIGN(npy_ubyte),
+    NPY_ALIGNOF(npy_ubyte),
     /* subarray */
     NULL,
     /* fields */
@@ -28066,7 +28066,7 @@ NPY_NO_EXPORT PyArray_Descr SHORT_Descr = {
     /* elsize */
     sizeof(npy_short),
     /* alignment */
-    _ALIGN(npy_short),
+    NPY_ALIGNOF(npy_short),
     /* subarray */
     NULL,
     /* fields */
@@ -28179,7 +28179,7 @@ NPY_NO_EXPORT PyArray_Descr USHORT_Descr = {
     /* elsize */
     sizeof(npy_ushort),
     /* alignment */
-    _ALIGN(npy_ushort),
+    NPY_ALIGNOF(npy_ushort),
     /* subarray */
     NULL,
     /* fields */
@@ -28292,7 +28292,7 @@ NPY_NO_EXPORT PyArray_Descr INT_Descr = {
     /* elsize */
     sizeof(npy_int),
     /* alignment */
-    _ALIGN(npy_int),
+    NPY_ALIGNOF(npy_int),
     /* subarray */
     NULL,
     /* fields */
@@ -28405,7 +28405,7 @@ NPY_NO_EXPORT PyArray_Descr UINT_Descr = {
     /* elsize */
     sizeof(npy_uint),
     /* alignment */
-    _ALIGN(npy_uint),
+    NPY_ALIGNOF(npy_uint),
     /* subarray */
     NULL,
     /* fields */
@@ -28518,7 +28518,7 @@ NPY_NO_EXPORT PyArray_Descr LONG_Descr = {
     /* elsize */
     sizeof(npy_long),
     /* alignment */
-    _ALIGN(npy_long),
+    NPY_ALIGNOF(npy_long),
     /* subarray */
     NULL,
     /* fields */
@@ -28631,7 +28631,7 @@ NPY_NO_EXPORT PyArray_Descr ULONG_Descr = {
     /* elsize */
     sizeof(npy_ulong),
     /* alignment */
-    _ALIGN(npy_ulong),
+    NPY_ALIGNOF(npy_ulong),
     /* subarray */
     NULL,
     /* fields */
@@ -28744,7 +28744,7 @@ NPY_NO_EXPORT PyArray_Descr LONGLONG_Descr = {
     /* elsize */
     sizeof(npy_longlong),
     /* alignment */
-    _ALIGN(npy_longlong),
+    NPY_ALIGNOF(npy_longlong),
     /* subarray */
     NULL,
     /* fields */
@@ -28857,7 +28857,7 @@ NPY_NO_EXPORT PyArray_Descr ULONGLONG_Descr = {
     /* elsize */
     sizeof(npy_ulonglong),
     /* alignment */
-    _ALIGN(npy_ulonglong),
+    NPY_ALIGNOF(npy_ulonglong),
     /* subarray */
     NULL,
     /* fields */
@@ -28970,7 +28970,7 @@ NPY_NO_EXPORT PyArray_Descr HALF_Descr = {
     /* elsize */
     sizeof(npy_half),
     /* alignment */
-    _ALIGN(npy_half),
+    NPY_ALIGNOF(npy_half),
     /* subarray */
     NULL,
     /* fields */
@@ -29083,7 +29083,7 @@ NPY_NO_EXPORT PyArray_Descr FLOAT_Descr = {
     /* elsize */
     sizeof(npy_float),
     /* alignment */
-    _ALIGN(npy_float),
+    NPY_ALIGNOF(npy_float),
     /* subarray */
     NULL,
     /* fields */
@@ -29196,7 +29196,7 @@ NPY_NO_EXPORT PyArray_Descr DOUBLE_Descr = {
     /* elsize */
     sizeof(npy_double),
     /* alignment */
-    _ALIGN(npy_double),
+    NPY_ALIGNOF(npy_double),
     /* subarray */
     NULL,
     /* fields */
@@ -29309,7 +29309,7 @@ NPY_NO_EXPORT PyArray_Descr LONGDOUBLE_Descr = {
     /* elsize */
     sizeof(npy_longdouble),
     /* alignment */
-    _ALIGN(npy_longdouble),
+    NPY_ALIGNOF(npy_longdouble),
     /* subarray */
     NULL,
     /* fields */
@@ -29422,7 +29422,7 @@ NPY_NO_EXPORT PyArray_Descr CFLOAT_Descr = {
     /* elsize */
     sizeof(npy_cfloat),
     /* alignment */
-    _ALIGN(npy_cfloat),
+    NPY_ALIGNOF(npy_cfloat),
     /* subarray */
     NULL,
     /* fields */
@@ -29535,7 +29535,7 @@ NPY_NO_EXPORT PyArray_Descr CDOUBLE_Descr = {
     /* elsize */
     sizeof(npy_cdouble),
     /* alignment */
-    _ALIGN(npy_cdouble),
+    NPY_ALIGNOF(npy_cdouble),
     /* subarray */
     NULL,
     /* fields */
@@ -29648,7 +29648,7 @@ NPY_NO_EXPORT PyArray_Descr CLONGDOUBLE_Descr = {
     /* elsize */
     sizeof(npy_clongdouble),
     /* alignment */
-    _ALIGN(npy_clongdouble),
+    NPY_ALIGNOF(npy_clongdouble),
     /* subarray */
     NULL,
     /* fields */
@@ -29761,7 +29761,7 @@ NPY_NO_EXPORT PyArray_Descr OBJECT_Descr = {
     /* elsize */
     sizeof(PyObject *),
     /* alignment */
-    _ALIGN(PyObject *),
+    NPY_ALIGNOF(PyObject *),
     /* subarray */
     NULL,
     /* fields */
@@ -29874,7 +29874,7 @@ NPY_NO_EXPORT PyArray_Descr DATETIME_Descr = {
     /* elsize */
     sizeof(npy_datetime),
     /* alignment */
-    _ALIGN(npy_datetime),
+    NPY_ALIGNOF(npy_datetime),
     /* subarray */
     NULL,
     /* fields */
@@ -29987,7 +29987,7 @@ NPY_NO_EXPORT PyArray_Descr TIMEDELTA_Descr = {
     /* elsize */
     sizeof(npy_timedelta),
     /* alignment */
-    _ALIGN(npy_timedelta),
+    NPY_ALIGNOF(npy_timedelta),
     /* subarray */
     NULL,
     /* fields */
@@ -30246,19 +30246,350 @@ set_typeinfo(PyObject *dict)
      * should be defined on the class and inherited to the scalar.
      * (NPY_HALF is the largest builtin one.)
      */
-    for (i = 0; i <= NPY_HALF; i++) {
-        if (dtypemeta_wrap_legacy_descriptor(_builtin_descrs[i]) < 0) {
-            return -1;
-        }
+    #line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_BOOL],
+            "numpy.dtypes." NPY_BOOL_Name "DType",
+#ifdef NPY_BOOL_alias
+            "numpy.dtypes." NPY_BOOL_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
     }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_BYTE],
+            "numpy.dtypes." NPY_BYTE_Name "DType",
+#ifdef NPY_BYTE_alias
+            "numpy.dtypes." NPY_BYTE_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_UBYTE],
+            "numpy.dtypes." NPY_UBYTE_Name "DType",
+#ifdef NPY_UBYTE_alias
+            "numpy.dtypes." NPY_UBYTE_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_SHORT],
+            "numpy.dtypes." NPY_SHORT_Name "DType",
+#ifdef NPY_SHORT_alias
+            "numpy.dtypes." NPY_SHORT_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_USHORT],
+            "numpy.dtypes." NPY_USHORT_Name "DType",
+#ifdef NPY_USHORT_alias
+            "numpy.dtypes." NPY_USHORT_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_INT],
+            "numpy.dtypes." NPY_INT_Name "DType",
+#ifdef NPY_INT_alias
+            "numpy.dtypes." NPY_INT_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_UINT],
+            "numpy.dtypes." NPY_UINT_Name "DType",
+#ifdef NPY_UINT_alias
+            "numpy.dtypes." NPY_UINT_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_LONG],
+            "numpy.dtypes." NPY_LONG_Name "DType",
+#ifdef NPY_LONG_alias
+            "numpy.dtypes." NPY_LONG_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_ULONG],
+            "numpy.dtypes." NPY_ULONG_Name "DType",
+#ifdef NPY_ULONG_alias
+            "numpy.dtypes." NPY_ULONG_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_LONGLONG],
+            "numpy.dtypes." NPY_LONGLONG_Name "DType",
+#ifdef NPY_LONGLONG_alias
+            "numpy.dtypes." NPY_LONGLONG_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_ULONGLONG],
+            "numpy.dtypes." NPY_ULONGLONG_Name "DType",
+#ifdef NPY_ULONGLONG_alias
+            "numpy.dtypes." NPY_ULONGLONG_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_HALF],
+            "numpy.dtypes." NPY_HALF_Name "DType",
+#ifdef NPY_HALF_alias
+            "numpy.dtypes." NPY_HALF_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_FLOAT],
+            "numpy.dtypes." NPY_FLOAT_Name "DType",
+#ifdef NPY_FLOAT_alias
+            "numpy.dtypes." NPY_FLOAT_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_DOUBLE],
+            "numpy.dtypes." NPY_DOUBLE_Name "DType",
+#ifdef NPY_DOUBLE_alias
+            "numpy.dtypes." NPY_DOUBLE_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_LONGDOUBLE],
+            "numpy.dtypes." NPY_LONGDOUBLE_Name "DType",
+#ifdef NPY_LONGDOUBLE_alias
+            "numpy.dtypes." NPY_LONGDOUBLE_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_CFLOAT],
+            "numpy.dtypes." NPY_CFLOAT_Name "DType",
+#ifdef NPY_CFLOAT_alias
+            "numpy.dtypes." NPY_CFLOAT_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_CDOUBLE],
+            "numpy.dtypes." NPY_CDOUBLE_Name "DType",
+#ifdef NPY_CDOUBLE_alias
+            "numpy.dtypes." NPY_CDOUBLE_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_CLONGDOUBLE],
+            "numpy.dtypes." NPY_CLONGDOUBLE_Name "DType",
+#ifdef NPY_CLONGDOUBLE_alias
+            "numpy.dtypes." NPY_CLONGDOUBLE_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_OBJECT],
+            "numpy.dtypes." NPY_OBJECT_Name "DType",
+#ifdef NPY_OBJECT_alias
+            "numpy.dtypes." NPY_OBJECT_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_STRING],
+            "numpy.dtypes." NPY_STRING_Name "DType",
+#ifdef NPY_STRING_alias
+            "numpy.dtypes." NPY_STRING_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_UNICODE],
+            "numpy.dtypes." NPY_UNICODE_Name "DType",
+#ifdef NPY_UNICODE_alias
+            "numpy.dtypes." NPY_UNICODE_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_VOID],
+            "numpy.dtypes." NPY_VOID_Name "DType",
+#ifdef NPY_VOID_alias
+            "numpy.dtypes." NPY_VOID_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_DATETIME],
+            "numpy.dtypes." NPY_DATETIME_Name "DType",
+#ifdef NPY_DATETIME_alias
+            "numpy.dtypes." NPY_DATETIME_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
+#line 4659
+    if (dtypemeta_wrap_legacy_descriptor(
+            _builtin_descrs[NPY_TIMEDELTA],
+            "numpy.dtypes." NPY_TIMEDELTA_Name "DType",
+#ifdef NPY_TIMEDELTA_alias
+            "numpy.dtypes." NPY_TIMEDELTA_Alias "DType"
+#else
+            NULL
+#endif
+            ) < 0) {
+        return -1;
+    }
+
+    
 
     /*
      * Add cast functions for the new types
      */
 
-    #line 4669
+    #line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_BOOL];
     if (dtype->f->castdict == NULL) {
@@ -30285,7 +30616,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_BOOL];
     if (dtype->f->castdict == NULL) {
@@ -30312,7 +30643,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_BOOL];
     if (dtype->f->castdict == NULL) {
@@ -30341,9 +30672,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_BYTE];
     if (dtype->f->castdict == NULL) {
@@ -30370,7 +30701,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_BYTE];
     if (dtype->f->castdict == NULL) {
@@ -30397,7 +30728,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_BYTE];
     if (dtype->f->castdict == NULL) {
@@ -30426,9 +30757,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_UBYTE];
     if (dtype->f->castdict == NULL) {
@@ -30455,7 +30786,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_UBYTE];
     if (dtype->f->castdict == NULL) {
@@ -30482,7 +30813,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_UBYTE];
     if (dtype->f->castdict == NULL) {
@@ -30511,9 +30842,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_SHORT];
     if (dtype->f->castdict == NULL) {
@@ -30540,7 +30871,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_SHORT];
     if (dtype->f->castdict == NULL) {
@@ -30567,7 +30898,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_SHORT];
     if (dtype->f->castdict == NULL) {
@@ -30596,9 +30927,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_USHORT];
     if (dtype->f->castdict == NULL) {
@@ -30625,7 +30956,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_USHORT];
     if (dtype->f->castdict == NULL) {
@@ -30652,7 +30983,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_USHORT];
     if (dtype->f->castdict == NULL) {
@@ -30681,9 +31012,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_INT];
     if (dtype->f->castdict == NULL) {
@@ -30710,7 +31041,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_INT];
     if (dtype->f->castdict == NULL) {
@@ -30737,7 +31068,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_INT];
     if (dtype->f->castdict == NULL) {
@@ -30766,9 +31097,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_UINT];
     if (dtype->f->castdict == NULL) {
@@ -30795,7 +31126,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_UINT];
     if (dtype->f->castdict == NULL) {
@@ -30822,7 +31153,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_UINT];
     if (dtype->f->castdict == NULL) {
@@ -30851,9 +31182,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_LONG];
     if (dtype->f->castdict == NULL) {
@@ -30880,7 +31211,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_LONG];
     if (dtype->f->castdict == NULL) {
@@ -30907,7 +31238,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_LONG];
     if (dtype->f->castdict == NULL) {
@@ -30936,9 +31267,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_ULONG];
     if (dtype->f->castdict == NULL) {
@@ -30965,7 +31296,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_ULONG];
     if (dtype->f->castdict == NULL) {
@@ -30992,7 +31323,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_ULONG];
     if (dtype->f->castdict == NULL) {
@@ -31021,9 +31352,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_LONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -31050,7 +31381,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_LONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -31077,7 +31408,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_LONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -31106,9 +31437,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_ULONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -31135,7 +31466,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_ULONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -31162,7 +31493,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_ULONGLONG];
     if (dtype->f->castdict == NULL) {
@@ -31191,9 +31522,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_HALF];
     if (dtype->f->castdict == NULL) {
@@ -31220,7 +31551,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_HALF];
     if (dtype->f->castdict == NULL) {
@@ -31247,7 +31578,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_HALF];
     if (dtype->f->castdict == NULL) {
@@ -31276,9 +31607,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_FLOAT];
     if (dtype->f->castdict == NULL) {
@@ -31305,7 +31636,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_FLOAT];
     if (dtype->f->castdict == NULL) {
@@ -31332,7 +31663,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_FLOAT];
     if (dtype->f->castdict == NULL) {
@@ -31361,9 +31692,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_DOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31390,7 +31721,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_DOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31417,7 +31748,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_DOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31446,9 +31777,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_LONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31475,7 +31806,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_LONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31502,7 +31833,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_LONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31531,9 +31862,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_CFLOAT];
     if (dtype->f->castdict == NULL) {
@@ -31560,7 +31891,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_CFLOAT];
     if (dtype->f->castdict == NULL) {
@@ -31587,7 +31918,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_CFLOAT];
     if (dtype->f->castdict == NULL) {
@@ -31616,9 +31947,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_CDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31645,7 +31976,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_CDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31672,7 +32003,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_CDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31701,9 +32032,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_CLONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31730,7 +32061,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_CLONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31757,7 +32088,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_CLONGDOUBLE];
     if (dtype->f->castdict == NULL) {
@@ -31786,9 +32117,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_OBJECT];
     if (dtype->f->castdict == NULL) {
@@ -31815,7 +32146,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_OBJECT];
     if (dtype->f->castdict == NULL) {
@@ -31842,7 +32173,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_OBJECT];
     if (dtype->f->castdict == NULL) {
@@ -31871,9 +32202,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_STRING];
     if (dtype->f->castdict == NULL) {
@@ -31900,7 +32231,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_STRING];
     if (dtype->f->castdict == NULL) {
@@ -31927,7 +32258,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_STRING];
     if (dtype->f->castdict == NULL) {
@@ -31956,9 +32287,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_UNICODE];
     if (dtype->f->castdict == NULL) {
@@ -31985,7 +32316,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_UNICODE];
     if (dtype->f->castdict == NULL) {
@@ -32012,7 +32343,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_UNICODE];
     if (dtype->f->castdict == NULL) {
@@ -32041,9 +32372,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_VOID];
     if (dtype->f->castdict == NULL) {
@@ -32070,7 +32401,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_VOID];
     if (dtype->f->castdict == NULL) {
@@ -32097,7 +32428,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_VOID];
     if (dtype->f->castdict == NULL) {
@@ -32126,9 +32457,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_DATETIME];
     if (dtype->f->castdict == NULL) {
@@ -32155,7 +32486,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_DATETIME];
     if (dtype->f->castdict == NULL) {
@@ -32182,7 +32513,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_DATETIME];
     if (dtype->f->castdict == NULL) {
@@ -32211,9 +32542,9 @@ set_typeinfo(PyObject *dict)
     
 
     
-#line 4669
+#line 4687
 
-    #line 4674
+    #line 4692
 
     dtype = _builtin_descrs[NPY_TIMEDELTA];
     if (dtype->f->castdict == NULL) {
@@ -32240,7 +32571,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_TIMEDELTA];
     if (dtype->f->castdict == NULL) {
@@ -32267,7 +32598,7 @@ set_typeinfo(PyObject *dict)
     Py_DECREF(cobj);
 
     
-#line 4674
+#line 4692
 
     dtype = _builtin_descrs[NPY_TIMEDELTA];
     if (dtype->f->castdict == NULL) {
@@ -32312,132 +32643,132 @@ set_typeinfo(PyObject *dict)
         _letter_to_num[i] = NPY_NTYPES;
     }
 
-    #line 4729
+    #line 4747
 
     _letter_to_num[NPY_BOOLLTR] = NPY_BOOL;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_BYTELTR] = NPY_BYTE;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_UBYTELTR] = NPY_UBYTE;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_SHORTLTR] = NPY_SHORT;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_USHORTLTR] = NPY_USHORT;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_INTLTR] = NPY_INT;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_UINTLTR] = NPY_UINT;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_INTPLTR] = NPY_INTP;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_UINTPLTR] = NPY_UINTP;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_LONGLTR] = NPY_LONG;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_ULONGLTR] = NPY_ULONG;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_LONGLONGLTR] = NPY_LONGLONG;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_ULONGLONGLTR] = NPY_ULONGLONG;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_HALFLTR] = NPY_HALF;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_FLOATLTR] = NPY_FLOAT;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_DOUBLELTR] = NPY_DOUBLE;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_LONGDOUBLELTR] = NPY_LONGDOUBLE;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_CFLOATLTR] = NPY_CFLOAT;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_CDOUBLELTR] = NPY_CDOUBLE;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_CLONGDOUBLELTR] = NPY_CLONGDOUBLE;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_OBJECTLTR] = NPY_OBJECT;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_STRINGLTR] = NPY_STRING;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_UNICODELTR] = NPY_UNICODE;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_VOIDLTR] = NPY_VOID;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_DATETIMELTR] = NPY_DATETIME;
 
     
-#line 4729
+#line 4747
 
     _letter_to_num[NPY_TIMEDELTALTR] = NPY_TIMEDELTA;
 
@@ -32445,139 +32776,139 @@ set_typeinfo(PyObject *dict)
 
     _letter_to_num[NPY_STRINGLTR2] = NPY_STRING;
 
-    #line 4745
+    #line 4763
 
     BOOL_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     BYTE_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     UBYTE_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     SHORT_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     USHORT_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     INT_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     UINT_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     LONG_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     ULONG_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     LONGLONG_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     ULONGLONG_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     HALF_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     FLOAT_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     DOUBLE_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     LONGDOUBLE_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     CFLOAT_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     CDOUBLE_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     CLONGDOUBLE_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     OBJECT_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     STRING_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     UNICODE_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     VOID_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     DATETIME_Descr.fields = Py_None;
 
     
-#line 4745
+#line 4763
 
     TIMEDELTA_Descr.fields = Py_None;
 
     
 
 
-    #line 4754
+    #line 4772
 
     PyDataType_MAKEUNSIZED(&STRING_Descr);
 
     
-#line 4754
+#line 4772
 
     PyDataType_MAKEUNSIZED(&UNICODE_Descr);
 
     
-#line 4754
+#line 4772
 
     PyDataType_MAKEUNSIZED(&VOID_Descr);
 
@@ -32588,10 +32919,10 @@ set_typeinfo(PyObject *dict)
     if (infodict == NULL) return -1;
 
     int ret;
-    #line 4798
+    #line 4816
 
     s = PyArray_typeinforanged(
-        NPY_BOOLLTR, NPY_BOOL, NPY_BITSOF_BOOL, _ALIGN(npy_bool),
+        NPY_BOOLLTR, NPY_BOOL, NPY_BITSOF_BOOL, NPY_ALIGNOF(npy_bool),
         Py_BuildValue("i", 1),
         Py_BuildValue("i", 0),
         &PyBoolArrType_Type
@@ -32609,10 +32940,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_BYTELTR, NPY_BYTE, NPY_BITSOF_BYTE, _ALIGN(npy_byte),
+        NPY_BYTELTR, NPY_BYTE, NPY_BITSOF_BYTE, NPY_ALIGNOF(npy_byte),
         Py_BuildValue("i", NPY_MAX_BYTE),
         Py_BuildValue("i", NPY_MIN_BYTE),
         &PyByteArrType_Type
@@ -32630,10 +32961,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_UBYTELTR, NPY_UBYTE, NPY_BITSOF_BYTE, _ALIGN(npy_ubyte),
+        NPY_UBYTELTR, NPY_UBYTE, NPY_BITSOF_BYTE, NPY_ALIGNOF(npy_ubyte),
         Py_BuildValue("i", NPY_MAX_UBYTE),
         Py_BuildValue("i", 0),
         &PyUByteArrType_Type
@@ -32651,10 +32982,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_SHORTLTR, NPY_SHORT, NPY_BITSOF_SHORT, _ALIGN(npy_short),
+        NPY_SHORTLTR, NPY_SHORT, NPY_BITSOF_SHORT, NPY_ALIGNOF(npy_short),
         Py_BuildValue("i", NPY_MAX_SHORT),
         Py_BuildValue("i", NPY_MIN_SHORT),
         &PyShortArrType_Type
@@ -32672,10 +33003,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_USHORTLTR, NPY_USHORT, NPY_BITSOF_SHORT, _ALIGN(npy_ushort),
+        NPY_USHORTLTR, NPY_USHORT, NPY_BITSOF_SHORT, NPY_ALIGNOF(npy_ushort),
         Py_BuildValue("i", NPY_MAX_USHORT),
         Py_BuildValue("i", 0),
         &PyUShortArrType_Type
@@ -32693,10 +33024,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_INTLTR, NPY_INT, NPY_BITSOF_INT, _ALIGN(npy_int),
+        NPY_INTLTR, NPY_INT, NPY_BITSOF_INT, NPY_ALIGNOF(npy_int),
         Py_BuildValue("i", NPY_MAX_INT),
         Py_BuildValue("i", NPY_MIN_INT),
         &PyIntArrType_Type
@@ -32714,10 +33045,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_UINTLTR, NPY_UINT, NPY_BITSOF_INT, _ALIGN(npy_uint),
+        NPY_UINTLTR, NPY_UINT, NPY_BITSOF_INT, NPY_ALIGNOF(npy_uint),
         Py_BuildValue("N", PyLong_FromUnsignedLong(NPY_MAX_UINT)),
         Py_BuildValue("i", 0),
         &PyUIntArrType_Type
@@ -32735,10 +33066,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_INTPLTR, NPY_INTP, NPY_BITSOF_INTP, _ALIGN(npy_intp),
+        NPY_INTPLTR, NPY_INTP, NPY_BITSOF_INTP, NPY_ALIGNOF(npy_intp),
         Py_BuildValue("N", PyLong_FromLongLong((npy_longlong) NPY_MAX_INTP)),
         Py_BuildValue("N", PyLong_FromLongLong((npy_longlong) NPY_MIN_INTP)),
         &PyIntpArrType_Type
@@ -32756,10 +33087,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_UINTPLTR, NPY_UINTP, NPY_BITSOF_INTP, _ALIGN(npy_uintp),
+        NPY_UINTPLTR, NPY_UINTP, NPY_BITSOF_INTP, NPY_ALIGNOF(npy_uintp),
         Py_BuildValue("N", PyLong_FromUnsignedLongLong((npy_ulonglong) NPY_MAX_UINTP)),
         Py_BuildValue("i", 0),
         &PyUIntpArrType_Type
@@ -32777,10 +33108,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_LONGLTR, NPY_LONG, NPY_BITSOF_LONG, _ALIGN(npy_long),
+        NPY_LONGLTR, NPY_LONG, NPY_BITSOF_LONG, NPY_ALIGNOF(npy_long),
         Py_BuildValue("l", NPY_MAX_LONG),
         Py_BuildValue("l", NPY_MIN_LONG),
         &PyLongArrType_Type
@@ -32798,10 +33129,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_ULONGLTR, NPY_ULONG, NPY_BITSOF_LONG, _ALIGN(npy_ulong),
+        NPY_ULONGLTR, NPY_ULONG, NPY_BITSOF_LONG, NPY_ALIGNOF(npy_ulong),
         Py_BuildValue("N", PyLong_FromUnsignedLong((npy_ulong) NPY_MAX_ULONG)),
         Py_BuildValue("i", 0),
         &PyULongArrType_Type
@@ -32819,10 +33150,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_LONGLONGLTR, NPY_LONGLONG, NPY_BITSOF_LONGLONG, _ALIGN(npy_longlong),
+        NPY_LONGLONGLTR, NPY_LONGLONG, NPY_BITSOF_LONGLONG, NPY_ALIGNOF(npy_longlong),
         Py_BuildValue("N", PyLong_FromLongLong((npy_longlong) NPY_MAX_LONGLONG)),
         Py_BuildValue("N", PyLong_FromLongLong((npy_longlong) NPY_MIN_LONGLONG)),
         &PyLongLongArrType_Type
@@ -32840,10 +33171,10 @@ set_typeinfo(PyObject *dict)
 
 
     
-#line 4798
+#line 4816
 
     s = PyArray_typeinforanged(
-        NPY_ULONGLONGLTR, NPY_ULONGLONG, NPY_BITSOF_LONGLONG, _ALIGN(npy_ulonglong),
+        NPY_ULONGLONGLTR, NPY_ULONGLONG, NPY_BITSOF_LONGLONG, NPY_ALIGNOF(npy_ulonglong),
         Py_BuildValue("N", PyLong_FromUnsignedLongLong((npy_ulonglong) NPY_MAX_ULONGLONG)),
         Py_BuildValue("i", 0),
         &PyULongLongArrType_Type
@@ -32863,10 +33194,10 @@ set_typeinfo(PyObject *dict)
     
 
 
-    #line 4829
+    #line 4847
     s = PyArray_typeinfo(
         NPY_HALFLTR, NPY_HALF, NPY_BITSOF_HALF,
-        _ALIGN(npy_half), &PyHalfArrType_Type
+        NPY_ALIGNOF(npy_half), &PyHalfArrType_Type
     );
     if (s == NULL) {
         Py_DECREF(infodict);
@@ -32880,10 +33211,10 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4829
+#line 4847
     s = PyArray_typeinfo(
         NPY_FLOATLTR, NPY_FLOAT, NPY_BITSOF_FLOAT,
-        _ALIGN(npy_float), &PyFloatArrType_Type
+        NPY_ALIGNOF(npy_float), &PyFloatArrType_Type
     );
     if (s == NULL) {
         Py_DECREF(infodict);
@@ -32897,10 +33228,10 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4829
+#line 4847
     s = PyArray_typeinfo(
         NPY_DOUBLELTR, NPY_DOUBLE, NPY_BITSOF_DOUBLE,
-        _ALIGN(npy_double), &PyDoubleArrType_Type
+        NPY_ALIGNOF(npy_double), &PyDoubleArrType_Type
     );
     if (s == NULL) {
         Py_DECREF(infodict);
@@ -32914,10 +33245,10 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4829
+#line 4847
     s = PyArray_typeinfo(
         NPY_LONGDOUBLELTR, NPY_LONGDOUBLE, NPY_BITSOF_LONGDOUBLE,
-        _ALIGN(npy_longdouble), &PyLongDoubleArrType_Type
+        NPY_ALIGNOF(npy_longdouble), &PyLongDoubleArrType_Type
     );
     if (s == NULL) {
         Py_DECREF(infodict);
@@ -32931,10 +33262,10 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4829
+#line 4847
     s = PyArray_typeinfo(
         NPY_CFLOATLTR, NPY_CFLOAT, NPY_BITSOF_CFLOAT,
-        _ALIGN(npy_cfloat), &PyCFloatArrType_Type
+        NPY_ALIGNOF(npy_cfloat), &PyCFloatArrType_Type
     );
     if (s == NULL) {
         Py_DECREF(infodict);
@@ -32948,10 +33279,10 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4829
+#line 4847
     s = PyArray_typeinfo(
         NPY_CDOUBLELTR, NPY_CDOUBLE, NPY_BITSOF_CDOUBLE,
-        _ALIGN(npy_cdouble), &PyCDoubleArrType_Type
+        NPY_ALIGNOF(npy_cdouble), &PyCDoubleArrType_Type
     );
     if (s == NULL) {
         Py_DECREF(infodict);
@@ -32965,10 +33296,10 @@ set_typeinfo(PyObject *dict)
     }
 
     
-#line 4829
+#line 4847
     s = PyArray_typeinfo(
         NPY_CLONGDOUBLELTR, NPY_CLONGDOUBLE, NPY_BITSOF_CLONGDOUBLE,
-        _ALIGN(npy_clongdouble), &PyCLongDoubleArrType_Type
+        NPY_ALIGNOF(npy_clongdouble), &PyCLongDoubleArrType_Type
     );
     if (s == NULL) {
         Py_DECREF(infodict);
@@ -32985,7 +33316,7 @@ set_typeinfo(PyObject *dict)
 
     s = PyArray_typeinfo(
         NPY_OBJECTLTR, NPY_OBJECT, sizeof(PyObject *) * CHAR_BIT,
-        _ALIGN(PyObject *),
+        NPY_ALIGNOF(PyObject *),
         &PyObjectArrType_Type
     );
     if (s == NULL) {
@@ -32999,7 +33330,7 @@ set_typeinfo(PyObject *dict)
         return -1;
     }
     s = PyArray_typeinfo(
-        NPY_STRINGLTR, NPY_STRING, 0, _ALIGN(char),
+        NPY_STRINGLTR, NPY_STRING, 0, NPY_ALIGNOF(char),
         &PyStringArrType_Type
     );
     if (s == NULL) {
@@ -33013,7 +33344,7 @@ set_typeinfo(PyObject *dict)
         return -1;
     }
     s = PyArray_typeinfo(
-        NPY_UNICODELTR, NPY_UNICODE, 0, _ALIGN(npy_ucs4),
+        NPY_UNICODELTR, NPY_UNICODE, 0, NPY_ALIGNOF(npy_ucs4),
         &PyUnicodeArrType_Type
     );
     if (s == NULL) {
@@ -33027,7 +33358,7 @@ set_typeinfo(PyObject *dict)
         return -1;
     }
     s = PyArray_typeinfo(
-        NPY_VOIDLTR, NPY_VOID, 0, _ALIGN(char),
+        NPY_VOIDLTR, NPY_VOID, 0, NPY_ALIGNOF(char),
         &PyVoidArrType_Type
     );
     if (s == NULL) {
@@ -33042,7 +33373,7 @@ set_typeinfo(PyObject *dict)
     }
     s = PyArray_typeinforanged(
         NPY_DATETIMELTR, NPY_DATETIME, NPY_BITSOF_DATETIME,
-        _ALIGN(npy_datetime),
+        NPY_ALIGNOF(npy_datetime),
         MyPyLong_FromInt64(NPY_MAX_DATETIME),
         MyPyLong_FromInt64(NPY_MIN_DATETIME),
         &PyDatetimeArrType_Type
@@ -33059,7 +33390,7 @@ set_typeinfo(PyObject *dict)
     }
     s = PyArray_typeinforanged(
         NPY_TIMEDELTALTR, NPY_TIMEDELTA, NPY_BITSOF_TIMEDELTA,
-        _ALIGN(npy_timedelta),
+        NPY_ALIGNOF(npy_timedelta),
         MyPyLong_FromInt64(NPY_MAX_TIMEDELTA),
         MyPyLong_FromInt64(NPY_MIN_TIMEDELTA),
         &PyTimedeltaArrType_Type

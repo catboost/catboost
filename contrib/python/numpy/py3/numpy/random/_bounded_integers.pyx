@@ -89,8 +89,12 @@ cdef object _rand_uint32_broadcast(np.ndarray low, np.ndarray high, object size,
     is_open = not closed
     low_arr = <np.ndarray>low
     high_arr = <np.ndarray>high
-    if np.any(np.less(low_arr, 0)):
+
+    if np.can_cast(low_arr, np.uint32):
+        pass  # cannot be out-of-bounds
+    elif np.any(np.less(low_arr, np.uint32(0))):
         raise ValueError('low is out of bounds for uint32')
+
     if closed:
         high_comp = np.greater_equal
         low_high_comp = np.greater
@@ -98,8 +102,11 @@ cdef object _rand_uint32_broadcast(np.ndarray low, np.ndarray high, object size,
         high_comp = np.greater
         low_high_comp = np.greater_equal
 
-    if np.any(high_comp(high_arr, 0X100000000ULL)):
+    if np.can_cast(high_arr, np.uint32):
+        pass  # cannot be out-of-bounds
+    elif np.any(high_comp(high_arr, np.uint64(0X100000000ULL))):
         raise ValueError('high is out of bounds for uint32')
+
     if np.any(low_high_comp(low_arr, high_arr)):
         raise ValueError(format_bounds_error(closed, low_arr))
 
@@ -157,8 +164,12 @@ cdef object _rand_uint16_broadcast(np.ndarray low, np.ndarray high, object size,
     is_open = not closed
     low_arr = <np.ndarray>low
     high_arr = <np.ndarray>high
-    if np.any(np.less(low_arr, 0)):
+
+    if np.can_cast(low_arr, np.uint16):
+        pass  # cannot be out-of-bounds
+    elif np.any(np.less(low_arr, np.uint16(0))):
         raise ValueError('low is out of bounds for uint16')
+
     if closed:
         high_comp = np.greater_equal
         low_high_comp = np.greater
@@ -166,8 +177,11 @@ cdef object _rand_uint16_broadcast(np.ndarray low, np.ndarray high, object size,
         high_comp = np.greater
         low_high_comp = np.greater_equal
 
-    if np.any(high_comp(high_arr, 0X10000UL)):
+    if np.can_cast(high_arr, np.uint16):
+        pass  # cannot be out-of-bounds
+    elif np.any(high_comp(high_arr, np.uint32(0X10000UL))):
         raise ValueError('high is out of bounds for uint16')
+
     if np.any(low_high_comp(low_arr, high_arr)):
         raise ValueError(format_bounds_error(closed, low_arr))
 
@@ -225,8 +239,12 @@ cdef object _rand_uint8_broadcast(np.ndarray low, np.ndarray high, object size,
     is_open = not closed
     low_arr = <np.ndarray>low
     high_arr = <np.ndarray>high
-    if np.any(np.less(low_arr, 0)):
+
+    if np.can_cast(low_arr, np.uint8):
+        pass  # cannot be out-of-bounds
+    elif np.any(np.less(low_arr, np.uint8(0))):
         raise ValueError('low is out of bounds for uint8')
+
     if closed:
         high_comp = np.greater_equal
         low_high_comp = np.greater
@@ -234,8 +252,11 @@ cdef object _rand_uint8_broadcast(np.ndarray low, np.ndarray high, object size,
         high_comp = np.greater
         low_high_comp = np.greater_equal
 
-    if np.any(high_comp(high_arr, 0X100UL)):
+    if np.can_cast(high_arr, np.uint8):
+        pass  # cannot be out-of-bounds
+    elif np.any(high_comp(high_arr, np.uint16(0X100UL))):
         raise ValueError('high is out of bounds for uint8')
+
     if np.any(low_high_comp(low_arr, high_arr)):
         raise ValueError(format_bounds_error(closed, low_arr))
 
@@ -293,8 +314,12 @@ cdef object _rand_bool_broadcast(np.ndarray low, np.ndarray high, object size,
     is_open = not closed
     low_arr = <np.ndarray>low
     high_arr = <np.ndarray>high
-    if np.any(np.less(low_arr, 0)):
+
+    if np.can_cast(low_arr, np.bool_):
+        pass  # cannot be out-of-bounds
+    elif np.any(np.less(low_arr, np.bool_(0))):
         raise ValueError('low is out of bounds for bool')
+
     if closed:
         high_comp = np.greater_equal
         low_high_comp = np.greater
@@ -302,8 +327,11 @@ cdef object _rand_bool_broadcast(np.ndarray low, np.ndarray high, object size,
         high_comp = np.greater
         low_high_comp = np.greater_equal
 
-    if np.any(high_comp(high_arr, 0x2UL)):
+    if np.can_cast(high_arr, np.bool_):
+        pass  # cannot be out-of-bounds
+    elif np.any(high_comp(high_arr, np.uint8(0x2UL))):
         raise ValueError('high is out of bounds for bool')
+
     if np.any(low_high_comp(low_arr, high_arr)):
         raise ValueError(format_bounds_error(closed, low_arr))
 
@@ -361,8 +389,12 @@ cdef object _rand_int32_broadcast(np.ndarray low, np.ndarray high, object size,
     is_open = not closed
     low_arr = <np.ndarray>low
     high_arr = <np.ndarray>high
-    if np.any(np.less(low_arr, -0x80000000LL)):
+
+    if np.can_cast(low_arr, np.int32):
+        pass  # cannot be out-of-bounds
+    elif np.any(np.less(low_arr, np.int32(-0x80000000LL))):
         raise ValueError('low is out of bounds for int32')
+
     if closed:
         high_comp = np.greater_equal
         low_high_comp = np.greater
@@ -370,8 +402,11 @@ cdef object _rand_int32_broadcast(np.ndarray low, np.ndarray high, object size,
         high_comp = np.greater
         low_high_comp = np.greater_equal
 
-    if np.any(high_comp(high_arr, 0x80000000LL)):
+    if np.can_cast(high_arr, np.int32):
+        pass  # cannot be out-of-bounds
+    elif np.any(high_comp(high_arr, np.uint64(0x80000000LL))):
         raise ValueError('high is out of bounds for int32')
+
     if np.any(low_high_comp(low_arr, high_arr)):
         raise ValueError(format_bounds_error(closed, low_arr))
 
@@ -429,8 +464,12 @@ cdef object _rand_int16_broadcast(np.ndarray low, np.ndarray high, object size,
     is_open = not closed
     low_arr = <np.ndarray>low
     high_arr = <np.ndarray>high
-    if np.any(np.less(low_arr, -0x8000LL)):
+
+    if np.can_cast(low_arr, np.int16):
+        pass  # cannot be out-of-bounds
+    elif np.any(np.less(low_arr, np.int16(-0x8000LL))):
         raise ValueError('low is out of bounds for int16')
+
     if closed:
         high_comp = np.greater_equal
         low_high_comp = np.greater
@@ -438,8 +477,11 @@ cdef object _rand_int16_broadcast(np.ndarray low, np.ndarray high, object size,
         high_comp = np.greater
         low_high_comp = np.greater_equal
 
-    if np.any(high_comp(high_arr, 0x8000LL)):
+    if np.can_cast(high_arr, np.int16):
+        pass  # cannot be out-of-bounds
+    elif np.any(high_comp(high_arr, np.uint32(0x8000LL))):
         raise ValueError('high is out of bounds for int16')
+
     if np.any(low_high_comp(low_arr, high_arr)):
         raise ValueError(format_bounds_error(closed, low_arr))
 
@@ -497,8 +539,12 @@ cdef object _rand_int8_broadcast(np.ndarray low, np.ndarray high, object size,
     is_open = not closed
     low_arr = <np.ndarray>low
     high_arr = <np.ndarray>high
-    if np.any(np.less(low_arr, -0x80LL)):
+
+    if np.can_cast(low_arr, np.int8):
+        pass  # cannot be out-of-bounds
+    elif np.any(np.less(low_arr, np.int8(-0x80LL))):
         raise ValueError('low is out of bounds for int8')
+
     if closed:
         high_comp = np.greater_equal
         low_high_comp = np.greater
@@ -506,8 +552,11 @@ cdef object _rand_int8_broadcast(np.ndarray low, np.ndarray high, object size,
         high_comp = np.greater
         low_high_comp = np.greater_equal
 
-    if np.any(high_comp(high_arr, 0x80LL)):
+    if np.can_cast(high_arr, np.int8):
+        pass  # cannot be out-of-bounds
+    elif np.any(high_comp(high_arr, np.uint16(0x80LL))):
         raise ValueError('high is out of bounds for int8')
+
     if np.any(low_high_comp(low_arr, high_arr)):
         raise ValueError(format_bounds_error(closed, low_arr))
 
@@ -557,50 +606,69 @@ cdef object _rand_uint64_broadcast(object low, object high, object size,
     64 bit integer type.
     """
 
-    cdef np.ndarray low_arr, high_arr, out_arr, highm1_arr
+    cdef np.ndarray low_arr, low_arr_orig, high_arr, high_arr_orig, out_arr
     cdef np.npy_intp i, cnt, n
     cdef np.broadcast it
     cdef object closed_upper
     cdef uint64_t *out_data
     cdef uint64_t *highm1_data
     cdef uint64_t low_v, high_v
-    cdef uint64_t rng, last_rng, val, mask, off, out_val
+    cdef uint64_t rng, last_rng, val, mask, off, out_val, is_open
 
-    low_arr = <np.ndarray>low
-    high_arr = <np.ndarray>high
+    low_arr_orig = <np.ndarray>low
+    high_arr_orig = <np.ndarray>high
 
-    if np.any(np.less(low_arr, 0x0ULL)):
-        raise ValueError('low is out of bounds for uint64')
-    dt = high_arr.dtype
-    if closed or np.issubdtype(dt, np.integer):
-        # Avoid object dtype path if already an integer
-        high_lower_comp = np.less if closed else np.less_equal
-        if np.any(high_lower_comp(high_arr, 0x0ULL)):
-            raise ValueError(format_bounds_error(closed, low_arr))
-        high_m1 = high_arr if closed else high_arr - dt.type(1)
-        if np.any(np.greater(high_m1, 0xFFFFFFFFFFFFFFFFULL)):
-            raise ValueError('high is out of bounds for uint64')
-        highm1_arr = <np.ndarray>np.PyArray_FROM_OTF(high_m1, np.NPY_UINT64, np.NPY_ALIGNED | np.NPY_FORCECAST)
+    is_open = not closed
+
+    # The following code tries to cast safely, but failing that goes via
+    # Python `int()` because it is very difficult to cast integers in a
+    # truly safe way (i.e. so it raises on out-of-bound).
+    # We correct if the interval is not closed in this step if we go the long
+    # route.  (Not otherwise, since the -1 could overflow in theory.)
+    if np.can_cast(low_arr_orig, np.uint64):
+        low_arr = <np.ndarray>np.PyArray_FROM_OTF(low_arr_orig, np.NPY_UINT64, np.NPY_ALIGNED)
     else:
-        # If input is object or a floating type
-        highm1_arr = <np.ndarray>np.empty_like(high_arr, dtype=np.uint64)
-        highm1_data = <uint64_t *>np.PyArray_DATA(highm1_arr)
-        cnt = np.PyArray_SIZE(high_arr)
-        flat = high_arr.flat
+        low_arr = <np.ndarray>np.empty_like(low_arr_orig, dtype=np.uint64)
+        flat = low_arr_orig.flat
+        low_data = <uint64_t *>np.PyArray_DATA(low_arr)
+        cnt = np.PyArray_SIZE(low_arr)
         for i in range(cnt):
-            # Subtract 1 since generator produces values on the closed int [off, off+rng]
-            closed_upper = int(flat[i]) - 1
+            lower = int(flat[i])
+            if lower < 0x0ULL or lower > 0xFFFFFFFFFFFFFFFFULL:
+                raise ValueError('low is out of bounds for uint64')
+            low_data[i] = lower
+
+    del low_arr_orig
+
+    if np.can_cast(high_arr_orig, np.uint64):
+        high_arr = <np.ndarray>np.PyArray_FROM_OTF(high_arr_orig, np.NPY_UINT64, np.NPY_ALIGNED)
+    else:
+        high_arr = np.empty_like(high_arr_orig, dtype=np.uint64)
+        flat = high_arr_orig.flat
+        high_data = <uint64_t *>np.PyArray_DATA(high_arr)
+        cnt = np.PyArray_SIZE(high_arr)
+        for i in range(cnt):
+            closed_upper = int(flat[i]) - is_open
             if closed_upper > 0xFFFFFFFFFFFFFFFFULL:
                 raise ValueError('high is out of bounds for uint64')
             if closed_upper < 0x0ULL:
                 raise ValueError(format_bounds_error(closed, low_arr))
-            highm1_data[i] = <uint64_t>closed_upper
+            high_data[i] = closed_upper
 
-    if np.any(np.greater(low_arr, highm1_arr)):
+        is_open = 0  # we applied is_open in this path already
+
+    del high_arr_orig
+
+    # Since we have the largest supported integer dtypes, they must be within
+    # range at this point; otherwise conversion would have failed.  Check that
+    # it is never true that `high <= low`` if closed and `high < low` if not
+    if not is_open:
+        low_high_comp = np.greater
+    else:
+        low_high_comp = np.greater_equal
+
+    if np.any(low_high_comp(low_arr, high_arr)):
         raise ValueError(format_bounds_error(closed, low_arr))
-
-    high_arr = highm1_arr
-    low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_UINT64, np.NPY_ALIGNED | np.NPY_FORCECAST)
 
     if size is not None:
         out_arr = <np.ndarray>np.empty(size, np.uint64)
@@ -616,8 +684,8 @@ cdef object _rand_uint64_broadcast(object low, object high, object size,
         for i in range(n):
             low_v = (<uint64_t*>np.PyArray_MultiIter_DATA(it, 0))[0]
             high_v = (<uint64_t*>np.PyArray_MultiIter_DATA(it, 1))[0]
-            # Generator produces values on the closed int [off, off+rng], -1 subtracted above
-            rng = <uint64_t>(high_v - low_v)
+            # Generator produces values on the closed int [off, off+rng]
+            rng = <uint64_t>((high_v - is_open) - low_v)
             off = <uint64_t>(<uint64_t>low_v)
 
             if rng != last_rng:
@@ -643,50 +711,69 @@ cdef object _rand_int64_broadcast(object low, object high, object size,
     64 bit integer type.
     """
 
-    cdef np.ndarray low_arr, high_arr, out_arr, highm1_arr
+    cdef np.ndarray low_arr, low_arr_orig, high_arr, high_arr_orig, out_arr
     cdef np.npy_intp i, cnt, n
     cdef np.broadcast it
     cdef object closed_upper
     cdef uint64_t *out_data
     cdef int64_t *highm1_data
     cdef int64_t low_v, high_v
-    cdef uint64_t rng, last_rng, val, mask, off, out_val
+    cdef uint64_t rng, last_rng, val, mask, off, out_val, is_open
 
-    low_arr = <np.ndarray>low
-    high_arr = <np.ndarray>high
+    low_arr_orig = <np.ndarray>low
+    high_arr_orig = <np.ndarray>high
 
-    if np.any(np.less(low_arr, -0x8000000000000000LL)):
-        raise ValueError('low is out of bounds for int64')
-    dt = high_arr.dtype
-    if closed or np.issubdtype(dt, np.integer):
-        # Avoid object dtype path if already an integer
-        high_lower_comp = np.less if closed else np.less_equal
-        if np.any(high_lower_comp(high_arr, -0x8000000000000000LL)):
-            raise ValueError(format_bounds_error(closed, low_arr))
-        high_m1 = high_arr if closed else high_arr - dt.type(1)
-        if np.any(np.greater(high_m1, 0x7FFFFFFFFFFFFFFFLL)):
-            raise ValueError('high is out of bounds for int64')
-        highm1_arr = <np.ndarray>np.PyArray_FROM_OTF(high_m1, np.NPY_INT64, np.NPY_ALIGNED | np.NPY_FORCECAST)
+    is_open = not closed
+
+    # The following code tries to cast safely, but failing that goes via
+    # Python `int()` because it is very difficult to cast integers in a
+    # truly safe way (i.e. so it raises on out-of-bound).
+    # We correct if the interval is not closed in this step if we go the long
+    # route.  (Not otherwise, since the -1 could overflow in theory.)
+    if np.can_cast(low_arr_orig, np.int64):
+        low_arr = <np.ndarray>np.PyArray_FROM_OTF(low_arr_orig, np.NPY_INT64, np.NPY_ALIGNED)
     else:
-        # If input is object or a floating type
-        highm1_arr = <np.ndarray>np.empty_like(high_arr, dtype=np.int64)
-        highm1_data = <int64_t *>np.PyArray_DATA(highm1_arr)
-        cnt = np.PyArray_SIZE(high_arr)
-        flat = high_arr.flat
+        low_arr = <np.ndarray>np.empty_like(low_arr_orig, dtype=np.int64)
+        flat = low_arr_orig.flat
+        low_data = <int64_t *>np.PyArray_DATA(low_arr)
+        cnt = np.PyArray_SIZE(low_arr)
         for i in range(cnt):
-            # Subtract 1 since generator produces values on the closed int [off, off+rng]
-            closed_upper = int(flat[i]) - 1
+            lower = int(flat[i])
+            if lower < -0x8000000000000000LL or lower > 0x7FFFFFFFFFFFFFFFLL:
+                raise ValueError('low is out of bounds for int64')
+            low_data[i] = lower
+
+    del low_arr_orig
+
+    if np.can_cast(high_arr_orig, np.int64):
+        high_arr = <np.ndarray>np.PyArray_FROM_OTF(high_arr_orig, np.NPY_INT64, np.NPY_ALIGNED)
+    else:
+        high_arr = np.empty_like(high_arr_orig, dtype=np.int64)
+        flat = high_arr_orig.flat
+        high_data = <int64_t *>np.PyArray_DATA(high_arr)
+        cnt = np.PyArray_SIZE(high_arr)
+        for i in range(cnt):
+            closed_upper = int(flat[i]) - is_open
             if closed_upper > 0x7FFFFFFFFFFFFFFFLL:
                 raise ValueError('high is out of bounds for int64')
             if closed_upper < -0x8000000000000000LL:
                 raise ValueError(format_bounds_error(closed, low_arr))
-            highm1_data[i] = <int64_t>closed_upper
+            high_data[i] = closed_upper
 
-    if np.any(np.greater(low_arr, highm1_arr)):
+        is_open = 0  # we applied is_open in this path already
+
+    del high_arr_orig
+
+    # Since we have the largest supported integer dtypes, they must be within
+    # range at this point; otherwise conversion would have failed.  Check that
+    # it is never true that `high <= low`` if closed and `high < low` if not
+    if not is_open:
+        low_high_comp = np.greater
+    else:
+        low_high_comp = np.greater_equal
+
+    if np.any(low_high_comp(low_arr, high_arr)):
         raise ValueError(format_bounds_error(closed, low_arr))
-
-    high_arr = highm1_arr
-    low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_INT64, np.NPY_ALIGNED | np.NPY_FORCECAST)
 
     if size is not None:
         out_arr = <np.ndarray>np.empty(size, np.int64)
@@ -702,8 +789,8 @@ cdef object _rand_int64_broadcast(object low, object high, object size,
         for i in range(n):
             low_v = (<int64_t*>np.PyArray_MultiIter_DATA(it, 0))[0]
             high_v = (<int64_t*>np.PyArray_MultiIter_DATA(it, 1))[0]
-            # Generator produces values on the closed int [off, off+rng], -1 subtracted above
-            rng = <uint64_t>(high_v - low_v)
+            # Generator produces values on the closed int [off, off+rng]
+            rng = <uint64_t>((high_v - is_open) - low_v)
             off = <uint64_t>(<int64_t>low_v)
 
             if rng != last_rng:

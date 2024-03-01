@@ -43,10 +43,8 @@ Functions:
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(locale.h)
-#else
-#include_next <locale.h>
+#if __has_include_next(<locale.h>)
+#  include_next <locale.h>
 #endif
 
 #endif // _LIBCPP_LOCALE_H

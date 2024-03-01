@@ -72,7 +72,7 @@ static const npy_cfloat c_1f = {1.0F, 0.0};
  * These are necessary because we do not count on using a
  * C99 compiler.
  *=========================================================*/
-static NPY_INLINE
+static inline
 npy_cfloat
 cmulf(npy_cfloat a, npy_cfloat b)
 {
@@ -84,7 +84,7 @@ cmulf(npy_cfloat a, npy_cfloat b)
     return npy_cpackf(ar*br - ai*bi, ar*bi + ai*br);
 }
 
-static NPY_INLINE
+static inline
 npy_cfloat
 cdivf(npy_cfloat a, npy_cfloat b)
 {
@@ -158,7 +158,9 @@ npy_cargf(npy_cfloat z)
 #define SCALED_CEXP_LOWERL 11357.216553474703895L
 #define SCALED_CEXP_UPPERL 22756.021937783004509L
 
-#if !defined(HAVE_CEXPF)
+#if !defined(HAVE_CSINHF) || \
+    !defined(HAVE_CCOSHF) || \
+    !defined(HAVE_CEXPF)
 
 static
 npy_cfloat
@@ -443,29 +445,43 @@ npy_cpowf (npy_cfloat a, npy_cfloat b)
     npy_float bi = npy_cimagf(b);
     npy_cfloat r;
 
+    /*
+     * Checking if in a^b, if b is zero.
+     * If a is not zero then by definition of logarithm a^0 is 1.
+     * If a is also zero then 0^0 is best defined as 1.
+     */
     if (br == 0. && bi == 0.) {
         return npy_cpackf(1., 0.);
     }
-    if (ar == 0. && ai == 0.) {
-        if (br > 0 && bi == 0) {
-            return npy_cpackf(0., 0.);
-        }
-        else {
-            volatile npy_float tmp = NPY_INFINITYF;
-            /*
-             * NB: there are four complex zeros; c0 = (+-0, +-0), so that
-             * unlike for reals, c0**p, with `p` negative is in general
-             * ill-defined.
-             *
-             *     c0**z with z complex is also ill-defined.
-             */
-            r = npy_cpackf(NPY_NANF, NPY_NANF);
-
-            /* Raise invalid */
-            tmp -= NPY_INFINITYF;
-            ar = tmp;
-            return r;
-        }
+    /* case 0^b
+     * If a is a complex zero (ai=ar=0), then the result depends 
+     * upon values of br and bi. The result is either:
+     * 0 (in magnitude), undefined or 1.
+     * The later case is for br=bi=0 and independent of ar and ai
+     * but is handled above).
+     */
+    else if (ar == 0. && ai == 0.) {
+        /* 
+         * If the real part of b is positive (br>0) then this is
+         * the zero complex with positive sign on both the
+         * real and imaginary part.
+         */
+         if (br > 0) {
+             return npy_cpackf(0., 0.);
+         }
+        /* else we are in the case where the
+         * real part of b is negative (br<0).
+         * Here we should return a complex nan
+         * and raise FloatingPointError: invalid value...
+         */
+         
+         /* Raise invalid value by calling inf - inf*/
+          volatile npy_float tmp = NPY_INFINITYF;
+          tmp -= NPY_INFINITYF;
+          ar = tmp;
+          
+          r = npy_cpackf(NPY_NANF, NPY_NANF);
+          return r;
     }
     if (bi == 0 && (n=(npy_intp)br) == br) {
         if (n == 1) {
@@ -1010,7 +1026,7 @@ npy_ctanhf(npy_cfloat z)
  * Function f(a, b, hypot_a_b) = (hypot(a, b) - b) / 2.
  * Pass hypot(a, b) as the third argument.
  */
-static NPY_INLINE npy_float
+static inline npy_float
 _ff(npy_float a, npy_float b, npy_float hypot_a_b)
 {
     if (b < 0) {
@@ -1032,7 +1048,7 @@ _ff(npy_float a, npy_float b, npy_float hypot_a_b)
  * If returning sqrt_A2my2 has potential to result in an underflow, it is
  * rescaled, and new_y is similarly rescaled.
  */
-static NPY_INLINE void
+static inline void
 _do_hard_workf(npy_float x, npy_float y, npy_float *rx,
     npy_int *B_is_usable, npy_float *B, npy_float *sqrt_A2my2, npy_float *new_y)
 {
@@ -1176,7 +1192,7 @@ _do_hard_workf(npy_float x, npy_float y, npy_float *rx,
 /*
  * Optimized version of clog() for |z| finite and larger than ~RECIP_EPSILON.
  */
-static NPY_INLINE void
+static inline void
 _clog_for_large_valuesf(npy_float x, npy_float y,
     npy_float *rr, npy_float *ri)
 {
@@ -1477,7 +1493,7 @@ npy_casinhf(npy_cfloat z)
  * Assumes y is non-negative.
  * Assumes fabs(x) >= DBL_EPSILON.
  */
-static NPY_INLINE npy_float
+static inline npy_float
 _sum_squaresf(npy_float x, npy_float y)
 {
 #if 1 == 1
@@ -1514,7 +1530,7 @@ const npy_longdouble SQRT_MIN = 1.8336038675548471656e-2466l;
 #if 1 == 1
 #define BIAS (FLT_MAX_EXP - 1)
 #define CUTOFF (FLT_MANT_DIG / 2 + 1)
-static NPY_INLINE npy_float
+static inline npy_float
 _real_part_reciprocalf(npy_float x, npy_float y)
 {
     npy_float scale;
@@ -1547,7 +1563,7 @@ _real_part_reciprocalf(npy_float x, npy_float y)
 #define BIAS (DBL_MAX_EXP - 1)
 /*  more guard digits are useful iff there is extra precision. */
 #define CUTOFF (DBL_MANT_DIG / 2 + 1)  /* just half or 1 guard digit */
-static NPY_INLINE npy_double
+static inline npy_double
 _real_part_reciprocal(npy_double x, npy_double y)
 {
     npy_double scale;
@@ -1589,7 +1605,7 @@ _real_part_reciprocal(npy_double x, npy_double y)
 
 #define BIAS (LDBL_MAX_EXP - 1)
 #define CUTOFF (LDBL_MANT_DIG / 2 + 1)
-static NPY_INLINE npy_longdouble
+static inline npy_longdouble
 _real_part_reciprocall(npy_longdouble x,
     npy_longdouble y)
 {
@@ -1622,7 +1638,7 @@ _real_part_reciprocall(npy_longdouble x,
 
 #else
 
-static NPY_INLINE npy_longdouble
+static inline npy_longdouble
 _real_part_reciprocall(npy_longdouble x,
     npy_longdouble y)
 {
@@ -1735,7 +1751,7 @@ static const npy_cdouble c_1 = {1.0, 0.0};
  * These are necessary because we do not count on using a
  * C99 compiler.
  *=========================================================*/
-static NPY_INLINE
+static inline
 npy_cdouble
 cmul(npy_cdouble a, npy_cdouble b)
 {
@@ -1747,7 +1763,7 @@ cmul(npy_cdouble a, npy_cdouble b)
     return npy_cpack(ar*br - ai*bi, ar*bi + ai*br);
 }
 
-static NPY_INLINE
+static inline
 npy_cdouble
 cdiv(npy_cdouble a, npy_cdouble b)
 {
@@ -1821,7 +1837,9 @@ npy_carg(npy_cdouble z)
 #define SCALED_CEXP_LOWERL 11357.216553474703895L
 #define SCALED_CEXP_UPPERL 22756.021937783004509L
 
-#if !defined(HAVE_CEXP)
+#if !defined(HAVE_CSINH) || \
+    !defined(HAVE_CCOSH) || \
+    !defined(HAVE_CEXP)
 
 static
 npy_cdouble
@@ -2106,29 +2124,43 @@ npy_cpow (npy_cdouble a, npy_cdouble b)
     npy_double bi = npy_cimag(b);
     npy_cdouble r;
 
+    /*
+     * Checking if in a^b, if b is zero.
+     * If a is not zero then by definition of logarithm a^0 is 1.
+     * If a is also zero then 0^0 is best defined as 1.
+     */
     if (br == 0. && bi == 0.) {
         return npy_cpack(1., 0.);
     }
-    if (ar == 0. && ai == 0.) {
-        if (br > 0 && bi == 0) {
-            return npy_cpack(0., 0.);
-        }
-        else {
-            volatile npy_double tmp = NPY_INFINITY;
-            /*
-             * NB: there are four complex zeros; c0 = (+-0, +-0), so that
-             * unlike for reals, c0**p, with `p` negative is in general
-             * ill-defined.
-             *
-             *     c0**z with z complex is also ill-defined.
-             */
-            r = npy_cpack(NPY_NAN, NPY_NAN);
-
-            /* Raise invalid */
-            tmp -= NPY_INFINITY;
-            ar = tmp;
-            return r;
-        }
+    /* case 0^b
+     * If a is a complex zero (ai=ar=0), then the result depends 
+     * upon values of br and bi. The result is either:
+     * 0 (in magnitude), undefined or 1.
+     * The later case is for br=bi=0 and independent of ar and ai
+     * but is handled above).
+     */
+    else if (ar == 0. && ai == 0.) {
+        /* 
+         * If the real part of b is positive (br>0) then this is
+         * the zero complex with positive sign on both the
+         * real and imaginary part.
+         */
+         if (br > 0) {
+             return npy_cpack(0., 0.);
+         }
+        /* else we are in the case where the
+         * real part of b is negative (br<0).
+         * Here we should return a complex nan
+         * and raise FloatingPointError: invalid value...
+         */
+         
+         /* Raise invalid value by calling inf - inf*/
+          volatile npy_double tmp = NPY_INFINITY;
+          tmp -= NPY_INFINITY;
+          ar = tmp;
+          
+          r = npy_cpack(NPY_NAN, NPY_NAN);
+          return r;
     }
     if (bi == 0 && (n=(npy_intp)br) == br) {
         if (n == 1) {
@@ -2673,7 +2705,7 @@ npy_ctanh(npy_cdouble z)
  * Function f(a, b, hypot_a_b) = (hypot(a, b) - b) / 2.
  * Pass hypot(a, b) as the third argument.
  */
-static NPY_INLINE npy_double
+static inline npy_double
 _f(npy_double a, npy_double b, npy_double hypot_a_b)
 {
     if (b < 0) {
@@ -2695,7 +2727,7 @@ _f(npy_double a, npy_double b, npy_double hypot_a_b)
  * If returning sqrt_A2my2 has potential to result in an underflow, it is
  * rescaled, and new_y is similarly rescaled.
  */
-static NPY_INLINE void
+static inline void
 _do_hard_work(npy_double x, npy_double y, npy_double *rx,
     npy_int *B_is_usable, npy_double *B, npy_double *sqrt_A2my2, npy_double *new_y)
 {
@@ -2839,7 +2871,7 @@ _do_hard_work(npy_double x, npy_double y, npy_double *rx,
 /*
  * Optimized version of clog() for |z| finite and larger than ~RECIP_EPSILON.
  */
-static NPY_INLINE void
+static inline void
 _clog_for_large_values(npy_double x, npy_double y,
     npy_double *rr, npy_double *ri)
 {
@@ -3140,7 +3172,7 @@ npy_casinh(npy_cdouble z)
  * Assumes y is non-negative.
  * Assumes fabs(x) >= DBL_EPSILON.
  */
-static NPY_INLINE npy_double
+static inline npy_double
 _sum_squares(npy_double x, npy_double y)
 {
 #if 2 == 1
@@ -3177,7 +3209,7 @@ const npy_longdouble SQRT_MIN = 1.8336038675548471656e-2466l;
 #if 2 == 1
 #define BIAS (FLT_MAX_EXP - 1)
 #define CUTOFF (FLT_MANT_DIG / 2 + 1)
-static NPY_INLINE npy_float
+static inline npy_float
 _real_part_reciprocalf(npy_float x, npy_float y)
 {
     npy_float scale;
@@ -3210,7 +3242,7 @@ _real_part_reciprocalf(npy_float x, npy_float y)
 #define BIAS (DBL_MAX_EXP - 1)
 /*  more guard digits are useful iff there is extra precision. */
 #define CUTOFF (DBL_MANT_DIG / 2 + 1)  /* just half or 1 guard digit */
-static NPY_INLINE npy_double
+static inline npy_double
 _real_part_reciprocal(npy_double x, npy_double y)
 {
     npy_double scale;
@@ -3252,7 +3284,7 @@ _real_part_reciprocal(npy_double x, npy_double y)
 
 #define BIAS (LDBL_MAX_EXP - 1)
 #define CUTOFF (LDBL_MANT_DIG / 2 + 1)
-static NPY_INLINE npy_longdouble
+static inline npy_longdouble
 _real_part_reciprocall(npy_longdouble x,
     npy_longdouble y)
 {
@@ -3285,7 +3317,7 @@ _real_part_reciprocall(npy_longdouble x,
 
 #else
 
-static NPY_INLINE npy_longdouble
+static inline npy_longdouble
 _real_part_reciprocall(npy_longdouble x,
     npy_longdouble y)
 {
@@ -3398,7 +3430,7 @@ static const npy_clongdouble c_1l = {1.0L, 0.0};
  * These are necessary because we do not count on using a
  * C99 compiler.
  *=========================================================*/
-static NPY_INLINE
+static inline
 npy_clongdouble
 cmull(npy_clongdouble a, npy_clongdouble b)
 {
@@ -3410,7 +3442,7 @@ cmull(npy_clongdouble a, npy_clongdouble b)
     return npy_cpackl(ar*br - ai*bi, ar*bi + ai*br);
 }
 
-static NPY_INLINE
+static inline
 npy_clongdouble
 cdivl(npy_clongdouble a, npy_clongdouble b)
 {
@@ -3484,7 +3516,9 @@ npy_cargl(npy_clongdouble z)
 #define SCALED_CEXP_LOWERL 11357.216553474703895L
 #define SCALED_CEXP_UPPERL 22756.021937783004509L
 
-#if !defined(HAVE_CEXPL)
+#if !defined(HAVE_CSINHL) || \
+    !defined(HAVE_CCOSHL) || \
+    !defined(HAVE_CEXPL)
 
 static
 npy_clongdouble
@@ -3769,29 +3803,43 @@ npy_cpowl (npy_clongdouble a, npy_clongdouble b)
     npy_longdouble bi = npy_cimagl(b);
     npy_clongdouble r;
 
+    /*
+     * Checking if in a^b, if b is zero.
+     * If a is not zero then by definition of logarithm a^0 is 1.
+     * If a is also zero then 0^0 is best defined as 1.
+     */
     if (br == 0. && bi == 0.) {
         return npy_cpackl(1., 0.);
     }
-    if (ar == 0. && ai == 0.) {
-        if (br > 0 && bi == 0) {
-            return npy_cpackl(0., 0.);
-        }
-        else {
-            volatile npy_longdouble tmp = NPY_INFINITYL;
-            /*
-             * NB: there are four complex zeros; c0 = (+-0, +-0), so that
-             * unlike for reals, c0**p, with `p` negative is in general
-             * ill-defined.
-             *
-             *     c0**z with z complex is also ill-defined.
-             */
-            r = npy_cpackl(NPY_NANL, NPY_NANL);
-
-            /* Raise invalid */
-            tmp -= NPY_INFINITYL;
-            ar = tmp;
-            return r;
-        }
+    /* case 0^b
+     * If a is a complex zero (ai=ar=0), then the result depends 
+     * upon values of br and bi. The result is either:
+     * 0 (in magnitude), undefined or 1.
+     * The later case is for br=bi=0 and independent of ar and ai
+     * but is handled above).
+     */
+    else if (ar == 0. && ai == 0.) {
+        /* 
+         * If the real part of b is positive (br>0) then this is
+         * the zero complex with positive sign on both the
+         * real and imaginary part.
+         */
+         if (br > 0) {
+             return npy_cpackl(0., 0.);
+         }
+        /* else we are in the case where the
+         * real part of b is negative (br<0).
+         * Here we should return a complex nan
+         * and raise FloatingPointError: invalid value...
+         */
+         
+         /* Raise invalid value by calling inf - inf*/
+          volatile npy_longdouble tmp = NPY_INFINITYL;
+          tmp -= NPY_INFINITYL;
+          ar = tmp;
+          
+          r = npy_cpackl(NPY_NANL, NPY_NANL);
+          return r;
     }
     if (bi == 0 && (n=(npy_intp)br) == br) {
         if (n == 1) {
@@ -4336,7 +4384,7 @@ npy_ctanhl(npy_clongdouble z)
  * Function f(a, b, hypot_a_b) = (hypot(a, b) - b) / 2.
  * Pass hypot(a, b) as the third argument.
  */
-static NPY_INLINE npy_longdouble
+static inline npy_longdouble
 _fl(npy_longdouble a, npy_longdouble b, npy_longdouble hypot_a_b)
 {
     if (b < 0) {
@@ -4358,7 +4406,7 @@ _fl(npy_longdouble a, npy_longdouble b, npy_longdouble hypot_a_b)
  * If returning sqrt_A2my2 has potential to result in an underflow, it is
  * rescaled, and new_y is similarly rescaled.
  */
-static NPY_INLINE void
+static inline void
 _do_hard_workl(npy_longdouble x, npy_longdouble y, npy_longdouble *rx,
     npy_int *B_is_usable, npy_longdouble *B, npy_longdouble *sqrt_A2my2, npy_longdouble *new_y)
 {
@@ -4502,7 +4550,7 @@ _do_hard_workl(npy_longdouble x, npy_longdouble y, npy_longdouble *rx,
 /*
  * Optimized version of clog() for |z| finite and larger than ~RECIP_EPSILON.
  */
-static NPY_INLINE void
+static inline void
 _clog_for_large_valuesl(npy_longdouble x, npy_longdouble y,
     npy_longdouble *rr, npy_longdouble *ri)
 {
@@ -4803,7 +4851,7 @@ npy_casinhl(npy_clongdouble z)
  * Assumes y is non-negative.
  * Assumes fabs(x) >= DBL_EPSILON.
  */
-static NPY_INLINE npy_longdouble
+static inline npy_longdouble
 _sum_squaresl(npy_longdouble x, npy_longdouble y)
 {
 #if 3 == 1
@@ -4840,7 +4888,7 @@ const npy_longdouble SQRT_MIN = 1.8336038675548471656e-2466l;
 #if 3 == 1
 #define BIAS (FLT_MAX_EXP - 1)
 #define CUTOFF (FLT_MANT_DIG / 2 + 1)
-static NPY_INLINE npy_float
+static inline npy_float
 _real_part_reciprocalf(npy_float x, npy_float y)
 {
     npy_float scale;
@@ -4873,7 +4921,7 @@ _real_part_reciprocalf(npy_float x, npy_float y)
 #define BIAS (DBL_MAX_EXP - 1)
 /*  more guard digits are useful iff there is extra precision. */
 #define CUTOFF (DBL_MANT_DIG / 2 + 1)  /* just half or 1 guard digit */
-static NPY_INLINE npy_double
+static inline npy_double
 _real_part_reciprocal(npy_double x, npy_double y)
 {
     npy_double scale;
@@ -4915,7 +4963,7 @@ _real_part_reciprocal(npy_double x, npy_double y)
 
 #define BIAS (LDBL_MAX_EXP - 1)
 #define CUTOFF (LDBL_MANT_DIG / 2 + 1)
-static NPY_INLINE npy_longdouble
+static inline npy_longdouble
 _real_part_reciprocall(npy_longdouble x,
     npy_longdouble y)
 {
@@ -4948,7 +4996,7 @@ _real_part_reciprocall(npy_longdouble x,
 
 #else
 
-static NPY_INLINE npy_longdouble
+static inline npy_longdouble
 _real_part_reciprocall(npy_longdouble x,
     npy_longdouble y)
 {
@@ -5053,9 +5101,9 @@ npy_catanhl(npy_clongdouble z)
  * Decorate all the functions which are available natively
  *=========================================================*/
 
-#line 1736
+#line 1752
 
-#line 1741
+#line 1757
 #ifdef HAVE_CABSF
 npy_float
 npy_cabsf(npy_cfloat z)
@@ -5066,7 +5114,7 @@ npy_cabsf(npy_cfloat z)
 }
 #endif
 
-#line 1741
+#line 1757
 #ifdef HAVE_CARGF
 npy_float
 npy_cargf(npy_cfloat z)
@@ -5078,7 +5126,7 @@ npy_cargf(npy_cfloat z)
 #endif
 
 
-#line 1758
+#line 1774
 #ifdef HAVE_CEXPF
 npy_cfloat
 npy_cexpf(npy_cfloat z)
@@ -5091,7 +5139,7 @@ npy_cexpf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CLOGF
 npy_cfloat
 npy_clogf(npy_cfloat z)
@@ -5104,7 +5152,7 @@ npy_clogf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CSQRTF
 npy_cfloat
 npy_csqrtf(npy_cfloat z)
@@ -5117,7 +5165,7 @@ npy_csqrtf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CCOSF
 npy_cfloat
 npy_ccosf(npy_cfloat z)
@@ -5130,7 +5178,7 @@ npy_ccosf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CSINF
 npy_cfloat
 npy_csinf(npy_cfloat z)
@@ -5143,7 +5191,7 @@ npy_csinf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CTANF
 npy_cfloat
 npy_ctanf(npy_cfloat z)
@@ -5156,7 +5204,7 @@ npy_ctanf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CCOSHF
 npy_cfloat
 npy_ccoshf(npy_cfloat z)
@@ -5169,7 +5217,7 @@ npy_ccoshf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CSINHF
 npy_cfloat
 npy_csinhf(npy_cfloat z)
@@ -5182,7 +5230,7 @@ npy_csinhf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CTANHF
 npy_cfloat
 npy_ctanhf(npy_cfloat z)
@@ -5195,7 +5243,7 @@ npy_ctanhf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CACOSF
 npy_cfloat
 npy_cacosf(npy_cfloat z)
@@ -5208,7 +5256,7 @@ npy_cacosf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CASINF
 npy_cfloat
 npy_casinf(npy_cfloat z)
@@ -5221,7 +5269,7 @@ npy_casinf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CATANF
 npy_cfloat
 npy_catanf(npy_cfloat z)
@@ -5234,7 +5282,7 @@ npy_catanf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CACOSHF
 npy_cfloat
 npy_cacoshf(npy_cfloat z)
@@ -5247,7 +5295,7 @@ npy_cacoshf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CASINHF
 npy_cfloat
 npy_casinhf(npy_cfloat z)
@@ -5260,7 +5308,7 @@ npy_casinhf(npy_cfloat z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CATANHF
 npy_cfloat
 npy_catanhf(npy_cfloat z)
@@ -5276,9 +5324,9 @@ npy_catanhf(npy_cfloat z)
 
 
 
-#line 1736
+#line 1752
 
-#line 1741
+#line 1757
 #ifdef HAVE_CABS
 npy_double
 npy_cabs(npy_cdouble z)
@@ -5289,7 +5337,7 @@ npy_cabs(npy_cdouble z)
 }
 #endif
 
-#line 1741
+#line 1757
 #ifdef HAVE_CARG
 npy_double
 npy_carg(npy_cdouble z)
@@ -5301,7 +5349,7 @@ npy_carg(npy_cdouble z)
 #endif
 
 
-#line 1758
+#line 1774
 #ifdef HAVE_CEXP
 npy_cdouble
 npy_cexp(npy_cdouble z)
@@ -5314,7 +5362,7 @@ npy_cexp(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CLOG
 npy_cdouble
 npy_clog(npy_cdouble z)
@@ -5327,7 +5375,7 @@ npy_clog(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CSQRT
 npy_cdouble
 npy_csqrt(npy_cdouble z)
@@ -5340,7 +5388,7 @@ npy_csqrt(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CCOS
 npy_cdouble
 npy_ccos(npy_cdouble z)
@@ -5353,7 +5401,7 @@ npy_ccos(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CSIN
 npy_cdouble
 npy_csin(npy_cdouble z)
@@ -5366,7 +5414,7 @@ npy_csin(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CTAN
 npy_cdouble
 npy_ctan(npy_cdouble z)
@@ -5379,7 +5427,7 @@ npy_ctan(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CCOSH
 npy_cdouble
 npy_ccosh(npy_cdouble z)
@@ -5392,7 +5440,7 @@ npy_ccosh(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CSINH
 npy_cdouble
 npy_csinh(npy_cdouble z)
@@ -5405,7 +5453,7 @@ npy_csinh(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CTANH
 npy_cdouble
 npy_ctanh(npy_cdouble z)
@@ -5418,7 +5466,7 @@ npy_ctanh(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CACOS
 npy_cdouble
 npy_cacos(npy_cdouble z)
@@ -5431,7 +5479,7 @@ npy_cacos(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CASIN
 npy_cdouble
 npy_casin(npy_cdouble z)
@@ -5444,7 +5492,7 @@ npy_casin(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CATAN
 npy_cdouble
 npy_catan(npy_cdouble z)
@@ -5457,7 +5505,7 @@ npy_catan(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CACOSH
 npy_cdouble
 npy_cacosh(npy_cdouble z)
@@ -5470,7 +5518,7 @@ npy_cacosh(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CASINH
 npy_cdouble
 npy_casinh(npy_cdouble z)
@@ -5483,7 +5531,7 @@ npy_casinh(npy_cdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CATANH
 npy_cdouble
 npy_catanh(npy_cdouble z)
@@ -5499,9 +5547,9 @@ npy_catanh(npy_cdouble z)
 
 
 
-#line 1736
+#line 1752
 
-#line 1741
+#line 1757
 #ifdef HAVE_CABSL
 npy_longdouble
 npy_cabsl(npy_clongdouble z)
@@ -5512,7 +5560,7 @@ npy_cabsl(npy_clongdouble z)
 }
 #endif
 
-#line 1741
+#line 1757
 #ifdef HAVE_CARGL
 npy_longdouble
 npy_cargl(npy_clongdouble z)
@@ -5524,7 +5572,7 @@ npy_cargl(npy_clongdouble z)
 #endif
 
 
-#line 1758
+#line 1774
 #ifdef HAVE_CEXPL
 npy_clongdouble
 npy_cexpl(npy_clongdouble z)
@@ -5537,7 +5585,7 @@ npy_cexpl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CLOGL
 npy_clongdouble
 npy_clogl(npy_clongdouble z)
@@ -5550,7 +5598,7 @@ npy_clogl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CSQRTL
 npy_clongdouble
 npy_csqrtl(npy_clongdouble z)
@@ -5563,7 +5611,7 @@ npy_csqrtl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CCOSL
 npy_clongdouble
 npy_ccosl(npy_clongdouble z)
@@ -5576,7 +5624,7 @@ npy_ccosl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CSINL
 npy_clongdouble
 npy_csinl(npy_clongdouble z)
@@ -5589,7 +5637,7 @@ npy_csinl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CTANL
 npy_clongdouble
 npy_ctanl(npy_clongdouble z)
@@ -5602,7 +5650,7 @@ npy_ctanl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CCOSHL
 npy_clongdouble
 npy_ccoshl(npy_clongdouble z)
@@ -5615,7 +5663,7 @@ npy_ccoshl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CSINHL
 npy_clongdouble
 npy_csinhl(npy_clongdouble z)
@@ -5628,7 +5676,7 @@ npy_csinhl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CTANHL
 npy_clongdouble
 npy_ctanhl(npy_clongdouble z)
@@ -5641,7 +5689,7 @@ npy_ctanhl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CACOSL
 npy_clongdouble
 npy_cacosl(npy_clongdouble z)
@@ -5654,7 +5702,7 @@ npy_cacosl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CASINL
 npy_clongdouble
 npy_casinl(npy_clongdouble z)
@@ -5667,7 +5715,7 @@ npy_casinl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CATANL
 npy_clongdouble
 npy_catanl(npy_clongdouble z)
@@ -5680,7 +5728,7 @@ npy_catanl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CACOSHL
 npy_clongdouble
 npy_cacoshl(npy_clongdouble z)
@@ -5693,7 +5741,7 @@ npy_cacoshl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CASINHL
 npy_clongdouble
 npy_casinhl(npy_clongdouble z)
@@ -5706,7 +5754,7 @@ npy_casinhl(npy_clongdouble z)
 }
 #endif
 
-#line 1758
+#line 1774
 #ifdef HAVE_CATANHL
 npy_clongdouble
 npy_catanhl(npy_clongdouble z)

@@ -396,10 +396,12 @@ namespace boost
             pois = gamma_p_derivative(T(k+1), d2, pol)
                * tgamma_delta_ratio(T(k + 1), T(0.5f))
                * delta / constants::root_two<T>();
+            BOOST_MATH_INSTRUMENT_VARIABLE(pois);
             // Starting beta term:
             xterm = x < y
                ? ibeta_derivative(T(k + 1), n / 2, x, pol)
                : ibeta_derivative(n / 2, T(k + 1), y, pol);
+            BOOST_MATH_INSTRUMENT_VARIABLE(xterm);
             T poisf(pois), xtermf(xterm);
             T sum = init_val;
             if((pois == 0) || (xterm == 0))
@@ -410,12 +412,16 @@ namespace boost
             // direction for recursion:
             //
             std::uintmax_t count = 0;
+            T old_ratio = 1;  // arbitrary "large" value
             for(auto i = k; i >= 0; --i)
             {
                T term = xterm * pois;
                sum += term;
-               if(((fabs(term/sum) < errtol) && (i != k)) || (term == 0))
+               BOOST_MATH_INSTRUMENT_VARIABLE(sum);
+               T ratio = fabs(term / sum);
+               if(((ratio < errtol) && (i != k) && (ratio < old_ratio)) || (term == 0))
                   break;
+               old_ratio = ratio;
                pois *= (i + 0.5f) / d2;
                xterm *= (i) / (x * (n / 2 + i));
                ++count;
@@ -426,6 +432,7 @@ namespace boost
                      "Series did not converge, closest value was %1%", sum, pol);
                }
             }
+            BOOST_MATH_INSTRUMENT_VARIABLE(sum);
             for(auto i = k + 1; ; ++i)
             {
                poisf *= d2 / (i + 0.5f);
@@ -442,6 +449,7 @@ namespace boost
                      "Series did not converge, closest value was %1%", sum, pol);
                }
             }
+            BOOST_MATH_INSTRUMENT_VARIABLE(sum);
             return sum;
          }
 
@@ -505,9 +513,12 @@ namespace boost
             // Calculate pdf:
             //
             T dt = n * t / (n * n + 2 * n * t * t + t * t * t * t);
+            BOOST_MATH_INSTRUMENT_VARIABLE(dt);
             T result = non_central_beta_pdf(a, b, d2, x, y, pol);
+            BOOST_MATH_INSTRUMENT_VARIABLE(result);
             T tol = tools::epsilon<T>() * result * 500;
             result = non_central_t2_pdf(n, delta, x, y, pol, result);
+            BOOST_MATH_INSTRUMENT_VARIABLE(result);
             if(result <= tol)
                result = 0;
             result *= dt;

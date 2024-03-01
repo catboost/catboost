@@ -27,8 +27,8 @@ target_link_options(catboost-private-libs-data_util-ut PRIVATE
   -ldl
 )
 target_sources(catboost-private-libs-data_util-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/data_util/ut/line_data_reader_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/data_util/ut/path_with_scheme_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/data_util/ut/line_data_reader_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/data_util/ut/path_with_scheme_ut.cpp
 )
 set_property(
   TARGET
@@ -62,6 +62,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-private-libs-data_util-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-private-libs-data_util-ut
   cpp-malloc-tcmalloc

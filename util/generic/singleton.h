@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/system/atexit.h>
+#include <util/system/compiler.h>
 
 #include <atomic>
 #include <new>
@@ -111,22 +112,22 @@ namespace NPrivate {
     friend T* ::NPrivate::SingletonBase(std::atomic<T*>&, TArgs&&...);
 
 template <class T, class... TArgs>
-T* Singleton(TArgs&&... args) {
+Y_RETURNS_NONNULL T* Singleton(TArgs&&... args) {
     return ::NPrivate::SingletonInt<T, TSingletonTraits<T>::Priority>(std::forward<TArgs>(args)...);
 }
 
 template <class T, class... TArgs>
-T* HugeSingleton(TArgs&&... args) {
+Y_RETURNS_NONNULL T* HugeSingleton(TArgs&&... args) {
     return Singleton<::NPrivate::THeapStore<T>>(std::forward<TArgs>(args)...)->D;
 }
 
 template <class T, size_t P, class... TArgs>
-T* SingletonWithPriority(TArgs&&... args) {
+Y_RETURNS_NONNULL T* SingletonWithPriority(TArgs&&... args) {
     return ::NPrivate::SingletonInt<T, P>(std::forward<TArgs>(args)...);
 }
 
 template <class T, size_t P, class... TArgs>
-T* HugeSingletonWithPriority(TArgs&&... args) {
+Y_RETURNS_NONNULL T* HugeSingletonWithPriority(TArgs&&... args) {
     return SingletonWithPriority<::NPrivate::THeapStore<T>, P>(std::forward<TArgs>(args)...)->D;
 }
 

@@ -40,6 +40,8 @@
 #include <cub/util_type.cuh>
 #include <cub/config.cuh>
 
+#include <nv/target>
+
 CUB_NAMESPACE_BEGIN
 
 
@@ -148,7 +150,38 @@ __device__ __forceinline__ OffsetT UpperBound(
 }
 
 
+#if defined(__CUDA_FP16_TYPES_EXIST__)
+template <
+    typename InputIteratorT,
+    typename OffsetT>
+__device__ __forceinline__ OffsetT UpperBound(
+    InputIteratorT      input,              ///< [in] Input sequence
+    OffsetT             num_items,          ///< [in] Input sequence length
+    __half              val)                ///< [in] Search key
+{
+    OffsetT retval = 0;
+    while (num_items > 0)
+    {
+        OffsetT half = num_items >> 1;
 
+        bool lt;
+        NV_IF_TARGET(NV_PROVIDES_SM_53,
+                     (lt = val < input[retval + half];),
+                     (lt = __half2float(val) < __half2float(input[retval + half]);));
 
+        if (lt)
+        {
+            num_items = half;
+        }
+        else
+        {
+            retval = retval + (half + 1);
+            num_items = num_items - (half + 1);
+        }
+    }
+
+    return retval;
+}
+#endif
 
 CUB_NAMESPACE_END

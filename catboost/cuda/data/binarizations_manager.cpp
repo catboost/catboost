@@ -99,7 +99,7 @@ namespace NCatboostCuda {
     }
 
     bool TBinarizedFeaturesManager::UseForOneHotEncoding(ui32 featureId) const {
-        auto uniqValuesOnLearn = GetUniqueValuesCounts(featureId).OnLearnOnly;
+        auto uniqValuesOnLearn = GetUniqueValuesCounts(featureId).OnAll; // match for OnAll in TBinarizationInfoProvider::GetFoldsCount
         return (uniqValuesOnLearn > 1) && (uniqValuesOnLearn <= CatFeatureOptions.OneHotMaxSize);
     }
 

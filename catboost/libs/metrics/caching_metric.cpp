@@ -345,8 +345,11 @@ double TMCCCachingMetric::GetFinalError(const TMetricHolder &error) const {
     return denominator != 0 ? numerator / denominator : 0.0;
 }
 
-void TMCCCachingMetric::GetBestValue(EMetricBestValue *valueType, float *) const {
+void TMCCCachingMetric::GetBestValue(EMetricBestValue *valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TMCCCachingMetric::ValidParamSets() {
@@ -430,8 +433,11 @@ double TZeroOneLossCachingMetric::GetFinalError(const TMetricHolder &error) cons
     return 1 - error.Stats[0] / error.Stats[1];
 }
 
-void TZeroOneLossCachingMetric::GetBestValue(EMetricBestValue *valueType, float *) const {
+void TZeroOneLossCachingMetric::GetBestValue(EMetricBestValue *valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TZeroOneLossCachingMetric::ValidParamSets() {
@@ -583,8 +589,11 @@ TMetricHolder TAccuracyCachingMetric::Eval(
     return error;
 }
 
-void TAccuracyCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TAccuracyCachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TString TAccuracyCachingMetric::GetDescription() const {
@@ -727,8 +736,11 @@ TMetricHolder THammingLossCachingMetric::Eval(
     return error;
 }
 
-void THammingLossCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void THammingLossCachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> THammingLossCachingMetric::ValidParamSets() {
@@ -887,8 +899,11 @@ double TRecallCachingMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1;
 }
 
-void TRecallCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TRecallCachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TRecallCachingMetric::ValidParamSets() {
@@ -1046,8 +1061,11 @@ double TPrecisionCachingMetric::GetFinalError(const TMetricHolder& error) const 
     }
 }
 
-void TPrecisionCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TPrecisionCachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TPrecisionCachingMetric::ValidParamSets() {
@@ -1215,8 +1233,11 @@ double TFCachingMetric::GetFinalError(const TMetricHolder& error) const {
     return precision + recall != 0 ? (1 + beta_square) * precision * recall / (beta_square * precision + recall) : 0.0;
 }
 
-void TFCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TFCachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TFCachingMetric::ValidParamSets() {
@@ -1412,8 +1433,11 @@ double TTotalF1CachingMetric::GetFinalError(const TMetricHolder& error) const {
     return numerator / denumerator;
 }
 
-void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TTotalF1CachingMetric::ValidParamSets() {
@@ -1505,8 +1529,11 @@ TString TKappaMetric::GetDescription() const {
                             MakePredictionBorderParam(PredictionBorder));
 }
 
-void TKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TKappaMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
@@ -1596,8 +1623,11 @@ TString TWKappaMetric::GetDescription() const {
                             MakePredictionBorderParam(PredictionBorder));
 }
 
-void TWKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TWKappaMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 double TWKappaMetric::GetFinalError(const TMetricHolder& error) const {

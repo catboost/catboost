@@ -149,3 +149,17 @@ def make_float_clamper(
         return max(min_float, min(max_float, float_val))
 
     return float_clamper
+
+
+def sign_aware_lte(x: float, y: float) -> bool:
+    """Less-than-or-equals, but strictly orders -0.0 and 0.0"""
+    if x == 0.0 == y:
+        return math.copysign(1.0, x) <= math.copysign(1.0, y)
+    else:
+        return x <= y
+
+
+SMALLEST_SUBNORMAL = next_up(0.0)
+SIGNALING_NAN = int_to_float(0x7FF8_0000_0000_0001)  # nonzero mantissa
+assert math.isnan(SIGNALING_NAN)
+assert math.copysign(1, SIGNALING_NAN) == 1

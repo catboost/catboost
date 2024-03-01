@@ -212,6 +212,31 @@ Available functions
 
         double ellipk(double)
 
+- :py:func:`~scipy.special.elliprc`::
+
+        double elliprc(double, double)
+        double complex elliprc(double complex, double complex)
+
+- :py:func:`~scipy.special.elliprd`::
+
+        double elliprd(double, double, double)
+        double complex elliprd(double complex, double complex, double complex)
+
+- :py:func:`~scipy.special.elliprf`::
+
+        double elliprf(double, double, double)
+        double complex elliprf(double complex, double complex, double complex)
+
+- :py:func:`~scipy.special.elliprg`::
+
+        double elliprg(double, double, double)
+        double complex elliprg(double complex, double complex, double complex)
+
+- :py:func:`~scipy.special.elliprj`::
+
+        double elliprj(double, double, double, double)
+        double complex elliprj(double complex, double complex, double complex, double complex)
+
 - :py:func:`~scipy.special.entr`::
 
         double entr(double)
@@ -628,6 +653,12 @@ Available functions
 
         double complex log1p(double complex)
         double log1p(double)
+
+- :py:func:`~scipy.special.log_expit`::
+
+        double log_expit(double)
+        float log_expit(float)
+        long double log_expit(long double)
 
 - :py:func:`~scipy.special.log_ndtr`::
 
@@ -1370,8 +1401,9 @@ cdef extern from "_ufuncs_defs.h":
     cdef npy_cdouble _func_chyp1f1_wrap "chyp1f1_wrap"(npy_double, npy_double, npy_cdouble)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_hyp2f1 "hyp2f1"(npy_double, npy_double, npy_double, npy_double)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_cdouble _func_chyp2f1_wrap "chyp2f1_wrap"(npy_double, npy_double, npy_double, npy_cdouble)nogil
+from ._hyp2f1 cimport hyp2f1_complex as _func_hyp2f1_complex
+ctypedef double complex _proto_hyp2f1_complex_t(double, double, double, double complex) nogil
+cdef _proto_hyp2f1_complex_t *_proto_hyp2f1_complex_t_var = &_func_hyp2f1_complex
 from ._hypergeometric cimport hyperu as _func_hyperu
 ctypedef double _proto_hyperu_t(double, double, double) nogil
 cdef _proto_hyperu_t *_proto_hyperu_t_var = &_func_hyperu
@@ -1965,6 +1997,66 @@ cpdef double ellipk(double x0) nogil:
     """See the documentation for scipy.special.ellipk"""
     return _func_ellipk(x0)
 
+cpdef Dd_number_t elliprc(Dd_number_t x0, Dd_number_t x1) nogil:
+    """See the documentation for scipy.special.elliprc"""
+    if Dd_number_t is double:
+        return (<double(*)(double, double) nogil>scipy.special._ufuncs_cxx._export_fellint_RC)(x0, x1)
+    elif Dd_number_t is double_complex:
+        return (<double complex(*)(double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RC)(x0, x1)
+    else:
+        if Dd_number_t is double_complex:
+            return NPY_NAN
+        else:
+            return NPY_NAN
+
+cpdef Dd_number_t elliprd(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
+    """See the documentation for scipy.special.elliprd"""
+    if Dd_number_t is double:
+        return (<double(*)(double, double, double) nogil>scipy.special._ufuncs_cxx._export_fellint_RD)(x0, x1, x2)
+    elif Dd_number_t is double_complex:
+        return (<double complex(*)(double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RD)(x0, x1, x2)
+    else:
+        if Dd_number_t is double_complex:
+            return NPY_NAN
+        else:
+            return NPY_NAN
+
+cpdef Dd_number_t elliprf(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
+    """See the documentation for scipy.special.elliprf"""
+    if Dd_number_t is double:
+        return (<double(*)(double, double, double) nogil>scipy.special._ufuncs_cxx._export_fellint_RF)(x0, x1, x2)
+    elif Dd_number_t is double_complex:
+        return (<double complex(*)(double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RF)(x0, x1, x2)
+    else:
+        if Dd_number_t is double_complex:
+            return NPY_NAN
+        else:
+            return NPY_NAN
+
+cpdef Dd_number_t elliprg(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
+    """See the documentation for scipy.special.elliprg"""
+    if Dd_number_t is double:
+        return (<double(*)(double, double, double) nogil>scipy.special._ufuncs_cxx._export_fellint_RG)(x0, x1, x2)
+    elif Dd_number_t is double_complex:
+        return (<double complex(*)(double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RG)(x0, x1, x2)
+    else:
+        if Dd_number_t is double_complex:
+            return NPY_NAN
+        else:
+            return NPY_NAN
+
+cpdef Dd_number_t elliprj(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2, Dd_number_t x3) nogil:
+    """See the documentation for scipy.special.elliprj"""
+    if Dd_number_t is double:
+        return (<double(*)(double, double, double, double) nogil>scipy.special._ufuncs_cxx._export_fellint_RJ)(x0, x1, x2, x3)
+    elif Dd_number_t is double_complex:
+        return (<double complex(*)(double complex, double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RJ)(x0, x1, x2, x3)
+    else:
+        if Dd_number_t is double_complex:
+            return NPY_NAN
+        else:
+            return NPY_NAN
+
 cpdef double entr(double x0) nogil:
     """See the documentation for scipy.special.entr"""
     return _func_entr(x0)
@@ -2433,7 +2525,7 @@ cpdef Dd_number_t hyp2f1(double x0, double x1, double x2, Dd_number_t x3) nogil:
     if Dd_number_t is double:
         return _func_hyp2f1(x0, x1, x2, x3)
     elif Dd_number_t is double_complex:
-        return _complexstuff.double_complex_from_npy_cdouble(_func_chyp2f1_wrap(x0, x1, x2, _complexstuff.npy_cdouble_from_double_complex(x3)))
+        return _func_hyp2f1_complex(x0, x1, x2, x3)
     else:
         if Dd_number_t is double_complex:
             return NPY_NAN
@@ -2693,6 +2785,22 @@ cpdef Dd_number_t log1p(Dd_number_t x0) nogil:
         return _func_log1p(x0)
     else:
         if Dd_number_t is double_complex:
+            return NPY_NAN
+        else:
+            return NPY_NAN
+
+cpdef dfg_number_t log_expit(dfg_number_t x0) nogil:
+    """See the documentation for scipy.special.log_expit"""
+    if dfg_number_t is double:
+        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_log_expit)(x0)
+    elif dfg_number_t is float:
+        return (<float(*)(float) nogil>scipy.special._ufuncs_cxx._export_log_expitf)(x0)
+    elif dfg_number_t is long_double:
+        return (<long double(*)(long double) nogil>scipy.special._ufuncs_cxx._export_log_expitl)(x0)
+    else:
+        if dfg_number_t is double:
+            return NPY_NAN
+        elif dfg_number_t is float:
             return NPY_NAN
         else:
             return NPY_NAN

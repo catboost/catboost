@@ -41,16 +41,19 @@ if __name__ == '__main__':
     # should parse includes, really
     p = subprocess.Popen(
         [args.tool, '-w', '-R', '-a', '-I' + os.path.dirname(args.input), '-T' + tmpdir],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+    )
     stdout, stderr = p.communicate(input=open(args.input).read())
     ret = p.wait()
 
     if ret:
-        print >>sys.stderr, 'f2c failed: %s, %s' % (stderr, ret)
+        print >> sys.stderr, 'f2c failed: %s, %s' % (stderr, ret)
         sys.exit(ret)
 
     if 'Error' in stderr:
-        print >>sys.stderr, stderr
+        print >> sys.stderr, stderr
 
     with open(args.output, 'w') as f:
         f.write(header)

@@ -8,3 +8,4 @@
 
 add_subdirectory(future)
 add_subdirectory(local_executor)
+add_subdirectory(poor_man_openmp)

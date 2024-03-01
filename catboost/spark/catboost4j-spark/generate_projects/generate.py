@@ -21,7 +21,7 @@ def generate_project(src_dir, substitution_dict, dst_dir):
 
 
 global_substitition_dict = {
-    'catboost_version_placeholder': '1.2.2',
+    'catboost_version_placeholder': '1.2.3',
     'relative_global_project_root_placeholder': '../..'
 }
 
@@ -52,6 +52,8 @@ configs = [
             'spark_version_placeholder': '2.3.0',
             'hadoop_version_placeholder': '2.7.3',
             'json4s_version_placeholder': '3.2.11',
+            'jackson_databind_version_placeholder': '2.6.7.5',
+            'jackson_module_scala_version_placeholder': '2.6.7.1',
             'netty_all_version_placeholer': '4.1.42.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
         }
@@ -66,6 +68,8 @@ configs = [
             'spark_version_placeholder': '2.4.0',
             'hadoop_version_placeholder': '2.7.3',
             'json4s_version_placeholder': '3.5.3',
+            'jackson_databind_version_placeholder': '2.6.7.5',
+            'jackson_module_scala_version_placeholder': '2.6.7.1',
             'netty_all_version_placeholer': '4.1.72.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
         }
@@ -80,6 +84,8 @@ configs = [
             'spark_version_placeholder': '2.4.1',
             'hadoop_version_placeholder': '2.7.3',
             'json4s_version_placeholder': '3.5.3',
+            'jackson_databind_version_placeholder': '2.6.7.5',
+            'jackson_module_scala_version_placeholder': '2.6.7.1',
             'netty_all_version_placeholer': '4.1.72.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
         }
@@ -94,6 +100,8 @@ configs = [
             'spark_version_placeholder': '3.0.1',
             'hadoop_version_placeholder': '2.7.3',
             'json4s_version_placeholder': '3.6.6',
+            'jackson_databind_version_placeholder': '2.10.5.1',
+            'jackson_module_scala_version_placeholder': '2.10.5',
             'netty_all_version_placeholer': '4.1.72.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
         }
@@ -108,6 +116,8 @@ configs = [
             'spark_version_placeholder': '3.1.0',
             'hadoop_version_placeholder': '3.2.0',
             'json4s_version_placeholder': '3.7.0-M5',
+            'jackson_databind_version_placeholder': '2.10.5.1',
+            'jackson_module_scala_version_placeholder': '2.10.5',
             'netty_all_version_placeholer': '4.1.72.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
         }
@@ -122,6 +132,8 @@ configs = [
             'spark_version_placeholder': '3.2.0',
             'hadoop_version_placeholder': '3.3.1',
             'json4s_version_placeholder': '3.7.0-M11',
+            'jackson_databind_version_placeholder': '2.12.7.1',
+            'jackson_module_scala_version_placeholder': '2.12.7',
             'netty_all_version_placeholer': '4.1.72.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
         }
@@ -136,6 +148,8 @@ configs = [
             'spark_version_placeholder': '3.2.0',
             'hadoop_version_placeholder': '3.3.1',
             'json4s_version_placeholder': '3.7.0-M11',
+            'jackson_databind_version_placeholder': '2.12.7.1',
+            'jackson_module_scala_version_placeholder': '2.12.7',
             'netty_all_version_placeholer': '4.1.72.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
         }
@@ -150,6 +164,8 @@ configs = [
             'spark_version_placeholder': '3.3.0',
             'hadoop_version_placeholder': '3.3.2',
             'json4s_version_placeholder': '3.7.0-M11',
+            'jackson_databind_version_placeholder': '2.13.5',
+            'jackson_module_scala_version_placeholder': '2.13.5',
             'netty_all_version_placeholer': '4.1.74.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
         }
@@ -164,6 +180,8 @@ configs = [
             'spark_version_placeholder': '3.3.0',
             'hadoop_version_placeholder': '3.3.2',
             'json4s_version_placeholder': '3.7.0-M11',
+            'jackson_databind_version_placeholder': '2.13.5',
+            'jackson_module_scala_version_placeholder': '2.13.5',
             'netty_all_version_placeholer': '4.1.74.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
         }
@@ -178,6 +196,8 @@ configs = [
             'spark_version_placeholder': '3.4.0',
             'hadoop_version_placeholder': '3.3.4',
             'json4s_version_placeholder': '3.7.0-M11',
+            'jackson_databind_version_placeholder': '2.14.2',
+            'jackson_module_scala_version_placeholder': '2.14.2',
             'netty_all_version_placeholer': '4.1.87.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
         }
@@ -192,6 +212,8 @@ configs = [
             'spark_version_placeholder': '3.4.0',
             'hadoop_version_placeholder': '3.3.4',
             'json4s_version_placeholder': '3.7.0-M11',
+            'jackson_databind_version_placeholder': '2.14.2',
+            'jackson_module_scala_version_placeholder': '2.14.2',
             'netty_all_version_placeholer': '4.1.87.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
         }
@@ -206,6 +228,8 @@ configs = [
             'spark_version_placeholder': '3.5.0',
             'hadoop_version_placeholder': '3.3.4',
             'json4s_version_placeholder': '3.7.0-M11',
+            'jackson_databind_version_placeholder': '2.15.2',
+            'jackson_module_scala_version_placeholder': '2.15.2',
             'netty_all_version_placeholer': '4.1.96.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_pre_2_13
         }
@@ -220,6 +244,8 @@ configs = [
             'spark_version_placeholder': '3.5.0',
             'hadoop_version_placeholder': '3.3.4',
             'json4s_version_placeholder': '3.7.0-M11',
+            'jackson_databind_version_placeholder': '2.15.2',
+            'jackson_module_scala_version_placeholder': '2.15.2',
             'netty_all_version_placeholer': '4.1.96.Final',
             'scala_maven_plugin_configuration_placeholder': scala_maven_plugin_configuration_scala_2_13
         }

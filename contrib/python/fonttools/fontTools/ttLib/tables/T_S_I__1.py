@@ -4,13 +4,13 @@ tool to store its hinting source data.
 TSI1 contains the text of the glyph programs in the form of low-level assembly
 code, as well as the 'extra' programs 'fpgm', 'ppgm' (i.e. 'prep'), and 'cvt'.
 """
+
 from . import DefaultTable
 from fontTools.misc.loggingTools import LogMixin
 from fontTools.misc.textTools import strjoin, tobytes, tostr
 
 
 class table_T_S_I__1(LogMixin, DefaultTable.DefaultTable):
-
     extras = {0xFFFA: "ppgm", 0xFFFB: "cvt", 0xFFFC: "reserved", 0xFFFD: "fpgm"}
 
     indextable = "TSI0"

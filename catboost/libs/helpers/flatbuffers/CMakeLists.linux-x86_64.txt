@@ -21,13 +21,16 @@ target_link_libraries(libs-helpers-flatbuffers PUBLIC
   contrib-libs-flatbuffers
 )
 target_sources(libs-helpers-flatbuffers PRIVATE
-  ${CMAKE_BINARY_DIR}/catboost/libs/helpers/flatbuffers/guid.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/helpers/flatbuffers/guid.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/libs/helpers/flatbuffers/guid.iter.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/libs/helpers/flatbuffers/guid.bfbs
+  ${PROJECT_BINARY_DIR}/catboost/libs/helpers/flatbuffers/guid.fbs.cpp
 )
 target_fbs_source(libs-helpers-flatbuffers
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/flatbuffers/guid.fbs
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/flatbuffers/guid.fbs
   -I
-  ${CMAKE_BINARY_DIR}
+  ${PROJECT_BINARY_DIR}
   -I
-  ${CMAKE_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}
 )

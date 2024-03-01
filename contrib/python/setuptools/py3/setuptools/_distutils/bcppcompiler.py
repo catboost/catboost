@@ -24,7 +24,7 @@ from .errors import (
 )
 from .ccompiler import CCompiler, gen_preprocess_options
 from .file_util import write_file
-from .dep_util import newer
+from ._modified import newer
 from ._log import log
 
 

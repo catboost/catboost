@@ -135,7 +135,7 @@ namespace NCB {
             }
         }
 
-        ERawTargetType GetTargetType() const;
+        ERawTargetType GetTargetType() const noexcept;
 
         // use external result buffers to allow to write result to external data structures like numpy.ndarray
         void GetNumericTarget(TArrayRef<TArrayRef<float>> dst) const;
@@ -162,19 +162,19 @@ namespace NCB {
         }
 
         // can return empty array
-        TMaybeData<TBaselineArrayRef> GetBaseline() const {  // [approxIdx][objectIdx]
+        TMaybeData<TBaselineArrayRef> GetBaseline() const noexcept {  // [approxIdx][objectIdx]
             return !BaselineView.empty() ? TMaybeData<TBaselineArrayRef>(BaselineView) : Nothing();
         }
 
-        const TWeights<float>& GetWeights() const { // [objectIdx]
+        const TWeights<float>& GetWeights() const noexcept { // [objectIdx]
             return Data.Weights;
         }
 
-        const TWeights<float>& GetGroupWeights() const { // [objectIdx]
+        const TWeights<float>& GetGroupWeights() const noexcept { // [objectIdx]
             return Data.GroupWeights;
         }
 
-        const TMaybeData<TRawPairsData>& GetPairs() const {
+        const TMaybeData<TRawPairsData>& GetPairs() const noexcept {
             return Data.Pairs;
         }
 

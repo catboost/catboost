@@ -72,19 +72,25 @@ def asdict(
                 )
             elif isinstance(v, (tuple, list, set, frozenset)):
                 cf = v.__class__ if retain_collection_types is True else list
-                rv[a.name] = cf(
-                    [
-                        _asdict_anything(
-                            i,
-                            is_key=False,
-                            filter=filter,
-                            dict_factory=dict_factory,
-                            retain_collection_types=retain_collection_types,
-                            value_serializer=value_serializer,
-                        )
-                        for i in v
-                    ]
-                )
+                items = [
+                    _asdict_anything(
+                        i,
+                        is_key=False,
+                        filter=filter,
+                        dict_factory=dict_factory,
+                        retain_collection_types=retain_collection_types,
+                        value_serializer=value_serializer,
+                    )
+                    for i in v
+                ]
+                try:
+                    rv[a.name] = cf(items)
+                except TypeError:
+                    if not issubclass(cf, tuple):
+                        raise
+                    # Workaround for TypeError: cf.__new__() missing 1 required
+                    # positional argument (which appears, for a namedturle)
+                    rv[a.name] = cf(*items)
             elif isinstance(v, dict):
                 df = dict_factory
                 rv[a.name] = df(
@@ -241,22 +247,26 @@ def astuple(
                 )
             elif isinstance(v, (tuple, list, set, frozenset)):
                 cf = v.__class__ if retain is True else list
-                rv.append(
-                    cf(
-                        [
-                            astuple(
-                                j,
-                                recurse=True,
-                                filter=filter,
-                                tuple_factory=tuple_factory,
-                                retain_collection_types=retain,
-                            )
-                            if has(j.__class__)
-                            else j
-                            for j in v
-                        ]
+                items = [
+                    astuple(
+                        j,
+                        recurse=True,
+                        filter=filter,
+                        tuple_factory=tuple_factory,
+                        retain_collection_types=retain,
                     )
-                )
+                    if has(j.__class__)
+                    else j
+                    for j in v
+                ]
+                try:
+                    rv.append(cf(items))
+                except TypeError:
+                    if not issubclass(cf, tuple):
+                        raise
+                    # Workaround for TypeError: cf.__new__() missing 1 required
+                    # positional argument (which appears, for a namedturle)
+                    rv.append(cf(*items))
             elif isinstance(v, dict):
                 df = v.__class__ if retain is True else dict
                 rv.append(
@@ -344,9 +354,8 @@ def assoc(inst, **changes):
     for k, v in changes.items():
         a = getattr(attrs, k, NOTHING)
         if a is NOTHING:
-            raise AttrsAttributeNotFoundError(
-                f"{k} is not an attrs attribute on {new.__class__}."
-            )
+            msg = f"{k} is not an attrs attribute on {new.__class__}."
+            raise AttrsAttributeNotFoundError(msg)
         _obj_setattr(new, k, v)
     return new
 
@@ -379,17 +388,14 @@ def evolve(*args, **changes):
         try:
             (inst,) = args
         except ValueError:
-            raise TypeError(
-                f"evolve() takes 1 positional argument, but {len(args)} "
-                "were given"
-            ) from None
+            msg = f"evolve() takes 1 positional argument, but {len(args)} were given"
+            raise TypeError(msg) from None
     else:
         try:
             inst = changes.pop("inst")
         except KeyError:
-            raise TypeError(
-                "evolve() missing 1 required positional argument: 'inst'"
-            ) from None
+            msg = "evolve() missing 1 required positional argument: 'inst'"
+            raise TypeError(msg) from None
 
         import warnings
 

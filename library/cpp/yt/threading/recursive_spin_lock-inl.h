@@ -30,7 +30,10 @@ inline bool TRecursiveSpinLock::TryAcquire() noexcept
         return false;
     }
     auto newValue = (oldRecursionDepth + 1) | (static_cast<TValue>(currentThreadId) << ThreadIdShift);
-    return Value_.compare_exchange_weak(oldValue, newValue);
+
+    bool acquired = Value_.compare_exchange_weak(oldValue, newValue);
+    NDetail::RecordSpinLockAcquired(acquired);
+    return acquired;
 }
 
 inline void TRecursiveSpinLock::Release() noexcept
@@ -41,6 +44,7 @@ inline void TRecursiveSpinLock::Release() noexcept
     YT_ASSERT((value >> ThreadIdShift) == GetSequentialThreadId());
 #endif
     --Value_;
+    NDetail::RecordSpinLockReleased();
 }
 
 inline bool TRecursiveSpinLock::IsLocked() const noexcept

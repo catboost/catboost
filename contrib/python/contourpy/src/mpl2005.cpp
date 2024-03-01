@@ -48,8 +48,8 @@ Mpl2005ContourGenerator::~Mpl2005ContourGenerator()
 
 py::tuple Mpl2005ContourGenerator::filled(const double& lower_level, const double& upper_level)
 {
-    if (lower_level > upper_level)
-        throw std::invalid_argument("upper and lower levels are the wrong way round");
+    if (lower_level >= upper_level)
+        throw std::invalid_argument("upper_level must be larger than lower_level");
 
     double levels[2] = {lower_level, upper_level};
     return cntr_trace(_site, levels, 2);

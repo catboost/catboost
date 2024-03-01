@@ -311,9 +311,6 @@ static void CalcCrossEntropyDerRangeImpl(
     TExpForwardView</*Capacity*/16> expApproxes(MakeArrayRef(approxes + start, count));
     TExpForwardView</*Capacity*/16> expApproxDeltas(MakeArrayRef(approxDeltas + start, count));
     Y_ASSERT(HasDelta == (approxDeltas != nullptr));
-#if defined(NDEBUG) && !defined(address_sanitizer_enabled) && !defined(CLANG_COVERAGE)
-#pragma clang loop vectorize_width(4) interleave_count(2)
-#endif
     for (int i = start; i < start + count; ++i) {
         double e;
         if (UseExpApprox) {

@@ -31,16 +31,16 @@ target_link_options(cuda_util PRIVATE
   -lcudart_static
 )
 target_sources(cuda_util PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_compression_gpu.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_fill.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_reduce.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_reorder_and_partition.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_scan.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_segmented_scan.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_segmented_sort.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_sort.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_transform.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_compression_gpu.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_fill.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_reduce.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_reorder_and_partition.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_scan.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_segmented_scan.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_segmented_sort.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_sort.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_transform.cpp
 )
 target_allocator(cuda_util
   cpp-malloc-tcmalloc

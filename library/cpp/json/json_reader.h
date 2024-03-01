@@ -15,10 +15,13 @@ namespace NJson {
     struct TJsonReaderConfig {
         TJsonReaderConfig();
 
+        bool UseIterativeParser = false;
         // js-style comments (both // and /**/)
         bool AllowComments = false;
         bool DontValidateUtf8 = false;
         bool AllowEscapedApostrophe = false;
+
+        ui64 MaxDepth = 0;
 
         void SetBufferSize(size_t bufferSize);
         size_t GetBufferSize() const;
@@ -45,19 +48,10 @@ namespace NJson {
     bool ReadJson(IInputStream* in, const TJsonReaderConfig* config, TJsonCallbacks* callbacks);
 
     enum ReaderConfigFlags {
-        COMMENTS = 0b100,
-        VALIDATE = 0b010,
-        ESCAPE = 0b001,
-    };
-
-    enum ReaderConfigToRapidJsonFlags {
-        COMMENTS_NOVALID_NOESCAPE = 0b100,
-        COMMENTS_VALID_NOESCAPE = 0b110,
-        COMMENTS_VALID_ESCAPE = 0b111,
-        COMMENTS_NOVALID_ESCAPE = 0b101,
-        NOCOMMENTS_VALID_NOESCAPE = 0b010,
-        NOCOMMENTS_VALID_ESCAPE = 0b011,
-        NOCOMMENTS_NOVALID_ESCAPE = 0b001,
+        ITERATIVE = 0b1000,
+        COMMENTS = 0b0100,
+        VALIDATE = 0b0010,
+        ESCAPE = 0b0001,
     };
 
     inline bool ValidateJson(IInputStream* in, const TJsonReaderConfig* config, bool throwOnError = false) {

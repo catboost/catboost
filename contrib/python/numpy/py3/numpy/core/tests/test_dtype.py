@@ -7,6 +7,7 @@ import types
 from typing import Any
 
 import numpy as np
+import numpy.dtypes
 from numpy.core._rational_tests import rational
 from numpy.core._multiarray_tests import create_custom_field_dtype
 from numpy.testing import (
@@ -194,6 +195,34 @@ class TestBuiltin:
         assert_equal(x == y, False)
         # This is an safe cast (not equiv) due to the different names:
         assert np.can_cast(x, y, casting="safe")
+
+    @pytest.mark.parametrize(
+        ["type_char", "char_size", "scalar_type"],
+        [["U", 4, np.str_],
+         ["S", 1, np.bytes_]])
+    def test_create_string_dtypes_directly(
+            self, type_char, char_size, scalar_type):
+        dtype_class = type(np.dtype(type_char))
+
+        dtype = dtype_class(8)
+        assert dtype.type is scalar_type
+        assert dtype.itemsize == 8*char_size
+
+    def test_create_invalid_string_errors(self):
+        one_too_big = np.iinfo(np.intc).max + 1
+        with pytest.raises(TypeError):
+            type(np.dtype("U"))(one_too_big // 4)
+
+        with pytest.raises(TypeError):
+            # Code coverage for very large numbers:
+            type(np.dtype("U"))(np.iinfo(np.intp).max // 4 + 1)
+
+        if one_too_big < sys.maxsize:
+            with pytest.raises(TypeError):
+                type(np.dtype("S"))(one_too_big)
+
+        with pytest.raises(ValueError):
+            type(np.dtype("U"))(-1)
 
 
 class TestRecord:
@@ -523,6 +552,14 @@ class TestRecord:
         assert_equal(np.zeros((1, 2), dtype=[]) == a,
                      np.ones((1, 2), dtype=bool))
 
+    def test_nonstructured_with_object(self):
+        # See gh-23277, the dtype here thinks it contain objects, if the
+        # assert about that fails, the test becomes meaningless (which is OK)
+        arr = np.recarray((0,), dtype="O") 
+        assert arr.dtype.names is None  # no fields
+        assert arr.dtype.hasobject  # but claims to contain objects
+        del arr  # the deletion failed previously.
+
 
 class TestSubarray:
     def test_single_subarray(self):
@@ -719,6 +756,11 @@ def iter_struct_object_dtypes():
     yield pytest.param(dt, p, 12, obj, id="<structured subarray 2>")
 
 
+@pytest.mark.skipif(
+    sys.version_info >= (3, 12),
+    reason="Python 3.12 has immortal refcounts, this test will no longer "
+           "work. See gh-23986"
+)
 @pytest.mark.skipif(not HAS_REFCOUNT, reason="Python lacks refcounts")
 class TestStructuredObjectRefcounting:
     """These tests cover various uses of complicated structured types which
@@ -1527,8 +1569,21 @@ class TestDTypeClasses:
         dtype = np.dtype(dtype)
         assert isinstance(dtype, np.dtype)
         assert type(dtype) is not np.dtype
-        assert type(dtype).__name__ == f"dtype[{dtype.type.__name__}]"
-        assert type(dtype).__module__ == "numpy"
+        if dtype.type.__name__ != "rational":
+            dt_name = type(dtype).__name__.lower().removesuffix("dtype")
+            if dt_name == "uint" or dt_name == "int":
+                # The scalar names has a `c` attached because "int" is Python
+                # int and that is long...
+                dt_name += "c"
+            sc_name = dtype.type.__name__
+            assert dt_name == sc_name.strip("_")
+            assert type(dtype).__module__ == "numpy.dtypes"
+
+            assert getattr(numpy.dtypes, type(dtype).__name__) is type(dtype)
+        else:
+            assert type(dtype).__name__ == "dtype[rational]"
+            assert type(dtype).__module__ == "numpy"
+
         assert not type(dtype)._abstract
 
         # the flexible dtypes and datetime/timedelta have additional parameters
@@ -1550,6 +1605,32 @@ class TestDTypeClasses:
         assert type(np.dtype).__name__ == "_DTypeMeta"
         assert type(np.dtype).__module__ == "numpy"
         assert np.dtype._abstract
+
+    def test_is_numeric(self):
+        all_codes = set(np.typecodes['All'])
+        numeric_codes = set(np.typecodes['AllInteger'] +
+                            np.typecodes['AllFloat'] + '?')
+        non_numeric_codes = all_codes - numeric_codes
+
+        for code in numeric_codes:
+            assert type(np.dtype(code))._is_numeric
+
+        for code in non_numeric_codes:
+            assert not type(np.dtype(code))._is_numeric
+
+    @pytest.mark.parametrize("int_", ["UInt", "Int"])
+    @pytest.mark.parametrize("size", [8, 16, 32, 64])
+    def test_integer_alias_names(self, int_, size):
+        DType = getattr(numpy.dtypes, f"{int_}{size}DType")
+        sctype = getattr(numpy, f"{int_.lower()}{size}")
+        assert DType.type is sctype
+        assert DType.__name__.lower().removesuffix("dtype") == sctype.__name__
+
+    @pytest.mark.parametrize("name",
+            ["Half", "Float", "Double", "CFloat", "CDouble"])
+    def test_float_alias_names(self, name):
+        with pytest.raises(AttributeError):
+            getattr(numpy.dtypes, name + "DType") is numpy.dtypes.Float16DType
 
 
 class TestFromCTypes:
@@ -1785,7 +1866,6 @@ class TestUserDType:
             create_custom_field_dtype(blueprint, mytype, 2)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="Requires python 3.9")
 class TestClassGetItem:
     def test_dtype(self) -> None:
         alias = np.dtype[Any]
@@ -1820,8 +1900,7 @@ def test_result_type_integers_and_unitless_timedelta64():
     assert_dtype_equal(result, td.dtype)
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 9), reason="Requires python 3.8")
-def test_class_getitem_38() -> None:
-    match = "Type subscription requires python >= 3.9"
-    with pytest.raises(TypeError, match=match):
-        np.dtype[Any]
+def test_creating_dtype_with_dtype_class_errors():
+    # Regression test for #25031, calling `np.dtype` with itself segfaulted.
+    with pytest.raises(TypeError, match="Cannot convert np.dtype into a"):
+        np.array(np.ones(10), dtype=np.dtype)

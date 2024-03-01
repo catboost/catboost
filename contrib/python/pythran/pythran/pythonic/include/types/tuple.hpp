@@ -812,7 +812,7 @@ struct __combined<container<t>, std::tuple<t0...>> {
 PYTHONIC_NS_BEGIN
 namespace details
 {
-  template <class T, class P, bool Same>
+  template <class T, class P, bool Combine>
   struct pick_combined;
   template <class T, class P>
   struct pick_combined<T, P, true> {
@@ -820,7 +820,7 @@ namespace details
   };
   template <class T, class P>
   struct pick_combined<T, P, false> {
-    using type = P;
+    using type = T;
   };
 } // namespace details
 PYTHONIC_NS_END
@@ -831,7 +831,7 @@ struct __combined<std::tuple<t0...>,
   using holder = std::tuple<t0...>;
   template <size_t... Is>
   static std::tuple<typename pythonic::details::pick_combined<
-      t, typename std::tuple_element<Is, holder>::type, I == Is>::type...>
+      typename std::tuple_element<Is, holder>::type, t, I == Is>::type...>
       make_type(pythonic::utils::index_sequence<Is...>);
   static auto make_type() -> decltype(make_type(
       pythonic::utils::make_index_sequence<sizeof...(t0)>()));
