@@ -181,35 +181,7 @@ namespace NKernel {
         }
     };
 
-
-
-
-    template <int BLOCK_SIZE>
-    __forceinline__ __device__  float ComputeSum(const float* buffer, ui32 count) {
-        float sum = 0.f;
-        const ui32 tid = threadIdx.x;
-        // manually unroll inner loop instead of using #pragma unroll 16
-        // because nvcc 11.4+ refuses to perform that kind of loop unrolling
-        ui32 i = tid;
-        const int ITERS = 16;
-        for (; i + (ITERS - 1) * BLOCK_SIZE < count;) {
-#pragma unroll
-            for (int iter = 0; iter < ITERS; ++iter, i += BLOCK_SIZE) {
-                sum += __ldg(buffer + i);
-            }
-        }
-        for (; i < count; i += BLOCK_SIZE) {
-            sum += __ldg(buffer + i);
-        }
-
-        return sum;
-    };
-
-
-
-
-
-// converts block indices in matrix to linear part index
+    // converts block indices in matrix to linear part index
     __forceinline__ __device__ int ConvertBlockToPart(int x, int y) {
         int partNo = 0;
         partNo |= (x & 1) | ((y & 1) << 1);
