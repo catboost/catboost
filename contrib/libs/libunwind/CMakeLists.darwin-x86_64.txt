@@ -12,10 +12,10 @@ target_compile_options(contrib-libs-libunwind PUBLIC
   -D_libunwind_
 )
 target_compile_options(contrib-libs-libunwind PRIVATE
-  -D_LIBUNWIND_IS_NATIVE_ONLY
   -fno-exceptions
   -fno-rtti
   -funwind-tables
+  -D_LIBUNWIND_IS_NATIVE_ONLY
 )
 target_include_directories(contrib-libs-libunwind PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/include
