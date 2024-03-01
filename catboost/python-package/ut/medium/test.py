@@ -2414,6 +2414,19 @@ def test_staged_predict(task_type):
     return local_canonical_file(preds_path)
 
 
+@pytest.mark.parametrize('eval_period', [-2, 0], ids=['eval_period=-2', 'eval_period=0'])
+def test_staged_predict_with_bad_params(task_type, eval_period):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
+    model.fit(train_pool)
+    preds = []
+
+    with pytest.raises(CatBoostError):
+        for pred in model.staged_predict(test_pool, eval_period=eval_period):
+            preds.append(pred)
+
+
 @pytest.mark.parametrize('problem', ['Classifier', 'Regressor'])
 def test_staged_predict_and_predict_proba_on_single_object(problem):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)

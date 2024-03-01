@@ -5830,6 +5830,8 @@ cdef class _StagedPredictIterator:
     cdef bool_t verbose
 
     def __cinit__(self, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
+        if eval_period < 1:
+            raise CatBoostError('eval_period for staged_predict must be >= 1')
         self.predictionType = string_to_prediction_type(prediction_type)
         self.ntree_start = ntree_start
         self.ntree_end = ntree_end
