@@ -37,6 +37,7 @@
 * \[Python-package\]: Fix ignored exceptions for missed metrics descriptions on startup. This has not been visible to users but has been making debugging more difficult.
 * \[Python-package\]: Fix misleading `Targets are required for YetiRank loss function.` error in Cross validation. #2083
 * \[Python-package\]: Fix `Pool.get_label()` returns constant `True` for boolean labels. #2133
+* \[Python-package\]: Copying models does not lose `best_score_`, `evals_result_`, `best_iteration_` attributes values anymore. #1793
 * \[Spark\]: Fix hangs at the end of the training. #2151
 * `Precision` metric default value in the absense of positive samples is changed to 0 and a warning is added
  (similar to the behavior of `scikit-learn` implementation). #2422
