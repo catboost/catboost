@@ -16,8 +16,8 @@
 To install the released {{ r-package }} binary with GPU support:
 1. Run the following commands:
     ```
-    install.packages('devtools')
-    devtools::install_url('BINARY_URL'[, INSTALL_opts = c("--no-multiarch", "--no-test-load")])
+    install.packages('remotes')
+    remotes::install_url('BINARY_URL'[, INSTALL_opts = c("--no-multiarch", "--no-test-load")])
     ```
 
     - `BINARY_URL` is the URL of the released binary.
@@ -29,8 +29,8 @@ To install the released {{ r-package }} binary with GPU support:
 
     For example, use the following code to install the Windows' version {{ release-version }} of the R binary with multiarch support:
     ```
-    install.packages('devtools')
-    devtools::install_url('https://github.com/catboost/catboost/releases/download/v{{ release-version }}/catboost-R-Windows-{{ release-version }}.tgz', INSTALL_opts = c("--no-multiarch", "--no-test-load"))
+    install.packages('remotes')
+    remotes::install_url('https://github.com/catboost/catboost/releases/download/v{{ release-version }}/catboost-R-Windows-{{ release-version }}.tgz', INSTALL_opts = c("--no-multiarch", "--no-test-load"))
     ```
 
     {% note warning %}
@@ -39,8 +39,8 @@ To install the released {{ r-package }} binary with GPU support:
 
     To install another version, let's say 0.16.5, change the code to the following:
     ```
-    install.packages('devtools')
-    devtools::install_url('https://github.com/catboost/catboost/releases/download/v0.16.5/catboost-R-Windows-0.16.5.tgz', INSTALL_opts = c("--no-multiarch", "--no-test-load"))
+    install.packages('remotes')
+    remotes::install_url('https://github.com/catboost/catboost/releases/download/v0.16.5/catboost-R-Windows-0.16.5.tgz', INSTALL_opts = c("--no-multiarch", "--no-test-load"))
     ```
 
     {% endnote %}
