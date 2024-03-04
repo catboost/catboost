@@ -311,7 +311,6 @@ namespace NCatboostCuda {
             THolder<TLearnProgress>* dstLearnProgress) const override {
 
             Y_UNUSED(objectiveDescriptor);
-            // Y_UNUSED(evalMetricDescriptor);
             Y_UNUSED(rand);
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
             CB_ENSURE(!precomputedSingleOnlineCtrDataForSingleFold,
