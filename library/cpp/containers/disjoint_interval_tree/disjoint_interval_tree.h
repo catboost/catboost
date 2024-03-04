@@ -132,7 +132,7 @@ public:
         }
 
         TIterator completelyRemoveEnd = completelyRemoveBegin != Tree.end() ? Tree.lower_bound(end) : Tree.end();
-        if (completelyRemoveEnd != Tree.end() && completelyRemoveEnd != Tree.begin() && completelyRemoveEnd->first != end) {
+        if (completelyRemoveEnd != Tree.begin() && (completelyRemoveEnd == Tree.end() || completelyRemoveEnd->first != end)) {
             TIterator containingEnd = completelyRemoveEnd;
             --containingEnd;
             if (containingEnd->second > end) {

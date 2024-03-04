@@ -232,6 +232,18 @@ Y_UNIT_TEST_SUITE(DisjointIntervalTreeTest) {
             UNIT_ASSERT_VALUES_EQUAL(tree.GetNumIntervals(), 2);
             UNIT_ASSERT_VALUES_EQUAL(tree.GetNumElements(), 8);
         }
+
+        // 12. The only one interval
+        {
+            TDisjointIntervalTree<ui64> tree;
+            tree.InsertInterval(1, 10);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumIntervals(), 1);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumElements(), 9);
+            UNIT_ASSERT_VALUES_EQUAL(tree.EraseInterval(0, 6), 5);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumIntervals(), 1);
+            UNIT_ASSERT_VALUES_EQUAL(tree.GetNumElements(), 4);
+            UNIT_ASSERT(tree.Intersects(5, 10));
+        }
     }
 
     Y_UNIT_TEST(IntersectsTest) {
