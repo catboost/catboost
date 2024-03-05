@@ -286,6 +286,19 @@ $\displaystyle\text{median}(|t_{1} - a_{1}|, ..., |t_{i} - a_{N}|)$
 
 No.
 
+### {{ error-function__Cox }} {#Cox}
+
+$\displaystyle\sum\limits_{t_{i} > 0}\left( a_{i} - \log\sum\limits_{t_{j} \ge t_{i}} \exp(a_{j})\right)$
+
+Above, positive labels $t_{i} > 0$ mean occurence of the event.
+
+**{{ optimization }}**  See [more](#usage-information).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+No.
+
+
 ## {{ title__loss-functions__text__optimization }} {#usage-information}
 
 | Name                                                            | Optimization            | GPU Support             |
@@ -303,6 +316,7 @@ No.
 [{{ error-function__Expectile }}](#Expectile)                     |     +                   |     +                   |
 [{{ error-function__Tweedie }}](#Tweedie)                         |     +                   |     +                   |
 [{{ error-function__LogCosh }}](#LogCosh)                         |     +                   |     -                   |
+[{{ error-function__Cox }}](#Cox)                                 |     +                   |     -                   |
 [{{ error-function__FairLoss }}](#FairLoss)                       |     -                   |     -                   |
 [{{ error-function__NumErrors }}](#NumErrors)                     |     -                   |     +                   |
 [{{ error-function__SMAPE }}](#SMAPE)                             |     -                   |     -                   |

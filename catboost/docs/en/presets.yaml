@@ -238,6 +238,7 @@ default:
   error-function__MedianAbsoluteError: MedianAbsoluteError
   error-function__BalancedAccuracy: BalancedAccuracy
   error-function__BalancedErrorRate: BalancedErrorRate
+  error-function__Cox: Cox
   error-function__SMAPE: SMAPE
   error-function__CtrFactor: CtrFactor
   error-function--AUC: AUC
