@@ -7,7 +7,7 @@
 
 ### {{ error-function--MAE }} {#MAE}
 
-$\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i}}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i}}$
 
 **{{ optimization }}** See [more](#usage-information).
 
@@ -17,7 +17,7 @@ $\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i
 
 ### {{ error-function--MAPE }} {#MAPE}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \displaystyle\frac{|a_{i}- t_{i}|}{Max(1, |t_{i}|)}}{\sum\limits_{i=1}^{N}w_{i}}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \displaystyle\frac{|a_{i}- t_{i}|}{\max(1, |t_{i}|)}}{\sum\limits_{i=1}^{N}w_{i}}$
 
 **{{ optimization }}** See [more](#usage-information).
 
@@ -135,7 +135,7 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 ### {{ error-function__Huber }} {#Huber}
 
-$L(t, a) = \sum\limits_{i=0}^N l(t_i, a_i) \cdot w_{i} { , where}$
+$L(t, a) = \sum\limits_{i=0}^N l(t_i, a_i) \cdot w_{i}}$
 
 $l(t,a) = \begin{cases} \frac{1}{2} (t - a)^{2} { , } & |t -a| \leq \delta \\ \delta|t -a| - \frac{1}{2} \delta^{2} { , } & |t -a| > \delta \end{cases}$
 
@@ -158,7 +158,7 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 ### {{ error-function__Expectile }} {#Expectile}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} |\alpha - 1(t_{i} \leq a_{i})|(t_{i} - a_{i})^2 w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} |\alpha - I(t_{i} \leq a_{i})|(t_{i} - a_{i})^2 w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
 
 **{{ optimization }}** See [more](#usage-information).
 
@@ -176,7 +176,7 @@ _Default:_  {{ fit--alpha }}
 
 ### {{ error-function__Tweedie }} {#Tweedie}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N}\left(\displaystyle\frac{e^{a_{i}(2-\lambda)}}{2-\lambda} - t_{i}\frac{e^{a_{i}(1-\lambda)}}{1-\lambda} \right)\cdot w_{i}}{\sum\limits_{i=1}^{N} w_{i}} { , where}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N}\left(\displaystyle\frac{e^{a_{i}(2-\lambda)}}{2-\lambda} - t_{i}\frac{e^{a_{i}(1-\lambda)}}{1-\lambda} \right)\cdot w_{i}}{\sum\limits_{i=1}^{N} w_{i}}$
 
 $\lambda$ is the value of the {{ loss-functions__params__variance_power }} parameter.
 
@@ -198,7 +198,7 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 ### {{ error-function__LogCosh }} {#LogCosh}
 
-$\frac{\sum_{i=1}^N w_i \log(\cosh(a_i - t_i))}{\sum_{i=1}^N w_i}$
+$\displaystyle\frac{\sum_{i=1}^N w_i \log(\cosh(a_i - t_i))}{\sum_{i=1}^N w_i}$
 
 **{{ optimization }}** See [more](#usage-information).
 
@@ -209,7 +209,7 @@ $\frac{\sum_{i=1}^N w_i \log(\cosh(a_i - t_i))}{\sum_{i=1}^N w_i}$
 
 ### {{ error-function__FairLoss }} {#FairLoss}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} c^2(\frac{|t_{i} - a_{i} |}{c} - \ln(\frac{|t_{i} - a_{i} |}{c} + 1))w_{i}}{\sum\limits_{i=1}^{N} w_{i}} { , where}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} c^2\left(\frac{|t_{i} - a_{i} |}{c} - \log\left(\frac{|t_{i} - a_{i} |}{c} + 1\right)\right)w_{i}}{\sum\limits_{i=1}^{N} w_{i}}$
 
 $c$ is the value of the {{ loss-functions__params__smoothness }} parameter.
 
@@ -232,13 +232,9 @@ _Default:_ {{ fit--smoothness }}
 
 The proportion of predictions, for which the difference from the label value exceeds the specified value `{{ loss-function__params__greater-than }}`.
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} I\{x\} w_{i}}{\sum\limits_{i=1}^{N} w_{i}} { , where}$
-
-$I\{x\} = \begin{cases} 1 { , } & |a_{i} - t_{i}| > greater\_than \\ 0 { , } & |a_{i} - t_{i}| \leq greater\_than \end{cases}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} I(|a_{i} - t_{i}|\geq \text{greater\_than}) w_{i}}{\sum\limits_{i=1}^{N} w_{i}}$
 
 {{ title__loss-functions__text__user-defined-params }}: {{ loss-function__params__greater-than }}
-
-Increase the numerator of the formula if the following inequality is met:<br/><br/>$|prediction - label|>value$
 
 **{{ no-optimization }}** See [more](#usage-information).
 
@@ -271,7 +267,7 @@ $\bar{t} = \frac{1}{N}\sum\limits_{i=1}^{N}t_{i}$
 
 ### {{ error-function__MSLE }} {#MSLE}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log_{e} (1 + t_{i}) - \log_{e} (1 + a_{i}))^{2}}{\sum\limits_{i=1}^{N} w_{i}}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log (1 + t_{i}) - \log (1 + a_{i}))^{2}}{\sum\limits_{i=1}^{N} w_{i}}$
 
 **{{ no-optimization }}** See [more](#usage-information).
 
@@ -282,7 +278,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log_{e} (1 + t_{i}) - \log_{e}
 
 ### {{ error-function__MedianAbsoluteError }} {#MedianAbsoluteError}
 
-$median(|t_{1} - a_{1}|, ..., |t_{i} - a_{i}|)$
+$\displaystyle\text{median}(|t_{1} - a_{1}|, ..., |t_{i} - a_{N}|)$
 
 **{{ no-optimization }}**  See [more](#usage-information).
 
