@@ -1,11 +1,11 @@
 Metadata-Version: 2.1
 Name: psutil
-Version: 5.8.0
+Version: 5.9.8
 Summary: Cross-platform lib for process and system monitoring in Python.
 Home-page: https://github.com/giampaolo/psutil
 Author: Giampaolo Rodola
 Author-email: g.rodola@gmail.com
-License: BSD
+License: BSD-3-Clause
 Keywords: ps,top,kill,free,lsof,netstat,nice,tty,ionice,uptime,taskmgr,process,df,iotop,iostat,ifconfig,taskset,who,pidof,pmap,smem,pstree,monitoring,ulimit,prlimit,smem,performance,metrics,agent,observability
 Platform: Platform Independent
 Classifier: Development Status :: 5 - Production/Stable
@@ -35,7 +35,6 @@ Classifier: Operating System :: POSIX :: SunOS/Solaris
 Classifier: Operating System :: POSIX
 Classifier: Programming Language :: C
 Classifier: Programming Language :: Python :: 2
-Classifier: Programming Language :: Python :: 2.6
 Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: Implementation :: CPython
@@ -53,19 +52,19 @@ Classifier: Topic :: System :: Networking
 Classifier: Topic :: System :: Operating System
 Classifier: Topic :: System :: Systems Administration
 Classifier: Topic :: Utilities
-Requires-Python: >=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*
 Description-Content-Type: text/x-rst
+License-File: LICENSE
 Provides-Extra: test
 Requires-Dist: ipaddress ; (python_version < "3.0") and extra == 'test'
 Requires-Dist: mock ; (python_version < "3.0") and extra == 'test'
-Requires-Dist: unittest2 ; (python_version < "3.0") and extra == 'test'
 Requires-Dist: enum34 ; (python_version <= "3.4") and extra == 'test'
 Requires-Dist: pywin32 ; (sys_platform == "win32") and extra == 'test'
 Requires-Dist: wmi ; (sys_platform == "win32") and extra == 'test'
 
-|  |downloads| |stars| |forks| |contributors| |coverage| |quality|
+|  |downloads| |stars| |forks| |contributors| |coverage|
 |  |version| |py-versions| |packages| |license|
-|  |github-actions| |appveyor| |doc| |twitter| |tidelift|
+|  |github-actions-wheels|  |github-actions-bsd| |appveyor| |doc| |twitter| |tidelift|
 
 .. |downloads| image:: https://img.shields.io/pypi/dm/psutil.svg
     :target: https://pepy.tech/project/psutil
@@ -83,24 +82,24 @@ Requires-Dist: wmi ; (sys_platform == "win32") and extra == 'test'
     :target: https://github.com/giampaolo/psutil/graphs/contributors
     :alt: Contributors
 
-.. |quality| image:: https://img.shields.io/codacy/grade/ce63e7f7f69d44b5b59682196e6fbfca.svg
-    :target: https://www.codacy.com/app/g-rodola/psutil?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=giampaolo/psutil&amp;utm_campaign=Badge_Grade
-    :alt: Code quality
+.. |github-actions-wheels| image:: https://img.shields.io/github/actions/workflow/status/giampaolo/psutil/.github/workflows/build.yml?label=Linux%2C%20macOS%2C%20Windows
+    :target: https://github.com/giampaolo/psutil/actions?query=workflow%3Abuild
+    :alt: Linux, macOS, Windows
 
-.. |github-actions| image:: https://img.shields.io/github/workflow/status/giampaolo/psutil/CI?label=Linux%2C%20macOS%2C%20FreeBSD
-    :target: https://github.com/giampaolo/psutil/actions?query=workflow%3ACI
-    :alt: Linux, macOS, Windows tests
+.. |github-actions-bsd| image:: https://img.shields.io/github/actions/workflow/status/giampaolo/psutil/.github/workflows/bsd.yml?label=FreeBSD,%20NetBSD,%20OpenBSD
+    :target: https://github.com/giampaolo/psutil/actions?query=workflow%3Absd-tests
+    :alt: FreeBSD, NetBSD, OpenBSD
 
-.. |appveyor| image:: https://img.shields.io/appveyor/ci/giampaolo/psutil/master.svg?maxAge=3600&label=Windows
+.. |appveyor| image:: https://img.shields.io/appveyor/build/giampaolo/psutil/master.svg?maxAge=3600&label=Windows%20(py2)
     :target: https://ci.appveyor.com/project/giampaolo/psutil
-    :alt: Windows tests (Appveyor)
+    :alt: Windows (Appveyor)
 
 .. |coverage| image:: https://coveralls.io/repos/github/giampaolo/psutil/badge.svg?branch=master
     :target: https://coveralls.io/github/giampaolo/psutil?branch=master
     :alt: Test coverage (coverall.io)
 
 .. |doc| image:: https://readthedocs.org/projects/psutil/badge/?version=latest
-    :target: http://psutil.readthedocs.io/en/latest/?badge=latest
+    :target: https://psutil.readthedocs.io/en/latest/
     :alt: Documentation Status
 
 .. |version| image:: https://img.shields.io/pypi/v/psutil.svg?label=pypi
@@ -108,7 +107,6 @@ Requires-Dist: wmi ; (sys_platform == "win32") and extra == 'test'
     :alt: Latest version
 
 .. |py-versions| image:: https://img.shields.io/pypi/pyversions/psutil.svg
-    :target: https://pypi.org/project/psutil
     :alt: Supported Python versions
 
 .. |packages| image:: https://repology.org/badge/tiny-repos/python:psutil.svg
@@ -161,7 +159,7 @@ psutil currently supports the following platforms:
 - **Sun Solaris**
 - **AIX**
 
-Supported Python versions are **2.6**, **2.7**, **3.4+** and
+Supported Python versions are **2.7**, **3.6+** and
 `PyPy <http://pypy.org/>`__.
 
 Funding
@@ -172,7 +170,7 @@ immensely from some funding.
 Keeping up with bug reports and maintenance has become hardly sustainable for
 me alone in terms of time.
 If you're a company that's making significant use of psutil you can consider
-becoming a sponsor via `GitHub <https://github.com/sponsors/giampaolo>`__,
+becoming a sponsor via `GitHub Sponsors <https://github.com/sponsors/giampaolo>`__,
 `Open Collective <https://opencollective.com/psutil>`__ or
 `PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=A9ZS7PKKRM3S8>`__
 and have your logo displayed in here and psutil `doc <https://psutil.readthedocs.io>`__.
@@ -199,7 +197,7 @@ CPU
     >>> import psutil
     >>>
     >>> psutil.cpu_times()
-    scputimes(user=3961.46, nice=169.729, system=2150.659, idle=16900.540, iowait=629.59, irq=0.0, softirq=19.42, steal=0.0, guest=0, nice=0.0)
+    scputimes(user=3961.46, nice=169.729, system=2150.659, idle=16900.540, iowait=629.59, irq=0.0, softirq=19.42, steal=0.0, guest=0, guest_nice=0.0)
     >>>
     >>> for x in range(3):
     ...     psutil.cpu_percent(interval=1)
@@ -254,7 +252,7 @@ Disks
 
     >>> psutil.disk_partitions()
     [sdiskpart(device='/dev/sda1', mountpoint='/', fstype='ext4', opts='rw,nosuid', maxfile=255, maxpath=4096),
-     sdiskpart(device='/dev/sda2', mountpoint='/home', fstype='ext, opts='rw', maxfile=255, maxpath=4096)]
+     sdiskpart(device='/dev/sda2', mountpoint='/home', fstype='ext', opts='rw', maxfile=255, maxpath=4096)]
     >>>
     >>> psutil.disk_usage('/')
     sdiskusage(total=21378641920, used=4809781248, free=15482871808, percent=22.5)
@@ -286,8 +284,8 @@ Network
                snicaddr(family=<AddressFamily.AF_LINK: 17>, address='c4:85:08:45:06:41', netmask=None, broadcast='ff:ff:ff:ff:ff:ff', ptp=None)]}
     >>>
     >>> psutil.net_if_stats()
-    {'lo': snicstats(isup=True, duplex=<NicDuplex.NIC_DUPLEX_UNKNOWN: 0>, speed=0, mtu=65536),
-     'wlan0': snicstats(isup=True, duplex=<NicDuplex.NIC_DUPLEX_FULL: 2>, speed=100, mtu=1500)}
+    {'lo': snicstats(isup=True, duplex=<NicDuplex.NIC_DUPLEX_UNKNOWN: 0>, speed=0, mtu=65536, flags='up,loopback,running'),
+     'wlan0': snicstats(isup=True, duplex=<NicDuplex.NIC_DUPLEX_FULL: 2>, speed=100, mtu=1500, flags='up,broadcast,running,multicast')}
     >>>
 
 Sensors
@@ -340,39 +338,38 @@ Process management
     >>> p = psutil.Process(7055)
     >>> p
     psutil.Process(pid=7055, name='python3', status='running', started='09:04:44')
+    >>> p.pid
+    7055
     >>> p.name()
-    'python'
+    'python3'
     >>> p.exe()
-    '/usr/bin/python'
+    '/usr/bin/python3'
     >>> p.cwd()
     '/home/giampaolo'
     >>> p.cmdline()
-    ['/usr/bin/python', 'main.py']
+    ['/usr/bin/python3', 'main.py']
     >>>
-    >>> p.pid
-    7055
     >>> p.ppid()
     7054
-    >>> p.children(recursive=True)
-    [psutil.Process(pid=29835, name='python3', status='sleeping', started='11:45:38'),
-     psutil.Process(pid=29836, name='python3', status='waking', started='11:43:39')]
-    >>>
     >>> p.parent()
     psutil.Process(pid=4699, name='bash', status='sleeping', started='09:06:44')
     >>> p.parents()
     [psutil.Process(pid=4699, name='bash', started='09:06:44'),
      psutil.Process(pid=4689, name='gnome-terminal-server', status='sleeping', started='0:06:44'),
      psutil.Process(pid=1, name='systemd', status='sleeping', started='05:56:55')]
+    >>> p.children(recursive=True)
+    [psutil.Process(pid=29835, name='python3', status='sleeping', started='11:45:38'),
+     psutil.Process(pid=29836, name='python3', status='waking', started='11:43:39')]
     >>>
     >>> p.status()
     'running'
-    >>> p.username()
-    'giampaolo'
     >>> p.create_time()
     1267551141.5019531
     >>> p.terminal()
     '/dev/pts/0'
     >>>
+    >>> p.username()
+    'giampaolo'
     >>> p.uids()
     puids(real=1000, effective=1000, saved=1000)
     >>> p.gids()
@@ -412,14 +409,14 @@ Process management
     [pconn(fd=115, family=<AddressFamily.AF_INET: 2>, type=<SocketType.SOCK_STREAM: 1>, laddr=addr(ip='10.0.0.1', port=48776), raddr=addr(ip='93.186.135.91', port=80), status='ESTABLISHED'),
      pconn(fd=117, family=<AddressFamily.AF_INET: 2>, type=<SocketType.SOCK_STREAM: 1>, laddr=addr(ip='10.0.0.1', port=43761), raddr=addr(ip='72.14.234.100', port=80), status='CLOSING')]
     >>>
-    >>> p.num_threads()
-    4
-    >>> p.num_fds()
-    8
     >>> p.threads()
     [pthread(id=5234, user_time=22.5, system_time=9.2891),
      pthread(id=5237, user_time=0.0707, system_time=1.1)]
     >>>
+    >>> p.num_threads()
+    4
+    >>> p.num_fds()
+    8
     >>> p.num_ctx_switches()
     pctxsw(voluntary=78, involuntary=19)
     >>>
@@ -486,23 +483,6 @@ Further process APIs
     >>> gone, alive = psutil.wait_procs(procs_list, timeout=3, callback=on_terminate)
     >>>
 
-Popen wrapper:
-
-.. code-block:: python
-
-    >>> import psutil
-    >>> from subprocess import PIPE
-    >>> p = psutil.Popen(["/usr/bin/python", "-c", "print('hello')"], stdout=PIPE)
-    >>> p.name()
-    'python'
-    >>> p.username()
-    'giampaolo'
-    >>> p.communicate()
-    ('hello\n', None)
-    >>> p.wait(timeout=2)
-    0
-    >>>
-
 Windows services
 ----------------
 
@@ -533,6 +513,7 @@ Here's some I find particularly interesting:
 - https://github.com/google/grr
 - https://github.com/facebook/osquery/
 - https://github.com/nicolargo/glances
+- https://github.com/aristocratos/bpytop
 - https://github.com/Jahaja/psdash
 - https://github.com/ajenti/ajenti
 - https://github.com/home-assistant/home-assistant/
@@ -544,17 +525,6 @@ Portings
 - C: https://github.com/hamon-in/cpslib
 - Rust: https://github.com/rust-psutil/rust-psutil
 - Nim: https://github.com/johnscillieri/psutil-nim
-
-Security
-========
-
-To report a security vulnerability, please use the `Tidelift security
-contact`_.  Tidelift will coordinate the fix and disclosure.
-
-.. _`Giampaolo Rodola`: https://gmpy.dev/about
-.. _`donation`: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=A9ZS7PKKRM3S8
-.. _Tidelift security contact: https://tidelift.com/security
-.. _Tidelift Subscription: https://tidelift.com/subscription/pkg/pypi-psutil?utm_source=pypi-psutil&utm_medium=referral&utm_campaign=readme
 
 
 
