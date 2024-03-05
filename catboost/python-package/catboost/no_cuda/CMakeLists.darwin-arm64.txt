@@ -59,7 +59,6 @@ target_link_options(_catboost_no_cuda PRIVATE
   -fPIC
   -undefined
   dynamic_lookup
-  -flat_namespace
   -fPIC
 )
 target_sources(_catboost_no_cuda PRIVATE
