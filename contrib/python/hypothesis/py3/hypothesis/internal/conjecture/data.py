@@ -18,6 +18,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    DefaultDict,
     Dict,
     FrozenSet,
     Iterable,
@@ -1468,6 +1469,7 @@ class ConjectureData:
         self.forced_indices: "Set[int]" = set()
         self.interesting_origin: Optional[InterestingOrigin] = None
         self.draw_times: "Dict[str, float]" = {}
+        self._stateful_run_times: "DefaultDict[str, float]" = defaultdict(float)
         self.max_depth = 0
         self.has_discards = False
         self.provider = PrimitiveProvider(self)
@@ -1752,7 +1754,7 @@ class ConjectureData:
                 try:
                     return strategy.do_draw(self)
                 finally:
-                    key = observe_as or f"unlabeled_{len(self.draw_times)}"
+                    key = observe_as or f"generate:unlabeled_{len(self.draw_times)}"
                     self.draw_times[key] = time.perf_counter() - start_time
         finally:
             self.stop_example()

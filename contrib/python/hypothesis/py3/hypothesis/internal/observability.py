@@ -41,9 +41,12 @@ def make_testcase(
     arguments: Optional[dict] = None,
     timing: Dict[str, float],
     coverage: Optional[Dict[str, List[int]]] = None,
+    phase: Optional[str] = None,
 ) -> dict:
     if data.interesting_origin:
         status_reason = str(data.interesting_origin)
+    elif phase == "shrink" and data.status == Status.OVERRUN:
+        status_reason = "exceeded size of current best example"
     else:
         status_reason = str(data.events.pop("invalid because", ""))
 
