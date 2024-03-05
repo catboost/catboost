@@ -288,7 +288,7 @@ No.
 
 ### {{ error-function__Cox }} {#Cox}
 
-$\displaystyle\sum\limits_{t_{i} > 0}\left( a_{i} - \log\sum\limits_{t_{j} \ge t_{i}} \exp(a_{j})\right)$
+$\displaystyle\sum\limits_{t_{i} > 0}\left( a_{i} - \log\sum\limits_{|t_{j}| \ge t_{i}} \exp(a_{j})\right)$
 
 Above, positive labels $t_{i} > 0$ mean occurence of the event.
 
