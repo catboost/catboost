@@ -69,13 +69,10 @@ public:
         Trees_[0] = Path_.begin();
         Trees_[1] = nullptr;
 
-        ClearLastSystemError();
         FileTree_.Reset(yfts_open(Trees_, Options_.FtsOptions, Options_.Cmp));
 
-        const int err = LastSystemError();
-
-        if (err) {
-            ythrow TError(err) << "can not open '" << Path_ << "'";
+        if (!FileTree_.Get() || FileTree_->fts_cur->fts_link->fts_errno) {
+            ythrow TError(FileTree_.Get() ? FileTree_->fts_cur->fts_link->fts_errno : LastSystemError()) << "can not open '" << Path_ << "'";
         }
     }
 
