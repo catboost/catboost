@@ -278,7 +278,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log (1 + t_{i}) - \log (1 + a_
 
 ### {{ error-function__MedianAbsoluteError }} {#MedianAbsoluteError}
 
-$\displaystyle\text{median}(|t_{1} - a_{1}|, ..., |t_{i} - a_{N}|)$
+$\displaystyle\text{median}(|t_{1} - a_{1}|, ..., |t_{N} - a_{N}|)$
 
 **{{ no-optimization }}**  See [more](#usage-information).
 
