@@ -14,4 +14,4 @@ namespace {
 }
 
 NCB::TModeDatasetStatisticsImplementationFactory::TRegistrator<TOpenSourceModeDatasetStatisticsImplementation>
-    YandexSpecificModeDatasetStatisticsImplementationRegistrator(NCB::EImplementationType::OpenSource);
+    OpenSourceModeDatasetStatisticsImplementationRegistrator(NCB::EImplementationType::OpenSource);

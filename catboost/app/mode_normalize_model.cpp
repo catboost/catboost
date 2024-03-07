@@ -183,4 +183,4 @@ namespace {
     };
 }
 
-TModeNormalizeModelImplementationFactory::TRegistrator<TOpenSourceModeNormalizeModelImplementation> YandexSpecificModeNormalizeModelImplementationRegistrator(EImplementationType::OpenSource);
+TModeNormalizeModelImplementationFactory::TRegistrator<TOpenSourceModeNormalizeModelImplementation> OpenSourceModeNormalizeModelImplementationRegistrator(EImplementationType::OpenSource);
