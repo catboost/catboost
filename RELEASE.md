@@ -19,7 +19,7 @@
 * \[C/C++ applier\]. Add staged prediction functions to C API. #2584. Thanks to @Mb-NextTime.
 * \[JVM applier\]. Add loading CatBoostModel from a byte array to API. #2539
 * \[Linux\] Support CgroupsV2 when computing default number of threads used in parallel computations. #2519. Thanks to @elukey.
-* Support printing `Auxiliary` columns by name in evaluation result output.
+* \[CLI\] Support printing `Auxiliary` columns by name in evaluation result output. #1659
 * Save training metrics into the model metadata. Can be removed by model metadata manipulation if needed. #1166
 
 ## Build & testing
