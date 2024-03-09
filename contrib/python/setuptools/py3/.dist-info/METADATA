@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 69.1.0
+Version: 69.1.1
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -43,6 +43,7 @@ Requires-Dist: flake8-2020 ; extra == 'testing'
 Requires-Dist: virtualenv >=13.0.0 ; extra == 'testing'
 Requires-Dist: wheel ; extra == 'testing'
 Requires-Dist: pip >=19.1 ; extra == 'testing'
+Requires-Dist: packaging >=23.2 ; extra == 'testing'
 Requires-Dist: jaraco.envs >=2.2 ; extra == 'testing'
 Requires-Dist: pytest-xdist ; extra == 'testing'
 Requires-Dist: jaraco.path >=3.2.0 ; extra == 'testing'
@@ -63,7 +64,7 @@ Requires-Dist: jaraco.path >=3.2.0 ; extra == 'testing-integration'
 Requires-Dist: jaraco.envs >=2.2 ; extra == 'testing-integration'
 Requires-Dist: build[virtualenv] >=1.0.3 ; extra == 'testing-integration'
 Requires-Dist: filelock >=3.4.0 ; extra == 'testing-integration'
-Requires-Dist: packaging >=23.1 ; extra == 'testing-integration'
+Requires-Dist: packaging >=23.2 ; extra == 'testing-integration'
 Requires-Dist: pytest-cov ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: pytest-mypy >=0.9.1 ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: jaraco.develop >=7.21 ; (python_version >= "3.9" and sys_platform != "cygwin") and extra == 'testing'
