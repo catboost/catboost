@@ -47,6 +47,7 @@ from hypothesis._settings import (
 from hypothesis.control import _current_build_context, current_build_context
 from hypothesis.core import TestFunc, given
 from hypothesis.errors import InvalidArgument, InvalidDefinition
+from hypothesis.internal.compat import add_note
 from hypothesis.internal.conjecture import utils as cu
 from hypothesis.internal.healthcheck import fail_health_check
 from hypothesis.internal.observability import TESTCASE_CALLBACKS
@@ -439,18 +440,16 @@ class Rule:
     bundles = attr.ib(init=False)
 
     def __attrs_post_init__(self):
-        arguments = {}
+        self.arguments_strategies = {}
         bundles = []
         for k, v in sorted(self.arguments.items()):
             assert not isinstance(v, BundleReferenceStrategy)
             if isinstance(v, Bundle):
                 bundles.append(v)
                 consume = isinstance(v, BundleConsumer)
-                arguments[k] = BundleReferenceStrategy(v.name, consume=consume)
-            else:
-                arguments[k] = v
+                v = BundleReferenceStrategy(v.name, consume=consume)
+            self.arguments_strategies[k] = v
         self.bundles = tuple(bundles)
-        self.arguments_strategy = st.fixed_dictionaries(arguments)
 
 
 self_strategy = st.runner()
@@ -978,7 +977,15 @@ class RuleStrategy(SearchStrategy):
             .filter(lambda r: feature_flags.is_enabled(r.function.__name__))
         )
 
-        return (rule, data.draw(rule.arguments_strategy))
+        arguments = {}
+        for k, strat in rule.arguments_strategies.items():
+            try:
+                arguments[k] = data.draw(strat)
+            except Exception as err:
+                rname = rule.function.__name__
+                add_note(err, f"while generating {k!r} from {strat!r} for rule {rname}")
+                raise
+        return (rule, arguments)
 
     def is_valid(self, rule):
         predicates = self.machine._observability_predicates

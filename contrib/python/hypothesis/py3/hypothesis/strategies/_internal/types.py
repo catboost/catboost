@@ -37,6 +37,7 @@ from hypothesis.errors import HypothesisWarning, InvalidArgument, ResolutionFail
 from hypothesis.internal.compat import PYPY, BaseExceptionGroup, ExceptionGroup
 from hypothesis.internal.conjecture.utils import many as conjecture_utils_many
 from hypothesis.internal.filtering import max_len, min_len
+from hypothesis.internal.reflection import get_pretty_function_description
 from hypothesis.strategies._internal.datetime import zoneinfo  # type: ignore
 from hypothesis.strategies._internal.ipaddress import (
     SPECIAL_IPv4_RANGES,
@@ -300,16 +301,40 @@ def _get_constraints(args: Tuple[Any, ...]) -> Iterator["at.BaseMetadata"]:
                 yield from at.Len(arg.start or 0, arg.stop)
 
 
+def _flat_annotated_repr_parts(annotated_type):
+    # Helper to get a good error message in find_annotated_strategy() below.
+    type_reps = [
+        get_pretty_function_description(a)
+        for a in annotated_type.__args__
+        if not isinstance(a, typing.TypeVar)
+    ]
+    metadata_reps = []
+    for m in getattr(annotated_type, "__metadata__", ()):
+        if is_annotated_type(m):
+            ts, ms = _flat_annotated_repr_parts(m)
+            type_reps.extend(ts)
+            metadata_reps.extend(ms)
+        else:
+            metadata_reps.append(get_pretty_function_description(m))
+    return type_reps, metadata_reps
+
+
 def find_annotated_strategy(annotated_type):
     metadata = getattr(annotated_type, "__metadata__", ())
 
     if any(is_annotated_type(arg) for arg in metadata):
-        # We are in the case where one of the metadata argument
-        # is itself an annotated type. Although supported at runtime,
-        # This shouldn't be allowed: we prefer to raise here
+        # Annotated[Annotated[T], ...] is perfectly acceptable, but it's all to easy
+        # to instead write Annotated[T1, Annotated[T2, ...]] - and nobody else checks
+        # for that at runtime.  Once you add generics this can be seriously confusing,
+        # so we go to some trouble to give a helpful error message.
+        # For details: https://github.com/HypothesisWorks/hypothesis/issues/3891
+        ty_rep = repr(annotated_type).replace("typing.Annotated", "Annotated")
+        ts, ms = _flat_annotated_repr_parts(annotated_type)
+        bits = ", ".join([" | ".join(dict.fromkeys(ts or "?")), *dict.fromkeys(ms)])
         raise ResolutionFailed(
-            f"Failed to resolve strategy for the following Annotated type: {annotated_type}."
-            "Arguments to the Annotated type cannot be Annotated."
+            f"`{ty_rep}` is invalid because nesting Annotated is only allowed for "
+            f"the first (type) argument, not for later (metadata) arguments.  "
+            f"Did you mean `Annotated[{bits}]`?"
         )
     for arg in reversed(metadata):
         if isinstance(arg, st.SearchStrategy):
