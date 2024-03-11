@@ -54,7 +54,8 @@ def main():
     res["version"] = 1
     res["components"] = [parse_componenet(lib) for lib in args.libinfo]
     res["properties"] = [
-        {'name': 'commit_hash', 'value': vcs['ARCADIA_SOURCE_HG_HASH'], 'arcadia_module_subdir': args.mod_path}
+        {'name': 'commit_hash', 'value': vcs['ARCADIA_SOURCE_HG_HASH']},
+        {'name': 'arcadia_module_subdir', 'value': args.mod_path}
     ]
     if vcs.get('DIRTY', '') == 'dirty':
         res["properties"].append({'name': 'has_uncommited_changes', 'value': True})
